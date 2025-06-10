@@ -5,22 +5,24 @@
 通过以下方式来全局注册组件，更多注册方式请参考[组件注册]
 
 ```jsx
-import { Button } from "mooli-mobile";
+import Button from "@/components/button";
 
-ReactDOM.render(
-  <div className="demo-button">
-    <Button type="primary">主要按钮</Button>
-    <Button type="info">信息按钮</Button>
-    <Button type="default">默认按钮</Button>
-    <Button type="warning">警告按钮</Button>
-    <Button type="danger">危险按钮</Button>
-  </div>,
-  mountNode
-);
+function Example() {
+  return (
+    <Button title="点击我" />
+  );
+}
 ```
 
-# Tables
+## API
 
-| Name  | Age |
-| ----- | --- |
-| Bacon | 26  |
+### Props
+
+| 参数         | 说明                                               | 类型     | 默认值    |
+| ------------ | -------------------------------------------------- | -------- | --------- |
+| type         | 类型，可选值为 `primary` `info` `warning` `danger` | _string_ | `default` |
+| size         | 尺寸，可选值为 `large` `small` `mini`              | _string_ | `normal`  |
+| color        | 按钮颜色，支持传入 `linear-gradient` 渐变色        | _string_ | -         |
+| icon         | 图标名称                                           | _string_ | -         |
+| iconSize     | 加载图标大小                                       | _string_ | `16px`    |
+| iconPosition | 图标展示位置，可选值为 `right`                     | _string_ | `left`    |

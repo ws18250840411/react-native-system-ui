@@ -1,9 +1,9 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 
-import { replace } from "@/src/utils/navigation";
 import { ThemedText } from "@/src/components/ThemedText";
 import { ThemedView } from "@/src/components/ThemedView";
+import { replace } from "@/src/utils/navigation";
 
 export function NotFound() {
   return (
