@@ -1,16 +1,17 @@
-import {ParamListBase, RouteProp} from '@react-navigation/native';
-import {
-  NativeStackNavigationOptions,
-  NativeStackNavigationProp,
-} from '@react-navigation/native-stack';
 import {
   BottomTabNavigationOptions,
   BottomTabNavigationProp,
 } from '@react-navigation/bottom-tabs';
+import { ParamListBase, RouteProp } from '@react-navigation/native';
+import {
+  NativeStackNavigationOptions,
+  NativeStackNavigationProp,
+} from '@react-navigation/native-stack';
 
 // 基础路由类型
 export type BaseRoute<T> = {
   path: string;
+  name?: string;
   element?:
     | React.ComponentType<{}>
     | React.ComponentType<{

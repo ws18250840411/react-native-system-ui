@@ -3,6 +3,7 @@
   "main": "index.ts",
   "version": "1.0.0",
   "scripts": {
+    "dev": "expo start --android",
     "start": "expo start --web",
     "lint": "expo lint"
   },

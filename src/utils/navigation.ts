@@ -1,10 +1,10 @@
-import {
-  createNavigationContainerRef,
-  StackActions,
-  CommonActions,
-  ParamListBase,
-} from "@react-navigation/native";
 import { stackRoutes } from "@/src/routes";
+import {
+  CommonActions,
+  createNavigationContainerRef,
+  ParamListBase,
+  StackActions,
+} from "@react-navigation/native";
 
 export const navigationRef = createNavigationContainerRef<ParamListBase>();
 
@@ -32,7 +32,7 @@ export const getAllRoutes = () => {
   const routes = new Map<
     string,
     {
-      type: "tab" | "auth" | "stack";
+      type: "tab" | "stack";
       path: string;
     }
   >();
@@ -43,6 +43,7 @@ export const getAllRoutes = () => {
       path: route.path,
     });
   });
+
 
   return routes;
 };

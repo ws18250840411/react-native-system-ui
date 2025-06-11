@@ -1,13 +1,14 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { navigationRef } from "@/src/utils/navigation";
 import { NotFound } from "@/src/components/NotFound";
 import { stackRoutes } from "@/src/routes";
+import { navigationRef } from "@/src/utils/navigation";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import React from "react";
 
 const Stack = createNativeStackNavigator();
 
 function StackNavigator() {
+  console.log(stackRoutes)
   return (
     <Stack.Navigator
       screenOptions={{
@@ -17,10 +18,10 @@ function StackNavigator() {
         fullScreenGestureEnabled: true,
       }}
     >
-      {stackRoutes.map(({ path, element, options }) => (
+      {stackRoutes.map(({ path, element,name, options }) => (
         <Stack.Screen
           key={path}
-          name={path}
+          name={name}
           component={element!}
           options={options!}
         />
