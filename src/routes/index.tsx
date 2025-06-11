@@ -9,10 +9,6 @@ console.log(Examples);
 // Stack 导航
 export const stackRoutes: StackRouteProps[] = [
   {
-    path: "/",
-    element: Test,
-  },
-  {
     path: "/test",
     element: Test,
   },
