@@ -1,15 +1,38 @@
 import type { StackRouteProps } from "./types";
 
-import { Examples } from "@/src/screens/example";
-import Test from "@/src/screens/test.md";
+// guide 模块
+import Contribution from "@/src/screens/guide/contribution.md";
+import Introduce from "@/src/screens/guide/introduce.md";
+import QuickStart from "@/src/screens/guide/quick-start.md";
+import Home from "@/src/screens/home.md";
 
-// console.log(Test);
-console.log(Examples);
+// components 模块
+import Button from "@/src/screens/components/button.md";
 
-// Stack 导航
+// stack 导航
 export const stackRoutes: StackRouteProps[] = [
   {
-    path: "/test",
-    element: Test,
+    path: "/",
+    element: Home,
+  },
+  {
+    path: "/guide/introduce",
+    element: Introduce,
+  },
+  {
+    path: "/guide/quickstart",
+    element: QuickStart,
+  },
+  {
+    path: "/guide/contribution",
+    element: Contribution,
+  },
+];
+
+// 组件导航
+export const componentsRoutes: StackRouteProps[] = [
+  {
+    path: "/components/button",
+    element: Button,
   },
 ];

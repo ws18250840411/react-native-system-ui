@@ -13,6 +13,7 @@
     "**/*.md",
     "**/*.mdx",
     ".expo/types/**/*.ts",
+    "global.d.ts",
     "expo-env.d.ts"
   ]
 }
