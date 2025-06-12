@@ -11,7 +11,7 @@ export const stackRoutes: StackRouteProps[] = flattenRoutes([
   // {
   //   path: "/",
   //   element: Home,
-  //   name: 'Home',
+  //   name: "Home",
   // },
   // {
   //   path: "/guide",
@@ -39,10 +39,10 @@ export const stackRoutes: StackRouteProps[] = flattenRoutes([
       {
         path: "/button",
         element: Button,
-        name: 'Button',
+        name: "Button",
       },
-    ]
-  }
-])
+    ],
+  },
+]);
 
-export default stackRoutes
+export default stackRoutes;

@@ -18,7 +18,7 @@ const transformCache = new Map();
 
 function memoize(fn) {
   const cache = new Map();
-  return function(...args) {
+  return function (...args) {
     const key = JSON.stringify(args);
     if (cache.has(key)) return cache.get(key);
     const result = fn.apply(this, args);
@@ -29,16 +29,15 @@ function memoize(fn) {
 
 const cardWrapper = memoize((html) => {
   if (!html) return "";
-  
-  const group = html.replace(
-    /<h([1-6])/g, 
-    (match, level) => `:::${match}`
-  ).split(":::");
+
+  const group = html
+    .replace(/<h([1-6])/g, (match, level) => `:::${match}`)
+    .split(":::");
 
   return group
     .map((fragment) => {
-      return fragment.indexOf("<h3") !== -1 
-        ? `<div class="card">${fragment}</div>` 
+      return fragment.indexOf("<h3") !== -1
+        ? `<div class="card">${fragment}</div>`
         : fragment;
     })
     .join("");
@@ -46,15 +45,13 @@ const cardWrapper = memoize((html) => {
 
 function transformMarked(code) {
   if (!code) return { code: "" };
-  
+
   let importChildrenCode = "";
   let importedModules = new Set();
 
   // 提取标题
   const titleMatch = code.match(TITLE_REGEX);
-  const titleHTML = titleMatch 
-    ? marked(titleMatch[0], { xhtml: true }) 
-    : "";
+  const titleHTML = titleMatch ? marked(titleMatch[0], { xhtml: true }) : "";
 
   // 提取 API 部分
   const apiMatch = code.match(API_REGEX);
@@ -76,12 +73,13 @@ function transformMarked(code) {
       if (!document) return "";
 
       const source = document[2].match(CODE_CONTENT_REGEX);
-      if (!source || source[2].indexOf("export default Example") === -1) return "";
+      if (!source || source[2].indexOf("export default Example") === -1)
+        return "";
 
       // 处理导入语句
       const imports = source[2].match(IMPORT_REGEX) || [];
-      const newImports = imports.filter(imp => !importedModules.has(imp));
-      newImports.forEach(imp => importedModules.add(imp));
+      const newImports = imports.filter((imp) => !importedModules.has(imp));
+      newImports.forEach((imp) => importedModules.add(imp));
 
       // 处理组件代码
       const codeWithoutImports = source[2].replace(IMPORT_REGEX, "");
@@ -97,7 +95,9 @@ function transformMarked(code) {
       const titleMarked = marked.parse(titleMatch ? titleMatch[1] : "");
 
       return `<div className="demo-block">
-        <div className="demo-block-title" dangerouslySetInnerHTML={{__html: ${JSON.stringify(titleMarked)}}} />
+        <div className="demo-block-title" dangerouslySetInnerHTML={{__html: ${JSON.stringify(
+          titleMarked
+        )}}} />
         <div className="demo-block-content"><${cName} /></div>
       </div>`;
     }),
@@ -108,12 +108,26 @@ function transformMarked(code) {
   const codeHTML = marked(
     contentWithoutTitle.replace(HEADING_SECTION_REGEX, (c) => {
       const otherCode = marked(c);
-      return `<div className="md-section" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(cardWrapper(otherCode))} }} ></div>`;
+      return `<div className="md-section" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(
+        cardWrapper(otherCode)
+      )} }} ></div>`;
     }),
     { xhtml: true }
   );
 
   // 生成模板
+  const demoTemplate = demoHTML
+    ? `
+    <div className="demo-container">
+      <div className="demo-container-wraper">
+        <div className="demo-container-title" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(
+          titleHTML
+        )} }} />
+        <div className="demo-container-content">${demoHTML}</div>
+      </div>
+    </div>
+  `
+    : "";
   const template = `
     import React, {useState,useEffect,useContext,useReducer,useCallback,useMemo,useRef,useImperativeHandle,useLayoutEffect,useDebugValue} from "react"
     ${importChildrenCode}
@@ -121,18 +135,17 @@ function transformMarked(code) {
       return (
         <div className="doc-container md-mobile">
           <div className="code-container">
-            <div className="code-container-title" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(titleHTML)} }} />
+            <div className="code-container-title" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(
+              titleHTML
+            )} }} />
             <div className="code-container-content">
               <div className="md-code">${codeHTML}</div>
-              <div className="md-api" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(wrappedApiHTML)} }} />
+              <div className="md-api" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(
+                wrappedApiHTML
+              )} }} />
             </div>
           </div>
-          <div className="demo-container">
-            <div className="demo-container-wraper">
-              <div className="demo-container-title" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(titleHTML)} }} />
-              <div className="demo-container-content">${demoHTML}</div>
-            </div>
-          </div>
+          ${demoTemplate}
         </div>
       )
     }
