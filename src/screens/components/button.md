@@ -5,7 +5,7 @@
 通过以下方式来全局注册组件，更多注册方式请参考[组件注册]
 
 ```jsx
-import Button from "@/components/button";
+import { Button } from "react-native-system-ui";
 
 const Example = () => {
   return <Button title="按钮" />;
@@ -18,7 +18,7 @@ export default Example;
 通过 `plain` 属性将按钮设置为朴素按钮，朴素按钮的文字为按钮颜色，背景为白色。
 
 ```jsx
-import Button from "@/components/button";
+import { Button } from "react-native-system-ui";
 
 const Example = () => {
   return <Button title="朴素按钮" />;

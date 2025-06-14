@@ -2,38 +2,38 @@ import type { StackRouteProps } from "./types";
 import { flattenRoutes } from "./utils";
 
 // guide 模块
-import Contribution from "@/src/screens/guide/contribution.md";
-import Introduce from "@/src/screens/guide/introduce.md";
-import QuickStart from "@/src/screens/guide/quick-start.md";
-import Home from "@/src/screens/home.md";
+import Contribution from "@/screens/guide/contribution.md";
+import Introduce from "@/screens/guide/introduce.md";
+import QuickStart from "@/screens/guide/quick-start.md";
+import Home from "@/screens/home.md";
 
 // components 模块
-import Button from "@/src/screens/components/button.md";
+import Button from "@/screens/components/button.md";
 
 // 路由
-export const stackRoutes: StackRouteProps[] = flattenRoutes([
+export const routes = [
   {
+    title: "首页",
     path: "/",
     element: Home,
-    name: "Home",
   },
   {
     path: "/guide",
     children: [
       {
+        title: '💁 介绍',
         path: "/introduce",
         element: Introduce,
-        name: 'Introduce',
       },
       {
+        title: '⚡️ 快速上手',
         path: "/quickstart",
         element: QuickStart,
-        name: 'QuickStart',
       },
       {
+        title: '开发指南',
         path: "/contribution",
         element: Contribution,
-        name: 'Contribution',
       },
     ]
   },
@@ -41,12 +41,18 @@ export const stackRoutes: StackRouteProps[] = flattenRoutes([
     path: "/components",
     children: [
       {
-        path: "/button",
-        element: Button,
-        name: "Button",
+        title: "基础组件",
+        children: [
+          {
+            title: "Button 按钮",
+            path: "/button",
+            element: Button,
+          },
+        ]
       },
     ],
   },
-]);
+];
 
+export const stackRoutes: StackRouteProps[] = flattenRoutes(routes);
 export default stackRoutes;

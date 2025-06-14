@@ -1,16 +1,21 @@
-import "./styles/markdown.css";
+import '@/global.css';
+import "@/styles/markdown.css";
 
-import { RootNavigator } from "@/src/components/StackNavigator";
+import { Header } from "@/components/Header";
+import { RootNavigator } from "@/components/StackNavigator";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
+import { View } from 'react-native';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   configureReanimatedLogger,
   ReanimatedLogLevel,
 } from "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Sidebar } from './components/SideBar';
+import { routes } from './routes';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -22,7 +27,7 @@ configureReanimatedLogger({
 
 export default function App() {
   const [loaded] = useFonts({
-    Inter: require("@/src/assets/fonts/SpaceMono-Regular.ttf"),
+    Inter: require("@/assets/fonts/SpaceMono-Regular.ttf"),
   });
 
   useEffect(() => {
@@ -37,10 +42,14 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider style={{ flex: 1 }}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+    <SafeAreaProvider>
+      <GestureHandlerRootView>
         <ThemeProvider value={DarkTheme}>
-          <RootNavigator />
+          <View className="flex-1 flex-row">
+            <Header />
+            <Sidebar routes={routes} />
+            <RootNavigator />
+          </View>
         </ThemeProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>

@@ -13,7 +13,7 @@ export function flattenRoutes<T>(
 ): BaseRoute<T>[] {
   return routes.reduce((acc, route) => {
     const currentPath = parentPath
-      ? joinPath([parentPath, route.path])
+      ? joinPath([parentPath, route.path || ''])
       : route.path;
 
     if (route.element) {
@@ -21,7 +21,7 @@ export function flattenRoutes<T>(
         path: currentPath,
         element: route.element,
         options: route.options,
-        name: route.name,
+        title: route.title,
       });
     }
 

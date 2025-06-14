@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 // 按钮组件
-const ButtonComponent = ({ 
+export const Button = ({ 
   title, 
   onPress, 
   style, 
@@ -50,4 +50,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ButtonComponent;  
+export default Button;  

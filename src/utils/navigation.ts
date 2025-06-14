@@ -1,4 +1,4 @@
-import { stackRoutes } from "@/src/routes";
+import { stackRoutes } from "@/routes";
 import {
   CommonActions,
   createNavigationContainerRef,
@@ -27,6 +27,7 @@ export const setRouteGuard = (guard: RouteGuard) => {
   Object.assign(guards, guard);
 };
 
+console.log(stackRoutes)
 // 扁平化所有路由配置并创建映射
 export const getAllRoutes = () => {
   const routes = new Map<

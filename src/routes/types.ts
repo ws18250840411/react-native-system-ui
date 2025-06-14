@@ -10,8 +10,8 @@ import {
 
 // 基础路由类型
 export type BaseRoute<T> = {
-  path: string;
-  name?: string;
+  path?: string;
+  title?: string;
   element?:
     | React.ComponentType<{}>
     | React.ComponentType<{

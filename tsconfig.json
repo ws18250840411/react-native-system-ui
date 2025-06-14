@@ -4,7 +4,15 @@
     "jsx": "react",
     "strict": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "react-native-system-ui": [
+        "./components"
+      ],
+      "tailwind.config": [
+        "./tailwind.config.js"
+      ]
     }
   },
   "include": [
@@ -14,6 +22,7 @@
     "**/*.mdx",
     ".expo/types/**/*.ts",
     "global.d.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }
