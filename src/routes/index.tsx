@@ -50,6 +50,16 @@ export const routes = [
           },
         ]
       },
+      {
+        title: "表单组件",
+        children: [
+          {
+            title: "Input 输入框",
+            path: "/input",
+            element: Button,
+          },
+        ]
+      },
     ],
   },
 ];

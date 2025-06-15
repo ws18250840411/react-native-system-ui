@@ -1,5 +1,5 @@
 import { StackRouteProps } from "@/routes/types";
-import { navigate, navigationRef } from "@/utils/navigation";
+import { navigate } from "@/utils/navigation";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
@@ -50,47 +50,43 @@ function transformRouteToMenuItem(route: StackRouteProps): MenuItem | null {
 function createMenuStructure(routes: StackRouteProps[], currentPath: string) {
   const menuItems: MenuItem[] = [];
   
-  // 判断当前路径是否属于指南或组件部分
-  const isGuidePath = currentPath.startsWith('/guide');
-  const isComponentPath = currentPath.startsWith('/components');
-
-  if (!isGuidePath && !isComponentPath) {
-    return menuItems; // 如果都不匹配，返回空数组
+  // 找到根路由，需要处理带 '/' 前缀的路径
+  const rootPath = '/' + (currentPath.split('/')[1] || '');
+  const rootRoute = routes.find(route => route.path === rootPath);
+  
+  if (!rootRoute) {
+    return menuItems;
   }
 
-  if (isGuidePath) {
-    // 文档分组
-    const docRoutes = routes.find(route => route.path === '/guide');
-    if (docRoutes && docRoutes.children) {
-      menuItems.push({
-        title: '文档',
-        children: docRoutes.children.map(child => transformRouteToMenuItem(child)).filter(Boolean) as MenuItem[]
-      });
-    }
-  } else if (isComponentPath) {
-    // 组件分组
-    const componentRoutes = routes.find(route => route.path === '/components');
-    if (componentRoutes && componentRoutes.children) {
-      menuItems.push({
-        title: '组件',
-        children: componentRoutes.children
-          .flatMap(group => group.children || [])
-          .map(child => transformRouteToMenuItem(child))
+  // 如果是指南路由
+  if (rootRoute.path === '/guide') {
+    menuItems.push({
+      title: rootRoute.title || '指南',
+      children: rootRoute.children
+        ?.map(child => transformRouteToMenuItem(child))
+        .filter(Boolean) as MenuItem[]
+    });
+  }
+  
+  // 如果是组件路由，保持原有的分组结构
+  if (rootRoute.path === '/components') {
+    menuItems.push(...(rootRoute.children || [])
+      .map(group => ({
+        title: group.title || '',
+        children: group.children
+          ?.map(child => transformRouteToMenuItem(child))
           .filter(Boolean) as MenuItem[]
-      });
-    }
+      }))
+      .filter(group => group.title && group.children?.length > 0)
+    );
   }
 
   return menuItems;
 }
 
 export function Sidebar({ routes }: { routes: StackRouteProps[] }) {
-  const currentRoute = navigationRef.getCurrentRoute();
-  const currentPath = currentRoute?.name || '';
-  
+  const currentPath = window.location.pathname || '';
   const menuItems = createMenuStructure(routes, currentPath);
-  console.log(currentPath)
-  console.log(menuItems)
 
   if (menuItems.length === 0) {
     return null;
