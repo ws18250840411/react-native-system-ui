@@ -1,5 +1,5 @@
 import { StackRouteProps } from "@/routes/types";
-import { navigate } from "@/utils/navigation";
+import { navigate, navigationRef } from "@/utils/navigation";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
@@ -85,9 +85,29 @@ function createMenuStructure(routes: StackRouteProps[], currentPath: string) {
 }
 
 export function Sidebar({ routes }: { routes: StackRouteProps[] }) {
-  const currentPath = window.location.pathname || '';
+  const [currentPath, setCurrentPath] = React.useState(window.location.pathname || '');
   const menuItems = createMenuStructure(routes, currentPath);
 
+
+  React.useEffect(() => {
+    // 订阅导航状态变化
+    const unsubscribe = navigationRef.addListener('state', () => {
+      if (navigationRef.isReady()) {
+        const route = navigationRef.getCurrentRoute();
+        setCurrentPath(route?.name || '');
+      }
+    });
+
+     // 初始化当前路径
+     if (navigationRef.isReady()) {
+      const route = navigationRef.getCurrentRoute();
+      setCurrentPath(route?.name || '');
+    }
+
+    // 清理订阅
+    return unsubscribe;
+  }, []);
+  
   if (menuItems.length === 0) {
     return null;
   }
