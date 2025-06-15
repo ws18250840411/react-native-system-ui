@@ -11,29 +11,72 @@ type MenuItem = {
 
 function MenuGroup({ title, children }: { title: string; children: MenuItem[] }) {
   return (
-    <View className="mb-4">
-      <Text className="px-4 py-2 text-sm font-medium text-gray-500">{title}</Text>
+    <View>
+      <Text className="py-2 px-4 text-[#141414] font-semibold text-[15px] leading-[28px]">{title}</Text>
       {children.map((item, index) => (
-        <MenuItem key={index} {...item} />
-      ))}
+        <MenuItem currentPath={""} key={index} {...item} />
+      ))}    
     </View>
   );
 }
 
-function MenuItem({ title, path, children }: MenuItem) {
+function MenuItem({ title, path, children, currentPath }: MenuItem & { currentPath: string }) {
   if (!title) return null;
 
   if (children) {
-    return <MenuGroup title={title} children={children} />;
+    return <MenuGroup title={title} children={children.map(child => ({
+      ...child,
+      currentPath
+    }))} />;
+  }
+
+  // 修改 isActive 判断逻辑，确保路径格式一致
+  const isActive = path && currentPath ? ('/' + currentPath.split('/')[1] + '/' + currentPath.split('/')[2]) === path : false;
+  return (
+    <Pressable
+      className={`rounded-md flex-row items-center px-4 py-2 ${isActive ? 'bg-gray-100' : 'hover:bg-gray-50'} active:bg-gray-200`}
+      onPress={() => path && navigate(path)}
+    >
+      <Text className={`text-sm ${isActive ? 'text-blue-600 font-medium' : 'text-gray-900'}`}>{title}</Text>
+    </Pressable>
+  );
+}
+
+export function Sidebar({ routes }: { routes: StackRouteProps[] }) {
+  const [currentPath, setCurrentPath] = React.useState('');
+
+  React.useEffect(() => {
+    // 订阅导航状态变化
+    const unsubscribe = navigationRef.addListener('state', () => {
+      if (navigationRef.isReady()) {
+        const route = navigationRef.getCurrentRoute();
+        setCurrentPath(route?.name || '');
+      }
+    });
+
+    // 初始化当前路径
+    if (navigationRef.isReady()) {
+      const route = navigationRef.getCurrentRoute();
+      setCurrentPath(route?.name || '');
+    }
+
+    return unsubscribe;
+  }, []);
+
+  const menuItems = createMenuStructure(routes, currentPath);
+
+  if (menuItems.length === 0) {
+    return null;
   }
 
   return (
-    <Pressable
-      className="flex-row items-center px-4 py-2 hover:bg-gray-100 active:bg-gray-200"
-      onPress={() => path && navigate(path)}
-    >
-      <Text className="text-sm text-gray-900">{title}</Text>
-    </Pressable>
+    <View className="w-[220px] p-[10px] pt-[60px]">
+      <ScrollView>
+        {menuItems.map((item, index) => (
+          <MenuItem key={index} {...item} currentPath={currentPath} />
+        ))}      
+      </ScrollView>
+    </View>
   );
 }
 
@@ -82,45 +125,6 @@ function createMenuStructure(routes: StackRouteProps[], currentPath: string) {
   }
 
   return menuItems;
-}
-
-export function Sidebar({ routes }: { routes: StackRouteProps[] }) {
-  const [currentPath, setCurrentPath] = React.useState(window.location.pathname || '');
-  const menuItems = createMenuStructure(routes, currentPath);
-
-
-  React.useEffect(() => {
-    // 订阅导航状态变化
-    const unsubscribe = navigationRef.addListener('state', () => {
-      if (navigationRef.isReady()) {
-        const route = navigationRef.getCurrentRoute();
-        setCurrentPath(route?.name || '');
-      }
-    });
-
-     // 初始化当前路径
-     if (navigationRef.isReady()) {
-      const route = navigationRef.getCurrentRoute();
-      setCurrentPath(route?.name || '');
-    }
-
-    // 清理订阅
-    return unsubscribe;
-  }, []);
-  
-  if (menuItems.length === 0) {
-    return null;
-  }
-
-  return (
-    <View className="w-[220px] pt-[60px]">
-      <ScrollView className="bg-white border-r border-gray-200">
-        {menuItems.map((item, index) => (
-          <MenuItem key={index} {...item} />
-        ))}
-      </ScrollView>
-    </View>
-  );
 }
 
 export default Sidebar;

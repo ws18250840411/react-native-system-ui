@@ -1,4 +1,4 @@
-import type { BaseRoute } from './types';
+import type { BaseRoute, StackRouteProps } from './types';
 
 export const joinPath = (paths: string[]) =>
   paths
@@ -31,4 +31,21 @@ export function flattenRoutes<T>(
 
     return acc;
   }, [] as BaseRoute<T>[]);
+}
+
+// 处理路由
+export function processRoutes(routes: StackRouteProps[], parentPath: string = '') {
+  return routes.map(route => {
+    const currentPath = parentPath
+      ? joinPath([parentPath, route.path || ''])
+      : route.path;
+
+    return {
+      ...route,
+      path: currentPath,
+      children: route.children
+        ? processRoutes(route.children, currentPath)
+        : undefined
+    };
+  });
 }

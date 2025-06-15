@@ -15,7 +15,7 @@ import {
 } from "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Sidebar } from './components/SideBar';
-import { routes } from './routes';
+import { menuRoutes } from './routes';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -47,7 +47,7 @@ export default function App() {
         <ThemeProvider value={DarkTheme}>
           <View className="flex-1 flex-row">
             <Header />
-            <Sidebar routes={routes} />
+            <Sidebar routes={menuRoutes} />
             <RootNavigator />
           </View>
         </ThemeProvider>

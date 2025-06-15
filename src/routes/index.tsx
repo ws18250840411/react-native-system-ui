@@ -1,5 +1,5 @@
 import type { StackRouteProps } from "./types";
-import { flattenRoutes } from "./utils";
+import { flattenRoutes, processRoutes } from "./utils";
 
 // guide 模块
 import Contribution from "@/screens/guide/contribution.md";
@@ -48,6 +48,11 @@ export const routes = [
             path: "/button",
             element: Button,
           },
+          {
+            title: "Cell 单元格",
+            path: "/cell",
+            element: Button,
+          },
         ]
       },
       {
@@ -65,4 +70,4 @@ export const routes = [
 ];
 
 export const stackRoutes: StackRouteProps[] = flattenRoutes(routes);
-export default stackRoutes;
+export const menuRoutes = processRoutes(routes);
