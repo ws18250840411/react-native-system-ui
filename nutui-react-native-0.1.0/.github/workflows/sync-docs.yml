@@ -1,0 +1,31 @@
+name: sync to docs-react-native
+
+on:
+  push:
+    branches:
+      - main # default branch
+    paths:
+      - '.github/workflows/**'
+      - 'components/**'
+      - 'sites/config.json'
+      - 'package.json'
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm i fs-extra --force
+      - run: node scripts/copy-docs.js
+      - name : Sync
+        uses : JamesIves/github-pages-deploy-action@v4.4.2
+        with :
+          branch : new-site # action 应该部署到的分支
+          folder : site_docs # 操作应该部署的文件夹
+          clean: false
+          repository-name: jdf2e/nutui-docs
+          token: ${{ secrets.GIT_ACTION }}
+          target-folder: src/docs_react_native
+
+
+
