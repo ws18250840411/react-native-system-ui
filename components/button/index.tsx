@@ -1,53 +1,116 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import {
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
+import { ButtonProps, ComponentSize, ComponentVariant } from '../types';
+import { useTheme } from '../theme/ThemeProvider';
+import { getSizeValue, getFontSizeValue, getSpacingValue, hexToRgba } from '../utils';
 
-// 按钮组件
-export const Button = ({ 
-  title, 
-  onPress, 
-  style, 
-  textStyle, 
+const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'medium',
   disabled = false,
-  backgroundColor = '#2196F3',
-  textColor = '#FFFFFF',
-  borderRadius = 8,
-  padding = 12
+  loading = false,
+  block = false,
+  onPress,
+  title,
+  children,
+  style,
 }) => {
-  // 禁用状态样式
-  const disabledStyle = disabled ? { opacity: 0.5 } : {};
-  
+  const theme = useTheme();
+
+  // 计算样式
+  const buttonStyles = useMemo(() => {
+    const baseHeight = getSizeValue(size);
+    const fontSize = getFontSizeValue(size);
+    const paddingHorizontal = getSpacingValue(size) * 2;
+    
+    const variantColors = {
+      primary: theme.colors.primary,
+      secondary: theme.colors.secondary,
+      success: theme.colors.success,
+      warning: theme.colors.warning,
+      danger: theme.colors.danger,
+      info: theme.colors.info,
+    };
+
+    const backgroundColor = variantColors[variant];
+    const textColor = '#FFFFFF';
+
+    const containerStyle: ViewStyle = {
+      height: baseHeight,
+      backgroundColor: disabled ? theme.colors.disabled : backgroundColor,
+      borderRadius: theme.borderRadius.md,
+      paddingHorizontal,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+      opacity: disabled ? 0.6 : 1,
+      ...(block && { width: '100%' }),
+    };
+
+    const textStyle: TextStyle = {
+      fontSize,
+      fontWeight: '600',
+      color: disabled ? theme.colors.textSecondary : textColor,
+      marginLeft: loading ? theme.spacing.sm : 0,
+    };
+
+    return { containerStyle, textStyle };
+  }, [theme, variant, size, disabled, loading, block]);
+
+  // 处理按压事件
+  const handlePress = useCallback(() => {
+    if (!disabled && !loading && onPress) {
+      onPress();
+    }
+  }, [disabled, loading, onPress]);
+
+  // 渲染加载指示器
+  const renderLoadingIndicator = () => {
+    if (!loading) return null;
+    
+    return (
+      <ActivityIndicator
+        size="small"
+        color={buttonStyles.textStyle.color}
+      />
+    );
+  };
+
+  // 渲染文本内容
+  const renderContent = () => {
+    if (children) {
+      return children;
+    }
+    
+    if (title) {
+      return (
+        <Text style={buttonStyles.textStyle}>
+          {title}
+        </Text>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <TouchableOpacity
-      style={[
-        styles.container,
-        { backgroundColor, borderRadius, padding },
-        style,
-        disabledStyle
-      ]}
-      onPress={onPress}
-      disabled={disabled}
+      style={[buttonStyles.containerStyle, style]}
+      onPress={handlePress}
+      disabled={disabled || loading}
+      activeOpacity={0.8}
     >
-      <Text style={[styles.text, { color: textColor }, textStyle]}>
-        {title}
-      </Text>
+      {renderLoadingIndicator()}
+      {renderContent()}
     </TouchableOpacity>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-  },
-  text: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
-
-export default Button;  
+export default React.memo(Button);
