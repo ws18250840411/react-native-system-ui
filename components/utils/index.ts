@@ -50,6 +50,13 @@ export const getSpacingValue = (size: ComponentSize): number => {
   return responsive(sizeMap[size]);
 };
 
+// 获取响应式尺寸系数
+export const getResponsiveSize = (): number => {
+  // 基于屏幕宽度计算响应式系数
+  const baseWidth = 375; // iPhone 6/7/8 宽度作为基准
+  return screenWidth / baseWidth;
+};
+
 // 判断是否为iOS
 export const isIOS = Platform.OS === 'ios';
 

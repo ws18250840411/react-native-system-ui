@@ -22,7 +22,7 @@ const Button: React.FC<ButtonProps> = ({
   children,
   style,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算样式
   const buttonStyles = useMemo(() => {

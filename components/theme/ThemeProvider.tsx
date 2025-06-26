@@ -24,18 +24,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 };
 
 // 使用主题的Hook
-export const useTheme = (): Theme => {
+export const useTheme = (): { theme: Theme } => {
   const theme = useContext(ThemeContext);
   if (!theme) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
-  return theme;
+  return { theme };
 };
 
 // 高阶组件：为组件注入主题
 export const withTheme = <P extends object>(Component: React.ComponentType<P & { theme: Theme }>) => {
   return React.forwardRef<any, P>((props, ref) => {
-    const theme = useTheme();
+    const { theme } = useTheme();
     return <Component {...props} theme={theme} ref={ref} />;
   });
 };

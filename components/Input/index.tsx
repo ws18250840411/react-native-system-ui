@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useMemo, useState } from 'react';
 import {
   TextInput,
   View,
@@ -34,7 +34,7 @@ const Input = forwardRef<InputRef, InputProps & TextInputProps>((
   },
   ref
 ) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
   const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
 
