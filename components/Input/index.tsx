@@ -1,16 +1,12 @@
-import React, { forwardRef, useImperativeHandle, useRef, useMemo, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   TextInput,
-  View,
-  Text,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
   TextInputProps,
+  View
 } from 'react-native';
-import { InputProps } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
-import { responsive } from '../utils';
+import { InputProps } from '../types';
+import { createInputStyle } from '../utils';
 
 export interface InputRef {
   focus: () => void;
@@ -47,38 +43,23 @@ const Input = forwardRef<InputRef, InputProps & TextInputProps>((
 
   // 计算样式
   const styles = useMemo(() => {
-    const containerStyle: ViewStyle = {
-      borderWidth: 1,
-      borderColor: error 
-        ? theme.colors.danger 
-        : isFocused 
-        ? theme.colors.primary 
-        : theme.colors.border,
-      borderRadius: theme.borderRadius.md,
-      backgroundColor: disabled ? theme.colors.light : theme.colors.background,
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: multiline ? theme.spacing.md : theme.spacing.sm,
-      minHeight: multiline ? responsive(80) : responsive(44),
-    };
-
-    const inputStyle: TextStyle = {
-      fontSize: theme.fontSize.md,
-      color: disabled ? theme.colors.textSecondary : theme.colors.text,
-      flex: 1,
-      textAlignVertical: multiline ? 'top' : 'center',
-      padding: 0, // 移除默认padding
-    };
-
-    return { containerStyle, inputStyle };
-  }, [theme, error, isFocused, disabled, multiline]);
+    return createInputStyle({
+      size: 'medium',
+      error,
+      isFocused,
+      disabled,
+      multiline,
+      theme
+    });
+  }, [error, isFocused, disabled, multiline, theme]);
 
   // 处理焦点事件
-  const handleFocus = useCallback((e: any) => {
+  const handleFocus = React.useCallback((e: any) => {
     setIsFocused(true);
     onFocus?.();
   }, [onFocus]);
 
-  const handleBlur = useCallback((e: any) => {
+  const handleBlur = React.useCallback((e: any) => {
     setIsFocused(false);
     onBlur?.();
   }, [onBlur]);

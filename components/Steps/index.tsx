@@ -1,7 +1,8 @@
-import { View, Text } from 'react-native';
-import { useTheme } from '../theme';
-import { StepsProps, StepProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import React from 'react';
+import { Text, View } from 'react-native';
+import { useTheme } from '../theme/ThemeProvider';
+import { StepProps, StepsProps } from '../types';
+import { responsive } from '../utils';
 
 export const Step: React.FC<StepProps> = ({
   title,
@@ -12,8 +13,7 @@ export const Step: React.FC<StepProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
-  
+  const responsiveSize = responsive(1);
   const getStatusColor = () => {
     switch (status) {
       case 'finish':
@@ -101,8 +101,7 @@ export const Steps: React.FC<StepsProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
-  
+  const responsiveSize = responsive(1);
   const steps = React.Children.toArray(children) as React.ReactElement<StepProps>[];
   
   const renderConnector = (index: number) => {

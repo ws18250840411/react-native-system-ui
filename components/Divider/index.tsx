@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import {
   View,
-  StyleSheet,
-  ViewStyle,
+  ViewStyle
 } from 'react-native';
-import { DividerProps } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
+import { DividerProps } from '../types';
 import { responsive } from '../utils';
 
 const Divider: React.FC<DividerProps> = ({
@@ -14,7 +13,7 @@ const Divider: React.FC<DividerProps> = ({
   style,
   children,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算样式
   const styles = useMemo(() => {

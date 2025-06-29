@@ -1,16 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { View, PanGestureHandler, State } from 'react-native-gesture-handler';
+import React, { useState, useMemo } from 'react';
+import { View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  useAnimatedGestureHandler,
-  useAnimatedStyle,
-  useSharedValue,
   runOnJS,
-  interpolate,
-  Extrapolate,
+  useAnimatedStyle,
+  useSharedValue
 } from 'react-native-reanimated';
-import { useTheme } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 import { SliderProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { responsive } from '../utils';
 
 export const Slider: React.FC<SliderProps> = ({
   value = 0,
@@ -23,7 +21,7 @@ export const Slider: React.FC<SliderProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const responsiveSize = responsive(1);
   const [sliderWidth, setSliderWidth] = useState(0);
   
   // 计算当前值的百分比
@@ -45,25 +43,27 @@ export const Slider: React.FC<SliderProps> = ({
   };
   
   // 手势处理
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
-      isDragging.value = true;
-    },
-    onActive: (event) => {
-      if (disabled) return;
-      
-      const newTranslateX = Math.max(0, Math.min(sliderWidth, event.translationX + (valuePercent / 100) * sliderWidth));
-      translateX.value = newTranslateX;
-      
-      const newPercent = (newTranslateX / sliderWidth) * 100;
-      const newValue = min + (newPercent / 100) * (max - min);
-      
-      runOnJS(updateValue)(newValue);
-    },
-    onEnd: () => {
-      isDragging.value = false;
-    },
-  });
+  const panGesture = useMemo(() => {
+    return Gesture.Pan()
+      .onStart(() => {
+        isDragging.value = true;
+      })
+      .onUpdate((event) => {
+        if (disabled) return;
+        
+        const newTranslateX = Math.max(0, Math.min(sliderWidth, event.translationX + (valuePercent / 100) * sliderWidth));
+        translateX.value = newTranslateX;
+        
+        const newPercent = (newTranslateX / sliderWidth) * 100;
+        const newValue = min + (newPercent / 100) * (max - min);
+        
+        runOnJS(updateValue)(newValue);
+      })
+      .onEnd(() => {
+        isDragging.value = false;
+      })
+      .enabled(!disabled);
+  }, [disabled, sliderWidth, valuePercent, min, max, isDragging, translateX, updateValue]);
   
   // 滑块样式
   const trackHeight = 4 * responsiveSize;
@@ -81,7 +81,7 @@ export const Slider: React.FC<SliderProps> = ({
     left: 0,
     top: 0,
     height: trackHeight,
-    width: `${valuePercent}%`,
+    width: sliderWidth * (valuePercent / 100),
     backgroundColor: disabled ? theme.colors.disabled : theme.colors.primary,
     borderRadius: trackHeight / 2,
   };
@@ -118,18 +118,15 @@ export const Slider: React.FC<SliderProps> = ({
     <View style={[containerStyle, style]}>
       <View
         style={trackStyle}
-        onLayout={(event) => {
+        onLayout={(event: any) => {
           setSliderWidth(event.nativeEvent.layout.width);
         }}
       >
         <View style={activeTrackStyle} />
         
-        <PanGestureHandler
-          onGestureEvent={gestureHandler}
-          enabled={!disabled}
-        >
+        <GestureDetector gesture={panGesture}>
           <Animated.View style={thumbStyle} />
-        </PanGestureHandler>
+        </GestureDetector>
       </View>
       {children}
     </View>

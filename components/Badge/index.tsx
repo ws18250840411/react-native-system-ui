@@ -1,13 +1,12 @@
 import React, { useMemo } from 'react';
 import {
-  View,
   Text,
-  StyleSheet,
-  ViewStyle,
   TextStyle,
+  View,
+  ViewStyle,
 } from 'react-native';
-import { BadgeProps } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
+import { BadgeProps } from '../types';
 import { responsive } from '../utils';
 
 const Badge: React.FC<BadgeProps> = ({
@@ -18,7 +17,7 @@ const Badge: React.FC<BadgeProps> = ({
   children,
   style,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算显示的数字
   const displayCount = useMemo(() => {

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "components/**/*.ts",
+    "components/**/*.tsx"
+  ],
+  "exclude": [
+    "nutui-react-native-0.1.0/**/*",
+    "src/**/*",
+    "example/**/*"
+  ]
+}

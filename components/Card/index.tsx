@@ -1,14 +1,13 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
-  View,
   Text,
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
   TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle
 } from 'react-native';
-import { CardProps } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
+import { CardProps } from '../types';
 import { hexToRgba } from '../utils';
 
 const Card: React.FC<CardProps> = ({
@@ -18,7 +17,7 @@ const Card: React.FC<CardProps> = ({
   children,
   style,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算样式
   const styles = useMemo(() => {

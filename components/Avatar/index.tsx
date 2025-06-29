@@ -1,16 +1,15 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
-  View,
   Image,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
   ImageStyle,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
-import { AvatarProps, ComponentSize } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
+import { AvatarProps, ComponentSize } from '../types';
 import { responsive } from '../utils';
 
 const Avatar: React.FC<AvatarProps> = ({
@@ -21,7 +20,7 @@ const Avatar: React.FC<AvatarProps> = ({
   style,
   children,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算尺寸
   const getAvatarSize = () => {

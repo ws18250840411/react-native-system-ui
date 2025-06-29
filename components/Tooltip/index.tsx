@@ -1,15 +1,15 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, Modal, Dimensions } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Dimensions, Modal, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
-import { useTheme } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 import { TooltipProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { responsive } from '../utils';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -22,7 +22,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const { colors, spacing, borderRadius, fontSize } = theme;
   const [internalVisible, setInternalVisible] = useState(false);
   const [triggerLayout, setTriggerLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const triggerRef = useRef<View>(null);
@@ -59,24 +59,24 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const hideTooltip = () => {
     hideTimer.current = setTimeout(() => {
       handleVisibleChange(false);
-    }, 100);
+    }, 100) as any;
   };
   
   const getTooltipPosition = () => {
     if (!title) return { left: 0, top: 0, width: 0, height: 0 };
     
     // 估算tooltip尺寸
-    const maxWidth = 200 * responsiveSize;
-    const padding = theme.spacing.sm * responsiveSize;
-    const fontSize = theme.fontSize.sm * responsiveSize;
-    const lineHeight = fontSize * 1.4;
+    const maxWidth = 200 * responsive(1);
+    const padding = spacing.sm * responsive(1);
+    const fontSizeValue = fontSize.sm * responsive(1);
+    const lineHeight = fontSizeValue * 1.4;
     
     // 简单估算文本高度
     const textLength = title.length;
-    const estimatedLines = Math.ceil((textLength * fontSize * 0.6) / (maxWidth - padding * 2));
+    const estimatedLines = Math.ceil((textLength * fontSizeValue * 0.6) / (maxWidth - padding * 2));
     const tooltipHeight = estimatedLines * lineHeight + padding * 2;
     
-    const arrowSize = 6 * responsiveSize;
+    const arrowSize = 6 * responsive(1);
     let left = triggerLayout.x;
     let top = triggerLayout.y;
     
@@ -100,15 +100,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
     }
     
     // 边界检查
-    left = Math.max(theme.spacing.sm * responsiveSize, Math.min(left, screenWidth - maxWidth - theme.spacing.sm * responsiveSize));
-    top = Math.max(theme.spacing.sm * responsiveSize, Math.min(top, screenHeight - tooltipHeight - theme.spacing.sm * responsiveSize));
+    left = Math.max(spacing.sm * responsive(1), Math.min(left, screenWidth - maxWidth - spacing.sm * responsive(1)));
+    top = Math.max(spacing.sm * responsive(1), Math.min(top, screenHeight - tooltipHeight - spacing.sm * responsive(1)));
     
     return { left, top, width: maxWidth, height: tooltipHeight };
   };
   
   const tooltipAnimatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(animatedValue.value, [0, 1], [0.8, 1], Extrapolate.CLAMP);
-    const opacity = interpolate(animatedValue.value, [0, 1], [0, 1], Extrapolate.CLAMP);
+    const scale = interpolate(animatedValue.value, [0, 1], [0.8, 1], Extrapolation.CLAMP);
+    const opacity = interpolate(animatedValue.value, [0, 1], [0, 1], Extrapolation.CLAMP);
     
     return {
       transform: [{ scale }],
@@ -123,11 +123,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
     left: tooltipPosition.left,
     top: tooltipPosition.top,
     maxWidth: tooltipPosition.width,
-    backgroundColor: theme.colors.dark,
-    borderRadius: theme.borderRadius.sm * responsiveSize,
-    paddingHorizontal: theme.spacing.sm * responsiveSize,
-    paddingVertical: theme.spacing.xs * responsiveSize,
-    shadowColor: theme.colors.dark,
+    backgroundColor: colors.dark,
+    borderRadius: borderRadius.sm * responsive(1),
+    paddingHorizontal: spacing.sm * responsive(1),
+    paddingVertical: spacing.xs * responsive(1),
+    shadowColor: colors.dark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -135,14 +135,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
   };
   
   const tooltipTextStyle = {
-    fontSize: theme.fontSize.sm * responsiveSize,
-    color: theme.colors.background,
-    lineHeight: theme.fontSize.sm * responsiveSize * 1.4,
+    fontSize: fontSize.sm * responsive(1),
+    color: colors.background,
+    lineHeight: fontSize.sm * responsive(1) * 1.4,
     textAlign: 'center' as const,
   };
   
   const renderArrow = () => {
-    const arrowSize = 6 * responsiveSize;
+    const arrowSize = 6 * responsive(1);
     const arrowStyle = {
       position: 'absolute' as const,
       width: 0,
@@ -164,7 +164,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
               borderTopWidth: arrowSize,
               borderLeftColor: 'transparent',
               borderRightColor: 'transparent',
-              borderTopColor: theme.colors.dark,
+              borderTopColor: colors.dark,
             },
           ]} />
         );
@@ -181,7 +181,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
               borderBottomWidth: arrowSize,
               borderLeftColor: 'transparent',
               borderRightColor: 'transparent',
-              borderBottomColor: theme.colors.dark,
+              borderBottomColor: colors.dark,
             },
           ]} />
         );
@@ -198,7 +198,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
               borderLeftWidth: arrowSize,
               borderTopColor: 'transparent',
               borderBottomColor: 'transparent',
-              borderLeftColor: theme.colors.dark,
+              borderLeftColor: colors.dark,
             },
           ]} />
         );
@@ -215,7 +215,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
               borderRightWidth: arrowSize,
               borderTopColor: 'transparent',
               borderBottomColor: 'transparent',
-              borderRightColor: theme.colors.dark,
+              borderRightColor: colors.dark,
             },
           ]} />
         );

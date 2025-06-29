@@ -1,15 +1,15 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Text,
   Animated,
   Easing,
   StyleSheet,
-  ViewStyle,
+  Text,
   TextStyle,
+  View,
+  ViewStyle,
 } from 'react-native';
-import { LoadingProps, ComponentSize } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
+import { LoadingProps } from '../types';
 import { getSizeValue, responsive } from '../utils';
 
 const Loading: React.FC<LoadingProps> = ({
@@ -19,7 +19,7 @@ const Loading: React.FC<LoadingProps> = ({
   vertical = false,
   style,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
   const spinValue = useRef(new Animated.Value(0)).current;
 
   // 启动旋转动画
@@ -110,4 +110,80 @@ const Loading: React.FC<LoadingProps> = ({
   );
 };
 
+// Loading管理器
+class LoadingManager {
+  private static instance: LoadingManager;
+  private isVisible = false;
+  private listeners: ((visible: boolean, props?: LoadingProps) => void)[] = [];
+
+  static getInstance(): LoadingManager {
+    if (!LoadingManager.instance) {
+      LoadingManager.instance = new LoadingManager();
+    }
+    return LoadingManager.instance;
+  }
+
+  show(props: LoadingProps = {}) {
+    this.isVisible = true;
+    this.notifyListeners(true, props);
+  }
+
+  hide() {
+    this.isVisible = false;
+    this.notifyListeners(false);
+  }
+
+  addListener(listener: (visible: boolean, props?: LoadingProps) => void) {
+    this.listeners.push(listener);
+  }
+
+  removeListener(listener: (visible: boolean, props?: LoadingProps) => void) {
+    this.listeners = this.listeners.filter(l => l !== listener);
+  }
+
+  private notifyListeners(visible: boolean, props?: LoadingProps) {
+    this.listeners.forEach(listener => listener(visible, props));
+  }
+}
+
+// Loading容器组件
+export const LoadingContainer: React.FC = () => {
+  const [visible, setVisible] = useState(false);
+  const [loadingProps, setLoadingProps] = useState<LoadingProps>({});
+
+  useEffect(() => {
+    const manager = LoadingManager.getInstance();
+    const listener = (isVisible: boolean, props?: LoadingProps) => {
+      setVisible(isVisible);
+      if (props) {
+        setLoadingProps(props);
+      }
+    };
+
+    manager.addListener(listener);
+    return () => manager.removeListener(listener);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <View style={StyleSheet.absoluteFillObject}>
+      <View style={{
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <Loading {...loadingProps} />
+      </View>
+    </View>
+  );
+};
+
+export const LoadingService = {
+  show: (props?: LoadingProps) => LoadingManager.getInstance().show(props),
+  hide: () => LoadingManager.getInstance().hide(),
+};
+
+export { LoadingService as Loading };
 export default React.memo(Loading);

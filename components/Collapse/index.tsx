@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
-import { useTheme } from '../theme';
-import { CollapseProps, CollapsePanelProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { useTheme } from '../theme/ThemeProvider';
+import { CollapsePanelProps, CollapseProps } from '../types';
+import { responsive } from '../utils';
 
 export const CollapsePanel: React.FC<CollapsePanelProps & { 
   isActive: boolean;
@@ -23,7 +23,7 @@ export const CollapsePanel: React.FC<CollapsePanelProps & {
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const responsiveSize = responsive(1);
   const [contentHeight, setContentHeight] = useState(0);
   
   const animatedHeight = useSharedValue(isActive ? 1 : 0);
@@ -37,7 +37,7 @@ export const CollapsePanel: React.FC<CollapsePanelProps & {
       animatedHeight.value,
       [0, 1],
       [0, contentHeight],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     );
     
     return {
@@ -115,7 +115,7 @@ export const Collapse: React.FC<CollapseProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  
+  const responsiveSize = responsive(1);
   const panels = React.Children.toArray(children) as React.ReactElement<CollapsePanelProps>[];
   const [internalActiveKey, setInternalActiveKey] = useState<string | string[]>(
     activeKey || (accordion ? '' : [])
@@ -165,14 +165,19 @@ export const Collapse: React.FC<CollapseProps> = ({
   
   return (
     <View style={[containerStyle, style]}>
-      {panels.map((panel) => (
-        <CollapsePanel
-          key={panel.props.key}
-          {...panel.props}
-          isActive={isActive(panel.props.key)}
-          onPress={() => handlePanelPress(panel.props.key)}
-        />
-      ))}
+      {panels.map((panel, index) => {
+        const panelKey = panel.props.key || `panel-${index}`;
+        return (
+          <CollapsePanel
+            {...panel.props}
+            key={`panel-${index}`}
+            isActive={isActive(panelKey)}
+            onPress={() => handlePanelPress(panelKey)}
+          >
+            {panel.props.children}
+          </CollapsePanel>
+        );
+      })}
     </View>
   );
 };

@@ -1,15 +1,14 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
-  View,
   Text,
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
   TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle
 } from 'react-native';
-import { RadioProps, ComponentSize } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
-import { getSizeValue, getFontSizeValue, responsive } from '../utils';
+import { RadioProps } from '../types';
+import { getFontSizeValue, getSizeValue, responsive } from '../utils';
 
 const Radio: React.FC<RadioProps> = ({
   checked = false,
@@ -21,7 +20,7 @@ const Radio: React.FC<RadioProps> = ({
   style,
   children,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算样式
   const styles = useMemo(() => {

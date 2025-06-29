@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal as RNModal, Dimensions } from 'react-native';
+import { Dimensions, Modal as RNModal, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
-import { useTheme } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 import { ModalProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { responsive } from '../utils';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -26,7 +26,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const responsiveSize = responsive(1);
   
   const animatedValue = useSharedValue(0);
   const maskOpacity = useSharedValue(0);
@@ -37,8 +37,8 @@ export const Modal: React.FC<ModalProps> = ({
   }, [visible, animatedValue, maskOpacity]);
   
   const modalAnimatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(animatedValue.value, [0, 1], [0.8, 1], Extrapolate.CLAMP);
-    const opacity = interpolate(animatedValue.value, [0, 1], [0, 1], Extrapolate.CLAMP);
+    const scale = interpolate(animatedValue.value, [0, 1], [0.8, 1], Extrapolation.CLAMP);
+    const opacity = interpolate(animatedValue.value, [0, 1], [0, 1], Extrapolation.CLAMP);
     
     return {
       transform: [{ scale }],

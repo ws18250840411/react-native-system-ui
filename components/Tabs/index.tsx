@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useTheme } from '../theme';
-import { TabsProps, TabPaneProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../theme/ThemeProvider';
+import { TabPaneProps, TabsProps } from '../types';
+import { responsive } from '../utils';
 
 export const TabPane: React.FC<TabPaneProps> = ({
   children,
@@ -23,7 +23,7 @@ export const Tabs: React.FC<TabsProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const responsiveSize = responsive(1);
   
   const tabs = React.Children.toArray(children) as React.ReactElement<TabPaneProps>[];
   const [internalActiveKey, setInternalActiveKey] = useState(activeKey || tabs[0]?.props.key || '');

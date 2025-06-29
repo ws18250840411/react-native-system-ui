@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, Dimensions } from 'react-native';
+import { Dimensions, Modal, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
-import { useTheme } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 import { DrawerProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { responsive } from '../utils';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -26,7 +26,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const { colors, spacing, fontSize } = theme;
   
   const animatedValue = useSharedValue(0);
   const maskOpacity = useSharedValue(0);
@@ -44,13 +44,13 @@ export const Drawer: React.FC<DrawerProps> = ({
   const getTranslateValue = () => {
     switch (placement) {
       case 'left':
-        return interpolate(animatedValue.value, [0, 1], [-drawerSize, 0], Extrapolate.CLAMP);
+        return interpolate(animatedValue.value, [0, 1], [-drawerSize, 0], Extrapolation.CLAMP);
       case 'right':
-        return interpolate(animatedValue.value, [0, 1], [drawerSize, 0], Extrapolate.CLAMP);
+        return interpolate(animatedValue.value, [0, 1], [drawerSize, 0], Extrapolation.CLAMP);
       case 'top':
-        return interpolate(animatedValue.value, [0, 1], [-drawerSize, 0], Extrapolate.CLAMP);
+        return interpolate(animatedValue.value, [0, 1], [-drawerSize, 0], Extrapolation.CLAMP);
       case 'bottom':
-        return interpolate(animatedValue.value, [0, 1], [drawerSize, 0], Extrapolate.CLAMP);
+        return interpolate(animatedValue.value, [0, 1], [drawerSize, 0], Extrapolation.CLAMP);
       default:
         return 0;
     }
@@ -90,10 +90,10 @@ export const Drawer: React.FC<DrawerProps> = ({
   const drawerStyle = {
     position: 'absolute' as const,
     ...getDrawerPosition(),
-    width: isHorizontal ? drawerSize : '100%',
-    height: isHorizontal ? '100%' : drawerSize,
-    backgroundColor: theme.colors.background,
-    shadowColor: theme.colors.dark,
+    width: isHorizontal ? drawerSize : screenWidth,
+    height: isHorizontal ? screenHeight : drawerSize,
+    backgroundColor: colors.background,
+    shadowColor: colors.dark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -104,31 +104,31 @@ export const Drawer: React.FC<DrawerProps> = ({
     flexDirection: 'row' as const,
     justifyContent: 'space-between' as const,
     alignItems: 'center' as const,
-    paddingHorizontal: theme.spacing.md * responsiveSize,
-    paddingVertical: theme.spacing.sm * responsiveSize,
+    paddingHorizontal: spacing.md * responsive(1),
+    paddingVertical: spacing.sm * responsive(1),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-    backgroundColor: theme.colors.surface,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   };
   
   const titleStyle = {
-    fontSize: theme.fontSize.lg * responsiveSize,
+    fontSize: fontSize.lg * responsive(1),
     fontWeight: 'bold' as const,
-    color: theme.colors.text,
+    color: colors.text,
   };
   
   const closeButtonStyle = {
-    padding: theme.spacing.xs * responsiveSize,
+    padding: spacing.xs * responsive(1),
   };
   
   const closeButtonTextStyle = {
-    fontSize: theme.fontSize.lg * responsiveSize,
-    color: theme.colors.textSecondary,
+    fontSize: fontSize.lg * responsive(1),
+    color: colors.textSecondary,
   };
   
   const contentStyle = {
     flex: 1,
-    padding: theme.spacing.md * responsiveSize,
+    padding: spacing.md * responsive(1),
   };
   
   const maskStyle = {

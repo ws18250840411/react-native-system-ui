@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext } from 'react';
 import { Theme } from '../types';
 import { defaultTheme } from './index';
 
@@ -34,8 +34,9 @@ export const useTheme = (): { theme: Theme } => {
 
 // 高阶组件：为组件注入主题
 export const withTheme = <P extends object>(Component: React.ComponentType<P & { theme: Theme }>) => {
-  return React.forwardRef<any, P>((props, ref) => {
+  const WrappedComponent = React.forwardRef<any, P>((props, ref) => {
     const { theme } = useTheme();
-    return <Component {...props} theme={theme} ref={ref} />;
+    return <Component {...(props as P)} theme={theme} ref={ref} />;
   });
+  return WrappedComponent;
 };

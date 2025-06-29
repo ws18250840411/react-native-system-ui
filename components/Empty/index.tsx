@@ -1,15 +1,13 @@
 import React, { useMemo } from 'react';
 import {
-  View,
   Text,
-  StyleSheet,
-  ViewStyle,
   TextStyle,
+  View,
+  ViewStyle
 } from 'react-native';
-import { EmptyProps } from '../types';
-import { useTheme } from '../theme/ThemeProvider';
-import { responsive } from '../utils';
 import Icon from '../Icon';
+import { useTheme } from '../theme/ThemeProvider';
+import { EmptyProps } from '../types';
 
 const Empty: React.FC<EmptyProps> = ({
   image,
@@ -18,7 +16,7 @@ const Empty: React.FC<EmptyProps> = ({
   style,
   children,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算样式
   const styles = useMemo(() => {

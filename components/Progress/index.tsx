@@ -1,7 +1,8 @@
-import { View, Text } from 'react-native';
-import { useTheme } from '../theme';
+import React from 'react';
+import { Text, View } from 'react-native';
+import { useTheme } from '../theme/ThemeProvider';
 import { ProgressProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { responsive } from '../utils';
 
 export const Progress: React.FC<ProgressProps> = ({
   percent,
@@ -12,7 +13,7 @@ export const Progress: React.FC<ProgressProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const responsiveSize = responsive(1);
   
   // 确保百分比在0-100之间
   const normalizedPercent = Math.max(0, Math.min(100, percent));
@@ -31,14 +32,15 @@ export const Progress: React.FC<ProgressProps> = ({
   
   const progressBarStyle = {
     height: strokeWidth * responsiveSize,
+    width: '100%' as const,
     backgroundColor: theme.colors.border,
     borderRadius: strokeWidth * responsiveSize / 2,
     overflow: 'hidden' as const,
   };
   
   const progressFillStyle = {
-    height: '100%',
-    width: `${normalizedPercent}%`,
+    height: '100%' as const,
+    width: `${normalizedPercent}%` as const,
     backgroundColor: getStatusColor(),
     borderRadius: strokeWidth * responsiveSize / 2,
   };

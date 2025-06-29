@@ -1,16 +1,15 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
-  View,
   Text,
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
   TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle
 } from 'react-native';
-import { TagProps, ComponentSize, ComponentVariant } from '../types';
-import { useTheme } from '../theme/ThemeProvider';
-import { getSizeValue, getFontSizeValue, hexToRgba } from '../utils';
 import Icon from '../Icon';
+import { useTheme } from '../theme/ThemeProvider';
+import { TagProps } from '../types';
+import { getFontSizeValue, getSizeValue, hexToRgba } from '../utils';
 
 const Tag: React.FC<TagProps> = ({
   variant = 'primary',
@@ -20,7 +19,7 @@ const Tag: React.FC<TagProps> = ({
   children,
   style,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算样式
   const styles = useMemo(() => {

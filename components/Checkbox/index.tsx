@@ -1,16 +1,15 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
-  View,
   Text,
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
   TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle
 } from 'react-native';
-import { CheckboxProps, ComponentSize } from '../types';
-import { useTheme } from '../theme/ThemeProvider';
-import { getSizeValue, getFontSizeValue, responsive } from '../utils';
 import Icon from '../Icon';
+import { useTheme } from '../theme/ThemeProvider';
+import { CheckboxProps } from '../types';
+import { getFontSizeValue, getSizeValue, responsive } from '../utils';
 
 const Checkbox: React.FC<CheckboxProps> = ({
   checked = false,
@@ -22,7 +21,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
   style,
   children,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算样式
   const styles = useMemo(() => {

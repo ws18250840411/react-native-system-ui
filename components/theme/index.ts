@@ -12,6 +12,7 @@ export const defaultTheme: Theme = {
     light: '#F2F2F7',
     dark: '#1C1C1E',
     background: '#FFFFFF',
+    backgroundSecondary: '#F2F2F7',
     surface: '#F2F2F7',
     text: '#000000',
     textSecondary: '#8E8E93',
@@ -47,6 +48,7 @@ export const darkTheme: Theme = {
   colors: {
     ...defaultTheme.colors,
     background: '#000000',
+    backgroundSecondary: '#1C1C1E',
     surface: '#1C1C1E',
     text: '#FFFFFF',
     textSecondary: '#8E8E93',

@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
-import { useTheme } from '../theme';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../theme/ThemeProvider';
 import { RateProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { responsive } from '../utils';
 
 export const Rate: React.FC<RateProps> = ({
   value = 0,
@@ -14,7 +14,7 @@ export const Rate: React.FC<RateProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const responsiveSize = responsive(1);
   
   const handlePress = (index: number) => {
     if (disabled) return;

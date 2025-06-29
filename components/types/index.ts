@@ -1,6 +1,6 @@
 
-import { ReactNode, CSSProperties } from 'react';
-import { StyleProp, ViewStyle, TextStyle } from 'react-native';
+import { ReactNode } from 'react';
+import { ColorValue, StyleProp, ViewStyle } from 'react-native';
 
 // 基础组件接口
 export interface BaseComponent {
@@ -20,6 +20,7 @@ export interface Theme {
     light: string;
     dark: string;
     background: string;
+    backgroundSecondary: string;
     surface: string;
     text: string;
     textSecondary: string;
@@ -58,6 +59,7 @@ export type ComponentVariant = 'primary' | 'secondary' | 'success' | 'warning' |
 // 按钮类型
 export interface ButtonProps extends BaseComponent {
   variant?: ComponentVariant;
+  type?: ComponentVariant;
   size?: ComponentSize;
   disabled?: boolean;
   loading?: boolean;
@@ -74,6 +76,9 @@ export interface InputProps extends BaseComponent {
   error?: boolean;
   multiline?: boolean;
   secureTextEntry?: boolean;
+  leftIcon?: string;
+  rightIcon?: string;
+  onRightIconPress?: () => void;
   onChangeText?: (text: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
@@ -83,7 +88,7 @@ export interface InputProps extends BaseComponent {
 export interface IconProps extends BaseComponent {
   name: string;
   size?: number;
-  color?: string;
+  color?: ColorValue;
   onPress?: () => void;
 }
 
@@ -97,9 +102,71 @@ export interface CardProps extends BaseComponent {
 // 标签类型
 export interface TagProps extends BaseComponent {
   variant?: ComponentVariant;
+  type?: ComponentVariant;
   size?: ComponentSize;
+  text?: string;
   closable?: boolean;
   onClose?: () => void;
+  children?: React.ReactNode;
+}
+
+// Calendar 组件
+export interface CalendarProps extends BaseComponent {
+  visible?: boolean;
+  type?: 'single' | 'range';
+  title?: string;
+  defaultValue?: string | string[];
+  startDate?: string;
+  endDate?: string;
+  showToday?: boolean;
+  confirmText?: string;
+  showTitle?: boolean;
+  poppable?: boolean;
+  onClose?: () => void;
+  onConfirm?: (date: Date | Date[]) => void;
+  onChange?: (date: string | string[]) => void;
+}
+
+// Swiper 组件
+export interface SwiperProps extends BaseComponent {
+  width?: number;
+  height?: number;
+  autoPlay?: number;
+  duration?: number;
+  initPage?: number;
+  direction?: 'horizontal' | 'vertical';
+  loop?: boolean;
+  showIndicators?: boolean;
+  indicatorColor?: string;
+  indicatorActiveColor?: string;
+  children?: React.ReactNode;
+  onChange?: (index: number) => void;
+}
+
+// Table 组件
+export interface TableColumn {
+  key: string;
+  title: string;
+  dataIndex?: string;
+  width?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  flex?: number;
+  align?: 'left' | 'center' | 'right';
+  sortable?: boolean;
+  render?: (value: any, record: any, index: number) => React.ReactNode;
+}
+
+export interface TableProps extends BaseComponent {
+  columns: TableColumn[];
+  data: any[];
+  bordered?: boolean;
+  striped?: boolean;
+  sortable?: boolean;
+  loading?: boolean;
+  emptyText?: string;
+  onSort?: (key: string, direction: 'asc' | 'desc') => void;
+  onRowPress?: (record: any, index: number) => void;
 }
 
 // 头像类型
@@ -145,13 +212,14 @@ export interface ProgressProps extends BaseComponent {
   showInfo?: boolean;
   status?: 'normal' | 'success' | 'error';
   strokeWidth?: number;
+  children?: React.ReactNode;
 }
 
 // 开关类型
 export interface SwitchProps extends BaseComponent {
   value?: boolean;
-  disabled?: boolean;
   size?: ComponentSize;
+  disabled?: boolean;
   activeColor?: string;
   inactiveColor?: string;
   onChange?: (value: boolean) => void;
@@ -160,21 +228,23 @@ export interface SwitchProps extends BaseComponent {
 // 复选框类型
 export interface CheckboxProps extends BaseComponent {
   checked?: boolean;
-  disabled?: boolean;
   size?: ComponentSize;
+  disabled?: boolean;
+  label?: string;
   indeterminate?: boolean;
   onChange?: (checked: boolean) => void;
-  label?: string;
+  children?: React.ReactNode;
 }
 
 // 单选框类型
 export interface RadioProps extends BaseComponent {
   checked?: boolean;
-  disabled?: boolean;
   size?: ComponentSize;
-  onChange?: (value: any) => void;
+  disabled?: boolean;
   label?: string;
   value?: any;
+  onChange?: (value: any) => void;
+  children?: React.ReactNode;
 }
 
 // 评分类型
@@ -184,9 +254,10 @@ export interface RateProps extends BaseComponent {
   allowHalf?: boolean;
   disabled?: boolean;
   onChange?: (value: number) => void;
+  children?: React.ReactNode;
 }
 
-// 滑块类型
+// Slider 组件
 export interface SliderProps extends BaseComponent {
   value?: number;
   min?: number;
@@ -194,6 +265,106 @@ export interface SliderProps extends BaseComponent {
   step?: number;
   disabled?: boolean;
   onChange?: (value: number) => void;
+  children?: React.ReactNode;
+}
+
+// Notification 组件
+export interface NotificationProps extends BaseComponent {
+  visible?: boolean;
+  type?: 'info' | 'success' | 'warning' | 'error';
+  title?: string;
+  message?: string;
+  duration?: number;
+  closable?: boolean;
+  position?: 'top' | 'bottom';
+  onClose?: () => void;
+}
+
+// ActionSheet 相关类型
+export interface ActionSheetOption {
+  label: string;
+  title: string;
+  value?: any;
+  icon?: string;
+  disabled?: boolean;
+  destructive?: boolean;
+}
+
+export interface ActionSheetProps extends BaseComponent {
+  visible: boolean;
+  title?: string;
+  description?: string;
+  options: ActionSheetOption[];
+  cancelText?: string;
+  showCancel?: boolean;
+  destructiveIndex?: number;
+  onSelect?: (option: ActionSheetOption, index: number) => void;
+  onCancel?: () => void;
+  onClose?: () => void;
+}
+
+// Toast 相关类型
+export interface ToastProps {
+  message: string;
+  type?: 'success' | 'error' | 'warning' | 'info' | 'loading';
+  duration?: number;
+  position?: 'top' | 'bottom';
+  closable?: boolean;
+}
+
+// Drawer 相关类型
+export interface DrawerProps extends BaseComponent {
+  visible?: boolean;
+  placement?: 'left' | 'right' | 'top' | 'bottom';
+  width?: number | string;
+  height?: number | string;
+  title?: string;
+  closable?: boolean;
+  maskClosable?: boolean;
+  mask?: boolean;
+  children?: React.ReactNode;
+  onClose?: () => void;
+  onShow?: () => void;
+  onHide?: () => void;
+}
+
+
+
+// Picker 相关类型
+export interface PickerOption {
+  label: string;
+  value: any;
+  disabled?: boolean;
+}
+
+export interface PickerProps extends BaseComponent {
+  visible: boolean;
+  title?: string;
+  columns: PickerOption[][];
+  value?: any[];
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm?: (values: any[]) => void;
+  onCancel?: () => void;
+  onClose?: () => void;
+}
+
+// DatePicker 相关类型
+export interface DatePickerProps extends BaseComponent {
+  visible?: boolean;
+  mode?: 'date' | 'time' | 'datetime';
+  value?: Date;
+  minDate?: Date;
+  maxDate?: Date;
+  title?: string;
+  confirmText?: string;
+  cancelText?: string;
+  placeholder?: string;
+  format?: string;
+  disabled?: boolean;
+  onConfirm?: (date: Date) => void;
+  onCancel?: () => void;
+  onClose?: () => void;
 }
 
 // 步骤条类型
@@ -236,17 +407,7 @@ export interface CollapsePanelProps extends BaseComponent {
   disabled?: boolean;
 }
 
-// 抽屉类型
-export interface DrawerProps extends BaseComponent {
-  visible?: boolean;
-  placement?: 'top' | 'right' | 'bottom' | 'left';
-  width?: number | string;
-  height?: number | string;
-  title?: string;
-  closable?: boolean;
-  maskClosable?: boolean;
-  onClose?: () => void;
-}
+
 
 // 模态框类型
 export interface ModalProps extends BaseComponent {
@@ -257,6 +418,7 @@ export interface ModalProps extends BaseComponent {
   width?: number | string;
   onOk?: () => void;
   onCancel?: () => void;
+  onClose?: () => void;
   footer?: ReactNode;
 }
 

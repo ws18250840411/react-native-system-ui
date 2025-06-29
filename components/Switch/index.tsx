@@ -1,15 +1,13 @@
-import React, { useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
-  View,
-  TouchableOpacity,
   Animated,
   Easing,
-  StyleSheet,
-  ViewStyle,
+  TouchableOpacity,
+  ViewStyle
 } from 'react-native';
-import { SwitchProps, ComponentSize } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
-import { getSizeValue, responsive, hexToRgba } from '../utils';
+import { SwitchProps } from '../types';
+import { getSizeValue, responsive } from '../utils';
 
 const Switch: React.FC<SwitchProps> = ({
   value = false,
@@ -20,7 +18,7 @@ const Switch: React.FC<SwitchProps> = ({
   onChange,
   style,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
   const translateX = useRef(new Animated.Value(value ? 1 : 0)).current;
 
   // 当value变化时，执行动画

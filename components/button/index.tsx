@@ -1,15 +1,12 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import {
-  TouchableOpacity,
-  Text,
   ActivityIndicator,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
+  Text,
+  TouchableOpacity
 } from 'react-native';
-import { ButtonProps, ComponentSize, ComponentVariant } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
-import { getSizeValue, getFontSizeValue, getSpacingValue, hexToRgba } from '../utils';
+import { ButtonProps } from '../types';
+import { createButtonStyle } from '../utils';
 
 const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
@@ -26,46 +23,18 @@ const Button: React.FC<ButtonProps> = ({
 
   // 计算样式
   const buttonStyles = useMemo(() => {
-    const baseHeight = getSizeValue(size);
-    const fontSize = getFontSizeValue(size);
-    const paddingHorizontal = getSpacingValue(size) * 2;
-    
-    const variantColors = {
-      primary: theme.colors.primary,
-      secondary: theme.colors.secondary,
-      success: theme.colors.success,
-      warning: theme.colors.warning,
-      danger: theme.colors.danger,
-      info: theme.colors.info,
-    };
+    return createButtonStyle({
+      variant,
+      size,
+      disabled,
+      loading,
+      block,
+      theme
+    });
+  }, [variant, size, disabled, loading, block, theme]);
 
-    const backgroundColor = variantColors[variant];
-    const textColor = '#FFFFFF';
-
-    const containerStyle: ViewStyle = {
-      height: baseHeight,
-      backgroundColor: disabled ? theme.colors.disabled : backgroundColor,
-      borderRadius: theme.borderRadius.md,
-      paddingHorizontal,
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'row',
-      opacity: disabled ? 0.6 : 1,
-      ...(block && { width: '100%' }),
-    };
-
-    const textStyle: TextStyle = {
-      fontSize,
-      fontWeight: '600',
-      color: disabled ? theme.colors.textSecondary : textColor,
-      marginLeft: loading ? theme.spacing.sm : 0,
-    };
-
-    return { containerStyle, textStyle };
-  }, [theme, variant, size, disabled, loading, block]);
-
-  // 处理按压事件
-  const handlePress = useCallback(() => {
+  // 处理点击事件
+  const handlePress = React.useCallback(() => {
     if (!disabled && !loading && onPress) {
       onPress();
     }

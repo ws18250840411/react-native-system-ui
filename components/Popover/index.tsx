@@ -1,15 +1,15 @@
-import React, { useState, useRef } from 'react';
-import { View, TouchableOpacity, Modal, Dimensions } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Dimensions, Modal, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
-import { useTheme } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 import { PopoverProps } from '../types';
-import { getResponsiveSize } from '../utils';
+import { responsive } from '../utils';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -24,7 +24,7 @@ export const Popover: React.FC<PopoverProps> = ({
   children,
 }) => {
   const { theme } = useTheme();
-  const responsiveSize = getResponsiveSize();
+  const { colors, spacing, borderRadius, fontSize } = theme;
   const [internalVisible, setInternalVisible] = useState(false);
   const [triggerLayout, setTriggerLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const triggerRef = useRef<View>(null);
@@ -58,9 +58,9 @@ export const Popover: React.FC<PopoverProps> = ({
   };
   
   const getPopoverPosition = () => {
-    const popoverWidth = 200 * responsiveSize;
-    const popoverHeight = 100 * responsiveSize;
-    const arrowSize = 8 * responsiveSize;
+    const popoverWidth = responsive(200);
+    const popoverHeight = responsive(100);
+    const arrowSize = responsive(8);
     
     let left = triggerLayout.x;
     let top = triggerLayout.y;
@@ -85,15 +85,15 @@ export const Popover: React.FC<PopoverProps> = ({
     }
     
     // 边界检查
-    left = Math.max(theme.spacing.sm * responsiveSize, Math.min(left, screenWidth - popoverWidth - theme.spacing.sm * responsiveSize));
-    top = Math.max(theme.spacing.sm * responsiveSize, Math.min(top, screenHeight - popoverHeight - theme.spacing.sm * responsiveSize));
+    left = Math.max(spacing.sm * responsive(1), Math.min(left, screenWidth - popoverWidth - spacing.sm * responsive(1)));
+    top = Math.max(spacing.sm * responsive(1), Math.min(top, screenHeight - popoverHeight - spacing.sm * responsive(1)));
     
     return { left, top, width: popoverWidth, height: popoverHeight };
   };
   
   const popoverAnimatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(animatedValue.value, [0, 1], [0.8, 1], Extrapolate.CLAMP);
-    const opacity = interpolate(animatedValue.value, [0, 1], [0, 1], Extrapolate.CLAMP);
+    const scale = interpolate(animatedValue.value, [0, 1], [0.8, 1], Extrapolation.CLAMP);
+    const opacity = interpolate(animatedValue.value, [0, 1], [0, 1], Extrapolation.CLAMP);
     
     return {
       transform: [{ scale }],
@@ -115,29 +115,29 @@ export const Popover: React.FC<PopoverProps> = ({
     top: popoverPosition.top,
     width: popoverPosition.width,
     minHeight: popoverPosition.height,
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.md * responsiveSize,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.md * responsive(1),
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    shadowColor: theme.colors.dark,
+    borderColor: colors.border,
+    shadowColor: colors.dark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
-    padding: theme.spacing.sm * responsiveSize,
+    padding: spacing.sm * responsive(1),
   };
   
   const titleStyle = {
-    fontSize: theme.fontSize.md * responsiveSize,
+    fontSize: fontSize.md * responsive(1),
     fontWeight: 'bold' as const,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs * responsiveSize,
+    color: colors.text,
+    marginBottom: spacing.xs * responsive(1),
   };
   
   const contentStyle = {
-    fontSize: theme.fontSize.sm * responsiveSize,
-    color: theme.colors.text,
-    lineHeight: theme.fontSize.sm * responsiveSize * 1.4,
+    fontSize: fontSize.sm * responsive(1),
+    color: colors.text,
+    lineHeight: fontSize.sm * responsive(1) * 1.4,
   };
   
   const maskStyle = {
@@ -150,7 +150,7 @@ export const Popover: React.FC<PopoverProps> = ({
   };
   
   const renderArrow = () => {
-    const arrowSize = 8 * responsiveSize;
+    const arrowSize = responsive(8);
     const arrowStyle = {
       position: 'absolute' as const,
       width: 0,
@@ -172,7 +172,7 @@ export const Popover: React.FC<PopoverProps> = ({
               borderTopWidth: arrowSize,
               borderLeftColor: 'transparent',
               borderRightColor: 'transparent',
-              borderTopColor: theme.colors.background,
+              borderTopColor: colors.background,
             },
           ]} />
         );
@@ -189,7 +189,7 @@ export const Popover: React.FC<PopoverProps> = ({
               borderBottomWidth: arrowSize,
               borderLeftColor: 'transparent',
               borderRightColor: 'transparent',
-              borderBottomColor: theme.colors.background,
+              borderBottomColor: colors.background,
             },
           ]} />
         );
@@ -206,7 +206,7 @@ export const Popover: React.FC<PopoverProps> = ({
               borderLeftWidth: arrowSize,
               borderTopColor: 'transparent',
               borderBottomColor: 'transparent',
-              borderLeftColor: theme.colors.background,
+              borderLeftColor: colors.background,
             },
           ]} />
         );
@@ -223,7 +223,7 @@ export const Popover: React.FC<PopoverProps> = ({
               borderRightWidth: arrowSize,
               borderTopColor: 'transparent',
               borderBottomColor: 'transparent',
-              borderRightColor: theme.colors.background,
+              borderRightColor: colors.background,
             },
           ]} />
         );
@@ -259,7 +259,7 @@ export const Popover: React.FC<PopoverProps> = ({
         <Animated.View style={[popoverStyle, popoverAnimatedStyle]}>
           {renderArrow()}
           {title && <View style={titleStyle}>{title}</View>}
-          <View style={contentStyle}>{content}</View>
+          <Text style={contentStyle}>{content}</Text>
         </Animated.View>
       </Modal>
     </>

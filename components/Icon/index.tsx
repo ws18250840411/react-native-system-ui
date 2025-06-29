@@ -1,69 +1,33 @@
-import React, { useMemo, useCallback } from 'react';
-import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-} from 'react-native';
-import { IconProps } from '../types';
+import React, { useMemo } from 'react';
+import { Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
+import { IconProps } from '../types';
 import { responsive } from '../utils';
 
-// 内置图标映射
-const iconMap: Record<string, string> = {
-  // 基础图标
+// 简单的图标映射
+const ICON_MAP: Record<string, string> = {
+  'home': '🏠',
+  'user': '👤',
+  'settings': '⚙️',
+  'search': '🔍',
+  'heart': '❤️',
+  'star': '⭐',
+  'plus': '➕',
+  'minus': '➖',
+  'check': '✅',
+  'close': '❌',
   'arrow-left': '←',
   'arrow-right': '→',
   'arrow-up': '↑',
   'arrow-down': '↓',
-  'close': '×',
-  'check': '✓',
-  'plus': '+',
-  'minus': '−',
-  'search': '🔍',
-  'home': '🏠',
-  'user': '👤',
-  'setting': '⚙️',
-  'heart': '♡',
-  'heart-filled': '♥',
-  'star': '☆',
-  'star-filled': '★',
-  'location': '📍',
-  'phone': '📞',
-  'mail': '✉️',
-  'camera': '📷',
-  'image': '🖼️',
-  'video': '🎥',
-  'music': '🎵',
-  'file': '📄',
-  'folder': '📁',
-  'download': '⬇️',
-  'upload': '⬆️',
-  'share': '📤',
-  'edit': '✏️',
-  'delete': '🗑️',
-  'refresh': '🔄',
-  'loading': '⏳',
-  'warning': '⚠️',
-  'error': '❌',
-  'success': '✅',
-  'info': 'ℹ️',
-  'question': '❓',
-  'lock': '🔒',
-  'unlock': '🔓',
-  'eye': '👁️',
-  'eye-off': '🙈',
-  'calendar': '📅',
-  'clock': '🕐',
-  'bookmark': '🔖',
-  'tag': '🏷️',
-  'filter': '🔽',
-  'sort': '↕️',
-  'menu': '☰',
-  'more': '⋯',
-  'dots': '⋮',
 };
+
+// 获取图标字符的函数
+const getIconChar = (name: string): string => {
+  return ICON_MAP[name] || '❓';
+};
+
+
 
 const Icon: React.FC<IconProps> = ({
   name,
@@ -71,8 +35,9 @@ const Icon: React.FC<IconProps> = ({
   color,
   onPress,
   style,
+  children,
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   // 计算样式
   const styles = useMemo(() => {
@@ -97,16 +62,14 @@ const Icon: React.FC<IconProps> = ({
   }, [size, color, theme]);
 
   // 处理点击事件
-  const handlePress = useCallback(() => {
+  const handlePress = React.useCallback(() => {
     if (onPress) {
       onPress();
     }
   }, [onPress]);
 
   // 获取图标字符
-  const getIconChar = () => {
-    return iconMap[name] || name;
-  };
+  const iconChar = getIconChar(name);
 
   // 渲染内容
   const renderContent = () => {
@@ -116,7 +79,7 @@ const Icon: React.FC<IconProps> = ({
     
     return (
       <Text style={styles.iconStyle}>
-        {getIconChar()}
+        {iconChar}
       </Text>
     );
   };
@@ -136,16 +99,14 @@ const Icon: React.FC<IconProps> = ({
 
   // 否则直接渲染
   return (
-    <Text style={[styles.iconStyle, style]}>
-      {getIconChar()}
-    </Text>
+    <View style={[styles.containerStyle, style]}>
+      {renderContent()}
+    </View>
   );
 };
 
 export default React.memo(Icon);
 
-// 导出图标名称列表
-export const iconNames = Object.keys(iconMap);
-
-// 导出图标映射
-export { iconMap };
+// 导出图标名称和映射
+export const iconNames = Object.keys(ICON_MAP);
+export { ICON_MAP as iconMap };
