@@ -28,14 +28,14 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.14",
-    "expo": "~53.0.11",
+    "expo": "~53.0.13",
     "expo-clipboard": "^7.1.4",
     "expo-splash-screen": "^0.30.9",
     "highlight.js": "^11.3.1",
     "marked": "^4.0.7",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-native": "0.79.3",
+    "react-native": "0.79.4",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-markdown-display": "^7.0.2",
     "react-native-reanimated": "~3.17.4",
@@ -45,7 +45,7 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "^13.13.5",
     "react-native-vector-icons": "^10.0.3",
-    "react-native-svg": "^14.1.0"
+    "react-native-svg": "^15.11.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

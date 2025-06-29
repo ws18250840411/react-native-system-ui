@@ -29,7 +29,6 @@ export default function App() {
   const [loaded] = useFonts({
     Inter: require("@/assets/fonts/SpaceMono-Regular.ttf"),
   });
-
   useEffect(() => {
     if (loaded) {
       // Hide the splash screen
