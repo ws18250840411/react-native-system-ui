@@ -1,0 +1,81 @@
+{
+  "name": "react-native-system-ui",
+  "version": "0.0.1",
+  "description": "Responsive and accessible React Native UI components built with React Native and Emotion",
+  "type": "module",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Wang Wenshan <wangwenshan@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "react-native",
+    "ui",
+    "design-system",
+    "react-native-components",
+    "accessible",
+    "components"
+  ],
+  "dependencies": {
+    "react-native-system-utils": "*"
+  },
+  "devDependencies": {
+    "react-native": "^0.81.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "exports": {
+    ".": {
+      "dev": "./src/index.ts",
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    },
+    "./theme": {
+      "dev": "./src/theme/index.ts",
+      "import": {
+        "types": "./dist/types/theme/index.d.ts",
+        "default": "./dist/esm/theme/index.js"
+      },
+      "require": {
+        "types": "./dist/types/theme/index.d.ts",
+        "default": "./dist/cjs/theme/index.cjs"
+      }
+    },
+    "./hooks": {
+      "dev": "./src/hooks/index.ts",
+      "import": {
+        "types": "./dist/types/hooks/index.d.ts",
+        "default": "./dist/esm/hooks/index.js"
+      },
+      "require": {
+        "types": "./dist/types/hooks/index.d.ts",
+        "default": "./dist/cjs/hooks/index.cjs"
+      }
+    },
+    "./*": {
+      "dev": "./src/components/*/index.ts",
+      "import": {
+        "types": "./dist/types/components/*/index.d.ts",
+        "default": "./dist/esm/components/*/index.js"
+      },
+      "require": {
+        "types": "./dist/types/components/*/index.d.ts",
+        "default": "./dist/cjs/components/*/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  }
+}
