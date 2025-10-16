@@ -1,5 +1,5 @@
 {
-  "name": "y",
+  "name": "react-native-system-ui",
   "private": true,
   "scripts": {
     "build": "turbo run build",
