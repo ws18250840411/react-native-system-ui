@@ -1,0 +1,34 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "types": [
+      "react",
+      "react-native",
+      "react-test-renderer"
+    ],
+    "lib": [
+      "es2023",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable"
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "tailwind.config": [
+        "./tailwind.config.js"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "nativewind-env.d.ts",
+    "global.d.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/Pods"
+  ]
+}
