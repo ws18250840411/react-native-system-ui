@@ -16,6 +16,12 @@
       "@/*": [
         "./src/*"
       ],
+      "react-native-system-ui": [
+        "../../packages/ui/src"
+      ],
+      "react-native-system-utils": [
+        "../../packages/utils/src"
+      ],
       "tailwind.config": [
         "./tailwind.config.js"
       ]

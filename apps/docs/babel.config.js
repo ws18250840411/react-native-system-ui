@@ -1,5 +1,14 @@
 module.exports = {
-  presets: ['module:@react-native/babel-preset', 'nativewind/babel'],
+  presets: [
+    [
+      'module:@react-native/babel-preset',
+      {
+        // Let webpack handle ES module transforms so `exports` stays defined.
+        disableImportExportTransform: true,
+      },
+    ],
+    'nativewind/babel',
+  ],
   plugins: [
     'react-native-worklets/plugin',
     [

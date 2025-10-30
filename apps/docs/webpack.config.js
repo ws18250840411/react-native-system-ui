@@ -33,6 +33,8 @@ module.exports = {
     alias: {
       'react-native$': 'react-native-web',
       '@': path.resolve(__dirname, 'src'),
+      'react-native-system-ui': path.resolve(__dirname, '../../packages/ui/src'),
+      'react-native-system-utils': path.resolve(__dirname, '../../packages/utils/src'),
     }
   },
   plugins: [
