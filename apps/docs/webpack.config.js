@@ -7,7 +7,7 @@ module.exports = {
   devServer: {
     port: 3000,
     hot: true,
-    open: true,
+    // open: true,
     historyApiFallback: true,
   },
   entry: './index.web.js',
@@ -25,7 +25,23 @@ module.exports = {
       {
         test: /\.(png|jpg|jpeg|gif|svg)$/,
         type: 'asset/resource',
-      }
+      },
+      // {
+      //   test: /\.md$/,
+      //   type: 'asset/source',
+      // }
+      {
+        test: /\.md$/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/preset-env', '@babel/preset-react'],
+            },
+          },
+          path.resolve(__dirname, 'markdown-loader.js'), // 引用自定义 loader 变量
+        ],
+      },
     ]
   },
   resolve: {
@@ -35,6 +51,7 @@ module.exports = {
       '@': path.resolve(__dirname, 'src'),
       'react-native-system-ui': path.resolve(__dirname, '../../packages/ui/src'),
       'react-native-system-utils': path.resolve(__dirname, '../../packages/utils/src'),
+      '@ui-src': path.resolve(__dirname, '../../packages/ui/src'),
     }
   },
   plugins: [

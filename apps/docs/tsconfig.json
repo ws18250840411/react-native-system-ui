@@ -16,6 +16,9 @@
       "@/*": [
         "./src/*"
       ],
+      "@ui-src/*": [
+        "../../packages/ui/src/*"
+      ],
       "react-native-system-ui": [
         "../../packages/ui/src"
       ],
