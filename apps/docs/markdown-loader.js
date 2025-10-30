@@ -112,11 +112,6 @@ function markdownLoader(source) {
               return `<div className="md-section" dangerouslySetInnerHTML={{__html: ${JSON.stringify(cardWrapper(marked(c)))}}}></div>`;
             }
             importChildrenCode += transformed;
-
-            // 渲染 code block
-            const codeMarked = marked(document[2] || '');
-            const codeHtml = `<div className="code-block" dangerouslySetInnerHTML={{__html: ${JSON.stringify(codeMarked)}}} />`;
-
             // 标题
             const titleMarked = marked(document[1] || '');
             demoHtml = `<div className="demo-block">
@@ -124,7 +119,7 @@ function markdownLoader(source) {
              <div className="demo-block-content"><${cName} /></div>
            </div>`;
 
-            return `<div className="card hide" id="${id}">${demoHtml}${codeHtml}</div>`;
+            return `<div className="card hide" id="${id}">${demoHtml}</div>`;
           }
         }
 
@@ -169,7 +164,6 @@ ${importChildrenCode}
           </div>
           <div className="demo-container">
             <div className="md-demo">${demoHTML}</div>
-            <div className="md-api" dangerouslySetInnerHTML={{__html: ${JSON.stringify(cardWrapper(apiHTML))}}} />
           </div>
         </div>
       );

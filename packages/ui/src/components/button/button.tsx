@@ -1,198 +1,197 @@
-import React from "react";
-import {
-    Pressable,
-    PressableProps,
-    StyleProp,
-    StyleSheet,
-    Text,
-    TextStyle,
-    View,
-    ViewStyle,
-} from "react-native";
+import Color from 'color'
+import isNil from 'lodash/isNil'
+import isUndefined from 'lodash/isUndefined'
+import noop from 'lodash/noop'
+import React, { memo, useMemo } from 'react'
+import type { ViewStyle, TextStyle, StyleProp } from 'react-native'
+import { Text, TouchableOpacity, StyleSheet } from 'react-native'
 
-type ButtonVariant = "primary" | "secondary" | "ghost";
-type ButtonSize = "sm" | "md" | "lg";
+import Flex from '../flex'
+import { getDefaultValue, renderTextLikeJSX } from '../../foundation/helpers'
+import { useDebounceFn } from '../../foundation/hooks'
+import Loading from '../loading'
+import Theme from '../../theme'
 
-export type ButtonProps = Omit<PressableProps, "children" | "style"> & {
-    /**
-     * 按钮文本。传入 children 时可留空。
-     */
-    title?: string;
-    /**
-     * 按钮内容。若未提供 children，会回退到 title。
-     */
-    children?: React.ReactNode;
-    /**
-     * 样式变体，默认 primary。
-     */
-    variant?: ButtonVariant;
-    /**
-     * 尺寸，默认中号。
-     */
-    size?: ButtonSize;
-    /**
-     * 左侧图标。
-     */
-    leftIcon?: React.ReactNode;
-    /**
-     * 右侧图标。
-     */
-    rightIcon?: React.ReactNode;
-    /**
-     * 外层样式。
-     */
-    style?: StyleProp<ViewStyle>;
-    /**
-     * 文本样式。
-     */
-    textStyle?: StyleProp<TextStyle>;
-};
+import type { ButtonProps } from './interface'
+import { varCreator, styleCreator } from './style'
 
-const variantStyles: Record<ButtonVariant, { container: ViewStyle; label: TextStyle }> =
-{
-    primary: {
-        container: {
-            backgroundColor: "#2563EB",
-            borderColor: "#2563EB",
-        },
-        label: {
-            color: "#FFFFFF",
-        },
-    },
-    secondary: {
-        container: {
-            backgroundColor: "#1F2937",
-            borderColor: "#1F2937",
-        },
-        label: {
-            color: "#FFFFFF",
-        },
-    },
-    ghost: {
-        container: {
-            backgroundColor: "transparent",
-            borderColor: "#D1D5DB",
-        },
-        label: {
-            color: "#111827",
-        },
-    },
-};
+/**
+ * Button 按钮
+ * @description 按钮用于触发一个操作，如提交表单。
+ */
+const Button: React.FC<ButtonProps> = ({
+  children,
+  style,
+  theme,
+  text,
+  subtext,
+  textStyle,
+  type = 'primary',
+  danger = false,
+  size = 'l',
+  hairline = false,
+  disabled = false,
+  loading = false,
+  loadingText,
+  loadingIcon,
+  square = false,
+  round = false,
+  renderLeftIcon,
+  color,
+  textColor,
+  onPressDebounceWait = 0,
 
-const sizeStyles: Record<ButtonSize, { container: ViewStyle; label: TextStyle }> = {
-    sm: {
-        container: {
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            minHeight: 36,
-        },
-        label: {
-            fontSize: 14,
-        },
-    },
-    md: {
-        container: {
-            paddingHorizontal: 16,
-            paddingVertical: 10,
-            minHeight: 44,
-        },
-        label: {
-            fontSize: 16,
-        },
-    },
-    lg: {
-        container: {
-            paddingHorizontal: 20,
-            paddingVertical: 12,
-            minHeight: 52,
-        },
-        label: {
-            fontSize: 18,
-        },
-    },
-};
-
-export const Button: React.FC<ButtonProps> = ({
-    title,
-    children,
-    variant = "primary",
-    size = "md",
-    leftIcon,
-    rightIcon,
-    style,
-    textStyle,
-    disabled,
-    ...rest
+  ...restProps
 }) => {
-    const labelContent = children ?? title;
+  const [CV, STYLES] = Theme.useStyle({
+    varCreator,
+    styleCreator,
+    theme,
+  })
+  const { run: runOnPress } = useDebounceFn(restProps.onPress || noop, {
+    wait: onPressDebounceWait,
+    leading: true,
+    trailing: false,
+  })
 
-    return (
-        <Pressable
-            {...rest}
-            disabled={disabled}
-            accessibilityRole="button"
-            accessibilityState={disabled ? { disabled: true } : undefined}
-            style={({ pressed }) => [
-                styles.base,
-                variantStyles[variant].container,
-                sizeStyles[size].container,
-                disabled && styles.disabled,
-                pressed && !disabled && styles.pressed,
-                style,
-            ]}
-        >
-            <View style={styles.content}>
-                {leftIcon ? <View style={styles.icon}>{leftIcon}</View> : null}
-                {typeof labelContent === "string" ? (
-                    <Text
-                        style={[
-                            styles.label,
-                            variantStyles[variant].label,
-                            sizeStyles[size].label,
-                            disabled && styles.labelDisabled,
-                            textStyle,
-                        ]}
-                    >
-                        {labelContent}
-                    </Text>
-                ) : (
-                    labelContent
-                )}
-                {rightIcon ? <View style={styles.icon}>{rightIcon}</View> : null}
-            </View>
-        </Pressable>
-    );
-};
+  color = getDefaultValue(
+    color,
+    danger ? CV.button_danger_color : CV.button_primary_color,
+  )
+  textColor = getDefaultValue(textColor, CV.button_text_color)
 
-const styles = StyleSheet.create({
-    base: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        borderWidth: 1,
-        borderRadius: 999,
-        overflow: "hidden",
+  const [_backgroundColor, _borderColor, _textColor, _borderWidth] =
+    useMemo(() => {
+      switch (type) {
+        case 'hazy': {
+          const hazyColor = Color(color)
+            .lightness(CV.button_hazy_lightness)
+            .hex()
+          return [hazyColor, hazyColor, color, 0]
+        }
+
+        case 'outline': {
+          return [
+            CV.button_ghost_background_color,
+            CV.button_border_color,
+            color,
+            1,
+          ]
+        }
+
+        case 'ghost': {
+          return [CV.button_ghost_background_color, color, color, 1]
+        }
+
+        case 'link':
+          return [
+            CV.button_ghost_background_color,
+            CV.button_ghost_background_color,
+            color,
+            0,
+          ]
+
+        case 'primary':
+        default:
+          return [color, color, textColor, 0]
+      }
+    }, [
+      CV.button_border_color,
+      CV.button_ghost_background_color,
+      CV.button_hazy_lightness,
+      color,
+      textColor,
+      type,
+    ])
+
+  const buttonStyles: StyleProp<ViewStyle> = [
+    STYLES.button,
+    STYLES.button_column,
+    {
+      height: CV[`button_${size}_height`],
+      backgroundColor: _backgroundColor,
+      borderColor: _borderColor,
+      borderWidth: _borderWidth
+        ? hairline
+          ? StyleSheet.hairlineWidth
+          : _borderWidth
+        : _borderWidth,
     },
-    content: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
+    STYLES[`button_${size}_padding_horizontal`],
+    square ? STYLES.button_square : null,
+    round ? STYLES.button_round : null,
+    disabled ? STYLES.button_disabled : null,
+    loading ? STYLES.button_loading : null,
+    style,
+  ]
+  const commonTextStyle = StyleSheet.flatten<TextStyle>([
+    STYLES.text,
+    {
+      fontSize: CV[`button_${size}_font_size`],
+      color: _textColor,
+      marginLeft: renderLeftIcon ? CV.button_icon_gap : 0,
     },
-    label: {
-        fontWeight: "600",
-    },
-    icon: {
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    pressed: {
-        opacity: 0.88,
-    },
-    disabled: {
-        opacity: 0.5,
-    },
-    labelDisabled: {
-        color: "#E5E7EB",
-    },
-});
+  ])
+
+  const textStyleSummary = StyleSheet.flatten<TextStyle>([
+    commonTextStyle,
+    textStyle,
+  ])
+  const iconSize = (CV[`button_${size}_loading_size`] ||
+    textStyleSummary.fontSize)!
+  const iconColor = textStyleSummary.color as string
+
+  const contextJSX = loading ? (
+    <Loading
+      type="spinner"
+      color={iconColor}
+      size={iconSize}
+      textSize={textStyleSummary.fontSize}
+      loadingIcon={loadingIcon}>
+      {isUndefined(loadingText) ? text : loadingText}
+    </Loading>
+  ) : (
+    <>
+      <Flex direction="row" align="center" justify="center">
+        {renderLeftIcon ? renderLeftIcon(iconColor, iconSize) : null}
+        <Text style={textStyleSummary} numberOfLines={1}>
+          {!isNil(text) ? text : children}
+        </Text>
+      </Flex>
+      {renderTextLikeJSX(
+        subtext,
+        [
+          {
+            color: iconColor,
+            lineHeight: CV.button_subtext_line_height,
+            fontSize: CV.button_subtext_font_size,
+            opacity: CV.button_subtext_opacity,
+          },
+        ],
+        {
+          numberOfLines: 1,
+        },
+      )}
+    </>
+  )
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      {...restProps}
+      disabled={disabled || loading}
+      style={buttonStyles}
+      activeOpacity={CV.button_active_opacity}
+      onPress={
+        restProps.onPress
+          ? onPressDebounceWait
+            ? runOnPress
+            : restProps.onPress
+          : undefined
+      }>
+      {contextJSX}
+    </TouchableOpacity>
+  )
+}
+
+export default memo(Button)
