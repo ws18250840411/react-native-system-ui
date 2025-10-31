@@ -158,7 +158,7 @@ const DocLayout: React.FC<DocLayoutProps> = ({
           navigation.navigate('Home');
           break;
         case 'docs':
-          navigation.navigate('Docs');
+          navigation.navigate('Guide');
           break;
         case 'components': {
           const first = componentDocs[0];

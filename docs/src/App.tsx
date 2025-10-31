@@ -8,7 +8,7 @@
 import '@/global.css';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
-import { RootNavigator } from '@/components/StackNavigator';
+import { RootNavigator } from '@/router';
 import { LocaleProvider } from '@/context/LocaleContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import DocLayout from '@/components/DocLayout';
+import { DocLayout } from '@/layout';
 import { useLocale } from '@/context/LocaleContext';
 import {
   getComponentDoc,

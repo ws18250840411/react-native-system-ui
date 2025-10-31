@@ -1,9 +1,9 @@
 import { NavigationContainer, DefaultTheme, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { Loading } from '@/components/Loading';
 import { NotFound } from '@/components/NotFound';
-import { stackRoutes } from '@/routes';
-import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import { stackRoutes } from './routes';
 
 const Stack = createNativeStackNavigator();
 
