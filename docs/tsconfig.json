@@ -1,0 +1,55 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "types": [
+      "react",
+      "react-native",
+      "react-test-renderer"
+    ],
+    "lib": [
+      "es2023",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable"
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@ui-src/*": [
+        "../packages/ui/src/*"
+      ],
+      "react-native": [
+        "./src/polyfills/react-native-web"
+      ],
+      "react-native-css-interop": [
+        "./src/polyfills/react-native-css-interop"
+      ],
+      "react-native-css-interop/jsx-runtime": [
+        "./src/polyfills/react-native-css-interop-jsx-runtime"
+      ],
+      "react-native-css-interop/jsx-dev-runtime": [
+        "./src/polyfills/react-native-css-interop-jsx-dev-runtime"
+      ],
+      "react-native-system-ui": [
+        "../packages/ui/src"
+      ],
+      "react-native-system-utils": [
+        "../packages/utils/src"
+      ],
+      "tailwind.config": [
+        "./tailwind.config.js"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "nativewind-env.d.ts",
+    "global.d.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/Pods"
+  ]
+}

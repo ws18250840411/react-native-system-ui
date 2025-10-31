@@ -2,7 +2,7 @@
   "name": "react-native-system-ui",
   "private": true,
   "workspaces": [
-    "apps/*",
+    "docs",
     "packages/*"
   ],
   "scripts": {
