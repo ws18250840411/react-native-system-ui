@@ -6,8 +6,8 @@
  */
 
 import '@/global.css';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
+import { Provider as SystemUIProvider } from 'react-native-system-ui';
 import { RootNavigator } from '@/router';
 import { LocaleProvider } from '@/context/LocaleContext';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -17,13 +17,13 @@ enableScreens();
 
 function App() {
   return (
-    <LocaleProvider>
-      <ThemeProvider>
-        <SafeAreaProvider>
+    <SystemUIProvider>
+      <LocaleProvider>
+        <ThemeProvider>
           <RootNavigator />
-        </SafeAreaProvider>
-      </ThemeProvider>
-    </LocaleProvider>
+        </ThemeProvider>
+      </LocaleProvider>
+    </SystemUIProvider>
   );
 }
 
