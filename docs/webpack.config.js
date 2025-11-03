@@ -11,6 +11,12 @@ module.exports = {
     historyApiFallback: true,
   },
   entry: './index.web.js',
+  output: {
+    filename: '[name].js',
+    chunkFilename: '[name].chunk.js',
+    path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
+  },
   module: {
     rules: [
       {

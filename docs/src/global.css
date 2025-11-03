@@ -196,7 +196,7 @@ pre[class*=language-] {
   border: 1px solid #e5e7eb;
 }
 
-.demo-block-code > summary {
+.demo-block-code>summary {
   cursor: pointer;
   padding: 12px 16px;
   font-size: 14px;
@@ -374,3 +374,9 @@ pre[class*=language-] {
   font-size: 14px;
   font-style: normal;
 }
+
+.doc-container {
+  display: flex;
+}
+
+.demo-container {}
