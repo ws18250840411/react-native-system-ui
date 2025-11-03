@@ -411,6 +411,34 @@ ${dedupedImports ? `${dedupedImports}\n` : ''}${importChildrenCode}
     export const raw = ${JSON.stringify(input)};
 
     export default function MarkdownComponent() {
+      const hasPcClass = docClassName.includes('md-pc');
+      const [isMobileView, setIsMobileView] = React.useState(() => {
+        if (hasPcClass) {
+          return false;
+        }
+        if (typeof window === 'undefined') {
+          return true;
+        }
+        return window.innerWidth <= 960;
+      });
+
+      React.useEffect(() => {
+        if (typeof window === 'undefined') {
+          return;
+        }
+        if (hasPcClass) {
+          setIsMobileView(false);
+          return;
+        }
+        const handleResize = () => {
+          setIsMobileView(window.innerWidth <= 960);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+      }, [hasPcClass]);
+
+      const previewTitle = (metadata?.anchors && metadata.anchors[0]?.label) || (demoList[0]?.title ?? '示例预览');
       return (
         <div className={docClassName}>
           <div className="code-container">
@@ -423,32 +451,47 @@ ${dedupedImports ? `${dedupedImports}\n` : ''}${importChildrenCode}
             {demoList.length === 0 ? (
               <div className="demo-empty">暂无示例</div>
             ) : (
-              demoList.map((demo) => {
-                const DemoComponent = demo.Component;
-                return (
-                  <section key={demo.id} id={demo.id} className="demo-block">
-                    <header className="demo-block-title">
-                      <h3>{demo.title}</h3>
-                    </header>
-                    {demo.descriptionHtml ? (
-                      <div
-                        className="demo-block-description"
-                        dangerouslySetInnerHTML={{ __html: demo.descriptionHtml }}
-                      />
-                    ) : null}
-                    <div className="demo-block-content">
-                      <DemoComponent />
-                    </div>
-                    <details className="demo-block-code">
-                      <summary>查看代码</summary>
-                      <div
-                        className="demo-code"
-                        dangerouslySetInnerHTML={{ __html: demo.codeHtml }}
-                      />
-                    </details>
-                  </section>
-                );
-              })
+              <div className="demo-device">
+                <div className="demo-device__notch">
+                  <svg class="doc-simulator__bar" fill="currentColor" viewBox="0 0 1384.3 40.3"><path d="M1343 5l18.8 32.3c.8 1.3 2.7 1.3 3.5 0L1384 5c.8-1.3-.2-3-1.7-3h-37.6c-1.5 0-2.5 1.7-1.7 3z"></path><circle cx="1299" cy="20.2" r="20"></circle><path d="M1213 1.2h30c2.2 0 4 1.8 4 4v30c0 2.2-1.8 4-4 4h-30c-2.2 0-4-1.8-4-4v-30c0-2.3 1.8-4 4-4zM16 4.2h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H16c-8.8 0-16-7.2-16-16s7.2-16 16-16z"></path></svg>
+                </div>
+                <div className="demo-device__title">{previewTitle}</div>
+                <div className="demo-device__content">
+                  {demoList.map((demo) => {
+                    const DemoComponent = demo.Component;
+                    return (
+                      <section key={demo.id} id={demo.id} className="demo-device__block">
+                        <header className="demo-device__block-header">
+                          <h4>{demo.title}</h4>
+                          {demo.descriptionHtml ? (
+                            <div
+                              className="demo-device__block-desc"
+                              dangerouslySetInnerHTML={{ __html: demo.descriptionHtml }}
+                            />
+                          ) : null}
+                        </header>
+                        <div className="demo-device__block-body">
+                          <DemoComponent />
+                        </div>
+                        {isMobileView && demo.codeHtml ? (
+                          <details className="demo-device__block-code">
+                            <summary>查看代码</summary>
+                            <div
+                              className="demo-code"
+                              dangerouslySetInnerHTML={{ __html: demo.codeHtml }}
+                            />
+                          </details>
+                        ) : null}
+                      </section>
+                    );
+                  })}
+                </div>
+                <div className="demo-device__toolbar">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
             )}
           </div>
         </div>

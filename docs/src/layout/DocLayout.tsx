@@ -74,8 +74,8 @@ const DocLayout: React.FC<DocLayoutProps> = ({
     const base = searchItems
       ? searchItems
       : resolvedMenuGroups.flatMap((group) =>
-          group.items.map((item) => ({ ...item, group: group.title })),
-        );
+        group.items.map((item) => ({ ...item, group: group.title })),
+      );
     if (base.length > 0) {
       return base;
     }
@@ -495,19 +495,15 @@ const styles = StyleSheet.create<any>({
     backgroundColor: 'transparent',
   },
   contentInner: {
-    paddingHorizontal: 72,
-    paddingVertical: 56,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   contentInnerFull: {
-    paddingRight: 72,
+    paddingRight: 20,
   },
   aside: {
-    width: 220,
-    paddingHorizontal: 28,
-    paddingVertical: 48,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: 'var(--doc-border)',
-    backgroundColor: 'var(--doc-surface)',
+    width: 120,
+    paddingVertical: 16,
   },
   asideTitle: {
     fontSize: 13,
