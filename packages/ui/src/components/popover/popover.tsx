@@ -13,7 +13,7 @@ import type { View } from 'react-native'
 import { ScrollView, TouchableOpacity } from 'react-native'
 import RNPopoverView from 'react-native-popover-view'
 
-import { varCreator as varCreatorButton } from '../button/style'
+import ButtonStyle from '../button/style'
 import { getDefaultValue } from '../../foundation/helpers'
 import Theme from '../../theme'
 
@@ -46,7 +46,7 @@ const Popover = <T,>({
     theme,
   })
   const [CV_BUTTON] = Theme.useStyle({
-    varCreator: varCreatorButton,
+    varCreator: ButtonStyle.varCreator,
   })
 
   duration = getDefaultValue(duration, TOKENS.animation_duration_base)

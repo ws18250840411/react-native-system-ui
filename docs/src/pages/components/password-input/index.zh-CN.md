@@ -1,17 +1,24 @@
-# Password Input 组件
 
-> TODO: 补充 password-input 组件中文文档。
+# PasswordInput 密码输入框
 
-## 介绍
+> 在 TextInput 的基础是完善密码可见切换。
 
-（此处撰写组件用途与场景简介。）
+## 元素结构
 
-## 示例
+参考 `TextInput`。
 
-```tsx
-// TODO: 添加示例代码
-```
+## 代码演示
+
+<code src="./__fixtures__/basic.tsx"></code>
 
 ## API
 
-TODO: 列出 password-input 属性、事件与插槽。
+去掉 TextInputProps 的 formatTrigger、showWordLimit、rows、type、secureTextEntry、suffix。
+
+| 属性名                  | 描述             | 类型                  | 默认值   | 版本 |
+| :---------------------- | ---------------- | --------------------- | -------- | ---- |
+| secureTextEntry         | 安全输入         | `boolean`             | `true`   | -    |
+| defaultSecureTextEntry  | 安全输入默认状态 | `boolean`             | -        | -    |
+| onChangeSecureTextEntry | 安全输入状态变更 | `(v:boolean) => void` | -        | -    |
+| iconSize                | 图标大小         | `number`              | `20`     | -    |
+| iconColor               | 图标颜色         | `ColorValue`          | `gray_6` | -    |

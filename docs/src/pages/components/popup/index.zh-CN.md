@@ -57,9 +57,8 @@ import React from 'react';
 import { Text } from 'react-native';
 import { Button, Card, Popup, Space, TextInput } from 'react-native-system-ui';
 
-const positions = ['center', 'left', 'right', 'top', 'bottom'];
-
-const Example = () => {
+function Example() {
+  const positions = ['center', 'left', 'right', 'top', 'bottom'];
   const [state, setState] = React.useState({
     show: false,
     position: 'left',
@@ -79,7 +78,7 @@ const Example = () => {
               type="primary"
               text={`弹出位置:${position}`}
               onPress={() => setState(prev => ({ ...prev, show: true, position }))}
-          />
+            />
           ))}
 
           <Button
@@ -136,7 +135,7 @@ const Example = () => {
       </Popup>
     </>
   );
-};
+}
 
 export default Example;
 ```
@@ -150,7 +149,7 @@ import React from 'react';
 import { Keyboard, ScrollView, Text } from 'react-native';
 import { Blank, Button, ButtonBar, Popup, TextInput } from 'react-native-system-ui';
 
-const Example = () => {
+function Example() {
   const [visible, setVisible] = React.useState(false);
   const [list, setList] = React.useState([]);
 
@@ -194,7 +193,7 @@ const Example = () => {
       </Popup>
     </Blank>
   );
-};
+}
 
 export default Example;
 ```
@@ -208,7 +207,7 @@ import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { Blank, Button, ButtonBar, Field, Popup, Space } from 'react-native-system-ui';
 
-const Example = () => {
+function Example() {
   const [visible, setVisible] = React.useState(false);
 
   const renderBlock = (color, key) => (
@@ -243,7 +242,7 @@ const Example = () => {
       </Popup.Page>
     </Blank>
   );
-};
+}
 
 export default Example;
 ```

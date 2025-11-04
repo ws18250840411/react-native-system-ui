@@ -1,17 +1,17 @@
-# Error Boundary 组件
 
-> TODO: 补充 error-boundary 组件中文文档。
+# ErrorBoundary 错误捕获
 
-## 介绍
+> 一般用于应用根组件，捕获 React 内产生的问题。
 
-（此处撰写组件用途与场景简介。）
+## 代码演示
 
-## 示例
-
-```tsx
-// TODO: 添加示例代码
-```
+<code src="./__fixtures__/basic.tsx"></code>
 
 ## API
 
-TODO: 列出 error-boundary 属性、事件与插槽。
+| 属性名      | 描述                   | 类型                                                                         | 默认值                    | 版本 |
+| :---------- | ---------------------- | ---------------------------------------------------------------------------- | ------------------------- | ---- |
+| title       | 错误提示               | `string`                                                                     | `'加载失败，请稍后再试~'` | -    |
+| reloadText  | 重新加载的文案         | `string`                                                                     | `'重新加载'`              | -    |
+| onError     | 出错时的回调函数       | `(e:Error, info:ErrorInfo) => void`                                          | -                         | -    |
+| renderError | 自定义渲染出错时的页面 | `(opt:{name:string, message:string, onReset:() => void}) => React.ReactNode` | -                         | -    |

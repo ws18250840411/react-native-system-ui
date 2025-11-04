@@ -100,3 +100,10 @@ export const styleCreator = (cv: ButtonTheme) => {
     },
   })
 }
+
+const ButtonStyle = {
+  varCreator,
+  styleCreator,
+}
+
+export default ButtonStyle

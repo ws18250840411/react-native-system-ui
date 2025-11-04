@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { TouchableOpacity, View } from 'react-native'
 
-import { varCreator as varCreatorButton } from '../button/style'
+import ButtonStyle from '../button/style'
 import Theme from '../../theme'
 
 import type { PopoverItemProps } from './interface'
@@ -24,7 +24,7 @@ const PopoverItem = <T,>({
     theme,
   })
   const [CV_BUTTON] = Theme.useStyle({
-    varCreator: varCreatorButton,
+    varCreator: ButtonStyle.varCreator,
   })
 
   return (

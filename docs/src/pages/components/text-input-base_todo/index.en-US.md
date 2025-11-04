@@ -1,17 +1,17 @@
-# Text Input Base_Todo
+# TextInputBase (Planned)
 
-> TODO: Complete the English documentation for the `text-input-base_todo` component.
+> `TextInputBase` is not yet available in `react-native-system-ui`. The repository currently keeps a placeholder while the team evaluates a lower-level input primitive.
 
-## Overview
+## Current Status
 
-Describe what this component does and when to use it.
+- No API has been published and the component is **not** exported from the package.
+- The existing code only contains an early draft; functionality may change drastically.
+- Documentation and release notes will be updated once the roadmap is confirmed.
 
-## Examples
+## Recommended Alternatives
 
-```tsx
-// TODO: add usage examples
-```
+- Standard input: `TextInput`
+- Form-friendly variant: `Field.TextInput` / `Field.NumberInput`
+- Numeric scenarios: `NumberInput`
 
-## API
-
-TODO: list props, events, and slots for `text-input-base_todo`.
+If you need a lower-level primitive, please share your requirements through the project issue tracker so we can prioritize it.

@@ -2,105 +2,96 @@ import Color from 'color'
 import isNil from 'lodash/isNil'
 import isUndefined from 'lodash/isUndefined'
 import noop from 'lodash/noop'
-import React, { memo, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import type { ViewStyle, TextStyle, StyleProp } from 'react-native'
 import { Text, TouchableOpacity, StyleSheet } from 'react-native'
 
 import Flex from '../flex'
+import Loading from '../loading'
+import { createFC } from '../../foundation/createFC'
 import { getDefaultValue, renderTextLikeJSX } from '../../foundation/helpers'
 import { useDebounceFn } from '../../foundation/hooks'
-import Loading from '../loading'
-import Theme from '../../theme'
 
+import ButtonStyle from './style'
 import type { ButtonProps } from './interface'
-import { varCreator, styleCreator } from './style'
 
 /**
  * Button 按钮
  * @description 按钮用于触发一个操作，如提交表单。
  */
-const Button: React.FC<ButtonProps> = ({
-  children,
-  style,
-  theme,
-  text,
-  subtext,
-  textStyle,
-  type = 'primary',
-  danger = false,
-  size = 'l',
-  hairline = false,
-  disabled = false,
-  loading = false,
-  loadingText,
-  loadingIcon,
-  square = false,
-  round = false,
-  renderLeftIcon,
-  color,
-  textColor,
-  onPressDebounceWait = 0,
-
-  ...restProps
-}) => {
-  const [CV, STYLES] = Theme.useStyle({
-    varCreator,
-    styleCreator,
+const Button = createFC<ButtonProps>(({ props, ref, useTheme }) => {
+  const {
+    children,
+    style,
     theme,
-  })
+    text,
+    subtext,
+    textStyle,
+    type = 'primary',
+    danger = false,
+    size = 'l',
+    hairline = false,
+    disabled = false,
+    loading = false,
+    loadingText,
+    loadingIcon,
+    square = false,
+    round = false,
+    renderLeftIcon,
+    color,
+    textColor,
+    onPressDebounceWait = 0,
+    ...restProps
+  } = props
+
+  const { vars: CV, styles: STYLES } = useTheme(ButtonStyle, theme)
   const { run: runOnPress } = useDebounceFn(restProps.onPress || noop, {
     wait: onPressDebounceWait,
     leading: true,
     trailing: false,
   })
 
-  color = getDefaultValue(
+  const realColor = getDefaultValue(
     color,
     danger ? CV.button_danger_color : CV.button_primary_color,
   )
-  textColor = getDefaultValue(textColor, CV.button_text_color)
+  const realTextColor = getDefaultValue(textColor, CV.button_text_color)
 
   const [_backgroundColor, _borderColor, _textColor, _borderWidth] =
     useMemo(() => {
       switch (type) {
         case 'hazy': {
-          const hazyColor = Color(color)
+          const hazyColor = Color(realColor)
             .lightness(CV.button_hazy_lightness)
             .hex()
-          return [hazyColor, hazyColor, color, 0]
+          return [hazyColor, hazyColor, realColor, 0]
         }
-
-        case 'outline': {
+        case 'outline':
           return [
             CV.button_ghost_background_color,
             CV.button_border_color,
-            color,
+            realColor,
             1,
           ]
-        }
-
-        case 'ghost': {
-          return [CV.button_ghost_background_color, color, color, 1]
-        }
-
+        case 'ghost':
+          return [CV.button_ghost_background_color, realColor, realColor, 1]
         case 'link':
           return [
             CV.button_ghost_background_color,
             CV.button_ghost_background_color,
-            color,
+            realColor,
             0,
           ]
-
         case 'primary':
         default:
-          return [color, color, textColor, 0]
+          return [realColor, realColor, realTextColor, 0]
       }
     }, [
       CV.button_border_color,
       CV.button_ghost_background_color,
       CV.button_hazy_lightness,
-      color,
-      textColor,
+      realColor,
+      realTextColor,
       type,
     ])
 
@@ -124,6 +115,7 @@ const Button: React.FC<ButtonProps> = ({
     loading ? STYLES.button_loading : null,
     style,
   ]
+
   const commonTextStyle = StyleSheet.flatten<TextStyle>([
     STYLES.text,
     {
@@ -175,8 +167,9 @@ const Button: React.FC<ButtonProps> = ({
     </>
   )
 
-  return (
+  return () => (
     <TouchableOpacity
+      ref={ref}
       accessibilityRole="button"
       {...restProps}
       disabled={disabled || loading}
@@ -192,6 +185,6 @@ const Button: React.FC<ButtonProps> = ({
       {contextJSX}
     </TouchableOpacity>
   )
-}
+})
 
-export default memo(Button)
+export default Button

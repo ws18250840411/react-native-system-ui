@@ -3,7 +3,7 @@ import React, { useMemo, useRef, useState, useEffect, memo } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 
 import Button from '../button'
-import { varCreator as varCreatorButton } from '../button/style'
+import ButtonStyle from '../button/style'
 import Col from '../col'
 import DatePickerView from '../date-picker-view'
 import { formatDate } from '../date-picker-view/helper'
@@ -61,7 +61,7 @@ const DatePickerRangeView: React.FC<DatePickerRangeViewProps> = ({
     : defaultInitialValue
   const locale = Locale.useLocale().DatePickerRangeView
   const TOKENS = Theme.useThemeTokens()
-  const CV_BUTTON = Theme.createVar(TOKENS, varCreatorButton)
+  const CV_BUTTON = Theme.createVar(TOKENS, ButtonStyle.varCreator)
   const CV_PICKER = Theme.createVar(TOKENS, varCreatorPicker)
   const STYLES_PICKER = Theme.createStyle(CV_PICKER, styleCreatorPicker)
   const btnStyle = useMemo(

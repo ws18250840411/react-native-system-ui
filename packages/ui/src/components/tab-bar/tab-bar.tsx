@@ -5,7 +5,7 @@ import type { LayoutChangeEvent, LayoutRectangle } from 'react-native'
 import { Text, TouchableOpacity, ScrollView, Animated } from 'react-native'
 
 import BottomBar from '../bottom-bar'
-import { varCreator as varCreatorButton } from '../button/style'
+import ButtonStyle from '../button/style'
 import { getDefaultValue } from '../../foundation/helpers'
 import {
   useControllableValue,
@@ -49,7 +49,7 @@ const TabBar = <T extends TabValue>({
     theme,
   })
   const [CV_BUTTON] = Theme.useStyle({
-    varCreator: varCreatorButton,
+    varCreator: ButtonStyle.varCreator,
   })
 
   const optionsDeepCopy = useOriginalDeepCopy(options)

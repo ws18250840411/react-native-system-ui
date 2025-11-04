@@ -1,17 +1,48 @@
-# Error Boundary
+# ErrorBoundary
 
-> TODO: Complete the English documentation for the `error-boundary` component.
+ErrorBoundary catches rendering errors in its child subtree and renders a graceful fallback.
 
-## Overview
+## When To Use
 
-Describe what this component does and when to use it.
+- Wrap the root of your app to prevent a blank screen when unexpected errors occur.
+- Provide a retry button and custom messaging for network-heavy screens.
 
-## Examples
+## Import
 
 ```tsx
-// TODO: add usage examples
+import { ErrorBoundary } from 'react-native-system-ui';
+```
+
+## Example
+
+```tsx
+import React from 'react';
+import { Button, ErrorBoundary } from 'react-native-system-ui';
+
+const Broken = () => {
+  throw new Error('Boom');
+};
+
+function Example() {
+  return (
+    <ErrorBoundary
+      title="加载失败，请稍后再试~"
+      reloadText="重新加载"
+      onError={error => console.log(error)}
+    >
+      <Broken />
+    </ErrorBoundary>
+  );
+}
+
+export default Example;
 ```
 
 ## API
 
-TODO: list props, events, and slots for `error-boundary`.
+| Prop | Description | Type | Default |
+| --- | --- | --- | --- |
+| title | Message shown when an error is caught | `string` | `'加载失败，请稍后再试~'` |
+| reloadText | Label for the reset button | `string` | `'重新加载'` |
+| onError | Callback with the error and component stack | `(error: Error, info: ErrorInfo) => void` | `-` |
+| renderError | Custom fallback renderer | `(opts: { name: string; message: string; onReset: () => void }) => React.ReactNode` | `-` |

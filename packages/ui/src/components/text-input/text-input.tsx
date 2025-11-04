@@ -30,7 +30,7 @@ import {
   useColorScheme,
 } from 'react-native'
 
-import { varCreator as varCreatorButton } from '../button/style'
+import ButtonStyle from '../button/style'
 import { getDefaultValue, renderTextLikeJSX } from '../../foundation/helpers'
 import { usePersistFn, useControllableValue } from '../../foundation/hooks'
 import Locale from '../../locale'
@@ -113,7 +113,7 @@ const TextInput = forwardRef<TextInputInstance, TextInputProps>(
       theme,
     })
     const [CV_BUTTON] = Theme.useStyle({
-      varCreator: varCreatorButton,
+      varCreator: ButtonStyle.varCreator,
     })
 
     const onChangeTextPersistFn = usePersistFn(onChangeText || noop)
