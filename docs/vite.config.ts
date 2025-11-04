@@ -6,6 +6,6 @@ import { reactNativeWeb } from './vite-plugin-react-native-web'
 export default defineConfig({
   plugins: [
     react(),
-    reactNativeWeb(), 
-  ],
+    reactNativeWeb(),
+  ]
 })
