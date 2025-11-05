@@ -11,6 +11,14 @@
   font-size: 15px;
   line-height: 1.75;
 
+  &__wrapper {
+    margin: 0 auto;
+    padding: 32px 36px;
+    background-color: var(--mdoc-md-wrapper-background-color);
+    border-radius: 24px;
+    box-shadow: var(--mdoc-shadow-md);
+  }
+
   h2,
   h3,
   h4 {
@@ -54,6 +62,11 @@
   &--blank {
     padding: 0;
     max-width: 100%;
+    .doc-md-content__wrapper {
+      padding: 0;
+      background: none;
+      box-shadow: none;
+    }
   }
 
   &__meta {

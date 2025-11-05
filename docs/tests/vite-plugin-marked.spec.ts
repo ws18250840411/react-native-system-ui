@@ -26,15 +26,15 @@ export default Example
 \`\`\`
 `
 
-    const output = transformMdToHtmlAndRender(markdown, 'mobile')
+    const { code } = transformMdToHtmlAndRender(markdown, 'mobile')
 
-    expect(output).toContain(`import React from 'react';`)
-    expect(output).toContain(`import { useMemo, useState } from 'react';`)
-    expect(output).toContain(`import { Button as UIButton } from 'react-native-system-ui';`)
-    expect(output).toContain(`import type { ButtonProps } from './Button';`)
-    expect(output).toContain(`import './side-effect.css';`)
-    expect(output).toContain('const DemoComponent0 = () => {')
-    expect(output).not.toContain('export default Example')
+    expect(code).toContain(`import React from 'react';`)
+    expect(code).toContain(`import { useMemo, useState } from 'react';`)
+    expect(code).toContain(`import { Button as UIButton } from 'react-native-system-ui';`)
+    expect(code).toContain(`import type { ButtonProps } from './Button';`)
+    expect(code).toContain(`import './side-effect.css';`)
+    expect(code).toContain('const DemoComponent0 = () => {')
+    expect(code).not.toContain('export default Example')
   })
 
   it('没有 Demo 代码块时不生成组件或 React 导入', () => {
@@ -48,10 +48,10 @@ import { Button } from 'react-native-system-ui'
 \`\`\`
 `
 
-    const output = transformMdToHtmlAndRender(markdown, 'mobile')
+    const { code } = transformMdToHtmlAndRender(markdown, 'mobile')
 
-    expect(output).not.toContain('DemoComponent')
-    expect(output).not.toMatch(/import React/)
+    expect(code).not.toContain('DemoComponent')
+    expect(code).not.toMatch(/import React/)
   })
 
   it('多段 Demo 生成唯一组件并复位计数器', () => {
@@ -76,11 +76,11 @@ export default Example
     const first = transformMdToHtmlAndRender(markdown, 'mobile')
     const second = transformMdToHtmlAndRender(markdown, 'mobile')
 
-    expect(first).toContain('const DemoComponent0')
-    expect(first).toContain('const DemoComponent1')
-    expect(first.match(/const DemoComponent0 =/g)).toHaveLength(1)
-    expect(first.match(/const DemoComponent1 =/g)).toHaveLength(1)
-    expect(second).toContain('const DemoComponent0')
+    expect(first.code).toContain('const DemoComponent0')
+    expect(first.code).toContain('const DemoComponent1')
+    expect(first.code.match(/const DemoComponent0 =/g)).toHaveLength(1)
+    expect(first.code.match(/const DemoComponent1 =/g)).toHaveLength(1)
+    expect(second.code).toContain('const DemoComponent0')
   })
 })
 
@@ -101,15 +101,15 @@ export default Example
 
 普通文案 <script>alert('xss')</script>
 `
-    const output = transformMdToHtmlAndRender(markdown, 'pc')
+    const { code } = transformMdToHtmlAndRender(markdown, 'pc')
 
-    expect(output).toContain('className="md-container md-pc"')
-    expect(output).toContain('const DemoComponent0 = () => {')
-    expect(output).toContain('<div className="md-block-content"><DemoComponent0 /></div>')
-    expect(output).toContain('className="md-html-block"')
-    expect(output).toContain('className="md-block-control"')
-    expect(output).not.toContain('<script>alert')
-    expect(output).toContain('data-track="demo"')
+    expect(code).toContain('className="md-container md-pc"')
+    expect(code).toContain('const DemoComponent0 = () => {')
+    expect(code).toContain('<div className="md-block-content"><DemoComponent0 /></div>')
+    expect(code).toContain('className="md-html-block"')
+    expect(code).toContain('className="md-block-control"')
+    expect(code).not.toContain('<script>alert')
+    expect(code).toContain('data-track="demo"')
   })
 
   it('pc 模式无 Demo 时仅渲染文档 HTML', () => {
@@ -118,11 +118,11 @@ export default Example
 
 普通说明段落
 `
-    const output = transformMdToHtmlAndRender(markdown, 'pc')
+    const { code } = transformMdToHtmlAndRender(markdown, 'pc')
 
-    expect(output).not.toContain('DemoComponent')
-    expect(output).toContain('className="md-block-container-content"')
-    expect(output).toContain('普通说明段落')
+    expect(code).not.toContain('DemoComponent')
+    expect(code).toContain('className="md-block-container-content"')
+    expect(code).toContain('普通说明段落')
   })
 })
 

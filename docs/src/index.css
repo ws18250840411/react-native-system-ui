@@ -287,54 +287,72 @@ pre.prism-code {
   display: inline-block
 }
 
+.prism-code {
+  background: var(--mdoc-md-code-background-color);
+  color: var(--mdoc-prism-color);
+  border: 1px solid var(--mdoc-border-color);
+  border-radius: 18px;
+  padding: 20px 24px;
+  box-shadow: var(--mdoc-shadow-lw);
+  overflow-x: auto;
+}
+
 /* pc 桌面端模式样式 */
 
 .md-pc {
-  background: #fff;
+  background: var(--mdoc-md-wrapper-background-color);
+  color: var(--mdoc-md-text-color);
+  border-radius: 32px;
+  border: 1px solid var(--mdoc-border-color);
+  box-shadow: var(--mdoc-shadow-md);
+  padding: 32px 40px;
 }
 
 .md-pc h1 {
   font-size: 32px;
   font-weight: 700;
   margin: 10px 0 30px;
-  color: #141414;
+  color: var(--mdoc-menu-category-color);
 }
 
 .md-pc h2 {
   font-size: 24px;
   font-weight: 600;
   margin: 32px 0 16px 0;
-  color: #141414;
+  color: var(--mdoc-menu-category-color);
 }
 
 .md-pc h3 {
   font-size: 18px;
   font-weight: 600;
   margin: 45px 0 16px;
-  color: #141414;
+  color: var(--mdoc-menu-category-color);
 }
 
 .md-pc p {
   font-size: 15px;
   margin: 12px 0;
   line-height: 1.6;
-  color: #34495e;
+  color: var(--mdoc-md-text-color);
 }
 
 .md-pc .md-block-content {
   padding: 16px;
+  border-radius: 20px;
+  background: rgba(63, 69, 255, 0.05);
 }
 
 .md-pc .md-block-control {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 12px 0;
 }
 
 .md-pc .md-block-control span {
   width: 100%;
   height: 1px;
-  background-color: #e5e5e5;
+  background-color: var(--mdoc-border-color);
 }
 
 /* mobile 移动端模式样式 */
@@ -343,27 +361,31 @@ pre.prism-code {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: #f7f8fa;
+  background: transparent;
   padding: 20px;
 }
 
 .md-mobile .md-html-container {
   flex: 1;
-  background: #fff;
-  padding: 20px;
+  background: var(--mdoc-md-wrapper-background-color);
+  padding: 24px;
   border-radius: 24px;
   margin-right: 20px;
+  border: 1px solid var(--mdoc-border-color);
+  box-shadow: var(--mdoc-shadow-md);
 }
 
 .md-mobile .md-block-container {
   width: 324px;
   height: 620px;
-  background: #fff;
-  padding: 12px;
+  background: var(--mdoc-md-wrapper-background-color);
+  padding: 16px;
   border-radius: 44px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--mdoc-border-color);
+  box-shadow: var(--mdoc-shadow-md);
 }
 
 .md-mobile .md-block-container-header {
@@ -396,11 +418,11 @@ pre.prism-code {
 }
 
 .md-mobile .md-block-container-title {
-  padding: 10px 20px;
+  padding: 12px 20px;
   font-size: 16px;
   font-weight: 600;
-  background-color: #fff;
-  color: #131313;
+  background-color: transparent;
+  color: var(--mdoc-menu-category-color);
   text-align: center;
 }
 
@@ -408,12 +430,12 @@ pre.prism-code {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #323233;
+  color: var(--mdoc-menu-category-color);
 }
 
 .md-mobile .md-block-container-content {
   padding: 0;
-  background-color: #f6f8fc;
+  background-color: transparent;
 }
 
 .md-mobile .md-block {

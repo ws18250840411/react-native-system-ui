@@ -1,10 +1,11 @@
 import type { Plugin, TransformResult } from 'vite'
 import type { Token as PrismToken } from 'prismjs'
-import { marked } from 'marked'
+import { marked, Slugger as MarkedSlugger } from 'marked'
 import Prism from 'prismjs'
 import path from 'path'
 import fs from 'fs'
 import * as ts from 'typescript'
+import matter from 'gray-matter'
 import 'prismjs/components/prism-jsx'
 import 'prismjs/components/prism-tsx'
 import 'prismjs/components/prism-typescript'
@@ -96,6 +97,15 @@ type ModuleImportRecord = {
 type ReactUsage = {
     hooks: Set<string>
     needsReact: boolean
+}
+type HeadingInfo = {
+    depth: number
+    text: string
+    slug: string
+}
+type TransformRenderResult = {
+    code: string
+    mainTitle: string
 }
 const REACT_HOOK_NAMES = new Set([
     'useState',
@@ -296,6 +306,22 @@ function sanitizeHtml(html: string): string {
 }
 function renderSafeHtml(markdownContent: string): string {
     return JSON.stringify(sanitizeHtml(marked.parse(markdownContent) as string))
+}
+function collectHeadings(markdownContent: string): HeadingInfo[] {
+    const tokens = marked.lexer(markdownContent)
+    const sluggerCtor = MarkedSlugger || (marked as unknown as { Slugger?: typeof MarkedSlugger }).Slugger
+    const slugger = sluggerCtor ? new sluggerCtor() : undefined
+    const headings: HeadingInfo[] = []
+    for (const token of tokens) {
+        if (token.type !== 'heading') continue
+        const depth = 'depth' in token ? (token.depth ?? 0) : 0
+        if (depth < 2) continue
+        const text = typeof token.text === 'string' ? token.text.trim() : ''
+        if (!text) continue
+        const slug = slugger ? slugger.slug(text) : text.toLowerCase().replace(/\s+/g, '-').replace(/-+/g, '-')
+        headings.push({ depth, text, slug })
+    }
+    return headings
 }
 function extractDemoCode(code: string, componentName: string): { cleanedCode: string; moduleImports: Map<string, ModuleImportRecord>; reactUsage: ReactUsage } {
     const source = ts.createSourceFile('demo.tsx', code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
@@ -515,7 +541,7 @@ function indentBlock(code: string, spaces = 4): string {
         .map((line) => pad + line)
         .join('\n')
 }
-function transformMdToHtmlAndRender(code: string, mode: ModeType): string {
+function transformMdToHtmlAndRender(code: string, mode: ModeType): TransformRenderResult {
     componentCounter = 0
     const importAggregator = new Map<string, ModuleImportRecord>()
     const importChildrenCode: string[] = []
@@ -563,18 +589,23 @@ function transformMdToHtmlAndRender(code: string, mode: ModeType): string {
     const docsTemplate = includeDocsHtml
         ? `<div className="md-html-container" dangerouslySetInnerHTML={{__html: ${renderSafeHtml(code)}}} />`
         : ''
-    return `
+    const rendered = `
 ${importSection}${aliasSection}${componentSection}    function ReactComponent(props) {
       return <div className="md-container md-${mode}">${docsTemplate}${simulatorTemplate}</div>
     }
     export default ReactComponent
   `
+    return {
+        code: rendered,
+        mainTitle,
+    }
 }
 export const __test__ = {
     transformMdToHtmlAndRender,
     extractDemoCode,
     sanitizeHtml,
     buildImportStatements,
+    collectHeadings,
 }
 export const markedPlugin = (pluginOptions: { mode: ModeType } = { mode: 'mobile' }): Plugin => {
     let reactRefreshPlugin: Plugin | undefined
@@ -614,9 +645,17 @@ export const markedPlugin = (pluginOptions: { mode: ModeType } = { mode: 'mobile
                     }
                     throw new Error(`Markdown file not found: ${realId}`)
                 }
-                const code = fs.readFileSync(absoluteRealId, 'utf-8')
-                const tsxCode = transformMdToHtmlAndRender(code, pluginOptions.mode)
-                return { code: tsxCode, map: null }
+                const raw = fs.readFileSync(absoluteRealId, 'utf-8')
+                const { content, data } = matter(raw)
+                const { code: rendered, mainTitle } = transformMdToHtmlAndRender(content, pluginOptions.mode)
+                const headings = collectHeadings(content)
+                const frontmatter = data ?? {}
+                const moduleCode = `${rendered}
+export const frontmatter = ${JSON.stringify(frontmatter)};
+export const headings = ${JSON.stringify(headings)};
+export const title = ${JSON.stringify((frontmatter.title as string) || mainTitle)};
+`
+                return { code: moduleCode, map: null }
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error)
                 this.error(`Failed to load and transform markdown file "${realId}": ${errorMessage}`)
@@ -626,14 +665,22 @@ export const markedPlugin = (pluginOptions: { mode: ModeType } = { mode: 'mobile
         async transform(code, id, transformOptions) {
             if (!isServeMode || !/\.md$/.test(id)) return null
             try {
-                const tsxCode = transformMdToHtmlAndRender(code, pluginOptions.mode)
+                const { content, data } = matter(code)
+                const { code: rendered, mainTitle } = transformMdToHtmlAndRender(content, pluginOptions.mode)
+                const headings = collectHeadings(content)
+                const frontmatter = data ?? {}
+                const moduleCode = `${rendered}
+export const frontmatter = ${JSON.stringify(frontmatter)};
+export const headings = ${JSON.stringify(headings)};
+export const title = ${JSON.stringify((frontmatter.title as string) || mainTitle)};
+`
                 if (reactRefreshPlugin?.transform) {
                     const transformFn = typeof reactRefreshPlugin.transform === 'function' ? reactRefreshPlugin.transform : reactRefreshPlugin.transform.handler
-                    const result = await transformFn.call(this, tsxCode, `${id}.tsx`, transformOptions) as TransformResult | string | undefined
+                    const result = await transformFn.call(this, moduleCode, `${id}.tsx`, transformOptions) as TransformResult | string | undefined
                     if (typeof result === 'string') return { code: result, map: null }
-                    return result || { code: tsxCode, map: null }
+                    return result || { code: moduleCode, map: null }
                 }
-                return { code: tsxCode, map: null }
+                return { code: moduleCode, map: null }
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error)
                 this.error(`Failed to transform markdown file "${id}": ${errorMessage}`)
