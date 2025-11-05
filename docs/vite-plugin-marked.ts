@@ -114,10 +114,12 @@ const REACT_HOOK_NAMES = new Set([
     'useInsertionEffect',
     'useSyncExternalStore',
     'useActionState',
-    'useOptimistic',
+'useOptimistic',
 ])
 function createImportSection(): ImportSection {
     return {
+        defaultNames: new Set(),
+        namespaces: new Set(),
         named: new Map(),
     }
 }
@@ -130,9 +132,14 @@ function createModuleImportRecord(): ModuleImportRecord {
 }
 function cloneImportSection(section: ImportSection): ImportSection {
     return {
-        defaultName: section.defaultName,
-        namespace: section.namespace,
-        named: new Map(section.named),
+        defaultNames: new Set(section.defaultNames),
+        namespaces: new Set(section.namespaces),
+        named: new Map(
+            Array.from(section.named.entries()).map(([imported, aliases]) => [
+                imported,
+                new Set(aliases),
+            ])
+        ),
     }
 }
 function cloneModuleImportRecord(record: ModuleImportRecord): ModuleImportRecord {
@@ -143,30 +150,37 @@ function cloneModuleImportRecord(record: ModuleImportRecord): ModuleImportRecord
     }
 }
 function addDefaultImport(section: ImportSection, identifier: string) {
-    if (!section.defaultName) {
-        section.defaultName = identifier
-    }
+    section.defaultNames.add(identifier)
 }
 function addNamespaceImport(section: ImportSection, identifier: string) {
-    if (!section.namespace) {
-        section.namespace = identifier
-    }
+    section.namespaces.add(identifier)
 }
 function addNamedImport(section: ImportSection, imported: string, alias?: string) {
     if (!section.named.has(imported)) {
-        section.named.set(imported, alias && alias !== imported ? alias : undefined)
+        section.named.set(imported, new Set())
+    }
+    const entry = section.named.get(imported)
+    if (!entry) return
+    const aliasValue = alias && alias !== imported ? alias : undefined
+    if (!entry.has(aliasValue)) {
+        entry.add(aliasValue)
     }
 }
 function mergeImportSections(target: ImportSection, source: ImportSection) {
-    if (!target.defaultName && source.defaultName) {
-        target.defaultName = source.defaultName
+    for (const name of source.defaultNames) {
+        target.defaultNames.add(name)
     }
-    if (!target.namespace && source.namespace) {
-        target.namespace = source.namespace
+    for (const namespace of source.namespaces) {
+        target.namespaces.add(namespace)
     }
-    for (const [name, alias] of source.named.entries()) {
+    for (const [name, aliases] of source.named.entries()) {
         if (!target.named.has(name)) {
-            target.named.set(name, alias)
+            target.named.set(name, new Set())
+        }
+        const targetSet = target.named.get(name)
+        if (!targetSet) continue
+        for (const alias of aliases) {
+            targetSet.add(alias)
         }
     }
 }
@@ -185,49 +199,103 @@ function mergeModuleImportMaps(target: Map<string, ModuleImportRecord>, source: 
         }
     }
 }
-function formatNamedImports(named: NamedSpecifierMap): string | undefined {
-    if (named.size === 0) return undefined
-    const parts = Array.from(named.entries()).map(([name, alias]) => (alias ? `${name} as ${alias}` : name))
-    parts.sort()
-    return `{ ${parts.join(', ')} }`
+type ImportBuildResult = {
+    statements: string[]
+    valueAliasInitializers: string[]
+    typeAliasInitializers: string[]
 }
-function buildImportStatements(importsMap: Map<string, ModuleImportRecord>): string[] {
+function emitImportSection(moduleName: string, section: ImportSection, options: { isType: boolean }): { statements: string[]; aliasInitializers: string[] } {
     const statements: string[] = []
+    const aliasInitializers: string[] = []
+    const importPrefix = options.isType ? 'import type' : 'import'
+
+    const namespaces = Array.from(section.namespaces).sort()
+    for (const namespace of namespaces) {
+        statements.push(`${importPrefix} * as ${namespace} from '${moduleName}';`)
+    }
+
+    const defaults = Array.from(section.defaultNames)
+    if (defaults.length > 0) {
+        let primary: string
+        let rest: string[]
+        if (!options.isType && defaults.includes('React')) {
+            primary = 'React'
+            rest = defaults.filter((name) => name !== primary).sort()
+        } else {
+            const sortedDefaults = defaults.sort()
+            primary = sortedDefaults[0]
+            rest = sortedDefaults.slice(1)
+        }
+        statements.push(`${importPrefix} ${primary} from '${moduleName}';`)
+        if (rest.length > 0) {
+            const aliasKeyword = options.isType ? 'type' : 'const'
+            for (const aliasName of rest) {
+                aliasInitializers.push(`${aliasKeyword} ${aliasName} = ${primary};`)
+            }
+        }
+    }
+
+    const nonAliasSpecifiers: string[] = []
+    const aliasSpecifierStatements: string[] = []
+    for (const [imported, aliases] of section.named.entries()) {
+        const sortedAliases = Array.from(aliases).sort((a, b) => {
+            if (a === b) return 0
+            if (a === undefined) return -1
+            if (b === undefined) return 1
+            return a.localeCompare(b)
+        })
+        let hasUnnamed = false
+        for (const alias of sortedAliases) {
+            if (alias === undefined) {
+                hasUnnamed = true
+            } else {
+                const statementPrefix = options.isType ? 'import type' : 'import'
+                aliasSpecifierStatements.push(`${statementPrefix} { ${imported} as ${alias} } from '${moduleName}';`)
+            }
+        }
+        if (hasUnnamed) {
+            nonAliasSpecifiers.push(imported)
+        }
+    }
+    if (nonAliasSpecifiers.length > 0) {
+        nonAliasSpecifiers.sort()
+        const specifierPrefix = options.isType ? 'import type { ' : 'import { '
+        statements.push(`${specifierPrefix}${nonAliasSpecifiers.join(', ')} } from '${moduleName}';`)
+    }
+    aliasSpecifierStatements.sort()
+    statements.push(...aliasSpecifierStatements)
+
+    return { statements, aliasInitializers }
+}
+function buildImportStatements(importsMap: Map<string, ModuleImportRecord>): ImportBuildResult {
     const modules = Array.from(importsMap.keys()).sort()
+    const statements: string[] = []
+    const valueAliasInitializers: string[] = []
+    const typeAliasInitializers: string[] = []
     for (const moduleName of modules) {
         const record = importsMap.get(moduleName)
         if (!record) continue
         if (record.sideEffect) {
             statements.push(`import '${moduleName}';`)
         }
-        if (record.value.namespace) {
-            statements.push(`import * as ${record.value.namespace} from '${moduleName}';`)
-        }
-        const valueNamed = formatNamedImports(record.value.named)
-        if (record.value.defaultName || valueNamed) {
-            const parts: string[] = []
-            if (record.value.defaultName) parts.push(record.value.defaultName)
-            if (valueNamed) parts.push(valueNamed)
-            statements.push(`import ${parts.join(', ')} from '${moduleName}';`)
-        }
-        if (record.type.namespace) {
-            statements.push(`import type * as ${record.type.namespace} from '${moduleName}';`)
-        }
-        if (record.type.defaultName) {
-            statements.push(`import type ${record.type.defaultName} from '${moduleName}';`)
-        }
-        const typeNamed = formatNamedImports(record.type.named)
-        if (typeNamed) {
-            statements.push(`import type ${typeNamed} from '${moduleName}';`)
-        }
+        const valueResult = emitImportSection(moduleName, record.value, { isType: false })
+        statements.push(...valueResult.statements)
+        valueAliasInitializers.push(...valueResult.aliasInitializers)
+
+        const typeResult = emitImportSection(moduleName, record.type, { isType: true })
+        statements.push(...typeResult.statements)
+        typeAliasInitializers.push(...typeResult.aliasInitializers)
     }
-    return statements
+    return { statements, valueAliasInitializers, typeAliasInitializers }
 }
 function sanitizeHtml(html: string): string {
     if (!html) return ''
     return html
         .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
         .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|{[^}]*})/gi, '')
+}
+function renderSafeHtml(markdownContent: string): string {
+    return JSON.stringify(sanitizeHtml(marked.parse(markdownContent) as string))
 }
 function extractDemoCode(code: string, componentName: string): { cleanedCode: string; moduleImports: Map<string, ModuleImportRecord>; reactUsage: ReactUsage } {
     const source = ts.createSourceFile('demo.tsx', code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
@@ -239,36 +307,33 @@ function extractDemoCode(code: string, componentName: string): { cleanedCode: st
             if (ts.isImportDeclaration(node)) {
                 const moduleName = (node.moduleSpecifier as ts.StringLiteral).text
                 const entry = moduleImports.get(moduleName) || createModuleImportRecord()
-                const skipValueImports = moduleName === 'react'
                 if (!node.importClause) {
-                    if (!skipValueImports) {
-                        entry.sideEffect = true
-                        moduleImports.set(moduleName, entry)
-                    }
+                    entry.sideEffect = true
+                    moduleImports.set(moduleName, entry)
                     return undefined
                 }
                 const clause = node.importClause
                 const clauseSection: 'value' | 'type' = clause.isTypeOnly ? 'type' : 'value'
-                if (clause.name && !(skipValueImports && clauseSection === 'value')) {
+                if (clause.name) {
                     addDefaultImport(clauseSection === 'value' ? entry.value : entry.type, clause.name.text)
                     moduleImports.set(moduleName, entry)
                 }
                 if (clause.namedBindings) {
                     if (ts.isNamespaceImport(clause.namedBindings)) {
                         const sectionKey: 'value' | 'type' = clauseSection
-                        if (!(skipValueImports && sectionKey === 'value')) {
-                            addNamespaceImport(sectionKey === 'value' ? entry.value : entry.type, clause.namedBindings.name.text)
-                            moduleImports.set(moduleName, entry)
-                        }
+                        addNamespaceImport(sectionKey === 'value' ? entry.value : entry.type, clause.namedBindings.name.text)
+                        moduleImports.set(moduleName, entry)
                     } else if (ts.isNamedImports(clause.namedBindings)) {
                         for (const element of clause.namedBindings.elements) {
                             const sectionKey: 'value' | 'type' = element.isTypeOnly ? 'type' : clauseSection
-                            if (skipValueImports && sectionKey === 'value') continue
                             const importedName = element.propertyName ? element.propertyName.text : element.name.text
                             const alias = element.propertyName ? element.name.text : undefined
                             const section = sectionKey === 'value' ? entry.value : entry.type
                             addNamedImport(section, importedName, alias)
                             moduleImports.set(moduleName, entry)
+                            if (moduleName === 'react' && sectionKey === 'value' && REACT_HOOK_NAMES.has(importedName)) {
+                                reactHooks.add(importedName)
+                            }
                         }
                     }
                 }
@@ -393,7 +458,7 @@ function processCodeBlock(blockContent: string, mode: ModeType, importAggregator
     const document = blockContent.match(REGEX.DOCUMENT)
     if (!document) {
         if (mode === 'pc') {
-            const html = `<div className="md-html-block" dangerouslySetInnerHTML={{__html: ${JSON.stringify(sanitizeHtml(marked.parse(blockContent) as string))}}} />`
+            const html = `<div className="md-html-block" dangerouslySetInnerHTML={{__html: ${renderSafeHtml(blockContent)}}} />`
             return { html }
         }
         return { html: '' }
@@ -401,8 +466,8 @@ function processCodeBlock(blockContent: string, mode: ModeType, importAggregator
     const titleMatch = document[1]?.match(REGEX.TITLE)
     const title = titleMatch?.[1]?.trim() || ''
     const sourceMatch = document[2]?.match(REGEX.SOURCE)
-    const codeHtml = sanitizeHtml(marked.parse(document[2] || '') as string)
-    const titleHtml = sanitizeHtml(marked.parse(document[1] || '') as string)
+    const codeHtml = renderSafeHtml(document[2] || '')
+    const titleHtml = renderSafeHtml(document[1] || '')
     let componentName = ''
     let componentCode = sourceMatch?.[2] || ''
     let cleanedCode = ''
@@ -430,15 +495,15 @@ function processCodeBlock(blockContent: string, mode: ModeType, importAggregator
     if (mode === 'pc') {
         const previewContent = hasComponent
             ? `<div className="md-block-content"><${componentName} /></div>`
-            : `<div className="md-block-content" dangerouslySetInnerHTML={{__html: ${JSON.stringify(codeHtml)}}} />`
-        const mobileHtml = `<div className="md-code-block"><div className="md-block-title" dangerouslySetInnerHTML={{__html: ${JSON.stringify(titleHtml)}}} />${previewContent}</div>`
-        const pcHtml = hasComponent ? `<div className="md-html-block" dangerouslySetInnerHTML={{__html: ${JSON.stringify(codeHtml)}}} />` : ''
+            : `<div className="md-block-content" dangerouslySetInnerHTML={{__html: ${codeHtml}}} />`
+        const mobileHtml = `<div className="md-code-block"><div className="md-block-title" dangerouslySetInnerHTML={{__html: ${titleHtml}}} />${previewContent}</div>`
+        const pcHtml = hasComponent ? `<div className="md-html-block" dangerouslySetInnerHTML={{__html: ${codeHtml}}} />` : ''
         const controlHtml = hasComponent ? `<div className="md-block-control"><div className="md-block-control-content"><svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5463" width="16" height="16"><path d="M512.1 807.8l-445-444.9c-1.3-1.3-0.4-3.4 1.4-3.4h889.8c0.5 0 0.8 0.6 0.4 1L512.1 807.8z" p-id="5464"></path></svg><span /></div></div>` : ''
         html = `<div className="md-block">${mobileHtml}${pcHtml}${controlHtml}</div>`
     } else {
         const mobileContent = hasComponent
             ? `<div className="md-block-content"><${componentName} /></div>`
-            : `<div className="md-block-content" dangerouslySetInnerHTML={{__html: ${JSON.stringify(codeHtml)}}} />`
+            : `<div className="md-block-content" dangerouslySetInnerHTML={{__html: ${codeHtml}}} />`
         html = `<div className="md-block"><div className="md-code-block"><h2>${title}</h2>${mobileContent}</div></div>`
     }
     return { html }
@@ -460,34 +525,46 @@ function transformMdToHtmlAndRender(code: string, mode: ModeType): string {
     const codeWithoutMainTitle = code.replace(REGEX.MAIN_TITLE, '')
     const mdBlocks: string[] = []
     codeWithoutMainTitle.replace(REGEX.CODE_BLOCK, (match) => {
-        const { html } = processCodeBlock(match, mode, importAggregator, importChildrenCode, reactAggregate)
+    const { html } = processCodeBlock(match, mode, importAggregator, importChildrenCode, reactAggregate)
         if (html) mdBlocks.push(html)
         return match
     })
 
-    const otherImports = buildImportStatements(importAggregator)
-    const reactHooks = Array.from(reactAggregate.hooks).sort()
-    const needsReactImport = importChildrenCode.length > 0 || reactAggregate.needsReact || reactHooks.length > 0
-    const importLines: string[] = []
-    if (needsReactImport) {
-        importLines.push(
-            reactHooks.length > 0
-                ? `import React, { ${reactHooks.join(', ')} } from 'react';`
-                : `import React from 'react';`
-        )
+    const reactRecord = (() => {
+        if (!importAggregator.has('react')) {
+            if (reactAggregate.needsReact || reactAggregate.hooks.size > 0 || importChildrenCode.length > 0) {
+                const record = createModuleImportRecord()
+                importAggregator.set('react', record)
+                return record
+            }
+            return undefined
+        }
+        return importAggregator.get('react')
+    })()
+    if (reactRecord) {
+        if (reactAggregate.needsReact || importChildrenCode.length > 0) {
+            if (reactRecord.value.defaultNames.size === 0) {
+                reactRecord.value.defaultNames.add('React')
+            }
+        }
+        for (const hook of reactAggregate.hooks) {
+            addNamedImport(reactRecord.value, hook)
+        }
     }
-    importLines.push(...otherImports)
-    const importSection = importLines.length > 0 ? importLines.map((line) => indentBlock(line)).join('\n') + '\n' : ''
+    const { statements: importStatements, valueAliasInitializers, typeAliasInitializers } = buildImportStatements(importAggregator)
+    const importSection = importStatements.length > 0 ? importStatements.map((line) => indentBlock(line)).join('\n') + '\n' : ''
+    const aliasInitializers = [...valueAliasInitializers, ...typeAliasInitializers]
+    const aliasSection = aliasInitializers.length > 0 ? aliasInitializers.map((line) => indentBlock(line)).join('\n') + '\n' : ''
     const componentSection = importChildrenCode.length > 0 ? importChildrenCode.map((codeBlock) => indentBlock(codeBlock)).join('\n\n') + '\n' : ''
 
     const blockTitle = mode === 'pc' ? '' : `<div className="md-block-container-header">${SIMULATOR_BAR_SVG}</div>`
     const simulatorTemplate = `<div className="md-block-container">${blockTitle}<div className="md-block-container-sections"><h1 className="md-block-container-title">${mainTitle}</h1><div className="md-block-container-content">${mdBlocks.join('')}</div></div></div>`
-    const docsTemplate =
-        mode === 'mobile'
-            ? `<div className="md-html-container" dangerouslySetInnerHTML={{__html: ${JSON.stringify(sanitizeHtml(marked.parse(code) as string))}}} />`
-            : ''
+    const includeDocsHtml = mode === 'mobile' || (mode === 'pc' && mdBlocks.length === 0)
+    const docsTemplate = includeDocsHtml
+        ? `<div className="md-html-container" dangerouslySetInnerHTML={{__html: ${renderSafeHtml(code)}}} />`
+        : ''
     return `
-${importSection}${componentSection}    function ReactComponent(props) {
+${importSection}${aliasSection}${componentSection}    function ReactComponent(props) {
       return <div className="md-container md-${mode}">${docsTemplate}${simulatorTemplate}</div>
     }
     export default ReactComponent

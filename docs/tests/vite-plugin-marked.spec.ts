@@ -28,7 +28,8 @@ export default Example
 
     const output = transformMdToHtmlAndRender(markdown, 'mobile')
 
-    expect(output).toContain(`import React, { useMemo, useState } from 'react';`)
+    expect(output).toContain(`import React from 'react';`)
+    expect(output).toContain(`import { useMemo, useState } from 'react';`)
     expect(output).toContain(`import { Button as UIButton } from 'react-native-system-ui';`)
     expect(output).toContain(`import type { ButtonProps } from './Button';`)
     expect(output).toContain(`import './side-effect.css';`)
@@ -158,20 +159,40 @@ export default Example
     expect(cleanedCode).not.toContain('export default')
 
     const uiLibImports = moduleImports.get('ui-lib')
-    expect(uiLibImports?.value.defaultName).toBe('Component')
-    expect(uiLibImports?.value.named.has('Button')).toBe(true)
-    expect(uiLibImports?.value.named.get('Modal')).toBe('ModalAlias')
+    expect(uiLibImports?.value.defaultNames.has('Component')).toBe(true)
+    expect(uiLibImports?.value.named.get('Button')?.has(undefined)).toBe(true)
+    expect(uiLibImports?.value.named.get('Modal')?.has('ModalAlias')).toBe(true)
 
-    expect(moduleImports.get('lodash-es')?.value.namespace).toBe('lodash')
+    expect(moduleImports.get('lodash-es')?.value.namespaces.has('lodash')).toBe(true)
     expect(moduleImports.get('./reset.css')?.sideEffect).toBe(true)
     const uiLibTypeImports = moduleImports.get('ui-lib')
-    expect(uiLibTypeImports?.type.named.has('ComponentProps')).toBe(true)
-    expect(moduleImports.get('ui-lib/theme')?.type.defaultName).toBe('Theme')
-    expect(moduleImports.get('ui-lib/types')?.type.namespace).toBe('UiTypes')
-    expect(moduleImports.get('react')?.type.named.has('FC')).toBe(true)
+    expect(uiLibTypeImports?.type.named.get('ComponentProps')?.has(undefined)).toBe(true)
+    expect(moduleImports.get('ui-lib/theme')?.type.defaultNames.has('Theme')).toBe(true)
+    expect(moduleImports.get('ui-lib/types')?.type.namespaces.has('UiTypes')).toBe(true)
+    expect(moduleImports.get('react')?.type.named.get('FC')?.has(undefined)).toBe(true)
 
     expect(Array.from(reactUsage.hooks)).toContain('useMemo')
     expect(reactUsage.needsReact).toBe(true)
+  })
+
+  it('preserves React named aliases for later import reconstruction', () => {
+    const demoSource = `
+import { useState as useCounter } from 'react'
+
+const Example = () => {
+  const [count, setCount] = useCounter(0)
+  return <div>{count}</div>
+}
+
+export default Example
+`
+
+    const { moduleImports, cleanedCode, reactUsage } = extractDemoCode(demoSource, 'DemoComponentAlias')
+
+    expect(cleanedCode).toContain('const DemoComponentAlias = () => {')
+    const reactImports = moduleImports.get('react')
+    expect(reactImports?.value.named.get('useState')?.has('useCounter')).toBe(true)
+    expect(reactUsage.hooks.has('useState')).toBe(true)
   })
 })
 
@@ -209,17 +230,23 @@ const Example: FC<ComponentProps> = () => {
 export default Example
 `
     const { moduleImports } = extractDemoCode(demoSource, 'DemoComponentY')
-    const statements = buildImportStatements(moduleImports)
+    const { statements, valueAliasInitializers, typeAliasInitializers } = buildImportStatements(moduleImports)
 
     expect(statements).toEqual([
       "import './reset.css';",
       "import * as lodash from 'lodash-es';",
+      "import React from 'react';",
+      "import { useMemo } from 'react';",
       "import type { FC } from 'react';",
-      "import Component, { Button, Modal as ModalAlias } from 'ui-lib';",
+      "import Component from 'ui-lib';",
+      "import { Button } from 'ui-lib';",
+      "import { Modal as ModalAlias } from 'ui-lib';",
       "import type { ComponentProps } from 'ui-lib';",
       "import type Theme from 'ui-lib/theme';",
       "import type * as UiTypes from 'ui-lib/types';"
     ])
+    expect(valueAliasInitializers).toEqual([])
+    expect(typeAliasInitializers).toEqual([])
   })
 
   it('按模块名排序并保持类型/值导入分离', () => {
@@ -227,45 +254,74 @@ export default Example
     importsMap.set('react', {
       sideEffect: false,
       value: {
-        defaultName: undefined,
-        namespace: undefined,
+        defaultNames: new Set<string>(),
+        namespaces: new Set<string>(),
         named: new Map([
-          ['useState', undefined],
-          ['useEffect', undefined],
+          ['useState', new Set([undefined])],
+          ['useEffect', new Set([undefined])],
         ]),
       },
       type: {
-        defaultName: undefined,
-        namespace: undefined,
+        defaultNames: new Set<string>(),
+        namespaces: new Set<string>(),
         named: new Map([
-          ['CSSProperties', undefined],
+          ['CSSProperties', new Set([undefined])],
         ]),
       },
     })
     importsMap.set('ui', {
       sideEffect: false,
       value: {
-        defaultName: undefined,
-        namespace: undefined,
+        defaultNames: new Set<string>(),
+        namespaces: new Set<string>(),
         named: new Map([
-          ['Button', undefined],
+          ['Button', new Set([undefined])],
         ]),
       },
       type: {
-        defaultName: undefined,
-        namespace: undefined,
+        defaultNames: new Set<string>(),
+        namespaces: new Set<string>(),
         named: new Map([
-          ['ButtonProps', undefined],
+          ['ButtonProps', new Set([undefined])],
         ]),
       },
     })
 
-    const statements = buildImportStatements(importsMap)
+    const { statements, valueAliasInitializers, typeAliasInitializers } = buildImportStatements(importsMap)
     expect(statements).toEqual([
       "import { useEffect, useState } from 'react';",
       "import type { CSSProperties } from 'react';",
       "import { Button } from 'ui';",
       "import type { ButtonProps } from 'ui';"
     ])
+    expect(valueAliasInitializers).toEqual([])
+    expect(typeAliasInitializers).toEqual([])
+  })
+
+  it('为重复默认导入生成别名初始化', () => {
+    const importsMap = new Map<string, any>()
+    importsMap.set('react', {
+      sideEffect: false,
+      value: {
+        defaultNames: new Set(['React', 'RNReact']),
+        namespaces: new Set<string>(),
+        named: new Map([
+          ['useState', new Set([undefined])],
+        ]),
+      },
+      type: {
+        defaultNames: new Set<string>(),
+        namespaces: new Set<string>(),
+        named: new Map(),
+      },
+    })
+
+    const { statements, valueAliasInitializers } = buildImportStatements(importsMap)
+
+    expect(statements).toEqual([
+      "import React from 'react';",
+      "import { useState } from 'react';"
+    ])
+    expect(valueAliasInitializers).toEqual(['const RNReact = React;'])
   })
 })
