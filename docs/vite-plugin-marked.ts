@@ -14,6 +14,7 @@ import 'prismjs/components/prism-bash'
 import 'prismjs/components/prism-css'
 
 type ModeType = 'mobile' | 'pc'
+let projectRoot = process.cwd()
 const FAST_REFRESH_NAME_RE = /(?:^|:)react(?:-refresh|-swc)/
 const PLUGIN_NAME = 'vite-plugin-marked'
 const COMPONENT_NAME_PREFIX = 'DemoComponent'
@@ -81,10 +82,10 @@ marked.use({
         }
     }
 })
-type NamedSpecifierMap = Map<string, string | undefined>
+type NamedSpecifierMap = Map<string, Set<string | undefined>>
 type ImportSection = {
-    defaultName?: string
-    namespace?: string
+    defaultNames: Set<string>
+    namespaces: Set<string>
     named: NamedSpecifierMap
 }
 type ModuleImportRecord = {
@@ -506,6 +507,7 @@ export const markedPlugin = (pluginOptions: { mode: ModeType } = { mode: 'mobile
         enforce: 'pre',
         configResolved(config) {
             isServeMode = config.command === 'serve'
+            projectRoot = config.root
             if (!isServeMode) return
             reactRefreshPlugin = config.plugins.find((plugin) =>
                 plugin && plugin.name !== PLUGIN_NAME && plugin.name && typeof plugin.transform === 'function' && !(typeof plugin.apply === 'string' && plugin.apply === 'build') && FAST_REFRESH_NAME_RE.test(plugin.name)
@@ -514,23 +516,28 @@ export const markedPlugin = (pluginOptions: { mode: ModeType } = { mode: 'mobile
         resolveId(source, importer) {
             if (!source.endsWith('.md')) return null
             if (path.isAbsolute(source)) return source + '.tsx'
-            if (importer) {
-                const resolved = path.resolve(path.dirname(importer), source)
-                return resolved + '.tsx'
-            }
-            return null
+            const cleanedImporter = importer?.split('?')[0]
+            const importerDir = cleanedImporter
+                ? path.dirname(path.isAbsolute(cleanedImporter) ? cleanedImporter : path.join(projectRoot, cleanedImporter))
+                : projectRoot
+            const resolved = path.resolve(importerDir, source)
+            return resolved + '.tsx'
         },
         load(id) {
-            const isMdTsx = id.endsWith('.md.tsx')
-            const isMd = /\.md$/.test(id) && !isMdTsx
+            const normalizedId = id.split('?')[0]
+            const isMdTsx = normalizedId.endsWith('.md.tsx')
+            const isMd = /\.md$/.test(normalizedId) && !isMdTsx
             if (!isMdTsx && !isMd) return null
-            const realId = isMdTsx ? id.slice(0, -4) : id
+            const realId = isMdTsx ? normalizedId.slice(0, -4) : normalizedId
+            const absoluteRealId = path.isAbsolute(realId) ? realId : path.join(projectRoot, realId)
             try {
-                if (!fs.existsSync(realId)) {
-                    if (isMdTsx) return null
+                if (!fs.existsSync(absoluteRealId)) {
+                    if (isMdTsx) {
+                        throw new Error(`Markdown virtual module not found: ${realId}`)
+                    }
                     throw new Error(`Markdown file not found: ${realId}`)
                 }
-                const code = fs.readFileSync(realId, 'utf-8')
+                const code = fs.readFileSync(absoluteRealId, 'utf-8')
                 const tsxCode = transformMdToHtmlAndRender(code, pluginOptions.mode)
                 return { code: tsxCode, map: null }
             } catch (error) {
