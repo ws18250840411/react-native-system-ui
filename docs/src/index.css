@@ -227,6 +227,7 @@ pre.prism-code {
 }
 
 .md-container {
+  flex: 1;
   padding: 24px;
 }
 
