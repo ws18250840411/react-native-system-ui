@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "prism-react-renderer": "^2.4.1",
+    "clsx": "^2.1.1",
+    "gray-matter": "^4.0.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-native": "^0.82.1",
     "react-native-system-ui": "*",
-    "react-native-web": "^0.21.2"
+    "react-native-web": "^0.21.2",
+    "react-router-dom": "^6.27.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
@@ -23,6 +25,7 @@
     "@types/prismjs": "^1.26.5",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
+    "less": "^4.2.0",
     "@vitejs/plugin-react-swc": "^4.1.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",

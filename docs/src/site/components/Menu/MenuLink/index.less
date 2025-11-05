@@ -1,0 +1,27 @@
+.doc-menulink {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0.5rem 0.5rem var(--mdoc-padd-lg);
+  color: var(--mdoc-menu-color);
+  font-size: 14px;
+  line-height: 20px;
+  transition: color 0.2s;
+  font-weight: 600;
+
+  &:hover,
+  &.doc-menulink--active {
+    color: var(--mdoc-menu-category-color);
+    &::after {
+      display: inline-block;
+    }
+  }
+
+  &--slug {
+    padding-left: 20px;
+    .doc-md--slugs {
+      padding: 0;
+      margin: 0;
+      width: auto;
+    }
+  }
+}

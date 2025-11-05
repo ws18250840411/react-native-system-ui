@@ -25,8 +25,8 @@ const REGEX = {
     SOURCE: /```(.*)\n?([^]+)```/,
     REACT_IMPORT: /import\s+React(?:\s*,\s*\{[^}]*\})?\s+from\s+['"]react['"]\s*;?\s*\n?/g,
     REACT_HOOKS_IMPORT: /import\s+\{[^}]*\}\s+from\s+['"]react['"]\s*;?\s*\n?/g,
-    ALL_IMPORTS: /import\s+[^;]+;\s*\n?/g,
-    IMPORT_STATEMENT: /import\s+[^;]+;/g,
+    ALL_IMPORTS: /^\s*import\s+[^\n;]+;?\s*$/gm,
+    IMPORT_STATEMENT: /^\s*import\s+[^\n;]+;?/gm,
 } as const
 
 const SIMULATOR_BAR_SVG = '<svg fill="currentColor" viewBox="0 0 1384.3 40.3"><path d="M1343 5l18.8 32.3c.8 1.3 2.7 1.3 3.5 0L1384 5c.8-1.3-.2-3-1.7-3h-37.6c-1.5 0-2.5 1.7-1.7 3z"></path><circle cx="1299" cy="20.2" r="20"></circle><path d="M1213 1.2h30c2.2 0 4 1.8 4 4v30c0 2.2-1.8 4-4 4h-30c-2.2 0-4-1.8-4-4v-30c0-2.3 1.8-4 4-4zM16 4.2h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H16c-8.8 0-16-7.2-16-16s7.2-16 16-16z"></path></svg>'
@@ -84,67 +84,158 @@ marked.use({
         }
     }
 })
+// 提取导入语句中的模块路径，用于去重
+function getImportModulePath(importStmt: string): string {
+    const match = importStmt.match(/from\s+['"]([^'"]+)['"]/)
+    return match && match[1] ? match[1] : ''
+}
+
+// 合并导入语句中的命名导入
+function mergeImports(imports: string[]): string[] {
+    const importMap = new Map<string, Set<string>>() // 模块路径 -> 导入的标识符集合
+
+    for (const imp of imports) {
+        const modulePath = getImportModulePath(imp)
+        if (!modulePath) continue
+
+        // 提取命名导入
+        const namedMatch = imp.match(/import\s+\{([^}]+)\}\s+from/)
+        if (namedMatch && namedMatch[1]) {
+            const names = namedMatch[1].split(',').map(n => n.trim()).filter(Boolean)
+            if (!importMap.has(modulePath)) {
+                importMap.set(modulePath, new Set())
+            }
+            const nameSet = importMap.get(modulePath)
+            if (nameSet) {
+                names.forEach(name => nameSet.add(name))
+            }
+        } else {
+            // 默认导入或命名空间导入
+            const defaultMatch = imp.match(/import\s+(\w+)\s+from/)
+            if (defaultMatch && defaultMatch[1]) {
+                if (!importMap.has(modulePath)) {
+                    importMap.set(modulePath, new Set())
+                }
+                const nameSet = importMap.get(modulePath)
+                if (nameSet) {
+                    nameSet.add('default:' + defaultMatch[1])
+                }
+            }
+        }
+    }
+
+    // 重新生成导入语句
+    const result: string[] = []
+    for (const [modulePath, names] of importMap.entries()) {
+        const defaultImports: string[] = []
+        const namedImports: string[] = []
+
+        for (const name of names) {
+            if (name.startsWith('default:')) {
+                defaultImports.push(name.replace('default:', ''))
+            } else {
+                namedImports.push(name)
+            }
+        }
+
+        if (defaultImports.length > 0 && namedImports.length > 0) {
+            result.push(`import ${defaultImports[0]}, { ${namedImports.join(', ')} } from '${modulePath}'`)
+        } else if (defaultImports.length > 0) {
+            result.push(`import ${defaultImports[0]} from '${modulePath}'`)
+        } else if (namedImports.length > 0) {
+            result.push(`import { ${namedImports.join(', ')} } from '${modulePath}'`)
+        }
+    }
+
+    return result
+}
+
 function extractAndCleanImports(code: string): { cleanedCode: string; imports: string[] } {
     let cleanedCode = code
     cleanedCode = cleanedCode.replace(REGEX.REACT_IMPORT, '').replace(REGEX.REACT_HOOKS_IMPORT, '')
     const importMatches = cleanedCode.match(REGEX.IMPORT_STATEMENT) || []
-    const imports = importMatches.map(imp => imp.trim())
+    const imports = importMatches.map(imp => imp.trim()).filter(Boolean)
     cleanedCode = cleanedCode.replace(REGEX.ALL_IMPORTS, '')
-    return { cleanedCode, imports }
+
+    // 合并相同的导入语句
+    const mergedImports = mergeImports(imports)
+
+    return { cleanedCode, imports: mergedImports }
 }
-function processCodeBlock(blockContent: string, mode: ModeType, allImports: Set<string>, importChildrenCode: string[]) {
+function processCodeBlock(blockContent: string, mode: ModeType, allImportsList: string[], importChildrenCode: string[]) {
     const document = blockContent.match(REGEX.DOCUMENT)
     if (!document) {
         if (mode === 'pc') {
             const html = `<div className="md-html-block" dangerouslySetInnerHTML={{__html: ${JSON.stringify(marked.parse(blockContent) as string)}}} />`
-            return { html, componentCode: '' }
+            return { html, componentCode: '', imports: [] }
         }
-        return { html: '', componentCode: '' }
+        return { html: '', componentCode: '', imports: [] }
     }
-    const componentName = generateComponentId()
     const titleMatch = document[1]?.match(REGEX.TITLE)
     const title = titleMatch?.[1]?.trim() || ''
     const sourceMatch = document[2]?.match(REGEX.SOURCE)
+    const codeHtml = marked.parse(document[2] || '') as string
+    const titleHtml = marked.parse(document[1] || '') as string
+    let componentName = ''
     let componentCode = sourceMatch?.[2] || ''
-    componentCode = componentCode.replace(`export default ${DEMO_EXPORT_NAME}`, '').replace(new RegExp(`\\b${DEMO_EXPORT_NAME}\\b`, 'g'), componentName)
-    const { cleanedCode, imports } = extractAndCleanImports(componentCode)
-    imports.forEach(imp => allImports.add(imp))
-    importChildrenCode.push(cleanedCode)
+    let cleanedCode = ''
+    let imports: string[] = []
+    if (componentCode) {
+        componentName = generateComponentId()
+        componentCode = componentCode.replace(`export default ${DEMO_EXPORT_NAME}`, '').replace(new RegExp(`\\b${DEMO_EXPORT_NAME}\\b`, 'g'), componentName)
+        const result = extractAndCleanImports(componentCode)
+        cleanedCode = result.cleanedCode
+        imports = result.imports
+    }
+    const hasComponent = cleanedCode.trim().length > 0
+    if (hasComponent) {
+        allImportsList.push(...imports)
+        importChildrenCode.push(cleanedCode)
+    } else {
+        return { html: '', componentCode: '', imports: [] }
+    }
     let html = ''
     if (mode === 'pc') {
-        const codeHtml = marked.parse(document[2] || '') as string
-        const titleHtml = marked.parse(document[1] || '') as string
-        const pcHtml = `<div className="md-html-block" dangerouslySetInnerHTML={{__html: ${JSON.stringify(codeHtml)}}} />`
-        const mobileHtml = `<div className="md-code-block"><div className="md-block-title" dangerouslySetInnerHTML={{__html: ${JSON.stringify(titleHtml)}}} /><div className="md-block-content"><${componentName} /></div></div>`
-        const controlHtml = `<div className="md-block-control"><div className="md-block-control-content"><svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5463" width="16" height="16"><path d="M512.1 807.8l-445-444.9c-1.3-1.3-0.4-3.4 1.4-3.4h889.8c0.5 0 0.8 0.6 0.4 1L512.1 807.8z" p-id="5464"></path></svg><span /></div></div>`
+        const previewContent = hasComponent
+            ? `<div className="md-block-content"><${componentName} /></div>`
+            : `<div className="md-block-content" dangerouslySetInnerHTML={{__html: ${JSON.stringify(codeHtml)}}} />`
+        const mobileHtml = `<div className="md-code-block"><div className="md-block-title" dangerouslySetInnerHTML={{__html: ${JSON.stringify(titleHtml)}}} />${previewContent}</div>`
+        const pcHtml = hasComponent ? `<div className="md-html-block" dangerouslySetInnerHTML={{__html: ${JSON.stringify(codeHtml)}}} />` : ''
+        const controlHtml = hasComponent ? `<div className="md-block-control"><div className="md-block-control-content"><svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5463" width="16" height="16"><path d="M512.1 807.8l-445-444.9c-1.3-1.3-0.4-3.4 1.4-3.4h889.8c0.5 0 0.8 0.6 0.4 1L512.1 807.8z" p-id="5464"></path></svg><span /></div></div>` : ''
         html = `<div className="md-block">${mobileHtml}${pcHtml}${controlHtml}</div>`
     } else {
-        html = `<div className="md-block"><div className="md-code-block"><h2>${title}</h2><${componentName} /></div></div>`
+        const mobileContent = hasComponent
+            ? `<div className="md-block-content"><${componentName} /></div>`
+            : `<div className="md-block-content" dangerouslySetInnerHTML={{__html: ${JSON.stringify(codeHtml)}}} />`
+        html = `<div className="md-block"><div className="md-code-block"><h2>${title}</h2>${mobileContent}</div></div>`
     }
-    return { html, componentCode: cleanedCode }
+    return { html, componentCode: cleanedCode, imports }
 }
 function transformMdToHtmlAndRender(code: string, mode: ModeType): string {
     componentCounter = 0
-    const allImports = new Set<string>()
+    const allImportsList: string[] = [] // 收集所有导入语句
     const importChildrenCode: string[] = []
     const mainTitleMatch = code.match(REGEX.MAIN_TITLE)
     const mainTitle = mainTitleMatch ? mainTitleMatch[1] : ''
     const codeWithoutMainTitle = code.replace(REGEX.MAIN_TITLE, '')
     const mdBlocks: string[] = []
     codeWithoutMainTitle.replace(REGEX.CODE_BLOCK, (match) => {
-        const { html } = processCodeBlock(match, mode, allImports, importChildrenCode)
+        const { html } = processCodeBlock(match, mode, allImportsList, importChildrenCode)
         if (html) mdBlocks.push(html)
         return match
     })
+
+    // 最终合并所有导入语句
+    const mergedImports = mergeImports(allImportsList)
+
     const blockTitle = mode === 'pc' ? '' : `<div className="md-block-container-header">${SIMULATOR_BAR_SVG}</div>`
     const simulatorTemplate = `<div className="md-block-container">${blockTitle}<div className="md-block-container-sections"><h1 className="md-block-container-title">${mainTitle}</h1><div className="md-block-container-content">${mdBlocks.join('')}</div></div></div>`
     const docsTemplate = mode === 'mobile' ? `<div className="md-html-container" dangerouslySetInnerHTML={{__html: ${JSON.stringify(marked.parse(code) as string)}}} />` : ''
-    const otherImports = Array.from(allImports).join('\n    ')
+    const otherImports = mergedImports.length > 0 ? mergedImports.join('\n    ') : ''
     const allComponentCode = importChildrenCode.join('\n    ')
     return `
     import React, {useState,useEffect,useContext,useReducer,useCallback,useMemo,useRef,useImperativeHandle,useLayoutEffect,useDebugValue} from "react"
-    ${otherImports}
-    ${allComponentCode}
+    ${otherImports ? otherImports + '\n' : ''}${allComponentCode}
     function ReactComponent(props) {
       return <div className="md-container md-${mode}">${docsTemplate}${simulatorTemplate}</div>
     }

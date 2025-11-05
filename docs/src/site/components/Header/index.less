@@ -1,0 +1,61 @@
+@import '../../styles/var.less';
+
+.doc-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  background: var(--mdoc-header-background-color);
+  backdrop-filter: saturate(50%) blur(8px);
+  z-index: 99;
+  height: @van-doc-header-top-height;
+  box-sizing: border-box;
+  user-select: none;
+  padding: 0 10px 0 @van-doc-padding;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  .doc-navbar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.doc-header-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-language-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 6px;
+
+  &__item {
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--mdoc-navbar-color);
+    transition: background-color 0.2s, color 0.2s;
+
+    &:hover {
+      background-color: var(--mdoc-menu-color-background-active);
+      color: var(--c-blue-100);
+    }
+
+    &--active {
+      background-color: var(--mdoc-menu-color-background-active);
+      color: var(--c-blue-100);
+      font-weight: 600;
+    }
+  }
+}

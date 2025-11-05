@@ -1,0 +1,39 @@
+.doc-navbar__item {
+  background: transparent;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: @van-doc-header-top-height;
+  color: var(--mdoc-navbar-link-color);
+  padding: 0 10px;
+  transition: opacity 0.2s, color 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--c-blue-100);
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.doc-header-action {
+  .doc-navbar__item {
+    margin: 0;
+  }
+  &__lang {
+    display: flex;
+    align-items: center;
+    svg {
+      stroke: var(--mdoc-navbar-color);
+    }
+  }
+  &__github {
+    svg {
+      transform: scale(1.15);
+    }
+  }
+}
