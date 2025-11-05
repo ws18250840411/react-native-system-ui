@@ -13,19 +13,43 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+p {
+  margin: 0
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-size: inherit
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none
+}
+
+a {
+  text-decoration: none
+}
+
 a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -46,9 +70,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -59,10 +85,372 @@ button:focus-visible {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* 代码块样式 - 使用 Prism (react-vant 风格) */
+:root {
+  --mdoc-prism-color: #393a34;
+}
+
+html[data-theme=dark] {
+  --mdoc-prism-color: #ddd;
+}
+
+pre.prism-code {
+  margin: 16px 0;
+  overflow: auto;
+  background-color: #f6f8fc !important;
+  border-radius: 6px;
+  padding: 14px !important;
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Menlo, Consolas, 'Courier New', monospace;
+  color: var(--mdoc-prism-color);
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  tab-size: 2;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.token-line {
+  display: block;
+  min-height: 1em;
+  text-align: left;
+}
+
+/* 内联代码样式 */
+:not(pre)>code {
+  padding: 2px 8px;
+  border-radius: 3px;
+  background-color: rgba(27, 31, 35, 0.05);
+  color: #476582;
+  font-size: 0.875em;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Menlo, Consolas, 'Courier New', monospace;
+  font-weight: 400;
+}
+
+/* Prism token 样式 - react-vant 风格 */
+.token.plain {
+  display: inline-block;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #708090;
+  font-style: italic;
+}
+
+.token.namespace {
+  opacity: 0.7;
+}
+
+.token.string,
+.token.attr-value {
+  color: #690;
+}
+
+.token.punctuation {
+  color: #999;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.token.variable {
+  color: #a67f59;
+  background: transparent;
+}
+
+.token.number,
+.token.boolean,
+.token.constant {
+  color: #905;
+}
+
+.token.property,
+.token.tag,
+.token.symbol,
+.token.deleted,
+.token.important {
+  color: #905;
+}
+
+.token.selector,
+.token.keyword,
+.token.builtin {
+  color: #07a;
+}
+
+.token.atrule,
+.token.attr-name,
+.token.function,
+.token.class-name {
+  color: #dd4a68;
+}
+
+.token.regex,
+.token.inserted {
+  color: #690;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+.token.entity {
+  cursor: help;
+}
+
+.token a {
+  color: inherit;
+}
+
+.md-container {
+  padding: 24px;
+}
+
+.md-container table {
+  width: 100%;
+  color: #34495e;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5
+}
+
+.md-container table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-weight: 600
+}
+
+.md-container table th:first-child {
+  padding-left: 0
+}
+
+.md-container table th:last-child {
+  padding-right: 0
+}
+
+.md-container table td {
+  border-top: 1px solid #f1f4f8;
+  padding: 8px
+}
+
+.md-container table td:first-child {
+  padding-left: 0
+}
+
+.md-container table td:first-child code {
+  color: #1989fa;
+  background-color: rgba(25, 137, 250, .15);
+  border-radius: 20px;
+  margin: 0;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600
+}
+
+.md-container table td:last-child {
+  padding-right: 0
+}
+
+.md-container table em {
+  color: #07c160;
+  font-size: 14px;
+  font-family: "Menlo", "Source Code Pro", "Monaco", "Inconsolata", monospace;
+  -webkit-font-smoothing: auto;
+  max-width: 300px;
+  font-style: normal;
+  display: inline-block
+}
+
+/* pc 桌面端模式样式 */
+
+.md-pc {
+  background: #fff;
+}
+
+.md-pc h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 10px 0 30px;
+  color: #141414;
+}
+
+.md-pc h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 32px 0 16px 0;
+  color: #141414;
+}
+
+.md-pc h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 45px 0 16px;
+  color: #141414;
+}
+
+.md-pc p {
+  font-size: 15px;
+  margin: 12px 0;
+  line-height: 1.6;
+  color: #34495e;
+}
+
+.md-pc .md-block-content {
+  padding: 16px;
+}
+
+.md-pc .md-block-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.md-pc .md-block-control span {
+  width: 100%;
+  height: 1px;
+  background-color: #e5e5e5;
+}
+
+/* mobile 移动端模式样式 */
+.md-mobile {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: #f7f8fa;
+  padding: 20px;
+}
+
+.md-mobile .md-html-container {
+  flex: 1;
+  background: #fff;
+  padding: 20px;
+  border-radius: 24px;
+  margin-right: 20px;
+}
+
+.md-mobile .md-block-container {
+  width: 324px;
+  height: 620px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 44px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.md-mobile .md-block-container-header {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(125, 125, 125, .3);
+}
+
+.md-mobile .md-block-container-sections {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-radius: 32px;
+}
+
+.md-mobile .md-block-container-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.md-mobile .md-block-container-content::-webkit-scrollbar {
+  width: 0px;
+}
+
+.md-mobile .md-block-container-title {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #fff;
+  color: #131313;
+  text-align: center;
+}
+
+.md-mobile .md-block-container-title h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #323233;
+}
+
+.md-mobile .md-block-container-content {
+  padding: 0;
+  background-color: #f6f8fc;
+}
+
+.md-mobile .md-block {
+  padding: 0 16px;
+  margin-bottom: 20px;
+}
+
+.md-mobile .md-block:last-child {
+  margin-bottom: 0;
+}
+
+.md-mobile .md-code-block h2 {
+  padding: 10px 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: auto;
+  font-size: 14px;
+  color: rgba(69, 90, 100, 0.6);
+}
+
+.md-mobile h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 10px 0 30px;
+  color: #141414;
+}
+
+.md-mobile h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 45px 0 16px;
+  color: #141414;
+}
+
+.md-mobile p {
+  font-size: 15px;
+  margin: 12px 0;
+  line-height: 1.6;
+  color: #34495e;
 }

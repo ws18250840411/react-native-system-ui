@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { reactNativeWeb } from './vite-plugin-react-native-web'
+import { markedPlugin } from './vite-plugin-marked'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -9,6 +10,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    markedPlugin({
+      mode: 'mobile',
+    }),
     react(),
     reactNativeWeb(),
   ],
@@ -25,6 +29,14 @@ export default defineConfig({
     fs: {
       // 允许访问 packages 目录
       allow: ['..'],
+    },
+  },
+  build: {
+    rollupOptions: {
+      // 外部化 React Native 特定的模块
+      external: [
+        '@react-native/assets-registry/registry',
+      ],
     },
   },
 })

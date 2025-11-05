@@ -1,0 +1,142 @@
+@import '../../common/style/var.less';
+
+:root {
+  --device-padding: 1rem;
+  --device-width: 324px;
+  --device-height: 620px;
+  --device-frame-width: 12px;
+  --device-safe-area-top: 20px;
+  --device-safe-area-bottom: 22px;
+}
+
+.doc-simulator {
+  padding-top: 20px;
+  position: sticky;
+  top: @van-doc-header-top-height;
+  margin-right: 20px;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  &__actions {
+    border: 1px solid var(--mdoc-border-color);
+    margin-top: 20px;
+    padding: 5px 15px;
+    border-radius: 18px;
+    background-color: var(--mdoc-menu-color-background-active);
+
+    &__item {
+      color: var(--mdoc-menu-color);
+      margin-right: 8px;
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+
+    svg {
+      opacity: 0.7;
+      display: block;
+      width: 20px;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  &__wrapper {
+    background-color: var(--mdoc-md-wrapper-background-color);
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 44px;
+    height: var(--device-height);
+    overflow: hidden;
+    position: relative;
+    width: var(--device-width);
+    z-index: 1;
+    padding: var(--device-frame-width);
+    display: flex;
+    flex-direction: column;
+  }
+  &__bar {
+    fill: hsla(0, 0%, 49%, 0.3);
+    display: block;
+    padding: 0.5rem 1.2rem;
+    top: 12px;
+    width: 100%;
+    z-index: 2;
+  }
+  &__iframe {
+    border: none;
+    overflow: hidden;
+    width: 100%;
+    border-radius: 32px;
+    flex: 1;
+  }
+
+  &-demo {
+    min-height: 100vh;
+    background-color: var(--mdoc-background-color);
+
+    &__item {
+      margin-bottom: 20px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    &__header {
+      padding: 10px 20px;
+      font-size: 1.2em;
+      font-weight: normal;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      pointer-events: auto;
+      text-transform: capitalize;
+      position: relative;
+      background-color: #fff;
+
+      &--back {
+        padding: 10px 20px 10px 44px;
+        .doc-simulator-demo__back {
+          display: flex;
+        }
+      }
+    }
+    &__back {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 44px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      svg {
+        width: 20px;
+      }
+    }
+    &__title {
+      padding: 10px 16px;
+      font-weight: normal;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      pointer-events: auto;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    &__content {
+      padding: 0 16px 10px;
+
+      &--compact {
+        padding: 0;
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+.doc-header-action {
+  .doc-navbar__item {
+    margin: 0;
+    padding: 0 10px;
+    transition: opacity 0.2s;
+
+    &:hover {
+      color: var(--c-blue-100);
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+  &__lang {
+    display: flex;
+    align-items: center;
+    svg {
+      stroke: var(--mdoc-navbar-color);
+    }
+  }
+  &__github {
+    svg {
+      transform: scale(1.15);
+    }
+  }
+}
