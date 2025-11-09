@@ -1,2 +1,8 @@
 export { default as Button } from './button'
 export type { ButtonProps } from './button'
+export { default as Cell } from './cell'
+export type { CellProps } from './cell'
+export { default as Flex } from './flex'
+export type { FlexProps } from './flex'
+export { default as Space } from './space'
+export type { SpaceProps } from './space'

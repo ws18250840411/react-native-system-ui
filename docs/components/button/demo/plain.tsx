@@ -1,10 +1,13 @@
 import React from 'react'
 
 import { Button } from 'react-native-system-ui'
+import { DemoCard, DemoGrid } from '../../common/DemoCard'
 
 export default () => (
-  <>
-    <Button text="朴素按钮" type="primary" plain style={{ marginBottom: 8 }} />
-    <Button text="朴素按钮" type="danger" plain />
-  </>
+  <DemoCard>
+    <DemoGrid>
+      <Button text="朴素按钮" type="primary" plain />
+      <Button text="朴素按钮" type="danger" plain />
+    </DemoGrid>
+  </DemoCard>
 )

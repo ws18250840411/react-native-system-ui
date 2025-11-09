@@ -73,6 +73,9 @@ export const App = ({ children }) => (
 
 - ✳️ **Design System v0.1**：仅提供配色/间距/排版等基础变量与 `ThemeProvider` 通道，组件 token 由各自目录维护。
 - ✳️ **Button 组件**：完整覆盖 react-vant 的 `type/size/plain/block/round/square/shadow` 语义，支持 `color`、`loading`、`icon` 等能力。
+- ✳️ **Flex 组件**：提供 24 栅格的 RN 封装，支持 `gutter`/`direction`/`wrap`/`Flex.Item span` 等能力，与 react-vant 的 Flex API 对齐。
+- ✳️ **Space 组件**：覆盖 react-vant 的 `gap`、`divider`、`direction`、`wrap`、`align`、`justify` 等交互，并提供一套完整文档及 demo。
+- ✳️ **ConfigProvider**：统一封装主题与多语言，支持 `theme` tokens 覆盖与 `locale` 切换，文档示例对齐 react-vant。
 - ✳️ **文档**：Quick Start、架构说明、Button 指南已经上线（`docs/`）。
 
 ## 路线图（下一步）
