@@ -1,33 +1,16 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "jsx": "react",
     "esModuleInterop": true,
-    "incremental": false,
-    "isolatedModules": true,
-    "lib": [
-      "ESNext",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "baseUrl": ".",
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "moduleResolution": "bundler",
-    "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
+    "types": ["jest"],
     "strict": true,
-    "target": "ESNext",
-    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "declaration": true,
     "paths": {
-      "react-native-system-utils": [
-        "packages/utils/src"
-      ],
-      "react-native-system-ui": [
-        "packages/ui/src"
-      ]
+      "react-native-system-ui": ["./src/index.ts"]
     }
   }
 }

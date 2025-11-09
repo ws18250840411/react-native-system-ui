@@ -1,135 +1,85 @@
-# Turborepo starter
+# react-native-system-ui
 
-This Turborepo starter is maintained by the Turborepo core team.
+React Native 端的 react-vant 式移动组件库，参考 **react-vant** 的交互与 API、一致性借鉴 **react-native-xiaoshu** 的原子化设计，目标是产出“极简、强韧、低心智”体验的系统化 UI 资产。
 
-## Using this example
+## 愿景 / Goals
 
-Run the following command:
+- ✅ 用统一的设计令 react-vant 的体验可以在原生端复用，同时尊重 React Native 的运行特性（无 less、依赖 StyleSheet）。
+- ✅ 提供轻量的设计系统（tokens + provider + hooks），组件不直接耦合具体样式，利于按需复用与主题定制。
+- ✅ 默认约束与 API 语义与 react-vant 对齐，保证后续迁移成本极低。
+- ✅ 文档与示例聚焦“如何落地 + 如何扩展”，减少探索成本。
 
-```sh
-npx create-turbo@latest
+## 快速开始
+
+```bash
+# 安装（推荐 pnpm/yarn）
+pnpm add react-native-system-ui
+
+# 同时保证项目已安装 react 和 react-native（>=19 / >=0.79）
 ```
 
-## What's inside?
+```tsx
+import { ThemeProvider, Button } from 'react-native-system-ui'
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+export const Demo = () => (
+  <ThemeProvider>
+    <Button text="提交" type="primary" shadow />
+  </ThemeProvider>
+)
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 自定义 Tokens
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+```tsx
+import { ThemeProvider, createTokens } from 'react-native-system-ui'
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+const foundations = createTokens({
+  palette: {
+    primary: {
+      500: '#111f8f',
+      600: '#0b1461',
+    },
+  },
+})
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+export const App = ({ children }) => (
+  <ThemeProvider
+    value={{
+      foundations,
+      components: {
+        button: {
+          defaults: {
+            size: 'large',
+          },
+        },
+      },
+    }}
+  >
+    {children}
+  </ThemeProvider>
+)
 ```
 
-### Remote Caching
+## 架构总览
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+| 层级 | 说明 |
+| --- | --- |
+| `src/design-system` | 仅承载基础设计变量（颜色、排版、间距、圆角等）与 `ThemeProvider`，只做公共部分。 |
+| `src/components/*` | 每个组件自带 `tokens.ts`/`useXXXTokens.ts` 等文件，负责自身的 token 推导与样式实现（Button 为首个示例）。 |
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+> 这一层次化结构让“设计语言”与“交互实现”各司其职，可快速复制 react-vant 的 40+ 组件而不失控。
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+## 目前进度
 
-```
-cd my-turborepo
+- ✳️ **Design System v0.1**：仅提供配色/间距/排版等基础变量与 `ThemeProvider` 通道，组件 token 由各自目录维护。
+- ✳️ **Button 组件**：完整覆盖 react-vant 的 `type/size/plain/block/round/square/shadow` 语义，支持 `color`、`loading`、`icon` 等能力。
+- ✳️ **文档**：Quick Start、架构说明、Button 指南已经上线（`docs/`）。
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+## 路线图（下一步）
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+1. **基础交互组件**：Cell、Icon、Space、Typography —— 打通排版/图标体系。
+2. **反馈组件**：Toast、Loading、Dialog —— 依赖 Portal 能力（计划内）。
+3. **表单组件**：Field、Switch、Checkbox —— 与 rc-form 生态对接。
+4. **暗色模式**：扩展 tokens palette，支持按需切换。
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+欢迎 issue / PR，一起把 react-vant 的体验带到原生世界 ✨

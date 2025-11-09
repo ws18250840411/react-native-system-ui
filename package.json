@@ -1,37 +1,42 @@
 {
-  "name": "react-native-system-ui",
   "private": true,
-  "workspaces": [
-    "docs",
-    "packages/*"
-  ],
+  "name": "react-native-system-ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/es/index.js",
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "dev": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc dev",
+    "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build",
+    "docs:build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
+    "preview": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc preview",
+    "test": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc test"
   },
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-native": "^0.82.1",
-    "react-native-web": "^0.21.2"
+  "files": [
+    "dist"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": ">=18.2.0",
+    "react-dom": ">=18.2.0",
+    "react-native": ">=0.79.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.37.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-only-warn": "^1.1.0",
-    "eslint-plugin-react-hooks": "^7.0.0",
-    "eslint-plugin-turbo": "^2.5.8",
-    "prettier": "^3.6.2",
-    "turbo": "^2.5.8",
-    "typescript": "5.9.2",
-    "typescript-eslint": "^8.46.1"
+    "@types/react-test-renderer": "^19.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-native": "0.79.2",
+    "react-native-web": "0.21.2",
+    "react-test-renderer": "^19.2.0",
+    "rndoc-cli": "^1.0.0",
+    "typescript": "^5.9.3"
   },
-  "packageManager": "npm@10.5.0",
-  "engines": {
-    "node": ">=18"
+  "dependencies": {
+    "@react-vant/icons": "^0.1.0"
   }
 }
