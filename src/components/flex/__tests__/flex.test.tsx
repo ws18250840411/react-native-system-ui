@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 
 import Flex from '..'
 
@@ -8,23 +8,33 @@ describe('Flex', () => {
   it('applies gutter spacing to items', () => {
     const tree = renderer.create(
       <Flex gutter={16}>
-        <Flex.Item>1</Flex.Item>
-        <Flex.Item>2</Flex.Item>
+        <Flex.Item>
+          <Text>one</Text>
+        </Flex.Item>
+        <Flex.Item>
+          <Text>two</Text>
+        </Flex.Item>
       </Flex>
     )
 
-    const items = tree.root.findAllByType(View).filter(node => node.props.children === '1' || node.props.children === '2')
-    expect(items[0].props.style[0].paddingHorizontal).toBe(8)
+    const views = tree.root.findAllByType(View)
+    const itemViews = views.slice(1)
+    const style = StyleSheet.flatten(itemViews[0].props.style)
+    expect(style.paddingHorizontal).toBe(8)
   })
 
   it('calculates width based on span', () => {
     const tree = renderer.create(
       <Flex>
-        <Flex.Item span={12}>half</Flex.Item>
+        <Flex.Item span={12}>
+          <Text>half</Text>
+        </Flex.Item>
       </Flex>
     )
 
-    const item = tree.root.findByProps({ children: 'half' })
-    expect(item.props.style[1].width).toBe('50%')
+    const views = tree.root.findAllByType(View)
+    const itemView = views[1]
+    const style = StyleSheet.flatten(itemView.props.style)
+    expect(style.width).toBe('50%')
   })
 })

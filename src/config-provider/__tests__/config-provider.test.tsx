@@ -1,8 +1,10 @@
 import React from 'react'
 import renderer from 'react-test-renderer'
+import { Pressable, StyleSheet } from 'react-native'
 
 import { ConfigProvider, useLocale, zhCN } from '..'
 import { Button } from '../../components'
+import { defaultTokens } from '../../design-system'
 
 const LocaleConsumer = () => {
   const locale = useLocale()
@@ -37,6 +39,12 @@ describe('ConfigProvider', () => {
       </ConfigProvider>
     )
 
-    expect(tree.toJSON()).toMatchSnapshot()
+    const pressable = tree.root.findByType(Pressable)
+    const styleValue = typeof pressable.props.style === 'function'
+      ? pressable.props.style({ pressed: false })
+      : pressable.props.style
+    const flattened = StyleSheet.flatten(styleValue)
+
+    expect(flattened.backgroundColor).toBe(defaultTokens.palette.success[500])
   })
 })

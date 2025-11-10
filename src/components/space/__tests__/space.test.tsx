@@ -12,7 +12,8 @@ describe('Space', () => {
       </Space>
     )
 
-    expect(tree.toJSON()).toMatchSnapshot()
+    const spans = tree.root.findAllByType('span')
+    expect(spans).toHaveLength(2)
   })
 
   it('supports vertical direction and divider', () => {

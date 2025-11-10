@@ -75,6 +75,18 @@ export const App = ({ children }) => (
 - ✳️ **Button 组件**：完整覆盖 react-vant 的 `type/size/plain/block/round/square/shadow` 语义，支持 `color`、`loading`、`icon` 等能力。
 - ✳️ **Flex 组件**：提供 24 栅格的 RN 封装，支持 `gutter`/`direction`/`wrap`/`Flex.Item span` 等能力，与 react-vant 的 Flex API 对齐。
 - ✳️ **Space 组件**：覆盖 react-vant 的 `gap`、`divider`、`direction`、`wrap`、`align`、`justify` 等交互，并提供一套完整文档及 demo。
+- ✳️ **Cell 组件**：实现 `Cell`/`Cell.Group` 组合、`icon/isLink/arrowDirection/size` 等语义，兼容必填星号与自定义内容。
+- ✳️ **Divider 组件**：支持水平/垂直、虚线、细边框与文本定位 (`left/center/right`)，并开放 `lineColor` 与文本样式扩展。
+- ✳️ **Tag 组件**：对齐 react-vant 的 `type/size/plain/round/mark/closeable` API，可自定义 `color/textColor` 及关闭图标。
+- ✳️ **Badge 组件**：提供数字/红点、`max` 截断、`offset` 偏移、自定义 `content`/`color` 与独立展示模式。
+- ✳️ **Grid 组件**：支持 `columnNum/gutter/square/border/direction/reverse` 等语义，`Grid.Item` 兼容 `badge/dot` 与 children 自定义内容。
+- ✳️ **Typography 组件**：提供 `Text/Title/Link`，支持 `type/size/ellipsis/strong/underline` 以及展开/收起、多语义排版。
+- ✳️ **Icon 组件**：内置常用图标（当前使用 Unicode 占位），支持 `size/color/rotate/spin`，并可通过 `component`/`children` 引入任意 `react-native-svg` 图形。
+- ✳️ **Loading 组件**：实现 `circular/spinner` 两种指示器、`color/size/text/vertical` 等配置，满足过渡加载场景。
+- ✳️ **Empty 组件**：提供 `image/description/children` 语义，占位符支持默认/错误/网络/搜索以及自定义插画。
+- ✳️ **Progress 组件**：复刻 `percentage/strokeWidth/color/pivot` 语义，支持文案与置灰配置。
+- ✳️ **NoticeBar 组件**：支持滚动/换行、`mode=closeable|link`、自定义左右图标及配色。
+- ✳️ **Slider 组件**：支持单/双滑块、滚动/垂直/反向、步长与自定义按钮，拖动事件对齐 react-vant。
 - ✳️ **ConfigProvider**：统一封装主题与多语言，支持 `theme` tokens 覆盖与 `locale` 切换，文档示例对齐 react-vant。
 - ✳️ **文档**：Quick Start、架构说明、Button 指南已经上线（`docs/`）。
 
