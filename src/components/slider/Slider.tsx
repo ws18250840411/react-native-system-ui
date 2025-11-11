@@ -1,338 +1,430 @@
+import { useSlider, useSliderThumb } from '@react-native-aria/slider'
+import { useSliderState } from '@react-stately/slider'
 import React from 'react'
-import {
-  PanResponder,
-  StyleSheet,
-  View,
-  Platform,
-  Pressable,
-  type GestureResponderEvent,
-} from 'react-native'
+import type { GestureResponderEvent, LayoutChangeEvent, ViewStyle } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import type { SliderProps, SliderValue } from './types'
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
-
-const toArrayValue = (value: SliderValue, range: boolean): [number, number] => {
-  if (!range) {
-    const v = typeof value === 'number' ? value : value[0]
-    return [v ?? 0, v ?? 0]
+const clampValue = (value: number | undefined, min: number, max: number) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return min
   }
-  if (Array.isArray(value)) {
-    const sorted: [number, number] = [...value].sort((a, b) => a - b) as [number, number]
-    return sorted
-  }
-  return [0, typeof value === 'number' ? value : 0]
+  if (value < min) return min
+  if (value > max) return max
+  return value
 }
 
-const formatValue = (value: SliderValue, min: number, max: number, range: boolean): SliderValue => {
-  if (!range) {
-    const numeric = typeof value === 'number' ? value : value[0]
-    return clamp(numeric ?? 0, min, max)
+const normalizeValue = (
+  value: SliderValue | undefined,
+  range: boolean,
+  min: number,
+  max: number
+): number[] => {
+  if (range) {
+    const raw = Array.isArray(value)
+      ? value
+      : typeof value === 'number'
+        ? [min, value]
+        : [min, min]
+
+    const first = clampValue(raw[0], min, max)
+    const second = clampValue(raw[1] ?? raw[0], min, max)
+    return first <= second ? [first, second] : [second, first]
   }
-  const arr = toArrayValue(value, true)
-  return [clamp(arr[0], min, max), clamp(arr[1], min, max)]
+
+  const single = Array.isArray(value) ? value[0] : value
+  return [clampValue(single, min, max)]
+}
+
+const toSliderValue = (values: readonly number[], range: boolean, fallback: number): SliderValue => {
+  if (range) {
+    const start = values[0] ?? fallback
+    const end = values[1] ?? start
+    return [start, end]
+  }
+  return values[0] ?? fallback
+}
+
+const getPositionKey = (orientation: 'horizontal' | 'vertical', reverse: boolean) => {
+  if (orientation === 'vertical') {
+    return reverse ? 'bottom' : 'top'
+  }
+  return reverse ? 'right' : 'left'
+}
+
+const createAccessibilityProps = (inputProps: any) => {
+  if (!inputProps) return {}
+  const {
+    role,
+    ['aria-value']: ariaValue,
+    accessibilityActions,
+    onAccessibilityAction,
+    disabled,
+  } = inputProps
+
+  return {
+    accessible: true,
+    accessibilityRole: role ?? 'adjustable',
+    accessibilityValue: ariaValue,
+    accessibilityActions,
+    onAccessibilityAction,
+    accessibilityState: { disabled },
+  }
+}
+
+interface ThumbNodeProps {
+  index: number
+  orientation: 'horizontal' | 'vertical'
+  reverse: boolean
+  ariaReverse: boolean
+  trackLayout: { width: number; height: number; x: number; y: number }
+  isDisabled: boolean
+  state: ReturnType<typeof useSliderState>
+  size: number
+  activeColor: string
+  content: React.ReactNode
+  visualPercent: number
+  enhanceHandlers: (handlers: Record<string, any> | undefined, index: number) => Record<string, any> | undefined
+}
+
+const ThumbNode: React.FC<ThumbNodeProps> = ({
+  index,
+  orientation,
+  reverse,
+  ariaReverse,
+  trackLayout,
+  isDisabled,
+  state,
+  size,
+  activeColor,
+  content,
+  percent,
+  visualPercent,
+  enhanceHandlers,
+}) => {
+  const inputRef = React.useRef(null)
+  const { thumbProps, inputProps } = useSliderThumb(
+    {
+      index,
+      trackLayout,
+      inputRef,
+      isDisabled,
+      orientation,
+    },
+    state,
+    ariaReverse
+  )
+
+  const handlers = enhanceHandlers({ ...(thumbProps ?? {}) }, index) ?? {}
+  const positionKey = getPositionKey(orientation, reverse)
+
+  const translateStyle =
+    orientation === 'vertical'
+      ? ([{ translateY: -size / 2 }] as ViewStyle['transform'])
+      : ([{ translateX: (reverse ? 1 : -1) * size * 0.5 }] as ViewStyle['transform'])
+
+  const thumbStyle: ViewStyle = {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    borderColor: activeColor,
+    [positionKey]: `${visualPercent}%`,
+    transform: translateStyle,
+  }
+
+  return (
+    <View
+      {...handlers}
+      {...createAccessibilityProps(inputProps)}
+      pointerEvents={isDisabled ? 'none' : 'auto'}
+      style={[styles.thumb, thumbStyle]}
+    >
+      {content ?? <View style={styles.defaultThumb} />}
+    </View>
+  )
 }
 
 export const Slider: React.FC<SliderProps> = props => {
   const {
-    value: valueProp = 0,
+    value: valueProp,
     min = 0,
     max = 100,
     step = 1,
     range = false,
     vertical = false,
+    reverse = false,
     disabled = false,
     readOnly = false,
-    reverse = false,
     activeColor = '#3f45ff',
     inactiveColor = '#e5e5e5',
-    trackHeight = 2,
-    thumbSize = 24,
+    barHeight,
+    trackHeight,
+    buttonSize,
+    thumbSize,
+    button,
+    leftButton,
+    rightButton,
     thumb,
     leftThumb,
     rightThumb,
+    ariaLabel,
     onChange,
     onChangeAfter,
     onDragStart,
     onDragEnd,
     style,
+    onLayout: containerOnLayout,
     ...rest
   } = props
 
-  const formatted = React.useMemo(
-    () => formatValue(valueProp, min, max, range),
-    [valueProp, min, max, range],
+  const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
+  const resolvedTrackHeight = barHeight ?? trackHeight ?? 2
+  const resolvedThumbSize = buttonSize ?? thumbSize ?? 24
+  const isDisabled = disabled || readOnly
+  const scope = Math.max(max - min, 0.00001)
+
+  const normalized = React.useMemo(
+    () => normalizeValue(valueProp, range, min, max),
+    [valueProp, range, min, max]
+  )
+  const isControlled = valueProp !== undefined
+
+  const formatOutput = React.useCallback(
+    (values: readonly number[]) => toSliderValue(values, range, min),
+    [range, min]
   )
 
-  const [value, setValue] = React.useState<SliderValue>(formatted)
-  const valueRef = React.useRef<SliderValue>(formatted)
+  const state = useSliderState({
+    minValue: min,
+    maxValue: max,
+    step,
+    isDisabled,
+    isReadOnly: readOnly,
+    numberFormatter: { format: (val: number) => val },
+    orientation,
+    value: isControlled ? normalized : undefined,
+    defaultValue: !isControlled ? normalized : undefined,
+    onChange: values => onChange?.(formatOutput(values)),
+    onChangeEnd: values => onChangeAfter?.(formatOutput(values)),
+  })
 
-  const [layout, setLayout] = React.useState({ width: 0, height: 0 })
-  const layoutRef = React.useRef(layout)
+  const ariaReverse = reverse
 
-  React.useEffect(() => {
-    setValue(formatted)
-    valueRef.current = formatted
-  }, [formatted])
+  const [trackLayout, setTrackLayout] = React.useState({ width: 0, height: 0, x: 0, y: 0 })
 
-  React.useEffect(() => {
-    layoutRef.current = layout
-  }, [layout])
-
-  const trackRef = React.useRef<View>(null)
-
-  const updateLayout = React.useCallback((width: number, height: number) => {
-    layoutRef.current = { width, height }
-    setLayout({ width, height })
+  const handleTrackLayout = React.useCallback((event: LayoutChangeEvent) => {
+    const { layout } = event.nativeEvent
+    setTrackLayout({
+      width: layout.width,
+      height: layout.height,
+      x: layout.x ?? 0,
+      y: layout.y ?? 0,
+    })
   }, [])
 
-  const measureTrack = React.useCallback(() => {
-    trackRef.current?.measure((x, y, width, height) => {
-      if (width && height) {
-        updateLayout(width, height)
+  const accessibleLabel = ariaLabel ?? 'Slider'
+
+  const { trackProps } = useSlider(
+    {
+      orientation,
+      isDisabled,
+      isReadOnly: readOnly,
+      'aria-label': accessibleLabel,
+    } as any,
+    state,
+    trackLayout,
+    ariaReverse
+  )
+
+  const dragStatusRef = React.useRef<Record<number, boolean>>({})
+  const getCurrentValue = React.useCallback(() => formatOutput(state.values), [state.values, formatOutput])
+
+  const enhanceHandlers = React.useCallback(
+    (handlers: Record<string, any> | undefined, index: number) => {
+      if (!handlers) return handlers
+      if (!onDragStart && !onDragEnd) {
+        return handlers
       }
-    })
-  }, [updateLayout])
+      const wrapped = { ...handlers }
 
-  const emitChange = (next: SliderValue, event?: GestureResponderEvent) => {
-    const prev = valueRef.current
-    const changed = Array.isArray(next)
-      ? !Array.isArray(prev) || prev[0] !== next[0] || prev[1] !== next[1]
-      : Array.isArray(prev)
-        ? prev[0] !== next
-        : prev !== next
-    if (!changed) return
-    valueRef.current = Array.isArray(next) ? [...next] as SliderValue : next
-    setValue(next)
-    onChange?.(next)
-    if (event?.persist) event.persist()
-  }
-
-  const emitEnd = React.useCallback(
-    (event: GestureResponderEvent, next: SliderValue) => {
-      onDragEnd?.(event, next)
-      onChangeAfter?.(next)
-    },
-    [onDragEnd, onChangeAfter],
-  )
-
-  const getPercent = (val: number) => {
-    const percent = ((val - min) / (max - min)) * 100
-    return clamp(percent, 0, 100)
-  }
-
-  const getValueFromPosition = React.useCallback(
-    (pageX: number, pageY: number) => {
-      const layout = layoutRef.current
-      const length = vertical ? layout.height : layout.width
-      if (length === 0) return min
-      const offset = vertical ? pageY - layout.pageY : pageX - layout.pageX
-      const ratio = clamp(offset / length, 0, 1)
-      const normalized = reverse ? 1 - ratio : ratio
-      const raw = min + normalized * (max - min)
-      const snapped = Math.round(raw / step) * step
-      return clamp(snapped, min, max)
-    },
-    [vertical, min, max, reverse, step],
-  )
-
-  const handleMove = React.useCallback(
-    (index: 0 | 1, event: GestureResponderEvent) => {
-      const nextValue = getValueFromPosition(event.nativeEvent.pageX, event.nativeEvent.pageY)
-      if (!range) {
-        emitChange(nextValue, event)
-      } else {
-        const current = toArrayValue(valueRef.current, true)
-        const newValues: [number, number] = [...current] as [number, number]
-        newValues[index] = nextValue
-        newValues.sort((a, b) => a - b)
-        emitChange(newValues, event)
+      const wrap = (
+        key: string,
+        callback: ((event: GestureResponderEvent) => void) | undefined
+      ) => {
+        if (!callback) return
+        const original = wrapped[key]
+        wrapped[key] = (...args: any[]) => {
+          original?.(...args)
+          callback(args[0])
+        }
       }
+
+      wrap('onPanResponderGrant', event => {
+        if (!dragStatusRef.current[index]) {
+          dragStatusRef.current[index] = true
+          onDragStart?.(event, getCurrentValue())
+        }
+      })
+
+      const emitEnd = (event: GestureResponderEvent) => {
+        if (dragStatusRef.current[index]) {
+          dragStatusRef.current[index] = false
+          onDragEnd?.(event, getCurrentValue())
+        }
+      }
+
+      wrap('onPanResponderRelease', emitEnd)
+      wrap('onPanResponderTerminate', emitEnd)
+
+      return wrapped
     },
-    [getValueFromPosition, range],
+    [getCurrentValue, onDragStart, onDragEnd]
   )
 
-  const buildPanResponder = React.useCallback(
-    (index: 0 | 1) =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => !disabled && !readOnly,
-        onMoveShouldSetPanResponder: () => !disabled && !readOnly,
-        onPanResponderGrant: event => {
-          onDragStart?.(event, valueRef.current)
-          measureTrack()
-        },
-        onPanResponderMove: event => handleMove(index, event),
-        onPanResponderRelease: event => emitEnd(event, valueRef.current),
-        onPanResponderTerminate: event => emitEnd(event, valueRef.current),
-      }),
-    [disabled, readOnly, onDragStart, updateLayout, handleMove, emitEnd],
+  const values = state.values as number[]
+
+  const percentFromValue = React.useCallback(
+    (value: number) => ((value - min) / scope) * 100,
+    [min, scope]
   )
 
-  const singleResponder = React.useMemo(() => buildPanResponder(0), [buildPanResponder])
-  const leftResponder = React.useMemo(() => buildPanResponder(0), [buildPanResponder])
-  const rightResponder = React.useMemo(() => buildPanResponder(1), [buildPanResponder])
+  const thumbPercents = React.useMemo(
+    () => values.map(value => percentFromValue(value ?? min)),
+    [values, percentFromValue, min]
+  )
 
-  const getPositionStyle = (percent: number) => {
-    const length = vertical ? layout.height : layout.width
-    if (length > 0) {
-      const px = (percent / 100) * length
-      return vertical ? { bottom: px } : { left: px }
+  const thumbVisualPercents = React.useMemo(
+    () =>
+      thumbPercents.map(percent =>
+        orientation === 'vertical'
+          ? reverse
+            ? percent
+            : 100 - percent
+          : percent
+      ),
+    [thumbPercents, orientation, reverse]
+  )
+
+  const trackOffsetPercent = range ? percentFromValue(values[0] ?? min) : 0
+  const trackSizePercent = range
+    ? percentFromValue(values[1] ?? values[0] ?? min) - trackOffsetPercent
+    : percentFromValue(values[0] ?? min)
+
+  const positionKey = getPositionKey(orientation, reverse)
+  const sizeKey = orientation === 'vertical' ? 'height' : 'width'
+
+  const activeTrackStyle: ViewStyle = React.useMemo(
+    () => ({
+      [sizeKey]: `${Math.max(trackSizePercent, 0)}%`,
+      [positionKey]: `${Math.max(trackOffsetPercent, 0)}%`,
+      backgroundColor: disabled ? inactiveColor : activeColor,
+    }),
+    [sizeKey, positionKey, trackSizePercent, trackOffsetPercent, disabled, inactiveColor, activeColor]
+  )
+
+  const trackBaseStyle =
+    orientation === 'vertical'
+      ? [
+          styles.trackVertical,
+          { width: resolvedTrackHeight, backgroundColor: inactiveColor, alignSelf: 'center' },
+        ]
+      : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: inactiveColor }]
+
+  const thumbContentMap = React.useMemo(() => {
+    const shared = button ?? thumb
+    const leftContent = leftButton ?? leftThumb ?? shared
+    const rightContent = rightButton ?? rightThumb ?? shared
+    return {
+      single: shared,
+      left: leftContent,
+      right: rightContent,
     }
-    return vertical ? { bottom: 0 } : { left: 0 }
-  }
+  }, [button, thumb, leftButton, leftThumb, rightButton, rightThumb])
 
-  const renderThumb = (
-    percent: number,
-    responder: ReturnType<typeof PanResponder.create>,
-    custom?: React.ReactNode,
-  ) => {
-    const translate = vertical
-      ? [{ translateY: -(thumbSize / 2) }]
-      : [{ translateX: -(thumbSize / 2) }]
-
-    return (
-      <View
-        {...responder.panHandlers}
-        style={[
-          styles.thumb,
-          {
-            width: thumbSize,
-            height: thumbSize,
-            borderRadius: thumbSize / 2,
-            borderColor: activeColor,
-            transform: translate,
-          },
-          getPositionStyle(percent),
-        ]}
-        pointerEvents={disabled || readOnly ? 'none' : 'auto'}
-      >
-        {custom ?? <View style={styles.defaultThumb} />}
-      </View>
-    )
-  }
-
-  const renderThumbs = () => {
-    if (range) {
-      const arr = toArrayValue(value, true)
-      const leftPercent = getPercent(arr[0])
-      const rightPercent = getPercent(arr[1])
-      return (
-        <>
-          {renderThumb(leftPercent, leftResponder, leftThumb ?? thumb)}
-          {renderThumb(rightPercent, rightResponder, rightThumb ?? thumb)}
-        </>
-      )
-    }
-    const percent = getPercent(value as number)
-    return renderThumb(percent, singleResponder, thumb)
-  }
-
-  const renderActiveTrack = () => {
-    if (range) {
-      const arr = toArrayValue(value, true)
-      const start = getPercent(arr[0])
-      const end = getPercent(arr[1])
-      const size = end - start
-      return (
-        <View
-          style={[
-            styles.active,
-            vertical
-              ? {
-                  bottom: `${start}%`,
-                  height: `${size}%`,
-                }
-              : {
-                  left: `${start}%`,
-                  width: `${size}%`,
-                },
-            { backgroundColor: disabled ? inactiveColor : activeColor },
-            { height: trackHeight },
-          ]}
-        />
-      )
-    }
-
-    const percent = getPercent(value as number)
-    return (
-      <View
-        style={[
-          styles.active,
-          vertical
-            ? {
-                bottom: 0,
-                height: `${percent}%`,
-              }
-            : {
-                left: 0,
-                width: `${percent}%`,
-              },
-          { backgroundColor: disabled ? inactiveColor : activeColor },
-          { height: trackHeight },
-        ]}
-      />
-    )
-  }
-
-  const trackStyle = vertical
-    ? [styles.trackVertical, { width: trackHeight, backgroundColor: inactiveColor }]
-    : [styles.trackHorizontal, { height: trackHeight, backgroundColor: inactiveColor }]
+  const resolveThumbContent = React.useCallback(
+    (index: number, total: number) => {
+      if (total > 1) {
+        return index === 0 ? thumbContentMap.left : thumbContentMap.right
+      }
+      return thumbContentMap.single
+    },
+    [thumbContentMap]
+  )
 
   return (
-    <Pressable
-      ref={trackRef}
-      style={[styles.container, vertical && styles.vertical, style]}
-      onLayout={updateLayout}
-      disabled={disabled || readOnly}
-      onPress={event => {
-        if (disabled || readOnly) return
-        updateLayout()
-        const next = getValueFromPosition(event.nativeEvent.pageX, event.nativeEvent.pageY)
-        if (range) {
-          const arr = toArrayValue(valueRef.current, true)
-          const distanceToStart = Math.abs(next - arr[0])
-          const distanceToEnd = Math.abs(next - arr[1])
-          const targetIndex = distanceToStart <= distanceToEnd ? 0 : 1
-          const updated: [number, number] = [...arr] as [number, number]
-          updated[targetIndex] = next
-          updated.sort((a, b) => a - b)
-          emitChange(updated)
-          onChangeAfter?.(updated)
-        } else {
-          emitChange(next)
-          onChangeAfter?.(next)
-        }
-      }}
+    <View
+      style={[styles.container, orientation === 'vertical' && styles.verticalContainer, style]}
+      onLayout={containerOnLayout}
       {...rest}
     >
-      <View style={trackStyle}>
-        {renderActiveTrack()}
-      </View>
-      {renderThumbs()}
-    </Pressable>
+      <Pressable
+        style={[
+          styles.trackWrapper,
+          orientation === 'vertical' && styles.trackWrapperVertical,
+        ]}
+        disabled={isDisabled}
+        onLayout={handleTrackLayout}
+        {...trackProps}
+      >
+        <View style={[styles.trackBase, ...trackBaseStyle]}>
+          <View style={[styles.active, activeTrackStyle]} />
+        </View>
+      </Pressable>
+      {values.map((_, index) => (
+        <ThumbNode
+          key={`thumb-${index}`}
+          index={index}
+          orientation={orientation}
+          reverse={reverse}
+          ariaReverse={ariaReverse}
+          trackLayout={trackLayout}
+          isDisabled={isDisabled}
+          state={state}
+          size={resolvedThumbSize}
+          activeColor={activeColor}
+          content={resolveThumbContent(index, values.length)}
+          visualPercent={thumbVisualPercents[index] ?? 0}
+          enhanceHandlers={enhanceHandlers}
+        />
+      ))}
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
+    position: 'relative',
     justifyContent: 'center',
     width: '100%',
     paddingVertical: 12,
   },
-  vertical: {
+  verticalContainer: {
     height: 150,
     width: 40,
     alignItems: 'center',
+    paddingVertical: 0,
+  },
+  trackWrapper: {
+    width: '100%',
+    justifyContent: 'center',
+  },
+  trackWrapperVertical: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  trackBase: {
+    borderRadius: 999,
+    overflow: 'hidden',
+    position: 'relative',
   },
   trackHorizontal: {
     width: '100%',
-    borderRadius: 999,
-    overflow: 'hidden',
   },
   trackVertical: {
     height: '100%',
-    borderRadius: 999,
-    overflow: 'hidden',
   },
   active: {
     position: 'absolute',
@@ -340,7 +432,7 @@ const styles = StyleSheet.create({
   },
   thumb: {
     position: 'absolute',
-    borderWidth: Platform.OS === 'web' ? 1 : StyleSheet.hairlineWidth,
+    borderWidth: StyleSheet.hairlineWidth,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -355,3 +447,5 @@ const styles = StyleSheet.create({
 })
 
 Slider.displayName = 'Slider'
+
+export default Slider

@@ -14,6 +14,14 @@ module.exports = {
   transformIgnorePatterns: [
     '/node_modules/(?!(react-native-web|@react-native|@react-native-community|rndoc-cli))/',
   ],
-  testPathIgnorePatterns: ['/node_modules/', '_site', 'site', 'react-native-xiaoshu-main', 'react-vant'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '_site',
+    'site',
+    'react-native-xiaoshu-main',
+    'react-vant',
+    're-write-gluestack-ui-main',
+    'react-native-aria-main',
+  ],
   setupFilesAfterEnv: [path.resolve(__dirname, 'jest/setupTests.js')],
 }

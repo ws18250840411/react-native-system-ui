@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "@gluestack-ui/button": {
+      "signature": "49ceefacaa884e9118e05940905659e2",
+      "file": true
+    }
+  }
+}
