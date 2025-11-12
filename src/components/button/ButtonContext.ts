@@ -5,7 +5,7 @@ import type {
   ButtonShadowLevel,
   ButtonSize,
   ButtonType,
-} from './tokens'
+} from './types'
 
 export interface ButtonGroupContextValue {
   type?: ButtonType

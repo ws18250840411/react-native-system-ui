@@ -6,12 +6,10 @@ import type {
   ViewStyle,
 } from 'react-native'
 
-import type {
-  ButtonIconPosition,
-  ButtonShadowLevel,
-  ButtonSize,
-  ButtonType,
-} from './tokens'
+export type ButtonType = 'default' | 'primary' | 'success' | 'info' | 'warning' | 'danger'
+export type ButtonSize = 'large' | 'normal' | 'small' | 'mini'
+export type ButtonIconPosition = 'left' | 'right'
+export type ButtonShadowLevel = 1 | 2 | 3
 
 export type ButtonIconRender = (
   color: string,
@@ -40,6 +38,7 @@ export interface ButtonProps
   loadingText?: React.ReactNode
   loadingIndicator?: React.ReactNode
   loadingType?: ButtonLoadingType
+  loadingSize?: number | 'small' | 'large'
   disabled?: boolean
   autoInsertSpace?: boolean
   contentStyle?: StyleProp<ViewStyle>

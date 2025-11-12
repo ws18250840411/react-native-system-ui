@@ -45,6 +45,12 @@ import { NoticeBar } from 'react-native-system-ui'
 
 <code title="多行展示" src="./notice-bar/demo/wrap.tsx"></code>
 
+### 垂直滚动
+
+设置 `direction="vertical"` 并提供 `items` 数据源即可实现垂直轮播效果。
+
+<code title="垂直滚动" src="./notice-bar/demo/vertical.tsx"></code>
+
 ## API
 
 | 属性 | 说明 | 类型 | 默认值 |
@@ -59,6 +65,10 @@ import { NoticeBar } from 'react-native-system-ui'
 | `speed` | 滚动速度（px/s） | `number` | `60` |
 | `scrollable` | 是否强制开启滚动 | `boolean` | `内容溢出时自动` |
 | `wrapable` | 是否换行，仅在不滚动时生效 | `boolean` | `false` |
+| `direction` | 滚动方向，`horizontal` / `vertical` | `'horizontal' \| 'vertical'` | `'horizontal'` |
+| `items` | 垂直滚动时要循环展示的内容，不传时回退到 `text`/`children` | `ReactNode[]` | `[]` |
+| `verticalInterval` | 垂直滚动的停留时长（毫秒） | `number` | `3000` |
+| `verticalDuration` | 垂直滚动的切换动画时长（毫秒） | `number` | `300` |
 | `onClose` | 关闭按钮点击回调 | `() => void` | - |
 | `onPress` | 整体点击回调 | `() => void` | - |
 

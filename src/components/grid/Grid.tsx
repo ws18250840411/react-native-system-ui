@@ -1,10 +1,61 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
 
-import { gridStyles } from './styles'
-import { GridContext } from './GridContext'
+import { useTheme } from '../../design-system'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
+import { deepMerge } from '../../utils/deepMerge'
+import { GridContext, type GridTokens } from './GridContext'
 import type { GridProps } from './types'
-import { useGridTokens } from './useGridTokens'
+
+const createGridTokens = (foundations: Foundations): GridTokens => {
+  const { palette, spacing, fontSize, typography } = foundations
+
+  return {
+    defaults: {
+      columnNum: 4,
+      gutter: 0,
+      border: true,
+      center: true,
+      square: false,
+      direction: 'vertical',
+      reverse: false,
+      clickable: false,
+      iconSize: 28,
+    },
+    colors: {
+      border: palette.default[200],
+      text: palette.default[700],
+      background: '#ffffff',
+      active: palette.default[100],
+    },
+    spacing: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.md,
+    },
+    typography: {
+      fontSize: fontSize.sm,
+      fontFamily: typography.fontFamily,
+      lineHeight: fontSize.sm * typography.lineHeightMultiplier,
+      fontWeight: typography.weight.regular,
+    },
+  }
+}
+
+const useGridTokens = (overrides?: DeepPartial<GridTokens>) => {
+  const { foundations, components } = useTheme()
+
+  return React.useMemo(() => {
+    const base = createGridTokens(foundations)
+    const globalOverrides = components?.grid as DeepPartial<GridTokens> | undefined
+    const mergedOverrides = globalOverrides
+      ? overrides
+        ? deepMerge(globalOverrides, overrides)
+        : globalOverrides
+      : overrides
+    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
+  }, [foundations, components, overrides])
+}
 
 export const Grid: React.FC<GridProps> = props => {
   const tokens = useGridTokens()
@@ -29,7 +80,7 @@ export const Grid: React.FC<GridProps> = props => {
   )
 
   const containerStyle = [
-    gridStyles.container,
+    styles.container,
     gutter
       ? {
           marginHorizontal: -gutter / 2,
@@ -97,3 +148,10 @@ export const Grid: React.FC<GridProps> = props => {
 }
 
 Grid.displayName = 'Grid'
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+})

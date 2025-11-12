@@ -37,7 +37,7 @@ import { Space } from 'react-native-system-ui'
 
 ### 间距大小
 
-通过 `gap` 自定义间距大小，数组形式可分别设置水平与垂直间距。
+通过 `size` 或 `gap` 自定义间距大小，`size` 支持 `mini` `small` `normal` `large` 这几种预设，数组形式可分别设置水平与垂直间距。
 
 <code title="间距大小" src="./space/demo/gap.tsx"></code>
 
@@ -53,16 +53,24 @@ import { Space } from 'react-native-system-ui'
 
 <code title="自动换行" src="./space/demo/wrap.tsx"></code>
 
+### 填充模式
+
+设置 `fill` 可以让子元素沿主轴平分可用空间，配合 `direction="vertical"` 可让子元素独占整行。
+
+<code title="填充模式" src="./space/demo/fill.tsx"></code>
+
 ## API
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `gap` | 间距大小，支持数组形式 `[水平, 垂直]` | `number \| string \| [number \| string, number \| string]` | `0` |
+| `size` | 间距大小，支持预设 `mini` `small` `normal` `large`，也接受数字或像素字符串，数组形式可分别指定水平/垂直 | `SpaceGap \| SpaceSizePreset` | `normal` |
+| `gap` | 自定义间距，语义同 `size`，优先级更高 | `number \| string \| [number \| string, number \| string]` | - |
 | `justify` | 主轴对齐方式 | `'start' \| 'end' \| 'center' \| 'between' \| 'around' \| 'evenly' \| 'stretch'` | `'start'` |
 | `align` | 交叉轴对齐方式 | `'start' \| 'end' \| 'center' \| 'baseline'` | `'center'` |
 | `direction` | 间距方向 | `'horizontal' \| 'vertical'` | `'horizontal'` |
 | `wrap` | 是否自动换行，仅在水平方向生效 | `boolean` | `false` |
 | `block` | 是否渲染为块级元素 | `boolean` | `false` |
+| `fill` | 子元素是否占满主轴空间 | `boolean` | `false` |
 | `divider` | 分隔符 | `ReactNode` | - |
 | `onClick` | 点击时触发 | `ViewProps['onTouchEnd']` | - |
 

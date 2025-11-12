@@ -1,8 +1,64 @@
 import React from 'react'
 import { Text, View } from 'react-native'
 
-import { useEmptyTokens } from './useEmptyTokens'
+import { useTheme } from '../../design-system'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
+import { deepMerge } from '../../utils/deepMerge'
 import type { EmptyImage, EmptyProps } from './types'
+
+interface EmptyTokens {
+  spacing: {
+    paddingVertical: number
+    paddingHorizontal: number
+    descriptionMargin: number
+    footerMargin: number
+  }
+  colors: {
+    description: string
+    iconBackground: string
+    iconColor: string
+  }
+  sizes: {
+    image: number
+    fontSize: number
+  }
+}
+
+const createEmptyTokens = (foundations: Foundations): EmptyTokens => {
+  return {
+    spacing: {
+      paddingVertical: foundations.spacing.xl,
+      paddingHorizontal: foundations.spacing.xl,
+      descriptionMargin: foundations.spacing.md,
+      footerMargin: foundations.spacing.lg,
+    },
+    colors: {
+      description: foundations.palette.default[500],
+      iconBackground: foundations.palette.default[50],
+      iconColor: foundations.palette.default[400],
+    },
+    sizes: {
+      image: 120,
+      fontSize: foundations.fontSize.lg,
+    },
+  }
+}
+
+const useEmptyTokens = (overrides?: DeepPartial<EmptyTokens>) => {
+  const { foundations, components } = useTheme()
+
+  return React.useMemo(() => {
+    const base = createEmptyTokens(foundations)
+    const globalOverrides = components?.empty as DeepPartial<EmptyTokens> | undefined
+    const mergedOverrides = globalOverrides
+      ? overrides
+        ? deepMerge(globalOverrides, overrides)
+        : globalOverrides
+      : overrides
+    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
+  }, [foundations, components, overrides])
+}
 
 const IMAGE_SYMBOLS: Record<EmptyImage, string> = {
   default: '☁',

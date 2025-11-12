@@ -2,7 +2,6 @@ import React from 'react'
 import { View } from 'react-native'
 
 import { Badge, Space } from 'react-native-system-ui'
-import { DemoCard } from '../../common/DemoCard'
 
 const Box = () => (
   <View
@@ -11,17 +10,15 @@ const Box = () => (
 )
 
 export default () => (
-  <DemoCard>
-    <Space gap={20}>
-      <Badge content={20} max={9}>
-        <Box />
-      </Badge>
-      <Badge content="99" max="20">
-        <Box />
-      </Badge>
-      <Badge content="9999" max="99">
-        <Box />
-      </Badge>
-    </Space>
-  </DemoCard>
+  <Space gap={20}>
+    <Badge content={20} max={9}>
+      <Box />
+    </Badge>
+    <Badge content="99" max="20">
+      <Box />
+    </Badge>
+    <Badge content="9999" max="99">
+      <Box />
+    </Badge>
+  </Space>
 )

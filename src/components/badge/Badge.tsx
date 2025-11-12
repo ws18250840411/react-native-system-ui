@@ -1,10 +1,78 @@
 import React from 'react'
 import type { PressableStateCallbackType, ViewStyle } from 'react-native'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { badgeStyles } from './styles'
+import { useTheme } from '../../design-system'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
+import { deepMerge } from '../../utils/deepMerge'
 import type { BadgeProps } from './types'
-import { useBadgeTokens } from './useBadgeTokens'
+
+interface BadgeTokens {
+  defaults: {
+    showZero: boolean
+  }
+  colors: {
+    background: string
+    dot: string
+    text: string
+  }
+  sizes: {
+    height: number
+    paddingHorizontal: number
+    dotSize: number
+    borderRadius: number
+  }
+  typography: {
+    fontSize: number
+    fontWeight: string
+    fontFamily: string
+    lineHeight: number
+  }
+}
+
+const createBadgeTokens = (foundations: Foundations): BadgeTokens => {
+  const { palette, spacing, fontSize, radii, typography } = foundations
+
+  return {
+    defaults: {
+      showZero: true,
+    },
+    colors: {
+      background: palette.danger[500],
+      dot: palette.danger[500],
+      text: palette.danger.foreground ?? '#ffffff',
+    },
+    sizes: {
+      height: 18,
+      paddingHorizontal: spacing.xs,
+      dotSize: 8,
+      borderRadius: radii.pill,
+    },
+    typography: {
+      fontSize: fontSize.xs,
+      fontWeight: typography.weight.bold,
+      fontFamily: typography.fontFamily,
+      lineHeight: fontSize.xs * typography.lineHeightMultiplier,
+    },
+  }
+}
+
+const useBadgeTokens = (overrides?: DeepPartial<BadgeTokens>) => {
+  const { foundations, components } = useTheme()
+
+  return React.useMemo(() => {
+    const base = createBadgeTokens(foundations)
+    const globalOverrides = components?.badge as DeepPartial<BadgeTokens> | undefined
+    const mergedOverrides = globalOverrides
+      ? overrides
+        ? deepMerge(globalOverrides, overrides)
+        : globalOverrides
+      : overrides
+
+    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
+  }, [foundations, components, overrides])
+}
 
 const isRenderable = (value: React.ReactNode) => {
   if (value === null || value === undefined) return false
@@ -89,7 +157,7 @@ export const Badge: React.FC<BadgeProps> = props => {
     return (
       <Text
         style={[
-          badgeStyles.text,
+          styles.text,
           {
             color: textColor ?? tokens.colors.text,
             fontSize: tokens.typography.fontSize,
@@ -115,7 +183,7 @@ export const Badge: React.FC<BadgeProps> = props => {
         <View
           pointerEvents={standalone ? 'auto' : 'none'}
           style={[
-            standalone ? badgeStyles.standalone : badgeStyles.badge,
+            standalone ? styles.standalone : styles.badge,
             {
               width: tokens.sizes.dotSize,
               height: tokens.sizes.dotSize,
@@ -136,7 +204,7 @@ export const Badge: React.FC<BadgeProps> = props => {
       <View
         pointerEvents={standalone ? 'auto' : 'none'}
         style={[
-          standalone ? badgeStyles.standalone : badgeStyles.badge,
+          standalone ? styles.standalone : styles.badge,
           {
             minWidth: tokens.sizes.height,
             height: tokens.sizes.height,
@@ -159,7 +227,7 @@ export const Badge: React.FC<BadgeProps> = props => {
 
     if (onPress) {
       const pressableStyle = ({ pressed }: PressableStateCallbackType) => [
-        badgeStyles.wrapper,
+        styles.wrapper,
         style,
         { opacity: pressed ? 0.9 : 1 },
       ]
@@ -173,7 +241,7 @@ export const Badge: React.FC<BadgeProps> = props => {
     }
 
     return (
-      <View style={[badgeStyles.wrapper, style]} {...rest}>
+      <View style={[styles.wrapper, style]} {...rest}>
         {children}
         {badgeNode}
       </View>
@@ -199,5 +267,28 @@ export const Badge: React.FC<BadgeProps> = props => {
 
   return React.cloneElement(badgeNode as React.ReactElement, { ...rest })
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    position: 'relative',
+    alignSelf: 'flex-start',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  standalone: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    textAlign: 'center',
+  },
+})
 
 Badge.displayName = 'Badge'

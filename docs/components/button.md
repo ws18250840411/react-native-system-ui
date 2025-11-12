@@ -106,6 +106,7 @@ import { Button } from 'react-native-system-ui'
 | `loading` | 是否为加载状态 | `boolean` | `false` |
 | `loadingText` | 加载状态提示文字 | `ReactNode` | - |
 | `loadingType` | 加载图标类型，可选值为 `spinner` | `'circular' \| 'spinner'` | `'circular'` |
+| `loadingSize` | 加载图标尺寸，等同于 `ActivityIndicator` 的 `size` | `'small' \| 'large' \| number` | `'small'` |
 | `loadingIndicator` | 自定义加载指示器 | `ReactNode` | `ActivityIndicator` |
 | `autoInsertSpace` | 是否为两个中文字符自动插入空格 | `boolean` | `true` |
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import renderer from 'react-test-renderer'
+import renderer, { act } from 'react-test-renderer'
 import { Pressable, Text } from 'react-native'
 
 import NoticeBar from '..'
@@ -16,8 +16,20 @@ describe('NoticeBar', () => {
     expect(message).toBeDefined()
 
     const pressables = tree.root.findAllByType(Pressable)
-    const closeButton = pressables.find(node => node.props.onPress === onClose)
-    closeButton?.props.onPress?.()
+    const closeButton = pressables.find(node => node.props.hitSlop)
+    act(() => {
+      closeButton?.props.onPress?.()
+    })
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('supports vertical marquee items', () => {
+    const tree = renderer.create(
+      <NoticeBar direction="vertical" items={['foo', 'bar']} />,
+    )
+
+    const texts = tree.root.findAllByType(Text)
+    const hasFoo = texts.some(node => node.props.children === 'foo')
+    expect(hasFoo).toBe(true)
   })
 })

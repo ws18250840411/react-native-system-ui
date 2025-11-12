@@ -2,7 +2,6 @@ import React from 'react'
 import { View, Text } from 'react-native'
 
 import { Grid } from 'react-native-system-ui'
-import { DemoCard } from '../../common/DemoCard'
 
 const DemoIcon = ({ label }: { label: string }) => (
   <View
@@ -20,11 +19,9 @@ const DemoIcon = ({ label }: { label: string }) => (
 )
 
 export default () => (
-  <DemoCard>
-    <Grid columnNum={3} iconColor="#4338ca">
-      {['待付款', '待收货', '退货', '发票', '客服', '更多'].map((label, index) => (
-        <Grid.Item key={label} text={label} icon={() => <DemoIcon label={`${index + 1}`} />} />
-      ))}
-    </Grid>
-  </DemoCard>
+  <Grid columnNum={3} iconColor="#4338ca">
+    {['待付款', '待收货', '退货', '发票', '客服', '更多'].map((label, index) => (
+      <Grid.Item key={label} text={label} icon={() => <DemoIcon label={`${index + 1}`} />} />
+    ))}
+  </Grid>
 )

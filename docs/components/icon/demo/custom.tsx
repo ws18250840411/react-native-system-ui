@@ -2,7 +2,6 @@ import React from 'react'
 import { Svg, Circle } from 'react-native-svg'
 
 import { Icon, Typography } from 'react-native-system-ui'
-import { DemoCard } from '../../common/DemoCard'
 
 const Ring = ({ size = 24, color = '#3b82f6' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24">
@@ -11,10 +10,10 @@ const Ring = ({ size = 24, color = '#3b82f6' }: { size?: number; color?: string 
 )
 
 export default () => (
-  <DemoCard>
+  <>
     <Typography.Text>
       可以通过 `component` 或 `children` 传入任意 `react-native-svg` 图形，例如：
     </Typography.Text>
     <Icon component={Ring} size={32} color="#ef4444" />
-  </DemoCard>
+  </>
 )

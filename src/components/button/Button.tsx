@@ -1,12 +1,18 @@
 import React from 'react'
-import type { PressableStateCallbackType, ViewStyle } from 'react-native'
-import { ActivityIndicator, Pressable, Text, View } from 'react-native'
+import type { PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useTheme } from '../../design-system'
-import type { ButtonShadowLevel } from './tokens'
-import { buttonStyles } from './styles'
-import type { ButtonProps } from './types'
-import { useButtonTokens } from './useButtonTokens'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
+import { deepMerge } from '../../utils/deepMerge'
+import type {
+  ButtonProps,
+  ButtonShadowLevel,
+  ButtonSize,
+  ButtonType,
+  ButtonIconPosition,
+} from './types'
 import { ButtonGroupContext } from './ButtonContext'
 
 const isTwoCNChar = (value: string) => /^(?:[\u4e00-\u9fa5]){2}$/.test(value)
@@ -24,10 +30,176 @@ const clampShadowLevel = (level: number): ButtonShadowLevel => {
   return level as ButtonShadowLevel
 }
 
+const gradientColorRegex =
+  /(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\))/i
+
+const extractFirstColorToken = (input?: string | null) => {
+  if (!input) return undefined
+  const match = input.match(gradientColorRegex)
+  return match ? match[0] : undefined
+}
+
+interface ButtonTokens {
+  defaults: {
+    type: ButtonType
+    size: ButtonSize
+    plain: boolean
+    block: boolean
+    round: boolean
+    square: boolean
+    iconPosition: ButtonIconPosition
+  }
+  sizes: Record<
+    ButtonSize,
+    {
+      height: number
+      fontSize: number
+      paddingHorizontal: number
+      iconSize: number
+      radius: number
+    }
+  >
+  spacing: {
+    iconGap: number
+  }
+  states: {
+    disabledOpacity: number
+    loadingOpacity: number
+    pressedOpacity: number
+  }
+  border: {
+    width: number
+    hairlineWidth: number
+  }
+  toneMap: Record<
+    ButtonType,
+    {
+      background: string
+      border: string
+      text: string
+    }
+  >
+  shadow: Record<
+    ButtonShadowLevel,
+    {
+      color: string
+      opacity: number
+      radius: number
+      offsetY: number
+      elevation: number
+    }
+  >
+}
+
+const createButtonTokens = (foundations: Foundations): ButtonTokens => {
+  const { palette, spacing, radii, fontSize, opacity } = foundations
+
+  const buildTone = (tone: keyof typeof palette, text?: string) => ({
+    background: palette[tone][500],
+    border: palette[tone][500],
+    text: text ?? palette[tone].foreground ?? '#ffffff',
+  })
+
+  return {
+    defaults: {
+      type: 'default',
+      size: 'normal',
+      plain: false,
+      block: false,
+      round: false,
+      square: false,
+      iconPosition: 'left',
+    },
+    sizes: {
+      large: {
+        height: 50,
+        fontSize: fontSize.lg,
+        paddingHorizontal: spacing.xl,
+        iconSize: fontSize.lg,
+        radius: radii.md,
+      },
+      normal: {
+        height: 44,
+        fontSize: fontSize.md,
+        paddingHorizontal: spacing.lg,
+        iconSize: fontSize.md,
+        radius: radii.sm,
+      },
+      small: {
+        height: 32,
+        fontSize: fontSize.sm,
+        paddingHorizontal: spacing.md,
+        iconSize: fontSize.sm,
+        radius: radii.sm,
+      },
+      mini: {
+        height: 24,
+        fontSize: fontSize.xs,
+        paddingHorizontal: spacing.xs,
+        iconSize: fontSize.xs,
+        radius: radii.pill,
+      },
+    },
+    spacing: {
+      iconGap: spacing.sm,
+    },
+    states: {
+      disabledOpacity: opacity.disabled,
+      loadingOpacity: opacity.loading,
+      pressedOpacity: opacity.pressed,
+    },
+    border: {
+      width: 1,
+      hairlineWidth: 0.5,
+    },
+    toneMap: {
+      default: {
+        background: palette.default[50],
+        border: palette.default[200],
+        text: palette.default[700],
+      },
+      primary: buildTone('primary'),
+      info: buildTone('info'),
+      success: buildTone('success'),
+      warning: buildTone('warning', palette.warning.foreground ?? '#ffffff'),
+      danger: buildTone('danger'),
+    },
+    shadow: {
+      1: {
+        color: '#0f1a38',
+        opacity: 0.12,
+        radius: 4,
+        offsetY: 2,
+        elevation: 2,
+      },
+      2: {
+        color: '#0f1a38',
+        opacity: 0.15,
+        radius: 6,
+        offsetY: 3,
+        elevation: 3,
+      },
+      3: {
+        color: '#0f1a38',
+        opacity: 0.2,
+        radius: 10,
+        offsetY: 4,
+        elevation: 5,
+      },
+    },
+  }
+}
+
 export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
   (props, forwardedRef) => {
-    const { foundations } = useTheme()
-    const buttonTokens = useButtonTokens()
+    const { foundations, components } = useTheme()
+    const buttonTokens = React.useMemo(() => {
+      const base = createButtonTokens(foundations)
+      const overrides = components
+        ? (components['button'] as DeepPartial<ButtonTokens> | undefined)
+        : undefined
+      return overrides ? deepMerge(base, overrides) : base
+    }, [foundations, components])
     const group = React.useContext(ButtonGroupContext)
 
     const {
@@ -49,6 +221,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       loadingText,
       loadingIndicator,
       loadingType = 'circular',
+      loadingSize = 'small',
       disabled: disabledProp,
       autoInsertSpace = true,
       contentStyle,
@@ -70,13 +243,20 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
     const tone = buttonTokens.toneMap[type] ?? buttonTokens.toneMap.default
     const sizeTokens = buttonTokens.sizes[size]
-    const isGradientColor = typeof color === 'string' && color.includes('gradient')
+    const gradientString = typeof color === 'string' ? color : undefined
+    const hasGradientSyntax =
+      gradientString?.toLowerCase().includes('gradient') ?? false
+    const normalizedColor = hasGradientSyntax
+      ? extractFirstColorToken(gradientString) ?? undefined
+      : color
+    const gradientFillEnabled = hasGradientSyntax && !plain
+    const supportsGradientFill = Platform.OS === 'web'
 
     const baseTextColor = textColor
       ? textColor
-      : color
+      : normalizedColor
         ? plain
-          ? color
+          ? normalizedColor
           : '#ffffff'
         : plain
           ? tone.border
@@ -84,12 +264,22 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
     const backgroundColor = plain
       ? '#ffffff'
-      : color || tone.background
-    const borderColor = color || tone.border
+      : gradientFillEnabled
+        ? supportsGradientFill
+          ? 'transparent'
+          : normalizedColor ?? tone.background
+        : normalizedColor ?? tone.background
+    const borderColor = plain
+      ? normalizedColor ?? tone.border
+      : gradientFillEnabled
+        ? 'transparent'
+        : normalizedColor ?? tone.border
 
-    const resolvedBorderWidth = hairline
-      ? buttonTokens.border.hairlineWidth
-      : buttonTokens.border.width
+    const resolvedBorderWidth = gradientFillEnabled
+      ? 0
+      : hairline
+        ? buttonTokens.border.hairlineWidth
+        : buttonTokens.border.width
 
     let borderRadius = square ? 0 : sizeTokens.radius
     if (round) {
@@ -110,6 +300,10 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           elevation: shadowTokens.elevation,
         }
       : undefined
+    const gradientWebStyle =
+      gradientFillEnabled && supportsGradientFill && gradientString
+        ? ({ backgroundImage: gradientString } as ViewStyle)
+        : undefined
 
     const buildIconWrapperStyle = (position: 'left' | 'right') => ({
       marginRight: position === 'left' ? buttonTokens.spacing.iconGap : 0,
@@ -134,7 +328,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         {loadingIndicator ?? (
           <ActivityIndicator
             style={buttonStyles.loadingIndicator}
-            size={loadingType === 'spinner' ? 'small' : 'small'}
+            size={loadingSize}
             color={baseTextColor}
           />
         )}
@@ -221,27 +415,36 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       </View>
     )
 
-    const pressableStyle = ({ pressed }: PressableStateCallbackType) => [
-      buttonStyles.base,
-      {
-        minHeight: sizeTokens.height,
-        paddingHorizontal: sizeTokens.paddingHorizontal,
-        borderRadius,
-        backgroundColor,
-        borderColor,
-        borderWidth: isGradientColor ? 0 : resolvedBorderWidth,
-        opacity: loading
-          ? buttonTokens.states.loadingOpacity
-          : isDisabled
-            ? buttonTokens.states.disabledOpacity
-            : pressed
-              ? buttonTokens.states.pressedOpacity
-              : 1,
-      },
-      block && buttonStyles.block,
-      shadowStyle,
-      style,
-    ]
+    const pressableStyle = ({ pressed }: PressableStateCallbackType) => {
+      const computed: Array<StyleProp<ViewStyle>> = [
+        buttonStyles.base,
+        {
+          minHeight: sizeTokens.height,
+          paddingHorizontal: sizeTokens.paddingHorizontal,
+          borderRadius,
+          backgroundColor,
+          borderColor,
+          borderWidth: resolvedBorderWidth,
+          opacity: loading
+            ? buttonTokens.states.loadingOpacity
+            : isDisabled
+              ? buttonTokens.states.disabledOpacity
+              : pressed
+                ? buttonTokens.states.pressedOpacity
+                : 1,
+        },
+        block && buttonStyles.block,
+        shadowStyle,
+      ]
+
+      if (gradientWebStyle) {
+        computed.push(gradientWebStyle)
+      }
+
+      computed.push(style)
+
+      return computed
+    }
 
     return (
       <Pressable
@@ -261,3 +464,31 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 Button.displayName = 'Button'
 
 export default Button
+
+const buttonStyles = StyleSheet.create({
+  base: {
+    borderStyle: 'solid',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  block: {
+    alignSelf: 'stretch',
+    width: '100%',
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingIndicator: {
+    marginRight: 6,
+  },
+  text: {
+    fontWeight: '600',
+  },
+})

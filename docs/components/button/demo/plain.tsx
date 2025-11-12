@@ -1,13 +1,10 @@
 import React from 'react'
 
-import { Button } from 'react-native-system-ui'
-import { DemoCard, DemoGrid } from '../../common/DemoCard'
+import { Button, Space } from 'react-native-system-ui'
 
 export default () => (
-  <DemoCard>
-    <DemoGrid>
-      <Button text="朴素按钮" type="primary" plain />
-      <Button text="朴素按钮" type="danger" plain />
-    </DemoGrid>
-  </DemoCard>
+  <Space wrap gap={12} block>
+    <Button text="朴素按钮" type="primary" plain />
+    <Button text="朴素按钮" type="danger" plain />
+  </Space>
 )

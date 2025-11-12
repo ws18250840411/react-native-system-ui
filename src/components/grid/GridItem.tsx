@@ -5,7 +5,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import Badge from '../badge'
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
-import { gridStyles } from './styles'
 
 interface GridItemInternalProps extends GridItemProps {
   gridItemIndex?: number
@@ -70,11 +69,11 @@ export const GridItem: React.FC<GridItemInternalProps> = props => {
     baseItemStyle.borderBottomWidth = StyleSheet.hairlineWidth
   }
 
-  const contentOrientation = direction === 'horizontal' ? gridStyles.horizontal : gridStyles.vertical
+  const contentOrientation = direction === 'horizontal' ? styles.horizontal : styles.vertical
   const reverseStyle = reverse
     ? direction === 'horizontal'
-      ? gridStyles.reverseRow
-      : gridStyles.reverseColumn
+      ? styles.reverseRow
+      : styles.reverseColumn
     : null
 
   const contentBaseStyle: ViewStyle = {
@@ -89,9 +88,9 @@ export const GridItem: React.FC<GridItemInternalProps> = props => {
   }
 
   const contentWrapperStyle = [
-    gridStyles.contentBase,
+    styles.contentBase,
     contentOrientation,
-    center && gridStyles.center,
+    center && styles.center,
     reverseStyle,
     contentBaseStyle,
     contentStyle,
@@ -111,7 +110,7 @@ export const GridItem: React.FC<GridItemInternalProps> = props => {
       : null
 
     const iconWrapperStyle: ViewStyle = [
-      gridStyles.iconWrapper,
+      styles.iconWrapper,
     ]
 
     if (direction === 'vertical' && !reverse) {
@@ -153,7 +152,7 @@ export const GridItem: React.FC<GridItemInternalProps> = props => {
       }
 
       return (
-        <Text style={[gridStyles.text, textStyles, textStyle]} numberOfLines={2}>
+        <Text style={[styles.text, textStyles, textStyle]} numberOfLines={2}>
           {text}
         </Text>
       )
@@ -198,3 +197,34 @@ export const GridItem: React.FC<GridItemInternalProps> = props => {
 }
 
 GridItem.displayName = 'GridItem'
+
+const styles = StyleSheet.create({
+  contentBase: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  vertical: {
+    flexDirection: 'column',
+  },
+  horizontal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  center: {
+    alignItems: 'center',
+  },
+  reverseColumn: {
+    flexDirection: 'column-reverse',
+  },
+  reverseRow: {
+    flexDirection: 'row-reverse',
+  },
+  iconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    textAlign: 'center',
+    marginTop: 8,
+  },
+})

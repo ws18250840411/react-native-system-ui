@@ -2,7 +2,6 @@ import React from 'react'
 import { View } from 'react-native'
 
 import { Badge, Tag } from 'react-native-system-ui'
-import { DemoCard } from '../../common/DemoCard'
 
 const Box = () => (
   <View
@@ -11,9 +10,7 @@ const Box = () => (
 )
 
 export default () => (
-  <DemoCard>
-    <Badge content={<Tag size="mini" type="danger">NEW</Tag>}>
-      <Box />
-    </Badge>
-  </DemoCard>
+  <Badge content={<Tag size="mini" type="danger">NEW</Tag>}>
+    <Box />
+  </Badge>
 )

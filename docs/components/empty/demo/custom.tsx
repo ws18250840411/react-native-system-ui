@@ -2,7 +2,6 @@ import React from 'react'
 import { View } from 'react-native'
 
 import { Empty } from 'react-native-system-ui'
-import { DemoCard } from '../../common/DemoCard'
 
 const CustomImage = () => (
   <View
@@ -15,8 +14,4 @@ const CustomImage = () => (
   />
 )
 
-export default () => (
-  <DemoCard>
-    <Empty image={<CustomImage />} description="自定义插画" />
-  </DemoCard>
-)
+export default () => <Empty image={<CustomImage />} description="自定义插画" />

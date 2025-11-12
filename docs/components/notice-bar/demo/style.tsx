@@ -1,12 +1,13 @@
 import React from 'react'
 
-import { NoticeBar } from 'react-native-system-ui'
-import { DemoCard } from '../../common/DemoCard'
+import { Icon, NoticeBar } from 'react-native-system-ui'
 
 export default () => (
-  <DemoCard>
-    <NoticeBar color="#2563eb" background="#e0edff">
-      自定义颜色通知栏
-    </NoticeBar>
-  </DemoCard>
+  <NoticeBar
+    color="#2563eb"
+    background="#e0edff"
+    leftIcon={<Icon name="info" size={16} color="#2563eb" />}
+  >
+    自定义颜色通知栏
+  </NoticeBar>
 )

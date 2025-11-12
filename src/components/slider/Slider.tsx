@@ -326,9 +326,9 @@ export const Slider: React.FC<SliderProps> = props => {
   const trackBaseStyle =
     orientation === 'vertical'
       ? [
-          styles.trackVertical,
-          { width: resolvedTrackHeight, backgroundColor: inactiveColor, alignSelf: 'center' },
-        ]
+        styles.trackVertical,
+        { width: resolvedTrackHeight, backgroundColor: inactiveColor, alignSelf: 'center' },
+      ]
       : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: inactiveColor }]
 
   const thumbContentMap = React.useMemo(() => {

@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text } from 'react-native'
 
 import Button from '..'
 import {
@@ -8,7 +8,6 @@ import {
   defaultTokens,
   type ThemeProviderProps,
 } from '../../../design-system'
-import { createButtonTokens } from '../tokens'
 
 const renderWithProvider = (
   ui: React.ReactElement,
@@ -32,14 +31,10 @@ describe('Button', () => {
     const pressable = tree.root.findByType(Pressable)
     const flattened = getStyleFromPressable(pressable)
 
-    const defaultButtonTokens = createButtonTokens(defaultTokens)
-
     expect(flattened.backgroundColor).toBe(
-      defaultButtonTokens.toneMap.primary.background
+      defaultTokens.palette.primary[500]
     )
-    expect(flattened.borderColor).toBe(
-      defaultButtonTokens.toneMap.primary.border
-    )
+    expect(flattened.borderColor).toBe(defaultTokens.palette.primary[500])
   })
 
   it('renders plain buttons using color overrides just like react-vant', () => {
@@ -76,5 +71,21 @@ describe('Button', () => {
     const flattened = getStyleFromPressable(pressable)
 
     expect(flattened.minHeight).toBe(60)
+  })
+
+  it('parses gradient color tokens on native platforms', () => {
+    const originalOS = Platform.OS
+    ;(Platform as unknown as { OS: typeof Platform.OS }).OS = 'ios'
+    try {
+      const gradient = 'linear-gradient(90deg, #be99ff, #7232dd)'
+      const tree = renderWithProvider(<Button text="Gradient" color={gradient} />)
+      const pressable = tree.root.findByType(Pressable)
+      const flattened = getStyleFromPressable(pressable)
+
+      expect(flattened.backgroundColor).toBe('#be99ff')
+      expect(flattened.borderWidth).toBe(0)
+    } finally {
+      ;(Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
+    }
   })
 })

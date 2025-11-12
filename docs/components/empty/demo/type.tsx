@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { Empty, Space } from 'react-native-system-ui'
-import { DemoCard } from '../../common/DemoCard'
 
 const types: Array<{ key: 'default' | 'error' | 'network' | 'search'; label: string }> = [
   { key: 'default', label: '默认' },
@@ -11,11 +10,9 @@ const types: Array<{ key: 'default' | 'error' | 'network' | 'search'; label: str
 ]
 
 export default () => (
-  <DemoCard>
-    <Space direction="vertical" gap={16}>
-      {types.map(item => (
-        <Empty key={item.key} image={item.key} description={`${item.label}状态`} />
-      ))}
-    </Space>
-  </DemoCard>
+  <Space direction="vertical" gap={16}>
+    {types.map(item => (
+      <Empty key={item.key} image={item.key} description={`${item.label}状态`} />
+    ))}
+  </Space>
 )

@@ -32,4 +32,14 @@ describe('Progress', () => {
     const textNodes = tree.root.findAllByType(Text)
     expect(textNodes.length).toBe(0)
   })
+
+  it('accepts string strokeWidth values', () => {
+    const tree = renderer.create(<Progress percentage={20} strokeWidth="6px" />)
+    const trackStyle = tree.root
+      .findAllByType(View)
+      .map(node => StyleSheet.flatten(node.props.style))
+      .find(style => typeof style?.height === 'number' && style.height === 6)
+
+    expect(trackStyle?.height).toBe(6)
+  })
 })

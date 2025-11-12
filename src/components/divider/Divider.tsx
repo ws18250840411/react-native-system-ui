@@ -1,9 +1,93 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
-import { useDividerTokens } from './useDividerTokens'
-import { dividerStyles } from './styles'
+import { useTheme } from '../../design-system'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
+import { deepMerge } from '../../utils/deepMerge'
 import type { DividerProps } from './types'
+import type { DividerContentPosition, DividerType } from './types'
+
+interface DividerTokens {
+  defaults: {
+    type: DividerType
+    dashed: boolean
+    hairline: boolean
+    contentPosition: DividerContentPosition
+  }
+  colors: {
+    line: string
+    text: string
+  }
+  typography: {
+    fontSize: number
+    lineHeight: number
+    fontFamily: string
+    fontWeight: string
+  }
+  spacing: {
+    vertical: number
+    horizontal: number
+    contentPadding: number
+  }
+  line: {
+    thickness: number
+    sideMinFlex: number
+  }
+  vertical: {
+    minHeight: number
+  }
+}
+
+const createDividerTokens = (foundations: Foundations): DividerTokens => {
+  const { palette, fontSize, typography, spacing } = foundations
+
+  return {
+    defaults: {
+      type: 'horizontal',
+      dashed: false,
+      hairline: true,
+      contentPosition: 'center',
+    },
+    colors: {
+      line: palette.default[200],
+      text: palette.default[600],
+    },
+    typography: {
+      fontSize: fontSize.sm,
+      lineHeight: fontSize.sm * typography.lineHeightMultiplier,
+      fontFamily: typography.fontFamily,
+      fontWeight: typography.weight.medium,
+    },
+    spacing: {
+      vertical: spacing.md,
+      horizontal: spacing.none,
+      contentPadding: spacing.sm,
+    },
+    line: {
+      thickness: 1,
+      sideMinFlex: 0.18,
+    },
+    vertical: {
+      minHeight: 24,
+    },
+  }
+}
+
+const useDividerTokens = (overrides?: DeepPartial<DividerTokens>) => {
+  const { foundations, components } = useTheme()
+
+  return React.useMemo(() => {
+    const base = createDividerTokens(foundations)
+    const globalOverrides = components?.divider as DeepPartial<DividerTokens> | undefined
+    const mergedOverrides = globalOverrides
+      ? overrides
+        ? deepMerge(globalOverrides, overrides)
+        : globalOverrides
+      : overrides
+    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
+  }, [foundations, components, overrides])
+}
 
 const flexRatioMap = {
   left: { left: 0.3, right: 1 },
@@ -39,7 +123,7 @@ export const Divider: React.FC<DividerProps> = props => {
       return (
         <Text
           style={[
-            dividerStyles.text,
+            styles.text,
             {
               color: tokens.colors.text,
               fontSize: tokens.typography.fontSize,
@@ -62,7 +146,7 @@ export const Divider: React.FC<DividerProps> = props => {
     return (
       <View
         style={[
-          dividerStyles.verticalContainer,
+          styles.verticalContainer,
           { marginHorizontal: tokens.spacing.horizontal, minHeight: tokens.vertical.minHeight },
           style,
         ]}
@@ -70,7 +154,7 @@ export const Divider: React.FC<DividerProps> = props => {
       >
         <View
           style={[
-            dividerStyles.verticalLine,
+            styles.verticalLine,
             {
               borderLeftColor: resolvedColor,
               borderLeftWidth: lineThickness,
@@ -86,7 +170,7 @@ export const Divider: React.FC<DividerProps> = props => {
   const ratios = flexRatioMap[contentPosition]
 
   const lineBaseStyle = [
-    dividerStyles.line,
+    styles.line,
     {
       borderBottomColor: resolvedColor,
       borderBottomWidth: lineThickness,
@@ -97,7 +181,7 @@ export const Divider: React.FC<DividerProps> = props => {
   return (
     <View
       style={[
-        dividerStyles.horizontal,
+        styles.horizontal,
         { marginVertical: tokens.spacing.vertical },
         style,
       ]}
@@ -116,7 +200,7 @@ export const Divider: React.FC<DividerProps> = props => {
           />
           <View
             style={[
-              dividerStyles.contentWrapper,
+              styles.contentWrapper,
               { paddingHorizontal: tokens.spacing.contentPadding },
               contentStyle,
             ]}
@@ -141,3 +225,29 @@ export const Divider: React.FC<DividerProps> = props => {
 }
 
 Divider.displayName = 'Divider'
+
+const styles = StyleSheet.create({
+  horizontal: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  line: {
+    borderBottomWidth: 1,
+  },
+  contentWrapper: {
+    justifyContent: 'center',
+  },
+  text: {
+    textAlign: 'center',
+  },
+  verticalContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+  },
+  verticalLine: {
+    borderLeftWidth: 1,
+    alignSelf: 'stretch',
+  },
+})
