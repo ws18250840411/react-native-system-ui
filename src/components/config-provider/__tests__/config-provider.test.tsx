@@ -3,8 +3,8 @@ import renderer from 'react-test-renderer'
 import { Pressable, StyleSheet } from 'react-native'
 
 import { ConfigProvider, useLocale, zhCN } from '..'
-import { Button } from '../../components'
-import { defaultTokens } from '../../design-system'
+import { Button } from '../../index'
+import { defaultTokens } from '../../../design-system'
 
 const LocaleConsumer = () => {
   const locale = useLocale()
@@ -19,7 +19,7 @@ describe('ConfigProvider', () => {
       </ConfigProvider>
     )
 
-    expect(tree.toJSON()).toBe('测试')
+    expect(tree.toJSON()?.children).toContain('测试')
   })
 
   it('passes theme overrides', () => {

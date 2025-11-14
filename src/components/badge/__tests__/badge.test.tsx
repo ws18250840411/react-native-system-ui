@@ -1,5 +1,5 @@
 import React from 'react'
-import renderer from 'react-test-renderer'
+import renderer, { act } from 'react-test-renderer'
 import { StyleSheet, Text, View } from 'react-native'
 
 import Badge from '..'
@@ -37,11 +37,32 @@ describe('Badge', () => {
       </Badge>
     )
 
-    const views = tree.root.findAllByType(View)
-    const badgeView = views[2]
+    const badgeView = tree.root.findAllByProps({ pointerEvents: 'none' })[0]
     const style = StyleSheet.flatten(badgeView.props.style)
 
     expect(style.right).toBe(12)
     expect(style.top).toBe(4)
+  })
+
+  it('translates badge outside the corner after layout', () => {
+    const tree = renderer.create(
+      <Badge content={5}>
+        <View />
+      </Badge>
+    )
+
+    const badgeView = tree.root.findAllByProps({ pointerEvents: 'none' })[0]
+
+    act(() => {
+      badgeView.props.onLayout?.({
+        nativeEvent: { layout: { width: 24, height: 16 } },
+      } as any)
+    })
+
+    const style = StyleSheet.flatten(tree.root.findAllByProps({ pointerEvents: 'none' })[0].props.style)
+    expect(style.transform).toEqual([
+      { translateX: 12 },
+      { translateY: -8 },
+    ])
   })
 })

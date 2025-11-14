@@ -1,7 +1,7 @@
 import React from 'react'
 import { View } from 'react-native'
 
-import { Badge, Tag } from 'react-native-system-ui'
+import { Badge, Icon, Space } from 'react-native-system-ui'
 
 const Box = () => (
   <View
@@ -10,7 +10,15 @@ const Box = () => (
 )
 
 export default () => (
-  <Badge content={<Tag size="mini" type="danger">NEW</Tag>}>
-    <Box />
-  </Badge>
+  <Space gap={20}>
+    <Badge content={<Icon name="check" size={12} color="#fff" />}>
+      <Box />
+    </Badge>
+    <Badge content={<Icon name="close" size={12} color="#fff" />}>
+      <Box />
+    </Badge>
+    <Badge content={<Icon name="arrow-right" size={12} color="#fff" />}>
+      <Box />
+    </Badge>
+  </Space>
 )

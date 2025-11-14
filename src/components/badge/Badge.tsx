@@ -1,5 +1,9 @@
 import React from 'react'
-import type { PressableStateCallbackType, ViewStyle } from 'react-native'
+import type {
+  LayoutChangeEvent,
+  PressableStateCallbackType,
+  ViewStyle,
+} from 'react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useTheme } from '../../design-system'
@@ -16,12 +20,16 @@ interface BadgeTokens {
     background: string
     dot: string
     text: string
+    border: string
   }
   sizes: {
+    minWidth: number
     height: number
     paddingHorizontal: number
+    paddingVertical: number
     dotSize: number
     borderRadius: number
+    borderWidth: number
   }
   typography: {
     fontSize: number
@@ -42,12 +50,16 @@ const createBadgeTokens = (foundations: Foundations): BadgeTokens => {
       background: palette.danger[500],
       dot: palette.danger[500],
       text: palette.danger.foreground ?? '#ffffff',
+      border: '#ffffff',
     },
     sizes: {
+      minWidth: 18,
       height: 18,
       paddingHorizontal: spacing.xs,
+      paddingVertical: spacing.xxs,
       dotSize: 8,
       borderRadius: radii.pill,
+      borderWidth: 1,
     },
     typography: {
       fontSize: fontSize.xs,
@@ -112,6 +124,7 @@ export const Badge: React.FC<BadgeProps> = props => {
   } = props
 
   const hasChildren = React.Children.count(children) > 0
+  const [badgeSize, setBadgeSize] = React.useState({ width: 0, height: 0 })
 
   const numericContent = isNumericLike(content) ? toNumber(content) : null
   const numericMax = isNumericLike(max) ? toNumber(max) : null
@@ -131,6 +144,31 @@ export const Badge: React.FC<BadgeProps> = props => {
     }
     return content
   }, [visible, dot, numericContent, numericMax, max, content])
+
+  const handleBadgeLayout = React.useCallback(
+    (event: LayoutChangeEvent) => {
+      if (!hasChildren) return
+      const { width, height } = event.nativeEvent.layout
+      setBadgeSize(prev => {
+        if (prev.width === width && prev.height === height) {
+          return prev
+        }
+        return { width, height }
+      })
+    },
+    [hasChildren]
+  )
+
+  const fixedTransformStyle = React.useMemo<ViewStyle | undefined>(() => {
+    if (!hasChildren) return undefined
+    if (badgeSize.width === 0 && badgeSize.height === 0) return undefined
+    return {
+      transform: [
+        { translateX: badgeSize.width / 2 },
+        { translateY: -badgeSize.height / 2 },
+      ],
+    }
+  }, [badgeSize.height, badgeSize.width, hasChildren])
 
   const buildOffsetStyle = (standalone: boolean): ViewStyle | undefined => {
     if (!offset) return undefined
@@ -178,18 +216,30 @@ export const Badge: React.FC<BadgeProps> = props => {
       return null
     }
 
+    const sharedStyle: ViewStyle = {
+      alignItems: 'center',
+      justifyContent: 'center',
+    }
+    const pointerEvents = standalone ? 'auto' : 'none'
+    const onLayout = !standalone && hasChildren ? handleBadgeLayout : undefined
+
     if (dot) {
+      const dotShape: ViewStyle = {
+        width: tokens.sizes.dotSize,
+        height: tokens.sizes.dotSize,
+        borderRadius: tokens.sizes.dotSize / 2,
+        backgroundColor: color ?? tokens.colors.dot,
+      }
+
       return (
         <View
-          pointerEvents={standalone ? 'auto' : 'none'}
+          pointerEvents={pointerEvents}
+          onLayout={onLayout}
           style={[
             standalone ? styles.standalone : styles.badge,
-            {
-              width: tokens.sizes.dotSize,
-              height: tokens.sizes.dotSize,
-              borderRadius: tokens.sizes.dotSize / 2,
-              backgroundColor: color ?? tokens.colors.dot,
-            },
+            sharedStyle,
+            dotShape,
+            !standalone ? fixedTransformStyle : null,
             buildOffsetStyle(standalone),
             badgeStyle,
             standalone ? style : null,
@@ -200,18 +250,26 @@ export const Badge: React.FC<BadgeProps> = props => {
 
     const bubbleBackground = color ?? tokens.colors.background
 
+    const bubbleShape: ViewStyle = {
+      minWidth: tokens.sizes.minWidth,
+      minHeight: tokens.sizes.height,
+      paddingHorizontal: tokens.sizes.paddingHorizontal,
+      paddingVertical: tokens.sizes.paddingVertical,
+      borderRadius: tokens.sizes.borderRadius,
+      borderWidth: tokens.sizes.borderWidth,
+      borderColor: tokens.colors.border,
+      backgroundColor: bubbleBackground,
+    }
+
     return (
       <View
-        pointerEvents={standalone ? 'auto' : 'none'}
+        pointerEvents={pointerEvents}
+        onLayout={onLayout}
         style={[
           standalone ? styles.standalone : styles.badge,
-          {
-            minWidth: tokens.sizes.height,
-            height: tokens.sizes.height,
-            paddingHorizontal: tokens.sizes.paddingHorizontal,
-            borderRadius: tokens.sizes.borderRadius,
-            backgroundColor: bubbleBackground,
-          },
+          sharedStyle,
+          bubbleShape,
+          !standalone ? fixedTransformStyle : null,
           buildOffsetStyle(standalone),
           badgeStyle,
           standalone ? style : null,

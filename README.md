@@ -86,6 +86,8 @@ export const App = ({ children }) => (
 - ✳️ **Empty 组件**：提供 `image/description/children` 语义，占位符支持默认/错误/网络/搜索以及自定义插画。
 - ✳️ **Progress 组件**：复刻 `percentage/strokeWidth/color/pivot` 语义，支持文案与置灰配置。
 - ✳️ **NoticeBar 组件**：支持滚动/换行、`mode=closeable|link`、自定义左右图标及配色。
+- ✳️ **Toast 组件**：提供受控与 `Toast.show/success/fail/loading/clear` 静态调用，支持遮罩、禁止点击与多种状态图标。
+- ✳️ **Dialog 组件**：封装确认/取消弹窗、圆角按钮主题、遮罩与关闭按钮，并提供 `Dialog.show/alert/confirm/clear` 静态调用。
 - ✳️ **Slider 组件**：支持单/双滑块、滚动/垂直/反向、步长与自定义按钮，拖动事件对齐 react-vant。
 - ✳️ **ConfigProvider**：统一封装主题与多语言，支持 `theme` tokens 覆盖与 `locale` 切换，文档示例对齐 react-vant。
 - ✳️ **文档**：Quick Start、架构说明、Button 指南已经上线（`docs/`）。

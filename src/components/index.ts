@@ -40,5 +40,15 @@ export { default as Collapse } from './collapse'
 export type { CollapseProps, CollapsePanelProps, CollapseValue } from './collapse'
 export { default as Popup } from './popup'
 export type { PopupProps, PopupPlacement } from './popup'
+export { default as Dialog } from './dialog'
+export type {
+  DialogProps,
+  DialogTheme,
+  DialogMessageAlign,
+  DialogActionState,
+  DialogShowOptions,
+  DialogAlertOptions,
+  DialogConfirmOptions,
+} from './dialog'
 export { default as Toast } from './toast'
 export type { ToastProps, ToastPosition } from './toast'
