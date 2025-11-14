@@ -51,6 +51,8 @@ import { Popup } from 'react-native-system-ui'
 | `overlayStyle` | 遮罩样式 | `StyleProp<ViewStyle>` | - |
 | `overlayTestID` | 遮罩测试标识 | `string` | `popup-overlay` |
 | `closeOnOverlayPress` | 点击遮罩是否关闭 | `boolean` | `true` |
+| `closeOnBackPress` | Android 返回键是否关闭 | `boolean` | `false` |
+| `closeOnPopstate` | 浏览器返回（popstate）是否关闭 | `boolean` | `false` |
 | `closeable` | 是否展示关闭图标 | `boolean` | `false` |
 | `closeIcon` | 自定义关闭图标 | `ReactNode` | - |
 | `closeIconPosition` | 关闭图标位置 | `'top-right' \| 'top-left'` | `'top-right'` |

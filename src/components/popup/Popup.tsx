@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   Animated,
+  BackHandler,
   Easing,
   Pressable,
   SafeAreaView,
@@ -43,6 +44,8 @@ export interface PopupProps extends ViewProps {
   destroyOnClose?: boolean
   duration?: number
   zIndex?: number
+  closeOnBackPress?: boolean
+  closeOnPopstate?: boolean
   children?: React.ReactNode
   beforeClose?: (reason: 'close-icon' | 'overlay' | 'close') => boolean | Promise<boolean>
   onClickOverlay?: () => void
@@ -164,6 +167,8 @@ export const Popup: React.FC<PopupProps> = props => {
     destroyOnClose = true,
     duration = 200,
     zIndex,
+    closeOnBackPress = false,
+    closeOnPopstate = false,
     children,
     beforeClose,
     onClickOverlay,
@@ -230,6 +235,33 @@ export const Popup: React.FC<PopupProps> = props => {
     },
     [beforeClose, onClose]
   )
+
+  React.useEffect(() => {
+    if (!closeOnBackPress || !visible) {
+      return
+    }
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      requestClose('close')
+      return true
+    })
+    return () => {
+      subscription.remove()
+    }
+  }, [closeOnBackPress, requestClose, visible])
+
+  React.useEffect(() => {
+    if (!closeOnPopstate || typeof window === 'undefined') {
+      return
+    }
+    const handler = () => {
+      if (!visible) return
+      requestClose('close')
+    }
+    window.addEventListener('popstate', handler)
+    return () => {
+      window.removeEventListener('popstate', handler)
+    }
+  }, [closeOnPopstate, requestClose, visible])
 
   const config = placementConfig[placement]
   const distance = config.axis === 'x' ? windowWidth : windowHeight
