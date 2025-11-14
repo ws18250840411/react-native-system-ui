@@ -8,6 +8,7 @@ import {
   defaultTokens,
   type ThemeProviderProps,
 } from '../../../design-system'
+import Loading from '../../loading'
 
 const renderWithProvider = (
   ui: React.ReactElement,
@@ -87,5 +88,14 @@ describe('Button', () => {
     } finally {
       ;(Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
     }
+  })
+
+  it('switches to spinner loading indicator when requested', () => {
+    const tree = renderWithProvider(
+      <Button text="Loading" loading loadingType="spinner" />
+    )
+
+    const spinner = tree.root.findByType(Loading)
+    expect(spinner.props.type).toBe('spinner')
   })
 })

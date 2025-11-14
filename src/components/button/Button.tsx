@@ -6,6 +6,8 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import Loading from '../loading'
 import type {
   ButtonProps,
   ButtonShadowLevel,
@@ -37,6 +39,20 @@ const extractFirstColorToken = (input?: string | null) => {
   if (!input) return undefined
   const match = input.match(gradientColorRegex)
   return match ? match[0] : undefined
+}
+
+const resolveSpinnerSize = (
+  loadingSize: ButtonProps['loadingSize'],
+  iconSize: number
+) => {
+  if (typeof loadingSize === 'number') {
+    return loadingSize
+  }
+  const base = Math.max(iconSize, 16)
+  if (loadingSize === 'large') {
+    return base * 1.25
+  }
+  return base
 }
 
 interface ButtonTokens {
@@ -292,13 +308,13 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const shouldShowShadow = !!shadow && !plain
     const shadowTokens = buttonTokens.shadow[shadowLevel]
     const shadowStyle: ViewStyle | undefined = shouldShowShadow
-      ? {
-          shadowColor: shadowTokens.color,
-          shadowOpacity: shadowTokens.opacity,
-          shadowRadius: shadowTokens.radius,
-          shadowOffset: { width: 0, height: shadowTokens.offsetY },
+      ? createPlatformShadow({
+          color: shadowTokens.color,
+          opacity: shadowTokens.opacity,
+          radius: shadowTokens.radius,
+          offsetY: shadowTokens.offsetY,
           elevation: shadowTokens.elevation,
-        }
+        })
       : undefined
     const gradientWebStyle =
       gradientFillEnabled && supportsGradientFill && gradientString
@@ -323,17 +339,30 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       )
     }
 
-    const renderLoading = () => (
-      <View style={[buttonStyles.iconWrapper, buildIconWrapperStyle('left')]}>
-        {loadingIndicator ?? (
-          <ActivityIndicator
-            style={buttonStyles.loadingIndicator}
-            size={loadingSize}
-            color={baseTextColor}
-          />
-        )}
-      </View>
-    )
+    const renderLoading = () => {
+      const spinnerSize = resolveSpinnerSize(loadingSize, sizeTokens.iconSize)
+      const defaultIndicator = loadingType === 'spinner'
+        ? (
+            <Loading
+              type="spinner"
+              size={spinnerSize}
+              color={baseTextColor}
+            />
+          )
+        : (
+            <ActivityIndicator
+              style={buttonStyles.loadingIndicator}
+              size={loadingSize}
+              color={baseTextColor}
+            />
+          )
+
+      return (
+        <View style={[buttonStyles.iconWrapper, buildIconWrapperStyle('left')]}>
+          {loadingIndicator ?? defaultIndicator}
+        </View>
+      )
+    }
 
     const resolveLabel = (): React.ReactNode => {
       if (loading && loadingText !== undefined) {

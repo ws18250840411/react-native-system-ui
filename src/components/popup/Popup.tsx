@@ -17,6 +17,7 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Portal from '../portal/Portal'
 import Icon from '../icon'
 
@@ -181,7 +182,7 @@ export const Popup: React.FC<PopupProps> = props => {
     ...rest
   } = props
 
-  const safeAreaInsetBottom = safeAreaInsetBottomProp ?? placement === 'bottom'
+  const safeAreaInsetBottom = safeAreaInsetBottomProp ?? false
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
 
   const tokens = usePopupTokens()
@@ -371,6 +372,14 @@ export const Popup: React.FC<PopupProps> = props => {
   )
 }
 
+const popupShadow = createPlatformShadow({
+  color: 'rgba(0,0,0,0.25)',
+  opacity: 0.35,
+  radius: 18,
+  offsetY: 8,
+  elevation: 24,
+})
+
 const styles = StyleSheet.create({
   portalRoot: {
     ...StyleSheet.absoluteFillObject,
@@ -385,11 +394,7 @@ const styles = StyleSheet.create({
   },
   popup: {
     padding: 16,
-    shadowColor: 'rgba(0,0,0,0.25)',
-    shadowOpacity: 0.35,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 24,
+    ...popupShadow,
   },
   popupVertical: {
     alignSelf: 'stretch',

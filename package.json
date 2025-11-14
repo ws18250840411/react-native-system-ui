@@ -39,7 +39,9 @@
   "dependencies": {
     "@react-native-aria/dialog": "^0.0.5",
     "@react-native-aria/slider": "^0.2.10",
+    "@react-native-aria/switch": "^0.2.4",
     "@react-stately/slider": "^3.0.1",
+    "@react-stately/toggle": "^3.9.2",
     "@react-vant/icons": "^0.1.0"
   }
 }

@@ -17,6 +17,7 @@ import Portal from '../portal/Portal'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Icon from '../icon'
 import Loading from '../loading'
+import { createPlatformShadow } from '../../utils/createPlatformShadow'
 
 export type ToastPosition = 'top' | 'middle' | 'bottom'
 export type ToastType = 'info' | 'success' | 'fail' | 'loading'
@@ -219,6 +220,14 @@ export const Toast: React.FC<ToastProps> = props => {
   )
 }
 
+const toastShadow = createPlatformShadow({
+  color: 'rgba(0,0,0,0.25)',
+  opacity: 0.4,
+  radius: 12,
+  offsetY: 6,
+  elevation: 8,
+})
+
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
@@ -233,11 +242,7 @@ const styles = StyleSheet.create({
   toast: {
     minWidth: 120,
     alignItems: 'center',
-    shadowColor: 'rgba(0,0,0,0.25)',
-    shadowOpacity: 0.4,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
-    elevation: 8,
+    ...toastShadow,
   },
 })
 
