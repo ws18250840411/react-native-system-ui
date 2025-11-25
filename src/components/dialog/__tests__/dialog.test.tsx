@@ -1,24 +1,37 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, Text } from 'react-native'
-
-jest.mock('react-native', () => {
-  const React = require('react')
-  const actual = jest.requireActual('react-native')
-  const Modal = ({ children, ...rest }: any) => React.createElement(actual.View, rest, children)
-  Modal.displayName = 'MockModal'
-  return {
-    ...actual,
-    Modal,
-  }
-})
+import { Pressable, Text, BackHandler } from 'react-native'
 
 import Dialog from '..'
 import { ConfigProvider } from '../../config-provider'
+import { PortalHost } from '../../portal'
+
+const mountedTrees: renderer.ReactTestRenderer[] = []
+
+const renderInHost = (node: React.ReactElement) => {
+  const tree = renderer.create(<PortalHost>{node}</PortalHost>)
+  mountedTrees.push(tree)
+  return tree
+}
+
+beforeEach(() => {
+  jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
+    remove: jest.fn(),
+  }) as any)
+})
+
+afterEach(() => {
+  act(() => {
+    while (mountedTrees.length) {
+      mountedTrees.pop()?.unmount()
+    }
+  })
+  jest.restoreAllMocks()
+})
 
 describe('Dialog', () => {
   it('renders title and message', () => {
-    const tree = renderer.create(<Dialog visible title="提示" message="内容" />)
+    const tree = renderInHost(<Dialog visible title="提示" message="内容" />)
 
     const texts = tree.root.findAllByType(Text).map(node => node.props.children)
     expect(texts).toContain('提示')
@@ -27,7 +40,7 @@ describe('Dialog', () => {
 
   it('fires confirm handler', () => {
     const onConfirm = jest.fn()
-    const tree = renderer.create(<Dialog visible onConfirm={onConfirm} />)
+    const tree = renderInHost(<Dialog visible onConfirm={onConfirm} />)
 
     const [confirmButton] = tree.root.findAll(
       node => node.type === Pressable && node.props.accessibilityRole === 'button'
@@ -42,7 +55,7 @@ describe('Dialog', () => {
 
   it('fires cancel handler when shown', () => {
     const onCancel = jest.fn()
-    const tree = renderer.create(
+    const tree = renderInHost(
       <Dialog visible showCancelButton onCancel={onCancel} cancelButtonText="取消" />
     )
 
@@ -61,13 +74,11 @@ describe('Dialog', () => {
 
   it('closes via overlay when enabled', () => {
     const onClose = jest.fn()
-    const tree = renderer.create(
+    const tree = renderInHost(
       <Dialog visible closeOnOverlayPress onClose={onClose} title="标题" />
     )
 
-    const overlay = tree.root.find(
-      node => node.type === Pressable && !node.props.accessibilityRole
-    )
+    const overlay = tree.root.find(node => node.props?.testID === 'dialog-overlay')
 
     act(() => {
       overlay.props.onPress?.()
@@ -79,10 +90,14 @@ describe('Dialog', () => {
   it('calls onClosed after exit animation', () => {
     jest.useFakeTimers()
     const onClosed = jest.fn()
-    const tree = renderer.create(<Dialog visible title="t" onClosed={onClosed} />)
+    const tree = renderInHost(<Dialog visible title="t" onClosed={onClosed} />)
 
     act(() => {
-      tree.update(<Dialog visible={false} title="t" onClosed={onClosed} />)
+      tree.update(
+        <PortalHost>
+          <Dialog visible={false} title="t" onClosed={onClosed} />
+        </PortalHost>
+      )
       jest.runAllTimers()
     })
 

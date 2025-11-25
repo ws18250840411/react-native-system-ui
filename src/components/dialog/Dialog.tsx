@@ -3,7 +3,6 @@ import React from 'react'
 import {
   ActivityIndicator,
   Animated,
-  Modal,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -21,8 +20,12 @@ import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import Button from '../button'
 import Icon from '../icon'
+import Portal from '../portal/Portal'
+import { useOverlayStack } from '../overlay'
 import type { DialogProps } from './types'
 import type { FocusableElement } from '@react-types/shared'
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 type DialogA11yProps = Pick<
   ViewProps,
@@ -211,6 +214,7 @@ export const Dialog: React.FC<DialogProps> = props => {
     closeIcon,
     overlay = true,
     overlayStyle,
+    overlayTestID = 'dialog-overlay',
     closeOnOverlayPress = false,
     showCancelButton = false,
     showConfirmButton = true,
@@ -300,6 +304,14 @@ export const Dialog: React.FC<DialogProps> = props => {
     if (confirmProps?.loading) return
     onConfirm?.()
   }
+
+  const { zIndex: stackZIndex, isTopMost } = useOverlayStack({
+    visible,
+    onClose,
+    closeOnBack: true,
+    lockScroll: true,
+    type: 'dialog',
+  })
 
   if (!mounted) {
     return null
@@ -506,64 +518,80 @@ export const Dialog: React.FC<DialogProps> = props => {
   }
 
   return (
-    <Modal
-      transparent
-      visible
-      animationType="none"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      <View style={styles.backdrop} pointerEvents="box-none">
-        {overlay ? (
-          <Pressable
-            style={[styles.overlay, { backgroundColor: tokens.colors.overlay }, overlayStyle]}
-            onPress={handleOverlayPress}
-          />
-        ) : null}
-        <Animated.View style={[styles.center, { opacity, transform: [{ scale }] }]}
-          pointerEvents="box-none"
-        >
-          <View
-            ref={dialogRef}
-            accessibilityViewIsModal
-            style={[
-              styles.dialog,
-              {
-                backgroundColor: tokens.colors.background,
-                borderRadius: tokens.sizes.borderRadius,
-                paddingHorizontal: tokens.spacing.paddingHorizontal,
-                paddingTop: tokens.spacing.paddingTop,
-                paddingBottom: tokens.spacing.paddingBottom,
-              },
-              widthStyle,
-              style,
-            ]}
-            {...dialogAccessibilityProps}
-            {...rest}
-          >
-            {closeable ? (
-              <Pressable style={[styles.closeIcon, { top: tokens.spacing.paddingTop / 2, right: tokens.spacing.paddingHorizontal / 2 }]}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                onPress={handleCloseIcon}
-              >
-                {closeIcon ?? (
-                  <Icon name="close" size={tokens.sizes.closeSize} color={tokens.colors.closeIcon} />
-                )}
-              </Pressable>
-            ) : null}
-            {renderTitle()}
-            {renderMessage()}
-            {renderFooter()}
-          </View>
-        </Animated.View>
+    <Portal>
+      <View
+        style={[styles.portalRoot, stackZIndex ? { zIndex: stackZIndex } : null]}
+        pointerEvents="box-none"
+      >
+        <View style={styles.backdrop} pointerEvents="box-none">
+          {overlay ? (
+            <AnimatedPressable
+              testID={overlayTestID}
+              style={[
+                styles.overlay,
+                { backgroundColor: tokens.colors.overlay, opacity },
+                overlayStyle,
+              ]}
+              pointerEvents={visible ? 'auto' : 'none'}
+              onPress={() => {
+                if (!closeOnOverlayPress || !isTopMost) return
+                handleOverlayPress()
+              }}
+            />
+          ) : null}
+          <Animated.View style={[styles.center, { opacity, transform: [{ scale }] }]} pointerEvents="box-none">
+            <View
+              ref={dialogRef}
+              accessibilityViewIsModal
+              style={[
+                styles.dialog,
+                {
+                  backgroundColor: tokens.colors.background,
+                  borderRadius: tokens.sizes.borderRadius,
+                  paddingHorizontal: tokens.spacing.paddingHorizontal,
+                  paddingTop: tokens.spacing.paddingTop,
+                  paddingBottom: tokens.spacing.paddingBottom,
+                },
+                widthStyle,
+                style,
+              ]}
+              {...dialogAccessibilityProps}
+              {...rest}
+            >
+              {closeable ? (
+                <Pressable
+                  style={[
+                    styles.closeIcon,
+                    { top: tokens.spacing.paddingTop / 2, right: tokens.spacing.paddingHorizontal / 2 },
+                  ]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  onPress={handleCloseIcon}
+                >
+                  {closeIcon ?? (
+                    <Icon name="close" size={tokens.sizes.closeSize} color={tokens.colors.closeIcon} />
+                  )}
+                </Pressable>
+              ) : null}
+              {renderTitle()}
+              {renderMessage()}
+              {renderFooter()}
+            </View>
+          </Animated.View>
+        </View>
       </View>
-    </Modal>
+    </Portal>
   )
 }
 
 const styles = StyleSheet.create({
+  portalRoot: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   backdrop: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },

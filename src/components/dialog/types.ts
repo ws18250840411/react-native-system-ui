@@ -25,6 +25,7 @@ export interface DialogProps extends Omit<ViewProps, 'children'> {
   closeIcon?: React.ReactNode
   overlay?: boolean
   overlayStyle?: StyleProp<ViewStyle>
+  overlayTestID?: string
   closeOnOverlayPress?: boolean
   showCancelButton?: boolean
   cancelButtonText?: React.ReactNode

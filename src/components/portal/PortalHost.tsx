@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View } from 'react-native'
+import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
 import { useSyncExternalStore } from 'react'
 
 import { PortalContext, type PortalManager } from './PortalContext'
@@ -44,7 +44,10 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
 
   return (
     <PortalContext.Provider value={globalManager}>
-      <View style={styles.container} pointerEvents="box-none">
+      <View
+        style={[styles.container, webFixedStyle]}
+        pointerEvents="box-none"
+      >
         {children}
         {entries.map(entry => (
           <React.Fragment key={entry.key}>{entry.children}</React.Fragment>
@@ -59,6 +62,11 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
 })
+
+const webFixedStyle: ViewStyle | undefined =
+  Platform.OS === 'web'
+    ? ({ position: 'fixed' } as unknown as ViewStyle)
+    : undefined
 
 export const portalManager = globalManager
 export const portalStore = globalStore
