@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Animated,
-  BackHandler,
   Easing,
   Pressable,
   SafeAreaView,
@@ -19,6 +18,7 @@ import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Portal from '../portal/Portal'
+import { useOverlayStack } from '../overlay'
 import Icon from '../icon'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
@@ -238,19 +238,6 @@ export const Popup: React.FC<PopupProps> = props => {
   )
 
   React.useEffect(() => {
-    if (!closeOnBackPress || !visible) {
-      return
-    }
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      requestClose('close')
-      return true
-    })
-    return () => {
-      subscription.remove()
-    }
-  }, [closeOnBackPress, requestClose, visible])
-
-  React.useEffect(() => {
     if (!closeOnPopstate || typeof window === 'undefined') {
       return
     }
@@ -263,6 +250,19 @@ export const Popup: React.FC<PopupProps> = props => {
       window.removeEventListener('popstate', handler)
     }
   }, [closeOnPopstate, requestClose, visible])
+
+  const handleStackClose = React.useCallback(() => {
+    requestClose('close')
+  }, [requestClose])
+
+  const { zIndex: stackZIndex } = useOverlayStack({
+    visible,
+    onClose: handleStackClose,
+    closeOnBack: closeOnBackPress,
+    lockScroll,
+    zIndex,
+    type: 'popup',
+  })
 
   const config = placementConfig[placement]
   const distance = config.axis === 'x' ? windowWidth : windowHeight
@@ -336,9 +336,14 @@ export const Popup: React.FC<PopupProps> = props => {
     </Animated.View>
   )
 
+  const resolvedZIndex = stackZIndex ?? zIndex
+
   return (
     <Portal>
-      <View style={[styles.portalRoot, zIndex ? { zIndex } : null]} pointerEvents="box-none">
+      <View
+        style={[styles.portalRoot, resolvedZIndex ? { zIndex: resolvedZIndex } : null]}
+        pointerEvents="box-none"
+      >
         <View style={[styles.container, config.container]} pointerEvents="auto">
           {overlay && (visible || prevVisible.current) ? (
             <AnimatedPressable

@@ -38,8 +38,15 @@
   },
   "dependencies": {
     "@react-native-aria/dialog": "^0.0.5",
+    "@react-native-aria/focus": "^0.2.9",
+    "@react-native-aria/interactions": "^0.2.16",
+    "@react-native-aria/listbox": "^0.2.4",
+    "@react-native-aria/overlays": "^0.3.15",
     "@react-native-aria/slider": "^0.2.10",
     "@react-native-aria/switch": "^0.2.4",
+    "@react-native-aria/toggle": "^0.2.11",
+    "@react-native-aria/utils": "^0.2.12",
+    "@react-stately/list": "^3.13.1",
     "@react-stately/slider": "^3.0.1",
     "@react-stately/toggle": "^3.9.2",
     "@react-vant/icons": "^0.1.0"

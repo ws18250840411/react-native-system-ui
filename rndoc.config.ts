@@ -1,5 +1,7 @@
 import { defineConfig } from 'rndoc-cli';
 
+const workspaceRoot = process.cwd();
+
 export default defineConfig({
   title: 'react-native-system-ui',
   description: '基于rndoc打造的React组件库',
@@ -39,4 +41,14 @@ export default defineConfig({
       ],
     },
   ],
+  vite: {
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react-dom/client'],
+    },
+    server: {
+      fs: {
+        allow: [workspaceRoot],
+      },
+    },
+  },
 });
