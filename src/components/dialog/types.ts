@@ -51,10 +51,23 @@ export type DialogShowOptions = Omit<DialogProps, 'visible'>
 export type DialogAlertOptions = Omit<DialogShowOptions, 'showCancelButton' | 'onCancel'>
 export type DialogConfirmOptions = DialogShowOptions
 
+export type DialogImperativeMode = 'show' | 'alert' | 'confirm'
+
+export type DialogSetDefaultOptions = {
+  (options: DialogShowOptions): void
+  (mode: DialogImperativeMode, options: DialogShowOptions): void
+}
+
+export type DialogResetDefaultOptions = {
+  (mode?: DialogImperativeMode): void
+}
+
 export interface DialogStatic {
   Host: React.FC
   show: (options?: DialogShowOptions) => () => void
   alert: (options?: DialogAlertOptions) => Promise<void>
   confirm: (options?: DialogConfirmOptions) => Promise<boolean>
   clear: () => void
+  setDefaultOptions: DialogSetDefaultOptions
+  resetDefaultOptions: DialogResetDefaultOptions
 }

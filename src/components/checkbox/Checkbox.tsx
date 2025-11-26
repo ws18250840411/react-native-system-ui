@@ -1,0 +1,290 @@
+import React from 'react'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
+import { useToggleState } from '@react-stately/toggle'
+
+import { useTheme } from '../../design-system'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
+import { deepMerge } from '../../utils/deepMerge'
+import type { CheckboxProps, CheckboxShape, CheckboxValue } from './types'
+import { CheckboxGroupContext } from './CheckboxContext'
+
+interface CheckboxTokens {
+  defaults: {
+    shape: CheckboxShape
+    iconSize: number
+    labelPosition: 'left' | 'right'
+  }
+  colors: {
+    border: string
+    background: string
+    checkedBackground: string
+    disabledBorder: string
+    disabledBackground: string
+    checkmark: string
+    label: string
+    labelDisabled: string
+  }
+  typography: {
+    fontSize: number
+    fontFamily: string
+    fontWeight: string
+    lineHeightMultiplier: number
+  }
+  spacing: {
+    gap: number
+  }
+  radii: {
+    square: number
+  }
+}
+
+const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
+  const { palette, spacing, radii, fontSize, typography } = foundations
+  return {
+    defaults: {
+      shape: 'round',
+      iconSize: 20,
+      labelPosition: 'right',
+    },
+    colors: {
+      border: palette.default[400],
+      background: '#ffffff',
+      checkedBackground: palette.primary[500],
+      disabledBorder: palette.default[300],
+      disabledBackground: palette.default[100],
+      checkmark: '#ffffff',
+      label: palette.default.foreground ?? '#111827',
+      labelDisabled: palette.default[400],
+    },
+    typography: {
+      fontSize: fontSize.md,
+      fontFamily: typography.fontFamily,
+      fontWeight: typography.weight.medium,
+      lineHeightMultiplier: typography.lineHeightMultiplier,
+    },
+    spacing: {
+      gap: spacing.sm,
+    },
+    radii: {
+      square: radii.xs,
+    },
+  }
+}
+
+const useCheckboxTokens = (overrides?: DeepPartial<CheckboxTokens>): CheckboxTokens => {
+  const { foundations, components } = useTheme()
+  return React.useMemo(() => {
+    const base = createCheckboxTokens(foundations)
+    const componentOverrides = components?.checkbox as DeepPartial<CheckboxTokens> | undefined
+    const merged = componentOverrides
+      ? overrides
+        ? deepMerge(componentOverrides, overrides)
+        : componentOverrides
+      : overrides
+    return merged ? deepMerge(base, merged) : base
+  }, [components, foundations, overrides])
+}
+
+const serializeValue = (value: CheckboxValue | undefined): string | undefined => {
+  if (value === undefined || value === null) return undefined
+  return String(value)
+}
+
+export const Checkbox: React.FC<CheckboxProps> = props => {
+  const {
+    children,
+    name,
+    value,
+    shape,
+    iconSize,
+    checkedColor,
+    labelPosition,
+    labelDisabled,
+    disabled,
+    style,
+    labelStyle,
+    ...rest
+  } = props
+
+  const tokens = useCheckboxTokens()
+  const group = React.useContext(CheckboxGroupContext)
+
+  const resolvedShape = shape ?? group?.shape ?? tokens.defaults.shape
+  const resolvedIconSize = iconSize ?? group?.iconSize ?? tokens.defaults.iconSize
+  const resolvedCheckedColor = checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
+  const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
+  const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? false
+  const resolvedDisabled = disabled || group?.state.isDisabled
+
+  const rawValue: CheckboxValue | undefined = value ?? name
+  const serializedValue = serializeValue(rawValue)
+
+  const inputRef = React.useRef<View>(null)
+
+  const standaloneState = useToggleState({
+    isSelected: props.checked,
+    defaultSelected: props.defaultChecked,
+    onChange: props.onChange,
+  })
+
+  const isGroup = Boolean(group) && serializedValue !== undefined
+
+  React.useEffect(() => {
+    if (group && serializedValue && rawValue !== undefined) {
+      group.registerValue(serializedValue, rawValue)
+      return () => group.unregisterValue(serializedValue)
+    }
+    return undefined
+  }, [group, serializedValue, rawValue])
+
+  const ariaLabel = typeof children === 'string' ? children : (props as any)['aria-label']
+
+  let inputProps: any
+  let isChecked = false
+
+  if (isGroup && group) {
+    const { inputProps: groupInputProps } = useCheckboxGroupItem(
+      {
+        value: serializedValue!,
+        isDisabled: resolvedDisabled,
+        'aria-label': ariaLabel,
+        ...rest,
+      },
+      group.state,
+      inputRef
+    )
+
+    inputProps = groupInputProps
+    isChecked = group.state.isSelected(serializedValue!)
+
+    if (group.max && !isChecked) {
+      const originalOnPress = inputProps.onPress
+      inputProps.onPress = (...args: any[]) => {
+        if (group.state.value.length >= group.max!) {
+          return
+        }
+        originalOnPress?.(...args)
+      }
+    }
+  } else {
+    const { inputProps: standaloneProps } = useCheckbox(
+      {
+        ...rest,
+        isDisabled: resolvedDisabled,
+        value: serializedValue,
+        'aria-label': ariaLabel,
+      },
+      standaloneState,
+      inputRef
+    )
+    inputProps = standaloneProps
+    isChecked = standaloneState.isSelected
+  }
+
+  const borderRadius = resolvedShape === 'round' ? resolvedIconSize / 2 : tokens.radii.square
+
+  const borderColor = resolvedDisabled
+    ? tokens.colors.disabledBorder
+    : isChecked
+      ? resolvedCheckedColor
+      : tokens.colors.border
+
+  const backgroundColor = resolvedDisabled
+    ? tokens.colors.disabledBackground
+    : isChecked
+      ? resolvedCheckedColor
+      : tokens.colors.background
+
+  const labelColor = resolvedDisabled || resolvedLabelDisabled
+    ? tokens.colors.labelDisabled
+    : tokens.colors.label
+
+  const spacingStyle = resolvedLabelPosition === 'left'
+    ? { marginRight: tokens.spacing.gap }
+    : { marginLeft: tokens.spacing.gap }
+
+  const labelNode = children === null || children === undefined
+    ? null
+    : (
+      <Pressable
+        key="label"
+        disabled={resolvedDisabled || resolvedLabelDisabled}
+        onPress={inputProps?.onPress}
+        accessibilityRole="text"
+        style={spacingStyle}
+      >
+        <Text
+          style={[
+            styles.label,
+            {
+              color: labelColor,
+              fontSize: tokens.typography.fontSize,
+              lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+              fontFamily: tokens.typography.fontFamily,
+              fontWeight: tokens.typography.fontWeight,
+            },
+            labelStyle,
+          ]}
+        >
+          {children}
+        </Text>
+      </Pressable>
+    )
+
+  const iconNode = (
+    <Pressable
+      key="checkbox"
+      {...inputProps}
+      ref={inputRef}
+      style={[styles.iconWrapper, resolvedLabelPosition === 'left' ? { marginLeft: tokens.spacing.gap } : { marginRight: tokens.spacing.gap }]}
+    >
+      <View
+        style={[
+          styles.icon,
+          {
+            width: resolvedIconSize,
+            height: resolvedIconSize,
+            borderRadius,
+            borderColor,
+            backgroundColor,
+          },
+        ]}
+      >
+        {isChecked ? (
+          <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
+        ) : null}
+      </View>
+    </Pressable>
+  )
+
+  const content = resolvedLabelPosition === 'left'
+    ? [labelNode, iconNode]
+    : [iconNode, labelNode]
+
+  return <View style={[styles.container, style]}>{content.filter(Boolean)}</View>
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  icon: {
+    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkmark: {
+    textAlign: 'center',
+    includeFontPadding: false,
+  },
+  label: {
+    includeFontPadding: false,
+  },
+})

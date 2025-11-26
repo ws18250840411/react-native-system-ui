@@ -23,12 +23,12 @@
 | 分类 | 任务 | 说明 | 依赖 | 状态 |
 | --- | --- | --- | --- | --- |
 | 基线组件 | `Button/Badge/Cell/Collapse/ConfigProvider/Dialog/Divider/Empty/Flex/Grid/Icon/Loading/NoticeBar/Popup/Portal/Progress/Slider/Space/Tag/Toast/Typography` | 已实现，持续维护 | 设计系统 | ✅ 完成 |
-| 主题扩展 | 夜间主题、品牌可配置示例 | 在 `ThemeProvider` 提供多套 preset + 文档 | tokens | ⏳ 进行中 |
-| Aria Hook 封装 | `useAriaPress / useAriaToggle / useAriaListBox / useAriaOverlay`（`src/hooks/aria`） | 提供统一交互/可访问封装，供所有组件复用 | @react-native-aria | ⏳ 进行中（基础版本已落地） |
-| Overlay 栈 | 遮罩堆叠、BackHandler、滚动锁、动画预设 | Popup/Dialog/ActionSheet 共享 | Portal | ⏳ 进行中（栈管理/BackHandler/滚动锁已实现） |
+| 主题扩展 | 夜间主题、品牌可配置示例 | 在 `ThemeProvider` 提供多套 preset（light/dark/aurora）+ 文档 | tokens | ✅ 完成 |
+| Aria Hook 封装 | `useAriaPress / useAriaToggle / useAriaListBox / useAriaOverlay`（`src/hooks/aria`） | 提供统一交互/可访问封装，供所有组件复用 | @react-native-aria | ⏳ 进行中（已补文档与单测，等待更多组件接入） |
+| Overlay 栈 | 遮罩堆叠、BackHandler、滚动锁、动画预设 | Popup/Dialog/ActionSheet 共享 | Portal | ⏳ 进行中（栈管理/BackHandler/滚动锁已实现并补单测，动画预设待办） |
 | 表单容器 | Form + Form.Item + useFormContext | 支撑 Field/Input 校验 | tokens + hooks | ⏳ 计划中 |
 | Field/Input/TextArea | 受控输入、校验反馈、clear-icon | 依赖 Form | Form | ⏳ 计划中 |
-| Checkbox/Radio/Switch | 组态与单选/多选控件 | 依赖 useAriaToggle | hooks | ⏳ 计划中 |
+| Checkbox/Radio/Switch | 组态与单选/多选控件 | Checkbox/Radio 已实现；Switch 依赖 useAriaToggle | hooks | ⏳ 进行中 |
 | Stepper/Rate/Selector/NumberKeyboard | 数值/评分/多选 | 依赖 Input/Toggle/手势 | 前置组件 | ⏳ 计划中 |
 | Search | 搜索组件（整合键盘事件） | 依赖 Field | Field | ⏳ 计划中 |
 | Tabs/Tabbar/NavBar/Sidebar/IndexBar/Sticky | 导航体系 | 依赖手势 & Scroll 监听 | gesture kit | ⏳ 计划中 |

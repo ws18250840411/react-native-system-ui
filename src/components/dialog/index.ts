@@ -8,6 +8,8 @@ import type {
   DialogShowOptions,
   DialogAlertOptions,
   DialogConfirmOptions,
+  DialogSetDefaultOptions,
+  DialogResetDefaultOptions,
 } from './types'
 import { Dialog as DialogBase } from './Dialog'
 import { PortalHost } from '../portal'
@@ -19,6 +21,8 @@ const DialogWithStatics = Object.assign(DialogBase, {
   alert: DialogImperative.alert,
   confirm: DialogImperative.confirm,
   clear: DialogImperative.clear,
+  setDefaultOptions: DialogImperative.setDefaultOptions,
+  resetDefaultOptions: DialogImperative.resetDefaultOptions,
 }) as React.FC<DialogProps> & DialogStatic
 
 const Dialog = DialogWithStatics
@@ -33,4 +37,6 @@ export type {
   DialogShowOptions,
   DialogAlertOptions,
   DialogConfirmOptions,
+  DialogSetDefaultOptions,
+  DialogResetDefaultOptions,
 }

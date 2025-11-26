@@ -60,6 +60,26 @@ export const App = ({ children }) => (
 )
 ```
 
+### 主题预设
+
+```tsx
+import { ThemeProvider, themePresets } from 'react-native-system-ui'
+
+export const DarkPage = () => (
+  <ThemeProvider value={themePresets.dark}>
+    <Button text="夜间下单" type="primary" block />
+  </ThemeProvider>
+)
+
+export const AuroraBranding = () => (
+  <ThemeProvider value={themePresets.aurora}>
+    <Button text="Aurora" type="success" plain />
+  </ThemeProvider>
+)
+```
+
+`themePresets.light` 等价于默认主题，`themePresets.dark` 提供深色配色，`themePresets.aurora` 演示品牌化圆角/字体的组合，可直接交由 `ThemeProvider` 或 `ConfigProvider` 注入。
+
 ## 架构总览
 
 | 层级 | 说明 |
@@ -78,6 +98,8 @@ export const App = ({ children }) => (
 - ✳️ **Cell 组件**：实现 `Cell`/`Cell.Group` 组合、`icon/isLink/arrowDirection/size` 等语义，兼容必填星号与自定义内容。
 - ✳️ **Divider 组件**：支持水平/垂直、虚线、细边框与文本定位 (`left/center/right`)，并开放 `lineColor` 与文本样式扩展。
 - ✳️ **Tag 组件**：对齐 react-vant 的 `type/size/plain/round/mark/closeable` API，可自定义 `color/textColor` 及关闭图标。
+- ✳️ **Checkbox 组件**：支持受控/非受控、`Checkbox.Group`、`shape/checkedColor/direction/max` 等能力。
+- ✳️ **Radio 组件**：基于 `Radio.Group` 实现单选分组，支持 `direction`、`checkedColor`、`labelPosition` 等配置。
 - ✳️ **Badge 组件**：提供数字/红点、`max` 截断、`offset` 偏移、自定义 `content`/`color` 与独立展示模式。
 - ✳️ **Grid 组件**：支持 `columnNum/gutter/square/border/direction/reverse` 等语义，`Grid.Item` 兼容 `badge/dot` 与 children 自定义内容。
 - ✳️ **Typography 组件**：提供 `Text/Title/Link`，支持 `type/size/ellipsis/strong/underline` 以及展开/收起、多语义排版。
@@ -90,7 +112,7 @@ export const App = ({ children }) => (
 - ✳️ **Dialog 组件**：封装确认/取消弹窗、圆角按钮主题、遮罩与关闭按钮，并提供 `Dialog.show/alert/confirm/clear` 静态调用。
 - ✳️ **Slider 组件**：支持单/双滑块、滚动/垂直/反向、步长与自定义按钮，拖动事件对齐 react-vant。
 - ✳️ **ConfigProvider**：统一封装主题与多语言，支持 `theme` tokens 覆盖与 `locale` 切换，文档示例对齐 react-vant。
-- ✳️ **文档**：Quick Start、架构说明、Button 指南已经上线（`docs/`）。
+- ✳️ **文档**：Quick Start、架构说明、Aria Hooks、Button 指南已经上线（`docs/`）。
 
 ## 路线图（下一步）
 

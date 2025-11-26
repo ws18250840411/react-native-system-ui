@@ -5,10 +5,10 @@
 ## 1. 当前基线（2025-11-25）
 
 - **已完成功能**：`Button、Badge、Cell、Collapse、ConfigProvider、Dialog、Divider、Empty、Flex、Grid、Icon、Loading、NoticeBar、Popup、Portal、Progress、Slider、Space、Tag、Toast、Typography`，均已提供 docs + demo。
-- **设计系统**：`ThemeProvider` 下发 foundations + `components` overrides；Token 位于 `src/design-system/tokens.ts`，但缺少夜间/品牌主题 preset。
+- **设计系统**：`ThemeProvider` 下发 foundations + `components` overrides；`themePresets` 已提供 light/dark/aurora 三套示例便于切换。
 - **基础设施缺口**
-  1. `@react-native-aria` 统一封装：目前只有 Slider/Popup 直接消费，需要抽象 `useAriaPress/useAriaToggle/useAriaListBox/useAriaOverlay` 等 Hook。
-  2. Overlay 栈：Portal 已具雏形，尚未实现堆叠管理、BackHandler、焦点锁定与全局遮罩。
+  1. `@react-native-aria` 统一封装：`useAriaPress/useAriaToggle/useAriaListBox/useAriaOverlay` 已抽象并补文档+单测，但需要在更多组件中验证。
+  2. Overlay 栈：Portal 已具雏形，堆叠管理/BackHandler/滚动锁 + 单测已补齐，但动画预设与焦点锁定仍未落地。
   3. 手势与动画：现仅有 `usePresenceAnimation`（淡入淡出），缺通用的弹性/弹簧预设、手势同步（可能依赖 `react-native-gesture-handler`/`reanimated`）。
   4. 表单上下文：尚无 `Form`、`useFormContext`、校验策略，需要确定状态管理（优先考虑 `react-hook-form` 还是轻量自研）。
 
@@ -27,12 +27,12 @@
 | 分类 | 组件 | 状态 | 优先级 | 依赖/前置 | 备注 |
 | --- | --- | --- | --- | --- | --- |
 | 基础展示 | Button, Badge, Cell, Collapse, Divider, Empty, Flex, Grid, Icon, Loading, NoticeBar, Popup, Portal, Progress, Slider, Space, Tag, Toast, Typography | ✅ 已完成 | - | 设计系统 | 需持续补全单测覆盖率 |
-| 设计/主题 | ConfigProvider, ThemeProvider, tokens | ✅ 已完成 | - | - | 待补暗色/品牌主题 |
-| a11y Hooks | useAriaPress, useAriaToggle, useAriaListBox, useAriaOverlay | ⏳ 进行中 | P0 | `@react-native-aria/*` | 统一发在 `src/hooks/aria` |
-| Overlay 能力 | OverlayStack, BackHandler 管理, SafeArea helper, 动画 preset | ⏳ 进行中 | P0 | Portal | Dialog/ActionSheet/Toast 复用 |
+| 设计/主题 | ConfigProvider, ThemeProvider, tokens | ✅ 已完成 | - | - | 已内置 themePresets.light/dark/aurora |
+| a11y Hooks | useAriaPress, useAriaToggle, useAriaListBox, useAriaOverlay | ⏳ 进行中 | P0 | `@react-native-aria/*` | hooks + 文档 + 单测已就位，等待批量接入 |
+| Overlay 能力 | OverlayStack, BackHandler 管理, SafeArea helper, 动画 preset | ⏳ 进行中 | P0 | Portal | 栈管理/BackHandler/滚动锁 + 单测完成，需继续完善动画、SafeArea |
 | 表单容器 | Form, Form.Item, useFormContext | ⏳ 计划中 | P0 | Tokens + Hook | 设计对齐 react-vant Form |
 | 输入控件 | Field, Input, TextArea | ⏳ 计划中 | P0 | Form, useAriaPress | 先实现受控 + 校验态 |
-| 选择控件 | Checkbox, CheckboxGroup, Radio, RadioGroup, Switch | ⏳ 计划中 | P0 | useAriaToggle | 复用 aria toggle hook |
+| 选择控件 | Checkbox, CheckboxGroup, Radio, RadioGroup, Switch | ⏳ 进行中 | P0 | useAriaToggle | Checkbox/Radio 已完成，Switch 复用 aria toggle |
 | 数值控件 | Stepper, Rate, Selector, NumberKeyboard | ⏳ 计划中 | P1 | 输入控件 | Rate 依赖手势与动画 |
 | 搜索 | Search | ⏳ 计划中 | P1 | Field | 需整合键盘事件 |
 | 导航 | Tabs, Tabbar, NavBar, Sidebar, IndexBar, Sticky | ⏳ 计划中 | P1 | Gesture/Scroll | Tabbar 需要 SafeArea 适配 |

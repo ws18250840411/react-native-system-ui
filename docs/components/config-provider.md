@@ -29,6 +29,8 @@ import { ConfigProvider } from 'react-native-system-ui'
 
 <code title="定制主题" src="./config-provider/demo/theme.tsx"></code>
 
+> 如果仅需要快速切换预设，可直接传入 `themePresets.dark`、`themePresets.aurora` 等对象，无需手动创建 tokens。
+
 ## API
 
 | 属性 | 说明 | 类型 | 默认值 |

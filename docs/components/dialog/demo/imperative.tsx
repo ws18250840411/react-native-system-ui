@@ -5,8 +5,7 @@ import { Button, Dialog, Space } from 'react-native-system-ui'
 
 export default () => (
   <View>
-    <Dialog.Host />
-    <Space gap={12}>
+    <Space gap={12} wrap block align="start">
       <Button
         text="Dialog.show"
         onPress={() =>
@@ -42,5 +41,7 @@ export default () => (
         }
       />
     </Space>
+    {/* 把 Host 放在末尾，保证遮罩渲染在 demo 内容之上 */}
+    <Dialog.Host />
   </View>
 )

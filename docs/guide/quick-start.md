@@ -34,6 +34,20 @@ export const Page = () => (
 
 ## 自定义 Tokens
 
+在大多数场景中，只需直接套用内置预设即可：
+
+```tsx
+import { ThemeProvider, themePresets } from 'react-native-system-ui'
+
+export const DarkLayout = ({ children }: { children: React.ReactNode }) => (
+  <ThemeProvider value={themePresets.dark}>{children}</ThemeProvider>
+)
+```
+
+除了默认的 `light` 外，还提供 `dark` 与品牌化的 `aurora` 预设，方便快速交付多主题界面。
+
+需要完全控制 tokens 时，可继续使用 `createTokens`：
+
 ```tsx
 import { ThemeProvider, createTokens } from 'react-native-system-ui'
 

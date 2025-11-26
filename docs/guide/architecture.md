@@ -6,10 +6,13 @@
 
 1. **Design System（`src/design-system`）**
    - 只保存基础 design tokens（颜色、间距、排版、圆角等）以及 `ThemeProvider`，负责把 foundations + `value.components` 下发到 Context。
-   - `createTokens` 仅用于生成 foundations，组件级 overrides 不在这里出现。
+   - `createTokens` 仅用于生成 foundations，组件级 overrides 不在这里出现；如需现成主题，可直接使用 `themePresets`。
 2. **Components（`src/components`）**
    - 每个组件目录自管理 tokens：`tokens.ts` 描述默认值，`useXXXTokens.ts` 负责把 foundations + overrides 合并，组件实现只依赖这些本地工具。
    - Button 是首个样例：`button/tokens.ts` 与 `button/useButtonTokens.ts` 完全封装了按钮的设计变量。
+3. **Hooks（`src/hooks`）**
+   - `usePresenceAnimation` 提供统一的显隐动效，`src/hooks/aria/*` 则封装 `@react-native-aria` 能力。
+   - 具体使用方式参见《Guide / Aria Hooks》，遵循“集中导出 + 配套单测”的约束。
 
 ![architecture](https://dummyimage.com/800x260/eff3ff/5b63ff&text=theme+->+system+->+components)
 
