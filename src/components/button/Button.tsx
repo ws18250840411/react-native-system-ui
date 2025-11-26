@@ -1,5 +1,5 @@
 import React from 'react'
-import type { PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
+import type { StyleProp, ViewStyle } from 'react-native'
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useTheme } from '../../design-system'
@@ -8,6 +8,7 @@ import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Loading from '../loading'
+import { useAriaPress } from '../../hooks'
 import type {
   ButtonProps,
   ButtonShadowLevel,
@@ -444,45 +445,67 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       </View>
     )
 
-    const pressableStyle = ({ pressed }: PressableStateCallbackType) => {
-      const computed: Array<StyleProp<ViewStyle>> = [
-        buttonStyles.base,
-        {
-          minHeight: sizeTokens.height,
-          paddingHorizontal: sizeTokens.paddingHorizontal,
-          borderRadius,
-          backgroundColor,
-          borderColor,
-          borderWidth: resolvedBorderWidth,
-          opacity: loading
-            ? buttonTokens.states.loadingOpacity
-            : isDisabled
-              ? buttonTokens.states.disabledOpacity
-              : pressed
-                ? buttonTokens.states.pressedOpacity
-                : 1,
-        },
-        block && buttonStyles.block,
-        shadowStyle,
-      ]
+    const {
+      onPress,
+      onPressIn,
+      onPressOut,
+      accessibilityRole,
+      accessibilityState,
+      ...viewProps
+    } = pressableProps
 
-      if (gradientWebStyle) {
-        computed.push(gradientWebStyle)
-      }
+    const { interactionProps, states } = useAriaPress({
+      disabled: isDisabled,
+      onPress,
+      onPressStart: onPressIn,
+      onPressEnd: onPressOut,
+      extraProps: {
+        accessibilityRole: accessibilityRole ?? 'button',
+      },
+    })
 
-      computed.push(style)
+    const resolvedOpacity = isDisabled
+      ? buttonTokens.states.disabledOpacity
+      : loading
+        ? buttonTokens.states.loadingOpacity
+        : states.pressed
+          ? buttonTokens.states.pressedOpacity
+          : 1
 
-      return computed
+    const baseContainerStyle: Array<StyleProp<ViewStyle>> = [
+      buttonStyles.base,
+      {
+        minHeight: sizeTokens.height,
+        paddingHorizontal: sizeTokens.paddingHorizontal,
+        borderRadius,
+        backgroundColor,
+        borderColor,
+        borderWidth: resolvedBorderWidth,
+        opacity: resolvedOpacity,
+      },
+      block && buttonStyles.block,
+      shadowStyle,
+    ]
+
+    if (gradientWebStyle) {
+      baseContainerStyle.push(gradientWebStyle)
+    }
+    baseContainerStyle.push(style)
+
+    const mergedAccessibilityState = {
+      disabled: isDisabled,
+      busy: loading,
+      ...accessibilityState,
     }
 
     return (
       <Pressable
         ref={forwardedRef}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: isDisabled, busy: loading }}
         disabled={isDisabled}
-        {...pressableProps}
-        style={pressableStyle}
+        style={baseContainerStyle}
+        accessibilityState={mergedAccessibilityState}
+        {...interactionProps}
+        {...viewProps}
       >
         {content}
       </Pressable>

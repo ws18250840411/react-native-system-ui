@@ -26,6 +26,7 @@
 | 主题扩展 | 夜间主题、品牌可配置示例 | 在 `ThemeProvider` 提供多套 preset（light/dark/aurora）+ 文档 | tokens | ✅ 完成 |
 | Aria Hook 封装 | `useAriaPress / useAriaToggle / useAriaListBox / useAriaOverlay`（`src/hooks/aria`） | 提供统一交互/可访问封装，供所有组件复用 | @react-native-aria | ⏳ 进行中（已补文档与单测，等待更多组件接入） |
 | Overlay 栈 | 遮罩堆叠、BackHandler、滚动锁、动画预设 | Popup/Dialog/ActionSheet 共享 | Portal | ⏳ 进行中（栈管理/BackHandler/滚动锁已实现并补单测，动画预设待办） |
+| 交互组件 a11y 巡检 | Button/Cell/Collapse/Grid.Icon/Tag/NoticeBar 等 | 未接入 `@react-native-aria` 的 Pressable 组件需统一接入 `useAriaPress`/`useAriaButton`，减少冗余逻辑并控制包体积 | hooks | ⏳ 计划中 |
 | 表单容器 | Form + Form.Item + useFormContext | 支撑 Field/Input 校验 | tokens + hooks | ⏳ 计划中 |
 | Field/Input/TextArea | 受控输入、校验反馈、clear-icon | 依赖 Form | Form | ⏳ 计划中 |
 | Checkbox/Radio/Switch | 组态与单选/多选控件 | Checkbox/Radio 已实现；Switch 依赖 useAriaToggle | hooks | ⏳ 进行中 |

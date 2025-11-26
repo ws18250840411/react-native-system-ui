@@ -1,6 +1,7 @@
 import React from 'react'
-import type { PressableStateCallbackType, ViewStyle } from 'react-native'
+import type { ViewStyle } from 'react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useAriaPress } from '../../hooks'
 import { Arrow } from '@react-vant/icons'
 
 import { CellGroupContext } from './CellContext'
@@ -100,7 +101,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
   const showBorder = border && group.border
   const showArrow = (isLink ?? false) || clickable
 
-  const Wrapper = clickable || showArrow || onPress ? Pressable : View
+  const isInteractive = (clickable || showArrow || typeof onPress === 'function') && !disabled
 
   const containerStyles = [
     styles.container,
@@ -130,13 +131,6 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
     }
     return null
   }
-
-  const pressableStyle = ({ pressed }: PressableStateCallbackType) => [
-    containerStyles,
-    (clickable || showArrow) && {
-      opacity: pressed ? 0.6 : 1,
-    },
-  ]
 
   const renderBody = () => (
     <>
@@ -170,18 +164,33 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
     </>
   )
 
-  if (Wrapper === View) {
-    return <View style={containerStyles}>{renderBody()}</View>
+  if (!isInteractive) {
+    return (
+      <View style={containerStyles} {...rest}>
+        {renderBody()}
+      </View>
+    )
   }
+
+  const { android_ripple, onPress: _ignoredPress, ...viewProps } = rest as typeof rest & {
+    android_ripple?: Pressable['props']['android_ripple']
+  }
+
+  const { interactionProps, states } = useAriaPress({
+    disabled,
+    onPress,
+    extraProps: {
+      accessibilityRole: 'button',
+    },
+  })
 
   return (
     <Pressable
       ref={ref}
-      style={pressableStyle}
-      android_ripple={{ color: '#f2f3f5' }}
-      onPress={onPress}
-      disabled={disabled}
-      {...rest}
+      style={[containerStyles, { opacity: states.pressed ? 0.6 : 1 }]}
+      android_ripple={android_ripple ?? { color: '#f2f3f5' }}
+      {...interactionProps}
+      {...viewProps}
     >
       {renderBody()}
     </Pressable>

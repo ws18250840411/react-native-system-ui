@@ -8,6 +8,7 @@ import {
   View,
   Platform,
 } from 'react-native'
+import { useAriaPress } from '../../hooks'
 
 import Icon from '../icon'
 import type { NoticeBarProps } from './types'
@@ -158,6 +159,21 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     onClose?.()
   }
 
+  const closePress = useAriaPress({
+    disabled: mode !== 'closeable' || !visible,
+    onPress: handleClose,
+    extraProps: {
+      accessibilityRole: 'button',
+      accessibilityLabel: '关闭',
+    },
+  })
+
+  const barPress = useAriaPress({
+    disabled: !onPress || !visible,
+    onPress,
+    extraProps: onPress ? { accessibilityRole: 'button' } : undefined,
+  })
+
   const renderLeft = () => {
     if (leftIcon === null || leftIcon === undefined) return null
     return <View style={styles.leftSection}>{leftIcon}</View>
@@ -166,7 +182,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const renderRight = () => {
     if (mode === 'closeable') {
       return (
-        <Pressable onPress={handleClose} hitSlop={8}>
+        <Pressable hitSlop={8} {...closePress.interactionProps}>
           <Icon name="close" size={16} color={color} />
         </Pressable>
       )
@@ -261,7 +277,8 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         { backgroundColor: background },
         style,
       ]}
-      onPress={onPress}
+      disabled={barPress.states.disabled}
+      {...barPress.interactionProps}
       {...rest}
     >
       {renderLeft()}
