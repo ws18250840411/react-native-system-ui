@@ -1,13 +1,14 @@
-import { createIcon } from '../IconBase'
+import React from 'react'
+import Svg, { Path } from 'react-native-svg'
+import { createIcon } from '../createIcon'
 
-export default createIcon(
-  {
-    viewBox: '0 0 24 24',
-    paths: [
-      { d: 'M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4Z', stroke: true },
-      { d: 'M12 10V16', stroke: true },
-      { d: 'M12 8H12.01', stroke: true },
-    ],
-  },
-  'InfoIcon',
-)
+const Info = createIcon(({ size, primaryColor }, svgProps) => (
+  <Svg {...svgProps} width={size} height={size} viewBox="0 0 1024 1024" fill="none">
+    <Path
+          d="M500 55.556c245.46 0 444.444 198.984 444.444 444.444S745.46 944.444 500 944.444 55.556 745.46 55.556 500 254.54 55.556 500 55.556zm27.778 333.333h-97.222v55.555h41.666v250h-55.555V750h166.666v-55.556h-55.555V388.89zM500 250c-23.012 0-41.667 18.655-41.667 41.667s18.655 41.666 41.667 41.666 41.667-18.654 41.667-41.666C541.667 268.655 523.012 250 500 250z"
+          fillRule="evenodd"
+        />
+  </Svg>
+))
+
+export default Info

@@ -1,11 +1,14 @@
-import { createIcon } from '../IconBase'
+import React from 'react'
+import Svg, { Path } from 'react-native-svg'
+import { createIcon } from '../createIcon'
 
-export default createIcon(
-  {
-    viewBox: '0 0 24 24',
-    paths: [
-      { d: 'M12 3L14.4721 8.52786L20.3882 9.18034L15.6941 13.2221L17.0279 19.0697L12 16L6.97212 19.0697L8.30586 13.2221L3.6118 9.18034L9.52786 8.52786L12 3Z', stroke: true },
-    ],
-  },
-  'StarIcon',
-)
+const Star = createIcon(({ size, primaryColor }, svgProps) => (
+  <Svg {...svgProps} width={size} height={size} viewBox="0 0 1024 1024" fill="none">
+    <Path
+          d="M500 817.591L249.75 927.868c-14.04 6.186-30.435-.18-36.621-14.218a27.778 27.778 0 01-2.217-14l27.547-272.08L56.25 423.647c-10.223-11.44-9.235-29 2.205-39.222a27.778 27.778 0 0112.629-6.435l267.276-57.878 137.638-236.31c7.721-13.256 24.727-17.743 37.984-10.022a27.778 27.778 0 0110.022 10.023l137.638 236.31 267.276 57.877c14.994 3.247 24.517 18.034 21.27 33.027a27.778 27.778 0 01-6.435 12.63L761.54 627.57l27.547 272.08c1.546 15.263-9.575 28.889-24.838 30.434-4.78.484-9.603-.28-14-2.217L500 817.59z"
+          fillRule="evenodd"
+        />
+  </Svg>
+))
+
+export default Star

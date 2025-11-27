@@ -1,13 +1,13 @@
-import { createIcon } from '../IconBase'
+import React from 'react'
+import Svg, { G, Path } from 'react-native-svg'
+import { createIcon } from '../createIcon'
 
-export default createIcon(
-  {
-    viewBox: '0 0 24 24',
-    paths: [
-      { d: 'M12 3L3 19H21L12 3Z', stroke: true },
-      { d: 'M12 9V13', stroke: true },
-      { d: 'M12 17H12.01', stroke: true },
-    ],
-  },
-  'WarningIcon',
-)
+const Warning = createIcon(({ size, primaryColor }, svgProps) => (
+  <Svg {...svgProps} width={size} height={size} viewBox="0 0 1024 1024" fill="none">
+    <G fillRule="evenodd">
+          <Path d="M500 55.556c245.46 0 444.444 198.984 444.444 444.444S745.46 944.444 500 944.444 55.556 745.46 55.556 500 254.54 55.556 500 55.556zM502.778 675c-21.478 0-38.89 17.411-38.89 38.889s17.412 38.889 38.89 38.889 38.889-17.411 38.889-38.89c0-21.477-17.411-38.888-38.89-38.888zm28.887-427.778H473.89c-6.021 0-10.123 4.657-9.995 10.402l8.227 368.085c.135 6.035 4.731 10.402 10.28 10.402h40.75c5.272 0 10.15-4.657 10.28-10.402l8.226-368.085c.135-6.034-4.346-10.402-9.994-10.402z" />
+        </G>
+  </Svg>
+))
+
+export default Warning
