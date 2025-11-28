@@ -2,6 +2,7 @@ import React from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import type { IconProps, BuiltInIconName } from './types'
+import { useIconTokens } from './tokens'
 
 const BUILTIN_GLYPHS: Record<BuiltInIconName, string> = {
   close: '×',
@@ -27,8 +28,8 @@ export const Icon = React.forwardRef<View, IconProps>((props, ref) => {
   const {
     name,
     component,
-    size = 24,
-    color = '#111827',
+    size,
+    color,
     strokeWidth,
     spin = false,
     rotate,
@@ -38,6 +39,9 @@ export const Icon = React.forwardRef<View, IconProps>((props, ref) => {
     ...rest
   } = props
 
+  const tokens = useIconTokens()
+  const resolvedSize = size ?? tokens.defaults.size
+
   const spinValue = React.useRef(new Animated.Value(0)).current
   const loopRef = React.useRef<Animated.CompositeAnimation | null>(null)
 
@@ -46,7 +50,7 @@ export const Icon = React.forwardRef<View, IconProps>((props, ref) => {
       loopRef.current = Animated.loop(
         Animated.timing(spinValue, {
           toValue: 1,
-          duration: 1000,
+          duration: tokens.defaults.spinDuration,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
@@ -62,12 +66,13 @@ export const Icon = React.forwardRef<View, IconProps>((props, ref) => {
     }
   }, [spin, spinValue])
 
-  const resolvedColor = Array.isArray(color) ? color[0] ?? '#111827' : color
+  const colorInput = color ?? tokens.defaults.color
+  const resolvedColor = Array.isArray(colorInput) ? colorInput[0] ?? tokens.defaults.color : colorInput
 
   const renderIconNode = () => {
     if (component) {
       const Component = component
-      return <Component size={size} color={color} strokeWidth={strokeWidth} />
+      return <Component size={resolvedSize} color={colorInput} strokeWidth={strokeWidth} />
     }
 
     if (name && BUILTIN_GLYPHS[name]) {
@@ -76,7 +81,7 @@ export const Icon = React.forwardRef<View, IconProps>((props, ref) => {
           style={[
             styles.glyph,
             {
-              fontSize: size,
+              fontSize: resolvedSize,
               color: resolvedColor,
             },
           ]}

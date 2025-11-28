@@ -1,0 +1,76 @@
+import React from 'react'
+import renderer, { act } from 'react-test-renderer'
+import { Text } from 'react-native'
+
+import Portal from '../Portal'
+import { PortalContext } from '../PortalContext'
+import { PortalHost, portalStore } from '../PortalHost'
+
+describe('Portal', () => {
+  afterEach(() => {
+    portalStore.clear()
+  })
+
+  it('mounts, updates and unmounts through the provided manager', () => {
+    const mount = jest.fn().mockReturnValue(7)
+    const update = jest.fn()
+    const unmount = jest.fn()
+
+    const manager = { mount, update, unmount }
+
+    const Wrapper = ({ label }: { label: string }) => (
+      <PortalHost>
+        <PortalContext.Provider value={manager}>
+          <Portal>
+            <Text>{label}</Text>
+          </Portal>
+        </PortalContext.Provider>
+      </PortalHost>
+    )
+
+    const tree = renderer.create(<Wrapper label="foo" />)
+
+    expect(mount).toHaveBeenCalledTimes(1)
+    expect(mount.mock.calls[0][0].props.children).toBe('foo')
+
+    act(() => {
+      tree.update(<Wrapper label="bar" />)
+    })
+
+    expect(update).toHaveBeenCalled()
+    const lastCall = update.mock.calls[update.mock.calls.length - 1]
+    expect(lastCall[0]).toBe(7)
+    expect(lastCall[1].props.children).toBe('bar')
+
+    act(() => {
+      tree.unmount()
+    })
+
+    expect(unmount).toHaveBeenCalledWith(7)
+  })
+
+  it('renders children inside PortalHost and cleans up on unmount', () => {
+    const Wrapper = ({ text }: { text: string }) => (
+      <PortalHost>
+        <Portal>
+          <Text testID="portal-text">{text}</Text>
+        </Portal>
+      </PortalHost>
+    )
+
+    const tree = renderer.create(<Wrapper text="Hello" />)
+
+    const getTexts = () => tree.root.findAllByProps({ testID: 'portal-text' })
+    expect(getTexts()[0].props.children).toBe('Hello')
+
+    act(() => {
+      tree.update(<Wrapper text="World" />)
+    })
+    expect(getTexts()[0].props.children).toBe('World')
+
+    act(() => {
+      tree.update(<PortalHost />)
+    })
+    expect(getTexts().length).toBe(0)
+  })
+})

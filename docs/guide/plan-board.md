@@ -27,14 +27,27 @@
 | Aria Hook 封装 | `useAriaPress / useAriaToggle / useAriaListBox / useAriaOverlay`（`src/hooks/aria`） | 提供统一交互/可访问封装，供所有组件复用 | @react-native-aria | ⏳ 进行中（已补文档与单测，等待更多组件接入） |
 | Overlay 栈 | 遮罩堆叠、BackHandler、滚动锁、动画预设 | Popup/Dialog/ActionSheet 共享 | Portal | ⏳ 进行中（栈管理/BackHandler/滚动锁已实现并补单测，动画预设待办） |
 | 交互组件 a11y 巡检 | Button/Cell/Collapse/Grid.Icon/Tag/NoticeBar 等 | 未接入 `@react-native-aria` 的 Pressable 组件需统一接入 `useAriaPress`/`useAriaButton`，减少冗余逻辑并控制包体积 | hooks | ⏳ 计划中 |
-| 表单容器 | Form + Form.Item + useFormContext | 支撑 Field/Input 校验 | tokens + hooks | ⏳ 计划中 |
+| 质量提升 | `Cell` token 化 + `Space` 接入 `useAriaPress` | 统一主题覆盖/间距，并让 Space 的可交互容器沿用 aria press 状态，满足巡检要求（2025-11-27 完成） | design system + hooks | ✅ 完成 |
+| 质量提升 #2 | `NoticeBar` token 化 + `Collapse` header 接入 `useAriaPress` | 去除硬编码配色/间距，让 collapse 面板符合统一可访问交互（2025-11-27 完成） | design system + hooks | ✅ 完成 |
+| 质量提升 #3 | `Popup` 接入 `useAriaOverlay` + `Toast` 可访问点击关闭 | Popup 统一 overlay 语义、Toast 使用 aria press 处理 `closeOnClick`（2025-11-27 完成） | hooks | ✅ 完成 |
+| 质量提升 #4 | `Icon/Flex` token 化 | Icon 默认尺寸/颜色可由 theme 控制，Flex gutter/对齐遵循 tokens（2025-11-27 完成） | design system | ✅ 完成 |
+| 质量提升 #5 | Portal 补文档与测试 | 新增 `Portal` 行为测试 + Docs/demo，指引如何挂载 Host 并使用静态 API（2025-11-27 完成） | overlay | ✅ 完成 |
+| 质量提升 #6 | Switch 组件首版 | 完成 Switch 实现 + token + 文档 demo + 单测（2025-11-27 完成） | useAriaToggle | ✅ 完成 |
+| 质量提升 #7 | Space token 化 | Space 默认 gap/方向依赖 `useSpaceTokens`，可按主题覆盖 presets（2025-11-27 完成） | design system | ✅ 完成 |
+| 质量提升 #8 | Slider token 化 | Slider 默认轨道/Thumb 尺寸与配色由 `useSliderTokens` 驱动（2025-11-27 完成） | design system | ✅ 完成 |
+| 质量提升 #9 | Button useButtonTokens | 将 Button 的 token 抽到 hook，允许主题 overrides（2025-11-27 完成） | design system | ✅ 完成 |
+| 质量提升 #10 | Field 组件首版 | 新增 Field 输入框/Group，补齐清除/textarea/图标/文案等能力 + 文档、单测（2025-11-27 完成） | form | ✅ 完成 |
+| 质量提升 #11 | Form 组件 | 提供 Form/Form.Item + useForm，实现字段收集/校验/提交 + 文档示例（2025-11-27 完成） | form | ✅ 完成 |
+| 质量提升 #12 | Field react-vant 对齐 | 增补前后缀/tooltip/点击反馈/formatter/onOverlimit 等 API，并完善文档 + 单测（2025-11-28 完成） | form | ✅ 完成 |
+| 质量提升 #13 | Form 校验增强 | 扩展 rules/validateTrigger/async validator + Form docs/demo/单测（2025-11-28 完成） | form | ✅ 完成 |
+| 表单容器 | Form + Form.Item + useFormContext | 支撑 Field/Input 校验 | tokens + hooks | ✅ 完成（2025-11-28） |
 | Field/Input/TextArea | 受控输入、校验反馈、clear-icon | 依赖 Form | Form | ⏳ 计划中 |
-| Checkbox/Radio/Switch | 组态与单选/多选控件 | Checkbox/Radio 已实现；Switch 依赖 useAriaToggle | hooks | ⏳ 进行中 |
-| Stepper/Rate/Selector/NumberKeyboard | 数值/评分/多选 | 依赖 Input/Toggle/手势 | 前置组件 | ⏳ 计划中 |
+| Checkbox/Radio/Switch | 组态与单选/多选控件 | Checkbox/Radio/Switch 均完成 tokens hook + 文档/单测 | hooks | ✅ 完成（2025-11-28） |
+| Stepper/Rate/Selector/NumberKeyboard | 数值/评分/多选 | Stepper/Rate/Selector 均交付（tokens/文档/单测），NumberKeyboard 待续 | 前置组件 | ⏳ 进行中 |
 | Search | 搜索组件（整合键盘事件） | 依赖 Field | Field | ⏳ 计划中 |
 | Tabs/Tabbar/NavBar/Sidebar/IndexBar/Sticky | 导航体系 | 依赖手势 & Scroll 监听 | gesture kit | ⏳ 计划中 |
 | ActionSheet/ShareSheet/DropdownMenu/Popover | 弹层扩展 | 依赖 Overlay 栈 | overlay | ⏳ 计划中 |
-| Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | 依赖 useAriaListBox | aria hooks | ⏳ 计划中 |
+| Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | Picker 基础版已交付（滚轮 + toolbar），DatetimePicker/Calendar/Cascader/Area 待续 | aria hooks | ⏳ 进行中 |
 | List/PullRefresh/SwipeCell/Swiper | 滚动与手势组件 | 依赖 gesture kit | gesture kit | ⏳ 计划中 |
 | Image/ImagePreview/Uploader/Skeleton | 媒体与加载态 | 依赖动画 + 占位策略 | infra | ⏳ 计划中 |
 | 业务组件 | SubmitBar/Sku/ProductCard/Coupon/CouponCell/CountDown/Pagination/FloatingBall/FloatingPanel/WaterMark | 根据业务优先级推进 | 前置组件 | ⏳ 计划中 |

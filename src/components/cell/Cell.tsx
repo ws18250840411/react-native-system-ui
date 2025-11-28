@@ -1,32 +1,23 @@
 import React from 'react'
-import type { ViewStyle } from 'react-native'
+import type { StyleProp, ViewStyle } from 'react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import { Arrow } from '@react-vant/icons'
 
 import { CellGroupContext } from './CellContext'
 import type { CellProps } from './types'
+import { useCellTokens } from './tokens'
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
   },
   center: {
     alignItems: 'center',
   },
   border: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#ebedf0',
-  },
-  large: {
-    paddingVertical: 14,
-  },
-  icon: {
-    marginRight: 8,
   },
   body: {
     flex: 1,
@@ -36,30 +27,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  required: {
-    color: '#ee0a24',
-    marginRight: 4,
-  },
-  title: {
-    fontSize: 16,
-    color: '#323233',
-    flexShrink: 1,
-  },
-  label: {
-    marginTop: 4,
-    fontSize: 14,
-    color: '#969799',
-  },
   value: {
-    fontSize: 16,
-    color: '#969799',
     textAlign: 'right',
   },
   valueOnly: {
     textAlign: 'left',
-  },
-  extra: {
-    marginLeft: 8,
   },
 })
 
@@ -96,6 +68,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
     ...rest
   } = props
 
+  const tokens = useCellTokens()
   const group = React.useContext(CellGroupContext)
 
   const showBorder = border && group.border
@@ -103,11 +76,21 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
 
   const isInteractive = (clickable || showArrow || typeof onPress === 'function') && !disabled
 
-  const containerStyles = [
+  const containerStyles: StyleProp<ViewStyle> = [
     styles.container,
-    size === 'large' && styles.large,
+    {
+      backgroundColor: tokens.container.background,
+      paddingVertical:
+        size === 'large'
+          ? tokens.container.largePaddingVertical
+          : tokens.container.paddingVertical,
+      paddingHorizontal: tokens.container.paddingHorizontal,
+    },
     center && styles.center,
-    showBorder && styles.border,
+    showBorder && {
+      borderColor: tokens.border.color,
+      borderBottomWidth: tokens.border.width,
+    },
     style,
   ]
 
@@ -117,6 +100,10 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
         <Text
           style={[
             styles.value,
+            {
+              color: tokens.typography.valueColor,
+              fontSize: tokens.typography.valueSize,
+            },
             !title && !children && styles.valueOnly,
             valueStyle,
           ]}
@@ -134,31 +121,66 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
 
   const renderBody = () => (
     <>
-      {icon ? <View style={styles.icon}>{icon}</View> : null}
+      {icon ? (
+        <View style={{ marginRight: tokens.spacing.iconGap }}>{icon}</View>
+      ) : null}
       <View style={styles.body}>
         {(title || required) && (
           <View style={styles.titleRow}>
-            {required && <Text style={styles.required}>*</Text>}
+            {required ? (
+              <Text
+                style={{
+                  color: tokens.typography.requiredColor,
+                  marginRight: tokens.spacing.iconGap / 2,
+                }}
+              >
+                *
+              </Text>
+            ) : null}
             {title ? (
-              <Text style={[styles.title, titleStyle]} numberOfLines={1}>
+              <Text
+                style={[
+                  {
+                    color: tokens.typography.titleColor,
+                    fontSize: tokens.typography.titleSize,
+                    fontWeight: tokens.typography.titleWeight,
+                  },
+                  titleStyle,
+                ]}
+                numberOfLines={1}
+              >
                 {title}
               </Text>
             ) : null}
           </View>
         )}
         {label ? (
-          <Text style={[styles.label, labelStyle]} numberOfLines={2}>
+          <Text
+            style={[
+              {
+                marginTop: tokens.spacing.labelMarginTop,
+                color: tokens.typography.labelColor,
+                fontSize: tokens.typography.labelSize,
+              },
+              labelStyle,
+            ]}
+            numberOfLines={2}
+          >
             {label}
           </Text>
         ) : null}
       </View>
-      <View style={{ marginLeft: 12, flexShrink: 1 }}>{renderValue()}</View>
-      {extra ? <View style={styles.extra}>{extra}</View> : null}
+      <View style={{ marginLeft: tokens.spacing.valueGap, flexShrink: 1 }}>
+        {renderValue()}
+      </View>
+      {extra ? (
+        <View style={{ marginLeft: tokens.spacing.extraGap }}>{extra}</View>
+      ) : null}
       {rightIcon
         ? rightIcon
         : showArrow && (
             <View style={arrowTransforms[arrowDirection]}> 
-              <Arrow size={16} color="#c8c9cc" />
+              <Arrow size={tokens.arrow.size} color={tokens.arrow.color} />
             </View>
           )}
     </>

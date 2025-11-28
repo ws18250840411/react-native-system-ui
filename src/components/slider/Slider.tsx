@@ -5,6 +5,7 @@ import type { GestureResponderEvent, LayoutChangeEvent, ViewStyle } from 'react-
 import { Pressable, StyleSheet, View } from 'react-native'
 
 import type { SliderProps, SliderValue } from './types'
+import { useSliderTokens } from './tokens'
 
 const clampValue = (value: number | undefined, min: number, max: number) => {
   if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -156,8 +157,8 @@ export const Slider: React.FC<SliderProps> = props => {
     reverse = false,
     disabled = false,
     readOnly = false,
-    activeColor = '#3f45ff',
-    inactiveColor = '#e5e5e5',
+    activeColor,
+    inactiveColor,
     barHeight,
     trackHeight,
     buttonSize,
@@ -178,10 +179,13 @@ export const Slider: React.FC<SliderProps> = props => {
     ...rest
   } = props
 
+  const tokens = useSliderTokens()
   const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
-  const resolvedTrackHeight = barHeight ?? trackHeight ?? 2
-  const resolvedThumbSize = buttonSize ?? thumbSize ?? 24
+  const resolvedTrackHeight = barHeight ?? trackHeight ?? tokens.track.height
+  const resolvedThumbSize = buttonSize ?? thumbSize ?? tokens.thumb.size
   const isDisabled = disabled || readOnly
+  const resolvedActiveColor = activeColor ?? tokens.colors.active
+  const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
   const scope = Math.max(max - min, 0.00001)
 
   const normalized = React.useMemo(
@@ -318,18 +322,18 @@ export const Slider: React.FC<SliderProps> = props => {
     () => ({
       [sizeKey]: `${Math.max(trackSizePercent, 0)}%`,
       [positionKey]: `${Math.max(trackOffsetPercent, 0)}%`,
-      backgroundColor: disabled ? inactiveColor : activeColor,
+      backgroundColor: isDisabled ? resolvedInactiveColor : resolvedActiveColor,
     }),
-    [sizeKey, positionKey, trackSizePercent, trackOffsetPercent, disabled, inactiveColor, activeColor]
+    [sizeKey, positionKey, trackSizePercent, trackOffsetPercent, isDisabled, resolvedInactiveColor, resolvedActiveColor]
   )
 
   const trackBaseStyle =
     orientation === 'vertical'
       ? [
         styles.trackVertical,
-        { width: resolvedTrackHeight, backgroundColor: inactiveColor, alignSelf: 'center' },
+        { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' },
       ]
-      : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: inactiveColor }]
+      : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }]
 
   const thumbContentMap = React.useMemo(() => {
     const shared = button ?? thumb
@@ -382,7 +386,7 @@ export const Slider: React.FC<SliderProps> = props => {
           isDisabled={isDisabled}
           state={state}
           size={resolvedThumbSize}
-          activeColor={activeColor}
+          activeColor={resolvedActiveColor}
           content={resolveThumbContent(index, values.length)}
           visualPercent={thumbVisualPercents[index] ?? 0}
           enhanceHandlers={enhanceHandlers}

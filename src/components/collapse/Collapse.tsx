@@ -12,6 +12,7 @@ import {
 import { Arrow } from '@react-vant/icons'
 
 import { useTheme } from '../../design-system'
+import { useAriaPress } from '../../hooks'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
@@ -317,6 +318,15 @@ const CollapsePanel: React.FC<CollapsePanelProps> = props => {
 
   const showBorder = border && !accordion
 
+  const headerPress = useAriaPress({
+    disabled: mergedDisabled,
+    onPress: handleToggle,
+    extraProps: {
+      accessibilityRole: 'button',
+      accessibilityState: { expanded: isActive, disabled: mergedDisabled },
+    },
+  })
+
   return (
     <View
       style={[
@@ -330,14 +340,14 @@ const CollapsePanel: React.FC<CollapsePanelProps> = props => {
       {...rest}
     >
       <Pressable
-        onPress={handleToggle}
         disabled={mergedDisabled}
-        style={({ pressed }) => [
+        {...headerPress.interactionProps}
+        style={[
           styles.header,
           {
             paddingHorizontal: tokens.spacing.paddingHorizontal,
             paddingVertical: tokens.spacing.paddingVertical,
-            opacity: mergedDisabled ? 0.5 : pressed ? 0.7 : 1,
+            opacity: mergedDisabled ? 0.5 : headerPress.states.pressed ? 0.7 : 1,
           },
         ]}
       >

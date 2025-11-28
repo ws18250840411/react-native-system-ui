@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native'
 
 import type { FlexContextValue, FlexDirection } from './FlexContext'
 import { FlexContext } from './FlexContext'
+import { useFlexTokens } from './tokens'
 
 export type FlexWrap = 'nowrap' | 'wrap' | 'wrap-reverse'
 export type FlexAlign = 'start' | 'center' | 'end' | 'baseline' | 'stretch'
@@ -45,38 +46,46 @@ const styles = StyleSheet.create({
 
 export const Flex: React.FC<FlexProps> = ({
   children,
-  direction = 'row',
-  wrap = 'wrap',
-  gutter = 0,
-  align = 'start',
-  justify = 'start',
+  direction,
+  wrap,
+  gutter,
+  align,
+  justify,
   style,
-  columns = 24,
+  columns,
 }) => {
+  const tokens = useFlexTokens()
+  const resolvedDirection = direction ?? tokens.defaults.direction
+  const resolvedWrap = wrap ?? tokens.defaults.wrap
+  const resolvedAlign = align ?? tokens.defaults.align
+  const resolvedJustify = justify ?? tokens.defaults.justify
+  const resolvedColumns = columns ?? tokens.defaults.columns
+  const gutterInput = gutter ?? tokens.defaults.gutter
+
   const [horizontalGap, verticalGap] = React.useMemo(() => {
-    if (Array.isArray(gutter)) {
-      return [gutter[0] ?? 0, gutter[1] ?? 0]
+    if (Array.isArray(gutterInput)) {
+      return [gutterInput[0] ?? 0, gutterInput[1] ?? 0]
     }
-    return [gutter, 0]
-  }, [gutter])
+    return [gutterInput, 0]
+  }, [gutterInput])
 
   const contextValue = React.useMemo<FlexContextValue>(
     () => ({
       horizontalGap,
       verticalGap,
-      columns,
-      direction,
+      columns: resolvedColumns,
+      direction: resolvedDirection,
     }),
-    [columns, direction, horizontalGap, verticalGap]
+    [horizontalGap, resolvedColumns, resolvedDirection, verticalGap]
   )
 
   const containerStyle: StyleProp<ViewStyle> = [
     styles.container,
     {
-      flexDirection: direction,
-      flexWrap: wrap,
-      alignItems: alignMap[align],
-      justifyContent: justifyMap[justify],
+      flexDirection: resolvedDirection,
+      flexWrap: resolvedWrap,
+      alignItems: alignMap[resolvedAlign],
+      justifyContent: justifyMap[resolvedJustify],
       marginHorizontal: horizontalGap ? -horizontalGap / 2 : undefined,
       marginVertical: verticalGap ? -verticalGap / 2 : undefined,
     },

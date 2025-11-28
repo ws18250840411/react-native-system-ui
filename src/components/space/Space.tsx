@@ -1,36 +1,26 @@
 import React from 'react'
-import type { ViewProps, StyleProp, ViewStyle } from 'react-native'
+import type { StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, View } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import { useAriaPress } from '../../hooks'
+import type {
+  SpaceAlign,
+  SpaceDirection,
+  SpaceGap,
+  SpaceJustify,
+  SpaceProps,
+  SpaceSizePreset,
+} from './types'
+import { resolveGapInput, useSpaceTokens } from './tokens'
 
-export type SpaceDirection = 'horizontal' | 'vertical'
-export type SpaceAlign = 'start' | 'end' | 'center' | 'baseline' | 'stretch'
-export type SpaceJustify =
-  | 'start'
-  | 'end'
-  | 'center'
-  | 'between'
-  | 'around'
-  | 'evenly'
-  | 'stretch'
-
-export type SpaceGap = number | string | [number | string, number | string]
-export type SpaceSizePreset = 'mini' | 'small' | 'normal' | 'large'
-
-export interface SpaceProps extends ViewProps {
-  children?: React.ReactNode
-  gap?: SpaceGap
-  size?: SpaceGap | SpaceSizePreset
-  direction?: SpaceDirection
-  align?: SpaceAlign
-  justify?: SpaceJustify
-  wrap?: boolean
-  block?: boolean
-  fill?: boolean
-  divider?: React.ReactNode
-  onClick?: ViewProps['onTouchEnd']
-}
+export type {
+  SpaceAlign,
+  SpaceDirection,
+  SpaceJustify,
+  SpaceGap,
+  SpaceProps,
+  SpaceSizePreset,
+} from './types'
 
 const alignMap: Record<SpaceAlign, ViewStyle['alignItems']> = {
   start: 'flex-start',
@@ -75,36 +65,31 @@ const parseGap = (
   return [parsed, parsed]
 }
 
-export const Space: React.FC<SpaceProps> = ({
-  children,
-  gap,
-  size,
-  direction = 'horizontal',
-  align,
-  justify = 'start',
-  wrap = false,
-  block = false,
-  fill = false,
-  divider,
-  style,
-  onClick,
-  ...rest
-}) => {
-  const { foundations } = useTheme()
-  const presets = React.useMemo(
-    () => ({
-      mini: foundations.spacing.xxs ?? foundations.spacing.xs ?? 4,
-      small: foundations.spacing.xs,
-      normal: foundations.spacing.sm,
-      large: foundations.spacing.md,
-    }),
-    [foundations.spacing]
-  )
+export const Space: React.FC<SpaceProps> = props => {
+  const {
+    children,
+    gap,
+    size,
+    direction: directionProp,
+    align,
+    justify = 'start',
+    wrap: wrapProp,
+    block = false,
+    fill = false,
+    divider,
+    style,
+    onClick,
+    ...rest
+  } = props
 
-  const gapInput = gap ?? size ?? 'normal'
+  const tokens = useSpaceTokens()
+  const direction = directionProp ?? tokens.defaults.direction
+  const wrap = wrapProp ?? tokens.defaults.wrap
+
+  const gapInput = resolveGapInput(gap, size, tokens.defaults.gapPreset)
   const [horizontalGap, verticalGap] = React.useMemo(
-    () => parseGap(gapInput, presets),
-    [gapInput, presets]
+    () => parseGap(gapInput, tokens.presets),
+    [gapInput, tokens.presets]
   )
 
   const isHorizontal = direction === 'horizontal'
@@ -179,22 +164,39 @@ export const Space: React.FC<SpaceProps> = ({
   }
 
   const interactive = typeof onClick === 'function'
-  const WrapperComponent = interactive ? Pressable : View
+  const { interactionProps, states } = useAriaPress({
+    disabled: !interactive,
+    onPress: onClick,
+    extraProps: interactive ? { accessibilityRole: 'button' } : undefined,
+  })
+
+  const content = composedChildren.map((item, index) =>
+    renderItem(
+      item.node,
+      index,
+      item.isDivider,
+      item.isDivider ? false : index === composedChildren.length - 1
+    )
+  )
+
+  if (interactive) {
+    return (
+      <Pressable
+        style={({ pressed }) => [
+          containerStyle,
+          pressed || states.pressed ? { opacity: 0.85 } : null,
+        ]}
+        {...interactionProps}
+        {...rest}
+      >
+        {content}
+      </Pressable>
+    )
+  }
 
   return (
-    <WrapperComponent
-      style={containerStyle}
-      onPress={interactive ? onClick : undefined}
-      {...rest}
-    >
-      {composedChildren.map((item, index) =>
-        renderItem(
-          item.node,
-          index,
-          item.isDivider,
-          item.isDivider ? false : index === composedChildren.length - 1
-        )
-      )}
-    </WrapperComponent>
+    <View style={containerStyle} {...rest}>
+      {content}
+    </View>
   )
 }

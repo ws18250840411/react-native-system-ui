@@ -12,6 +12,7 @@ import { useAriaPress } from '../../hooks'
 
 import Icon from '../icon'
 import type { NoticeBarProps } from './types'
+import { useNoticeBarTokens } from './tokens'
 
 const AnimatedText = Animated.createAnimatedComponent(Text)
 
@@ -26,8 +27,8 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const {
     text,
     children,
-    color = '#f97316',
-    background = '#fff7cc',
+    color,
+    background,
     leftIcon,
     rightIcon,
     mode,
@@ -46,6 +47,9 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     ...rest
   } = props
 
+  const tokens = useNoticeBarTokens()
+  const resolvedColor = color ?? tokens.colors.text
+  const resolvedBackground = background ?? tokens.colors.background
   const content = text ?? children
   const isVertical = direction === 'vertical'
   const [visible, setVisible] = React.useState(true)
@@ -174,21 +178,16 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     extraProps: onPress ? { accessibilityRole: 'button' } : undefined,
   })
 
-  const renderLeft = () => {
-    if (leftIcon === null || leftIcon === undefined) return null
-    return <View style={styles.leftSection}>{leftIcon}</View>
-  }
-
   const renderRight = () => {
     if (mode === 'closeable') {
       return (
         <Pressable hitSlop={8} {...closePress.interactionProps}>
-          <Icon name="close" size={16} color={color} />
+          <Icon name="close" size={16} color={resolvedColor} />
         </Pressable>
       )
     }
     if (mode === 'link') {
-      return <Icon name="arrow-right" size={16} color={color} />
+      return <Icon name="arrow-right" size={16} color={resolvedColor} />
     }
     if (rightIcon) {
       return rightIcon
@@ -224,7 +223,10 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
       if (typeof single === 'string' || typeof single === 'number') {
         return (
           <Text
-            style={[styles.text, { color }]}
+            style={[
+              styles.text,
+              { color: resolvedColor, fontSize: tokens.typography.fontSize },
+            ]}
             numberOfLines={1}
             ellipsizeMode="tail"
             {...textProps}
@@ -252,7 +254,10 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
             >
               {typeof item === 'string' || typeof item === 'number' ? (
                 <Text
-                  style={[styles.text, { color }]}
+                  style={[
+                    styles.text,
+                    { color: resolvedColor, fontSize: tokens.typography.fontSize },
+                  ]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                   {...textProps}
@@ -273,22 +278,31 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     <Pressable
       style={[
         styles.container,
-        wrapable && styles.wrapContainer,
-        { backgroundColor: background },
+        {
+          backgroundColor: resolvedBackground,
+          paddingHorizontal: tokens.spacing.paddingHorizontal,
+          paddingVertical: wrapable ? tokens.spacing.wrapPaddingVertical : tokens.spacing.paddingVertical,
+          minHeight: tokens.layout.minHeight,
+          borderRadius: tokens.layout.radius,
+        },
         style,
       ]}
       disabled={barPress.states.disabled}
       {...barPress.interactionProps}
       {...rest}
     >
-      {renderLeft()}
+      {leftIcon !== null && leftIcon !== undefined ? (
+        <View style={[styles.sideSection, { minWidth: tokens.layout.sideMinWidth }]}>
+          {leftIcon}
+        </View>
+      ) : null}
       <View
         onLayout={event => setContainerWidth(event.nativeEvent.layout.width)}
         style={[
           styles.content,
           wrapable && styles.contentWrap,
-          hasLeft && styles.contentLeftPadding,
-          hasRight && styles.contentRightPadding,
+          hasLeft && { paddingLeft: tokens.spacing.sidePadding },
+          hasRight && { paddingRight: tokens.spacing.sidePadding },
         ]}
         pointerEvents="none"
       >
@@ -297,7 +311,15 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         ) : shouldScroll ? (
           <AnimatedText
             onLayout={event => setContentWidth(event.nativeEvent.layout.width)}
-            style={[styles.text, styles.scrollText, { color }, { transform: [{ translateX }] }]}
+            style={[
+              styles.text,
+              styles.scrollText,
+              {
+                color: resolvedColor,
+                fontSize: tokens.typography.fontSize,
+                transform: [{ translateX }],
+              },
+            ]}
             {...(Platform.OS === 'web'
               ? {}
               : { numberOfLines: 1 as const, ellipsizeMode: 'clip' as const })}
@@ -308,7 +330,11 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         ) : (
           <Text
             onLayout={event => setContentWidth(event.nativeEvent.layout.width)}
-            style={[styles.text, { color }, wrapable && styles.wrapText]}
+            style={[
+              styles.text,
+              { color: resolvedColor, fontSize: tokens.typography.fontSize },
+              wrapable && styles.wrapText,
+            ]}
             numberOfLines={wrapable ? undefined : 1}
             ellipsizeMode={wrapable ? 'tail' : 'clip'}
             {...textProps}
@@ -317,7 +343,11 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
           </Text>
         )}
       </View>
-      {rightNode ? <View style={styles.rightSection}>{rightNode}</View> : null}
+      {rightNode ? (
+        <View style={[styles.sideSection, { minWidth: tokens.layout.sideMinWidth }]}>
+          {rightNode}
+        </View>
+      ) : null}
     </Pressable>
   )
 }
@@ -326,17 +356,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    minHeight: 40,
-    borderRadius: 8,
   },
-  leftSection: {
-    minWidth: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rightSection: {
-    minWidth: 24,
+  sideSection: {
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -345,11 +366,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     overflow: 'hidden',
   },
-  wrapContainer: {
-    paddingVertical: 12,
-  },
   text: {
-    fontSize: 14,
     flexShrink: 0,
   },
   scrollText: Platform.select({
@@ -365,12 +382,6 @@ const styles = StyleSheet.create({
   },
   contentWrap: {
     flexDirection: 'column',
-  },
-  contentLeftPadding: {
-    paddingLeft: 12,
-  },
-  contentRightPadding: {
-    paddingRight: 12,
   },
   verticalViewport: {
     width: '100%',

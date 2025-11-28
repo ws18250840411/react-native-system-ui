@@ -20,6 +20,7 @@ import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
 import Icon from '../icon'
+import { useAriaOverlay } from '../../hooks'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -264,6 +265,26 @@ export const Popup: React.FC<PopupProps> = props => {
     type: 'popup',
   })
 
+  const { overlayRef, overlayProps } = useAriaOverlay({
+    isOpen: visible,
+    onClose: () => requestClose('overlay'),
+    isDismissable: closeOnOverlayPress,
+    overlayProps: {
+      accessibilityRole: 'dialog',
+      accessibilityLiveRegion: 'polite',
+    },
+  })
+
+  const contentInteractionProps = React.useMemo(() => {
+    if (!stopPropagation) {
+      return overlayProps
+    }
+    return {
+      ...overlayProps,
+      onStartShouldSetResponder: () => true,
+    }
+  }, [overlayProps, stopPropagation])
+
   const config = placementConfig[placement]
   const distance = config.axis === 'x' ? windowWidth : windowHeight
   const direction = placement === 'top' || placement === 'left' ? -1 : 1
@@ -304,6 +325,8 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const content = (
     <Animated.View
+      ref={overlayRef}
+      {...contentInteractionProps}
       style={[
         styles.popup,
         placement === 'center' ? styles.popupCenter : null,
@@ -317,7 +340,6 @@ export const Popup: React.FC<PopupProps> = props => {
         hidden ? styles.hiddenContent : null,
         style,
       ]}
-      onStartShouldSetResponder={stopPropagation ? () => true : undefined}
       {...rest}
     >
       {closeable ? (

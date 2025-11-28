@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   Animated,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -14,6 +15,7 @@ import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import Portal from '../portal/Portal'
+import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Icon from '../icon'
 import Loading from '../loading'
@@ -91,6 +93,8 @@ const positionStyles: Record<ToastPosition, ViewStyle> = {
   bottom: { justifyContent: 'flex-end', paddingBottom: 60 },
 }
 
+const AnimatedPressableToast = Animated.createAnimatedComponent(Pressable)
+
 export const Toast: React.FC<ToastProps> = props => {
   const {
     visible,
@@ -153,11 +157,19 @@ export const Toast: React.FC<ToastProps> = props => {
     prevVisibleRef.current = visible
   }, [mounted, onClosed, onOpen, onOpened, visible])
 
-  const handlePress = () => {
-    if (closeOnClick) {
-      onClose?.()
-    }
-  }
+  const handleCloseOnPress = React.useCallback(() => {
+    onClose?.()
+  }, [onClose])
+
+  const toastPress = useAriaPress({
+    disabled: !closeOnClick,
+    onPress: handleCloseOnPress,
+    extraProps: {
+      accessibilityRole: closeOnClick ? 'button' : 'alert',
+      accessibilityHint: closeOnClick ? '双击关闭提示' : undefined,
+      accessibilityLiveRegion: 'assertive',
+    },
+  })
 
   const renderIcon = () => {
     if (icon) return icon
@@ -193,7 +205,9 @@ export const Toast: React.FC<ToastProps> = props => {
             onMoveShouldSetResponder={() => true}
           />
         ) : null}
-        <Animated.View
+        <AnimatedPressableToast
+          disabled={!closeOnClick}
+          {...toastPress.interactionProps}
           style={[
             styles.toast,
             {
@@ -204,9 +218,9 @@ export const Toast: React.FC<ToastProps> = props => {
               backgroundColor: tokens.colors.variants[type],
               maxWidth: tokens.maxWidth,
             },
+            closeOnClick && toastPress.states.pressed ? { opacity: 0.85 } : null,
             style,
           ]}
-          onTouchEnd={handlePress}
         >
           {iconNode ? (
             <View style={{ marginBottom: tokens.gap }}>{iconNode}</View>
@@ -214,7 +228,7 @@ export const Toast: React.FC<ToastProps> = props => {
           {message ? (
             <Text style={[{ color: tokens.colors.text, textAlign: 'center' }, textStyle]}>{message}</Text>
           ) : null}
-        </Animated.View>
+        </AnimatedPressableToast>
       </View>
     </Portal>
   )

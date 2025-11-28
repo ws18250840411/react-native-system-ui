@@ -1,5 +1,13 @@
 import React from 'react'
-import { ActivityIndicator, Animated, Easing, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
@@ -23,6 +31,7 @@ interface LoadingTokens {
     lineWidth: number
     lineLength: number
     itemCount: number
+    innerGapRatio: number
   }
   spacing: {
     gap: number
@@ -45,6 +54,7 @@ const createLoadingTokens = (foundations: Foundations): LoadingTokens => {
       lineWidth: 2,
       lineLength: 8,
       itemCount: 12,
+      innerGapRatio: 0.25,
     },
     spacing: {
       gap: foundations.spacing.sm,
@@ -100,7 +110,7 @@ export const Loading: React.FC<LoadingProps> = props => {
           toValue: 1,
           duration: 1000,
           easing: Easing.linear,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       )
       animation.start()
@@ -111,16 +121,17 @@ export const Loading: React.FC<LoadingProps> = props => {
 
   const renderSpinner = () => {
     const lines = spinnerArray(tokens.spinner.itemCount)
-    const lineStyleBase: ViewStyle = {
-      position: 'absolute',
-      width: tokens.spinner.lineWidth,
-      height: tokens.spinner.lineLength,
-      borderRadius: tokens.spinner.lineWidth / 2,
-      backgroundColor: color,
-      top: size / 2 - tokens.spinner.lineLength,
-      left: size / 2 - tokens.spinner.lineWidth / 2,
-      opacity: 0.2,
-    }
+    const innerGap = Math.min(
+      size / 2 - 1,
+      Math.max(0, tokens.spinner.innerGapRatio * size)
+    )
+    const scaledLength =
+      (size / tokens.defaults.size) * tokens.spinner.lineLength
+    const maxLength = Math.max(2, size / 2 - innerGap)
+    const lineLength = Math.max(
+      2,
+      Math.min(maxLength, Math.max(tokens.spinner.lineLength, scaledLength))
+    )
 
     return (
       <AnimatedView
@@ -143,18 +154,28 @@ export const Loading: React.FC<LoadingProps> = props => {
           return (
             <View
               key={index}
+              pointerEvents="none"
               style={[
-                lineStyleBase,
+                styles.spinnerItem,
                 {
-                  transform: [
-                    { translateY: -size / 2 + tokens.spinner.lineLength },
-                    { rotate: `${angle}deg` },
-                    { translateY: size / 2 - tokens.spinner.lineLength },
-                  ],
-                  opacity,
+                  transform: [{ rotate: `${angle}deg` }],
                 },
               ]}
-            />
+            >
+              <View
+                style={[
+                  styles.spinnerLine,
+                  {
+                    width: tokens.spinner.lineWidth,
+                    height: lineLength,
+                    borderRadius: tokens.spinner.lineWidth / 2,
+                    backgroundColor: color,
+                    opacity,
+                    marginTop: size / 2 - lineLength - innerGap,
+                  },
+                ]}
+              />
+            </View>
           )
         })}
       </AnimatedView>
@@ -197,3 +218,12 @@ export const Loading: React.FC<LoadingProps> = props => {
 }
 
 Loading.displayName = 'Loading'
+
+const styles = StyleSheet.create({
+  spinnerItem: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  spinnerLine: {},
+})
