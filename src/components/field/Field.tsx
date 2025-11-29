@@ -212,7 +212,6 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
     },
   })
 
-  const showCounter = showWordLimit && typeof maxLength === 'number' && maxLength > 0
   const showArrow = isLink
   const helperColor = errorMessage ? tokens.colors.error : tokens.colors.description
   const borderColor = error || errorMessage ? tokens.colors.error : tokens.colors.border
@@ -357,6 +356,45 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
     onPressIn?.(event)
   }
 
+  const renderWordLimit = () => {
+    if (!showWordLimit) return null
+    const currentCount = inputValue.length
+    const content =
+      typeof showWordLimit === function
+        ? showWordLimit({ currentCount, maxLength })
+        : typeof maxLength === number && maxLength > 0
+          ? `${currentCount}/${maxLength}`
+          : `${currentCount}`
+
+    if (content === null || content === undefined || content === false) {
+      return null
+    }
+
+    const wrapperStyle = {
+      marginTop: tokens.spacing.counterMarginTop,
+      alignSelf: flex-end as const,
+    }
+
+    if (React.isValidElement(content)) {
+      return <View style={wrapperStyle}>{content}</View>
+    }
+
+    return (
+      <Text
+        style={[
+          styles.counter,
+          {
+            color: tokens.colors.counter,
+            fontSize: tokens.typography.counterSize,
+          },
+          wrapperStyle,
+        ]}
+      >
+        {content}
+      </Text>
+    )
+  }
+
   return (
     <ContainerComponent
       style={isInteractive ? [...containerStyle, { opacity: rootPress.states.pressed ? 0.6 : 1 }] : containerStyle}
@@ -460,20 +498,7 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
           {helperNode}
         </Text>
       ) : null}
-      {showCounter ? (
-        <Text
-          style={[
-            styles.counter,
-            {
-              color: tokens.colors.counter,
-              marginTop: tokens.spacing.counterMarginTop,
-              fontSize: tokens.typography.counterSize,
-            },
-          ]}
-        >
-          {`${inputValue.length}/${maxLength}`}
-        </Text>
-      ) : null}
+      {renderWordLimit()}
     </ContainerComponent>
   )
 })

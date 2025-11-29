@@ -44,7 +44,7 @@
 | Field/Input/TextArea | 受控输入、校验反馈、clear-icon | 依赖 Form | Form | ⏳ 计划中 |
 | Checkbox/Radio/Switch | 组态与单选/多选控件 | Checkbox/Radio/Switch 均完成 tokens hook + 文档/单测 | hooks | ✅ 完成（2025-11-28） |
 | Stepper/Rate/Selector/NumberKeyboard | 数值/评分/多选 | Stepper/Rate/Selector 均交付（tokens/文档/单测），NumberKeyboard 待续 | 前置组件 | ⏳ 进行中 |
-| Search | 搜索组件（整合键盘事件） | 依赖 Field | Field | ⏳ 计划中 |
+| Search | Search 组件（键盘搜索 + 取消按钮 + 自定义操作） | 依赖 Field | Field | ✅ 完成（2025-11-29） |
 | Tabs/Tabbar/NavBar/Sidebar/IndexBar/Sticky | 导航体系 | 依赖手势 & Scroll 监听 | gesture kit | ⏳ 计划中 |
 | ActionSheet/ShareSheet/DropdownMenu/Popover | 弹层扩展 | 依赖 Overlay 栈 | overlay | ⏳ 计划中 |
 | Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | Picker 基础版已交付（滚轮 + toolbar），DatetimePicker/Calendar/Cascader/Area 待续 | aria hooks | ⏳ 进行中 |

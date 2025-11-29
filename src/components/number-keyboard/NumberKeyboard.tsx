@@ -1,6 +1,7 @@
 import React from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
 
+import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
 
@@ -143,12 +144,25 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     outputRange: [300, 0],
   })
 
+  const wrapperShadow = React.useMemo(
+    () =>
+      createPlatformShadow({
+        color: '#000000',
+        opacity: 0.08,
+        radius: 6,
+        offsetY: 0,
+        elevation: 6,
+      }),
+    []
+  )
+
   return (
     <Animated.View
       {...rest}
       pointerEvents={visible ? 'auto' : 'none'}
       style={[
         styles.wrapper,
+        wrapperShadow,
         style,
         {
           transform: [{ translateY }],
@@ -228,10 +242,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
   },
   header: {
     flexDirection: 'row',

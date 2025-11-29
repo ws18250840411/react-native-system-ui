@@ -1,0 +1,14 @@
+[2025-11-29 18:00] Field/Input/TextArea 任务进度记录
+
+已完成：
+1. 新建 Input 目录：包含 Input 组件（转发 Field）、TextArea 变体、tokens、导出占位，以及基础单测。
+2. Field 支持自定义 showWordLimit：新增 FieldShowWordLimit 类型 + renderWordLimit 逻辑。
+3. NumberKeyboard 警告修复不再影响 watcher。
+4. Input 文档/示例初稿：docs/components/input.md + basic/clearable/slots/textarea demo。
+
+待完成：
+1. Input 导出：尚未把 Input 写入 src/components/index.ts 与 src/index.ts。
+2. Field 内旧的 showCounter 渲染仍需删除，改用 renderWordLimit（部分代码已插入，但 showCounter block 未清理）。
+3. TextArea demo 需要引用 Text 组件；General docs 需跑 docs:build 验证。
+4. 补充更多测试场景（autoSize、自定义 prefix/suffix 等）。
+5. 完成后更新 plan-board/roadmap 状态。

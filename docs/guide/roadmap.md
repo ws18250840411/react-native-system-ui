@@ -34,7 +34,7 @@
 | 输入控件 | Field, Input, TextArea | ⏳ 计划中 | P0 | Form, useAriaPress | 先实现受控 + 校验态 |
 | 选择控件 | Checkbox, CheckboxGroup, Radio, RadioGroup, Switch | ⏳ 进行中 | P0 | useAriaToggle | Checkbox/Radio 已完成，Switch 复用 aria toggle |
 | 数值控件 | Stepper, Rate, Selector, NumberKeyboard | ⏳ 计划中 | P1 | 输入控件 | Rate 依赖手势与动画 |
-| 搜索 | Search | ⏳ 计划中 | P1 | Field | 需整合键盘事件 |
+| 搜索 | Search | ✅ 已完成 | P1 | Field | 2025-11-29 交付，支持键盘搜索、取消按钮与自定义操作 |
 | 导航 | Tabs, Tabbar, NavBar, Sidebar, IndexBar, Sticky | ⏳ 计划中 | P1 | Gesture/Scroll | Tabbar 需要 SafeArea 适配 |
 | 弹层扩展 | ActionSheet, ShareSheet, DropdownMenu, Popover | ⏳ 计划中 | P1 | OverlayStack | 与 Popup 保持 API 一致 |
 | 数据选择 | Picker, DatetimePicker, Calendar, Cascader, Area | ⏳ 计划中 | P1 | useAriaListBox | 大部分依赖列滚动 |

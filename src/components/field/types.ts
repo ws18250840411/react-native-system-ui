@@ -25,6 +25,13 @@ export type FieldFormatTrigger = 'onChange' | 'onBlur'
 
 export type FieldAutosizeConfig = { minRows?: number; maxRows?: number }
 
+export interface FieldWordLimitInfo {
+  currentCount: number
+  maxLength?: number
+}
+
+export type FieldShowWordLimit = boolean | ((info: FieldWordLimitInfo) => React.ReactNode)
+
 export type FieldTooltip = React.ReactNode | (DialogShowOptions & { icon?: React.ReactNode })
 
 export interface FieldProps extends Omit<TextInputProps, 'style'> {
@@ -59,7 +66,7 @@ export interface FieldProps extends Omit<TextInputProps, 'style'> {
   rows?: number
   autosize?: FieldAutosizeConfig | boolean
   autoSize?: FieldAutosizeConfig | boolean
-  showWordLimit?: boolean
+  showWordLimit?: FieldShowWordLimit
   formatter?: (value: string) => string
   formatTrigger?: FieldFormatTrigger
   clearIcon?: React.ReactNode
