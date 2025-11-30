@@ -84,7 +84,7 @@ import { Field } from 'react-native-system-ui'
 | `formatter` | 自定义格式化函数 | `(value: string) => string` | - |
 | `formatTrigger` | 格式化触发时机 | `onChange \| onBlur` | `onChange` |
 | `clearIcon` | 自定义清除图标 | `ReactNode` | - |
-| `showWordLimit` | 是否展示字数统计，需要 `maxLength` | `boolean` | `false` |
+| `showWordLimit` | 是否展示字数统计，支持传入函数自定义展示内容，需要设置 `maxLength` | `boolean \| ({ currentCount, maxLength }) => ReactNode` | `false` |
 | `maxLength` | 文本最大长度，超出时触发 `onOverlimit` | `number` | - |
 | `onOverlimit` | 超过 `maxLength` 时回调 | `(value: string) => void` | - |
 | `readOnly` | 是否只读 | `boolean` | `false` |

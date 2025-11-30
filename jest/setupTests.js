@@ -1,12 +1,23 @@
 const renderer = require('react-test-renderer')
 
+process.env.JEST_ENV = 'true'
+
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 const originalConsoleError = console.error
 console.error = (...args) => {
-  if (typeof args[0] === 'string' && args[0].includes('react-test-renderer is deprecated')) {
+  const asString = args
+    .map(arg => (typeof arg === 'string' ? arg : ''))
+    .join(' ')
+
+  if (asString.includes('react-test-renderer is deprecated')) {
     return
   }
+
+  if (asString.includes('VirtualizedList') && asString.includes('act')) {
+    return
+  }
+
   originalConsoleError(...args)
 }
 

@@ -20,6 +20,14 @@ export { default as Field } from './field'
 export { FieldGroup } from './field'
 export type { FieldProps } from './field'
 export type { FieldGroupProps } from './field'
+export { default as Input } from './input'
+export type {
+  InputProps,
+  InputTextAreaProps,
+  InputInstance,
+  InputTextAreaAutoSize,
+  InputTextAreaAutoSizeConfig,
+} from './input'
 export { default as Form } from './form'
 export type { FormProps, FormInstance } from './form'
 export { default as Switch } from './switch'
@@ -81,3 +89,14 @@ export type { ToastProps, ToastPosition } from './toast'
 export { Portal } from './portal'
 export { PortalHost } from './portal'
 export type { PortalProps } from './portal/Portal'
+export { ConfigProvider } from './config-provider'
+export { useLocale } from './config-provider'
+export { zhCN } from './config-provider'
+export { enUS } from './config-provider'
+export type { ConfigProviderProps } from './config-provider'
+export { default as DatetimePicker } from './datetime-picker'
+export type { DatetimePickerProps, DatetimePickerType } from './datetime-picker'
+export { default as Calendar } from './calendar'
+export type { CalendarProps } from './calendar'
+export { default as Cascader } from './cascader'
+export type { CascaderProps, CascaderOption, CascaderFieldNames, CascaderValue } from './cascader'

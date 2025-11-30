@@ -1,23 +1,24 @@
-import React from 'react'
-import { Button, Cell, Input } from 'react-native-system-ui'
+import React from "react"
+
+import { Button, Input } from "react-native-system-ui"
 
 const SlotInputDemo = () => {
-  const [value, setValue] = React.useState('')
+  const [value, setValue] = React.useState("")
 
   return (
-    <Cell>
-      <Input
-        value={value}
-        onChange={setValue}
-        prefix='💬'
-        suffix={(
-          <Button size='small' type='primary' onPress={() => setValue('')}>
-            发送
-          </Button>
-        )}
-        placeholder='请输入短信验证码'
-      />
-    </Cell>
+    <Input
+      label="短信"
+      value={value}
+      onChangeText={setValue}
+      placeholder="请输入短信验证码"
+      prefix="💬"
+      suffix={(
+        <Button size="small" type="primary" onPress={() => setValue("")}>
+          发送
+        </Button>
+      )}
+      style={{ marginBottom: 12 }}
+    />
   )
 }
 

@@ -2,6 +2,7 @@ import React from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import Portal from '../portal/Portal'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
 
@@ -50,7 +51,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     extraKey,
     randomKeyOrder,
     showDeleteKey = true,
-    closeButtonText = theme === 'custom' ? '完成' : undefined,
+    closeButtonText = '完成',
     deleteButtonText,
     onChange,
     onInput,
@@ -135,15 +136,6 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     }).start()
   }, [animated, visible, props.transition])
 
-  if (!visible && animated.__getValue() === 0) {
-    return null
-  }
-
-  const translateY = animated.interpolate({
-    inputRange: [0, 1],
-    outputRange: [300, 0],
-  })
-
   const wrapperShadow = React.useMemo(
     () =>
       createPlatformShadow({
@@ -156,7 +148,16 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     []
   )
 
-  return (
+  if (!visible && animated.__getValue() === 0) {
+    return null
+  }
+
+  const translateY = animated.interpolate({
+    inputRange: [0, 1],
+    outputRange: [300, 0],
+  })
+
+  const keyboardNode = (
     <Animated.View
       {...rest}
       pointerEvents={visible ? 'auto' : 'none'}
@@ -234,6 +235,8 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
       </View>
     </Animated.View>
   )
+
+  return <Portal>{keyboardNode}</Portal>
 }
 
 const styles = StyleSheet.create({

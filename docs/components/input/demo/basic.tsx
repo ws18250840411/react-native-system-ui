@@ -1,17 +1,19 @@
-import React from 'react'
-import { Cell, Input } from 'react-native-system-ui'
+import React from "react"
+
+import { Input } from "react-native-system-ui"
 
 const BasicInputDemo = () => {
-  const [value, setValue] = React.useState('')
+  const [value, setValue] = React.useState("")
 
   return (
-    <Cell title='姓名'>
-      <Input
-        value={value}
-        onChange={setValue}
-        placeholder='请输入姓名'
-      />
-    </Cell>
+    <Input
+      label="姓名"
+      placeholder="请输入姓名"
+      value={value}
+      onChangeText={setValue}
+      clearable
+      style={{ marginBottom: 12 }}
+    />
   )
 }
 

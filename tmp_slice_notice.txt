@@ -1,1 +1,0 @@
-$(sed -n '220,360p' src/components/notice-bar/NoticeBar.tsx)

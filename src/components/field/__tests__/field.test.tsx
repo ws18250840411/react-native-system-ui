@@ -15,7 +15,7 @@ import Field from '..'
 describe('Field', () => {
   it('triggers onChangeText when typing', () => {
     const handleChange = jest.fn()
-    const tree = renderer.create(<Field label="姓名" onChangeText={handleChange} />)
+    const tree = renderer.create(<Field label='姓名' onChangeText={handleChange} />)
     const input = tree.root.findByType(TextInput)
 
     act(() => {
@@ -29,9 +29,9 @@ describe('Field', () => {
     const handleChange = jest.fn()
     const tree = renderer.create(
       <Field
-        defaultValue="foo"
+        defaultValue='foo'
         clearable
-        clearTrigger="always"
+        clearTrigger='always'
         onChangeText={handleChange}
       />
     )
@@ -49,10 +49,10 @@ describe('Field', () => {
     const handleChange = jest.fn()
     const tree = renderer.create(
       <Field
-        defaultValue=""
+        defaultValue=''
         formatter={value => value.toUpperCase()}
-        formatTrigger="onBlur"
-        label="姓名"
+        formatTrigger='onBlur'
+        label='姓名'
         onChangeText={handleChange}
       />
     )
@@ -76,7 +76,7 @@ describe('Field', () => {
   it('triggers onOverlimit when exceeding maxLength', () => {
     const handleOverlimit = jest.fn()
     const tree = renderer.create(
-      <Field label="校验" maxLength={2} onOverlimit={handleOverlimit} />
+      <Field label='校验' maxLength={2} onOverlimit={handleOverlimit} />
     )
     const input = tree.root.findByType(TextInput)
 
@@ -93,12 +93,12 @@ describe('Field', () => {
     const handleClick = jest.fn()
     const tree = renderer.create(
       <Field
-        label="验证码"
+        label='验证码'
         clickable
         onClick={handleClick}
-        value=""
+        value=''
         onChangeText={() => {}}
-        suffix={<Text testID="suffix-text">发送</Text>}
+        suffix={<Text testID='suffix-text'>发送</Text>}
       />
     )
 
@@ -111,5 +111,22 @@ describe('Field', () => {
       rootPressable?.props.onPress?.()
     })
     expect(handleClick).toHaveBeenCalled()
+  })
+
+  it('supports custom showWordLimit renderer', () => {
+    const tree = renderer.create(
+      <Field
+        label='备注'
+        value='hi'
+        maxLength={20}
+        onChangeText={() => {}}
+        showWordLimit={({ currentCount, maxLength }) => (
+          <Text testID='word-limit'>{currentCount + '/' + maxLength}</Text>
+        )}
+      />
+    )
+
+    const counter = tree.root.findByProps({ testID: 'word-limit' })
+    expect(counter.props.children).toBe('2/20')
   })
 })

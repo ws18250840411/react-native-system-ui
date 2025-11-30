@@ -18,8 +18,6 @@ export default function FieldCustomDemo() {
       extra="60s"
       clearable
       required
-      clickable
-      isLink
       placeholder="短信验证码"
       value={code}
       onChangeText={setCode}

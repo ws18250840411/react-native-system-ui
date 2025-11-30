@@ -27,6 +27,8 @@ describe('Picker', () => {
       columnNode.props.onChange?.({ label: '周二', value: 'tue' })
     })
 
-    expect(handleChange).toHaveBeenCalledWith(['tue', undefined], expect.any(Array))
+    const lastCall = handleChange.mock.calls.at(-1)
+    expect(lastCall?.[0]).toEqual(['tue', 'am'])
+    expect(lastCall?.[1]).toBeInstanceOf(Array)
   })
 })

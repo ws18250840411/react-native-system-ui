@@ -41,13 +41,13 @@
 | 质量提升 #12 | Field react-vant 对齐 | 增补前后缀/tooltip/点击反馈/formatter/onOverlimit 等 API，并完善文档 + 单测（2025-11-28 完成） | form | ✅ 完成 |
 | 质量提升 #13 | Form 校验增强 | 扩展 rules/validateTrigger/async validator + Form docs/demo/单测（2025-11-28 完成） | form | ✅ 完成 |
 | 表单容器 | Form + Form.Item + useFormContext | 支撑 Field/Input 校验 | tokens + hooks | ✅ 完成（2025-11-28） |
-| Field/Input/TextArea | 受控输入、校验反馈、clear-icon | 依赖 Form | Form | ⏳ 计划中 |
+| Field/Input/TextArea | 受控输入、校验反馈、clear-icon | 依赖 Form | Form | ✅ 完成（2025-11-30，Input.TextArea + demo/单测对齐） |
 | Checkbox/Radio/Switch | 组态与单选/多选控件 | Checkbox/Radio/Switch 均完成 tokens hook + 文档/单测 | hooks | ✅ 完成（2025-11-28） |
-| Stepper/Rate/Selector/NumberKeyboard | 数值/评分/多选 | Stepper/Rate/Selector 均交付（tokens/文档/单测），NumberKeyboard 待续 | 前置组件 | ⏳ 进行中 |
+| Stepper/Rate/Selector/NumberKeyboard | 数值/评分/多选 | Stepper/Rate/Selector + NumberKeyboard 全面交付（补齐 Portal/文档 demo） | 前置组件 | ✅ 完成（2025-11-30） |
 | Search | Search 组件（键盘搜索 + 取消按钮 + 自定义操作） | 依赖 Field | Field | ✅ 完成（2025-11-29） |
 | Tabs/Tabbar/NavBar/Sidebar/IndexBar/Sticky | 导航体系 | 依赖手势 & Scroll 监听 | gesture kit | ⏳ 计划中 |
 | ActionSheet/ShareSheet/DropdownMenu/Popover | 弹层扩展 | 依赖 Overlay 栈 | overlay | ⏳ 计划中 |
-| Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | Picker 基础版已交付（滚轮 + toolbar），DatetimePicker/Calendar/Cascader/Area 待续 | aria hooks | ⏳ 进行中 |
+| Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | Picker、DatetimePicker、Calendar、Cascader 已交付（多列/联动/时间/级联），Area 待续 | aria hooks | ⏳ 进行中 |
 | List/PullRefresh/SwipeCell/Swiper | 滚动与手势组件 | 依赖 gesture kit | gesture kit | ⏳ 计划中 |
 | Image/ImagePreview/Uploader/Skeleton | 媒体与加载态 | 依赖动画 + 占位策略 | infra | ⏳ 计划中 |
 | 业务组件 | SubmitBar/Sku/ProductCard/Coupon/CouponCell/CountDown/Pagination/FloatingBall/FloatingPanel/WaterMark | 根据业务优先级推进 | 前置组件 | ⏳ 计划中 |

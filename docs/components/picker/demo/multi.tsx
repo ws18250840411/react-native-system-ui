@@ -6,28 +6,25 @@ const columns = [
   [
     { label: '上午', value: 'am' },
     { label: '下午', value: 'pm' },
+    { label: '晚上', value: 'night' },
   ],
-  [
-    { label: '北京', value: 'bj' },
-    { label: '上海', value: 'sh' },
-    { label: '深圳', value: 'sz' },
-  ],
+  {
+    options: [
+      { label: '北京', value: 'bj' },
+      { label: '上海', value: 'sh' },
+      { label: '深圳', value: 'sz' },
+    ],
+    defaultValue: 'sh',
+  },
 ]
 
 export default function PickerMultiDemo() {
-  const [value, setValue] = React.useState(['am', 'bj'])
-  const handleConfirm = (next: string[]) => {
-    setValue(next)
-  }
+  const [value, setValue] = React.useState(['am', 'sh'])
+
   return (
     <View style={{ gap: 16 }}>
-      <Text>选择时间段与城市</Text>
-      <Picker
-        columns={columns}
-        value={value}
-        onConfirm={(val) => handleConfirm(val as string[])}
-        onChange={(val) => setValue(val as string[])}
-      />
+      <Text>当前：{value.join(' / ')}</Text>
+      <Picker columns={columns} value={value} onChange={setValue} />
     </View>
   )
 }

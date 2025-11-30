@@ -36,6 +36,25 @@ const toStringValue = (value?: string | number | null) => {
   return typeof value === 'string' ? value : String(value)
 }
 
+const wrapAffixContent = (node: React.ReactNode, color: string): React.ReactNode | null => {
+  if (node === null || node === undefined || node === false) {
+    return null
+  }
+  if (typeof node === 'string' || typeof node === 'number') {
+    return <Text style={{ color }}>{node}</Text>
+  }
+  if (React.isValidElement(node)) {
+    return node
+  }
+  const mapped = React.Children.map(node, child => {
+    if (typeof child === 'string' || typeof child === 'number') {
+      return <Text style={{ color }}>{child}</Text>
+    }
+    return child
+  })
+  return mapped ?? null
+}
+
 export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
   const {
     label,
@@ -115,9 +134,14 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
   const resolvedInputAlign = inputAlign ?? tokens.defaults.inputAlign
   const resolvedControlAlign = controlAlign ?? tokens.defaults.controlAlign
   const textareaAutosize = autoSize ?? autosize ?? false
-  const suffixNode = suffix ?? button
+  const suffixSlot = suffix ?? button
   const helperDescription = description ?? intro
   const resolvedPressHandler = onPress ?? onClick
+  const prefixNode = React.useMemo(() => wrapAffixContent(prefix, tokens.colors.prefix), [prefix, tokens.colors.prefix])
+  const suffixNode = React.useMemo(
+    () => wrapAffixContent(suffixSlot, tokens.colors.suffix),
+    [suffixSlot, tokens.colors.suffix],
+  )
 
   const isControlled = valueProp !== undefined
   const [internalValue, setInternalValue] = React.useState<string>(toStringValue(defaultValue))
@@ -360,9 +384,9 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
     if (!showWordLimit) return null
     const currentCount = inputValue.length
     const content =
-      typeof showWordLimit === function
+      typeof showWordLimit === 'function'
         ? showWordLimit({ currentCount, maxLength })
-        : typeof maxLength === number && maxLength > 0
+        : typeof maxLength === 'number' && maxLength > 0
           ? `${currentCount}/${maxLength}`
           : `${currentCount}`
 
@@ -372,7 +396,7 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
 
     const wrapperStyle = {
       marginTop: tokens.spacing.counterMarginTop,
-      alignSelf: flex-end as const,
+      alignSelf: 'flex-end' as const,
     }
 
     if (React.isValidElement(content)) {
@@ -404,7 +428,9 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
       <View style={[styles.row, center && styles.rowCenter]}>
         {renderLabel()}
         <View style={bodyStyle}>
-          {prefix ? <View style={[styles.affix, { marginRight: tokens.spacing.prefixGap }]}>{prefix}</View> : null}
+          {prefixNode ? (
+            <View style={[styles.affix, { marginRight: tokens.spacing.prefixGap }]}>{prefixNode}</View>
+          ) : null}
           {renderIcon(leftIcon, onClickLeftIcon)}
           <TextInput
             ref={mergedRef}
