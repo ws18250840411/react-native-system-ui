@@ -1,6 +1,6 @@
 import React from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
-import { Platform, Pressable, View } from 'react-native'
+import { Platform, Pressable, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import type {
@@ -156,9 +156,13 @@ export const Space: React.FC<SpaceProps> = props => {
       }
     }
 
+    const child = typeof node === 'string' || typeof node === 'number'
+      ? <Text>{node}</Text>
+      : node
+
     return (
       <View key={index} style={itemStyle}>
-        {node}
+        {child}
       </View>
     )
   }

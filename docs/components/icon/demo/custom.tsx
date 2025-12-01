@@ -1,19 +1,29 @@
 import React from 'react'
-import { Svg, Circle } from 'react-native-svg'
+import { View } from 'react-native'
 
 import { Icon, Typography } from 'react-native-system-ui'
 
-const Ring = ({ size = 24, color = '#3b82f6' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24">
-    <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} fill="none" />
-  </Svg>
+const Dot = ({ size = 24, color = '#3b82f6' }: { size?: number; color?: string }) => (
+  <View
+    style={{
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      borderWidth: 2,
+      borderColor: color,
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+  >
+    <View style={{ width: size / 3, height: size / 3, backgroundColor: color, borderRadius: size / 6 }} />
+  </View>
 )
 
 export default () => (
   <>
     <Typography.Text>
-      可以通过 `component` 或 `children` 传入任意 `react-native-svg` 图形，例如：
+      可以通过 `component` 传入自定义图形（任意 React 元素），例如：
     </Typography.Text>
-    <Icon component={Ring} size={32} color="#ef4444" />
+    <Icon component={Dot} size={32} color="#ef4444" />
   </>
 )

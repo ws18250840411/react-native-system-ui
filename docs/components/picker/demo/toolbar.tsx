@@ -20,9 +20,9 @@ export default function PickerToolbarDemo() {
         columns={columns}
         value={value}
         onChange={setValue}
-        confirmButtonText=完成
-        cancelButtonText=返回
-        toolbarPosition=bottom
+        confirmButtonText="完成"
+        cancelButtonText="返回"
+        toolbarPosition="bottom"
       />
     </View>
   )

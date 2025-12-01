@@ -45,12 +45,12 @@
 | Checkbox/Radio/Switch | 组态与单选/多选控件 | Checkbox/Radio/Switch 均完成 tokens hook + 文档/单测 | hooks | ✅ 完成（2025-11-28） |
 | Stepper/Rate/Selector/NumberKeyboard | 数值/评分/多选 | Stepper/Rate/Selector + NumberKeyboard 全面交付（补齐 Portal/文档 demo） | 前置组件 | ✅ 完成（2025-11-30） |
 | Search | Search 组件（键盘搜索 + 取消按钮 + 自定义操作） | 依赖 Field | Field | ✅ 完成（2025-11-29） |
-| Tabs/Tabbar/NavBar/Sidebar/IndexBar/Sticky | 导航体系 | 依赖手势 & Scroll 监听 | gesture kit | ⏳ 计划中 |
-| ActionSheet/ShareSheet/DropdownMenu/Popover | 弹层扩展 | 依赖 Overlay 栈 | overlay | ⏳ 计划中 |
-| Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | Picker、DatetimePicker、Calendar、Cascader 已交付（多列/联动/时间/级联），Area 待续 | aria hooks | ⏳ 进行中 |
-| List/PullRefresh/SwipeCell/Swiper | 滚动与手势组件 | 依赖 gesture kit | gesture kit | ⏳ 计划中 |
-| Image/ImagePreview/Uploader/Skeleton | 媒体与加载态 | 依赖动画 + 占位策略 | infra | ⏳ 计划中 |
-| 业务组件 | SubmitBar/Sku/ProductCard/Coupon/CouponCell/CountDown/Pagination/FloatingBall/FloatingPanel/WaterMark | 根据业务优先级推进 | 前置组件 | ⏳ 计划中 |
+| Tabs/Tabbar/NavBar/Sidebar/IndexBar/Sticky | 导航体系（useGestureScroll / useStickyObserver + Sticky + Tabs + Tabbar + NavBar + Sidebar + IndexBar 首版已交付） | 依赖手势 & Scroll 监听 | gesture kit | ✅ 完成（2025-12-01） |
+| ActionSheet/ShareSheet/DropdownMenu/Popover | 弹层扩展（ActionSheet + ShareSheet + DropdownMenu + Popover 全部交付） | 依赖 Overlay 栈 | overlay | ✅ 完成（2025-12-01） |
+| Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | Picker、DatetimePicker、Calendar、Cascader、Area 全部交付（多列/联动/时间/级联/省市区） | aria hooks | ✅ 完成 |
+| List/PullRefresh | 滚动与手势组件（List + PullRefresh 已交付） | 依赖 gesture kit | gesture kit | ⏳ 进行中（2025-12-01） |
+| Image/ImagePreview/Uploader/Skeleton | 媒体与加载态（Image、ImagePreview、Uploader、Skeleton ✅） | 依赖动画 + 占位策略 | infra | ✅ 完成（2025-12-01，Skeleton 首版交付） |
+| 业务组件 | CountDown、Pagination、FloatingBall、WaterMark 首版交付 | 根据业务优先级推进 | 前置组件 | ✅ 完成 |
 
 状态约定：✅ 完成 ｜ ⏳ 进行中 ｜ ⏳ 计划中（未开工）。
 

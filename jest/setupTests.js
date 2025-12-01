@@ -26,6 +26,9 @@ console.warn = (...args) => {
   if (typeof args[0] === 'string' && args[0].includes('pointerEvents is deprecated')) {
     return
   }
+  if (typeof args[0] === 'string' && args[0].includes('"shadow*" style props are deprecated')) {
+    return
+  }
   originalConsoleWarn(...args)
 }
 
