@@ -2,7 +2,7 @@
 
 > 让 react-vant 的体验以 React Native 方式重生。
 
-```tsx
+```tsx | pure
 import React from 'react'
 import { ThemeProvider, Button } from 'react-native-system-ui'
 

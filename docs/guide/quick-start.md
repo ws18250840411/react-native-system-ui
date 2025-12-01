@@ -12,7 +12,7 @@ yarn add react-native-system-ui
 
 ## 包裹 ThemeProvider
 
-```tsx
+```tsx | pure
 import { ThemeProvider } from 'react-native-system-ui'
 
 export const Providers = ({ children }: { children: React.ReactNode }) => (
@@ -24,7 +24,7 @@ export const Providers = ({ children }: { children: React.ReactNode }) => (
 
 ## 使用第一个组件
 
-```tsx
+```tsx | pure
 import { Button } from 'react-native-system-ui'
 
 export const Page = () => (
@@ -36,7 +36,7 @@ export const Page = () => (
 
 在大多数场景中，只需直接套用内置预设即可：
 
-```tsx
+```tsx | pure
 import { ThemeProvider, themePresets } from 'react-native-system-ui'
 
 export const DarkLayout = ({ children }: { children: React.ReactNode }) => (
@@ -48,7 +48,7 @@ export const DarkLayout = ({ children }: { children: React.ReactNode }) => (
 
 需要完全控制 tokens 时，可继续使用 `createTokens`：
 
-```tsx
+```tsx | pure
 import { ThemeProvider, createTokens } from 'react-native-system-ui'
 
 const foundations = createTokens({

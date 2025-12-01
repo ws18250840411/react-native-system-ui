@@ -1,5 +1,7 @@
 import React from 'react'
-import { DropdownMenu, Text } from 'react-native-system-ui'
+import { Text } from 'react-native'
+
+import { DropdownMenu } from 'react-native-system-ui'
 
 const options = [
   { label: '全部行业', value: 'all' },

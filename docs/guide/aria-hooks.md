@@ -12,7 +12,7 @@
 
 封装 `usePress + useHover + useFocus + useFocusRing`，返回统一的交互状态，组件无需关心不同端的事件差异。
 
-```tsx
+```tsx | pure
 import { Pressable, Text } from 'react-native'
 import { useAriaPress } from 'react-native-system-ui'
 
@@ -37,7 +37,7 @@ export const PrimaryButton = ({ disabled, text }: { disabled?: boolean; text: st
 
 基于 `useToggleState` + `useToggle` 输出 selection state 与 input props，适用于 Checkbox/Radio/Switch 等所有“可选中”交互。
 
-```tsx
+```tsx | pure
 import { useAriaToggle } from 'react-native-system-ui'
 
 export const SwitchBase = (props: any) => {
@@ -58,7 +58,7 @@ export const SwitchBase = (props: any) => {
 
 负责弹层的关闭策略（遮罩点击、BackHandler、外部点击），返回 `overlayRef + overlayProps`，供 Popup/Dialog/Toast 公用。
 
-```tsx
+```tsx | pure
 import { Animated, View } from 'react-native'
 import { useAriaOverlay } from 'react-native-system-ui'
 
@@ -82,7 +82,7 @@ export const OverlayContainer = ({ isOpen, onClose, children }) => {
 
 结合 `useListState` + `useListBox` 抽象 Picker/Dropdown 等“列表选择”场景，统一获得 `state + listBoxProps + labelProps + ref`。
 
-```tsx
+```tsx | pure
 import { FlatList, Text } from 'react-native'
 import { useAriaListBox } from 'react-native-system-ui'
 
