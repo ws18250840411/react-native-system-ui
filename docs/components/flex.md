@@ -53,6 +53,7 @@ import { Flex } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `span` | 栅格占位格数，为 0 时不渲染 | `number` | - |
-| `flex` | Flex 布局属性，直接传递 `flex` 数值 | `number \| string` | - |
+| `flex` | Flex 布局属性，支持数字或 `auto`、`none` 以及 `flex-grow flex-shrink flex-basis` 字符串写法（第三项支持 `auto` 或数字/px） | `number \| string` | - |
 
+> 示例：`flex="auto"`、`flex="0 0 auto"`、`flex="2 1 120px"`。由于 React Native 限制，目前不支持百分比等单位。  
 > React Native 环境不支持 DOM 维度的 `order`、`offset` 等属性，如需更复杂的布局可以直接使用 `View` + `StyleSheet` 来实现。

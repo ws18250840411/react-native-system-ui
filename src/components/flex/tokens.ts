@@ -18,11 +18,11 @@ export interface FlexTokens {
   }
 }
 
-const createFlexTokens = (foundations: Foundations): FlexTokens => ({
+const createFlexTokens = (_foundations: Foundations): FlexTokens => ({
   defaults: {
     direction: 'row',
     wrap: 'wrap',
-    gutter: [foundations.spacing.md, 0],
+    gutter: 0,
     align: 'start',
     justify: 'start',
     columns: 24,

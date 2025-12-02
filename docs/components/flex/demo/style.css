@@ -1,0 +1,48 @@
+.demo-flex {
+  font-size: 13px;
+  line-height: 30px;
+  color: #fff;
+}
+
+.demo-flex__row {
+  margin-bottom: 10px;
+}
+
+.demo-flex__row:last-child {
+  margin-bottom: 0;
+}
+
+.demo-flex__block,
+.demo-flex__cell {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.demo-flex__block {
+  color: #fff;
+  background-color: #3f45ff;
+}
+
+.demo-flex__block--tone-1 {
+  background-color: #3f45ff;
+}
+
+.demo-flex__block--tone-2 {
+  background-color: #4c52ff;
+}
+
+.demo-flex__block--tone-3 {
+  background-color: #5a60ff;
+}
+
+.demo-flex__block--tone-4 {
+  background-color: #686eff;
+}
+
+.demo-flex__cell {
+  background-color: #dfe4ff;
+  color: #4f5bff;
+}

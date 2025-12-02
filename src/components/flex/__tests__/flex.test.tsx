@@ -37,4 +37,38 @@ describe('Flex', () => {
     const style = StyleSheet.flatten(itemView.props.style)
     expect(style.width).toBe('50%')
   })
+
+  it('supports string flex shorthand keywords', () => {
+    const tree = renderer.create(
+      <Flex>
+        <Flex.Item flex="auto">
+          <Text>auto</Text>
+        </Flex.Item>
+      </Flex>
+    )
+
+    const views = tree.root.findAllByType(View)
+    const itemView = views[1]
+    const style = StyleSheet.flatten(itemView.props.style)
+    expect(style.flexGrow).toBe(1)
+    expect(style.flexShrink).toBe(1)
+    expect(style.flexBasis).toBe('auto')
+  })
+
+  it('parses flex grow/shrink/basis strings', () => {
+    const tree = renderer.create(
+      <Flex>
+        <Flex.Item flex="2 1 120px">
+          <Text>basis</Text>
+        </Flex.Item>
+      </Flex>
+    )
+
+    const views = tree.root.findAllByType(View)
+    const itemView = views[1]
+    const style = StyleSheet.flatten(itemView.props.style)
+    expect(style.flexGrow).toBe(2)
+    expect(style.flexShrink).toBe(1)
+    expect(style.flexBasis).toBe(120)
+  })
 })

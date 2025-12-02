@@ -11,15 +11,65 @@ export interface FlexItemProps {
   children?: React.ReactNode
 }
 
-const parseFlex = (value?: number | string) => {
+type FlexStyle = Pick<ViewStyle, 'flex' | 'flexGrow' | 'flexShrink' | 'flexBasis'>
+
+const parseFlexBasis = (value: string): FlexStyle['flexBasis'] => {
+  if (value === 'auto') {
+    return 'auto'
+  }
+
+  const pxMatch = value.match(/^(-?\d+(?:\.\d+)?)px$/)
+  if (pxMatch) {
+    return Number(pxMatch[1])
+  }
+
+  const basisNumber = Number(value)
+  return Number.isNaN(basisNumber) ? undefined : basisNumber
+}
+
+const parseFlex = (value?: number | string): FlexStyle | undefined => {
   if (value === undefined) {
     return undefined
   }
+
   if (typeof value === 'number') {
-    return value
+    return { flex: value }
   }
-  const parsed = Number(value)
-  return Number.isNaN(parsed) ? undefined : parsed
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return undefined
+  }
+
+  if (trimmed === 'auto') {
+    return { flexGrow: 1, flexShrink: 1, flexBasis: 'auto' }
+  }
+
+  if (trimmed === 'none') {
+    return { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' }
+  }
+
+  const numeric = Number(trimmed)
+  if (!Number.isNaN(numeric)) {
+    return { flex: numeric }
+  }
+
+  const parts = trimmed.split(/\s+/)
+  if (parts.length >= 2) {
+    const grow = Number(parts[0])
+    const shrink = Number(parts[1])
+
+    if (!Number.isNaN(grow) && !Number.isNaN(shrink)) {
+      const style: FlexStyle = { flexGrow: grow, flexShrink: shrink }
+      const basisInput = parts.slice(2).join(' ')
+      if (basisInput) {
+        style.flexBasis = parseFlexBasis(basisInput)
+      }
+      return style
+    }
+  }
+
+  return undefined
 }
 
 export const FlexItem: React.FC<FlexItemProps> = ({
@@ -43,12 +93,9 @@ export const FlexItem: React.FC<FlexItemProps> = ({
     widthStyle.flexShrink = 0
   }
 
-  const flexValue = parseFlex(flex)
-  if (flexValue !== undefined) {
-    widthStyle.flex = flexValue
-    if (flexValue > 0 && span === undefined) {
-      delete widthStyle.width
-    }
+  const flexStyle = parseFlex(flex)
+  if (flexStyle && span === undefined) {
+    delete widthStyle.width
   }
 
   const itemStyle: StyleProp<ViewStyle> = [
@@ -57,6 +104,7 @@ export const FlexItem: React.FC<FlexItemProps> = ({
       paddingVertical: verticalGap / 2,
     },
     widthStyle,
+    flexStyle,
     style,
   ]
 

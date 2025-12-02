@@ -1,28 +1,40 @@
 import React from 'react'
 
 import { Flex } from 'react-native-system-ui'
+import './style.css'
 
-const colors = ['#3b82f6', '#2563eb', '#1d4ed8']
+type Tone = 'tone-1' | 'tone-2' | 'tone-3' | 'tone-4'
+
+const Block = ({ label, tone }: { label: string; tone: Tone }) => (
+  <div className="demo-flex__item">
+    <div className={`demo-flex__block demo-flex__block--${tone}`}>{label}</div>
+  </div>
+)
 
 export default () => (
-  <Flex>
-    {new Array(3).fill(null).map((_, index) => (
-      <Flex.Item span={8} key={index}>
-        <div
-          style={{
-            height: 48,
-            borderRadius: 8,
-            backgroundColor: colors[index],
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontSize: 14,
-          }}
-        >
-          span: 8
-        </div>
-      </Flex.Item>
-    ))}
-  </Flex>
+  <div className="demo-flex">
+    <div className="demo-flex__row">
+      <Flex justify="center" align="center">
+        <Flex.Item span={12}>
+          <Block label="span: 12" tone="tone-1" />
+        </Flex.Item>
+        <Flex.Item span={12}>
+          <Block label="span: 12" tone="tone-2" />
+        </Flex.Item>
+      </Flex>
+    </div>
+    <div className="demo-flex__row">
+      <Flex>
+        <Flex.Item span={8}>
+          <Block label="span: 8" tone="tone-2" />
+        </Flex.Item>
+        <Flex.Item span={8}>
+          <Block label="span: 8" tone="tone-3" />
+        </Flex.Item>
+        <Flex.Item span={8}>
+          <Block label="span: 8" tone="tone-4" />
+        </Flex.Item>
+      </Flex>
+    </div>
+  </div>
 )
