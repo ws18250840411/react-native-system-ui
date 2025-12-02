@@ -22,9 +22,10 @@ const globalManager = createManager(globalStore)
 
 export interface PortalHostProps {
   children?: React.ReactNode
+  fixed?: boolean
 }
 
-export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
+export const PortalHost: React.FC<PortalHostProps> = ({ children, fixed = false }) => {
   const entries = useSyncExternalStore(globalStore.subscribe, globalStore.getSnapshot, globalStore.getSnapshot)
   const registeredRef = React.useRef(false)
 
@@ -44,21 +45,23 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
 
   return (
     <PortalContext.Provider value={globalManager}>
-      <View
-        style={[styles.container, webFixedStyle]}
-        pointerEvents="box-none"
-      >
+      <View style={styles.root}>
         {children}
-        {entries.map(entry => (
-          <React.Fragment key={entry.key}>{entry.children}</React.Fragment>
-        ))}
+        <View style={[styles.portalLayer, fixed && webFixedStyle]} pointerEvents="box-none">
+          {entries.map(entry => (
+            <React.Fragment key={entry.key}>{entry.children}</React.Fragment>
+          ))}
+        </View>
       </View>
     </PortalContext.Provider>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
+    position: 'relative',
+  },
+  portalLayer: {
     ...StyleSheet.absoluteFillObject,
   },
 })
@@ -90,7 +93,7 @@ export const ensureGlobalPortalHost = () => {
       autoHostContainer.setAttribute('data-rnsu-portal-host', 'true')
       doc.body.appendChild(autoHostContainer)
       autoHostRoot = createRoot(autoHostContainer)
-      autoHostRoot.render(<PortalHost />)
+      autoHostRoot.render(<PortalHost fixed />)
     })
     .catch(error => {
       console.warn('[Portal] 无法自动挂载 PortalHost:', error)
