@@ -166,7 +166,7 @@ export const Popup: React.FC<PopupProps> = props => {
     safeAreaInsetTop = false,
     safeAreaInsetBottom: safeAreaInsetBottomProp,
     lockScroll = true,
-    destroyOnClose = true,
+    destroyOnClose = false,
     duration = 200,
     zIndex,
     closeOnBackPress = false,
@@ -366,7 +366,10 @@ export const Popup: React.FC<PopupProps> = props => {
         style={[styles.portalRoot, resolvedZIndex ? { zIndex: resolvedZIndex } : null]}
         pointerEvents="box-none"
       >
-        <View style={[styles.container, config.container]} pointerEvents="auto">
+        <View
+          style={[styles.container, config.container]}
+          pointerEvents={visible || prevVisible.current ? 'auto' : 'none'}
+        >
           {overlay && (visible || prevVisible.current) ? (
             <AnimatedPressable
               testID={overlayTestID}

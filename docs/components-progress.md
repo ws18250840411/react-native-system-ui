@@ -2,7 +2,7 @@
 
 > 流程要求（每个组件依次完成并更新状态）：
 > 1. 对照 React Vant 的文档、API、demo，缺失项补齐；若受限于 `@react-native-aria` 等因素无法实现，在备注说明。
-> 2. 检查实现是否可精简/优化到生产级别，并按需补充测试。
+> 2. 检查代码实现是否可精简/优化到生产级别，并按需补充测试。
 > 3. 调整示例视觉使其与 React Vant 相似，必要时抽离样式。
 > 4. 核查完毕后在下列表中将状态改为 ✅，未开始/进行中用 ⏳ 并备注当前结论或阻塞。
 
@@ -21,9 +21,8 @@
 | Cell 单元格 | ✅ | 支持自定义 `value` 节点与卡片阴影，补充 onPress/children 文档并同步 demo 讲解 |
 | ConfigProvider 全局配置 | ✅ | 语言/主题 demo 对齐 React Vant，补布局样式与交互切换 |
 | Typography 文本 | ✅ | Demo 覆盖类型/尺寸/省略/链接场景并同步文案风格 |
-| Icon 图标 | ⏳ |  |
-| Image 图片 | ⏳ |  |
-| Popup 弹出层 | ⏳ |  |
+| Image 图片 | ✅ | Demo 补充填充模式/圆角/状态提示，文档同步 API 描述 |
+| Popup 弹出层 | ✅ | 与 react-vant 对齐（多方向/关闭图标/异步关闭/安全区），并把 destroyOnClose 默认改为 false |
 | Portal 传送门 | ⏳ |  |
 | Toast 轻提示 | ⏳ |  |
 

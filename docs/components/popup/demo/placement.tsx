@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Button, Popup, Space } from 'react-native-system-ui'
+import { Cell, Popup } from 'react-native-system-ui'
 
 export default () => {
   const [placement, setPlacement] = React.useState<'top' | 'bottom' | 'left' | 'right' | 'center'>('center')
@@ -12,14 +12,12 @@ export default () => {
   }
 
   return (
-    <Space direction="vertical" gap={8}>
-      <Space gap={8} wrap>
+    <>
+      <Cell.Group title="弹出位置">
         {(['top', 'bottom', 'left', 'right', 'center'] as const).map(item => (
-          <Button key={item} size="small" onPress={() => trigger(item)}>
-            {item}
-          </Button>
+          <Cell key={item} title={`${item} 弹出`} isLink onPress={() => trigger(item)} />
         ))}
-      </Space>
+      </Cell.Group>
       <Popup
         visible={visible}
         placement={placement}
@@ -27,10 +25,8 @@ export default () => {
         onClose={() => setVisible(false)}
         round
       >
-        <Button type="primary" onPress={() => setVisible(false)}>
-          当前：{placement}
-        </Button>
+        <Cell title={`当前：${placement}`} />
       </Popup>
-    </Space>
+    </>
   )
 }

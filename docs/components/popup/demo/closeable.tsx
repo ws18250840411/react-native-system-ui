@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Button, Popup, Space, Icon } from 'react-native-system-ui'
+import { Button, Popup, Space, Icon, Cell } from 'react-native-system-ui'
 
 export default () => {
   const [visible, setVisible] = React.useState<'default' | 'custom' | 'left' | null>(null)
@@ -23,17 +23,11 @@ export default () => {
 
   return (
     <>
-      <Space gap={12}>
-        <Button size="small" onPress={() => setVisible('default')}>
-          默认图标
-        </Button>
-        <Button size="small" onPress={() => setVisible('custom')}>
-          自定义图标
-        </Button>
-        <Button size="small" onPress={() => setVisible('left')}>
-          左侧图标
-        </Button>
-      </Space>
+      <Cell.Group title="关闭图标">
+        <Cell title="关闭图标" isLink onPress={() => setVisible('default')} />
+        <Cell title="自定义图标" isLink onPress={() => setVisible('custom')} />
+        <Cell title="图标位置" isLink onPress={() => setVisible('left')} />
+      </Cell.Group>
       {renderPopup('default')}
       {renderPopup('custom', {
         closeIcon: <Icon name="info" size={18} color="#111" />,

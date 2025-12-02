@@ -1,7 +1,7 @@
 import React from 'react'
 import { View } from 'react-native'
 
-import { Button, Popup, Space } from 'react-native-system-ui'
+import { Button, Popup, Cell } from 'react-native-system-ui'
 
 const Placeholder = () => (
   <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
@@ -14,7 +14,9 @@ export default () => {
 
   return (
     <>
-      <Button onPress={() => setVisible(true)}>安全区域</Button>
+      <Cell.Group title="安全区域">
+        <Cell title="底部安全区域" isLink onPress={() => setVisible(true)} />
+      </Cell.Group>
       <Popup
         visible={visible}
         placement="bottom"
