@@ -1,6 +1,7 @@
 import React from 'react'
 
-import { Button, Cell, Popup } from 'react-native-system-ui'
+import { Button, Cell, Popup, Space } from 'react-native-system-ui'
+import { StyleSheet, View } from 'react-native'
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
@@ -32,11 +33,31 @@ export default () => {
         onClose={() => setVisible(false)}
         round
       >
-        <Button type="primary" onPress={() => setVisible(false)}>
-          我知道了
-        </Button>
-        {loading ? <Button size="small" disabled style={{ marginTop: 8 }}>松手即可关闭</Button> : null}
+        <View style={styles.dialog}>
+          <Space direction="vertical" gap={16} align="center">
+            <Button type="primary" size="large" onPress={() => setVisible(false)} style={styles.button}>
+              我知道了
+            </Button>
+            {loading ? (
+              <Button size="small" disabled>
+                松手即可关闭
+              </Button>
+            ) : null}
+          </Space>
+        </View>
       </Popup>
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  dialog: {
+    minWidth: 260,
+    paddingHorizontal: 32,
+    paddingVertical: 28,
+    alignItems: 'center',
+  },
+  button: {
+    minWidth: 200,
+  },
+})

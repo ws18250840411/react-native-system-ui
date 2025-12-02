@@ -1,30 +1,36 @@
 import React from 'react'
+import { View, StyleSheet } from 'react-native'
 
 import { Cell, Popup } from 'react-native-system-ui'
 
 export default () => {
-  const [placement, setPlacement] = React.useState<'top' | 'bottom'>('bottom')
   const [visible, setVisible] = React.useState(false)
-
-  const open = (pos: 'top' | 'bottom') => {
-    setPlacement(pos)
-    setVisible(true)
-  }
 
   return (
     <>
-      <Cell.Group title="圆角">
-        <Cell title="顶部圆角" isLink onPress={() => open('top')} />
-        <Cell title="底部圆角" isLink onPress={() => open('bottom')} />
+      <Cell.Group title="圆角样式">
+        <Cell title="圆角弹窗" isLink onPress={() => setVisible(true)} />
       </Cell.Group>
       <Popup
         visible={visible}
-        placement={placement}
+        placement="bottom"
+        closeable
         round
         onClose={() => setVisible(false)}
+        style={styles.sheet}
       >
-        <Cell title={`当前：${placement}`} />
+        <View style={styles.placeholder} />
       </Popup>
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  sheet: {
+    height: 260,
+  },
+  placeholder: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+})

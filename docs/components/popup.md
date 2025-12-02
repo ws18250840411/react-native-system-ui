@@ -19,36 +19,50 @@ import { Popup } from 'react-native-system-ui'
 
 ### 基础用法
 
+通过 `visible` 与 `onClose` 受控弹层的打开/关闭状态，最常见的确认/提示面板点击 `Cell` 即可展示。为与 react-vant 保持一致，示例显式指定 `placement="center"` 并仅展示一块内容区域。
+
 <code title="基础用法" src="./popup/demo/base.tsx"></code>
 
 ### 弹出位置
+
+将 `placement`（react-vant 中为 `position`）设置为 `top`、`bottom`、`left`、`right` 即可在不同方向弹出；`center` 的场景可参考基础用法。示例与 react-vant 一样，为每个方向维护独立的弹层，并通过样式控制高度/宽度。
 
 <code title="弹出位置" src="./popup/demo/placement.tsx"></code>
 
 ### 关闭图标
 
+开启 `closeable` 后会展示默认关闭图标，可用 `closeIcon` 自定义图标节点，并用 `closeIconPosition` 控制位置。示例沿用了 react-vant 的三个场景：默认、替换图标以及左上角位置。
+
 <code title="关闭图标" src="./popup/demo/closeable.tsx"></code>
 
 ### 异步关闭
+
+`beforeClose` 在关闭前触发，可返回 `false`/`Promise<false>` 阻止关闭，用于二次确认或异步校验。回调会收到触发来源（`close-icon`、`overlay`、`close`）。
 
 <code title="异步关闭" src="./popup/demo/beforeClose.tsx"></code>
 
 ### 圆角样式
 
+设置 `round` 后会根据弹出方向自动为对应边添加圆角。示例演示了与 react-vant 相同的底部圆角弹窗，配合 `closeable` 与固定位高度的底部弹层。
+
 <code title="圆角" src="./popup/demo/round.tsx"></code>
 
 ### 安全区域
 
+通过 `safeArea` 或 `safeAreaInsetTop/Bottom` 适配刘海屏与底部 Home Indicator，确保弹层内容不被遮挡。
+
 <code title="安全区域" src="./popup/demo/safeArea.tsx"></code>
 
 ## API
+
+### Props
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `visible` | 是否显示 | `boolean` | - |
 | `placement` | 弹出位置 | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'bottom'` |
 | `overlay` | 是否显示遮罩 | `boolean` | `true` |
-| `overlayStyle` | 遮罩样式 | `StyleProp<ViewStyle>` | - |
+| `overlayStyle` | 自定义遮罩样式 | `StyleProp<ViewStyle>` | - |
 | `overlayTestID` | 遮罩测试标识 | `string` | `popup-overlay` |
 | `closeOnOverlayPress` | 点击遮罩是否关闭 | `boolean` | `true` |
 | `closeOnBackPress` | Android 返回键是否关闭 | `boolean` | `false` |
@@ -62,13 +76,26 @@ import { Popup } from 'react-native-system-ui'
 | `safeAreaInsetBottom` | 内容底部是否预留安全区 | `boolean` | `false` |
 | `lockScroll` | 是否锁定背景滚动/点击 | `boolean` | `true` |
 | `destroyOnClose` | 关闭后是否卸载内容 | `boolean` | `false` |
-| `duration` | 动画时长 (ms) | `number` | `200` |
+| `duration` | 动画时长 (ms) | `number` | `300` |
 | `zIndex` | 自定义层级 | `number` | - |
-| `beforeClose` | 关闭前回调，返回 `false` / `Promise<false>` 可阻止关闭 | `(reason: 'close-icon' \| 'overlay' \| 'close') => boolean \| Promise<boolean>` | - |
-| `onClickOverlay` | 点击遮罩时触发 | `() => void` | - |
-| `onOpen` / `onOpened` / `onClosed` | 生命周期 | `() => void` | - |
-| `onClose` | 请求关闭时触发（受控） | `() => void` | - |
+| `beforeClose` | 关闭前回调，返回 `false`/`Promise<false>` 阻止关闭 | `(reason: 'close-icon' \| 'overlay' \| 'close') => boolean \| Promise<boolean>` | - |
 | `stopPropagation` | 是否阻止内容区触发背景点击 | `boolean` | `true` |
 | 其余 | 透传至内容容器 | `ViewProps` | - |
+
+### Events
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `onClickOverlay` | 点击遮罩层时触发 | `() => void` |
+| `onClose` | 请求关闭时触发（配合受控 `visible`） | `() => void` |
+| `onOpen` | 弹层开始打开时触发 | `() => void` |
+| `onOpened` | 弹层完全打开（动画结束）时触发 | `() => void` |
+| `onClosed` | 弹层完全关闭时触发 | `() => void` |
+
+### 类型定义
+
+```ts
+import type { PopupPlacement, PopupCloseIconPosition } from 'react-native-system-ui'
+```
 
 > `beforeClose` 会收到触发来源（`close-icon`、`overlay`、`close`），可用于二次确认或异步校验。

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   View,
   useWindowDimensions,
+  type LayoutChangeEvent,
   type StyleProp,
   type ViewStyle,
   type ViewProps,
@@ -167,7 +168,7 @@ export const Popup: React.FC<PopupProps> = props => {
     safeAreaInsetBottom: safeAreaInsetBottomProp,
     lockScroll = true,
     destroyOnClose = false,
-    duration = 200,
+    duration = 300,
     zIndex,
     closeOnBackPress = false,
     closeOnPopstate = false,
@@ -188,8 +189,16 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const tokens = usePopupTokens()
   const [rendered, setRendered] = React.useState(visible)
+  const [animatedVisible, setAnimatedVisible] = React.useState(visible)
+  const [contentSize, setContentSize] = React.useState({ width: 0, height: 0 })
   const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
   const prevVisible = React.useRef(visible)
+
+  React.useEffect(() => {
+    if (visible && !animatedVisible) {
+      setAnimatedVisible(true)
+    }
+  }, [animatedVisible, visible])
 
   React.useEffect(() => {
     if (visible) {
@@ -199,30 +208,33 @@ export const Popup: React.FC<PopupProps> = props => {
       if (!prevVisible.current) {
         onOpen?.()
       }
-      Animated.timing(animated, {
-        toValue: 1,
-        duration,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start(() => {
+    }
+
+    const animation = Animated.timing(animated, {
+      toValue: visible ? 1 : 0,
+      duration,
+      easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    })
+
+    animation.start(({ finished }) => {
+      if (!finished) return
+      if (visible) {
         if (!prevVisible.current) {
           onOpened?.()
         }
-      })
-    } else {
-      Animated.timing(animated, {
-        toValue: 0,
-        duration,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }).start(() => {
+      } else {
         if (destroyOnClose) {
           setRendered(false)
         }
+        setAnimatedVisible(false)
         onClosed?.()
-      })
-    }
+      }
+    })
     prevVisible.current = visible
+    return () => {
+      animation.stop()
+    }
   }, [animated, destroyOnClose, duration, onClosed, onOpen, onOpened, rendered, visible])
 
   const requestClose = React.useCallback(
@@ -275,18 +287,23 @@ export const Popup: React.FC<PopupProps> = props => {
     },
   })
 
+  const { onLayout: overlayOnLayout, ...overlayRestProps } = overlayProps
+
   const contentInteractionProps = React.useMemo(() => {
     if (!stopPropagation) {
-      return overlayProps
+      return overlayRestProps
     }
     return {
-      ...overlayProps,
+      ...overlayRestProps,
       onStartShouldSetResponder: () => true,
     }
-  }, [overlayProps, stopPropagation])
+  }, [overlayRestProps, stopPropagation])
 
   const config = placementConfig[placement]
-  const distance = config.axis === 'x' ? windowWidth : windowHeight
+  const distance =
+    config.axis === 'x'
+      ? contentSize.width || windowWidth
+      : contentSize.height || windowHeight
   const direction = placement === 'top' || placement === 'left' ? -1 : 1
   const shouldTranslate = placement !== 'center'
 
@@ -318,15 +335,36 @@ export const Popup: React.FC<PopupProps> = props => {
   const overlayOpacity = animated.interpolate({ inputRange: [0, 1], outputRange: [0, 1] })
   const isVertical = placement === 'top' || placement === 'bottom'
   const isHorizontal = placement === 'left' || placement === 'right'
+  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = {
+    ...translateStyle,
+    opacity: animated,
+  }
+
+  const handleContentLayout = React.useCallback(
+    (event: LayoutChangeEvent) => {
+      overlayOnLayout?.(event)
+      const { width, height } = event.nativeEvent.layout
+      setContentSize(prev => {
+        if (Math.abs(prev.width - width) < 0.5 && Math.abs(prev.height - height) < 0.5) {
+          return prev
+        }
+        return { width, height }
+      })
+    },
+    [overlayOnLayout]
+  )
 
   if (!rendered) return null
 
   const hidden = !visible
 
+  const hasCustomCloseIcon = closeIcon != null
+
   const content = (
     <Animated.View
       ref={overlayRef}
       {...contentInteractionProps}
+      onLayout={handleContentLayout}
       style={[
         styles.popup,
         placement === 'center' ? styles.popupCenter : null,
@@ -336,7 +374,7 @@ export const Popup: React.FC<PopupProps> = props => {
           backgroundColor: tokens.colors.background,
           ...buildRadius(round, placement, tokens.radius.round),
         },
-        translateStyle,
+        animatedContentStyle,
         hidden ? styles.hiddenContent : null,
         style,
       ]}
@@ -345,13 +383,14 @@ export const Popup: React.FC<PopupProps> = props => {
       {closeable ? (
         <Pressable
           style={[
-            styles.closeIcon,
-            closeIconPosition === 'top-left' ? { left: 8 } : { right: 8 },
+            styles.closeIconBase,
+            closeIconPosition === "top-left" ? { left: 12 } : { right: 12 },
+            !hasCustomCloseIcon ? styles.closeIconDefault : null,
           ]}
           hitSlop={8}
-          onPress={() => requestClose('close-icon')}
+          onPress={() => requestClose("close-icon")}
         >
-          {closeIcon ?? <Icon name="close" size={18} color="#999" />}
+          {hasCustomCloseIcon ? closeIcon : <Icon name="close" size={18} color="#c8c9cc" />}
         </Pressable>
       ) : null}
       {renderWithSafeArea(children, { safeArea, safeAreaInsetTop, safeAreaInsetBottom })}
@@ -368,9 +407,9 @@ export const Popup: React.FC<PopupProps> = props => {
       >
         <View
           style={[styles.container, config.container]}
-          pointerEvents={visible || prevVisible.current ? 'auto' : 'none'}
+          pointerEvents={visible || animatedVisible ? 'auto' : 'none'}
         >
-          {overlay && (visible || prevVisible.current) ? (
+          {overlay && (visible || animatedVisible) ? (
             <AnimatedPressable
               testID={overlayTestID}
               style={[
@@ -387,7 +426,7 @@ export const Popup: React.FC<PopupProps> = props => {
               }}
             />
           ) : null}
-          {!overlay && lockScroll && (visible || prevVisible.current) ? (
+          {!overlay && lockScroll && (visible || animatedVisible) ? (
             <View
               style={styles.lockLayer}
               pointerEvents="auto"
@@ -439,10 +478,19 @@ const styles = StyleSheet.create({
     minWidth: 260,
     maxWidth: 360,
   },
-  closeIcon: {
+  closeIconBase: {
     position: 'absolute',
-    top: 8,
+    top: 12,
     zIndex: 1,
+    minWidth: 36,
+    minHeight: 36,
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeIconDefault: {
+    width: 36,
+    height: 36,
   },
   lockLayer: {
     ...StyleSheet.absoluteFillObject,

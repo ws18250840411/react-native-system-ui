@@ -1,23 +1,27 @@
 import React from 'react'
+import { View, Text, StyleSheet } from 'react-native'
 
-import { Button, Popup, Space, Icon, Cell } from 'react-native-system-ui'
+import { Popup, Icon, Cell } from 'react-native-system-ui'
+
+type DemoType = 'default' | 'custom' | 'left' | null
 
 export default () => {
-  const [visible, setVisible] = React.useState<'default' | 'custom' | 'left' | null>(null)
+  const [visible, setVisible] = React.useState<DemoType>(null)
 
-  const renderPopup = (type: typeof visible, extraProps?: React.ComponentProps<typeof Popup>) => (
+  const renderPopup = (type: Exclude<DemoType, null>, extraProps?: React.ComponentProps<typeof Popup>) => (
     <Popup
       key={type}
       visible={visible === type}
+      placement="bottom"
       closeable
-      onClose={() => setVisible(null)}
-      placement="center"
       round
+      onClose={() => setVisible(null)}
+      style={styles.sheet}
       {...extraProps}
     >
-      <Space direction="vertical" gap={12}>
-        <Button onPress={() => setVisible(null)}>关闭</Button>
-      </Space>
+      <View style={styles.placeholder}>
+        <Text style={styles.text}>内容</Text>
+      </View>
     </Popup>
   )
 
@@ -25,14 +29,28 @@ export default () => {
     <>
       <Cell.Group title="关闭图标">
         <Cell title="关闭图标" isLink onPress={() => setVisible('default')} />
-        <Cell title="自定义图标" isLink onPress={() => setVisible('custom')} />
+        <Cell title="自定义关闭图标" isLink onPress={() => setVisible('custom')} />
         <Cell title="图标位置" isLink onPress={() => setVisible('left')} />
       </Cell.Group>
       {renderPopup('default')}
-      {renderPopup('custom', {
-        closeIcon: <Icon name="info" size={18} color="#111" />,
-      })}
+      {renderPopup('custom', { closeIcon: <Text>关闭</Text> })}
       {renderPopup('left', { closeIconPosition: 'top-left' })}
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  sheet: {
+    height: 260,
+  },
+  placeholder: {
+    flex: 1,
+    paddingTop: 48,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  text: {
+    fontSize: 16,
+    color: '#111',
+  },
+})
