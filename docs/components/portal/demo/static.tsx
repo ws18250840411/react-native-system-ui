@@ -1,16 +1,18 @@
-import React from "react"
-import { StyleSheet, Text, View } from "react-native"
+import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
-import { Button, Portal } from "react-native-system-ui"
+import { Cell, Portal } from 'react-native-system-ui'
 
 export default function PortalStaticDemo() {
   const keyRef = React.useRef<number | null>(null)
 
   const showToast = () => {
     const key = Portal.add(
-      <View style={styles.toast}>
-        <Text style={styles.toastText}>通过 Portal.add 插入节点</Text>
-      </View>,
+      <View pointerEvents="box-none" style={StyleSheet.absoluteFillObject}>
+        <View style={styles.toast}>
+          <Text style={styles.toastText}>通过 Portal.add 插入节点</Text>
+        </View>
+      </View>
     )
     keyRef.current = key
     setTimeout(() => {
@@ -30,24 +32,33 @@ export default function PortalStaticDemo() {
   }, [])
 
   return (
-    <Portal.Host>
-      <Button text="Portal.add 显示提示" type="success" onPress={showToast} />
-    </Portal.Host>
+    <View style={styles.stage}>
+      <Portal.Host fixed>
+        <Cell.Group title="静态调用">
+          <Cell title="Portal.add 显示提示" isLink onPress={showToast} />
+        </Cell.Group>
+      </Portal.Host>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  stage: {
+    minHeight: 200,
+    justifyContent: 'center',
+  },
   toast: {
-    position: "absolute",
-    bottom: 40,
-    left: 20,
-    right: 20,
-    padding: 16,
+    position: 'absolute',
+    bottom: 60,
+    left: 24,
+    right: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: 'rgba(0,0,0,0.85)',
   },
   toastText: {
-    color: "#fff",
-    textAlign: "center",
+    color: '#fff',
+    textAlign: 'center',
   },
 })

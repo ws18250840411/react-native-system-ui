@@ -1,49 +1,72 @@
-import React from "react"
-import { StyleSheet, View } from "react-native"
+import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
-import { Button, Portal } from "react-native-system-ui"
+import { Button, Cell, Portal } from 'react-native-system-ui'
 
 export default function PortalMultipleDemo() {
-  const [firstVisible, setFirstVisible] = React.useState(false)
-  const [secondVisible, setSecondVisible] = React.useState(false)
+  const [tipVisible, setTipVisible] = React.useState(false)
+  const [confirmVisible, setConfirmVisible] = React.useState(false)
 
   return (
-    <Portal.Host>
-      <View style={styles.actions}>
-        <Button text="显示提示层" onPress={() => setFirstVisible(true)} />
-        <Button text="显示确认层" type="primary" onPress={() => setSecondVisible(true)} />
-      </View>
+    <View style={styles.stage}>
+      <Portal.Host fixed>
+        <Cell.Group title="多个浮层">
+          <Cell title="显示提示层" isLink onPress={() => setTipVisible(true)} />
+          <Cell title="显示确认层" isLink onPress={() => setConfirmVisible(true)} />
+        </Cell.Group>
 
-      {firstVisible ? (
-        <Portal>
-          <View style={[styles.overlay, { backgroundColor: "rgba(15,23,42,0.35)" }]}
-          >
-            <Button text="关闭提示层" onPress={() => setFirstVisible(false)} />
-          </View>
-        </Portal>
-      ) : null}
-
-      {secondVisible ? (
-        <Portal>
-          <View style={[styles.overlay, { backgroundColor: "rgba(0,0,0,0.55)" }]}
-          >
-            <Button text="关闭确认层" type="danger" onPress={() => setSecondVisible(false)} />
-          </View>
-        </Portal>
-      ) : null}
-    </Portal.Host>
+        {(tipVisible || confirmVisible) && (
+          <Portal>
+            <View pointerEvents="box-none" style={StyleSheet.absoluteFillObject}>
+              {tipVisible ? (
+                <View style={[styles.toast, styles.tipToast]}>
+                  <Text style={styles.toastText}>这里是提示层</Text>
+                  <Button size="mini" onPress={() => setTipVisible(false)}>
+                    关闭提示层
+                  </Button>
+                </View>
+              ) : null}
+              {confirmVisible ? (
+                <View style={[styles.toast, styles.confirmToast]}>
+                  <Text style={styles.toastText}>这里是确认层</Text>
+                  <Button size="mini" type="primary" onPress={() => setConfirmVisible(false)}>
+                    关闭确认层
+                  </Button>
+                </View>
+              ) : null}
+            </View>
+          </Portal>
+        )}
+      </Portal.Host>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  actions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
+  stage: {
+    minHeight: 360,
+    justifyContent: 'center',
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
+  toast: {
+    position: 'absolute',
+    left: 24,
+    right: 24,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#1c1c1e',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  tipToast: {
+    top: 120,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+  },
+  confirmToast: {
+    top: 200,
+    backgroundColor: '#1d4ed8',
+  },
+  toastText: {
+    color: '#fff',
+    fontSize: 14,
   },
 })
