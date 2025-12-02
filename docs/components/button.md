@@ -15,11 +15,13 @@ simulator:
 import { Button } from 'react-native-system-ui'
 ```
 
+> `Button` 同时支持 `text` 属性和 `children`。若未传 `text`，组件会直接渲染 `children` 节点，也支持在 loading 时通过 `loadingText` 覆盖显示内容。
+
 ## 代码演示
 
 ### 按钮类型
 
-按钮支持 `default`、`primary`、`info`、`warning`、`danger` 五种类型，默认为 `default`。
+按钮支持 `default`、`primary`、`info`、`warning`、`danger`、`success` 六种类型，默认为 `default`。
 
 <code src="./button/demo/type.tsx" title="按钮类型"></code>
 
@@ -89,9 +91,9 @@ import { Button } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 类型，可选值为 `default` `primary` `info` `warning` `danger` | `ButtonType` | `default` |
+| `type` | 类型，可选值为 `default` `primary` `info` `warning` `danger` `success` | `ButtonType` | `default` |
 | `size` | 尺寸，可选值为 `large` `normal` `small` `mini` | `ButtonSize` | `normal` |
-| `text` | 按钮文字 | `ReactNode` | - |
+| `text` | 按钮文字，未传时可直接通过 `children` 传入 | `ReactNode` | - |
 | `color` | 按钮颜色，支持传入 `linear-gradient` 渐变色 | `string` | - |
 | `textColor` | 自定义文字颜色 | `string` | 自动推导 |
 | `icon` | 按钮图标，支持函数 `(color, size) => ReactNode` | `ReactNode \| (color: string, size: number) => ReactNode` | - |
@@ -109,6 +111,14 @@ import { Button } from 'react-native-system-ui'
 | `loadingSize` | 加载图标尺寸，等同于 `ActivityIndicator` 的 `size` | `'small' \| 'large' \| number` | `'small'` |
 | `loadingIndicator` | 自定义加载指示器 | `ReactNode` | `ActivityIndicator` |
 | `autoInsertSpace` | 是否为两个中文字符自动插入空格 | `boolean` | `true` |
+
+> React Native 环境渲染 `linear-gradient` 字符串时会自动退化为首个颜色值，如需原生渐变可搭配第三方渐变组件。
+
+### 事件
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `onPress` | 点击按钮且按钮未处于加载/禁用状态时触发 | `PressableProps['onPress']` |
 
 ### Button.Group Props
 

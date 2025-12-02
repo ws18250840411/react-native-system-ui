@@ -223,45 +223,20 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         return null
       }
 
-      if (typeof label === 'string') {
-        const content = ensureSpace(label, autoInsertSpace)
-        return (
-          <Text
-            style={[
-              buttonStyles.text,
-              {
-                fontFamily: foundations.typography.fontFamily,
-                fontSize: sizeTokens.fontSize,
-                lineHeight:
-                  sizeTokens.fontSize * foundations.typography.lineHeightMultiplier,
-                color: baseTextColor,
-              },
-              textStyle,
-            ]}
-            numberOfLines={1}
-          >
-            {content}
-          </Text>
-        )
+      const sharedTextStyle = {
+        fontFamily: foundations.typography.fontFamily,
+        fontSize: sizeTokens.fontSize,
+        lineHeight: sizeTokens.fontSize * foundations.typography.lineHeightMultiplier,
+        color: baseTextColor,
       }
 
-      if (typeof label === 'number') {
+      if (typeof label === 'string' || typeof label === 'number') {
+        const content =
+          typeof label === 'string' ? ensureSpace(label, autoInsertSpace) : String(label)
+
         return (
-          <Text
-            style={[
-              buttonStyles.text,
-              {
-                fontFamily: foundations.typography.fontFamily,
-                fontSize: sizeTokens.fontSize,
-                lineHeight:
-                  sizeTokens.fontSize * foundations.typography.lineHeightMultiplier,
-                color: baseTextColor,
-              },
-              textStyle,
-            ]}
-            numberOfLines={1}
-          >
-            {label}
+          <Text style={[buttonStyles.text, sharedTextStyle, textStyle]} numberOfLines={1}>
+            {content}
           </Text>
         )
       }
