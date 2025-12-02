@@ -66,10 +66,10 @@ import { Space } from 'react-native-system-ui'
 | `size` | 间距大小，支持预设 `mini` `small` `normal` `large`，也接受数字或像素字符串，数组形式可分别指定水平/垂直 | `SpaceGap \| SpaceSizePreset` | `normal` |
 | `gap` | 自定义间距，语义同 `size`，优先级更高 | `number \| string \| [number \| string, number \| string]` | - |
 | `justify` | 主轴对齐方式 | `'start' \| 'end' \| 'center' \| 'between' \| 'around' \| 'evenly' \| 'stretch'` | `'start'` |
-| `align` | 交叉轴对齐方式 | `'start' \| 'end' \| 'center' \| 'baseline'` | `'center'` |
+| `align` | 交叉轴对齐方式 | `'start' \| 'end' \| 'center' \| 'baseline' \| 'stretch'` | `'center'`（`direction="vertical"` 时默认为 `stretch`） |
 | `direction` | 间距方向 | `'horizontal' \| 'vertical'` | `'horizontal'` |
 | `wrap` | 是否自动换行，仅在水平方向生效 | `boolean` | `false` |
-| `block` | 是否渲染为块级元素 | `boolean` | `false` |
+| `block` | 是否渲染为块级元素（`direction="vertical"` 未显式设置时会自动占满一行） | `boolean` | `false` |
 | `fill` | 子元素是否占满主轴空间 | `boolean` | `false` |
 | `divider` | 分隔符 | `ReactNode` | - |
 | `onClick` | 点击时触发 | `ViewProps['onTouchEnd']` | - |

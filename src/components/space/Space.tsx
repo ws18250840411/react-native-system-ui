@@ -139,26 +139,26 @@ export const Space: React.FC<SpaceProps> = props => {
     } else if (isDivider) {
       itemStyle.marginHorizontal = isHorizontal ? horizontalGap / 2 : 0
       itemStyle.marginVertical = !isHorizontal ? verticalGap / 2 : 0
+    } else if (isHorizontal) {
+      itemStyle.marginRight = wrap || divider ? horizontalGap : isLastContent ? 0 : horizontalGap
+      itemStyle.marginBottom = verticalGap
     } else {
-      if (isHorizontal) {
-        itemStyle.marginRight = wrap || divider ? horizontalGap : isLastContent ? 0 : horizontalGap
-        itemStyle.marginBottom = verticalGap
-        if (fill) {
-          itemStyle.flexGrow = 1
-          itemStyle.flexBasis = 0
-          itemStyle.minWidth = 0
-        }
-      } else {
-        itemStyle.marginBottom = isLastContent ? 0 : verticalGap
-        if (fill || shouldBlock) {
-          itemStyle.width = '100%'
-        }
+      itemStyle.marginBottom = isLastContent ? 0 : verticalGap
+    }
+
+    if (!isDivider) {
+      if (isHorizontal && fill) {
+        itemStyle.flexGrow = 1
+        itemStyle.flexBasis = 0
+        itemStyle.minWidth = 0
+      }
+      if (!isHorizontal && (fill || shouldBlock)) {
+        itemStyle.width = '100%'
       }
     }
 
-    const child = typeof node === 'string' || typeof node === 'number'
-      ? <Text>{node}</Text>
-      : node
+    const child =
+      typeof node === 'string' || typeof node === 'number' ? <Text>{node}</Text> : node
 
     return (
       <View key={index} style={itemStyle}>
