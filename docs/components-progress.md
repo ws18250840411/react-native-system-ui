@@ -18,7 +18,7 @@
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
 | Button 按钮 | ✅ | 对齐成功类型/事件说明，demo 使用统一样式并覆盖渐变、自定义色等场景 |
-| Cell 单元格 | ⏳ |  |
+| Cell 单元格 | ✅ | 支持自定义 `value` 节点与卡片阴影，补充 onPress/children 文档并同步 demo 讲解 |
 | ConfigProvider 全局配置 | ⏳ |  |
 | Typography 文本 | ⏳ |  |
 | Icon 图标 | ⏳ |  |
@@ -63,6 +63,7 @@
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
+| Avatar 头像 | ✅ | 新增头像组件（图片/文本/徽标/尺寸），示例与 Ant Design Mobile 对齐 |
 | Badge 徽标 | ⏳ |  |
 | Collapse 折叠面板 | ⏳ |  |
 | CountDown 倒计时 | ⏳ |  |

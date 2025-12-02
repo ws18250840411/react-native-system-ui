@@ -1,6 +1,7 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
+import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { CellGroupContext } from './CellContext'
 import type { CellGroupProps } from './types'
 import { useCellTokens } from './tokens'
@@ -8,10 +9,7 @@ import { useCellTokens } from './tokens'
 const styles = StyleSheet.create({
   container: {},
   title: {},
-  body: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
+  body: {},
   inset: {
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
@@ -31,7 +29,7 @@ export const CellGroup: React.FC<CellGroupProps> = ({
 
   const containerStyle = [
     styles.container,
-    { marginBottom: tokens.group.marginBottom },
+    { marginBottom: card ? 0 : tokens.group.marginBottom },
     style,
   ]
   const titleStyle = [
@@ -46,26 +44,48 @@ export const CellGroup: React.FC<CellGroupProps> = ({
   const showInset = inset || card
   const bodyStyles = [
     styles.body,
+    border && inset && {
+      borderColor: tokens.border.color,
+      borderTopWidth: tokens.border.width,
+      borderBottomWidth: tokens.border.width,
+    },
     {
       backgroundColor: tokens.group.bodyBackground,
-      borderColor: tokens.border.color,
     },
     showInset && styles.inset,
     showInset && {
       borderColor: tokens.border.color,
       borderRadius: tokens.group.insetRadius,
-      marginHorizontal: tokens.group.insetMarginHorizontal,
+      marginHorizontal: inset ? tokens.group.insetMarginHorizontal : 0,
       backgroundColor: tokens.container.background,
     },
+    card
+      ? createPlatformShadow({
+          color: tokens.group.cardShadow.color,
+          opacity: tokens.group.cardShadow.opacity,
+          radius: tokens.group.cardShadow.radius,
+          offsetY: tokens.group.cardShadow.offsetY,
+          elevation: tokens.group.cardShadow.elevation,
+        })
+      : null,
     bodyStyle,
   ]
 
+  const childArray = React.Children.toArray(children)
+
   return (
-    <CellGroupContext.Provider value={{ border, inset: inset || card }}>
-      <View style={containerStyle}>
-        {title ? <Text style={titleStyle}>{title}</Text> : null}
-        <View style={bodyStyles}>{children}</View>
+    <View style={containerStyle}>
+      {title ? <Text style={titleStyle}>{title}</Text> : null}
+      <View style={bodyStyles}>
+        {childArray.map((child, index) => (
+          <CellGroupContext.Provider
+            key={index}
+            value={{ border, inset: inset || card, isLast: index === childArray.length - 1 }}
+          >
+            {child}
+          </CellGroupContext.Provider>
+        ))}
       </View>
-    </CellGroupContext.Provider>
+    </View>
   )
 }

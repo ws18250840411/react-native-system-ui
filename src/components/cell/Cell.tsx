@@ -26,12 +26,28 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 24,
   },
   value: {
     textAlign: 'right',
   },
   valueOnly: {
     textAlign: 'left',
+  },
+  valueContainer: {
+    flexShrink: 1,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
+  },
+  valueOnlyContainer: {
+    alignItems: 'flex-start',
+  },
+  valueCenter: {
+    justifyContent: 'center',
+  },
+  iconWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })
 
@@ -70,8 +86,9 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
 
   const tokens = useCellTokens()
   const group = React.useContext(CellGroupContext)
+  const onlyValue = !title && !children
 
-  const showBorder = border && group.border
+  const showBorder = border && group.border && !group.isLast
   const showArrow = (isLink ?? false) || clickable
 
   const isInteractive = (clickable || showArrow || typeof onPress === 'function') && !disabled
@@ -96,25 +113,35 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
 
   const renderValue = () => {
     if (value !== undefined) {
-      return (
-        <Text
-          style={[
-            styles.value,
-            {
-              color: tokens.typography.valueColor,
-              fontSize: tokens.typography.valueSize,
-            },
-            !title && !children && styles.valueOnly,
-            valueStyle,
-          ]}
-          numberOfLines={1}
-        >
-          {value}
-        </Text>
-      )
+      if (typeof value === 'string' || typeof value === 'number') {
+        return (
+          <Text
+            style={[
+              styles.value,
+              onlyValue && styles.valueOnly,
+              {
+                color: tokens.typography.valueColor,
+                fontSize:
+                  size === 'large'
+                    ? tokens.typography.largeValueSize
+                    : tokens.typography.valueSize,
+              },
+              valueStyle,
+            ]}
+            numberOfLines={1}
+          >
+            {value}
+          </Text>
+        )
+      }
+      return <>{value}</>
     }
     if (children) {
-      return <View style={contentStyle}>{children}</View>
+      return (
+        <View style={[{ justifyContent: center ? 'center' : 'flex-start' }, contentStyle]}>
+          {children}
+        </View>
+      )
     }
     return null
   }
@@ -122,7 +149,18 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
   const renderBody = () => (
     <>
       {icon ? (
-        <View style={{ marginRight: tokens.spacing.iconGap }}>{icon}</View>
+        <View
+          style={[
+            styles.iconWrapper,
+            {
+              marginRight: tokens.spacing.iconGap,
+              height: tokens.icon.size,
+              width: tokens.icon.size,
+            },
+          ]}
+        >
+          {icon}
+        </View>
       ) : null}
       <View style={styles.body}>
         {(title || required) && (
@@ -142,8 +180,12 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
                 style={[
                   {
                     color: tokens.typography.titleColor,
-                    fontSize: tokens.typography.titleSize,
+                    fontSize:
+                      size === 'large'
+                        ? tokens.typography.largeTitleSize
+                        : tokens.typography.titleSize,
                     fontWeight: tokens.typography.titleWeight,
+                    lineHeight: tokens.typography.lineHeight,
                   },
                   titleStyle,
                 ]}
@@ -160,7 +202,11 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
               {
                 marginTop: tokens.spacing.labelMarginTop,
                 color: tokens.typography.labelColor,
-                fontSize: tokens.typography.labelSize,
+                fontSize:
+                  size === 'large'
+                    ? tokens.typography.largeLabelSize
+                    : tokens.typography.labelSize,
+                lineHeight: tokens.typography.lineHeight - 2,
               },
               labelStyle,
             ]}
@@ -170,8 +216,36 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
           </Text>
         ) : null}
       </View>
-      <View style={{ marginLeft: tokens.spacing.valueGap, flexShrink: 1 }}>
-        {renderValue()}
+      <View
+        style={[
+          styles.valueContainer,
+          { marginLeft: tokens.spacing.valueGap },
+          onlyValue && styles.valueOnlyContainer,
+          center && styles.valueCenter,
+        ]}
+      >
+        {value !== undefined && typeof value === 'string' ? (
+          <Text
+            style={[
+              styles.value,
+              onlyValue && styles.valueOnly,
+              {
+                color: tokens.typography.valueColor,
+                fontSize:
+                  size === 'large'
+                    ? tokens.typography.largeValueSize
+                    : tokens.typography.valueSize,
+                lineHeight: tokens.typography.lineHeight,
+              },
+              valueStyle,
+            ]}
+            numberOfLines={1}
+          >
+            {value}
+          </Text>
+        ) : (
+          renderValue()
+        )}
       </View>
       {extra ? (
         <View style={{ marginLeft: tokens.spacing.extraGap }}>{extra}</View>
@@ -179,10 +253,10 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
       {rightIcon
         ? rightIcon
         : showArrow && (
-            <View style={arrowTransforms[arrowDirection]}> 
-              <Arrow size={tokens.arrow.size} color={tokens.arrow.color} />
-            </View>
-          )}
+          <View style={arrowTransforms[arrowDirection]}>
+            <Arrow size={tokens.arrow.size} color={tokens.arrow.color} />
+          </View>
+        )}
     </>
   )
 

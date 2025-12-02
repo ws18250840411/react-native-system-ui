@@ -9,7 +9,7 @@ export default () => {
           center
           key={idx}
           title={`Avatar ${idx}`}
-          label='Deserunt dolor ea eaque eos'
+          label='Deserunt dolor'
           icon={<Image width={44} height={44} src='/demo_1.jpg' round />}
           isLink
         />

@@ -37,6 +37,9 @@ export interface CellTokens {
     color: string
     size: number
   }
+  icon: {
+    size: number
+  }
   group: {
     marginBottom: number
     titleColor: string
@@ -46,6 +49,13 @@ export interface CellTokens {
     bodyBackground: string
     insetRadius: number
     insetMarginHorizontal: number
+    cardShadow: {
+      color: string
+      opacity: number
+      radius: number
+      offsetY: number
+      elevation: number
+    }
   }
 }
 
@@ -53,10 +63,10 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
   return {
     container: {
-      background: palette.default[50],
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.lg,
-      largePaddingVertical: spacing.lg,
+      background: '#ffffff',
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      largePaddingVertical: 14,
     },
     spacing: {
       iconGap: spacing.sm,
@@ -65,12 +75,16 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       labelMarginTop: spacing.xs,
     },
     typography: {
-      titleSize: fontSize.md,
+      titleSize: fontSize.sm,
+      lineHeight: 24,
       titleColor: palette.default[800],
       titleWeight: typography.weight.medium,
-      labelSize: fontSize.sm,
+      largeTitleSize: fontSize.lg,
+      labelSize: fontSize.xs,
+      largeLabelSize: fontSize.sm,
       labelColor: palette.default[500],
-      valueSize: fontSize.md,
+      valueSize: fontSize.sm,
+      largeValueSize: fontSize.md,
       valueColor: palette.default[600],
       requiredColor: palette.danger[500],
     },
@@ -82,15 +96,25 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       color: palette.default[400],
       size: 16,
     },
+    icon: {
+      size: 24,
+    },
     group: {
       marginBottom: spacing.md,
       titleColor: palette.default[500],
       titleSize: fontSize.sm,
       titlePaddingHorizontal: spacing.lg,
       titlePaddingVertical: spacing.sm,
-      bodyBackground: palette.default[50],
+      bodyBackground: '#ffffff',
       insetRadius: radii.lg,
       insetMarginHorizontal: spacing.lg,
+      cardShadow: {
+        color: '#0f1a38',
+        opacity: 0.08,
+        radius: 12,
+        offsetY: 6,
+        elevation: 4,
+      },
     },
   }
 }

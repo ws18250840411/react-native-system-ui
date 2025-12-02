@@ -125,6 +125,7 @@ export default defineConfig({
       {
         title: '展示组件',
         children: [
+          '/components/avatar',
           '/components/badge',
           '/components/collapse',
           '/components/count-down',

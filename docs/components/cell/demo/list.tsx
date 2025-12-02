@@ -1,11 +1,25 @@
 import React from 'react'
 
 import { Cell } from 'react-native-system-ui'
-import { FriendsO } from '@react-vant/icons'
+import './style.css'
+
+const Avatar = ({ index }: { index: number }) => (
+  <div className="demo-cell__avatar">{index}</div>
+)
 
 export default () => (
-  <Cell.Group>
-    <Cell title="联系人" label="张三" icon={<FriendsO />} value="138****8888" isLink />
-    <Cell title="联系人" label="李四" icon={<FriendsO />} value="139****0000" isLink />
-  </Cell.Group>
+  <div className="demo-cell__section">
+    <Cell.Group>
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Cell
+          key={index}
+          center
+          title={`Avatar ${index}`}
+          label="Deserunt dolor"
+          icon={<Avatar width={40} height={40} index={index} />}
+          isLink
+        />
+      ))}
+    </Cell.Group>
+  </div>
 )

@@ -15,6 +15,8 @@ simulator:
 import { Cell } from 'react-native-system-ui'
 ```
 
+> `Cell` 底层基于 `Pressable` 封装，除本文列出的属性外，也可透传 `onPress` 等交互事件。
+
 ## 代码演示
 
 ### 基础用法
@@ -93,12 +95,12 @@ import { Cell } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `title` | 左侧标题 | `ReactNode` | - |
-| `value` | 右侧内容 | `ReactNode` | - |
+| `value` | 右侧内容，支持字符串、数字或任意 `ReactNode`（节点会根据布局自动向左/右对齐） | `ReactNode` | - |
 | `label` | 标题下方的描述信息 | `ReactNode` | - |
 | `extra` | 自定义单元格最右侧的额外内容 | `ReactNode` | - |
 | `size` | 单元格大小，可选值 `large` | `'normal' \| 'large'` | `'normal'` |
 | `icon` | 左侧图标 | `ReactNode` | - |
-| `rightIcon` | 自定义右侧图标 | `ReactNode` | - |
+| `rightIcon` | 自定义右侧图标，默认在 `isLink` 或 `clickable` 时展示 `Arrow` | `ReactNode` | - |
 | `border` | 是否显示内边框 | `boolean` | `true` |
 | `clickable` | 是否开启点击反馈 | `boolean` | `false` |
 | `isLink` | 是否展示右侧箭头并开启点击反馈 | `boolean` | `false` |
@@ -108,6 +110,12 @@ import { Cell } from 'react-native-system-ui'
 | `titleStyle` | 标题样式 | `StyleProp<TextStyle>` | - |
 | `valueStyle` | 右侧内容样式 | `StyleProp<TextStyle>` | - |
 | `labelStyle` | 描述信息样式 | `StyleProp<TextStyle>` | - |
-| `divider` | 分隔符（通过 `Space` 使用） | `ReactNode` | - |
+| `contentStyle` | 自定义 `children` 容器样式 | `StyleProp<ViewStyle>` | - |
+
+### 事件
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `onPress` | 点击单元格（未禁用）时触发 | `PressableProps['onPress']` |
 
 > React Native 环境不支持路由 `replace` 等 DOM 能力，因此 `replace`、`to` 等属性未实现，如需跳转请结合 React Navigation / Expo Router 使用。
