@@ -6,8 +6,8 @@ import './style.css'
 export default () => (
   <div className="demo-cell__section">
     <Cell.Group>
-      <Cell title="自定义">
-        <Button text="验证码" type="primary" size="small" />
+      <Cell title="短信验证码" center>
+        <Button text="发送" type="primary" size="small" onPress={() => { }} />
       </Cell>
     </Cell.Group>
   </div>
