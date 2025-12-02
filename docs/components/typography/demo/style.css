@@ -1,0 +1,9 @@
+.demo-typography__ellipsis {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.demo-typography__ellipsis .rv-divider {
+  margin: 4px 0;
+}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Linking, Pressable, Text, View } from 'react-native'
+import { Linking, Platform, Text, View } from 'react-native'
 import type { NativeSyntheticEvent, TextLayoutEventData, TextProps } from 'react-native'
 
 import { useTheme } from '../../design-system'
@@ -165,31 +165,10 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     style,
   ]
 
-  const renderContent = () => {
-    if (ellipsisConfig?.suffixText) {
-      return (
-        <>
-          {children}
-          <Text>{ellipsisConfig.suffixText}</Text>
-        </>
-      )
-    }
-    if (ellipsisConfig?.suffixCount && isStringOrNumber(children)) {
-      const raw = String(children)
-      const count = Math.min(ellipsisConfig.suffixCount, raw.length)
-      const prefix = raw.slice(0, raw.length - count)
-      const suffix = raw.slice(-count)
-      return (
-        <>
-          {prefix}
-          <Text>{suffix}</Text>
-        </>
-      )
-    }
-    return children
-  }
+  const renderContent = () => children
 
-  const shouldShowAction = isTruncated && ellipsisConfig && (ellipsisConfig.expandText || ellipsisConfig.collapseText)
+  const hasActionText = !!ellipsisConfig && (ellipsisConfig.expandText || ellipsisConfig.collapseText)
+  const shouldShowAction = hasActionText && (isTruncated || expanded || Platform.OS === 'web')
 
   const handleToggleEllipsis = () => {
     if (!ellipsisConfig) return
@@ -198,37 +177,47 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     ellipsisConfig.onExpand?.(next)
   }
 
+  const actionLabel = expanded
+    ? ellipsisConfig?.collapseText ?? ellipsisConfig?.expandText
+    : ellipsisConfig?.expandText ?? ellipsisConfig?.collapseText
+
+  const textStyle = shouldShowAction ? [baseStyle, { flexShrink: 1 }] : baseStyle
+
+  const textNode = (
+    <Text
+      ref={ref}
+      style={textStyle}
+      onPress={onPress}
+      numberOfLines={!expanded ? ellipsisRows : undefined}
+      ellipsizeMode="tail"
+      onTextLayout={ellipsisRows && !expanded ? handleTextLayout : undefined}
+      {...textProps}
+    >
+      {renderContent()}
+    </Text>
+  )
+
   return (
     <View style={center ? { alignItems: 'center' } : undefined}>
-      <Text
-        ref={ref}
-        style={baseStyle}
-        onPress={onPress}
-        numberOfLines={!expanded ? ellipsisRows : undefined}
-        ellipsizeMode="tail"
-        onTextLayout={ellipsisRows && !expanded ? handleTextLayout : undefined}
-        {...textProps}
-      >
-        {renderContent()}
-      </Text>
       {shouldShowAction ? (
-        <Pressable
-          onPress={handleToggleEllipsis}
-          style={{ marginTop: 4 }}
-          hitSlop={8}
-        >
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
+          {textNode}
           <Text
+            onPress={handleToggleEllipsis}
+            suppressHighlighting
             style={{
               color: tokens.colors.primary,
               fontSize: tokens.sizes.sm,
+              fontWeight: tokens.typography.weight.medium,
+              marginLeft: 4,
             }}
           >
-            {expanded
-              ? ellipsisConfig?.collapseText ?? ellipsisConfig?.expandText
-              : ellipsisConfig.expandText ?? ellipsisConfig.collapseText}
+            {actionLabel}
           </Text>
-        </Pressable>
-      ) : null}
+        </View>
+      ) : (
+        textNode
+      )}
     </View>
   )
 })

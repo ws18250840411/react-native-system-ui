@@ -43,9 +43,9 @@ describe('Typography', () => {
       </Typography.Text>,
     )
 
-    const text = tree.root.findByType(Text)
+    const textNode = tree.root.findAllByType(Text)[0]
     act(() => {
-      text.props.onTextLayout?.({
+      textNode.props.onTextLayout?.({
         nativeEvent: {
           lines: [{ text: 'line1' }, { text: 'line2' }],
         },

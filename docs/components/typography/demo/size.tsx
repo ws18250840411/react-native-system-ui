@@ -11,5 +11,8 @@ export default () => (
     <Typography.Text size="xl" strong>
       超大文本
     </Typography.Text>
+    <Typography.Text size="xxl" underline>
+      特大文本
+    </Typography.Text>
   </Space>
 )

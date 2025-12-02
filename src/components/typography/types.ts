@@ -17,8 +17,6 @@ export interface EllipsisConfig {
   symbol?: string
   expandText?: string
   collapseText?: string
-  suffixText?: string
-  suffixCount?: number
   onExpand?: (expanded: boolean) => void
 }
 
