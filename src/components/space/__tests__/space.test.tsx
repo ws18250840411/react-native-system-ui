@@ -55,4 +55,23 @@ describe('Space advanced props', () => {
       )
     ).not.toThrow()
   })
+
+  it('treats justify stretch as horizontal fill', () => {
+    const tree = renderer.create(
+      <Space justify="stretch">
+        <View testID="child-a" />
+        <View testID="child-b" />
+      </Space>
+    )
+
+    const child = tree.root.findByProps({ testID: 'child-a' })
+    const wrapper = child.parent as renderer.ReactTestInstance
+    const style = StyleSheet.flatten(wrapper.props.style)
+
+    expect(style?.flexGrow).toBe(1)
+    const basisValue = style?.flexBasis
+    const normalizedBasis =
+      typeof basisValue === 'string' ? parseFloat(basisValue) : basisValue
+    expect(normalizedBasis).toBe(0)
+  })
 })

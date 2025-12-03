@@ -199,6 +199,7 @@ export const Toast: React.FC<ToastProps> = props => {
       >
         {overlay || forbidClick ? (
           <View
+            testID="rv-toast-overlay"
             style={[styles.overlay, overlay ? { backgroundColor: tokens.colors.backdrop } : null, overlayStyle]}
             pointerEvents="auto"
             onStartShouldSetResponder={() => true}
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'transparent',
   },
   toast: {
     minWidth: 120,

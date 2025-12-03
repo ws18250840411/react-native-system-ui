@@ -2,6 +2,7 @@ import React from "react"
 import renderer, { act } from "react-test-renderer"
 
 import Calendar from ".."
+import { PortalHost } from "../../portal"
 
 describe("Calendar", () => {
   it("selects single date", () => {
@@ -28,5 +29,103 @@ describe("Calendar", () => {
     expect(selectedDate.getFullYear()).toBe(2024)
     expect(selectedDate.getMonth()).toBe(0)
     expect(selectedDate.getDate()).toBe(20)
+  })
+
+  it("disables days before min date", () => {
+    const tree = renderer.create(
+      <Calendar
+        defaultValue={new Date(2024, 0, 15)}
+        minDate={new Date(2024, 0, 10)}
+        maxDate={new Date(2024, 0, 31)}
+        showConfirm={false}
+      />,
+    )
+
+    const disabledDay = tree.root.findByProps({ testID: "calendar-day-2024-01-05" })
+    expect(disabledDay.props.disabled).toBe(true)
+  })
+
+  it("respects maxRange in range mode", () => {
+    const handleSelect = jest.fn()
+    const handleOverRange = jest.fn()
+    const tree = renderer.create(
+      <Calendar
+        type="range"
+        defaultValue={new Date(2024, 0, 5)}
+        minDate={new Date(2024, 0, 1)}
+        maxDate={new Date(2024, 0, 31)}
+        maxRange={2}
+        onSelect={handleSelect}
+        onOverRange={handleOverRange}
+      />,
+    )
+
+    const start = tree.root.findByProps({ testID: "calendar-day-2024-01-05" })
+    const far = tree.root.findByProps({ testID: "calendar-day-2024-01-10" })
+
+    act(() => {
+      start.props.onPress()
+    })
+    act(() => {
+      far.props.onPress()
+    })
+
+    expect(handleSelect).toHaveBeenCalledTimes(1)
+    expect(handleOverRange).toHaveBeenCalledTimes(1)
+  })
+
+  it("allows selecting same day when allowSameDay is true", () => {
+    const handleSelect = jest.fn()
+    const selected = new Date(2024, 0, 12)
+    const tree = renderer.create(
+      <Calendar
+        type="range"
+        allowSameDay
+        defaultValue={selected}
+        minDate={new Date(2024, 0, 1)}
+        maxDate={new Date(2024, 0, 31)}
+        onSelect={handleSelect}
+      />,
+    )
+
+    const day = tree.root.findByProps({ testID: "calendar-day-2024-01-12" })
+
+    act(() => {
+      day.props.onPress()
+    })
+
+    const lastCall = handleSelect.mock.calls[handleSelect.mock.calls.length - 1][0] as Date[]
+    expect(Array.isArray(lastCall)).toBe(true)
+    expect(lastCall).toHaveLength(2)
+    expect(lastCall[0].getDate()).toBe(12)
+    expect(lastCall[1].getDate()).toBe(12)
+  })
+
+  it("auto closes popup when confirming in poppable mode", () => {
+    const handleVisibleChange = jest.fn()
+    const handleConfirm = jest.fn()
+    const tree = renderer.create(
+      <PortalHost>
+        <Calendar
+          poppable
+          defaultVisible
+          showConfirm={false}
+          defaultValue={new Date(2024, 0, 1)}
+          minDate={new Date(2024, 0, 1)}
+          maxDate={new Date(2024, 0, 31)}
+          onVisibleChange={handleVisibleChange}
+          onConfirm={handleConfirm}
+        />
+      </PortalHost>,
+    )
+
+    const dayButton = tree.root.findByProps({ testID: "calendar-day-2024-01-10" })
+
+    act(() => {
+      dayButton.props.onPress()
+    })
+
+    expect(handleConfirm).toHaveBeenCalledTimes(1)
+    expect(handleVisibleChange).toHaveBeenCalledWith(false)
   })
 })

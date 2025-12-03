@@ -34,6 +34,8 @@ interface TabItemProps {
   ellipsis: boolean
   tokens: ReturnType<typeof useTabsTokens>
   color?: string
+  titleActiveColor?: string
+  titleInactiveColor?: string
   tabStyle?: TabsProps['tabStyle']
   titleStyle?: TabsProps['titleStyle']
   descriptionStyle?: TabsProps['descriptionStyle']
@@ -50,6 +52,8 @@ const TabBarItem: React.FC<TabItemProps> = ({
   ellipsis,
   tokens,
   color,
+  titleActiveColor,
+  titleInactiveColor,
   tabStyle,
   titleStyle,
   descriptionStyle,
@@ -67,10 +71,18 @@ const TabBarItem: React.FC<TabItemProps> = ({
     },
   })
 
-  const textColor = isActive ? (color ?? tokens.colors.textActive) : tokens.colors.text
+  const isCapsule = type === 'capsule'
+  const isJumbo = type === 'jumbo'
+
+  const textColor = isActive
+    ? titleActiveColor ?? color ?? (isCapsule ? tokens.colors.capsuleActiveText : tokens.colors.textActive)
+    : titleInactiveColor ?? (isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
+
   const descriptionColor = isDisabled
     ? tokens.colors.textDisabled
-    : tokens.colors.description
+    : isActive
+      ? tokens.colors.descriptionActive
+      : tokens.colors.description
 
   return (
     <Pressable
@@ -79,11 +91,19 @@ const TabBarItem: React.FC<TabItemProps> = ({
       style={[
         styles.tabItem,
         {
-          minHeight: tokens.nav.height,
+          minHeight: isCapsule ? tokens.capsule.minHeight : tokens.nav.height,
           paddingHorizontal:
-            type === 'card' ? tokens.card.paddingHorizontal : tokens.nav.paddingHorizontal / 2,
+            type === 'card'
+              ? tokens.card.paddingHorizontal
+              : isCapsule
+                ? tokens.capsule.paddingHorizontal
+                : tokens.nav.paddingHorizontal / 2,
           paddingVertical:
-            type === 'card' ? tokens.card.paddingVertical : tokens.nav.paddingVertical,
+            type === 'card'
+              ? tokens.card.paddingVertical
+              : isCapsule
+                ? tokens.capsule.paddingVertical
+                : tokens.nav.paddingVertical,
           opacity: isDisabled ? 0.45 : 1,
         },
         !scrollable && align === 'center' ? styles.flexItem : null,
@@ -96,6 +116,25 @@ const TabBarItem: React.FC<TabItemProps> = ({
             ? tokens.colors.cardActiveBackground
             : tokens.colors.cardBackground,
         },
+        isCapsule && {
+          borderRadius: tokens.capsule.radius,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: isActive ? tokens.colors.capsuleActiveBorder : tokens.colors.capsuleBorder,
+          backgroundColor: isActive
+            ? tokens.colors.capsuleActiveBackground
+            : tokens.colors.capsuleBackground,
+        },
+        isJumbo && {
+          borderRadius: tokens.jumbo.radius,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: isActive ? tokens.colors.jumboActiveBorder : tokens.colors.jumboBorder,
+          backgroundColor: isActive
+            ? tokens.colors.jumboActiveBackground
+            : tokens.colors.jumboBackground,
+          alignItems: 'flex-start',
+          paddingHorizontal: tokens.jumbo.paddingHorizontal,
+          paddingVertical: tokens.jumbo.paddingVertical,
+        },
       ]}
     >
       <Text
@@ -106,10 +145,10 @@ const TabBarItem: React.FC<TabItemProps> = ({
             fontSize: tokens.typography.titleSize,
             fontWeight: tokens.typography.titleWeight,
           },
-          ellipsis ? styles.ellipsis : null,
+          ellipsis && !isJumbo ? styles.ellipsis : null,
           titleStyle,
         ]}
-        numberOfLines={ellipsis ? 1 : undefined}
+        numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
       >
         {pane.title ?? pane.name}
       </Text>
@@ -120,6 +159,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
             {
               color: descriptionColor,
               fontSize: tokens.typography.descriptionSize,
+              marginTop: isJumbo ? 8 : 2,
             },
             descriptionStyle,
           ]}
@@ -159,11 +199,32 @@ const TabsBase: React.FC<TabsProps> = props => {
     titleStyle,
     descriptionStyle,
     contentStyle,
+    lineWidth,
+    lineHeight,
+    titleActiveColor,
+    titleInactiveColor,
+    beforeChange,
     onClickTab,
     onScroll,
     style,
     ...rest
   } = props
+
+  const resolveNumericValue = (val?: number | string): number | undefined => {
+    if (typeof val === 'number') {
+      return val
+    }
+    if (typeof val === 'string') {
+      const parsed = Number(val)
+      if (!Number.isNaN(parsed)) {
+        return parsed
+      }
+    }
+    return undefined
+  }
+
+  const resolvedLineWidth = resolveNumericValue(lineWidth)
+  const resolvedLineHeight = resolveNumericValue(lineHeight) ?? tokens.indicator.height
 
   const panes = React.useMemo<ParsedPane[]>(() => {
     return React.Children.toArray(children)
@@ -212,6 +273,7 @@ const TabsBase: React.FC<TabsProps> = props => {
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
   const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
+  const indicatorInitializedRef = React.useRef(false)
 
   const scrollable = React.useMemo(() => {
     if (typeof scrollableProp === 'boolean') {
@@ -221,24 +283,30 @@ const TabsBase: React.FC<TabsProps> = props => {
   }, [panes.length, scrollableProp, swipeThreshold])
 
   const indicatorColor = color ?? tokens.colors.indicator
+  const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
 
   const animateIndicator = React.useCallback(
     (name?: TabsValue, immediate?: boolean) => {
-      if (!name || type !== 'line') return
+      if (!name || type !== 'line') return false
       const layout = layoutMap.current.get(name)
-      if (!layout) return
+      if (!layout) return false
       const timing = (value: Animated.Value, toValue: number) =>
         Animated.timing(value, {
           toValue,
           duration: immediate || !animated ? 0 : duration,
           useNativeDriver: false,
         })
+      const targetWidth = resolvedLineWidth ?? layout.width
+      const targetX = resolvedLineWidth
+        ? layout.x + (layout.width - targetWidth) / 2
+        : layout.x
       Animated.parallel([
-        timing(indicatorX, layout.x),
-        timing(indicatorWidth, layout.width),
+        timing(indicatorX, targetX),
+        timing(indicatorWidth, targetWidth),
       ]).start()
+      return true
     },
-    [animated, duration, indicatorWidth, indicatorX, type],
+    [animated, duration, indicatorWidth, indicatorX, resolvedLineWidth, type],
   )
 
   const scrollIntoView = React.useCallback(
@@ -254,7 +322,12 @@ const TabsBase: React.FC<TabsProps> = props => {
   )
 
   React.useEffect(() => {
-    animateIndicator(currentName, true)
+    if (currentName === undefined || currentName === null) return
+    const shouldAnimate = indicatorInitializedRef.current
+    const didAnimate = animateIndicator(currentName, !shouldAnimate)
+    if (didAnimate && !indicatorInitializedRef.current) {
+      indicatorInitializedRef.current = true
+    }
     scrollIntoView(currentName)
   }, [animateIndicator, currentName, scrollIntoView])
 
@@ -268,13 +341,39 @@ const TabsBase: React.FC<TabsProps> = props => {
     const { x, width } = event.nativeEvent.layout
     layoutMap.current.set(name, { x, width })
     if (name === currentName) {
-      animateIndicator(name, true)
+      const shouldAnimate = indicatorInitializedRef.current
+      const didAnimate = animateIndicator(name, !shouldAnimate)
+      if (didAnimate && !indicatorInitializedRef.current) {
+        indicatorInitializedRef.current = true
+      }
     }
   }, [animateIndicator, currentName])
 
   const handleNavLayout = (event: LayoutChangeEvent) => {
     navContainerWidthRef.current = event.nativeEvent.layout.width
   }
+
+  const runBeforeChange = React.useCallback(
+    (name: TabsValue, index: number) => {
+      if (!beforeChange) {
+        return Promise.resolve(true)
+      }
+      try {
+        const result = beforeChange(name, index)
+        if (typeof result === 'boolean' || result === undefined) {
+          return Promise.resolve(result !== false)
+        }
+        if (result && typeof (result as Promise<boolean>).then === 'function') {
+          return (result as Promise<boolean>).then(res => res !== false)
+        }
+        return Promise.resolve(true)
+      } catch (error) {
+        console.warn('[Tabs] beforeChange 抛出异常：', error)
+        return Promise.resolve(false)
+      }
+    },
+    [beforeChange],
+  )
 
   const handleSelect = (pane: ParsedPane, index: number) => {
     if (pane.disabled || pane.name === currentName) {
@@ -292,7 +391,16 @@ const TabsBase: React.FC<TabsProps> = props => {
       disabled: !!pane.disabled,
       title: pane.title,
     })
-    setActiveValue(pane.name, index)
+    if (!beforeChange) {
+      setActiveValue(pane.name, index)
+      return
+    }
+    runBeforeChange(pane.name, index).then(canChange => {
+      if (!canChange) {
+        return
+      }
+      setActiveValue(pane.name, index)
+    })
   }
 
   const borderEnabled = border ?? (type === 'line')
@@ -344,6 +452,8 @@ const TabsBase: React.FC<TabsProps> = props => {
               ellipsis={ellipsis}
               tokens={tokens}
               color={color}
+              titleActiveColor={titleActiveColor}
+              titleInactiveColor={titleInactiveColor}
               tabStyle={tabStyle}
               titleStyle={titleStyle}
               descriptionStyle={descriptionStyle}
@@ -358,8 +468,8 @@ const TabsBase: React.FC<TabsProps> = props => {
             style={[
               styles.indicator,
               {
-                height: tokens.indicator.height,
-                borderRadius: tokens.indicator.radius,
+                height: resolvedLineHeight,
+                borderRadius: indicatorCornerRadius,
                 backgroundColor: indicatorColor,
                 width: indicatorWidth,
                 transform: [{ translateX: indicatorX }],

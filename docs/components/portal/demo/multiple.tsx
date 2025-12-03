@@ -10,7 +10,7 @@ export default function PortalMultipleDemo() {
   return (
     <View style={styles.stage}>
       <Portal.Host fixed>
-        <Cell.Group title="多个浮层">
+        <Cell.Group title="多个浮层" card>
           <Cell title="显示提示层" isLink onPress={() => setTipVisible(true)} />
           <Cell title="显示确认层" isLink onPress={() => setConfirmVisible(true)} />
         </Cell.Group>
@@ -44,8 +44,8 @@ export default function PortalMultipleDemo() {
 
 const styles = StyleSheet.create({
   stage: {
-    minHeight: 360,
-    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   toast: {
     position: 'absolute',

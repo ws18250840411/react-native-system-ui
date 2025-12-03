@@ -1,10 +1,11 @@
 # 组件对齐进度表
 
 > 流程要求（每个组件依次完成并更新状态）：
-> 1. 对照 React Vant 的文档、API、demo，缺失项补齐；若受限于 `@react-native-aria` 等因素无法实现，在备注说明。
-> 2. 检查代码实现是否可精简/优化到生产级别，并按需补充测试。
-> 3. 调整示例视觉使其与 React Vant 相似，必要时抽离样式。
-> 4. 核查完毕后在下列表中将状态改为 ✅，未开始/进行中用 ⏳ 并备注当前结论或阻塞。
+> 1. 设计思路优先参考 React Native Paper，如无对应场景再回到 React Vant 细节。
+> 2. 对照 React Vant 的文档、API、demo，缺失项补齐；若受限于 `@react-native-aria` 等因素无法实现，在备注说明。
+> 3. 检查代码实现是否可精简/优化到生产级别，并按需补充测试。
+> 4. 调整示例视觉使其与 React Vant 相似，必要时抽离样式；若 React Vant demo 包含弹层入口、Cell 触发等组合交互，需同步实现并在文档展示。
+> 5. 核查完毕后在下列表中将状态改为 ✅，未开始/进行中用 ⏳ 并备注当前结论或阻塞。
 
 ## 布局组件
 
@@ -22,16 +23,16 @@
 | ConfigProvider 全局配置 | ✅ | 语言/主题 demo 对齐 React Vant，补布局样式与交互切换 |
 | Typography 文本 | ✅ | Demo 覆盖类型/尺寸/省略/链接场景并同步文案风格 |
 | Image 图片 | ✅ | Demo 补充填充模式/圆角/状态提示，文档同步 API 描述 |
-| Popup 弹出层 | ✅ | 与 react-vant 对齐（多方向/关闭图标/异步关闭/安全区），并把 destroyOnClose 默认改为 false |
-| Portal 传送门 | ⏳ |  |
-| Toast 轻提示 | ⏳ |  |
+| Popup 弹出层 | ✅ | 与 react-vant 对齐 + 参考 React Native Paper Modal：统一动画状态、补 BackHandler/无障碍提示、overlay/safe-area 示例同步 |
+| Portal 传送门 | ✅ | 改为 Paper 风格 PortalHost/PortalManager 队列 + 自动 Host，保留 `Portal.clear()` 与文档/demo/测试同步 |
+| Toast 轻提示 | ✅ | 对齐 React Vant：demo 改用 Cell 入口并补“多条提示”场景，静态 API 增加 allowMultiple 实例测试，文档写明全局配置/静态调用细节 |
 
 ## 表单组件
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
-| Calendar 日历 | ⏳ |  |
-| Cascader 级联选择 | ⏳ |  |
+| Calendar 日历 | ✅ | 单选/多选/范围支持 `allowSameDay`、`maxRange`、自定义周标题与月份文案；新增 `poppable` 弹层/Cell 入口 demo 与 Popup API 说明，修复跨区间禁选与确认按钮主题色 |
+| Cascader 级联选择 | ✅ | 参考 React Vant：新增 `poppable` + render props Cell 触发、Popup/受控显隐与 `actions`，示例/文档对齐并保留面板模式 |
 | Checkbox 复选框 | ⏳ |  |
 | DatetimePicker 时间选择 | ⏳ |  |
 | Form 表单 | ⏳ |  |

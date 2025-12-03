@@ -23,10 +23,12 @@ export interface CascaderTokens {
     tabGap: number
     optionPaddingVertical: number
     optionPaddingHorizontal: number
+    optionListPaddingTop: number
   }
   sizing: {
     indicatorHeight: number
     optionMinHeight: number
+    optionListHeight: number
   }
   radii: {
     option: number
@@ -53,10 +55,12 @@ const createTokens = (foundations: Foundations): CascaderTokens => {
       tabGap: spacing.xs,
       optionPaddingVertical: spacing.sm,
       optionPaddingHorizontal: spacing.md,
+      optionListPaddingTop: spacing.xs,
     },
     sizing: {
       indicatorHeight: 2,
       optionMinHeight: 44,
+      optionListHeight: 384,
     },
     radii: {
       option: radii.sm,

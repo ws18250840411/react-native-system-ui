@@ -76,4 +76,54 @@ describe('Tabs', () => {
 
     expect(tree.root.findAllByType(Sticky).length).toBe(1)
   })
+
+  it('respects beforeChange callback result', async () => {
+    const beforeChange = jest.fn(() => false)
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <Tabs defaultActive="a" beforeChange={beforeChange} onChange={onChange}>
+        <TabPane title="A" name="a">
+          <Text>A</Text>
+        </TabPane>
+        <TabPane title="B" name="b">
+          <Text>B</Text>
+        </TabPane>
+      </Tabs>
+    )
+
+    const tab = tree.root.findByProps({ testID: 'rv-tabs-item-b' })
+
+    await act(async () => {
+      tab.props.onPress?.({})
+      await Promise.resolve()
+    })
+
+    expect(beforeChange).toHaveBeenCalledWith('b', 1)
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('applies custom title colors', () => {
+    const tree = renderer.create(
+      <Tabs defaultActive="active" titleActiveColor="#ff0000" titleInactiveColor="#00ff00">
+        <TabPane title="激活" name="active">
+          <Text>active</Text>
+        </TabPane>
+        <TabPane title="默认" name="default">
+          <Text>default</Text>
+        </TabPane>
+      </Tabs>
+    )
+
+    const activeTab = tree.root.findByProps({ testID: 'rv-tabs-item-active' })
+    const inactiveTab = tree.root.findByProps({ testID: 'rv-tabs-item-default' })
+
+    const activeTitle = activeTab.findAllByType(Text)[0]
+    const inactiveTitle = inactiveTab.findAllByType(Text)[0]
+
+    const activeStyle = StyleSheet.flatten(activeTitle.props.style)
+    const inactiveStyle = StyleSheet.flatten(inactiveTitle.props.style)
+
+    expect(activeStyle?.color).toBe('#ff0000')
+    expect(inactiveStyle?.color).toBe('#00ff00')
+  })
 })

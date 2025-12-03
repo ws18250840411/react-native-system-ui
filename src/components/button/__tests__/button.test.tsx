@@ -10,6 +10,34 @@ import {
 } from '../../../design-system'
 import Loading from '../../loading'
 
+const hexToRgb = (hex: string): [number, number, number] => {
+  const normalized =
+    hex.length === 4
+      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+      : hex
+  const intVal = parseInt(normalized.slice(1), 16)
+  return [(intVal >> 16) & 255, (intVal >> 8) & 255, intVal & 255]
+}
+
+const rgbToHex = (r: number, g: number, b: number) =>
+  `#${[r, g, b]
+    .map(value => {
+      const clamped = Math.max(0, Math.min(255, Math.round(value)))
+      const hex = clamped.toString(16)
+      return hex.length === 1 ? `0${hex}` : hex
+    })
+    .join('')}`
+
+const lighten = (hex: string, amount = 0.85) => {
+  const [r, g, b] = hexToRgb(hex)
+  const mix = [
+    r * (1 - amount) + 255 * amount,
+    g * (1 - amount) + 255 * amount,
+    b * (1 - amount) + 255 * amount,
+  ]
+  return rgbToHex(mix[0], mix[1], mix[2])
+}
+
 const renderWithProvider = (
   ui: React.ReactElement,
   overrides?: ThemeProviderProps['value']
@@ -97,5 +125,90 @@ describe('Button', () => {
 
     const spinner = tree.root.findByType(Loading)
     expect(spinner.props.type).toBe('spinner')
+  })
+
+  it('defaults accessibility label to text content', () => {
+    const tree = renderWithProvider(<Button text="提交" />)
+    const pressable = tree.root.findByType(Pressable)
+    expect(pressable.props.accessibilityLabel).toBe('提交')
+  })
+
+  it('allows configuring font scaling props', () => {
+    const tree = renderWithProvider(
+      <Button text="Text" allowFontScaling={false} maxFontSizeMultiplier={2} />
+    )
+    const label = tree.root.findByType(Text)
+    expect(label.props.allowFontScaling).toBe(false)
+    expect(label.props.maxFontSizeMultiplier).toBe(2)
+  })
+
+  it('applies default ripple color on Android when not provided', () => {
+    const originalOS = Platform.OS
+    ;(Platform as unknown as { OS: typeof Platform.OS }).OS = 'android'
+    try {
+      const tree = renderWithProvider(<Button text="波纹" type="primary" />)
+      const pressable = tree.root.findByType(Pressable)
+      expect(pressable.props.android_ripple).toEqual(
+        expect.objectContaining({ color: 'rgba(255,255,255,0.35)' })
+      )
+    } finally {
+      ;(Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
+    }
+  })
+
+  it('supports outlined mode with transparent background', () => {
+    const tree = renderWithProvider(<Button text="Outlined" mode="outlined" type="primary" />)
+    const pressable = tree.root.findByType(Pressable)
+    const flattened = getStyleFromPressable(pressable)
+    expect(flattened.backgroundColor).toBe('transparent')
+    expect(flattened.borderWidth).toBe(1)
+    expect(flattened.borderColor).toBe(defaultTokens.palette.primary[500])
+  })
+
+  it('applies contained-tonal palette colors', () => {
+    const tree = renderWithProvider(<Button text="Tonal" mode="contained-tonal" type="primary" />)
+    const pressable = tree.root.findByType(Pressable)
+    const flattened = getStyleFromPressable(pressable)
+    const expectedTonal =
+      defaultTokens.palette.primary[100] ?? lighten(defaultTokens.palette.primary[500])
+    expect(flattened.backgroundColor).toBe(expectedTonal)
+  })
+
+  it('respects uppercase prop for text labels', () => {
+    const tree = renderWithProvider(<Button text="text" uppercase />)
+    const label = tree.root.findByType(Text)
+    const flattened = StyleSheet.flatten(label.props.style)
+    expect(flattened.textTransform).toBe('uppercase')
+  })
+
+  it('applies themed default mode overrides when provided', () => {
+    const tree = renderWithProvider(
+      <Button text="ThemeOutlined" type="primary" />,
+      {
+        components: {
+          button: {
+            defaults: {
+              mode: 'outlined',
+            },
+          },
+        },
+      }
+    )
+    const pressable = tree.root.findByType(Pressable)
+    const flattened = getStyleFromPressable(pressable)
+    expect(flattened.backgroundColor).toBe('transparent')
+    expect(flattened.borderWidth).toBe(1)
+  })
+
+  it('inherits mode from Button.Group context', () => {
+    const tree = renderWithProvider(
+      <Button.Group mode="outlined">
+        <Button text="GroupItem" type="primary" />
+      </Button.Group>
+    )
+    const pressable = tree.root.findByType(Pressable)
+    const flattened = getStyleFromPressable(pressable)
+    expect(flattened.backgroundColor).toBe('transparent')
+    expect(flattened.borderWidth).toBe(1)
   })
 })

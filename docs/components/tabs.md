@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-分隔内容并允许在同一页面中完成切换，支持行内样式、卡片样式与吸顶模式。
+分隔内容并允许在同一页面中完成切换，支持行内、卡片、胶囊、Jumbo 描述等多种样式，并可开启吸顶模式。
 
 ## 引入
 
@@ -19,15 +19,15 @@ import { Tabs } from 'react-native-system-ui'
 
 ### 基础用法
 
-最常见的样式，包含底部指示线与 onChange 回调。
+包含默认的下划线风格与卡片风格的组合示例，展示 `titleActiveColor`、`navRight` 等配置。
 
 <code src="./tabs/demo/basic.tsx" title="基础用法"></code>
 
-### 卡片风格
+### 多样式示例
 
-`type="card"` 会使用卡片外观，并自动根据标签数量决定是否可滚动。
+演示 `type="capsule"` 的胶囊标签以及 `type="jumbo"` 带描述信息的标签页，可搭配徽标/描述文案。
 
-<code src="./tabs/demo/card.tsx" title="卡片风格"></code>
+<code src="./tabs/demo/card.tsx" title="多样式"></code>
 
 ### 吸顶滚动
 
@@ -43,16 +43,21 @@ import { Tabs } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `active` | 当前选中项标识符，受控模式 | `TabsValue` | - |
 | `defaultActive` | 默认选中项标识符 | `TabsValue` | 第一个 Tab |
-| `type` | 外观类型，可选 `line` `card` | `'line' \| 'card'` | `line` |
+| `type` | 外观类型，可选 `line` `card` `capsule` `jumbo` | `'line' \| 'card' \| 'capsule' \| 'jumbo'` | `line` |
 | `align` | 非滚动模式下的对齐方式 | `'start' \| 'center'` | `center` |
 | `color` | 指示器与激活文字颜色 | `string` | 主题色 |
 | `background` | 标签栏背景色 | `string` | 主题色 |
 | `border` | 是否显示底部分隔线（仅 line） | `boolean` | `true` |
+| `lineWidth` | 自定义指示条宽度 | `number \| string` | - |
+| `lineHeight` | 自定义指示条高度 | `number \| string` | - |
+| `titleActiveColor` | 激活标签文字颜色 | `string` | 主题色 |
+| `titleInactiveColor` | 默认标签文字颜色 | `string` | 设计稿默认色 |
 | `ellipsis` | 是否省略过长标题 | `boolean` | `true` |
 | `swipeThreshold` | 标签数量超过阈值后自动进入可滚动模式 | `number` | `5` |
 | `scrollable` | 强制设置是否可滚动 | `boolean` | 自动判断 |
 | `animated` | 是否开启指示条动画 | `boolean` | `true` |
 | `duration` | 指示条动画时长（ms） | `number` | `160` |
+| `beforeChange` | 切换前的回调，返回 `false` 可阻止切换，支持 Promise | `(name: TabsValue, index: number) => boolean \| Promise<boolean>` | - |
 | `lazyRender` | 延迟渲染 Tab 内容 | `boolean` | `true` |
 | `sticky` | 开启吸顶模式，需搭配 `scrollValue` | `boolean` | `false` |
 | `offsetTop` | 吸顶时距离顶部偏移 | `number` | `0` |
@@ -80,4 +85,4 @@ import { Tabs } from 'react-native-system-ui'
 | `badge` | 自定义徽标内容 | `ReactNode` | - |
 | `disabled` | 是否禁用 | `boolean` | `false` |
 
-> 差异说明：当前版本暂未实现 `scrollspy`、`swipeable`、`beforeChange`、`jumbo` 等特性；如需这些能力，可结合 `useGestureScroll` + `Swiper` 自行扩展，或等待后续迭代。
+> 差异说明：`scrollspy`、`swipeable` 等高级场景仍在评估中，暂可结合 `useGestureScroll` + `Swiper` 扩展实现。

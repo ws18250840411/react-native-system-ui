@@ -2,6 +2,7 @@ import React from "react"
 import renderer, { act } from "react-test-renderer"
 
 import Cascader from ".."
+import { PortalHost } from "../../portal"
 import type { CascaderOption } from "../types"
 
 const options: CascaderOption[] = [
@@ -63,5 +64,33 @@ describe("Cascader", () => {
       ["zhejiang", "hangzhou", "xihu"],
       [options[0], options[0].children?.[0], options[0].children?.[0]?.children?.[0]],
     )
+})
+
+  it("closes popup after finish when poppable", () => {
+    const handleFinish = jest.fn()
+    const handleVisibleChange = jest.fn()
+    const tree = renderer.create(
+      <PortalHost>
+        <Cascader poppable defaultVisible options={options} onFinish={handleFinish} onVisibleChange={handleVisibleChange}>
+          {() => null}
+        </Cascader>
+      </PortalHost>,
+    )
+
+    const first = tree.root.findByProps({ testID: "cascader-option-0-zhejiang" })
+    act(() => {
+      first.props.onPress()
+    })
+    const second = tree.root.findByProps({ testID: "cascader-option-1-hangzhou" })
+    act(() => {
+      second.props.onPress()
+    })
+    const third = tree.root.findByProps({ testID: "cascader-option-2-xihu" })
+    act(() => {
+      third.props.onPress()
+    })
+
+    expect(handleFinish).toHaveBeenCalled()
+    expect(handleVisibleChange).toHaveBeenCalledWith(false)
   })
 })

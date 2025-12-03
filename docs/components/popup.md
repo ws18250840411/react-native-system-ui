@@ -63,6 +63,7 @@ import { Popup } from 'react-native-system-ui'
 | `placement` | 弹出位置 | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'bottom'` |
 | `overlay` | 是否显示遮罩 | `boolean` | `true` |
 | `overlayStyle` | 自定义遮罩样式 | `StyleProp<ViewStyle>` | - |
+| `overlayAccessibilityLabel` | 无障碍描述，用于提示遮罩按钮的用途 | `string` | `关闭弹层` |
 | `overlayTestID` | 遮罩测试标识 | `string` | `popup-overlay` |
 | `closeOnOverlayPress` | 点击遮罩是否关闭 | `boolean` | `true` |
 | `closeOnBackPress` | Android 返回键是否关闭 | `boolean` | `false` |

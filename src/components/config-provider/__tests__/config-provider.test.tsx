@@ -19,7 +19,8 @@ describe('ConfigProvider', () => {
       </ConfigProvider>
     )
 
-    expect(tree.toJSON()?.children).toContain('测试')
+    const localeNode = tree.root.findByType(LocaleConsumer)
+    expect(localeNode.children).toContain('测试')
   })
 
   it('passes theme overrides', () => {

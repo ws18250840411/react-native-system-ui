@@ -22,12 +22,25 @@ export interface TabsTokens {
     textActive: string
     textDisabled: string
     description: string
+    descriptionActive: string
     border: string
     indicator: string
     cardBackground: string
     cardActiveBackground: string
     cardBorder: string
     cardActiveBorder: string
+    capsuleBackground: string
+    capsuleActiveBackground: string
+    capsuleBorder: string
+    capsuleActiveBorder: string
+    capsuleText: string
+    capsuleActiveText: string
+    jumboBackground: string
+    jumboActiveBackground: string
+    jumboBorder: string
+    jumboActiveBorder: string
+    jumboDescription: string
+    jumboDescriptionActive: string
   }
   nav: {
     height: number
@@ -44,8 +57,20 @@ export interface TabsTokens {
   indicator: {
     height: number
     radius: number
+    width: number
   }
   card: {
+    radius: number
+    paddingHorizontal: number
+    paddingVertical: number
+  }
+  capsule: {
+    radius: number
+    paddingHorizontal: number
+    paddingVertical: number
+    minHeight: number
+  }
+  jumbo: {
     radius: number
     paddingHorizontal: number
     paddingVertical: number
@@ -70,12 +95,25 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       textActive: palette.primary[600],
       textDisabled: palette.default[400],
       description: palette.default[500],
+      descriptionActive: palette.default[600],
       border: palette.default[200],
       indicator: palette.primary[600],
       cardBackground: '#f3f4f6',
       cardActiveBackground: '#ffffff',
       cardBorder: palette.default[200],
       cardActiveBorder: palette.primary[500],
+      capsuleBackground: '#ffffff',
+      capsuleActiveBackground: palette.primary[50],
+      capsuleBorder: palette.default[200],
+      capsuleActiveBorder: palette.primary[400],
+      capsuleText: palette.default[700],
+      capsuleActiveText: palette.primary[600],
+      jumboBackground: '#f5f6f8',
+      jumboActiveBackground: '#ffffff',
+      jumboBorder: 'transparent',
+      jumboActiveBorder: palette.primary[400],
+      jumboDescription: palette.default[500],
+      jumboDescriptionActive: palette.primary[500],
     },
     nav: {
       height: 48,
@@ -92,11 +130,23 @@ const createTokens = (foundations: Foundations): TabsTokens => {
     indicator: {
       height: 3,
       radius: 999,
+      width: 0,
     },
     card: {
       radius: 18,
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.xs,
+    },
+    capsule: {
+      radius: 999,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      minHeight: 40,
+    },
+    jumbo: {
+      radius: 16,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
     },
   }
 }

@@ -3,7 +3,7 @@ import type { Animated, StyleProp, TextStyle, ViewProps, ViewStyle } from 'react
 
 import type { StickyScrollEvent } from '../sticky/types'
 
-export type TabsType = 'line' | 'card'
+export type TabsType = 'line' | 'card' | 'capsule' | 'jumbo'
 export type TabsAlign = 'start' | 'center'
 export type TabsValue = string | number
 
@@ -33,10 +33,15 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
   color?: string
   background?: string
   border?: boolean
+  lineWidth?: number | string
+  lineHeight?: number | string
+  titleActiveColor?: string
+  titleInactiveColor?: string
   ellipsis?: boolean
   swipeThreshold?: number
   animated?: boolean
   duration?: number
+  beforeChange?: (name: TabsValue, index: number) => boolean | Promise<boolean>
   lazyRender?: boolean
   scrollable?: boolean
   sticky?: boolean

@@ -10,6 +10,7 @@ export type ButtonType = 'default' | 'primary' | 'success' | 'info' | 'warning' 
 export type ButtonSize = 'large' | 'normal' | 'small' | 'mini'
 export type ButtonIconPosition = 'left' | 'right'
 export type ButtonShadowLevel = 1 | 2 | 3
+export type ButtonMode = 'contained' | 'text' | 'outlined' | 'contained-tonal' | 'elevated'
 
 export type ButtonIconRender = (
   color: string,
@@ -41,7 +42,14 @@ export interface ButtonProps
   loadingSize?: number | 'small' | 'large'
   disabled?: boolean
   autoInsertSpace?: boolean
+  mode?: ButtonMode
+  uppercase?: boolean
+  buttonColor?: string
+  dark?: boolean
   contentStyle?: StyleProp<ViewStyle>
   textStyle?: StyleProp<TextStyle>
   style?: StyleProp<ViewStyle>
+  rippleColor?: string
+  allowFontScaling?: boolean
+  maxFontSizeMultiplier?: number
 }

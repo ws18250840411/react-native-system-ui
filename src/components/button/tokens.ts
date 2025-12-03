@@ -4,7 +4,13 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
-import type { ButtonIconPosition, ButtonShadowLevel, ButtonSize, ButtonType } from './types'
+import type {
+  ButtonIconPosition,
+  ButtonMode,
+  ButtonShadowLevel,
+  ButtonSize,
+  ButtonType,
+} from './types'
 
 interface ButtonTokens {
   defaults: {
@@ -15,6 +21,7 @@ interface ButtonTokens {
     round: boolean
     square: boolean
     iconPosition: ButtonIconPosition
+    mode: ButtonMode
   }
   sizes: Record<
     ButtonSize,
@@ -44,6 +51,9 @@ interface ButtonTokens {
       background: string
       border: string
       text: string
+      tonalBackground: string
+      tonalBorder: string
+      tonalText: string
     }
   >
   shadow: Record<
@@ -58,14 +68,59 @@ interface ButtonTokens {
   >
 }
 
+const hexRegex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i
+
+const hexToRgb = (input: string): [number, number, number] | null => {
+  if (!hexRegex.test(input)) return null
+  const normalized =
+    input.length === 4
+      ? `#${input[1]}${input[1]}${input[2]}${input[2]}${input[3]}${input[3]}`
+      : input
+  const intVal = parseInt(normalized.slice(1), 16)
+  const r = (intVal >> 16) & 255
+  const g = (intVal >> 8) & 255
+  const b = intVal & 255
+  return [r, g, b]
+}
+
+const rgbToHex = (r: number, g: number, b: number) =>
+  `#${[r, g, b]
+    .map(value => {
+      const clamped = Math.max(0, Math.min(255, Math.round(value)))
+      const hex = clamped.toString(16)
+      return hex.length === 1 ? `0${hex}` : hex
+    })
+    .join('')}`
+
+const mixColor = (colorA: string, colorB: string, ratio: number) => {
+  const rgbA = hexToRgb(colorA)
+  const rgbB = hexToRgb(colorB)
+  if (!rgbA || !rgbB) return colorA
+  const mix = rgbA.map((val, index) => val * (1 - ratio) + rgbB[index] * ratio) as [
+    number,
+    number,
+    number,
+  ]
+  return rgbToHex(mix[0], mix[1], mix[2])
+}
+
+const lighten = (color: string, amount = 0.85) => mixColor(color, '#ffffff', amount)
+
 const createButtonTokens = (foundations: Foundations): ButtonTokens => {
   const { palette, spacing, radii, fontSize, opacity } = foundations
 
-  const buildTone = (tone: keyof typeof palette, text?: string) => ({
-    background: palette[tone][500],
-    border: palette[tone][500],
-    text: text ?? palette[tone].foreground ?? '#ffffff',
-  })
+  const buildTone = (tone: keyof typeof palette, text?: string) => {
+    const baseBackground = palette[tone][500]
+    const tonalBg = palette[tone][100] ?? lighten(baseBackground, 0.85)
+    return {
+      background: baseBackground,
+      border: palette[tone][500],
+      text: text ?? palette[tone].foreground ?? '#ffffff',
+      tonalBackground: tonalBg,
+      tonalBorder: palette[tone][200] ?? tonalBg,
+      tonalText: palette[tone][700] ?? palette[tone][800] ?? '#111111',
+    }
+  }
 
   return {
     defaults: {
@@ -76,6 +131,7 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
       round: false,
       square: false,
       iconPosition: 'left',
+      mode: 'contained',
     },
     sizes: {
       large: {
@@ -124,6 +180,9 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
         background: palette.default[50],
         border: palette.default[200],
         text: palette.default[700],
+        tonalBackground: palette.default[100] ?? lighten(palette.default[200], 0.85),
+        tonalBorder: palette.default[200],
+        tonalText: palette.default[900] ?? '#111111',
       },
       primary: buildTone('primary'),
       info: buildTone('info'),

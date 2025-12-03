@@ -73,4 +73,24 @@ describe('Portal', () => {
     })
     expect(getTexts().length).toBe(0)
   })
+
+  it('clears static portals through Portal.clear', () => {
+    const host = renderer.create(<PortalHost />)
+
+    act(() => {
+      Portal.add(<Text testID="clear-text">static</Text>)
+    })
+
+    expect(portalStore.getSnapshot().length).toBe(1)
+
+    act(() => {
+      Portal.clear()
+    })
+
+    expect(portalStore.getSnapshot().length).toBe(0)
+
+    act(() => {
+      host.unmount()
+    })
+  })
 })

@@ -9,7 +9,7 @@ export default function PortalBasicDemo() {
   return (
     <View style={styles.stage}>
       <Portal.Host fixed>
-        <Cell.Group title="基础用法">
+        <Cell.Group title="基础用法" card>
           <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
         </Cell.Group>
         {visible ? (
@@ -32,8 +32,8 @@ export default function PortalBasicDemo() {
 
 const styles = StyleSheet.create({
   stage: {
-    minHeight: 360,
-    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   layer: {
     ...StyleSheet.absoluteFillObject,

@@ -75,3 +75,4 @@ import { Space } from 'react-native-system-ui'
 | `onClick` | 点击时触发 | `ViewProps['onTouchEnd']` | - |
 
 > 在 React Native 环境中，分隔符会作为额外的子元素插入，建议传入纯视觉节点（如 `View` 或 `Text`）。
+> 由于 React Native 暂不支持 `justifyContent: 'stretch'`，当 `justify="stretch"` 时组件会自动启用与 `fill` 相同的逻辑（仅水平方向生效），以便子元素沿主轴等分可用空间。

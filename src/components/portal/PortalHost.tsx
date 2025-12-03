@@ -1,60 +1,153 @@
 import React from 'react'
 import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
-import { useSyncExternalStore } from 'react'
 
 import { PortalContext, type PortalManager } from './PortalContext'
-import { PortalStore } from './PortalStore'
 
-const globalStore = new PortalStore()
-let mountedHosts = 0
-let autoHostContainer: HTMLElement | null = null
-let autoHostRoot: any = null
-let hostPromise: Promise<void> | null = null
+interface PortalEntry {
+  key: number
+  children: React.ReactNode
+}
+
+interface PortalLayerProps {
+  fixed?: boolean
+}
+
+interface PortalLayerState {
+  entries: PortalEntry[]
+}
+
+class PortalLayer extends React.PureComponent<PortalLayerProps, PortalLayerState> {
+  state: PortalLayerState = {
+    entries: [],
+  }
+
+  setEntries = (entries: PortalEntry[]) => {
+    this.setState({ entries })
+  }
+
+  render() {
+    const { fixed } = this.props
+    const { entries } = this.state
+    return (
+      <View
+        pointerEvents="box-none"
+        style={[styles.portalLayer, fixed && webFixedStyle]}
+        collapsable={false}
+      >
+        {entries.map(entry => (
+          <View
+            key={entry.key}
+            pointerEvents="box-none"
+            collapsable={false}
+            style={styles.portalEntry}
+          >
+            {entry.children}
+          </View>
+        ))}
+      </View>
+    )
+  }
+}
+
+const hostStack: PortalLayer[] = []
+const portalEntries = new Map<number, React.ReactNode>()
+let nextPortalKey = 1
 let warnedNative = false
 
-const createManager = (store: PortalStore): PortalManager => ({
-  mount: (children, key) => store.mount(children, key),
-  update: (key, children) => store.update(key, children),
-  unmount: key => store.unmount(key),
-})
+const getEntriesSnapshot = (): PortalEntry[] =>
+  Array.from(portalEntries.entries()).map(([key, children]) => ({
+    key,
+    children,
+  }))
 
-const globalManager = createManager(globalStore)
+const notifyCurrentHost = () => {
+  const currentHost = hostStack[hostStack.length - 1]
+  if (currentHost) {
+    currentHost.setEntries(getEntriesSnapshot())
+  }
+}
+
+const registerHost = (host: PortalLayer) => {
+  hostStack.push(host)
+  host.setEntries(getEntriesSnapshot())
+}
+
+const unregisterHost = (host: PortalLayer) => {
+  const index = hostStack.lastIndexOf(host)
+  if (index >= 0) {
+    hostStack.splice(index, 1)
+  }
+  notifyCurrentHost()
+}
+
+const mountPortal = (children: React.ReactNode, key?: number) => {
+  const resolvedKey = key ?? nextPortalKey++
+  portalEntries.set(resolvedKey, children)
+  notifyCurrentHost()
+  return resolvedKey
+}
+
+const updatePortal = (key: number, children: React.ReactNode) => {
+  portalEntries.set(key, children)
+  notifyCurrentHost()
+}
+
+const unmountPortal = (key: number) => {
+  if (portalEntries.delete(key)) {
+    notifyCurrentHost()
+  }
+}
+
+const clearPortals = () => {
+  if (portalEntries.size === 0) return
+  portalEntries.clear()
+  notifyCurrentHost()
+}
+
+const globalManager: PortalManager = {
+  mount: (children, key) => mountPortal(children, key),
+  update: (key, children) => updatePortal(key, children),
+  unmount: key => unmountPortal(key),
+}
 
 export interface PortalHostProps {
   children?: React.ReactNode
   fixed?: boolean
 }
 
-export const PortalHost: React.FC<PortalHostProps> = ({ children, fixed = false }) => {
-  const entries = useSyncExternalStore(globalStore.subscribe, globalStore.getSnapshot, globalStore.getSnapshot)
-  const registeredRef = React.useRef(false)
+export class PortalHost extends React.Component<PortalHostProps> {
+  private layer: PortalLayer | null = null
 
-  if (!registeredRef.current) {
-    mountedHosts += 1
-    registeredRef.current = true
+  componentWillUnmount(): void {
+    if (this.layer) {
+      unregisterHost(this.layer)
+      this.layer = null
+    }
   }
 
-  React.useEffect(() => {
-    return () => {
-      if (registeredRef.current) {
-        mountedHosts = Math.max(0, mountedHosts - 1)
-        registeredRef.current = false
-      }
+  private readonly setLayerRef = (layer: PortalLayer | null) => {
+    if (this.layer === layer) return
+    if (this.layer) {
+      unregisterHost(this.layer)
     }
-  }, [])
+    this.layer = layer
+    if (layer) {
+      registerHost(layer)
+    }
+  }
 
-  return (
-    <PortalContext.Provider value={globalManager}>
-      <View style={styles.root}>
-        {children}
-        <View style={[styles.portalLayer, fixed && webFixedStyle]} pointerEvents="box-none">
-          {entries.map(entry => (
-            <React.Fragment key={entry.key}>{entry.children}</React.Fragment>
-          ))}
+  render() {
+    const { children, fixed } = this.props
+
+    return (
+      <PortalContext.Provider value={globalManager}>
+        <View style={styles.root} collapsable={false} pointerEvents="box-none">
+          {children}
         </View>
-      </View>
-    </PortalContext.Provider>
-  )
+        <PortalLayer ref={this.setLayerRef} fixed={fixed} />
+      </PortalContext.Provider>
+    )
+  }
 }
 
 const styles = StyleSheet.create({
@@ -64,6 +157,9 @@ const styles = StyleSheet.create({
   portalLayer: {
     ...StyleSheet.absoluteFillObject,
   },
+  portalEntry: {
+    ...StyleSheet.absoluteFillObject,
+  },
 })
 
 const webFixedStyle: ViewStyle | undefined =
@@ -71,24 +167,30 @@ const webFixedStyle: ViewStyle | undefined =
     ? ({ position: 'fixed' } as unknown as ViewStyle)
     : undefined
 
-export const portalManager = globalManager
-export const portalStore = globalStore
+let autoHostContainer: HTMLElement | null = null
+let autoHostRoot: any = null
+let hostPromise: Promise<void> | null = null
 
 export const ensureGlobalPortalHost = () => {
-  if (mountedHosts > 0 || typeof document === 'undefined') {
-    if (mountedHosts === 0 && typeof document === 'undefined' && !warnedNative) {
+  if (hostStack.length > 0) {
+    return Promise.resolve()
+  }
+
+  if (typeof document === 'undefined') {
+    if (!warnedNative) {
       warnedNative = true
       console.warn('[Portal] 请在根节点挂载 <PortalHost> 或 <ConfigProvider> 以启用静态组件能力。')
     }
     return Promise.resolve()
   }
-  if (autoHostContainer) return Promise.resolve()
+
+  if (autoHostRoot) return Promise.resolve()
   if (hostPromise) return hostPromise
 
   const doc = document
   hostPromise = import('react-dom/client')
     .then(({ createRoot }) => {
-      if (autoHostContainer) return
+      if (autoHostRoot) return
       autoHostContainer = doc.createElement('div')
       autoHostContainer.setAttribute('data-rnsu-portal-host', 'true')
       doc.body.appendChild(autoHostContainer)
@@ -103,4 +205,10 @@ export const ensureGlobalPortalHost = () => {
     })
 
   return hostPromise
+}
+
+export const portalManager = globalManager
+export const portalStore = {
+  clear: clearPortals,
+  getSnapshot: () => getEntriesSnapshot(),
 }

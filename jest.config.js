@@ -20,6 +20,7 @@ module.exports = {
     '_site',
     'site',
     'react-native-xiaoshu-main',
+    'react-native-paper',
     'react-vant',
     're-write-gluestack-ui-main',
     'react-native-aria-main',

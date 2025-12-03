@@ -1,6 +1,13 @@
 import React from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
-import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 
 import { useTheme } from '../../design-system'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
@@ -68,7 +75,10 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       type: typeProp,
       size: sizeProp,
       color,
+      buttonColor: buttonColorProp,
       textColor,
+      dark,
+      mode: modeProp,
       plain: plainProp,
       block: blockProp,
       round: roundProp,
@@ -82,6 +92,10 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       loadingSize = 'small',
       disabled: disabledProp,
       autoInsertSpace = true,
+      uppercase = false,
+      allowFontScaling = true,
+      maxFontSizeMultiplier,
+      rippleColor: rippleColorProp,
       contentStyle,
       textStyle,
       style,
@@ -95,49 +109,86 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const round = roundProp ?? group?.round ?? buttonTokens.defaults.round
     const square = squareProp ?? group?.square ?? buttonTokens.defaults.square
     const hairline = hairlineProp ?? group?.hairline ?? false
-    const iconPosition = iconPositionProp ?? group?.iconPosition ?? buttonTokens.defaults.iconPosition
-    const shadow = shadowProp ?? group?.shadow ?? false
+    const iconPosition =
+      iconPositionProp ?? group?.iconPosition ?? buttonTokens.defaults.iconPosition
+    const groupShadow = group?.shadow
+    const shadowValue = shadowProp ?? groupShadow
+    const hasShadowOverride = shadowProp !== undefined || groupShadow !== undefined
     const disabled = disabledProp ?? group?.disabled ?? false
+    const defaultMode = buttonTokens.defaults.mode ?? 'contained'
+    const groupMode = group?.mode
+    const shouldForcePlainTextMode = plain && !modeProp && !groupMode
+    const derivedMode = shouldForcePlainTextMode
+      ? 'text'
+      : modeProp ?? groupMode ?? defaultMode
+    const legacyPlain = shouldForcePlainTextMode
+    const buttonColorOverride = buttonColorProp ?? color
 
     const tone = buttonTokens.toneMap[type] ?? buttonTokens.toneMap.default
     const sizeTokens = buttonTokens.sizes[size]
-    const gradientString = typeof color === 'string' ? color : undefined
+    const gradientString = typeof buttonColorOverride === 'string' ? buttonColorOverride : undefined
     const hasGradientSyntax =
       gradientString?.toLowerCase().includes('gradient') ?? false
     const normalizedColor = hasGradientSyntax
       ? extractFirstColorToken(gradientString) ?? undefined
-      : color
-    const gradientFillEnabled = hasGradientSyntax && !plain
+      : buttonColorOverride
+    const allowsGradientFill =
+      derivedMode === 'contained' || derivedMode === 'contained-tonal' || derivedMode === 'elevated'
+    const gradientFillEnabled = hasGradientSyntax && !legacyPlain && allowsGradientFill
     const supportsGradientFill = Platform.OS === 'web'
 
-    const baseTextColor = textColor
+    let backgroundColor =
+      normalizedColor ??
+      (derivedMode === 'contained'
+        ? tone.background
+        : derivedMode === 'contained-tonal'
+          ? tone.tonalBackground
+          : derivedMode === 'elevated'
+            ? tone.background
+            : 'transparent')
+
+    let borderColor =
+      derivedMode === 'outlined'
+        ? normalizedColor ?? tone.border
+        : derivedMode === 'contained-tonal'
+          ? tone.tonalBorder
+          : derivedMode === 'contained' || derivedMode === 'elevated'
+            ? normalizedColor ?? tone.border
+            : 'transparent'
+
+    let resolvedTextColor = textColor
       ? textColor
-      : normalizedColor
-        ? plain
-          ? normalizedColor
-          : '#ffffff'
-        : plain
-          ? tone.border
-          : tone.text
+      : derivedMode === 'contained-tonal'
+        ? tone.tonalText
+        : derivedMode === 'contained' || derivedMode === 'elevated'
+          ? tone.text
+          : normalizedColor ?? tone.border
 
-    const backgroundColor = plain
-      ? '#ffffff'
-      : gradientFillEnabled
-        ? supportsGradientFill
-          ? 'transparent'
-          : normalizedColor ?? tone.background
-        : normalizedColor ?? tone.background
-    const borderColor = plain
-      ? normalizedColor ?? tone.border
-      : gradientFillEnabled
-        ? 'transparent'
-        : normalizedColor ?? tone.border
+    if (dark === true) {
+      resolvedTextColor = '#ffffff'
+    } else if (dark === false) {
+      resolvedTextColor = '#111111'
+    }
 
-    const resolvedBorderWidth = gradientFillEnabled
-      ? 0
-      : hairline
-        ? buttonTokens.border.hairlineWidth
-        : buttonTokens.border.width
+    if (derivedMode === 'text') {
+      backgroundColor = 'transparent'
+      borderColor = 'transparent'
+    }
+
+    if (legacyPlain) {
+      backgroundColor = '#ffffff'
+      borderColor = normalizedColor ?? tone.border
+      resolvedTextColor = textColor ?? normalizedColor ?? tone.border
+    }
+
+    const resolvedBorderWidth =
+      gradientFillEnabled && !legacyPlain
+        ? 0
+        : derivedMode === 'outlined' || legacyPlain
+          ? hairline
+            ? buttonTokens.border.hairlineWidth
+            : buttonTokens.border.width
+          : 0
 
     let borderRadius = square ? 0 : sizeTokens.radius
     if (round) {
@@ -146,22 +197,38 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
     const isDisabled = disabled || loading
 
-    const shadowLevel = typeof shadow === 'number' ? clampShadowLevel(shadow) : 2
-    const shouldShowShadow = !!shadow && !plain
-    const shadowTokens = buttonTokens.shadow[shadowLevel]
-    const shadowStyle: ViewStyle | undefined = shouldShowShadow
-      ? createPlatformShadow({
-          color: shadowTokens.color,
-          opacity: shadowTokens.opacity,
-          radius: shadowTokens.radius,
-          offsetY: shadowTokens.offsetY,
-          elevation: shadowTokens.elevation,
-        })
-      : undefined
+    let resolvedShadowLevel: ButtonShadowLevel | undefined
+    if (typeof shadowValue === 'number') {
+      resolvedShadowLevel = clampShadowLevel(shadowValue)
+    } else if (shadowValue === true) {
+      resolvedShadowLevel = clampShadowLevel(2)
+    } else if (!hasShadowOverride && derivedMode === 'elevated') {
+      resolvedShadowLevel = clampShadowLevel(2)
+    }
+    const shouldShowShadow =
+      !!resolvedShadowLevel &&
+      !gradientFillEnabled &&
+      derivedMode !== 'text' &&
+      derivedMode !== 'outlined' &&
+      !legacyPlain
+    const shadowTokens = resolvedShadowLevel ? buttonTokens.shadow[resolvedShadowLevel] : undefined
+    const shadowStyle: ViewStyle | undefined =
+      shouldShowShadow && shadowTokens
+        ? createPlatformShadow({
+            color: shadowTokens.color,
+            opacity: shadowTokens.opacity,
+            radius: shadowTokens.radius,
+            offsetY: shadowTokens.offsetY,
+            elevation: shadowTokens.elevation,
+          })
+        : undefined
     const gradientWebStyle =
       gradientFillEnabled && supportsGradientFill && gradientString
         ? ({ backgroundImage: gradientString } as ViewStyle)
         : undefined
+    if (gradientFillEnabled && supportsGradientFill) {
+      backgroundColor = 'transparent'
+    }
 
     const buildIconWrapperStyle = (position: 'left' | 'right') => ({
       marginRight: position === 'left' ? buttonTokens.spacing.iconGap : 0,
@@ -171,7 +238,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const renderIcon = () => {
       if (!icon) return null
       const iconElement = typeof icon === 'function'
-        ? icon(baseTextColor, sizeTokens.iconSize)
+        ? icon(resolvedTextColor, sizeTokens.iconSize)
         : icon
 
       return (
@@ -188,14 +255,14 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
             <Loading
               type="spinner"
               size={spinnerSize}
-              color={baseTextColor}
+              color={resolvedTextColor}
             />
           )
         : (
             <ActivityIndicator
               style={buttonStyles.loadingIndicator}
               size={loadingSize}
-              color={baseTextColor}
+              color={resolvedTextColor}
             />
           )
 
@@ -227,7 +294,8 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         fontFamily: foundations.typography.fontFamily,
         fontSize: sizeTokens.fontSize,
         lineHeight: sizeTokens.fontSize * foundations.typography.lineHeightMultiplier,
-        color: baseTextColor,
+        color: resolvedTextColor,
+        textTransform: uppercase ? 'uppercase' : undefined,
       }
 
       if (typeof label === 'string' || typeof label === 'number') {
@@ -235,7 +303,12 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           typeof label === 'string' ? ensureSpace(label, autoInsertSpace) : String(label)
 
         return (
-          <Text style={[buttonStyles.text, sharedTextStyle, textStyle]} numberOfLines={1}>
+          <Text
+            style={[buttonStyles.text, sharedTextStyle, textStyle]}
+            numberOfLines={1}
+            allowFontScaling={allowFontScaling}
+            maxFontSizeMultiplier={maxFontSizeMultiplier}
+          >
             {content}
           </Text>
         )
@@ -265,10 +338,20 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       onPress,
       onPressIn,
       onPressOut,
+      accessibilityLabel,
+      accessibilityHint,
       accessibilityRole,
       accessibilityState,
+      android_ripple: androidRippleProp,
       ...viewProps
     } = pressableProps
+
+    const defaultAccessibilityLabel =
+      typeof label === 'string' ? label : undefined
+    const resolvedAccessibilityLabel =
+      accessibilityLabel ?? defaultAccessibilityLabel
+    const resolvedAccessibilityHint = accessibilityHint
+    const resolvedAccessibilityRole = accessibilityRole ?? 'button'
 
     const { interactionProps, states } = useAriaPress({
       disabled: isDisabled,
@@ -276,7 +359,9 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       onPressStart: onPressIn,
       onPressEnd: onPressOut,
       extraProps: {
-        accessibilityRole: accessibilityRole ?? 'button',
+        accessibilityRole: resolvedAccessibilityRole,
+        accessibilityLabel: resolvedAccessibilityLabel,
+        accessibilityHint: resolvedAccessibilityHint,
       },
     })
 
@@ -313,14 +398,27 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       busy: loading,
       ...accessibilityState,
     }
+    const defaultRippleColor =
+      rippleColorProp ??
+      (derivedMode === 'text' || derivedMode === 'outlined' || legacyPlain
+        ? resolvedTextColor
+        : 'rgba(255,255,255,0.35)')
+    const resolvedAndroidRipple =
+      Platform.OS === 'android'
+        ? androidRippleProp ?? { color: defaultRippleColor, borderless: false }
+        : androidRippleProp
 
     return (
       <Pressable
         ref={forwardedRef}
         disabled={isDisabled}
         style={baseContainerStyle}
-        accessibilityState={mergedAccessibilityState}
+        android_ripple={resolvedAndroidRipple}
         {...interactionProps}
+        accessibilityState={mergedAccessibilityState}
+        accessibilityRole={resolvedAccessibilityRole}
+        accessibilityLabel={resolvedAccessibilityLabel}
+        accessibilityHint={resolvedAccessibilityHint}
         {...viewProps}
       >
         {content}

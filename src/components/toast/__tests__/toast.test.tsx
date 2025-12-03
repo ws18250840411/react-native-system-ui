@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Text } from 'react-native'
+import { StyleSheet, Text } from 'react-native'
 
 import Toast from '..'
 import { PortalHost } from '../../portal'
@@ -48,5 +48,47 @@ describe('Toast', () => {
     })
 
     expect(getMessages()).not.toContain('static')
+  })
+
+  it('allows multiple toast instances when enabled', () => {
+    const host = renderer.create(
+      <PortalHost>
+        <></>
+      </PortalHost>
+    )
+
+    const getMessages = () =>
+      host.root
+        .findAllByType(Text)
+        .map(node => node.props.children)
+        .flat()
+
+    act(() => {
+      Toast.allowMultiple(true)
+      Toast.info({ message: '第一个', duration: 0 })
+      Toast.success({ message: '第二个', duration: 0 })
+    })
+
+    expect(getMessages()).toEqual(expect.arrayContaining(['第一个', '第二个']))
+
+    act(() => {
+      Toast.clear()
+      Toast.allowMultiple(false)
+      jest.runAllTimers()
+    })
+
+    expect(getMessages()).toEqual(expect.not.arrayContaining(['第一个', '第二个']))
+  })
+
+  it('keeps forbidClick overlay transparent when overlay option is false', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <Toast visible message="loading" forbidClick duration={0} />
+      </PortalHost>
+    )
+
+    const overlay = tree.root.findByProps({ testID: 'rv-toast-overlay' })
+    const style = StyleSheet.flatten(overlay.props.style)
+    expect(style.backgroundColor).toBe('transparent')
   })
 })

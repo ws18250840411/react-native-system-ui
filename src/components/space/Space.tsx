@@ -30,14 +30,13 @@ const alignMap: Record<SpaceAlign, ViewStyle['alignItems']> = {
   stretch: 'stretch',
 }
 
-const justifyMap: Record<SpaceJustify, ViewStyle['justifyContent']> = {
+const justifyMap: Record<Exclude<SpaceJustify, 'stretch'>, ViewStyle['justifyContent']> = {
   start: 'flex-start',
   end: 'flex-end',
   center: 'center',
   between: 'space-between',
   around: 'space-around',
   evenly: 'space-evenly',
-  stretch: 'stretch',
 }
 
 const parseValue = (
@@ -93,9 +92,14 @@ export const Space: React.FC<SpaceProps> = props => {
   )
 
   const isHorizontal = direction === 'horizontal'
+  const shouldStretchJustify = justify === 'stretch'
+  const justifyForStyle: Exclude<SpaceJustify, 'stretch'> = shouldStretchJustify
+    ? 'start'
+    : justify
   const shouldBlock = block ?? !isHorizontal
   const resolvedAlign: SpaceAlign = align ?? (isHorizontal ? 'center' : 'stretch')
   const supportsGap = Platform.OS === 'web'
+  const shouldFillMainAxis = isHorizontal && (fill || shouldStretchJustify)
 
   const childArray = React.Children.toArray(children).filter(
     child => child !== null && child !== undefined && child !== false
@@ -114,7 +118,7 @@ export const Space: React.FC<SpaceProps> = props => {
       flexDirection: isHorizontal ? 'row' : 'column',
       flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
       alignItems: alignMap[resolvedAlign],
-      justifyContent: justifyMap[justify],
+      justifyContent: justifyMap[justifyForStyle],
       width: shouldBlock ? '100%' : undefined,
       ...(supportsGap
         ? {
@@ -147,7 +151,7 @@ export const Space: React.FC<SpaceProps> = props => {
     }
 
     if (!isDivider) {
-      if (isHorizontal && fill) {
+      if (shouldFillMainAxis) {
         itemStyle.flexGrow = 1
         itemStyle.flexBasis = 0
         itemStyle.minWidth = 0

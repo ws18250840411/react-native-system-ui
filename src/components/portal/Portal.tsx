@@ -1,7 +1,12 @@
 import React from 'react'
 
 import { PortalContext } from './PortalContext'
-import { PortalHost, ensureGlobalPortalHost, portalManager as globalManager } from './PortalHost'
+import {
+  PortalHost,
+  ensureGlobalPortalHost,
+  portalManager as globalManager,
+  portalStore,
+} from './PortalHost'
 
 export interface PortalProps {
   children?: React.ReactNode
@@ -40,7 +45,8 @@ const add = (children: React.ReactNode, key?: number) => {
 
 const remove = (key: number) => globalManager.unmount(key)
 const update = (key: number, children: React.ReactNode) => globalManager.update(key, children)
+const clear = () => portalStore.clear()
 
-export const Portal = Object.assign(PortalComponent, { Host: PortalHost, add, remove, update })
+export const Portal = Object.assign(PortalComponent, { Host: PortalHost, add, remove, update, clear })
 
 export default Portal

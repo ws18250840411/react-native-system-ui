@@ -21,6 +21,16 @@ import { Cascader } from react-native-system-ui
 
 <code title="基础" src="./cascader/demo/basic.tsx"></code>
 
+> Demo 采用 Cell 触发 + Popup 弹层的交互，与 React Vant 一致。`children` 支持函数写法，可拿到当前值、已选路径与 `actions`（open/close/toggle）。
+
+### Form 中使用
+
+<code title="表单" src="./cascader/demo/form.tsx"></code>
+
+### 异步加载
+
+<code title="异步" src="./cascader/demo/async.tsx"></code>
+
 ### 自定义字段名
 
 <code title="字段映射" src="./cascader/demo/field-names.tsx"></code>
@@ -28,6 +38,10 @@ import { Cascader } from react-native-system-ui
 ### 自定义选项渲染
 
 <code title="自定义渲染" src="./cascader/demo/custom.tsx"></code>
+
+### 受控组件
+
+<code title="受控" src="./cascader/demo/value.tsx"></code>
 
 ## API
 
@@ -39,12 +53,36 @@ import { Cascader } from react-native-system-ui
 | `title` | 顶部标题 | `ReactNode` | `请选择` |
 | `placeholder` | 选项/标签占位文案 | `string` | `请选择` |
 | `activeColor` | 选中高亮颜色 | `string` | 主题色 |
+| `swipeable` | 是否允许左右滑动切换标签页 | `boolean` | `false` |
 | `fieldNames` | 自定义字段映射 | `{ text?: string; value?: string; children?: string }` | `{ text: 'text', value: 'value', children: 'children' }` |
 | `optionRender` | 自定义选项内容 | `({ option, selected }) => ReactNode` | - |
 | `showHeader` | 是否展示标题 | `boolean` | `true` |
+| `closeable` | `poppable` 模式下是否展示关闭图标 | `boolean` | `true` |
+| `closeIcon` | 自定义关闭图标 | `ReactNode` | - |
+| `onClose` | 关闭弹层时（遮罩或图标）触发 | `() => void` | - |
 | `onChange` | 选中路径变化时触发 | `(value: CascaderValue[], selectedRows: CascaderOption[]) => void` | - |
 | `onFinish` | 选择到叶子节点时触发 | `(value: CascaderValue[], selectedRows: CascaderOption[]) => void` | - |
 | `onTabChange` | 点击 Tab 时触发 | `(tabIndex: number) => void` | - |
+| `poppable` | 是否以内置 Popup 展示 | `boolean` | `false` |
+| `visible` | `poppable` 模式下的受控可见性 | `boolean` | - |
+| `defaultVisible` | `poppable` 模式下的默认可见性 | `boolean` | `false` |
+| `onVisibleChange` | 弹层可见性变化回调 | `(visible: boolean) => void` | - |
+| `closeOnClickOverlay` | 点击遮罩是否关闭弹层 | `boolean` | `true` |
+| `closeOnFinish` | 选到叶子节点后是否自动关闭弹层 | `boolean` | `true` |
+| `popupPlacement` | 弹层位置，同 Popup `placement` | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'bottom'` |
+| `popupRound` | 是否开启弹层圆角 | `boolean` | `true` |
+| `popupProps` | 透传 Popup 额外参数 | `Partial<PopupProps>` | - |
+| `children` | 可选的触发渲染；传入函数时可获得 `actions` | `ReactNode \| CascaderRenderProps` | - |
+
+### Render Props
+
+当 `children` 为函数时，入参为 `(value, selectedRows, actions)`：
+
+| 参数 | 说明 |
+| --- | --- |
+| `value` | 当前选中值数组 |
+| `selectedRows` | 当前路径对应的选项列表 |
+| `actions` | `{ open, close, toggle }`，用于手动控制弹层 |
 
 ### CascaderOption
 

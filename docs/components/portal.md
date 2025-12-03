@@ -57,5 +57,6 @@ import { Portal } from 'react-native-system-ui'
 | `Portal.add(children, key?)` | 直接插入节点，返回的 key 可用于 `Portal.remove` 或 `Portal.update`。 |
 | `Portal.remove(key)` | 根据 key 移除节点。 |
 | `Portal.update(key, children)` | 更新已经存在的节点内容。 |
+| `Portal.clear()` | 清空当前所有挂载的 Portal 节点，常用于退出页面或文档切换时的兜底清理。 |
 
 > 静态方法默认会尝试自动创建 `PortalHost`（Web 环境下通过 DOM 自动注入），但在 React Native 真机/模拟器中仍需手动挂载一次 Host。

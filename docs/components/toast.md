@@ -37,6 +37,10 @@ import { Toast } from 'react-native-system-ui'
 
 <code title="禁止点击" src="./toast/demo/forbidClick.tsx"></code>
 
+### 多条提示并行
+
+<code title="多条提示" src="./toast/demo/multiple.tsx"></code>
+
 ### 全局配置
 
 <code title="默认配置" src="./toast/demo/global.tsx"></code>

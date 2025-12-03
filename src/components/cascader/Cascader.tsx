@@ -3,17 +3,26 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 
 import { useControllableValue } from "../../hooks"
 import { useCascaderTokens } from "./tokens"
-import type { CascaderOption, CascaderProps, CascaderValue } from "./types"
+import type {
+  CascaderOption,
+  CascaderProps,
+  CascaderRenderProps,
+  CascaderValue,
+} from "./types"
 import { useCascaderExtend } from "./useCascaderExtend"
 import { resolveSelectedRows } from "./utils"
+import Popup from "../popup"
+import Icon from "../icon"
+import Tabs from "../tabs"
+import type { TabsValue } from "../tabs"
 
 const DEFAULT_PLACEHOLDER = "请选择"
 
 const Cascader: React.FC<CascaderProps> = props => {
   const tokens = useCascaderTokens()
-  const [value, triggerChange] = useControllableValue<CascaderValue[]>(props, {
+  const [value, commitValue] = useControllableValue<CascaderValue[]>(props, {
     defaultValue: [],
-    trigger: "onChange",
+    trigger: "__cascaderCommit",
   })
 
   const {
@@ -24,10 +33,25 @@ const Cascader: React.FC<CascaderProps> = props => {
     fieldNames,
     optionRender,
     showHeader = true,
+    closeable,
+    closeIcon,
+    onClose,
+    onChange,
     onFinish,
     onTabChange,
+    swipeable = false,
     style,
     testID,
+    children,
+    poppable = false,
+    visible: popupVisibleProp,
+    defaultVisible: popupDefaultVisible,
+    onVisibleChange,
+    closeOnClickOverlay = true,
+    closeOnFinish = true,
+    popupPlacement = "bottom",
+    popupRound = true,
+    popupProps: popupPropsOverrides,
     ...rest
   } = props
 
@@ -41,28 +65,116 @@ const Cascader: React.FC<CascaderProps> = props => {
   )
 
   const cascaderValue = React.useMemo(() => (Array.isArray(value) ? value : []), [value])
+  const [panelValue, setPanelValue] = React.useState<CascaderValue[]>(cascaderValue)
+  const resolvedCloseable = closeable ?? poppable
 
-  const { tabs, items } = useCascaderExtend(options, keys, cascaderValue)
+  const currentValue = poppable ? panelValue : cascaderValue
+  const { tabs, items } = useCascaderExtend(options, keys, currentValue)
+  const panelSelectedRows = React.useMemo(
+    () => resolveSelectedRows(options, keys, currentValue),
+    [currentValue, keys, options]
+  )
+  const confirmedRows = React.useMemo(
+    () => resolveSelectedRows(options, keys, cascaderValue),
+    [cascaderValue, keys, options]
+  )
+
+  const emitChange = React.useCallback(
+    (nextValue: CascaderValue[], rows: CascaderOption[], commit: boolean) => {
+      onChange?.(nextValue, rows)
+      if (commit) {
+        commitValue(nextValue, rows)
+      }
+    },
+    [commitValue, onChange],
+  )
 
   const [activeTab, setActiveTab] = React.useState(() => Math.min(cascaderValue.length, Math.max(tabs.length - 1, 0)))
+  const tabChangeByUserRef = React.useRef(false)
 
   React.useEffect(() => {
-    const nextIndex = Math.min(cascaderValue.length, Math.max(tabs.length - 1, 0))
-    if (nextIndex !== activeTab) {
-      setActiveTab(nextIndex)
-    }
-  }, [activeTab, cascaderValue.length, tabs.length])
+    const nextIndex = Math.min(currentValue.length, Math.max(tabs.length - 1, 0))
+    const wasUserTriggered = tabChangeByUserRef.current
+    setActiveTab(prev => {
+      if (prev > nextIndex) {
+        return nextIndex
+      }
+      if (!wasUserTriggered && prev < nextIndex) {
+        return nextIndex
+      }
+      return prev
+    })
+    tabChangeByUserRef.current = false
+  }, [currentValue.length, tabs.length])
 
-  const handleTabPress = React.useCallback(
-    (tabIndex: number) => {
-      setActiveTab(tabIndex)
-      onTabChange?.(tabIndex)
+  const popupVisibilityProps: Record<string, any> = {}
+  if (Object.prototype.hasOwnProperty.call(props, "visible")) {
+    popupVisibilityProps.value = popupVisibleProp
+  }
+  if (Object.prototype.hasOwnProperty.call(props, "defaultVisible")) {
+    popupVisibilityProps.defaultValue = popupDefaultVisible
+  }
+  if (typeof onVisibleChange === "function") {
+    popupVisibilityProps.onChange = onVisibleChange
+  }
+
+  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(popupVisibilityProps, { defaultValue: false })
+
+  React.useEffect(() => {
+    if (!poppable) {
+      setPanelValue(cascaderValue)
+      return
+    }
+    if (!popupVisible) {
+      setPanelValue(cascaderValue)
+    }
+  }, [cascaderValue, poppable, popupVisible])
+
+  const openPopup = React.useCallback(() => {
+    if (!poppable || popupVisible) return
+    setPanelValue(cascaderValue)
+    setPopupVisible(true)
+  }, [cascaderValue, poppable, popupVisible, setPopupVisible])
+
+  const closePopup = React.useCallback(
+    (notify?: boolean) => {
+      if (!poppable || !popupVisible) return
+      setPopupVisible(false)
+      if (notify) {
+        onClose?.()
+      }
+    },
+    [onClose, poppable, popupVisible, setPopupVisible]
+  )
+
+  const togglePopup = React.useCallback(() => {
+    if (!poppable) return
+    if (popupVisible) {
+      closePopup(true)
+    } else {
+      openPopup()
+    }
+  }, [closePopup, openPopup, poppable, popupVisible])
+
+  const renderProp = React.useMemo(
+    () => (typeof children === "function" ? (children as CascaderRenderProps) : null),
+    [children]
+  )
+
+  const handleTabChange = React.useCallback(
+    (tabValue: TabsValue) => {
+      const index = typeof tabValue === "number" ? tabValue : Number(tabValue)
+      if (Number.isNaN(index)) return
+      tabChangeByUserRef.current = true
+      setActiveTab(index)
+      onTabChange?.(index)
     },
     [onTabChange],
   )
 
   const handleSelect = React.useCallback(
     (option: CascaderOption, tabIndex: number) => {
+      tabChangeByUserRef.current = false
       if (option.disabled) {
         return
       }
@@ -70,35 +182,47 @@ const Cascader: React.FC<CascaderProps> = props => {
       if (optionValue === undefined || optionValue === null) {
         return
       }
-      const nextValue = cascaderValue.slice(0, tabIndex)
-      nextValue[tabIndex] = optionValue as CascaderValue
+      const current = (poppable ? panelValue : cascaderValue).slice(0, tabIndex)
+      const nextValue = [...current, optionValue as CascaderValue]
       const resolved = resolveSelectedRows(options, keys, nextValue)
-      triggerChange(nextValue, resolved)
-      const children = (option[keys.childrenKey] as CascaderOption[] | undefined) ?? []
-      if (!children.length) {
-        onFinish?.(nextValue, resolved)
-        return
+      const childrenOptions = (option[keys.childrenKey] as CascaderOption[] | undefined) ?? []
+      const isLeaf = !childrenOptions.length
+
+      if (poppable) {
+        setPanelValue(nextValue)
       }
-      setActiveTab(Math.min(tabIndex + 1, tabs.length))
+
+      const shouldCommit = !poppable || isLeaf
+      emitChange(nextValue, resolved, shouldCommit)
+
+      if (isLeaf) {
+        onFinish?.(nextValue, resolved)
+        if (poppable && closeOnFinish) {
+          closePopup(true)
+        }
+      }
     },
-    [cascaderValue, keys, onFinish, options, tabs.length, triggerChange],
+    [cascaderValue, closeOnFinish, closePopup, emitChange, keys, onFinish, options, panelValue, poppable],
   )
 
-  const currentOptions = tabs[activeTab] ?? []
-
-  const renderOption = (option: CascaderOption) => {
+  const renderOption = (option: CascaderOption, tabIndex: number, isLast: boolean) => {
     const optionValue = option[keys.valueKey]
     const label = option[keys.textKey]
-    const selected = cascaderValue[activeTab] === optionValue
+    const selected = currentValue[tabIndex] === optionValue
     const disabled = !!option.disabled
     const baseColor = option.color ?? tokens.colors.optionText
-    const textColor = disabled ? tokens.colors.optionDisabled : selected ? option.color ?? tokens.colors.optionActiveText : baseColor
+    const textColor = disabled
+      ? tokens.colors.optionDisabled
+      : selected
+        ? option.color ?? tokens.colors.optionActiveText
+        : baseColor
     const content = optionRender ? (
       optionRender({ option, selected })
     ) : (
       <Text
         style={[
           styles.optionText,
+          selected ? styles.optionTextActive : null,
           { color: textColor },
         ]}
       >
@@ -109,114 +233,239 @@ const Cascader: React.FC<CascaderProps> = props => {
     return (
       <Pressable
         key={String(optionValue)}
-        testID={`cascader-option-${activeTab}-${String(optionValue)}`}
-        style={[
+        testID={`cascader-option-${tabIndex}-${String(optionValue)}`}
+        style={({ pressed }) => [
           styles.option,
           {
             minHeight: tokens.sizing.optionMinHeight,
             paddingVertical: tokens.spacing.optionPaddingVertical,
             paddingHorizontal: tokens.spacing.optionPaddingHorizontal,
             borderColor: tokens.colors.divider,
-            borderRadius: tokens.radii.option,
+            borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
           },
-          selected && { backgroundColor: tokens.colors.optionActiveBackground },
+          pressed && !disabled ? { backgroundColor: tokens.colors.optionActiveBackground } : null,
         ]}
-        onPress={() => handleSelect(option, activeTab)}
+        onPress={() => handleSelect(option, tabIndex)}
         disabled={disabled}
       >
         <View style={styles.optionContent}>
           <View style={styles.optionLabel}>{content}</View>
-          {option.loading ? <ActivityIndicator size="small" color={activeColor} /> : null}
+          {option.loading ? (
+            <ActivityIndicator size="small" color={activeColor} />
+          ) : selected ? (
+            <Icon name="check" size={16} color={activeColor} />
+          ) : null}
         </View>
       </Pressable>
     )
   }
 
-  const renderTabs = () => (
-    <View style={styles.tabBar}>
-      {tabs.map((_, index) => {
-        const selectedOption = items[index]
-        const labelValue = selectedOption ? selectedOption[keys.textKey] : placeholder
-        const label = typeof labelValue === "string" || typeof labelValue === "number" ? labelValue : placeholder
-        const isActive = index === activeTab
-        return (
-          <Pressable
-            key={index}
-            testID={`cascader-tab-${index}`}
-            style={[styles.tab, isActive && styles.activeTab]}
-            onPress={() => handleTabPress(index)}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                { color: selectedOption ? tokens.colors.tabInactive : tokens.colors.placeholder },
-                isActive && { color: tokens.colors.tabActive },
-              ]}
+  const renderOptionsList = (optionList: CascaderOption[], tabIndex: number) => (
+    <ScrollView
+      style={[styles.optionList, { height: tokens.sizing.optionListHeight }]}
+      contentContainerStyle={{
+        paddingTop: tokens.spacing.optionListPaddingTop,
+        paddingBottom: tokens.spacing.optionPaddingVertical,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      {optionList.length ? (
+        optionList.map((item, index) => renderOption(item, tabIndex, index === optionList.length - 1))
+      ) : (
+        <Text style={[styles.empty, { color: tokens.colors.placeholder }]}>{placeholder}</Text>
+      )}
+    </ScrollView>
+  )
+
+  const renderTabs = () => {
+    if (!tabs.length) {
+      return renderOptionsList([], 0)
+    }
+    const tabBarStyle = [
+      styles.tabsNav,
+      {
+        paddingHorizontal: tokens.spacing.padding,
+        paddingBottom: tokens.spacing.tabGap,
+        borderColor: tokens.colors.divider,
+        backgroundColor: tokens.colors.background,
+      },
+    ]
+    return (
+      <Tabs
+        active={activeTab}
+        onChange={handleTabChange}
+        swipeable={swipeable}
+        swipeThreshold={0}
+        scrollable={false}
+        animated
+        color={activeColor}
+        tabBarStyle={tabBarStyle}
+        tabStyle={styles.tabsItem}
+        titleStyle={styles.tabsTitle}
+      >
+        {tabs.map((optionList, index) => {
+          const selectedOption = items[index]
+          const labelValue = selectedOption ? selectedOption[keys.textKey] : placeholder
+          let titleNode: React.ReactNode = labelValue
+          if (typeof labelValue === "string" || typeof labelValue === "number") {
+            titleNode = (
+              <Text style={!selectedOption ? { color: tokens.colors.placeholder } : undefined}>
+                {labelValue || placeholder}
+              </Text>
+            )
+          } else if (!labelValue) {
+            titleNode = <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>
+          }
+          return (
+            <Tabs.TabPane key={index} name={index} title={titleNode ?? placeholder}>
+              {renderOptionsList(optionList, index)}
+            </Tabs.TabPane>
+          )
+        })}
+      </Tabs>
+    )
+  }
+
+  const inlineChildren = !poppable && !renderProp ? children : null
+
+  const content = (
+    <View
+      testID={testID}
+      style={[styles.container, { backgroundColor: tokens.colors.background }, style]}
+      {...rest}
+    >
+      {showHeader ? (
+        <View
+          style={[
+            styles.header,
+            {
+              paddingHorizontal: tokens.spacing.padding,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderColor: tokens.colors.divider,
+            },
+          ]}
+        >
+          {typeof title === "string" ? (
+            <Text style={[styles.title, { color: tokens.colors.headerText }]}>{title}</Text>
+          ) : (
+            title
+          )}
+          {resolvedCloseable && poppable ? (
+            <Pressable
+              hitSlop={8}
+              onPress={() => closePopup(true)}
+              style={styles.closeButton}
+              accessibilityRole="button"
+              accessibilityLabel="关闭"
             >
-              {label ?? placeholder}
-            </Text>
-            <View
-              style={[
-                styles.tabIndicator,
-                {
-                  height: tokens.sizing.indicatorHeight,
-                  backgroundColor: isActive ? activeColor : "transparent",
-                },
-              ]}
-            />
-          </Pressable>
-        )
-      })}
+              {closeIcon ?? <Icon name="close" size={18} color={tokens.colors.placeholder} />}
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+      {renderTabs()}
+      {inlineChildren ? (
+        <View style={[styles.inlineChildren, { paddingHorizontal: tokens.spacing.padding }]}>
+          {inlineChildren}
+        </View>
+      ) : null}
     </View>
   )
 
+  if (!poppable) {
+    return content
+  }
+
+  const {
+    closeOnOverlayPress: overrideCloseOnOverlayPress,
+    overlay: popupOverlay,
+    onOpen: popupOnOpen,
+    onOpened: popupOnOpened,
+    onClose: popupOnClose,
+    onClosed: popupOnClosed,
+    ...popupRestProps
+  } = popupPropsOverrides ?? {}
+
+  const resolvedOverlay = popupOverlay ?? true
+  const resolvedCloseOnOverlayPress = overrideCloseOnOverlayPress ?? closeOnClickOverlay
+
+  const cascaderActions = React.useMemo(
+    () => ({
+      open: openPopup,
+      close: () => closePopup(true),
+      toggle: togglePopup,
+    }),
+    [closePopup, openPopup, togglePopup]
+  )
+
+  const triggerNode = renderProp
+    ? renderProp(cascaderValue, confirmedRows, cascaderActions)
+    : children ?? null
+
   return (
-    <View testID={testID} style={[styles.container, { backgroundColor: tokens.colors.background, padding: tokens.spacing.padding }, style]} {...rest}>
-      {showHeader ? (
-        <Text style={[styles.title, { color: tokens.colors.headerText }]}>{title}</Text>
-      ) : null}
-      {renderTabs()}
-      <ScrollView style={styles.optionList} showsVerticalScrollIndicator={false}>
-        {currentOptions.length ? currentOptions.map(renderOption) : (
-          <Text style={[styles.empty, { color: tokens.colors.placeholder }]}>{placeholder}</Text>
-        )}
-      </ScrollView>
-    </View>
+    <>
+      {triggerNode}
+      <Popup
+        visible={popupVisible}
+        placement={popupPlacement}
+        round={popupRound}
+        closeOnOverlayPress={resolvedCloseOnOverlayPress}
+        overlay={resolvedOverlay}
+        onOpen={() => {
+          popupOnOpen?.()
+        }}
+        onOpened={() => {
+          popupOnOpened?.()
+        }}
+        onClose={() => {
+          popupOnClose?.()
+          closePopup(true)
+        }}
+        onClosed={() => {
+          popupOnClosed?.()
+        }}
+        {...popupRestProps}
+      >
+        {content}
+      </Popup>
+    </>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 12,
+    borderRadius: 0,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: 48,
+    paddingVertical: 12,
   },
   title: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "600",
-    marginBottom: 12,
   },
-  tabBar: {
-    flexDirection: "row",
-    marginBottom: 12,
+  closeButton: {
+    padding: 4,
+    marginLeft: 8,
   },
-  tab: {
-    flex: 1,
+  tabsNav: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  activeTab: {},
-  tabText: {
-    textAlign: "center",
-    fontSize: 14,
-    paddingBottom: 6,
+  tabsItem: {
+    alignItems: "flex-start",
   },
-  tabIndicator: {
-    width: "100%",
-    borderRadius: 2,
+  tabsTitle: {
+    fontSize: 15,
+    fontWeight: "600",
   },
   optionList: {
-    maxHeight: 320,
+    flexGrow: 0,
   },
   option: {
-    borderWidth: 1,
-    marginBottom: 8,
+    justifyContent: "center",
   },
   optionContent: {
     flexDirection: "row",
@@ -226,6 +475,9 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 15,
   },
+  optionTextActive: {
+    fontWeight: "600",
+  },
   optionLabel: {
     flex: 1,
     marginRight: 12,
@@ -234,6 +486,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 24,
     fontSize: 14,
+  },
+  inlineChildren: {
+    paddingVertical: 12,
   },
 })
 
