@@ -98,7 +98,8 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       ellipsis: true,
       swipeThreshold: 5,
       animated: true,
-      duration: 160,
+      // 与 React Vant 保持一致，默认 300ms 动画时间
+      duration: 300,
       lazyRender: true,
     },
     colors: {

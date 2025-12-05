@@ -16,6 +16,7 @@ const DemoBlock: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 )
 
 const fullTabStyle = { flexBasis: `${100 / baseTabs.length}%`, flexGrow: 0 }
+const scrollTabs = Array.from({ length: 8 }).map((_, idx) => makeTab("scroll", idx + 1))
 
 const Pane: React.FC<{ children: React.ReactNode; tone?: "default" | "plain" }> = ({ children, tone = "default" }) => (
   <div className={`demo-tabs__pane${tone === "plain" ? " demo-tabs__pane--plain" : ""}`}>{children}</div>
@@ -82,6 +83,21 @@ export default function TabsBasicDemo() {
               badge={tab.badge}
             >
               <Pane>{tab.desc}</Pane>
+            </Tabs.TabPane>
+          ))}
+        </Tabs>
+      </DemoBlock>
+
+      <DemoBlock>
+        <Tabs
+          defaultActive={scrollTabs[3].key}
+          color={primaryColor}
+          swipeThreshold={4}
+          ellipsis={false}
+        >
+          {scrollTabs.map(tab => (
+            <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
+              <Pane>{`内容 ${tab.title.replace("标签", "")}`}</Pane>
             </Tabs.TabPane>
           ))}
         </Tabs>

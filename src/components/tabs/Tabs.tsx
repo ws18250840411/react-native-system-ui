@@ -397,9 +397,12 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const indicatorX = React.useRef(new Animated.Value(0)).current
   const indicatorWidth = React.useRef(new Animated.Value(0)).current
+  const navScrollAnim = React.useRef(new Animated.Value(0)).current
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
   const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
+  const navContentWidthRef = React.useRef(0)
+  const navScrollOffsetRef = React.useRef(0)
   const indicatorInitializedRef = React.useRef(false)
   const paneLayoutMap = React.useRef<Map<TabsValue, { y: number; height: number }>>(new Map())
   const scrollspyScrollRef = React.useRef<Animated.ScrollView | null>(null)
@@ -447,15 +450,27 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   )
 
   const scrollIntoView = React.useCallback(
-    (name?: TabsValue) => {
+    (name?: TabsValue, immediate?: boolean) => {
       if (!scrollable || !name) return
       const layout = layoutMap.current.get(name)
       const containerWidth = navContainerWidthRef.current
       if (!layout || !containerWidth) return
-      const target = Math.max(layout.x + layout.width / 2 - containerWidth / 2, 0)
-      navScrollRef.current?.scrollTo({ x: target, animated: true })
+      const rawTarget = layout.x + layout.width / 2 - containerWidth / 2
+      const maxScroll =
+        navContentWidthRef.current > containerWidth
+          ? navContentWidthRef.current - containerWidth
+          : 0
+      const target = Math.min(Math.max(rawTarget, 0), maxScroll)
+      const durationMs = immediate ? 0 : +duration
+      navScrollAnim.stopAnimation()
+      navScrollAnim.setValue(navScrollOffsetRef.current)
+      Animated.timing(navScrollAnim, {
+        toValue: target,
+        duration: durationMs,
+        useNativeDriver: false,
+      }).start()
     },
-    [scrollable],
+    [duration, navScrollAnim, scrollable],
   )
 
   React.useEffect(() => {
@@ -468,6 +483,16 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     scrollIntoView(currentName)
   }, [animateIndicator, currentName, scrollIntoView])
 
+  React.useEffect(() => {
+    const id = navScrollAnim.addListener(({ value }) => {
+      navScrollOffsetRef.current = value
+      navScrollRef.current?.scrollTo({ x: value, animated: false })
+    })
+    return () => {
+      navScrollAnim.removeListener(id)
+    }
+  }, [navScrollAnim])
+
   React.useEffect(
     () => () => {
       if (scrollspyLockTimerRef.current) {
@@ -478,17 +503,22 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     [],
   )
 
-  const handleTabLayout = React.useCallback((name: TabsValue, event: LayoutChangeEvent) => {
-    const { x, width } = event.nativeEvent.layout
-    layoutMap.current.set(name, { x, width })
-    if (name === currentName) {
-      const shouldAnimate = indicatorInitializedRef.current
-      const didAnimate = animateIndicator(name, !shouldAnimate)
-      if (didAnimate && !indicatorInitializedRef.current) {
-        indicatorInitializedRef.current = true
+  const handleTabLayout = React.useCallback(
+    (name: TabsValue, event: LayoutChangeEvent) => {
+      const { x, width } = event.nativeEvent.layout
+      layoutMap.current.set(name, { x, width })
+      // 如果激活项布局变化，立即重算指示线并同步 nav 居中
+      if (name === currentName) {
+        const shouldAnimate = indicatorInitializedRef.current
+        const didAnimate = animateIndicator(name, !shouldAnimate)
+        if (didAnimate && !indicatorInitializedRef.current) {
+          indicatorInitializedRef.current = true
+        }
+        scrollIntoView(name, true)
       }
-    }
-  }, [animateIndicator, currentName])
+    },
+    [animateIndicator, currentName, scrollIntoView],
+  )
 
   const handleNavLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout
@@ -756,11 +786,12 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         return
       }
       setActiveValue(target.name, target.index)
+      scrollIntoView(target.name, options?.immediate)
       if (isScrollspy) {
         scrollToPane(target.name, options?.immediate)
       }
     },
-    [isScrollspy, panes, scrollToPane, setActiveValue],
+    [isScrollspy, panes, scrollIntoView, scrollToPane, setActiveValue],
   )
 
   React.useImperativeHandle(ref, () => ({
@@ -778,8 +809,13 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     }
     return tokens.tabList.height
   }, [type, tokens])
-  const navPaddingBottom = type === 'card' ? 0 : tokens.tabList.paddingBottom
-  const indicatorBottom = showIndicator ? tokens.indicator.offset : 0
+  const navPaddingBottom =
+    type === 'line'
+      ? 0
+      : type === 'card'
+        ? 0
+        : tokens.tabList.paddingBottom
+  const indicatorBottom = showIndicator ? (type === 'line' ? 0 : tokens.indicator.offset) : 0
 
   if (panes.length === 0) {
     return null
@@ -811,14 +847,58 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     <ScrollView
       horizontal
       ref={navScrollRef}
+      onScroll={Animated.event(
+        [{ nativeEvent: { contentOffset: { x: navScrollAnim } } }],
+        {
+          useNativeDriver: false,
+          listener: event => {
+            navScrollOffsetRef.current = event.nativeEvent.contentOffset.x
+          },
+        },
+      )}
+      onContentSizeChange={w => {
+        navContentWidthRef.current = w
+      }}
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.navContent}
+      contentContainerStyle={[styles.navContent, styles.navContentScrollable]}
     >
       {navItems}
+      {showIndicator ? (
+        <AnimatedIndicator
+          testID="rv-tabs-indicator"
+          style={[
+            styles.indicator,
+            {
+              height: resolvedLineHeight,
+              borderRadius: indicatorCornerRadius,
+              backgroundColor: indicatorColor,
+              width: indicatorWidth,
+              bottom: indicatorBottom,
+              transform: [{ translateX: indicatorX }],
+            },
+          ]}
+        />
+      ) : null}
     </ScrollView>
   ) : (
     <View style={[styles.navContent, styles.navContentStatic]}>
       {navItems}
+      {showIndicator ? (
+        <AnimatedIndicator
+          testID="rv-tabs-indicator"
+          style={[
+            styles.indicator,
+            {
+              height: resolvedLineHeight,
+              borderRadius: indicatorCornerRadius,
+              backgroundColor: indicatorColor,
+              width: indicatorWidth,
+              bottom: indicatorBottom,
+              transform: [{ translateX: indicatorX }],
+            },
+          ]}
+        />
+      ) : null}
     </View>
   )
 
@@ -856,22 +936,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         ]}
       >
         {navBody}
-        {showIndicator ? (
-          <AnimatedIndicator
-            testID="rv-tabs-indicator"
-            style={[
-              styles.indicator,
-              {
-                height: resolvedLineHeight,
-                borderRadius: indicatorCornerRadius,
-                backgroundColor: indicatorColor,
-                width: indicatorWidth,
-                bottom: indicatorBottom,
-                transform: [{ translateX: indicatorX }],
-              },
-            ]}
-          />
-        ) : null}
       </View>
       {navRight ? <View style={styles.navSide}>{navRight}</View> : null}
     </View>
@@ -971,7 +1035,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: '100%',
+    position: 'relative',
   },
+  navContentScrollable: {},
   navContentStatic: {
     flex: 1,
   },
