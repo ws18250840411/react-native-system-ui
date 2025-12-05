@@ -17,7 +17,7 @@ export default () => {
         {sections.map(section => (
           <View key={section} style={styles.section}>
             <Text style={styles.sectionTitle}>内容区块 {section}</Text>
-            <Text style={styles.sectionDesc}>与 Sticky/Tabbar 一样，NavBar 在 fixed 模式下会占位。</Text>
+            <Text style={styles.sectionDesc}>与 Tabbar 一样，NavBar 在 fixed 模式下会占位。</Text>
           </View>
         ))}
       </AnimatedScrollView>

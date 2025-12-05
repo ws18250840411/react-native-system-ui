@@ -77,7 +77,7 @@
 | Popover 气泡卡片 | ⏳ |  |
 | Progress 进度条 | ⏳ |  |
 | Skeleton 骨架屏 | ⏳ |  |
-| Sticky 粘性布局 | ⏳ |  |
+| Sticky 粘性布局 | 🚫 | 2025-12-04 暂停交付：React Native 端无法稳定复现跨端粘性定位体验，组件下线 |
 | Tag 标签 | ⏳ |  |
 | WaterMark 水印 | ⏳ |  |
 
@@ -90,7 +90,7 @@
 | NavBar 导航栏 | ⏳ |  |
 | Pagination 分页 | ⏳ |  |
 | Sidebar 侧边栏 | ⏳ |  |
-| Tabs 选项卡 | ⏳ |  |
+| Tabs 选项卡 | ⏳ | scrollspy + swipeable + lazyRenderPlaceholder 已齐，Sticky 模式因体验问题下线，下一步联动 Portal/Popup |
 | Tabbar 标签栏 | ⏳ |  |
 
 ## 业务组件

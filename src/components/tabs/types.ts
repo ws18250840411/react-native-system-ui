@@ -1,11 +1,20 @@
 import type * as React from 'react'
-import type { Animated, StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
-
-import type { StickyScrollEvent } from '../sticky/types'
+import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 export type TabsType = 'line' | 'card' | 'capsule' | 'jumbo'
 export type TabsAlign = 'start' | 'center'
 export type TabsValue = string | number
+
+export interface TabsScrollspyConfig {
+  autoFocusLast?: boolean
+  reachBottomThreshold?: number
+  scrollImmediate?: boolean
+}
+
+export interface TabsSwipeableConfig {
+  autoHeight?: boolean
+  preventScroll?: boolean
+}
 
 export interface TabsClickEvent {
   name: TabsValue
@@ -43,11 +52,10 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
   duration?: number
   beforeChange?: (name: TabsValue, index: number) => boolean | Promise<boolean>
   lazyRender?: boolean
+  lazyRenderPlaceholder?: React.ReactNode
   scrollable?: boolean
-  sticky?: boolean
-  offsetTop?: number
-  scrollValue?: Animated.Value
-  enableStickyShadow?: boolean
+  scrollspy?: boolean | TabsScrollspyConfig
+  swipeable?: boolean | TabsSwipeableConfig
   navLeft?: React.ReactNode
   navRight?: React.ReactNode
   navBottom?: React.ReactNode
@@ -57,5 +65,4 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
   descriptionStyle?: StyleProp<TextStyle>
   contentStyle?: StyleProp<ViewStyle>
   onClickTab?: (payload: TabsClickEvent) => void
-  onScroll?: (event: StickyScrollEvent) => void
 }

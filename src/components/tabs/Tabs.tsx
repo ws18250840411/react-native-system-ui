@@ -7,14 +7,21 @@ import {
   Text,
   View,
   type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native'
 
 import { useAriaPress, useControllableValue } from '../../hooks'
-import Sticky from '../sticky'
 import type { TabPaneProps, TabsProps, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
 
 const AnimatedIndicator = Animated.View
+const AnimatedScrollView = Animated.ScrollView
+const requestFrame =
+  typeof requestAnimationFrame === 'function'
+    ? requestAnimationFrame
+    : (cb: (time?: number) => void) => setTimeout(cb, 16)
+const SCROLLSPY_SCROLL_TEST_ID = 'rv-tabs-scrollspy'
 
 interface ParsedPane extends TabPaneProps {
   key: React.Key
@@ -41,6 +48,7 @@ interface TabItemProps {
   descriptionStyle?: TabsProps['descriptionStyle']
   onSelect: (pane: ParsedPane) => void
   onLayout: (event: LayoutChangeEvent) => void
+  isLast: boolean
 }
 
 const TabBarItem: React.FC<TabItemProps> = ({
@@ -59,6 +67,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
   descriptionStyle,
   onSelect,
   onLayout,
+  isLast,
 }) => {
   const isDisabled = !!pane.disabled
   const ariaPress = useAriaPress({
@@ -73,16 +82,46 @@ const TabBarItem: React.FC<TabItemProps> = ({
 
   const isCapsule = type === 'capsule'
   const isJumbo = type === 'jumbo'
+  const isCard = type === 'card'
 
-  const textColor = isActive
-    ? titleActiveColor ?? color ?? (isCapsule ? tokens.colors.capsuleActiveText : tokens.colors.textActive)
-    : titleInactiveColor ?? (isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
+  const activeTitleColor = titleActiveColor ?? (isCard ? '#ffffff' : isCapsule ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive)
+  const inactiveTitleColor = titleInactiveColor ?? (isCard ? color ?? tokens.colors.cardBorder : isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
+  const textColor = pane.disabled ? tokens.colors.textDisabled : isActive ? activeTitleColor : inactiveTitleColor
 
   const descriptionColor = isDisabled
     ? tokens.colors.textDisabled
-    : isActive
-      ? tokens.colors.descriptionActive
-      : tokens.colors.description
+    : isJumbo
+      ? isActive
+        ? tokens.colors.jumboDescriptionActive
+        : tokens.colors.jumboDescription
+      : isActive
+        ? tokens.colors.descriptionActive
+        : tokens.colors.description
+
+  const shouldFlex = !scrollable && (align !== 'start' || isCard)
+  const horizontalPadding = isCard || isJumbo ? 0 : isCapsule ? tokens.capsule.paddingHorizontal : tokens.tabList.paddingHorizontal
+  const verticalPadding = isCard || isJumbo ? 0 : isCapsule ? tokens.capsule.paddingVertical : tokens.tabList.paddingVertical
+  const labelWrapperStyles = [styles.labelWrapper]
+  if (isJumbo) {
+    labelWrapperStyles.push(styles.labelWrapperJumbo)
+  }
+  if (isCard) {
+    labelWrapperStyles.push(styles.cardLabel)
+    labelWrapperStyles.push({
+      paddingHorizontal: tokens.card.paddingHorizontal,
+      paddingVertical: tokens.card.paddingVertical,
+      backgroundColor: isActive
+        ? color ?? tokens.colors.cardActiveBackground
+        : tokens.colors.cardBackground,
+    })
+  }
+  if (isJumbo) {
+    labelWrapperStyles.push({
+      paddingHorizontal: tokens.jumbo.paddingHorizontal,
+      paddingVertical: tokens.jumbo.paddingVertical,
+      alignItems: 'center',
+    })
+  }
 
   return (
     <Pressable
@@ -90,84 +129,90 @@ const TabBarItem: React.FC<TabItemProps> = ({
       onLayout={onLayout}
       style={[
         styles.tabItem,
+        shouldFlex ? styles.flexItem : null,
         {
-          minHeight: isCapsule ? tokens.capsule.minHeight : tokens.nav.height,
-          paddingHorizontal:
-            type === 'card'
-              ? tokens.card.paddingHorizontal
-              : isCapsule
-                ? tokens.capsule.paddingHorizontal
-                : tokens.nav.paddingHorizontal / 2,
-          paddingVertical:
-            type === 'card'
-              ? tokens.card.paddingVertical
-              : isCapsule
-                ? tokens.capsule.paddingVertical
-                : tokens.nav.paddingVertical,
-          opacity: isDisabled ? 0.45 : 1,
+          paddingHorizontal: horizontalPadding,
+          paddingVertical: verticalPadding,
         },
-        !scrollable && align === 'center' ? styles.flexItem : null,
+        isCard
+          ? {
+              borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth,
+              borderRightColor: color ?? tokens.colors.cardBorder,
+            }
+          : null,
         tabStyle,
-        type === 'card' && {
-          borderRadius: tokens.card.radius,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: isActive ? tokens.colors.cardActiveBorder : tokens.colors.cardBorder,
-          backgroundColor: isActive
-            ? tokens.colors.cardActiveBackground
-            : tokens.colors.cardBackground,
-        },
-        isCapsule && {
-          borderRadius: tokens.capsule.radius,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: isActive ? tokens.colors.capsuleActiveBorder : tokens.colors.capsuleBorder,
-          backgroundColor: isActive
-            ? tokens.colors.capsuleActiveBackground
-            : tokens.colors.capsuleBackground,
-        },
-        isJumbo && {
-          borderRadius: tokens.jumbo.radius,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: isActive ? tokens.colors.jumboActiveBorder : tokens.colors.jumboBorder,
-          backgroundColor: isActive
-            ? tokens.colors.jumboActiveBackground
-            : tokens.colors.jumboBackground,
-          alignItems: 'flex-start',
-          paddingHorizontal: tokens.jumbo.paddingHorizontal,
-          paddingVertical: tokens.jumbo.paddingVertical,
-        },
       ]}
     >
-      <Text
-        style={[
-          styles.title,
-          {
-            color: textColor,
-            fontSize: tokens.typography.titleSize,
-            fontWeight: tokens.typography.titleWeight,
-          },
-          ellipsis && !isJumbo ? styles.ellipsis : null,
-          titleStyle,
-        ]}
-        numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
-      >
-        {pane.title ?? pane.name}
-      </Text>
-      {pane.description ? (
+      <View style={labelWrapperStyles}>
         <Text
           style={[
-            styles.description,
-            {
-              color: descriptionColor,
-              fontSize: tokens.typography.descriptionSize,
-              marginTop: isJumbo ? 8 : 2,
-            },
-            descriptionStyle,
+            styles.title,
+            isCapsule
+              ? {
+                  width: '100%',
+                  height: '100%',
+                  textAlign: 'center',
+                  borderRadius: tokens.capsule.radius,
+                  backgroundColor: isActive
+                    ? color ?? tokens.colors.capsuleActiveBackground
+                    : tokens.colors.capsuleBackground,
+                  color: textColor,
+                  fontSize: tokens.typography.titleSize,
+                  fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+                }
+              : {
+                  color: textColor,
+                  fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
+                  fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+                  lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
+                  textAlign: 'center',
+                },
+            ellipsis && !isJumbo ? styles.ellipsis : null,
+            titleStyle,
           ]}
+          numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
         >
-          {pane.description}
+          {pane.title ?? pane.name}
         </Text>
-      ) : null}
-      {pane.badge ? <View style={styles.badge}>{pane.badge}</View> : null}
+        {pane.description ? (
+          <Text
+            style={[
+              styles.description,
+              isJumbo
+                ? {
+                    color: descriptionColor,
+                    fontSize: tokens.typography.descriptionSize,
+                    marginTop: 8,
+                    textAlign: 'center',
+                    backgroundColor: isActive
+                      ? tokens.colors.jumboDescriptionActiveBackground
+                      : tokens.colors.jumboDescriptionBackground,
+                    paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+                    paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+                    borderRadius: tokens.jumbo.descriptionRadius,
+                  }
+                : {
+                    color: descriptionColor,
+                    fontSize: tokens.typography.descriptionSize,
+                    marginTop: 2,
+                    textAlign: 'center',
+                  },
+              descriptionStyle,
+            ]}
+          >
+            {pane.description}
+          </Text>
+        ) : null}
+        {pane.badge ? (
+          <View style={styles.badge}>
+            {typeof pane.badge === 'string' || typeof pane.badge === 'number' ? (
+              <Text style={styles.badgeText}>{pane.badge}</Text>
+            ) : (
+              pane.badge
+            )}
+          </View>
+        ) : null}
+      </View>
     </Pressable>
   )
 }
@@ -183,13 +228,12 @@ const TabsBase: React.FC<TabsProps> = props => {
     animated = tokens.defaults.animated,
     duration = tokens.defaults.duration,
     lazyRender = tokens.defaults.lazyRender,
+    lazyRenderPlaceholder,
     scrollable: scrollableProp,
-    sticky = false,
-    offsetTop,
-    scrollValue,
-    enableStickyShadow = tokens.defaults.enableStickyShadow,
+    scrollspy,
+    swipeable,
     color,
-    background = tokens.nav.background,
+    background = tokens.tabList.background,
     border,
     navLeft,
     navRight,
@@ -205,7 +249,6 @@ const TabsBase: React.FC<TabsProps> = props => {
     titleInactiveColor,
     beforeChange,
     onClickTab,
-    onScroll,
     style,
     ...rest
   } = props
@@ -223,8 +266,49 @@ const TabsBase: React.FC<TabsProps> = props => {
     return undefined
   }
 
-  const resolvedLineWidth = resolveNumericValue(lineWidth)
+  const fallbackLineWidth = lineWidth ?? tokens.indicator.width
+  const resolvedLineWidth = resolveNumericValue(fallbackLineWidth)
   const resolvedLineHeight = resolveNumericValue(lineHeight) ?? tokens.indicator.height
+  const swipeableConfig = React.useMemo(() => {
+    if (!swipeable) {
+      return undefined
+    }
+    if (typeof swipeable === 'object') {
+      return {
+        autoHeight: swipeable.autoHeight ?? true,
+        preventScroll: swipeable.preventScroll ?? true,
+      }
+    }
+    return {
+      autoHeight: true,
+      preventScroll: true,
+    }
+  }, [swipeable])
+  const isSwipeable = !!swipeableConfig
+  const isScrollspy = !!scrollspy && !isSwipeable
+  const scrollspyOptions = React.useMemo(() => {
+    if (!isScrollspy) {
+      return undefined
+    }
+    if (typeof scrollspy === 'object') {
+      return {
+        autoFocusLast: scrollspy.autoFocusLast ?? false,
+        reachBottomThreshold: scrollspy.reachBottomThreshold ?? 0,
+        scrollImmediate: scrollspy.scrollImmediate ?? true,
+      }
+    }
+    return {
+      autoFocusLast: false,
+      reachBottomThreshold: 0,
+      scrollImmediate: true,
+    }
+  }, [isScrollspy, scrollspy])
+
+  React.useEffect(() => {
+    if (scrollspy && isSwipeable) {
+      console.warn('[Tabs] swipeable 模式与 scrollspy 互斥，已忽略 scrollspy 配置。')
+    }
+  }, [scrollspy, isSwipeable])
 
   const panes = React.useMemo<ParsedPane[]>(() => {
     return React.Children.toArray(children)
@@ -268,12 +352,47 @@ const TabsBase: React.FC<TabsProps> = props => {
     visitedRef.current.add(currentName)
   }, [currentName])
 
+  React.useEffect(() => {
+    paneLayoutMap.current.clear()
+  }, [panes])
+
+  const shouldTrackPaneLayouts = isScrollspy || (isSwipeable && swipeableConfig?.autoHeight)
+
+  React.useEffect(() => {
+    if (!shouldTrackPaneLayouts) {
+      paneLayoutMap.current.clear()
+    }
+  }, [shouldTrackPaneLayouts])
+
+  React.useEffect(() => {
+    if (!isSwipeable || !swipeableConfig?.autoHeight) {
+      setSwipeableHeight(undefined)
+      return
+    }
+    const layout = currentName != null ? paneLayoutMap.current.get(currentName) : undefined
+    if (layout) {
+      setSwipeableHeight(layout.height)
+    } else {
+      setSwipeableHeight(undefined)
+    }
+  }, [currentName, isSwipeable, swipeableConfig?.autoHeight])
+
   const indicatorX = React.useRef(new Animated.Value(0)).current
   const indicatorWidth = React.useRef(new Animated.Value(0)).current
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
   const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
   const indicatorInitializedRef = React.useRef(false)
+  const paneLayoutMap = React.useRef<Map<TabsValue, { y: number; height: number }>>(new Map())
+  const scrollspyScrollRef = React.useRef<Animated.ScrollView | null>(null)
+  const scrollspyLockRef = React.useRef(false)
+  const scrollspyLockTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scrollspyChangeByScrollRef = React.useRef(false)
+  const swipeableScrollRef = React.useRef<Animated.ScrollView | null>(null)
+  const swipeableChangeByScrollRef = React.useRef(false)
+  const navHeightRef = React.useRef(0)
+  const [containerWidth, setContainerWidth] = React.useState(0)
+  const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
 
   const scrollable = React.useMemo(() => {
     if (typeof scrollableProp === 'boolean') {
@@ -284,7 +403,6 @@ const TabsBase: React.FC<TabsProps> = props => {
 
   const indicatorColor = color ?? tokens.colors.indicator
   const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
-
   const animateIndicator = React.useCallback(
     (name?: TabsValue, immediate?: boolean) => {
       if (!name || type !== 'line') return false
@@ -331,11 +449,15 @@ const TabsBase: React.FC<TabsProps> = props => {
     scrollIntoView(currentName)
   }, [animateIndicator, currentName, scrollIntoView])
 
-  React.useEffect(() => {
-    if (sticky && !scrollValue) {
-      console.warn('[Tabs] sticky 模式需要传入 scrollValue（来自 useGestureScroll）。')
-    }
-  }, [scrollValue, sticky])
+  React.useEffect(
+    () => () => {
+      if (scrollspyLockTimerRef.current) {
+        clearTimeout(scrollspyLockTimerRef.current)
+        scrollspyLockTimerRef.current = null
+      }
+    },
+    [],
+  )
 
   const handleTabLayout = React.useCallback((name: TabsValue, event: LayoutChangeEvent) => {
     const { x, width } = event.nativeEvent.layout
@@ -350,8 +472,90 @@ const TabsBase: React.FC<TabsProps> = props => {
   }, [animateIndicator, currentName])
 
   const handleNavLayout = (event: LayoutChangeEvent) => {
-    navContainerWidthRef.current = event.nativeEvent.layout.width
+    const { width, height } = event.nativeEvent.layout
+    navContainerWidthRef.current = width
+    if (isScrollspy) {
+      navHeightRef.current = height
+    }
   }
+
+  const handleContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
+    setContainerWidth(event.nativeEvent.layout.width)
+  }, [])
+
+  const getScrollspyOffset = React.useCallback(() => {
+    if (!isScrollspy) {
+      return 0
+    }
+    return navHeightRef.current
+  }, [isScrollspy])
+
+  const releaseScrollspyLock = React.useCallback(() => {
+    if (scrollspyLockTimerRef.current) {
+      clearTimeout(scrollspyLockTimerRef.current)
+      scrollspyLockTimerRef.current = null
+    }
+    scrollspyLockRef.current = false
+  }, [])
+
+  React.useEffect(() => {
+    if (!isScrollspy) {
+      releaseScrollspyLock()
+    }
+  }, [isScrollspy, releaseScrollspyLock])
+
+  const engageScrollspyLock = React.useCallback(
+    (durationMs?: number) => {
+      if (!isScrollspy) {
+        return
+      }
+      if (scrollspyLockTimerRef.current) {
+        clearTimeout(scrollspyLockTimerRef.current)
+        scrollspyLockTimerRef.current = null
+      }
+      scrollspyLockRef.current = true
+      if (typeof durationMs === 'number' && durationMs > 0) {
+        const timeout = Math.max(durationMs, 0) + 32
+        scrollspyLockTimerRef.current = setTimeout(() => {
+          scrollspyLockRef.current = false
+          scrollspyLockTimerRef.current = null
+        }, timeout)
+      }
+    },
+    [isScrollspy],
+  )
+
+  const scrollToPane = React.useCallback(
+    (targetName?: TabsValue, immediateOverride?: boolean) => {
+      if (!isScrollspy || !targetName) {
+        return
+      }
+      const scrollView = scrollspyScrollRef.current
+      const layout = paneLayoutMap.current.get(targetName)
+      if (!scrollView || !layout) {
+        return
+      }
+      const node: any =
+        (scrollView as unknown as { scrollTo?: (options: { x?: number; y?: number; animated?: boolean }) => void }) ??
+        scrollView.getNode?.()
+      if (!node?.scrollTo) {
+        return
+      }
+      const offset = Math.max(layout.y - getScrollspyOffset(), 0)
+      const immediate = immediateOverride ?? scrollspyOptions?.scrollImmediate ?? true
+      const animatedScroll = !immediate
+      if (animatedScroll) {
+        engageScrollspyLock(duration)
+      } else {
+        engageScrollspyLock()
+      }
+      node.scrollTo({ x: 0, y: offset, animated: animatedScroll })
+      if (!animatedScroll || !duration) {
+        requestFrame(() => releaseScrollspyLock())
+      }
+    },
+    [duration, engageScrollspyLock, getScrollspyOffset, isScrollspy, releaseScrollspyLock, scrollspyOptions?.scrollImmediate],
+  )
 
   const runBeforeChange = React.useCallback(
     (name: TabsValue, index: number) => {
@@ -374,6 +578,129 @@ const TabsBase: React.FC<TabsProps> = props => {
     },
     [beforeChange],
   )
+
+  const handlePaneLayout = React.useCallback(
+    (name: TabsValue, event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout
+      if (isScrollspy) {
+        paneLayoutMap.current.set(name, { y, height })
+        if (name === currentName) {
+          scrollToPane(name, true)
+        }
+        return
+      }
+      if (isSwipeable && swipeableConfig?.autoHeight) {
+        paneLayoutMap.current.set(name, { y: 0, height })
+        if (name === currentName) {
+          setSwipeableHeight(height)
+        }
+      }
+    },
+    [currentName, isScrollspy, isSwipeable, scrollToPane, swipeableConfig?.autoHeight],
+  )
+
+  const resolveScrollspyActiveName = React.useCallback(
+    (offsetY: number, event?: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!isScrollspy || paneLayoutMap.current.size === 0) {
+        return undefined
+      }
+      const adjustedOffset = offsetY + getScrollspyOffset()
+      let matched: TabsValue | undefined
+      for (let idx = panes.length - 1; idx >= 0; idx -= 1) {
+        const pane = panes[idx]
+        const layout = paneLayoutMap.current.get(pane.name)
+        if (!layout) {
+          continue
+        }
+        if (adjustedOffset + 1 >= layout.y) {
+          matched = pane.name
+          break
+        }
+      }
+      if (
+        event &&
+        scrollspyOptions?.autoFocusLast &&
+        panes.length > 0
+      ) {
+        const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent
+        const distanceToBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height)
+        if (distanceToBottom <= (scrollspyOptions.reachBottomThreshold ?? 0)) {
+          matched = panes[panes.length - 1].name
+        }
+      }
+      return matched ?? panes[0]?.name
+    },
+    [getScrollspyOffset, isScrollspy, panes, scrollspyOptions?.autoFocusLast, scrollspyOptions?.reachBottomThreshold],
+  )
+
+  const handleScrollspyContentScroll = React.useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetY = event.nativeEvent.contentOffset.y
+      if (!isScrollspy || scrollspyLockRef.current) {
+        return
+      }
+      const nextName = resolveScrollspyActiveName(offsetY, event)
+      if (!nextName || nextName === currentName) {
+        return
+      }
+      const nextPane = panes.find(pane => pane.name === nextName)
+      if (!nextPane) {
+        return
+      }
+      scrollspyChangeByScrollRef.current = true
+      setActiveValue(nextName, nextPane.index)
+    },
+    [currentName, isScrollspy, panes, resolveScrollspyActiveName, setActiveValue],
+  )
+
+  const handleSwipeMomentumScrollEnd = React.useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!isSwipeable || containerWidth <= 0) {
+        return
+      }
+      const offsetX = event.nativeEvent.contentOffset.x
+      const pageIndex = Math.round(offsetX / containerWidth)
+      const nextPane = panes[pageIndex]
+      if (!nextPane || nextPane.name === currentName) {
+        return
+      }
+      swipeableChangeByScrollRef.current = true
+      setActiveValue(nextPane.name, nextPane.index)
+    },
+    [containerWidth, currentName, isSwipeable, panes, setActiveValue],
+  )
+
+  React.useEffect(() => {
+    if (!isSwipeable || !swipeableScrollRef.current || containerWidth <= 0) {
+      return
+    }
+    if (swipeableChangeByScrollRef.current) {
+      swipeableChangeByScrollRef.current = false
+      return
+    }
+    if (activeIndex < 0) {
+      return
+    }
+    const node: any =
+      (swipeableScrollRef.current as unknown as {
+        scrollTo?: (options: { x?: number; y?: number; animated?: boolean }) => void
+      }) ?? swipeableScrollRef.current.getNode?.()
+    if (!node?.scrollTo) {
+      return
+    }
+    node.scrollTo({ x: containerWidth * activeIndex, y: 0, animated: true })
+  }, [activeIndex, containerWidth, isSwipeable])
+
+  React.useEffect(() => {
+    if (!isScrollspy) {
+      return
+    }
+    if (scrollspyChangeByScrollRef.current) {
+      scrollspyChangeByScrollRef.current = false
+      return
+    }
+    scrollToPane(currentName)
+  }, [currentName, isScrollspy, scrollToPane])
 
   const handleSelect = (pane: ParsedPane, index: number) => {
     if (pane.disabled || pane.name === currentName) {
@@ -405,63 +732,93 @@ const TabsBase: React.FC<TabsProps> = props => {
 
   const borderEnabled = border ?? (type === 'line')
   const showIndicator = type === 'line'
+  const navHeight = React.useMemo(() => {
+    if (type === 'jumbo') {
+      return tokens.jumbo.height
+    }
+    if (type === 'card') {
+      return tokens.card.height
+    }
+    return tokens.tabList.height
+  }, [type, tokens])
+  const navPaddingBottom = type === 'card' ? 0 : tokens.tabList.paddingBottom
+  const indicatorBottom = showIndicator ? tokens.indicator.offset : 0
 
   if (panes.length === 0) {
     return null
   }
 
+  const navItems = panes.map(pane => (
+    <TabBarItem
+      key={pane.key}
+      pane={pane}
+      isActive={pane.name === currentName}
+      align={align}
+      scrollable={scrollable}
+      type={type}
+      ellipsis={ellipsis}
+      tokens={tokens}
+      color={color}
+      titleActiveColor={titleActiveColor}
+      titleInactiveColor={titleInactiveColor}
+      tabStyle={tabStyle}
+      titleStyle={titleStyle}
+      descriptionStyle={descriptionStyle}
+      onSelect={currentPane => handleSelect(currentPane, currentPane.index)}
+      onLayout={event => handleTabLayout(pane.name, event)}
+      isLast={pane.index === panes.length - 1}
+    />
+  ))
+
+  const navBody = scrollable ? (
+    <ScrollView
+      horizontal
+      ref={navScrollRef}
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.navContent}
+    >
+      {navItems}
+    </ScrollView>
+  ) : (
+    <View style={[styles.navContent, styles.navContentStatic]}>
+      {navItems}
+    </View>
+  )
+
   const navContent = (
     <View
       style={[
-        styles.navContainer,
+        styles.wrap,
         borderEnabled && type === 'line'
           ? { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: tokens.colors.border }
           : null,
-        { backgroundColor: background },
+        {
+          backgroundColor: background,
+        },
         tabBarStyle,
       ]}
       onLayout={handleNavLayout}
     >
       {navLeft ? <View style={styles.navSide}>{navLeft}</View> : null}
-      <View style={styles.navTrack}>
-        <ScrollView
-          horizontal
-          ref={navScrollRef}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.navInner,
-            {
-              paddingHorizontal: scrollable ? tokens.nav.paddingHorizontal / 2 : tokens.nav.paddingHorizontal,
-              columnGap: tokens.nav.gap,
-              justifyContent: scrollable
-                ? 'flex-start'
-                : align === 'start'
-                  ? 'flex-start'
-                  : 'space-around',
-            },
-          ]}
-        >
-          {panes.map(pane => (
-            <TabBarItem
-              key={pane.key}
-              pane={pane}
-              isActive={pane.name === currentName}
-              align={align}
-              scrollable={scrollable}
-              type={type}
-              ellipsis={ellipsis}
-              tokens={tokens}
-              color={color}
-              titleActiveColor={titleActiveColor}
-              titleInactiveColor={titleInactiveColor}
-              tabStyle={tabStyle}
-              titleStyle={titleStyle}
-              descriptionStyle={descriptionStyle}
-              onSelect={currentPane => handleSelect(currentPane, currentPane.index)}
-              onLayout={event => handleTabLayout(pane.name, event)}
-            />
-          ))}
-        </ScrollView>
+      <View
+        style={[
+          styles.nav,
+          {
+            minHeight: navHeight + navPaddingBottom,
+            paddingBottom: navPaddingBottom,
+          },
+          type === 'card'
+            ? {
+                borderWidth: StyleSheet.hairlineWidth,
+                borderRadius: tokens.card.radius,
+                borderColor: color ?? tokens.colors.cardBorder,
+                marginHorizontal: tokens.card.marginHorizontal,
+                overflow: 'hidden',
+              }
+            : null,
+        ]}
+      >
+        {navBody}
         {showIndicator ? (
           <AnimatedIndicator
             testID="rv-tabs-indicator"
@@ -472,6 +829,7 @@ const TabsBase: React.FC<TabsProps> = props => {
                 borderRadius: indicatorCornerRadius,
                 backgroundColor: indicatorColor,
                 width: indicatorWidth,
+                bottom: indicatorBottom,
                 transform: [{ translateX: indicatorX }],
               },
             ]}
@@ -482,42 +840,78 @@ const TabsBase: React.FC<TabsProps> = props => {
     </View>
   )
 
-  const wrappedNav = sticky ? (
-    <Sticky
-      scrollValue={scrollValue}
-      offsetTop={offsetTop}
-      enableShadow={enableStickyShadow}
-      onScroll={onScroll}
-      backgroundColor={background}
+  const paneNodes = panes.map(pane => {
+    const isActive = pane.name === currentName
+    const shouldRender =
+      isScrollspy || !lazyRender || isActive || visitedRef.current.has(pane.name)
+    if (!shouldRender && !isSwipeable) {
+      return null
+    }
+    const layoutHandler =
+      isScrollspy || (isSwipeable && swipeableConfig?.autoHeight)
+        ? (event: LayoutChangeEvent) => handlePaneLayout(pane.name, event)
+        : undefined
+    const paneStyles = [
+      styles.pane,
+      isSwipeable ? styles.swipeablePane : null,
+      isSwipeable && containerWidth > 0 ? { width: containerWidth } : null,
+      !isSwipeable && !isScrollspy && !isActive ? styles.hiddenPane : null,
+    ]
+    const paneContent = shouldRender ? pane.children : lazyRenderPlaceholder ?? null
+    return (
+      <View
+        key={pane.key}
+        testID={`rv-tabs-pane-${pane.name}`}
+        onLayout={layoutHandler}
+        style={paneStyles}
+      >
+        {paneContent}
+      </View>
+    )
+  })
+
+  const baseContentStyle = [styles.content, contentStyle]
+  const swipeableContentStyle = [
+    styles.content,
+    contentStyle,
+    swipeableConfig?.autoHeight && swipeableHeight !== undefined ? { height: swipeableHeight } : null,
+  ]
+
+  const contentNode = isScrollspy ? (
+    <AnimatedScrollView
+      ref={scrollspyScrollRef}
+      testID={SCROLLSPY_SCROLL_TEST_ID}
+      showsVerticalScrollIndicator={false}
+      scrollEventThrottle={16}
+      onScroll={handleScrollspyContentScroll}
+      contentContainerStyle={baseContentStyle}
     >
-      {navContent}
-    </Sticky>
+      {paneNodes}
+    </AnimatedScrollView>
+  ) : isSwipeable ? (
+    <View style={swipeableContentStyle}>
+      <AnimatedScrollView
+        ref={swipeableScrollRef}
+        horizontal
+        pagingEnabled
+        scrollEventThrottle={16}
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleSwipeMomentumScrollEnd}
+        nestedScrollEnabled={swipeableConfig?.preventScroll === false}
+        directionalLockEnabled={swipeableConfig?.preventScroll !== false}
+      >
+        {paneNodes}
+      </AnimatedScrollView>
+    </View>
   ) : (
-    navContent
+    <View style={baseContentStyle}>{paneNodes}</View>
   )
 
   return (
-    <View {...rest} style={[styles.container, style]}>
-      {wrappedNav}
+    <View {...rest} style={[styles.container, style]} onLayout={handleContainerLayout}>
+      {navContent}
       {navBottom ? <View style={styles.navBottom}>{navBottom}</View> : null}
-      <View style={[styles.content, contentStyle]}>
-        {panes.map(pane => {
-          const isActive = pane.name === currentName
-          const shouldRender = !lazyRender || isActive || visitedRef.current.has(pane.name)
-          if (!shouldRender) {
-            return null
-          }
-          return (
-            <View
-              key={pane.key}
-              testID={`rv-tabs-pane-${pane.name}`}
-              style={[styles.pane, !isActive && styles.hiddenPane]}
-            >
-              {pane.children}
-            </View>
-          )
-        })}
-      </View>
+      {contentNode}
     </View>
   )
 }
@@ -526,19 +920,23 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  navContainer: {
+  wrap: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 4,
+    alignItems: 'flex-end',
     position: 'relative',
   },
-  navTrack: {
+  nav: {
     flex: 1,
     position: 'relative',
+    alignSelf: 'stretch',
   },
-  navInner: {
+  navContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    height: '100%',
+  },
+  navContentStatic: {
+    flex: 1,
   },
   navSide: {
     paddingHorizontal: 8,
@@ -546,8 +944,27 @@ const styles = StyleSheet.create({
   navBottom: {
     marginTop: 8,
   },
+  labelWrapper: {
+    flexGrow: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
+  labelWrapperJumbo: {
+    alignItems: 'center',
+  },
+  cardLabel: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   tabItem: {
     flexShrink: 0,
+    height: '100%',
+    alignSelf: 'stretch',
   },
   flexItem: {
     flexGrow: 1,
@@ -560,10 +977,15 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   ellipsis: {
-    maxWidth: 120,
+    maxWidth: '100%',
+    flexShrink: 1,
   },
   badge: {
     marginTop: 4,
+  },
+  badgeText: {
+    fontSize: 10,
+    color: '#fff',
   },
   indicator: {
     position: 'absolute',
@@ -571,10 +993,14 @@ const styles = StyleSheet.create({
     left: 0,
   },
   content: {
-    marginTop: 12,
+    width: '100%',
+    height: '100%',
   },
   pane: {
     width: '100%',
+  },
+  swipeablePane: {
+    flexShrink: 0,
   },
   hiddenPane: {
     display: 'none',

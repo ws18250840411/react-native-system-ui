@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-分隔内容并允许在同一页面中完成切换，支持行内、卡片、胶囊、Jumbo 描述等多种样式，并可开启吸顶模式。
+分隔内容并允许在同一页面中完成切换，支持行内、卡片、胶囊、Jumbo 描述等多种样式，并内置 Scrollspy 滚动导航体验。
 
 ## 引入
 
@@ -19,21 +19,32 @@ import { Tabs } from 'react-native-system-ui'
 
 ### 基础用法
 
-包含默认的下划线风格与卡片风格的组合示例，展示 `titleActiveColor`、`navRight` 等配置。
+提供 React Vant 同款的 4 种展现形式：
+
+- `line` 下划线风格
+- `capsule` 胶囊风格
+- `jumbo` 带描述信息
+- `card` 卡片风格
 
 <code src="./tabs/demo/basic.tsx" title="基础用法"></code>
 
-### 多样式示例
+### 通过名称匹配
 
-演示 `type="capsule"` 的胶囊标签以及 `type="jumbo"` 带描述信息的标签页，可搭配徽标/描述文案。
+在标签传入 `name` 属性后，可结合 `active` / `defaultActive` 通过业务含义来切换，而不依赖索引。
 
-<code src="./tabs/demo/card.tsx" title="多样式"></code>
+<code src="./tabs/demo/name-match.tsx" title="通过名称匹配"></code>
 
-### 吸顶滚动
+### 滑动切换
 
-结合 `useGestureScroll` 与 `sticky`，即可实现吸顶导航；记得把 `scrollValue` 传给 Tabs。
+设置 `swipeable` 后即可通过手势滑动切换标签，默认开启自适应高度，可结合 `lazyRenderPlaceholder` 提示未渲染内容。
 
-<code src="./tabs/demo/sticky.tsx" title="吸顶滚动"></code>
+<code src="./tabs/demo/swipeable.tsx" title="滑动切换"></code>
+
+### 滚动导航
+
+开启 `scrollspy` 后，内容会在同一页平铺展示，并且会跟随滚动自动切换高亮标签，适合做页面内锚点体验。
+
+<code src="./tabs/demo/scrollspy.tsx" title="滚动导航"></code>
 
 ## API
 
@@ -59,10 +70,9 @@ import { Tabs } from 'react-native-system-ui'
 | `duration` | 指示条动画时长（ms） | `number` | `160` |
 | `beforeChange` | 切换前的回调，返回 `false` 可阻止切换，支持 Promise | `(name: TabsValue, index: number) => boolean \| Promise<boolean>` | - |
 | `lazyRender` | 延迟渲染 Tab 内容 | `boolean` | `true` |
-| `sticky` | 开启吸顶模式，需搭配 `scrollValue` | `boolean` | `false` |
-| `offsetTop` | 吸顶时距离顶部偏移 | `number` | `0` |
-| `scrollValue` | `useGestureScroll` 返回的滚动值 | `Animated.Value` | - |
-| `enableStickyShadow` | 吸顶时是否展示阴影 | `boolean` | `true` |
+| `lazyRenderPlaceholder` | `lazyRender` 模式下未激活时的占位内容 | `ReactNode` | - |
+| `scrollspy` | 滚动导航模式，可传对象配置 `autoFocusLast`、`reachBottomThreshold`、`scrollImmediate` | `boolean \\| TabsScrollspyConfig` | `false` |
+| `swipeable` | 开启手势滑动切换，可传对象配置 `autoHeight`、`preventScroll` | `boolean \\| TabsSwipeableConfig` | `false` |
 | `navLeft` | 标签栏左侧扩展区域 | `ReactNode` | - |
 | `navRight` | 标签栏右侧扩展区域 | `ReactNode` | - |
 | `navBottom` | 标签栏下方扩展区域 | `ReactNode` | - |
@@ -73,7 +83,6 @@ import { Tabs } from 'react-native-system-ui'
 | `contentStyle` | 内容区样式 | `StyleProp<ViewStyle>` | - |
 | `onClickTab` | 点击标签时触发 | `(payload: TabsClickEvent) => void` | - |
 | `onChange` | 当前激活标签改变时触发，参数为 `(name, index)` | `(name: TabsValue, index: number) => void` | - |
-| `onScroll` | 吸顶模式滚动回调 | `(event: StickyScrollEvent) => void` | - |
 
 ### Tabs.TabPane Props
 
@@ -84,5 +93,19 @@ import { Tabs } from 'react-native-system-ui'
 | `description` | 副标题/描述 | `ReactNode` | - |
 | `badge` | 自定义徽标内容 | `ReactNode` | - |
 | `disabled` | 是否禁用 | `boolean` | `false` |
+### TabsScrollspyConfig
 
-> 差异说明：`scrollspy`、`swipeable` 等高级场景仍在评估中，暂可结合 `useGestureScroll` + `Swiper` 扩展实现。
+| 属性 | 说明 | 类型 | 默认值 |
+| --- | --- | --- | --- |
+| `autoFocusLast` | 是否在滚动触底时强制聚焦到最后一个标签 | `boolean` | `false` |
+| `reachBottomThreshold` | 触发 `autoFocusLast` 的阈值（px） | `number` | `0` |
+| `scrollImmediate` | Tab 点击后是否立即跳转（`true` 为无动画） | `boolean` | `true` |
+
+### TabsSwipeableConfig
+
+| 属性 | 说明 | 类型 | 默认值 |
+| --- | --- | --- | --- |
+| `autoHeight` | 是否根据激活面板自适应高度 | `boolean` | `true` |
+| `preventScroll` | 是否锁定手势方向，避免垂直滚动误触切换 | `boolean` | `true` |
+
+> 注意：`swipeable` 与 `scrollspy` 互斥，若同时传入会优先启用 `swipeable` 并忽略 `scrollspy`。

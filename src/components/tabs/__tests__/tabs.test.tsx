@@ -1,9 +1,8 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Animated, StyleSheet, Text } from 'react-native'
+import { StyleSheet, Text } from 'react-native'
 
 import Tabs from '..'
-import Sticky from '../../sticky'
 
 const { TabPane } = Tabs
 
@@ -61,22 +60,6 @@ describe('Tabs', () => {
     expect(tree.root.findAllByProps({ testID: 'rv-tabs-pane-week' })).toHaveLength(1)
   })
 
-  it('wraps nav with Sticky when sticky prop is enabled', () => {
-    const scrollValue = new Animated.Value(0)
-    const tree = renderer.create(
-      <Tabs sticky scrollValue={scrollValue}>
-        <TabPane title="A" name="a">
-          <Text>A</Text>
-        </TabPane>
-        <TabPane title="B" name="b">
-          <Text>B</Text>
-        </TabPane>
-      </Tabs>
-    )
-
-    expect(tree.root.findAllByType(Sticky).length).toBe(1)
-  })
-
   it('respects beforeChange callback result', async () => {
     const beforeChange = jest.fn(() => false)
     const onChange = jest.fn()
@@ -125,5 +108,53 @@ describe('Tabs', () => {
 
     expect(activeStyle?.color).toBe('#ff0000')
     expect(inactiveStyle?.color).toBe('#00ff00')
+  })
+
+  it('renders lazyRenderPlaceholder before content loads', () => {
+    const tree = renderer.create(
+      <Tabs
+        defaultActive="ready"
+        lazyRender
+        swipeable
+        lazyRenderPlaceholder={<Text>占位符</Text>}
+      >
+        <TabPane title="已就绪" name="ready">
+          <Text>当前内容</Text>
+        </TabPane>
+        <TabPane title="稍后" name="later">
+          <Text>稍后内容</Text>
+        </TabPane>
+      </Tabs>
+    )
+
+    const laterPane = tree.root.findByProps({ testID: 'rv-tabs-pane-later' })
+    expect(laterPane.findAllByType(Text)[0].props.children).toBe('占位符')
+
+    const laterTab = tree.root.findByProps({ testID: 'rv-tabs-item-later' })
+    act(() => {
+      laterTab.props.onPress?.({})
+    })
+
+    const updatedPane = tree.root.findByProps({ testID: 'rv-tabs-pane-later' })
+    const texts = updatedPane.findAllByType(Text).map(node => node.props.children)
+    expect(texts).toContain('稍后内容')
+    expect(texts).not.toContain('占位符')
+  })
+
+  it('warns when scrollspy is combined with swipeable', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    renderer.create(
+      <Tabs swipeable scrollspy>
+        <TabPane title="A" name="a">
+          <Text>A</Text>
+        </TabPane>
+        <TabPane title="B" name="b">
+          <Text>B</Text>
+        </TabPane>
+      </Tabs>
+    )
+
+    expect(warnSpy).toHaveBeenCalledWith('[Tabs] swipeable 模式与 scrollspy 互斥，已忽略 scrollspy 配置。')
+    warnSpy.mockRestore()
   })
 })

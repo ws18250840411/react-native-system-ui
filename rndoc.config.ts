@@ -139,7 +139,6 @@ export default defineConfig({
           '/components/popover',
           '/components/progress',
           '/components/skeleton',
-          '/components/sticky',
           '/components/tag',
           '/components/water-mark',
         ],

@@ -1,7 +1,15 @@
 import TabsBase from './Tabs'
 import TabPane from './TabPane'
 
-export type { TabsProps, TabPaneProps, TabsValue, TabsType, TabsAlign } from './types'
+export type {
+  TabsProps,
+  TabPaneProps,
+  TabsValue,
+  TabsType,
+  TabsAlign,
+  TabsScrollspyConfig,
+  TabsSwipeableConfig,
+} from './types'
 export { useTabsTokens } from './tokens'
 
 const Tabs = TabsBase as typeof TabsBase & {
