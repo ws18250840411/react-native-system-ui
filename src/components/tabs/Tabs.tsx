@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   Animated,
+  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -265,6 +266,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     beforeChange,
     onClickTab,
     onChange: _onChange,
+    // 默认使用 ScrollView 自带动画，避免 JS 驱动在 web 环境下不明显
+    navScrollMode = 'native',
     style,
     ...rest
   } = props
@@ -462,15 +465,31 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
           : 0
       const target = Math.min(Math.max(rawTarget, 0), maxScroll)
       const durationMs = immediate ? 0 : +duration
+
+      // 三种模式：animated（默认）、native（ScrollView 自带动画）、instant
+      if (navScrollMode === 'native') {
+        requestFrame(() =>
+          navScrollRef.current?.scrollTo({ x: target, animated: durationMs > 0 }),
+        )
+        navScrollOffsetRef.current = target
+        return
+      }
+      if (navScrollMode === 'instant') {
+        navScrollOffsetRef.current = target
+        requestFrame(() => navScrollRef.current?.scrollTo({ x: target, animated: false }))
+        return
+      }
+
       navScrollAnim.stopAnimation()
       navScrollAnim.setValue(navScrollOffsetRef.current)
       Animated.timing(navScrollAnim, {
         toValue: target,
         duration: durationMs,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: false,
       }).start()
     },
-    [duration, navScrollAnim, scrollable],
+    [duration, navScrollAnim, navScrollMode, scrollable],
   )
 
   React.useEffect(() => {
@@ -484,6 +503,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   }, [animateIndicator, currentName, scrollIntoView])
 
   React.useEffect(() => {
+    if (navScrollMode !== 'animated') return undefined
     const id = navScrollAnim.addListener(({ value }) => {
       navScrollOffsetRef.current = value
       navScrollRef.current?.scrollTo({ x: value, animated: false })
@@ -491,7 +511,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     return () => {
       navScrollAnim.removeListener(id)
     }
-  }, [navScrollAnim])
+  }, [navScrollAnim, navScrollMode])
 
   React.useEffect(
     () => () => {
@@ -847,15 +867,21 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     <ScrollView
       horizontal
       ref={navScrollRef}
-      onScroll={Animated.event(
-        [{ nativeEvent: { contentOffset: { x: navScrollAnim } } }],
-        {
-          useNativeDriver: false,
-          listener: event => {
-            navScrollOffsetRef.current = event.nativeEvent.contentOffset.x
-          },
-        },
-      )}
+      onScroll={
+        navScrollMode === 'animated'
+          ? Animated.event(
+              [{ nativeEvent: { contentOffset: { x: navScrollAnim } } }],
+              {
+                useNativeDriver: false,
+                listener: event => {
+                  navScrollOffsetRef.current = event.nativeEvent.contentOffset.x
+                },
+              },
+            )
+          : event => {
+              navScrollOffsetRef.current = event.nativeEvent.contentOffset.x
+            }
+      }
       onContentSizeChange={w => {
         navContentWidthRef.current = w
       }}

@@ -8,7 +8,6 @@ const sections = [
   { key: 'trend', title: '趋势', desc: '多维度分析渠道表现' },
   { key: 'revenue', title: '营收', desc: '拆解业务线营收结构' },
   { key: 'ops', title: '运营', desc: '排期、投放、增长等运营指标' },
-  { key: 'system', title: '系统', desc: '系统事件与巡检记录' },
 ]
 
 const Panel: React.FC<{ title: string; desc: string }> = ({ title, desc, children }) => (
