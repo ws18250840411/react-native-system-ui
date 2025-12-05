@@ -1,5 +1,5 @@
 import React from "react"
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native"
 
 import { useControllableValue } from "../../hooks"
 import Icon from "../icon"
@@ -82,17 +82,26 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const currentValue = poppable ? panelValue : cascaderValue
   const { tabs, items, depth } = useCascaderExtend(options, keys, currentValue)
+  const [tabsWidth, setTabsWidth] = React.useState(0)
+
+  const resolvedPath = React.useMemo(() => {
+    const rows = resolveSelectedRows(options, keys, currentValue)
+    const values = rows
+      .map(row => row?.[keys.valueKey] as CascaderValue | undefined)
+      .filter((v): v is CascaderValue => v !== undefined && v !== null)
+    return { rows, values }
+  }, [currentValue, keys, options])
 
   const confirmedRows = React.useMemo(
     () => resolveSelectedRows(options, keys, cascaderValue),
     [cascaderValue, keys, options],
   )
 
-  const [activeTab, setActiveTab] = React.useState(() => Math.min(currentValue.length, Math.max(tabs.length - 1, 0)))
+  const [activeTab, setActiveTab] = React.useState(() => Math.min(resolvedPath.values.length, Math.max(tabs.length - 1, 0)))
   const tabChangeByUserRef = React.useRef(false)
 
   React.useEffect(() => {
-    const nextIndex = Math.min(currentValue.length, Math.max(tabs.length - 1, 0))
+    const nextIndex = Math.min(resolvedPath.values.length, Math.max(tabs.length - 1, 0))
     const userTriggered = tabChangeByUserRef.current
     setActiveTab(prev => {
       if (prev > nextIndex) return nextIndex
@@ -100,7 +109,7 @@ const Cascader: React.FC<CascaderProps> = props => {
       return prev
     })
     tabChangeByUserRef.current = false
-  }, [currentValue.length, tabs.length])
+  }, [resolvedPath.values.length, tabs.length])
 
   React.useEffect(() => {
     if (!poppable) {
@@ -156,8 +165,8 @@ const Cascader: React.FC<CascaderProps> = props => {
       const nextValue = [...base, optionValue as CascaderValue]
       const rows = resolveSelectedRows(options, keys, nextValue)
       const childrenOptions = (option[keys.childrenKey] as CascaderOption[] | undefined) ?? []
-      const isLeaf = childrenOptions.length === 0
-      const reachDepth = nextValue.length >= depth
+      const isLeaf = childrenOptions.length === 0 && !option.loading
+      const reachDepth = nextValue.length >= depth && !option.loading
 
       if (poppable) {
         setPanelValue(nextValue)
@@ -183,7 +192,7 @@ const Cascader: React.FC<CascaderProps> = props => {
   const renderOption = (option: CascaderOption, tabIndex: number, isLast: boolean) => {
     const optionValue = option[keys.valueKey]
     const label = option[keys.textKey]
-    const selected = currentValue[tabIndex] === optionValue
+      const selected = resolvedPath.values[tabIndex] === optionValue
     const disabled = !!option.disabled
     const baseColor = option.color ?? tokens.colors.optionText
     const textColor = disabled
@@ -192,6 +201,7 @@ const Cascader: React.FC<CascaderProps> = props => {
         ? option.color ?? tokens.colors.optionActiveText
         : baseColor
 
+    const showLoadingIcon = option.loading && !poppable
     const content = optionRender ? (
       optionRender({ option, selected })
     ) : (
@@ -218,7 +228,7 @@ const Cascader: React.FC<CascaderProps> = props => {
       >
         <View style={styles.optionContent}>
           <View style={styles.optionLabel}>{content}</View>
-          {option.loading ? (
+          {showLoadingIcon ? (
             <ActivityIndicator size="small" color={activeColor} />
           ) : selected ? (
             <Icon name="check" size={16} color={activeColor} />
@@ -243,8 +253,16 @@ const Cascader: React.FC<CascaderProps> = props => {
     </ScrollView>
   )
 
+  const handleTabsLayout = React.useCallback((event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout
+    if (width && width !== tabsWidth) {
+      setTabsWidth(width)
+    }
+  }, [tabsWidth])
+
   const renderTabs = () => {
     if (!tabs.length) return renderOptionsList([], 0)
+    const swipeableEnabled = swipeable && tabsWidth > 0
     const tabBarStyle = [
       styles.tabsNav,
       {
@@ -256,44 +274,46 @@ const Cascader: React.FC<CascaderProps> = props => {
     ]
 
     return (
-      <Tabs
-        active={activeTab}
-        onChange={handleTabChange}
-        align="start"
-        swipeable={swipeable}
-        swipeThreshold={0}
-        scrollable={false}
-        animated
-        duration={300}
-        color={activeColor}
-        lineHeight={tokens.sizing.indicatorHeight}
-        titleInactiveColor={tokens.colors.tabInactive}
-        tabBarStyle={tabBarStyle}
-        tabStyle={styles.tabsItem}
-        titleStyle={styles.tabsTitle}
-        contentStyle={!swipeable ? styles.tabsContentStatic : undefined}
-        contentContainerStyle={!swipeable ? styles.tabsContentStatic : undefined}
-      >
-        {tabs.map((optionList, index) => {
-          const selectedOption = items[index]
-          const labelValue = selectedOption ? selectedOption[keys.textKey] : placeholder
-          const titleNode = (labelValue === undefined || labelValue === null || labelValue === "")
-            ? <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>
-            : typeof labelValue === "string" || typeof labelValue === "number"
-              ? (
-                <Text style={!selectedOption ? { color: tokens.colors.placeholder } : undefined}>
-                  {labelValue}
-                </Text>
-              )
-              : labelValue
+      <View onLayout={handleTabsLayout} style={styles.tabsWrapper}>
+        <Tabs
+          active={activeTab}
+          onChange={handleTabChange}
+          align="start"
+          swipeable={swipeableEnabled}
+          swipeThreshold={0}
+          scrollable={false}
+          animated
+          duration={300}
+          color={activeColor}
+          lineHeight={tokens.sizing.indicatorHeight}
+          titleInactiveColor={tokens.colors.tabInactive}
+          tabBarStyle={tabBarStyle}
+          tabStyle={styles.tabsItem}
+          titleStyle={styles.tabsTitle}
+          contentStyle={!swipeableEnabled ? styles.tabsContentStatic : undefined}
+          contentContainerStyle={!swipeableEnabled ? styles.tabsContentStatic : undefined}
+        >
+          {tabs.map((optionList, index) => {
+            const selectedOption = items[index]
+            const labelValue = selectedOption ? selectedOption[keys.textKey] : placeholder
+            const titleNode = (labelValue === undefined || labelValue === null || labelValue === "")
+              ? <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>
+              : typeof labelValue === "string" || typeof labelValue === "number"
+                ? (
+                  <Text style={!selectedOption ? { color: tokens.colors.placeholder } : undefined}>
+                    {labelValue}
+                  </Text>
+                )
+                : labelValue
 
-          return (
-            <Tabs.TabPane key={index} name={index} title={titleNode ?? placeholder}>
-              {renderOptionsList(optionList, index)}
-            </Tabs.TabPane>
-          )
-        })}
-      </Tabs>
+            return (
+              <Tabs.TabPane key={index} name={index} title={titleNode ?? placeholder}>
+                {renderOptionsList(optionList, index)}
+              </Tabs.TabPane>
+            )
+          })}
+        </Tabs>
+      </View>
     )
   }
 
@@ -415,6 +435,9 @@ const styles = StyleSheet.create({
   },
   tabsNav: {
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  tabsWrapper: {
+    width: "100%",
   },
   tabsContentStatic: {
     width: "100%",

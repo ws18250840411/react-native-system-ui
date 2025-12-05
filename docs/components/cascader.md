@@ -47,7 +47,7 @@ import { Cascader } from react-native-system-ui
 | `title` | 顶部标题 | `ReactNode` | `请选择` |
 | `placeholder` | 选项/标签占位文案 | `string` | `请选择` |
 | `activeColor` | 选中高亮颜色 | `string` | 主题色 |
-| `swipeable` | 是否允许左右滑动切换标签页（包含切换动画）；开启时需保证容器有明确宽度，或在非滑动模式下保持内容宽度 100% | `boolean` | `true` |
+| `swipeable` | 是否允许左右滑动切换标签页（包含切换动画）；开启时需保证容器有明确宽度，组件会在宽度为 0 时自动回退为非滑动模式 | `boolean` | `true` |
 | `fieldNames` | 自定义字段映射 | `{ text?: string; value?: string; children?: string }` | `{ text: 'text', value: 'value', children: 'children' }` |
 | `optionRender` | 自定义选项内容 | `({ option, selected }) => ReactNode` | - |
 | `showHeader` | 是否展示标题 | `boolean` | `true` |
