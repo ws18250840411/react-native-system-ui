@@ -66,8 +66,6 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
   contentStyle?: StyleProp<ViewStyle>
   onClickTab?: (payload: TabsClickEvent) => void
   onChange?: (name: TabsValue, index: number) => void
-  /** 导航滚动方案：animated（默认，JS 动画驱动 scrollTo），native（调用 ScrollView 内置 animated scroll），instant（无动画） */
-  navScrollMode?: 'animated' | 'native' | 'instant'
 }
 
 export interface TabsRef {

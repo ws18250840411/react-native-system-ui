@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Animated,
-  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -266,8 +265,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     beforeChange,
     onClickTab,
     onChange: _onChange,
-    // 默认使用 ScrollView 自带动画，避免 JS 驱动在 web 环境下不明显
-    navScrollMode = 'native',
     style,
     ...rest
   } = props
@@ -400,12 +397,10 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const indicatorX = React.useRef(new Animated.Value(0)).current
   const indicatorWidth = React.useRef(new Animated.Value(0)).current
-  const navScrollAnim = React.useRef(new Animated.Value(0)).current
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
   const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
   const navContentWidthRef = React.useRef(0)
-  const navScrollOffsetRef = React.useRef(0)
   const indicatorInitializedRef = React.useRef(false)
   const paneLayoutMap = React.useRef<Map<TabsValue, { y: number; height: number }>>(new Map())
   const scrollspyScrollRef = React.useRef<Animated.ScrollView | null>(null)
@@ -464,32 +459,12 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
           ? navContentWidthRef.current - containerWidth
           : 0
       const target = Math.min(Math.max(rawTarget, 0), maxScroll)
-      const durationMs = immediate ? 0 : +duration
-
-      // 三种模式：animated（默认）、native（ScrollView 自带动画）、instant
-      if (navScrollMode === 'native') {
-        requestFrame(() =>
-          navScrollRef.current?.scrollTo({ x: target, animated: durationMs > 0 }),
-        )
-        navScrollOffsetRef.current = target
-        return
-      }
-      if (navScrollMode === 'instant') {
-        navScrollOffsetRef.current = target
-        requestFrame(() => navScrollRef.current?.scrollTo({ x: target, animated: false }))
-        return
-      }
-
-      navScrollAnim.stopAnimation()
-      navScrollAnim.setValue(navScrollOffsetRef.current)
-      Animated.timing(navScrollAnim, {
-        toValue: target,
-        duration: durationMs,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }).start()
+      const animatedScroll = !immediate && +duration > 0
+      requestFrame(() => {
+        navScrollRef.current?.scrollTo({ x: target, animated: animatedScroll })
+      })
     },
-    [duration, navScrollAnim, navScrollMode, scrollable],
+    [duration, scrollable],
   )
 
   React.useEffect(() => {
@@ -501,17 +476,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     }
     scrollIntoView(currentName)
   }, [animateIndicator, currentName, scrollIntoView])
-
-  React.useEffect(() => {
-    if (navScrollMode !== 'animated') return undefined
-    const id = navScrollAnim.addListener(({ value }) => {
-      navScrollOffsetRef.current = value
-      navScrollRef.current?.scrollTo({ x: value, animated: false })
-    })
-    return () => {
-      navScrollAnim.removeListener(id)
-    }
-  }, [navScrollAnim, navScrollMode])
 
   React.useEffect(
     () => () => {
@@ -867,21 +831,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     <ScrollView
       horizontal
       ref={navScrollRef}
-      onScroll={
-        navScrollMode === 'animated'
-          ? Animated.event(
-              [{ nativeEvent: { contentOffset: { x: navScrollAnim } } }],
-              {
-                useNativeDriver: false,
-                listener: event => {
-                  navScrollOffsetRef.current = event.nativeEvent.contentOffset.x
-                },
-              },
-            )
-          : event => {
-              navScrollOffsetRef.current = event.nativeEvent.contentOffset.x
-            }
-      }
       onContentSizeChange={w => {
         navContentWidthRef.current = w
       }}
