@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 
 import { useAriaPress, useControllableValue } from '../../hooks'
-import type { TabPaneProps, TabsProps, TabsValue } from './types'
+import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
 
 const AnimatedIndicator = Animated.View
@@ -83,6 +83,14 @@ const TabBarItem: React.FC<TabItemProps> = ({
   const isCapsule = type === 'capsule'
   const isJumbo = type === 'jumbo'
   const isCard = type === 'card'
+  const renderTitle = React.useMemo(
+    () => (typeof pane.title === 'function' ? pane.title(isActive) : pane.title ?? pane.name),
+    [isActive, pane.name, pane.title],
+  )
+  const renderDescription = React.useMemo(
+    () => (typeof pane.description === 'function' ? pane.description(isActive) : pane.description),
+    [isActive, pane.description],
+  )
 
   const activeTitleColor = titleActiveColor ?? (isCard ? '#ffffff' : isCapsule ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive)
   const inactiveTitleColor = titleInactiveColor ?? (isCard ? color ?? tokens.colors.cardBorder : isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
@@ -99,8 +107,8 @@ const TabBarItem: React.FC<TabItemProps> = ({
         : tokens.colors.description
 
   const shouldFlex = !scrollable && (align !== 'start' || isCard)
-  const horizontalPadding = isCard || isJumbo ? 0 : isCapsule ? tokens.capsule.paddingHorizontal : tokens.tabList.paddingHorizontal
-  const verticalPadding = isCard || isJumbo ? 0 : isCapsule ? tokens.capsule.paddingVertical : tokens.tabList.paddingVertical
+  const horizontalPadding = isCard || isJumbo ? 0 : isCapsule ? 0 : tokens.tabList.paddingHorizontal
+  const verticalPadding = isCard || isJumbo ? 0 : isCapsule ? 0 : tokens.tabList.paddingVertical
   const labelWrapperStyles = [styles.labelWrapper]
   if (isJumbo) {
     labelWrapperStyles.push(styles.labelWrapperJumbo)
@@ -113,6 +121,12 @@ const TabBarItem: React.FC<TabItemProps> = ({
       backgroundColor: isActive
         ? color ?? tokens.colors.cardActiveBackground
         : tokens.colors.cardBackground,
+    })
+  }
+  if (isCapsule) {
+    labelWrapperStyles.push({
+      paddingHorizontal: 8,
+      paddingVertical: 4,
     })
   }
   if (isJumbo) {
@@ -136,9 +150,9 @@ const TabBarItem: React.FC<TabItemProps> = ({
         },
         isCard
           ? {
-              borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-              borderRightColor: color ?? tokens.colors.cardBorder,
-            }
+            borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth,
+            borderRightColor: color ?? tokens.colors.cardBorder,
+          }
           : null,
         tabStyle,
       ]}
@@ -149,58 +163,59 @@ const TabBarItem: React.FC<TabItemProps> = ({
             styles.title,
             isCapsule
               ? {
-                  width: '100%',
-                  height: '100%',
-                  textAlign: 'center',
-                  borderRadius: tokens.capsule.radius,
-                  backgroundColor: isActive
-                    ? color ?? tokens.colors.capsuleActiveBackground
-                    : tokens.colors.capsuleBackground,
-                  color: textColor,
-                  fontSize: tokens.typography.titleSize,
-                  fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
-                }
+                borderRadius: tokens.capsule.radius,
+                backgroundColor: isActive
+                  ? color ?? tokens.colors.capsuleActiveBackground
+                  : tokens.colors.capsuleBackground,
+                color: textColor,
+                fontSize: tokens.typography.titleSize,
+                fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+                textAlign: 'center',
+                width: '100%',
+                height: '100%',
+                paddingVertical: tokens.capsule.paddingVertical,
+              }
               : {
-                  color: textColor,
-                  fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
-                  fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
-                  lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
-                  textAlign: 'center',
-                },
+                color: textColor,
+                fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
+                fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+                lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
+                textAlign: 'center',
+              },
             ellipsis && !isJumbo ? styles.ellipsis : null,
             titleStyle,
           ]}
           numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
         >
-          {pane.title ?? pane.name}
+          {renderTitle}
         </Text>
-        {pane.description ? (
+        {renderDescription ? (
           <Text
             style={[
               styles.description,
               isJumbo
                 ? {
-                    color: descriptionColor,
-                    fontSize: tokens.typography.descriptionSize,
-                    marginTop: 8,
-                    textAlign: 'center',
-                    backgroundColor: isActive
-                      ? tokens.colors.jumboDescriptionActiveBackground
-                      : tokens.colors.jumboDescriptionBackground,
-                    paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-                    paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-                    borderRadius: tokens.jumbo.descriptionRadius,
-                  }
+                  color: descriptionColor,
+                  fontSize: tokens.typography.descriptionSize,
+                  marginTop: 8,
+                  textAlign: 'center',
+                  backgroundColor: isActive
+                    ? tokens.colors.jumboDescriptionActiveBackground
+                    : tokens.colors.jumboDescriptionBackground,
+                  paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+                  paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+                  borderRadius: tokens.jumbo.descriptionRadius,
+                }
                 : {
-                    color: descriptionColor,
-                    fontSize: tokens.typography.descriptionSize,
-                    marginTop: 2,
-                    textAlign: 'center',
-                  },
+                  color: descriptionColor,
+                  fontSize: tokens.typography.descriptionSize,
+                  marginTop: 2,
+                  textAlign: 'center',
+                },
               descriptionStyle,
             ]}
           >
-            {pane.description}
+            {renderDescription}
           </Text>
         ) : null}
         {pane.badge ? (
@@ -217,7 +232,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
   )
 }
 
-const TabsBase: React.FC<TabsProps> = props => {
+const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref) => {
   const tokens = useTabsTokens()
   const {
     children,
@@ -249,9 +264,12 @@ const TabsBase: React.FC<TabsProps> = props => {
     titleInactiveColor,
     beforeChange,
     onClickTab,
+    onChange: _onChange,
     style,
     ...rest
   } = props
+  // 防止 onChange 透传到原生 View，同时避免未使用警告
+  void _onChange
 
   const resolveNumericValue = (val?: number | string): number | undefined => {
     if (typeof val === 'number') {
@@ -398,8 +416,9 @@ const TabsBase: React.FC<TabsProps> = props => {
     if (typeof scrollableProp === 'boolean') {
       return scrollableProp
     }
-    return panes.length > swipeThreshold
-  }, [panes.length, scrollableProp, swipeThreshold])
+    // 与 web 版逻辑一致：超过阈值或禁止省略时横向滚动
+    return panes.length > swipeThreshold || !ellipsis
+  }, [ellipsis, panes.length, scrollableProp, swipeThreshold])
 
   const indicatorColor = color ?? tokens.colors.indicator
   const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
@@ -730,7 +749,25 @@ const TabsBase: React.FC<TabsProps> = props => {
     })
   }
 
-  const borderEnabled = border ?? (type === 'line')
+  const scrollTo = React.useCallback(
+    (name: TabsValue, options?: { immediate?: boolean }) => {
+      const target = panes.find(pane => pane.name === name && !pane.disabled)
+      if (!target) {
+        return
+      }
+      setActiveValue(target.name, target.index)
+      if (isScrollspy) {
+        scrollToPane(target.name, options?.immediate)
+      }
+    },
+    [isScrollspy, panes, scrollToPane, setActiveValue],
+  )
+
+  React.useImperativeHandle(ref, () => ({
+    scrollTo,
+  }), [scrollTo])
+
+  const borderEnabled = border ?? false
   const showIndicator = type === 'line'
   const navHeight = React.useMemo(() => {
     if (type === 'jumbo') {
@@ -809,12 +846,12 @@ const TabsBase: React.FC<TabsProps> = props => {
           },
           type === 'card'
             ? {
-                borderWidth: StyleSheet.hairlineWidth,
-                borderRadius: tokens.card.radius,
-                borderColor: color ?? tokens.colors.cardBorder,
-                marginHorizontal: tokens.card.marginHorizontal,
-                overflow: 'hidden',
-              }
+              borderWidth: StyleSheet.hairlineWidth,
+              borderRadius: tokens.card.radius,
+              borderColor: color ?? tokens.colors.cardBorder,
+              marginHorizontal: tokens.card.marginHorizontal,
+              overflow: 'hidden',
+            }
             : null,
         ]}
       >
@@ -945,13 +982,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   labelWrapper: {
-    flexGrow: 1,
     width: '100%',
-    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',
-    overflow: 'hidden',
   },
   labelWrapperJumbo: {
     alignItems: 'center',
@@ -965,6 +999,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     height: '100%',
     alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
   },
   flexItem: {
     flexGrow: 1,
@@ -1006,6 +1043,10 @@ const styles = StyleSheet.create({
     display: 'none',
   },
 })
+
+const TabsBase = React.forwardRef(TabsBaseInner) as React.ForwardRefExoticComponent<
+  TabsProps & React.RefAttributes<TabsRef>
+>
 
 TabsBase.displayName = 'Tabs'
 

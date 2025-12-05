@@ -26,8 +26,8 @@ export interface TabsClickEvent {
 
 export interface TabPaneProps {
   name?: TabsValue
-  title?: React.ReactNode
-  description?: React.ReactNode
+  title?: React.ReactNode | ((active: boolean) => React.ReactNode)
+  description?: React.ReactNode | ((active: boolean) => React.ReactNode)
   badge?: React.ReactNode
   disabled?: boolean
   children?: React.ReactNode
@@ -65,4 +65,10 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
   descriptionStyle?: StyleProp<TextStyle>
   contentStyle?: StyleProp<ViewStyle>
   onClickTab?: (payload: TabsClickEvent) => void
+  onChange?: (name: TabsValue, index: number) => void
+}
+
+export interface TabsRef {
+  /** 滚动到指定标签（scrollspy 模式会同步滚动内容） */
+  scrollTo: (name: TabsValue, options?: { immediate?: boolean }) => void
 }

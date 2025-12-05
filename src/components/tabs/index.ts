@@ -9,6 +9,7 @@ export type {
   TabsAlign,
   TabsScrollspyConfig,
   TabsSwipeableConfig,
+  TabsRef,
 } from './types'
 export { useTabsTokens } from './tokens'
 

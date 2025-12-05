@@ -120,13 +120,15 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       capsuleBorder: 'transparent',
       capsuleActiveBorder: 'transparent',
       capsuleText: palette.default[700],
-      capsuleActiveText: palette.primary.foreground ?? '#ffffff',
+      // 激活胶囊文字强制白色，贴合 React Vant
+      capsuleActiveText: '#ffffff',
       jumboBackground: '#f5f6f8',
       jumboActiveBackground: '#ffffff',
       jumboBorder: 'transparent',
       jumboActiveBorder: palette.primary[400],
       jumboDescription: palette.default[500],
-      jumboDescriptionActive: palette.primary[500],
+      // 选中描述文字设为白色以保证对比
+      jumboDescriptionActive: '#ffffff',
       jumboDescriptionBackground: '#f2f3f5',
       jumboDescriptionActiveBackground: palette.primary[500],
     },
@@ -138,12 +140,13 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       background: palette.background?.base ?? '#ffffff',
     },
     typography: {
-      titleSize: fontSize.md,
+      // 对齐 React Vant：常规 14px，描述 12px，巨幕标题 16px
+      titleSize: fontSize.sm,
       titleWeight: foundations.typography.weight.medium,
       titleActiveWeight: foundations.typography.weight.semiBold,
-      descriptionSize: fontSize.sm,
-      jumboTitleSize: fontSize.lg,
-      jumboLineHeight: Math.round(fontSize.lg * 1.6),
+      descriptionSize: fontSize.xs,
+      jumboTitleSize: fontSize.md,
+      jumboLineHeight: Math.round(fontSize.md * 1.6),
     },
     indicator: {
       height: 3,
