@@ -40,7 +40,6 @@ export default function CascaderAsyncDemo() {
       popupRound
       title="请选择所在地区"
       options={dynamicOpts}
-      closeOnFinish={false}
       value={value}
       onChange={val => {
         setValue(val)

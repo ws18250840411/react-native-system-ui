@@ -1,5 +1,5 @@
 import React from "react"
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native"
+import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native"
 
 import { useControllableValue } from "../../hooks"
 import Icon from "../icon"
@@ -18,6 +18,7 @@ import { useCascaderExtend } from "./useCascaderExtend"
 import { resolveSelectedRows } from "./utils"
 
 const DEFAULT_PLACEHOLDER = "请选择"
+const PENDING_VALUE = "__cascader_pending__"
 
 const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
   textKey: fieldNames?.text ?? "text",
@@ -59,6 +60,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     popupPlacement = "bottom",
     popupRound = true,
     popupProps: popupPropsOverrides,
+    loadingText = "加载中...",
     ...rest
   } = props
 
@@ -112,13 +114,12 @@ const Cascader: React.FC<CascaderProps> = props => {
   const displayTabs = React.useMemo(() => {
     if (!pendingActive || !pendingPath) return tabs
     const loadingOption: CascaderOption = {
-      [keys.textKey]: "加载中...",
-      [keys.valueKey]: "__pending__",
-      loading: true,
+      [keys.textKey]: loadingText,
+      [keys.valueKey]: PENDING_VALUE,
       disabled: true,
     }
     return [...tabs, [loadingOption]]
-  }, [keys.textKey, keys.valueKey, pendingActive, pendingPath, tabs])
+  }, [keys.textKey, keys.valueKey, loadingText, pendingActive, pendingPath, tabs])
 
   React.useEffect(() => {
     const totalTabs = pendingActive && pendingPath ? Math.max(displayTabs.length, pendingPath.length + 1) : displayTabs.length
@@ -135,10 +136,20 @@ const Cascader: React.FC<CascaderProps> = props => {
   React.useEffect(() => {
     if (!pendingPath) return
     const pathStillMatch = pendingPath.every((v, i) => currentValue[i] === v)
-    if (!pathStillMatch || tabs.length > pendingPath.length) {
+    const hasMoreTabs = tabs.length > pendingPath.length
+    if (!pathStillMatch || hasMoreTabs) {
+      setPendingPath(null)
+      return
+    }
+    // options 更新后：如果已填充子级或找不到节点，也清理 pending
+    const rows = resolveSelectedRows(options, keys, pendingPath)
+    const matched = rows.length === pendingPath.length
+    const last = rows[rows.length - 1]
+    const children = (last?.[keys.childrenKey] as CascaderOption[] | undefined) ?? []
+    if (!matched || children.length > 0) {
       setPendingPath(null)
     }
-  }, [currentValue, pendingPath, tabs.length])
+  }, [currentValue, keys, options, pendingPath, tabs.length])
 
   React.useEffect(() => {
     if (!poppable) {
@@ -254,7 +265,6 @@ const Cascader: React.FC<CascaderProps> = props => {
         ? option.color ?? tokens.colors.optionActiveText
         : baseColor
 
-    const showLoadingIcon = !!option.loading
     const content = optionRender ? (
       optionRender({ option, selected })
     ) : (
@@ -281,9 +291,7 @@ const Cascader: React.FC<CascaderProps> = props => {
       >
         <View style={styles.optionContent}>
           <View style={styles.optionLabel}>{content}</View>
-          {showLoadingIcon ? (
-            <ActivityIndicator size="small" color={activeColor} />
-          ) : selected ? (
+          {selected ? (
             <Icon name="check" size={16} color={activeColor} />
           ) : null}
         </View>

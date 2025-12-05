@@ -59,5 +59,6 @@ export interface CascaderProps extends ViewProps {
   popupPlacement?: PopupPlacement
   popupRound?: boolean
   popupProps?: Partial<PopupProps>
+  loadingText?: string
   children?: React.ReactNode | CascaderRenderProps
 }
