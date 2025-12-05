@@ -21,7 +21,6 @@ const requestFrame =
   typeof requestAnimationFrame === 'function'
     ? requestAnimationFrame
     : (cb: (time?: number) => void) => setTimeout(cb, 16)
-const SCROLLSPY_SCROLL_TEST_ID = 'rv-tabs-scrollspy'
 
 interface ParsedPane extends TabPaneProps {
   key: React.Key
@@ -835,7 +834,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         navContentWidthRef.current = w
       }}
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={[styles.navContent, styles.navContentScrollable]}
+      contentContainerStyle={styles.navContent}
     >
       {navItems}
       {showIndicator ? (
@@ -956,7 +955,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const contentNode = isScrollspy ? (
     <AnimatedScrollView
       ref={scrollspyScrollRef}
-      testID={SCROLLSPY_SCROLL_TEST_ID}
       showsVerticalScrollIndicator={false}
       scrollEventThrottle={16}
       onScroll={handleScrollspyContentScroll}
@@ -1012,7 +1010,6 @@ const styles = StyleSheet.create({
     height: '100%',
     position: 'relative',
   },
-  navContentScrollable: {},
   navContentStatic: {
     flex: 1,
   },
