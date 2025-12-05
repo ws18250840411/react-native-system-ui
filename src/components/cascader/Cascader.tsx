@@ -83,6 +83,7 @@ const Cascader: React.FC<CascaderProps> = props => {
   const currentValue = poppable ? panelValue : cascaderValue
   const { tabs, items, depth } = useCascaderExtend(options, keys, currentValue)
   const [tabsWidth, setTabsWidth] = React.useState(0)
+  const [pendingPath, setPendingPath] = React.useState<CascaderValue[] | null>(null)
 
   const resolvedPath = React.useMemo(() => {
     const rows = resolveSelectedRows(options, keys, currentValue)
@@ -97,11 +98,31 @@ const Cascader: React.FC<CascaderProps> = props => {
     [cascaderValue, keys, options],
   )
 
-  const [activeTab, setActiveTab] = React.useState(() => Math.min(resolvedPath.values.length, Math.max(tabs.length - 1, 0)))
+  const [activeTab, setActiveTab] = React.useState(() =>
+    Math.min(resolvedPath.values.length, Math.max(tabs.length - 1, 0)),
+  )
   const tabChangeByUserRef = React.useRef(false)
 
+  const pendingActive = React.useMemo(() => {
+    if (!pendingPath) return false
+    const match = pendingPath.every((v, i) => currentValue[i] === v)
+    return match && tabs.length <= pendingPath.length
+  }, [currentValue, pendingPath, tabs.length])
+
+  const displayTabs = React.useMemo(() => {
+    if (!pendingActive || !pendingPath) return tabs
+    const loadingOption: CascaderOption = {
+      [keys.textKey]: "加载中...",
+      [keys.valueKey]: "__pending__",
+      loading: true,
+      disabled: true,
+    }
+    return [...tabs, [loadingOption]]
+  }, [keys.textKey, keys.valueKey, pendingActive, pendingPath, tabs])
+
   React.useEffect(() => {
-    const nextIndex = Math.min(resolvedPath.values.length, Math.max(tabs.length - 1, 0))
+    const totalTabs = pendingActive && pendingPath ? Math.max(displayTabs.length, pendingPath.length + 1) : displayTabs.length
+    const nextIndex = Math.min(resolvedPath.values.length, Math.max(totalTabs - 1, 0))
     const userTriggered = tabChangeByUserRef.current
     setActiveTab(prev => {
       if (prev > nextIndex) return nextIndex
@@ -109,7 +130,15 @@ const Cascader: React.FC<CascaderProps> = props => {
       return prev
     })
     tabChangeByUserRef.current = false
-  }, [resolvedPath.values.length, tabs.length])
+  }, [displayTabs.length, pendingActive, pendingPath, resolvedPath.values.length])
+
+  React.useEffect(() => {
+    if (!pendingPath) return
+    const pathStillMatch = pendingPath.every((v, i) => currentValue[i] === v)
+    if (!pathStillMatch || tabs.length > pendingPath.length) {
+      setPendingPath(null)
+    }
+  }, [currentValue, pendingPath, tabs.length])
 
   React.useEffect(() => {
     if (!poppable) {
@@ -165,8 +194,11 @@ const Cascader: React.FC<CascaderProps> = props => {
       const nextValue = [...base, optionValue as CascaderValue]
       const rows = resolveSelectedRows(options, keys, nextValue)
       const childrenOptions = (option[keys.childrenKey] as CascaderOption[] | undefined) ?? []
-      const isLeaf = childrenOptions.length === 0 && !option.loading
-      const reachDepth = nextValue.length >= depth && !option.loading
+      const hasChildrenProp = Object.prototype.hasOwnProperty.call(option, keys.childrenKey)
+      const hasChildren = childrenOptions.length > 0
+      const asyncBranch = hasChildrenProp && !hasChildren
+      const reachDepth = nextValue.length >= depth
+      const isLeaf = !hasChildren && !asyncBranch
 
       if (poppable) {
         setPanelValue(nextValue)
@@ -177,6 +209,12 @@ const Cascader: React.FC<CascaderProps> = props => {
       // 与 React Vant 对齐：每次选择都触发 onChange
       onChange?.(nextValue, rows)
 
+      if (asyncBranch) {
+        setPendingPath(nextValue)
+        setActiveTab(tabIndex + 1)
+        return
+      }
+
       if (isLeaf || reachDepth) {
         // 最终提交一次
         if (poppable) {
@@ -184,9 +222,24 @@ const Cascader: React.FC<CascaderProps> = props => {
           if (closeOnFinish) closePopup(true)
         }
         onFinish?.(nextValue, rows)
+      } else {
+        setPendingPath(null)
+        setActiveTab(tabIndex + 1)
       }
     },
-    [cascaderValue, closeOnFinish, closePopup, depth, keys, onChange, onFinish, options, panelValue, poppable, setValue],
+    [
+      cascaderValue,
+      closeOnFinish,
+      closePopup,
+      depth,
+      keys,
+      onChange,
+      onFinish,
+      options,
+      panelValue,
+      poppable,
+      setValue,
+    ],
   )
 
   const renderOption = (option: CascaderOption, tabIndex: number, isLast: boolean) => {
@@ -201,7 +254,7 @@ const Cascader: React.FC<CascaderProps> = props => {
         ? option.color ?? tokens.colors.optionActiveText
         : baseColor
 
-    const showLoadingIcon = option.loading && !poppable
+    const showLoadingIcon = !!option.loading
     const content = optionRender ? (
       optionRender({ option, selected })
     ) : (
@@ -261,7 +314,7 @@ const Cascader: React.FC<CascaderProps> = props => {
   }, [tabsWidth])
 
   const renderTabs = () => {
-    if (!tabs.length) return renderOptionsList([], 0)
+    if (!displayTabs.length) return renderOptionsList([], 0)
     const swipeableEnabled = swipeable && tabsWidth > 0
     const tabBarStyle = [
       styles.tabsNav,
@@ -293,7 +346,7 @@ const Cascader: React.FC<CascaderProps> = props => {
           contentStyle={!swipeableEnabled ? styles.tabsContentStatic : undefined}
           contentContainerStyle={!swipeableEnabled ? styles.tabsContentStatic : undefined}
         >
-          {tabs.map((optionList, index) => {
+          {displayTabs.map((optionList, index) => {
             const selectedOption = items[index]
             const labelValue = selectedOption ? selectedOption[keys.textKey] : placeholder
             const titleNode = (labelValue === undefined || labelValue === null || labelValue === "")

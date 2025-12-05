@@ -1,5 +1,5 @@
 import React from "react"
-import { Cascader, Field, Toast, type CascaderOption } from "react-native-system-ui"
+import { Cascader, Field, type CascaderOption } from "react-native-system-ui"
 
 interface AsyncOption extends CascaderOption {
   loading?: boolean
@@ -18,16 +18,11 @@ export default function CascaderAsyncDemo() {
     const last = val[val.length - 1]
     const needRequest = dynamicOpts[0].children?.length === 0
     if (last === dynamicOpts[0].value && needRequest) {
-      Toast.loading({ message: "加载中...", duration: 0 })
-      // 先切到下一级，保持当前节点不被视为叶子
-      setDynamicOpts(prev => prev)
       setTimeout(() => {
-        Toast.clear()
         setDynamicOpts(prev => {
           const next = [...prev]
           next[0] = {
             ...next[0],
-            loading: false,
             children: [
               { text: "杭州市", value: "330100" },
               { text: "宁波市", value: "330200" },
