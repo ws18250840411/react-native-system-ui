@@ -66,6 +66,7 @@ import { Cascader } from react-native-system-ui
 | `popupPlacement` | 弹层位置，同 Popup `placement` | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'bottom'` |
 | `popupRound` | 是否开启弹层圆角 | `boolean` | `true` |
 | `popupProps` | 透传 Popup 额外参数 | `Partial<PopupProps>` | - |
+| `loadingText` | 异步占位列的提示文案（仅在有 `children` 字段但子项为空时出现） | `string` | `加载中...` |
 | `children` | 可选的触发渲染；传入函数时可获得 `actions` | `ReactNode \| CascaderRenderProps` | - |
 
 ### Render Props
@@ -89,4 +90,4 @@ import { Cascader } from react-native-system-ui
 | `loading` | 显示加载状态 | `boolean` |
 | `children` | 下一级选项 | `CascaderOption[]` |
 
-其余属性同 `View`，支持传入 `style` 覆盖容器样式。
+其余属性同 `View`，支持传入 `style` 覆盖容器样式。异步场景下，如果某个选项包含 `children` 字段但暂未填充子项，组件会自动在下一列展示 `loadingText` 占位，待数据填充后恢复正常列表。

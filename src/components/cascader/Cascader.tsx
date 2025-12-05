@@ -86,12 +86,14 @@ const Cascader: React.FC<CascaderProps> = props => {
   const { tabs, items, depth } = useCascaderExtend(options, keys, currentValue)
   const [tabsWidth, setTabsWidth] = React.useState(0)
   const [pendingPath, setPendingPath] = React.useState<CascaderValue[] | null>(null)
+  const selectedValuesRef = React.useRef<CascaderValue[]>([])
 
   const resolvedPath = React.useMemo(() => {
     const rows = resolveSelectedRows(options, keys, currentValue)
     const values = rows
       .map(row => row?.[keys.valueKey] as CascaderValue | undefined)
       .filter((v): v is CascaderValue => v !== undefined && v !== null)
+    selectedValuesRef.current = values
     return { rows, values }
   }, [currentValue, keys, options])
 
@@ -150,6 +152,13 @@ const Cascader: React.FC<CascaderProps> = props => {
       setPendingPath(null)
     }
   }, [currentValue, keys, options, pendingPath, tabs.length])
+
+  // 关闭弹层时清理占位，避免下次打开仍显示 loading 列。
+  React.useEffect(() => {
+    if (!popupVisible && pendingPath) {
+      setPendingPath(null)
+    }
+  }, [popupVisible, pendingPath])
 
   React.useEffect(() => {
     if (!poppable) {
@@ -256,7 +265,7 @@ const Cascader: React.FC<CascaderProps> = props => {
   const renderOption = (option: CascaderOption, tabIndex: number, isLast: boolean) => {
     const optionValue = option[keys.valueKey]
     const label = option[keys.textKey]
-      const selected = resolvedPath.values[tabIndex] === optionValue
+    const selected = selectedValuesRef.current[tabIndex] === optionValue
     const disabled = !!option.disabled
     const baseColor = option.color ?? tokens.colors.optionText
     const textColor = disabled
@@ -356,7 +365,12 @@ const Cascader: React.FC<CascaderProps> = props => {
         >
           {displayTabs.map((optionList, index) => {
             const selectedOption = items[index]
-            const labelValue = selectedOption ? selectedOption[keys.textKey] : placeholder
+            const labelValue =
+              pendingActive && index === displayTabs.length - 1
+                ? loadingText
+                : selectedOption
+                  ? selectedOption[keys.textKey]
+                  : placeholder
             const titleNode = (labelValue === undefined || labelValue === null || labelValue === "")
               ? <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>
               : typeof labelValue === "string" || typeof labelValue === "number"
