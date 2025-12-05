@@ -32,7 +32,7 @@
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
 | Calendar 日历 | ✅ | 单选/多选/范围支持 `allowSameDay`、`maxRange`、自定义周标题与月份文案；新增 `poppable` 弹层/Cell 入口 demo 与 Popup API 说明，修复跨区间禁选与确认按钮主题色 |
-| Cascader 级联选择 | ✅ | 参考 React Vant：新增 `poppable` + render props Cell 触发、Popup/受控显隐与 `actions`，示例/文档对齐并保留面板模式 |
+| Cascader 级联选择 | ✅ | 参考 React Vant：新增 `poppable` + render props Cell 触发、Popup/受控显隐与 `actions`；示例、文档、数据源与 React Vant demo 完全对齐（基础/Form/异步/字段名/受控），默认开启 Tabs 滑动动画，可关闭 `swipeable`；最终值只在叶子/达最大层级时提交，避免重复回调 |
 | Checkbox 复选框 | ⏳ |  |
 | DatetimePicker 时间选择 | ⏳ |  |
 | Form 表单 | ⏳ |  |

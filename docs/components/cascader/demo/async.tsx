@@ -1,99 +1,60 @@
 import React from "react"
-import { Cascader, Field, FieldGroup, type CascaderOption } from "react-native-system-ui"
+import { Cascader, Field, Toast, type CascaderOption } from "react-native-system-ui"
 
 interface AsyncOption extends CascaderOption {
   loading?: boolean
   children?: AsyncOption[]
 }
 
-const initialOptions: AsyncOption[] = [
-  { text: "浙江省", value: "zhejiang" },
-  { text: "江苏省", value: "jiangsu" },
-]
-
-const formatValue = (rows: CascaderOption[]) => {
-  const labels = rows.map(item => item?.text).filter(Boolean)
-  return labels.length ? labels.join(" / ") : "请选择所在地区"
-}
-
-const cloneOptions = (options: AsyncOption[]): AsyncOption[] =>
-  options.map(option => ({
-    ...option,
-    children: option.children ? cloneOptions(option.children) : undefined,
-  }))
-
-const updateOption = (
-  options: AsyncOption[],
-  target: CascaderOption | undefined,
-  updater: (option: AsyncOption) => AsyncOption,
-): AsyncOption[] => {
-  if (!target) return options
-  return options.map(option => {
-    if (option.value === target.value) {
-      return updater(option)
-    }
-    if (option.children) {
-      return {
-        ...option,
-        children: updateOption(option.children, target, updater),
-      }
-    }
-    return option
-  })
-}
+const formatValue = (rows: CascaderOption[]) => rows.map(item => item?.text).filter(Boolean).join(",")
 
 export default function CascaderAsyncDemo() {
-  const [options, setOptions] = React.useState<AsyncOption[]>(initialOptions)
+  const [dynamicOpts, setDynamicOpts] = React.useState<AsyncOption[]>([
+    { text: "浙江省", value: "330000", children: [] },
+  ])
   const [value, setValue] = React.useState<string[]>([])
 
-  const loadChildren = (option: AsyncOption) => {
-    setOptions(prev => updateOption(prev, option, item => ({ ...item, loading: true })))
-    setTimeout(() => {
-      setOptions(prev =>
-        updateOption(prev, option, item => ({
-          ...item,
-          loading: false,
+  const handleChange = (val: string[]) => {
+    const key = val[0]
+    const needRequest = dynamicOpts[0].children?.length === 0
+    if (key === dynamicOpts[0].value && needRequest) {
+      Toast.loading({ message: "加载中...", duration: 0 })
+      setTimeout(() => {
+        Toast.clear()
+        const next = [...dynamicOpts]
+        next[0] = {
+          ...next[0],
           children: [
-            { text: `${item.text} - A`, value: `${item.value}-a` },
-            { text: `${item.text} - B`, value: `${item.value}-b` },
+            { text: "杭州市", value: "330100" },
+            { text: "宁波市", value: "330200" },
           ],
-        })),
-      )
-    }, 800)
-  }
-
-  const handleChange = (_: string[], rows: CascaderOption[]) => {
-    const last = rows[rows.length - 1] as AsyncOption | undefined
-    if (last && !last.children && !last.loading) {
-      loadChildren(last)
+        }
+        setDynamicOpts(next)
+      }, 2000)
     }
   }
 
   return (
     <Cascader
       poppable
-      options={options}
+      popupRound
+      title="请选择所在地区"
+      options={dynamicOpts}
       value={value}
-      onChange={(val, rows) => {
+      onChange={val => {
         setValue(val)
-        handleChange(val, rows)
-      }}
-      onFinish={(val, rows) => {
-        setValue(val)
-        handleChange(val, rows)
+        handleChange(val)
       }}
     >
       {(_, rows, actions) => (
-        <FieldGroup title="异步加载">
-          <Field
-            label="地区"
-            value={formatValue(rows)}
-            placeholder="请选择所在地区"
-            readOnly
-            isLink
-            onPress={actions.open}
-          />
-        </FieldGroup>
+        <Field
+          label="地区"
+          isLink
+          readOnly
+          value={formatValue(rows)}
+          placeholder="请选择所在地区"
+          onPress={actions.open}
+        />
       )}
     </Cascader>
   )

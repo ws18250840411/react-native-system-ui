@@ -19,29 +19,23 @@ import { Cascader } from react-native-system-ui
 
 ### 基础用法
 
-<code title="基础" src="./cascader/demo/basic.tsx"></code>
+<code title="基础用法" src="./cascader/demo/basic.tsx"></code>
 
-> Demo 采用 Cell 触发 + Popup 弹层的交互，与 React Vant 一致。`children` 支持函数写法，可拿到当前值、已选路径与 `actions`（open/close/toggle）。
+### Form中使用
 
-### Form 中使用
+<code title="Form中使用" src="./cascader/demo/form.tsx"></code>
 
-<code title="表单" src="./cascader/demo/form.tsx"></code>
+### 异步加载选项
 
-### 异步加载
-
-<code title="异步" src="./cascader/demo/async.tsx"></code>
+<code title="异步加载选项" src="./cascader/demo/async.tsx"></code>
 
 ### 自定义字段名
 
-<code title="字段映射" src="./cascader/demo/field-names.tsx"></code>
-
-### 自定义选项渲染
-
-<code title="自定义渲染" src="./cascader/demo/custom.tsx"></code>
+<code title="自定义字段名" src="./cascader/demo/field-names.tsx"></code>
 
 ### 受控组件
 
-<code title="受控" src="./cascader/demo/value.tsx"></code>
+<code title="受控组件" src="./cascader/demo/value.tsx"></code>
 
 ## API
 
@@ -53,7 +47,7 @@ import { Cascader } from react-native-system-ui
 | `title` | 顶部标题 | `ReactNode` | `请选择` |
 | `placeholder` | 选项/标签占位文案 | `string` | `请选择` |
 | `activeColor` | 选中高亮颜色 | `string` | 主题色 |
-| `swipeable` | 是否允许左右滑动切换标签页 | `boolean` | `false` |
+| `swipeable` | 是否允许左右滑动切换标签页（包含切换动画）；开启时需保证容器有明确宽度，或在非滑动模式下保持内容宽度 100% | `boolean` | `true` |
 | `fieldNames` | 自定义字段映射 | `{ text?: string; value?: string; children?: string }` | `{ text: 'text', value: 'value', children: 'children' }` |
 | `optionRender` | 自定义选项内容 | `({ option, selected }) => ReactNode` | - |
 | `showHeader` | 是否展示标题 | `boolean` | `true` |

@@ -12,6 +12,7 @@ export interface CascaderOption {
   color?: string
   children?: CascaderOption[]
   loading?: boolean
+  [key: string]: any
 }
 
 export interface CascaderFieldNames {
@@ -29,7 +30,7 @@ export interface CascaderActions {
 export type CascaderRenderProps = (
   value: CascaderValue[],
   selectedRows: CascaderOption[],
-  actions: CascaderActions
+  actions: CascaderActions,
 ) => React.ReactNode
 
 export interface CascaderProps extends ViewProps {

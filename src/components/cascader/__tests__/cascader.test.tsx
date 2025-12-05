@@ -64,7 +64,7 @@ describe("Cascader", () => {
       ["zhejiang", "hangzhou", "xihu"],
       [options[0], options[0].children?.[0], options[0].children?.[0]?.children?.[0]],
     )
-})
+  })
 
   it("closes popup after finish when poppable", () => {
     const handleFinish = jest.fn()

@@ -1,5 +1,5 @@
 import React from "react"
-import { Cascader, Field, FieldGroup, type CascaderOption } from "react-native-system-ui"
+import { Cascader, Field, type CascaderOption } from "react-native-system-ui"
 
 type Region = {
   label: string
@@ -10,62 +10,37 @@ type Region = {
 
 const regions: Region[] = [
   {
-    label: "A 省",
-    code: "a",
-    items: [
-      {
-        label: "A-1 市",
-        code: "a1",
-        items: [
-          { label: "A-1-1 区", code: "a11" },
-          { label: "A-1-2 区", code: "a12", disabled: true },
-        ],
-      },
-    ],
+    label: "浙江省",
+    code: "330000",
+    items: [{ label: "杭州市", code: "330100" }],
   },
   {
-    label: "B 省",
-    code: "b",
-    items: [
-      {
-        label: "B-1 市",
-        code: "b1",
-        items: [
-          { label: "B-1-1 区", code: "b11" },
-        ],
-      },
-    ],
+    label: "江苏省",
+    code: "320000",
+    items: [{ label: "南京市", code: "320100" }],
   },
 ]
 
-const formatValue = (rows: CascaderOption[]) => {
-  const labels = rows.map(row => row?.text).filter(Boolean)
-  return labels.length ? labels.join(" / ") : "支持自定义字段"
-}
+const formatValue = (rows: CascaderOption[]) => rows.map(row => row?.text).filter(Boolean).join(",")
 
 export default function CascaderFieldNamesDemo() {
-  const [value, setValue] = React.useState<string[]>(["a"])
-
   return (
     <Cascader
       poppable
-      options={regions as unknown as CascaderOption[]}
-      value={value}
+      popupRound
       fieldNames={{ text: "label", value: "code", children: "items" }}
-      onChange={setValue}
-      onFinish={setValue}
+      title="请选择所在地区"
+      options={regions as unknown as CascaderOption[]}
     >
       {(_, rows, actions) => (
-        <FieldGroup title="字段映射">
-          <Field
-            label="自定义字段"
-            value={formatValue(rows)}
-            placeholder="支持自定义字段"
-            readOnly
-            isLink
-            onPress={actions.open}
-          />
-        </FieldGroup>
+        <Field
+          label="地区"
+          isLink
+          readOnly
+          value={formatValue(rows)}
+          placeholder="请选择所在地区"
+          onPress={actions.open}
+        />
       )}
     </Cascader>
   )

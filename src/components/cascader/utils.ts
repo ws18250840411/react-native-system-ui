@@ -1,31 +1,19 @@
 import type { CascaderOption, CascaderValue } from "./types"
 
-interface FieldKeys {
-  textKey: string
-  valueKey: string
-  childrenKey: string
-}
-
 export const resolveSelectedRows = (
   options: CascaderOption[] = [],
-  keys: FieldKeys,
+  keys: { textKey: string; valueKey: string; childrenKey: string },
   value: CascaderValue[],
 ): CascaderOption[] => {
   const selected: CascaderOption[] = []
   let current: CascaderOption[] | undefined = options
-
   value.forEach(val => {
-    if (!current) {
-      return
-    }
+    if (!current || !current.length) return
     const match = current.find(option => option[keys.valueKey] === val)
     if (match) {
       selected.push(match)
-      current = (match[keys.childrenKey] as CascaderOption[]) ?? []
-    } else {
-      current = undefined
+      current = (match[keys.childrenKey] as CascaderOption[] | undefined) ?? []
     }
   })
-
   return selected
 }

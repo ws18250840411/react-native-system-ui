@@ -2,8 +2,13 @@ import React from "react"
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 
 import { useControllableValue } from "../../hooks"
+import Icon from "../icon"
+import Popup from "../popup"
+import Tabs from "../tabs"
+import type { TabsValue } from "../tabs"
 import { useCascaderTokens } from "./tokens"
 import type {
+  CascaderFieldNames,
   CascaderOption,
   CascaderProps,
   CascaderRenderProps,
@@ -11,23 +16,25 @@ import type {
 } from "./types"
 import { useCascaderExtend } from "./useCascaderExtend"
 import { resolveSelectedRows } from "./utils"
-import Popup from "../popup"
-import Icon from "../icon"
-import Tabs from "../tabs"
-import type { TabsValue } from "../tabs"
 
 const DEFAULT_PLACEHOLDER = "请选择"
 
+const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
+  textKey: fieldNames?.text ?? "text",
+  valueKey: fieldNames?.value ?? "value",
+  childrenKey: fieldNames?.children ?? "children",
+})
+
 const Cascader: React.FC<CascaderProps> = props => {
   const tokens = useCascaderTokens()
-  const [value, commitValue] = useControllableValue<CascaderValue[]>(props, {
+  const [value, setValue] = useControllableValue<CascaderValue[]>(props, {
     defaultValue: [],
-    trigger: "__cascaderCommit",
+    trigger: "onChange",
   })
 
   const {
     options = [],
-    title = "请选择",
+    title = DEFAULT_PLACEHOLDER,
     placeholder = DEFAULT_PLACEHOLDER,
     activeColor = tokens.colors.tabActive,
     fieldNames,
@@ -35,11 +42,11 @@ const Cascader: React.FC<CascaderProps> = props => {
     showHeader = true,
     closeable,
     closeIcon,
-    onClose,
     onChange,
+    onClose,
     onFinish,
     onTabChange,
-    swipeable = false,
+    swipeable = true,
     style,
     testID,
     children,
@@ -55,57 +62,11 @@ const Cascader: React.FC<CascaderProps> = props => {
     ...rest
   } = props
 
-  const keys = React.useMemo(
-    () => ({
-      textKey: fieldNames?.text ?? "text",
-      valueKey: fieldNames?.value ?? "value",
-      childrenKey: fieldNames?.children ?? "children",
-    }),
-    [fieldNames],
-  )
+  const keys = React.useMemo(() => getFieldKeys(fieldNames), [fieldNames])
 
   const cascaderValue = React.useMemo(() => (Array.isArray(value) ? value : []), [value])
   const [panelValue, setPanelValue] = React.useState<CascaderValue[]>(cascaderValue)
   const resolvedCloseable = closeable ?? poppable
-
-  const currentValue = poppable ? panelValue : cascaderValue
-  const { tabs, items } = useCascaderExtend(options, keys, currentValue)
-  const panelSelectedRows = React.useMemo(
-    () => resolveSelectedRows(options, keys, currentValue),
-    [currentValue, keys, options]
-  )
-  const confirmedRows = React.useMemo(
-    () => resolveSelectedRows(options, keys, cascaderValue),
-    [cascaderValue, keys, options]
-  )
-
-  const emitChange = React.useCallback(
-    (nextValue: CascaderValue[], rows: CascaderOption[], commit: boolean) => {
-      onChange?.(nextValue, rows)
-      if (commit) {
-        commitValue(nextValue, rows)
-      }
-    },
-    [commitValue, onChange],
-  )
-
-  const [activeTab, setActiveTab] = React.useState(() => Math.min(cascaderValue.length, Math.max(tabs.length - 1, 0)))
-  const tabChangeByUserRef = React.useRef(false)
-
-  React.useEffect(() => {
-    const nextIndex = Math.min(currentValue.length, Math.max(tabs.length - 1, 0))
-    const wasUserTriggered = tabChangeByUserRef.current
-    setActiveTab(prev => {
-      if (prev > nextIndex) {
-        return nextIndex
-      }
-      if (!wasUserTriggered && prev < nextIndex) {
-        return nextIndex
-      }
-      return prev
-    })
-    tabChangeByUserRef.current = false
-  }, [currentValue.length, tabs.length])
 
   const popupVisibilityProps: Record<string, any> = {}
   if (Object.prototype.hasOwnProperty.call(props, "visible")) {
@@ -117,8 +78,29 @@ const Cascader: React.FC<CascaderProps> = props => {
   if (typeof onVisibleChange === "function") {
     popupVisibilityProps.onChange = onVisibleChange
   }
-
   const [popupVisible, setPopupVisible] = useControllableValue<boolean>(popupVisibilityProps, { defaultValue: false })
+
+  const currentValue = poppable ? panelValue : cascaderValue
+  const { tabs, items, depth } = useCascaderExtend(options, keys, currentValue)
+
+  const confirmedRows = React.useMemo(
+    () => resolveSelectedRows(options, keys, cascaderValue),
+    [cascaderValue, keys, options],
+  )
+
+  const [activeTab, setActiveTab] = React.useState(() => Math.min(currentValue.length, Math.max(tabs.length - 1, 0)))
+  const tabChangeByUserRef = React.useRef(false)
+
+  React.useEffect(() => {
+    const nextIndex = Math.min(currentValue.length, Math.max(tabs.length - 1, 0))
+    const userTriggered = tabChangeByUserRef.current
+    setActiveTab(prev => {
+      if (prev > nextIndex) return nextIndex
+      if (!userTriggered && prev < nextIndex) return nextIndex
+      return prev
+    })
+    tabChangeByUserRef.current = false
+  }, [currentValue.length, tabs.length])
 
   React.useEffect(() => {
     if (!poppable) {
@@ -140,30 +122,21 @@ const Cascader: React.FC<CascaderProps> = props => {
     (notify?: boolean) => {
       if (!poppable || !popupVisible) return
       setPopupVisible(false)
-      if (notify) {
-        onClose?.()
-      }
+      if (notify) onClose?.()
     },
-    [onClose, poppable, popupVisible, setPopupVisible]
+    [onClose, poppable, popupVisible, setPopupVisible],
   )
 
   const togglePopup = React.useCallback(() => {
     if (!poppable) return
-    if (popupVisible) {
-      closePopup(true)
-    } else {
-      openPopup()
-    }
+    popupVisible ? closePopup(true) : openPopup()
   }, [closePopup, openPopup, poppable, popupVisible])
 
-  const renderProp = React.useMemo(
-    () => (typeof children === "function" ? (children as CascaderRenderProps) : null),
-    [children]
-  )
+  const renderProp = React.useMemo(() => (typeof children === "function" ? (children as CascaderRenderProps) : null), [children])
 
   const handleTabChange = React.useCallback(
-    (tabValue: TabsValue) => {
-      const index = typeof tabValue === "number" ? tabValue : Number(tabValue)
+    (tabValue: TabsValue, indexFromEvent?: number) => {
+      const index = typeof indexFromEvent === "number" ? indexFromEvent : Number(tabValue)
       if (Number.isNaN(index)) return
       tabChangeByUserRef.current = true
       setActiveTab(index)
@@ -175,34 +148,36 @@ const Cascader: React.FC<CascaderProps> = props => {
   const handleSelect = React.useCallback(
     (option: CascaderOption, tabIndex: number) => {
       tabChangeByUserRef.current = false
-      if (option.disabled) {
-        return
-      }
+      if (option.disabled) return
       const optionValue = option[keys.valueKey]
-      if (optionValue === undefined || optionValue === null) {
-        return
-      }
-      const current = (poppable ? panelValue : cascaderValue).slice(0, tabIndex)
-      const nextValue = [...current, optionValue as CascaderValue]
-      const resolved = resolveSelectedRows(options, keys, nextValue)
+      if (optionValue === undefined || optionValue === null) return
+
+      const base = (poppable ? panelValue : cascaderValue).slice(0, tabIndex)
+      const nextValue = [...base, optionValue as CascaderValue]
+      const rows = resolveSelectedRows(options, keys, nextValue)
       const childrenOptions = (option[keys.childrenKey] as CascaderOption[] | undefined) ?? []
-      const isLeaf = !childrenOptions.length
+      const isLeaf = childrenOptions.length === 0
+      const reachDepth = nextValue.length >= depth
 
       if (poppable) {
         setPanelValue(nextValue)
+      } else {
+        setValue(nextValue, rows)
       }
 
-      const shouldCommit = !poppable || isLeaf
-      emitChange(nextValue, resolved, shouldCommit)
+      // 与 React Vant 对齐：每次选择都触发 onChange
+      onChange?.(nextValue, rows)
 
-      if (isLeaf) {
-        onFinish?.(nextValue, resolved)
-        if (poppable && closeOnFinish) {
-          closePopup(true)
+      if (isLeaf || reachDepth) {
+        // 最终提交一次
+        if (poppable) {
+          setValue(nextValue, rows)
+          if (closeOnFinish) closePopup(true)
         }
+        onFinish?.(nextValue, rows)
       }
     },
-    [cascaderValue, closeOnFinish, closePopup, emitChange, keys, onFinish, options, panelValue, poppable],
+    [cascaderValue, closeOnFinish, closePopup, depth, keys, onChange, onFinish, options, panelValue, poppable, setValue],
   )
 
   const renderOption = (option: CascaderOption, tabIndex: number, isLast: boolean) => {
@@ -216,18 +191,11 @@ const Cascader: React.FC<CascaderProps> = props => {
       : selected
         ? option.color ?? tokens.colors.optionActiveText
         : baseColor
+
     const content = optionRender ? (
       optionRender({ option, selected })
     ) : (
-      <Text
-        style={[
-          styles.optionText,
-          selected ? styles.optionTextActive : null,
-          { color: textColor },
-        ]}
-      >
-        {label}
-      </Text>
+      <Text style={[styles.optionText, selected && styles.optionTextActive, { color: textColor }]}>{label}</Text>
     )
 
     return (
@@ -269,18 +237,14 @@ const Cascader: React.FC<CascaderProps> = props => {
       }}
       showsVerticalScrollIndicator={false}
     >
-      {optionList.length ? (
-        optionList.map((item, index) => renderOption(item, tabIndex, index === optionList.length - 1))
-      ) : (
-        <Text style={[styles.empty, { color: tokens.colors.placeholder }]}>{placeholder}</Text>
-      )}
+      {optionList.length
+        ? optionList.map((item, idx) => renderOption(item, tabIndex, idx === optionList.length - 1))
+        : <Text style={[styles.empty, { color: tokens.colors.placeholder }]}>{placeholder}</Text>}
     </ScrollView>
   )
 
   const renderTabs = () => {
-    if (!tabs.length) {
-      return renderOptionsList([], 0)
-    }
+    if (!tabs.length) return renderOptionsList([], 0)
     const tabBarStyle = [
       styles.tabsNav,
       {
@@ -290,32 +254,39 @@ const Cascader: React.FC<CascaderProps> = props => {
         backgroundColor: tokens.colors.background,
       },
     ]
+
     return (
       <Tabs
         active={activeTab}
         onChange={handleTabChange}
+        align="start"
         swipeable={swipeable}
         swipeThreshold={0}
         scrollable={false}
         animated
+        duration={300}
         color={activeColor}
+        lineHeight={tokens.sizing.indicatorHeight}
+        titleInactiveColor={tokens.colors.tabInactive}
         tabBarStyle={tabBarStyle}
         tabStyle={styles.tabsItem}
         titleStyle={styles.tabsTitle}
+        contentStyle={!swipeable ? styles.tabsContentStatic : undefined}
+        contentContainerStyle={!swipeable ? styles.tabsContentStatic : undefined}
       >
         {tabs.map((optionList, index) => {
           const selectedOption = items[index]
           const labelValue = selectedOption ? selectedOption[keys.textKey] : placeholder
-          let titleNode: React.ReactNode = labelValue
-          if (typeof labelValue === "string" || typeof labelValue === "number") {
-            titleNode = (
-              <Text style={!selectedOption ? { color: tokens.colors.placeholder } : undefined}>
-                {labelValue || placeholder}
-              </Text>
-            )
-          } else if (!labelValue) {
-            titleNode = <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>
-          }
+          const titleNode = (labelValue === undefined || labelValue === null || labelValue === "")
+            ? <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>
+            : typeof labelValue === "string" || typeof labelValue === "number"
+              ? (
+                <Text style={!selectedOption ? { color: tokens.colors.placeholder } : undefined}>
+                  {labelValue}
+                </Text>
+              )
+              : labelValue
+
           return (
             <Tabs.TabPane key={index} name={index} title={titleNode ?? placeholder}>
               {renderOptionsList(optionList, index)}
@@ -365,16 +336,12 @@ const Cascader: React.FC<CascaderProps> = props => {
       ) : null}
       {renderTabs()}
       {inlineChildren ? (
-        <View style={[styles.inlineChildren, { paddingHorizontal: tokens.spacing.padding }]}>
-          {inlineChildren}
-        </View>
+        <View style={[styles.inlineChildren, { paddingHorizontal: tokens.spacing.padding }]}>{inlineChildren}</View>
       ) : null}
     </View>
   )
 
-  if (!poppable) {
-    return content
-  }
+  if (!poppable) return content
 
   const {
     closeOnOverlayPress: overrideCloseOnOverlayPress,
@@ -395,7 +362,7 @@ const Cascader: React.FC<CascaderProps> = props => {
       close: () => closePopup(true),
       toggle: togglePopup,
     }),
-    [closePopup, openPopup, togglePopup]
+    [closePopup, openPopup, togglePopup],
   )
 
   const triggerNode = renderProp
@@ -411,19 +378,13 @@ const Cascader: React.FC<CascaderProps> = props => {
         round={popupRound}
         closeOnOverlayPress={resolvedCloseOnOverlayPress}
         overlay={resolvedOverlay}
-        onOpen={() => {
-          popupOnOpen?.()
-        }}
-        onOpened={() => {
-          popupOnOpened?.()
-        }}
+        onOpen={popupOnOpen}
+        onOpened={popupOnOpened}
         onClose={() => {
           popupOnClose?.()
           closePopup(true)
         }}
-        onClosed={() => {
-          popupOnClosed?.()
-        }}
+        onClosed={popupOnClosed}
         {...popupRestProps}
       >
         {content}
@@ -435,6 +396,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 const styles = StyleSheet.create({
   container: {
     borderRadius: 0,
+    width: "100%",
   },
   header: {
     flexDirection: "row",
@@ -453,6 +415,9 @@ const styles = StyleSheet.create({
   },
   tabsNav: {
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  tabsContentStatic: {
+    width: "100%",
   },
   tabsItem: {
     alignItems: "flex-start",
