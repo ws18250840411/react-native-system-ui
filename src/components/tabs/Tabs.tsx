@@ -243,7 +243,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     duration = tokens.defaults.duration,
     lazyRender = tokens.defaults.lazyRender,
     lazyRenderPlaceholder,
-    scrollable: scrollableProp,
+    // 标签栏滚动能力暂时下线，强制关闭
+    scrollable: _scrollableProp,
     scrollspy,
     swipeable,
     color,
@@ -399,7 +400,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
   const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
-  const navContentWidthRef = React.useRef(0)
   const indicatorInitializedRef = React.useRef(false)
   const paneLayoutMap = React.useRef<Map<TabsValue, { y: number; height: number }>>(new Map())
   const scrollspyScrollRef = React.useRef<Animated.ScrollView | null>(null)
@@ -412,13 +412,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const [containerWidth, setContainerWidth] = React.useState(0)
   const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
 
-  const scrollable = React.useMemo(() => {
-    if (typeof scrollableProp === 'boolean') {
-      return scrollableProp
-    }
-    // 与 web 版逻辑一致：超过阈值或禁止省略时横向滚动
-    return panes.length > swipeThreshold || !ellipsis
-  }, [ellipsis, panes.length, scrollableProp, swipeThreshold])
+  // 标签栏滚动下线，固定不滚动
+  const scrollable = false
 
   const indicatorColor = color ?? tokens.colors.indicator
   const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
@@ -452,15 +447,9 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       const layout = layoutMap.current.get(name)
       const containerWidth = navContainerWidthRef.current
       if (!layout || !containerWidth) return
-      const rawTarget = layout.x + layout.width / 2 - containerWidth / 2
-      const maxScroll =
-        navContentWidthRef.current > containerWidth
-          ? navContentWidthRef.current - containerWidth
-          : 0
-      const target = Math.min(Math.max(rawTarget, 0), maxScroll)
       const animatedScroll = !immediate && +duration > 0
       requestFrame(() => {
-        navScrollRef.current?.scrollTo({ x: target, animated: animatedScroll })
+        navScrollRef.current?.scrollTo({ x: 0, animated: animatedScroll })
       })
     },
     [duration, scrollable],
@@ -827,15 +816,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   ))
 
   const navBody = scrollable ? (
-    <ScrollView
-      horizontal
-      ref={navScrollRef}
-      onContentSizeChange={w => {
-        navContentWidthRef.current = w
-      }}
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.navContent}
-    >
+    <ScrollView horizontal ref={navScrollRef} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.navContent}>
       {navItems}
       {showIndicator ? (
         <AnimatedIndicator
