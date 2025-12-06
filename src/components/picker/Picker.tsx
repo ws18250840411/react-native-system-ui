@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View, Animated, FlatList, Pressable } from 'react-native'
+import { StyleSheet, Text, View, Animated, FlatList, Pressable, Platform } from 'react-native'
 
 import Loading from '../loading'
 import { usePickerTokens } from './tokens'
@@ -28,6 +28,8 @@ type WheelPickerProps<T> = {
   visibleRest: number
   readOnly?: boolean
   indicatorColor: string
+  decelerationRate?: 'normal' | 'fast' | number
+  scrollEventThrottle?: number
 }
 
 const WheelPicker = <T,>({
@@ -39,9 +41,27 @@ const WheelPicker = <T,>({
   visibleRest,
   readOnly,
   indicatorColor,
+  decelerationRate = 'fast',
+  scrollEventThrottle = 16,
 }: WheelPickerProps<T>) => {
   const flatListRef = React.useRef<FlatList<T | null>>(null)
   const [scrollY] = React.useState(new Animated.Value(0))
+  const useNativeDriver = Platform.OS !== 'web'
+
+  if (!data.length) {
+    // 空数据时渲染占位，避免 FlatList initialScrollIndex 报错
+    return (
+      <View style={[styles.column, { height: itemHeight * (visibleRest * 2 + 1) }]}>
+        <View
+          style={[
+            styles.indicator,
+            { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor },
+          ]}
+          pointerEvents="none"
+        />
+      </View>
+    )
+  }
 
   const paddedData = React.useMemo(() => {
     const arr: (T | null)[] = [...data]
@@ -73,7 +93,7 @@ const WheelPicker = <T,>({
 
   const handleMomentumScrollEnd = (e: any) => {
     const max = itemHeight * Math.max(data.length - 1, 0)
-    const offsetY = Math.min(max, Math.max(e.nativeEvent.contentOffset.y, 0))
+    const offsetY = Math.min(max, Math.max(e?.nativeEvent?.contentOffset?.y ?? 0, 0))
     let index = Math.floor(offsetY / itemHeight)
     if (offsetY % itemHeight > itemHeight / 2) index += 1
     index = Math.max(0, Math.min(index, data.length - 1))
@@ -135,11 +155,12 @@ const WheelPicker = <T,>({
         renderItem={renderWheelItem}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-          useNativeDriver: false,
+          useNativeDriver,
         })}
+        scrollEventThrottle={scrollEventThrottle}
         onMomentumScrollEnd={handleMomentumScrollEnd}
         snapToOffsets={offsets}
-        decelerationRate="fast"
+        decelerationRate={decelerationRate}
         initialScrollIndex={Math.max(0, Math.min(selectedIndex, paddedData.length - 1))}
         getItemLayout={(_, index) => ({
           length: itemHeight,
@@ -169,6 +190,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
   const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
   const selectedIndex = React.useMemo(() => {
+    if (!options.length) return 0
     const idx = options.findIndex(option => option.value === value)
     return findEnabledIndex(options, idx >= 0 ? idx : 0)
   }, [options, value])
@@ -193,6 +215,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
         onChange={handleChange}
         readOnly={readOnly}
         indicatorColor={tokens.colors.indicator}
+        decelerationRate="fast"
         renderItem={item => {
           if (!item) return null
           const active = item.value === value
