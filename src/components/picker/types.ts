@@ -4,50 +4,48 @@ import type { ViewProps } from 'react-native'
 export type PickerValue = string | number
 
 export interface PickerOption {
-  label: React.ReactNode
+  label?: React.ReactNode
   value: PickerValue
   disabled?: boolean
-  [key: string]: any
+  children?: PickerOption[]
 }
 
-export interface PickerCascadeOption extends PickerOption {
-  children?: PickerCascadeOption[]
-}
-
-export interface PickerOptionMultipleWithDefault {
+export interface PickerColumnWithDefault {
   options: PickerOption[]
   defaultValue?: PickerValue
 }
 
-export type PickerColumn = PickerCascadeOption | PickerOption[] | PickerOptionMultipleWithDefault
+export type PickerColumn = PickerOption[] | PickerColumnWithDefault
+export type PickerColumns = PickerColumn[] | PickerOption[]
 
-export type PickerDataType = 'single' | 'multiple' | 'cascade'
+export type PickerToolbarPosition = 'top' | 'bottom'
 
-export interface PickerViewProps extends Omit<ViewProps, 'onChange'> {
-  columns: PickerColumn[]
-  value?: PickerValue[]
-  defaultValue?: PickerValue[]
-  onChange?: (value: PickerValue[], options: PickerOption[]) => void
+export interface PickerProps extends ViewProps {
+  columns?: PickerColumns
+  value?: PickerValue[] | PickerValue
+  defaultValue?: PickerValue[] | PickerValue
+  title?: React.ReactNode
+  showToolbar?: boolean
+  toolbarPosition?: PickerToolbarPosition
+  confirmButtonText?: React.ReactNode
+  cancelButtonText?: React.ReactNode
   itemHeight?: number
   visibleItemCount?: number
   loading?: boolean
-  testID?: string
+  readOnly?: boolean
+  optionRender?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => React.ReactNode
+  onChange?: (value: PickerValue[], options: (PickerOption | undefined)[]) => void
+  onConfirm?: (value: PickerValue[], options: (PickerOption | undefined)[]) => void
+  onCancel?: () => void
 }
 
 export interface PickerColumnProps {
+  columnIndex: number
   options: PickerOption[]
   value?: PickerValue
   itemHeight: number
   visibleItemCount: number
-  onChange?: (option: PickerOption) => void
-}
-
-export interface PickerProps extends PickerViewProps {
-  title?: React.ReactNode
-  confirmButtonText?: React.ReactNode
-  cancelButtonText?: React.ReactNode
-  showToolbar?: boolean
-  toolbarPosition?: 'top' | 'bottom'
-  onConfirm?: (value: PickerValue[], options: PickerOption[]) => void
-  onCancel?: () => void
+  optionRender?: PickerProps['optionRender']
+  readOnly?: boolean
+  onSelect: (option: PickerOption, columnIndex: number, optionIndex: number) => void
 }

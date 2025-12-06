@@ -2,4 +2,12 @@ import Picker from './Picker'
 
 export default Picker
 export { Picker }
-export type { PickerProps, PickerOption, PickerValue } from './types'
+export type {
+  PickerProps,
+  PickerOption,
+  PickerValue,
+  PickerColumn,
+  PickerColumns,
+  PickerColumnWithDefault,
+  PickerToolbarPosition,
+} from './types'

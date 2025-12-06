@@ -14,8 +14,8 @@ export default function PickerToolbarDemo() {
   const [value, setValue] = React.useState(['0800'])
 
   return (
-    <View style={{ gap: 12 }}>
-      <Text>会议时间：{value[0]}</Text>
+    <View style={{ gap: 8, padding: 12, backgroundColor: '#f7f8fa' }}>
+      <Text style={{ color: '#646566' }}>会议时间：{value[0]}</Text>
       <Picker
         columns={columns}
         value={value}
@@ -23,6 +23,7 @@ export default function PickerToolbarDemo() {
         confirmButtonText="完成"
         cancelButtonText="返回"
         toolbarPosition="bottom"
+        readOnly={false}
       />
     </View>
   )

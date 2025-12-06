@@ -72,7 +72,14 @@ export type { SelectorProps, SelectorOption, SelectorValue } from './selector'
 export { default as Search } from './search'
 export type { SearchProps, SearchRef, SearchShape } from './search'
 export { default as Picker } from './picker'
-export type { PickerProps, PickerOption, PickerValue } from './picker'
+export type {
+  PickerProps,
+  PickerOption,
+  PickerValue,
+  PickerColumn,
+  PickerColumns,
+  PickerColumnWithDefault,
+} from './picker'
 export { default as NumberKeyboard } from './number-keyboard'
 export type { NumberKeyboardProps, NumberKeyboardTheme } from './number-keyboard'
 export { default as Collapse } from './collapse'
