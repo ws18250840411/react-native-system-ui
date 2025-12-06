@@ -1,13 +1,5 @@
 import React from 'react'
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native'
+import { StyleSheet, Text, View, Animated, FlatList, Pressable } from 'react-native'
 
 import Loading from '../loading'
 import { usePickerTokens } from './tokens'
@@ -25,6 +17,143 @@ const getVisibleCount = (count: number) => {
   return normalized % 2 === 0 ? normalized + 1 : normalized
 }
 
+type WheelPickerRender<T> = (item: T | null, index: number) => React.ReactNode
+
+type WheelPickerProps<T> = {
+  data: T[]
+  selectedIndex: number
+  onChange: (index: number) => void
+  renderItem: WheelPickerRender<T>
+  itemHeight: number
+  visibleRest: number
+  readOnly?: boolean
+  indicatorColor: string
+}
+
+const WheelPicker = <T,>({
+  data,
+  selectedIndex,
+  onChange,
+  renderItem,
+  itemHeight,
+  visibleRest,
+  readOnly,
+  indicatorColor,
+}: WheelPickerProps<T>) => {
+  const flatListRef = React.useRef<FlatList<T | null>>(null)
+  const [scrollY] = React.useState(new Animated.Value(0))
+
+  const paddedData = React.useMemo(() => {
+    const arr: (T | null)[] = [...data]
+    for (let i = 0; i < visibleRest; i += 1) {
+      arr.unshift(null)
+      arr.push(null)
+    }
+    return arr
+  }, [data, visibleRest])
+
+  const offsets = React.useMemo(
+    () => paddedData.map((_, i) => i * itemHeight),
+    [paddedData, itemHeight]
+  )
+
+  const interpRange = React.useMemo(() => {
+    const r = [0]
+    for (let i = 1; i <= visibleRest + 1; i += 1) {
+      r.unshift(-i)
+      r.push(i)
+    }
+    return r
+  }, [visibleRest])
+
+  const currentScrollIndex = React.useMemo(
+    () => Animated.add(Animated.divide(scrollY, itemHeight), visibleRest),
+    [scrollY, itemHeight, visibleRest]
+  )
+
+  const handleMomentumScrollEnd = (e: any) => {
+    const max = itemHeight * Math.max(data.length - 1, 0)
+    const offsetY = Math.min(max, Math.max(e.nativeEvent.contentOffset.y, 0))
+    let index = Math.floor(offsetY / itemHeight)
+    if (offsetY % itemHeight > itemHeight / 2) index += 1
+    index = Math.max(0, Math.min(index, data.length - 1))
+    if (index !== selectedIndex) onChange(index)
+  }
+
+  React.useEffect(() => {
+    flatListRef.current?.scrollToIndex({
+      index: Math.max(0, Math.min(selectedIndex, data.length ? data.length - 1 : 0)),
+      animated: false,
+    })
+  }, [data.length, selectedIndex])
+
+  const renderWheelItem = React.useCallback(
+    ({ item, index }: { item: T | null; index: number }) => {
+      const relative = Animated.subtract(index, currentScrollIndex)
+      const opacity = relative.interpolate({
+        inputRange: interpRange,
+        outputRange: interpRange.map(x => Math.pow(1 / 3, Math.abs(x))),
+      })
+      const scale = relative.interpolate({
+        inputRange: interpRange,
+        outputRange: interpRange.map(x => (x === 0 ? 1 : 1 - 0.08 * Math.abs(x))),
+      })
+
+      return (
+        <Animated.View
+          style={[
+            styles.option,
+            {
+              height: itemHeight,
+              opacity,
+              transform: [{ scale }],
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+          ]}
+        >
+          {renderItem(item, index - visibleRest)}
+        </Animated.View>
+      )
+    },
+    [currentScrollIndex, interpRange, itemHeight, renderItem, visibleRest]
+  )
+
+  return (
+    <View style={[styles.column, { height: itemHeight * (visibleRest * 2 + 1) }]}>
+      <View
+        style={[
+          styles.indicator,
+          { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor },
+        ]}
+        pointerEvents="none"
+      />
+      <Animated.FlatList
+        ref={flatListRef}
+        data={paddedData}
+        keyExtractor={(item, i) => `wheel-${(item as any)?.value ?? i}`}
+        renderItem={renderWheelItem}
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: false,
+        })}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        snapToOffsets={offsets}
+        decelerationRate="fast"
+        initialScrollIndex={Math.max(0, Math.min(selectedIndex, paddedData.length - 1))}
+        getItemLayout={(_, index) => ({
+          length: itemHeight,
+          offset: itemHeight * index,
+          index,
+        })}
+        scrollEnabled={!readOnly}
+        nestedScrollEnabled
+        removeClippedSubviews
+      />
+    </View>
+  )
+}
+
 const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof usePickerTokens> }> = props => {
   const {
     columnIndex,
@@ -37,117 +166,73 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
     tokens,
     readOnly,
   } = props
-  const listRef = React.useRef<FlatList<PickerOption>>(null)
+  const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
   const selectedIndex = React.useMemo(() => {
     const idx = options.findIndex(option => option.value === value)
     return findEnabledIndex(options, idx >= 0 ? idx : 0)
   }, [options, value])
 
-  const contentPadding = ((visibleItemCount - 1) / 2) * itemHeight
-
-  const scrollToIndex = React.useCallback(
-    (index: number, animated = true) => {
-      const target = findEnabledIndex(options, index)
-      if (target < 0) return
-      listRef.current?.scrollToOffset({
-        offset: target * itemHeight,
-        animated,
-      })
-    },
-    [itemHeight, options],
-  )
-
-  React.useEffect(() => {
-    if (!options.length) return
-    scrollToIndex(selectedIndex, false)
-  }, [options, scrollToIndex, selectedIndex])
-
-  const handleScrollEnd = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (!options.length) return
-      const offsetY = event.nativeEvent.contentOffset.y
-      const index = Math.round(offsetY / itemHeight)
+  const handleChange = React.useCallback(
+    (index: number) => {
       const target = findEnabledIndex(options, index)
       const option = options[target]
-      if (option) {
-        if (target !== index) {
-          scrollToIndex(target)
-        }
-        onSelect(option, columnIndex, target)
-      }
+      if (!option || option.disabled) return
+      onSelect(option, columnIndex, target)
     },
-    [columnIndex, itemHeight, onSelect, options, scrollToIndex],
+    [columnIndex, onSelect, options],
   )
-
-  const renderItem = ({ item, index }: { item: PickerOption; index: number }) => {
-    const active = item.value === value
-    const disabled = !!item.disabled
-    const textColor = disabled
-      ? tokens.colors.textDisabled
-      : active
-        ? tokens.colors.text
-        : tokens.colors.textMuted
-    const opacity = disabled ? 0.5 : 1
-
-    return (
-      <Pressable
-        onPress={() => {
-          if (disabled) return
-          scrollToIndex(index)
-          onSelect(item, columnIndex, index)
-        }}
-        accessibilityRole="button"
-        accessibilityState={{ disabled, selected: active }}
-        style={[styles.option, { height: itemHeight }]}
-      >
-        <View style={{ opacity }}>
-          {optionRender ? (
-            optionRender(item, { columnIndex, active })
-          ) : (
-            <Text
-              numberOfLines={1}
-              style={[
-                styles.optionText,
-                {
-                  color: textColor,
-                  fontSize: tokens.typography.optionSize,
-                  fontFamily: tokens.typography.fontFamily,
-                  fontWeight: tokens.typography.optionWeight,
-                },
-              ]}
-            >
-              {item.label ?? item.value}
-            </Text>
-          )}
-        </View>
-      </Pressable>
-    )
-  }
 
   return (
     <View style={[styles.column, { height: itemHeight * visibleItemCount }]}>
-      <FlatList
-        ref={listRef}
+      <WheelPicker
         data={options}
-        keyExtractor={(item, index) => `${String(item.value)}-${index}`}
-        renderItem={renderItem}
-        initialScrollIndex={options.length ? selectedIndex : undefined}
-        getItemLayout={(_, index) => ({
-          length: itemHeight,
-          offset: itemHeight * index,
-          index,
-        })}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={itemHeight}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        scrollEventThrottle={16}
-        contentContainerStyle={{ paddingVertical: contentPadding }}
-        nestedScrollEnabled
-        scrollEnabled={!readOnly}
-        onMomentumScrollEnd={handleScrollEnd}
-        onScrollEndDrag={handleScrollEnd}
+        itemHeight={itemHeight}
+        visibleRest={restVisible}
+        selectedIndex={Math.max(0, selectedIndex)}
+        onChange={handleChange}
+        readOnly={readOnly}
+        indicatorColor={tokens.colors.indicator}
+        renderItem={item => {
+          if (!item) return null
+          const active = item.value === value
+          const disabled = !!item.disabled
+          const textColor = disabled
+            ? tokens.colors.textDisabled
+            : active
+              ? tokens.colors.text
+              : tokens.colors.textMuted
+          const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
+          return (
+            <View
+              style={{
+                opacity: disabled ? 0.5 : 1,
+                minHeight: itemHeight,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              {typeof content === 'string' || typeof content === 'number' ? (
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    styles.optionText,
+                    {
+                      color: textColor,
+                      fontSize: tokens.typography.optionSize,
+                      fontFamily: tokens.typography.fontFamily,
+                      fontWeight: tokens.typography.optionWeight,
+                    },
+                  ]}
+                >
+                  {content}
+                </Text>
+              ) : (
+                content
+              )}
+            </View>
+          )
+        }}
       />
     </View>
   )
