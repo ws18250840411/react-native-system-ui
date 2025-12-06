@@ -45,7 +45,7 @@ const WheelPicker = <T,>({
   scrollEventThrottle = 16,
 }: WheelPickerProps<T>) => {
   const flatListRef = React.useRef<FlatList<T | null>>(null)
-  const [scrollY] = React.useState(new Animated.Value(0))
+  const scrollY = React.useRef(new Animated.Value(0)).current
   const useNativeDriver = Platform.OS !== 'web'
 
   if (!data.length) {
@@ -186,6 +186,8 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
     onSelect,
     tokens,
     readOnly,
+    decelerationRate,
+    scrollEventThrottle,
   } = props
   const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
@@ -215,7 +217,8 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
         onChange={handleChange}
         readOnly={readOnly}
         indicatorColor={tokens.colors.indicator}
-        decelerationRate="fast"
+        decelerationRate={decelerationRate}
+        scrollEventThrottle={scrollEventThrottle}
         renderItem={item => {
           if (!item) return null
           const active = item.value === value
@@ -276,6 +279,8 @@ const Picker: React.FC<PickerProps> = props => {
     visibleItemCount: visibleItemCountProp = tokens.defaults.visibleItemCount,
     loading = false,
     readOnly = false,
+    decelerationRate = 'fast',
+    scrollEventThrottle = 16,
     optionRender,
     onChange,
     onConfirm,

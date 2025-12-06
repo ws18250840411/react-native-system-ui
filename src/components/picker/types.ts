@@ -33,6 +33,10 @@ export interface PickerProps extends ViewProps {
   visibleItemCount?: number
   loading?: boolean
   readOnly?: boolean
+  /** 滚动减速，默认 fast（与 React Vant 接近） */
+  decelerationRate?: 'normal' | 'fast' | number
+  /** 滚动事件节流，默认 16ms */
+  scrollEventThrottle?: number
   optionRender?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => React.ReactNode
   onChange?: (value: PickerValue[], options: (PickerOption | undefined)[]) => void
   onConfirm?: (value: PickerValue[], options: (PickerOption | undefined)[]) => void
