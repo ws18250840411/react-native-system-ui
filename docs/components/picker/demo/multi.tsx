@@ -1,5 +1,5 @@
 import React from 'react'
-import { Picker } from 'react-native-system-ui'
+import { Picker, Toast, type PickerOption, type PickerValue } from 'react-native-system-ui'
 import { View, Text } from 'react-native'
 
 const columns = [
@@ -18,8 +18,20 @@ const columns = [
   },
 ]
 
+const brandColor = '#1989fa'
+
 export default function PickerMultiDemo() {
   const [value, setValue] = React.useState(['am', 'sh'])
+
+  const optionRender = React.useCallback((option: PickerOption, { active }: { columnIndex: number; active: boolean }) => {
+    const color = active ? brandColor : '#323233'
+    const fontWeight = active ? '600' : '400'
+    return <Text style={{ color, fontWeight }}>{option.label}</Text>
+  }, [])
+
+  const handleConfirm = React.useCallback((vals: PickerValue[], opts: (PickerOption | undefined)[]) => {
+    Toast.show({ message: `已选：${opts.map(o => o?.label ?? o?.value).join(' / ')}` })
+  }, [])
 
   return (
     <View style={{ gap: 8, padding: 12, backgroundColor: '#f7f8fa' }}>
@@ -28,6 +40,9 @@ export default function PickerMultiDemo() {
         columns={columns}
         value={value}
         onChange={setValue}
+        onConfirm={handleConfirm}
+        optionRender={optionRender}
+        debug
         confirmButtonText="确定"
         cancelButtonText="取消"
         readOnly={false}

@@ -1,0 +1,47 @@
+import type { PickerOption } from './types'
+
+const MOMENTUM_LIMIT_TIME = 300
+const MOMENTUM_LIMIT_DISTANCE = 15
+
+export const clamp = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val))
+
+export const adjustIndex = (index: number, options: PickerOption[]) => {
+  const total = options.length
+  if (!total) return 0
+  let i = clamp(index, 0, total - 1)
+  for (let up = i; up < total; up += 1) {
+    if (!options[up]?.disabled) return up
+  }
+  for (let down = i - 1; down >= 0; down -= 1) {
+    if (!options[down]?.disabled) return down
+  }
+  return i
+}
+
+export const indexToOffset = (index: number, itemHeight: number) => -index * itemHeight
+
+export const offsetToIndex = (offset: number, itemHeight: number, total: number, options: PickerOption[]) => {
+  const minOffset = -Math.max(0, total - 1) * itemHeight
+  const off = clamp(offset, minOffset, 0)
+  let index = Math.round(-off / itemHeight)
+  index = adjustIndex(index, options)
+  const snapOffset = indexToOffset(index, itemHeight)
+  return { index, snapOffset }
+}
+
+export const shouldMomentum = (distance: number, duration: number) =>
+  duration < MOMENTUM_LIMIT_TIME && Math.abs(distance) > MOMENTUM_LIMIT_DISTANCE
+
+export const momentumTarget = (
+  distance: number,
+  duration: number,
+  currentOffset: number,
+  itemHeight: number,
+  minOffset: number,
+) => {
+  const speed = Math.abs(distance / duration)
+  const extra = (speed / 0.003) * (distance < 0 ? -1 : 1)
+  const target = clamp(currentOffset + extra, minOffset, 0)
+  const snapIndex = Math.round(-target / itemHeight)
+  return indexToOffset(snapIndex, itemHeight)
+}

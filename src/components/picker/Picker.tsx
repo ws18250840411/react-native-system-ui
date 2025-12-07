@@ -1,5 +1,14 @@
 import React from 'react'
-import { StyleSheet, Text, View, Animated, FlatList, Pressable, Platform } from 'react-native'
+import {
+  Animated,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Platform,
+  type PanResponderGestureState,
+} from 'react-native'
 
 import Loading from '../loading'
 import { usePickerTokens } from './tokens'
@@ -7,10 +16,12 @@ import type { PickerColumnProps, PickerOption, PickerProps, PickerValue } from '
 import {
   findEnabledIndex,
   normalizePicker,
+  prepareColumns,
   shallowEqualArray,
   toArrayValue,
-  type NormalizedPickerResult,
+  type PreparedPickerColumns,
 } from './utils'
+import { adjustIndex, clamp, indexToOffset, offsetToIndex, shouldMomentum, momentumTarget } from './core'
 
 const getVisibleCount = (count: number) => {
   const normalized = Number.isFinite(count) ? Math.max(3, Math.floor(count)) : 5
@@ -30,9 +41,38 @@ type WheelPickerProps<T> = {
   indicatorColor: string
   decelerationRate?: 'normal' | 'fast' | number
   scrollEventThrottle?: number
+  disableRemoveClippedSubviewsOnWeb?: boolean
+  debug?: boolean
 }
 
-const WheelPicker = <T,>({
+const GradientMask: React.FC<{
+  height: number
+  color: string
+  position: 'top' | 'bottom'
+}> = ({ height, color, position }) => {
+  const steps = [0.9, 0.6, 0.3, 0]
+  const isWeb = Platform.OS === 'web'
+  const baseStyle = [
+    styles.gradientMask,
+    { height },
+    position === 'top' ? { top: 0 } : { bottom: 0 },
+  ]
+
+  if (isWeb) {
+    const angle = position === 'top' ? '180deg' : '0deg'
+    return <View pointerEvents="none" style={[...baseStyle, { backgroundImage: `linear-gradient(${angle}, ${color}, transparent)` }]} />
+  }
+
+  return (
+    <View pointerEvents="none" style={baseStyle}>
+      {steps.map((opacity, idx) => (
+        <View key={idx} style={{ flex: 1, backgroundColor: color, opacity }} />
+      ))}
+    </View>
+  )
+}
+
+const WheelPicker = React.memo(<T,>({
   data,
   selectedIndex,
   onChange,
@@ -43,15 +83,122 @@ const WheelPicker = <T,>({
   indicatorColor,
   decelerationRate = 'fast',
   scrollEventThrottle = 16,
+  disableRemoveClippedSubviewsOnWeb = false,
+  debug = false,
 }: WheelPickerProps<T>) => {
-  const flatListRef = React.useRef<FlatList<T | null>>(null)
-  const scrollY = React.useRef(new Animated.Value(0)).current
+  const offset = React.useRef(new Animated.Value(0)).current
   const useNativeDriver = Platform.OS !== 'web'
+  const startOffsetRef = React.useRef(0)
+  const startTimeRef = React.useRef(0)
+  const wheelLock = React.useRef(false)
+
+  const total = data.length
+  const minOffset = -Math.max(0, total - 1) * itemHeight
+  const animatedIndex = React.useMemo(
+    () => Animated.divide(Animated.multiply(offset, -1), itemHeight),
+    [offset, itemHeight],
+  )
+
+  const computeIndex = React.useCallback(
+    (rawOffset: number) => offsetToIndex(rawOffset, itemHeight, total, data as any),
+    [data, itemHeight, total],
+  )
+
+  const getOffsetValue = React.useCallback(() => {
+    const val = (offset as any).__getValue?.()
+    return typeof val === 'number' ? val : 0
+  }, [offset])
+
+  const snapToIndex = React.useCallback(
+    (index: number, animated: boolean, emitChange = true) => {
+      const nextIndex = adjustIndex(clamp(index, 0, total - 1), data as any)
+      const toValue = indexToOffset(nextIndex, itemHeight)
+      if (animated) {
+        Animated.spring(offset, {
+          toValue,
+          speed: 28,
+          bounciness: 0,
+          useNativeDriver,
+        }).start(({ finished }) => {
+          if (!finished || !emitChange) return
+          const { index: realIndex } = computeIndex(toValue)
+          if (realIndex !== selectedIndex) onChange(realIndex)
+        })
+      } else {
+        offset.setValue(toValue)
+        if (emitChange) {
+          const { index: realIndex } = computeIndex(toValue)
+          if (realIndex !== selectedIndex) onChange(realIndex)
+        }
+      }
+    },
+    [computeIndex, data, itemHeight, offset, onChange, selectedIndex, total, useNativeDriver],
+  )
+
+  React.useEffect(() => {
+    if (!Number.isFinite(selectedIndex)) return
+    snapToIndex(selectedIndex, false, false)
+  }, [selectedIndex, snapToIndex])
+
+  const panResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => !readOnly,
+        onMoveShouldSetPanResponder: () => !readOnly,
+        onPanResponderGrant: () => {
+          offset.stopAnimation(value => {
+            const v = typeof value === 'number' ? value : getOffsetValue()
+            startOffsetRef.current = v
+            startTimeRef.current = Date.now()
+            wheelLock.current = true
+          })
+        },
+        onPanResponderMove: (_, gesture) => {
+          if (readOnly) return
+          const next = clamp(startOffsetRef.current + gesture.dy, minOffset, 0)
+          offset.setValue(next)
+        },
+        onPanResponderRelease: (_, gesture: PanResponderGestureState) => {
+          if (readOnly) return
+          const duration = Date.now() - startTimeRef.current
+          const distance = gesture.dy
+          let targetOffset = clamp(startOffsetRef.current + distance, minOffset, 0)
+          if (shouldMomentum(distance, duration)) {
+            targetOffset = momentumTarget(distance, duration, startOffsetRef.current, itemHeight, minOffset)
+          }
+          const { index } = computeIndex(targetOffset)
+          if (index !== selectedIndex) onChange(index)
+          snapToIndex(index, true, false)
+          wheelLock.current = false
+        },
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderTerminate: () => snapToIndex(selectedIndex, true),
+      }),
+    [computeIndex, debug, getOffsetValue, itemHeight, minOffset, offset, readOnly, selectedIndex, snapToIndex],
+  )
+
+  const handleWheel = React.useCallback(
+    (event: any) => {
+      if (Platform.OS !== 'web' || readOnly || wheelLock.current) return
+      const delta = event?.nativeEvent?.deltaY ?? 0
+      if (!delta) return
+      const direction = delta > 0 ? 1 : -1
+      const { index } = computeIndex(getOffsetValue())
+      const nextIndex = index + direction
+      if (nextIndex !== selectedIndex) onChange(nextIndex)
+      snapToIndex(nextIndex, true, false)
+    },
+    [computeIndex, getOffsetValue, readOnly, snapToIndex],
+  )
 
   if (!data.length) {
-    // 空数据时渲染占位，避免 FlatList initialScrollIndex 报错
     return (
-      <View style={[styles.column, { height: itemHeight * (visibleRest * 2 + 1) }]}>
+      <View
+        style={[styles.column, { height: itemHeight * (visibleRest * 2 + 1) }]}
+        {...panResponder.panHandlers}
+        // @ts-expect-error web only
+        onWheel={handleWheel}
+      >
         <View
           style={[
             styles.indicator,
@@ -63,84 +210,13 @@ const WheelPicker = <T,>({
     )
   }
 
-  const paddedData = React.useMemo(() => {
-    const arr: (T | null)[] = [...data]
-    for (let i = 0; i < visibleRest; i += 1) {
-      arr.unshift(null)
-      arr.push(null)
-    }
-    return arr
-  }, [data, visibleRest])
-
-  const offsets = React.useMemo(
-    () => paddedData.map((_, i) => i * itemHeight),
-    [paddedData, itemHeight]
-  )
-
-  const interpRange = React.useMemo(() => {
-    const r = [0]
-    for (let i = 1; i <= visibleRest + 1; i += 1) {
-      r.unshift(-i)
-      r.push(i)
-    }
-    return r
-  }, [visibleRest])
-
-  const currentScrollIndex = React.useMemo(
-    () => Animated.add(Animated.divide(scrollY, itemHeight), visibleRest),
-    [scrollY, itemHeight, visibleRest]
-  )
-
-  const handleMomentumScrollEnd = (e: any) => {
-    const max = itemHeight * Math.max(data.length - 1, 0)
-    const offsetY = Math.min(max, Math.max(e?.nativeEvent?.contentOffset?.y ?? 0, 0))
-    let index = Math.floor(offsetY / itemHeight)
-    if (offsetY % itemHeight > itemHeight / 2) index += 1
-    index = Math.max(0, Math.min(index, data.length - 1))
-    if (index !== selectedIndex) onChange(index)
-  }
-
-  React.useEffect(() => {
-    flatListRef.current?.scrollToIndex({
-      index: Math.max(0, Math.min(selectedIndex, data.length ? data.length - 1 : 0)),
-      animated: false,
-    })
-  }, [data.length, selectedIndex])
-
-  const renderWheelItem = React.useCallback(
-    ({ item, index }: { item: T | null; index: number }) => {
-      const relative = Animated.subtract(index, currentScrollIndex)
-      const opacity = relative.interpolate({
-        inputRange: interpRange,
-        outputRange: interpRange.map(x => Math.pow(1 / 3, Math.abs(x))),
-      })
-      const scale = relative.interpolate({
-        inputRange: interpRange,
-        outputRange: interpRange.map(x => (x === 0 ? 1 : 1 - 0.08 * Math.abs(x))),
-      })
-
-      return (
-        <Animated.View
-          style={[
-            styles.option,
-            {
-              height: itemHeight,
-              opacity,
-              transform: [{ scale }],
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          ]}
-        >
-          {renderItem(item, index - visibleRest)}
-        </Animated.View>
-      )
-    },
-    [currentScrollIndex, interpRange, itemHeight, renderItem, visibleRest]
-  )
-
   return (
-    <View style={[styles.column, { height: itemHeight * (visibleRest * 2 + 1) }]}>
+    <View
+      style={[styles.column, { height: itemHeight * (visibleRest * 2 + 1) }]}
+      {...panResponder.panHandlers}
+      // @ts-expect-error web only
+      onWheel={handleWheel}
+    >
       <View
         style={[
           styles.indicator,
@@ -148,121 +224,154 @@ const WheelPicker = <T,>({
         ]}
         pointerEvents="none"
       />
-      <Animated.FlatList
-        ref={flatListRef}
-        data={paddedData}
-        keyExtractor={(item, i) => `wheel-${(item as any)?.value ?? i}`}
-        renderItem={renderWheelItem}
-        showsVerticalScrollIndicator={false}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-          useNativeDriver,
-        })}
-        scrollEventThrottle={scrollEventThrottle}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        snapToOffsets={offsets}
-        decelerationRate={decelerationRate}
-        initialScrollIndex={Math.max(0, Math.min(selectedIndex, paddedData.length - 1))}
-        getItemLayout={(_, index) => ({
-          length: itemHeight,
-          offset: itemHeight * index,
-          index,
-        })}
-        scrollEnabled={!readOnly}
-        nestedScrollEnabled
-        removeClippedSubviews
-      />
-    </View>
-  )
-}
-
-const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof usePickerTokens> }> = props => {
-  const {
-    columnIndex,
-    options,
-    value,
-    itemHeight,
-    visibleItemCount,
-    optionRender,
-    onSelect,
-    tokens,
-    readOnly,
-    decelerationRate,
-    scrollEventThrottle,
-  } = props
-  const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
-
-  const selectedIndex = React.useMemo(() => {
-    if (!options.length) return 0
-    const idx = options.findIndex(option => option.value === value)
-    return findEnabledIndex(options, idx >= 0 ? idx : 0)
-  }, [options, value])
-
-  const handleChange = React.useCallback(
-    (index: number) => {
-      const target = findEnabledIndex(options, index)
-      const option = options[target]
-      if (!option || option.disabled) return
-      onSelect(option, columnIndex, target)
-    },
-    [columnIndex, onSelect, options],
-  )
-
-  return (
-    <View style={[styles.column, { height: itemHeight * visibleItemCount }]}>
-      <WheelPicker
-        data={options}
-        itemHeight={itemHeight}
-        visibleRest={restVisible}
-        selectedIndex={Math.max(0, selectedIndex)}
-        onChange={handleChange}
-        readOnly={readOnly}
-        indicatorColor={tokens.colors.indicator}
-        decelerationRate={decelerationRate}
-        scrollEventThrottle={scrollEventThrottle}
-        renderItem={item => {
-          if (!item) return null
-          const active = item.value === value
-          const disabled = !!item.disabled
-          const textColor = disabled
-            ? tokens.colors.textDisabled
-            : active
-              ? tokens.colors.text
-              : tokens.colors.textMuted
-          const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
-          return (
-            <View
-              style={{
-                opacity: disabled ? 0.5 : 1,
-                minHeight: itemHeight,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              {typeof content === 'string' || typeof content === 'number' ? (
-                <Text
-                  numberOfLines={1}
-                  style={[
-                    styles.optionText,
-                    {
-                      color: textColor,
-                      fontSize: tokens.typography.optionSize,
-                      fontFamily: tokens.typography.fontFamily,
-                      fontWeight: tokens.typography.optionWeight,
-                    },
-                  ]}
-                >
-                  {content}
-                </Text>
-              ) : (
-                content
-              )}
-            </View>
-          )
+      <Animated.View
+        style={{
+          transform: [{ translateY: offset }],
         }}
-      />
+        pointerEvents="none"
+      >
+        <View style={{ height: visibleRest * itemHeight }} />
+        {data.map((item, index) => {
+          const diff = Animated.subtract(index, animatedIndex)
+          const opacity = diff.interpolate({
+            inputRange: [-3, -2, -1, 0, 1, 2, 3],
+            outputRange: [0.2, 0.4, 0.65, 1, 0.65, 0.4, 0.2],
+            extrapolate: 'clamp',
+          })
+          const scale = diff.interpolate({
+            inputRange: [-3, -2, -1, 0, 1, 2, 3],
+            outputRange: [0.85, 0.9, 0.96, 1.08, 0.96, 0.9, 0.85],
+            extrapolate: 'clamp',
+          })
+          return (
+            <Animated.View
+              key={(item as any)?.value ?? index}
+              style={[styles.option, { height: itemHeight, opacity, transform: [{ scale }] }]}
+            >
+              {renderItem(item, index)}
+            </Animated.View>
+          )
+        })}
+        <View style={{ height: visibleRest * itemHeight }} />
+      </Animated.View>
     </View>
   )
-}
+})
+
+const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof usePickerTokens> }> = React.memo(
+  props => {
+    const {
+      columnIndex,
+      options,
+      value,
+      itemHeight,
+      visibleItemCount,
+      optionRender,
+      getOptionTestID,
+      getOptionA11yLabel,
+      onSelect,
+      tokens,
+      readOnly,
+      decelerationRate,
+      scrollEventThrottle,
+      disableRemoveClippedSubviewsOnWeb,
+      debug,
+    } = props
+    const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
+
+    const selectedIndex = React.useMemo(() => {
+      if (!options.length) return 0
+      const idx = options.findIndex(option => option.value === value)
+      return findEnabledIndex(options, idx >= 0 ? idx : 0)
+    }, [options, value])
+
+    const handleChange = React.useCallback(
+      (index: number) => {
+        const target = findEnabledIndex(options, index)
+        const option = options[target]
+        if (!option || option.disabled) return
+        onSelect(option, columnIndex, target)
+      },
+      [columnIndex, onSelect, options],
+    )
+
+    return (
+      <View style={[styles.column, { height: itemHeight * visibleItemCount }]}>
+        <WheelPicker
+          data={options}
+          itemHeight={itemHeight}
+          visibleRest={restVisible}
+          selectedIndex={Math.max(0, selectedIndex)}
+          onChange={handleChange}
+          readOnly={readOnly}
+          indicatorColor={tokens.colors.indicator}
+          decelerationRate={decelerationRate}
+          scrollEventThrottle={scrollEventThrottle}
+          disableRemoveClippedSubviewsOnWeb={disableRemoveClippedSubviewsOnWeb}
+          debug={debug}
+          renderItem={item => {
+            if (!item) return null
+            const active = item.value === value
+            const disabled = !!item.disabled
+            const textColor = disabled
+              ? tokens.colors.textDisabled
+              : active
+                ? tokens.colors.text
+                : tokens.colors.textMuted
+            const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
+            const testID = getOptionTestID?.(item, { columnIndex, active })
+            const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
+            return (
+              <View
+                style={{
+                  opacity: disabled ? 0.5 : 1,
+                  minHeight: itemHeight,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                testID={testID}
+                accessible={!!a11yLabel}
+                accessibilityLabel={a11yLabel}
+              >
+                {typeof content === 'string' || typeof content === 'number' ? (
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.optionText,
+                      {
+                        color: textColor,
+                        fontSize: tokens.typography.optionSize,
+                        fontFamily: tokens.typography.fontFamily,
+                        fontWeight: tokens.typography.optionWeight,
+                      },
+                    ]}
+                  >
+                    {content}
+                  </Text>
+                ) : (
+                  content
+                )}
+              </View>
+            )
+          }}
+        />
+      </View>
+    )
+  },
+  (prev, next) =>
+    prev.value === next.value &&
+    prev.itemHeight === next.itemHeight &&
+    prev.visibleItemCount === next.visibleItemCount &&
+    prev.readOnly === next.readOnly &&
+    prev.decelerationRate === next.decelerationRate &&
+    prev.scrollEventThrottle === next.scrollEventThrottle &&
+    prev.options === next.options &&
+    prev.tokens === next.tokens &&
+    prev.optionRender === next.optionRender &&
+    prev.getOptionTestID === next.getOptionTestID &&
+    prev.getOptionA11yLabel === next.getOptionA11yLabel &&
+    prev.debug === next.debug,
+)
 
 const Picker: React.FC<PickerProps> = props => {
   const tokens = usePickerTokens()
@@ -282,6 +391,12 @@ const Picker: React.FC<PickerProps> = props => {
     decelerationRate = 'fast',
     scrollEventThrottle = 16,
     optionRender,
+    getOptionTestID,
+    getOptionA11yLabel,
+    emitConfirmOnAutoSelect = true,
+    disableRemoveClippedSubviewsOnWeb = false,
+    maskColor,
+    debug = false,
     onChange,
     onConfirm,
     onCancel,
@@ -306,21 +421,29 @@ const Picker: React.FC<PickerProps> = props => {
     }
   }, [isControlled, valueProp])
 
-  const normalized: NormalizedPickerResult = React.useMemo(() => {
-    return normalizePicker(columns, innerValue)
-  }, [columns, innerValue])
+  const preparedColumns: PreparedPickerColumns = React.useMemo(() => prepareColumns(columns), [columns])
+
+  const normalized = React.useMemo(() => normalizePicker(preparedColumns, innerValue), [preparedColumns, innerValue])
 
   React.useEffect(() => {
     if (!isControlled && !shallowEqualArray(innerValue, normalized.values)) {
       setInnerValue(normalized.values)
+      onChange?.(normalized.values, normalized.options)
+      if (emitConfirmOnAutoSelect) {
+        onConfirm?.(normalized.values, normalized.options)
+      }
     }
-  }, [innerValue, isControlled, normalized.values])
+  }, [emitConfirmOnAutoSelect, innerValue, isControlled, normalized.options, normalized.values, onChange, onConfirm])
 
   const handleSelect = React.useCallback(
     (option: PickerOption, columnIndex: number) => {
-      const base = [...normalized.values]
+      const base = [...innerValue]
       base[columnIndex] = option.value
-      const next = normalizePicker(columns, base)
+      // 后续列需重算
+      base.length = columnIndex + 1
+
+      const next = normalizePicker(preparedColumns, base)
+
       if (!isControlled) {
         setInnerValue(next.values)
       }
@@ -328,7 +451,7 @@ const Picker: React.FC<PickerProps> = props => {
         onChange?.(next.values, next.options)
       }
     },
-    [columns, isControlled, normalized.values, onChange],
+    [innerValue, preparedColumns, isControlled, normalized.values, onChange],
   )
 
   const handleConfirm = React.useCallback(() => {
@@ -406,51 +529,50 @@ const Picker: React.FC<PickerProps> = props => {
 
   const wrapperHeight = itemHeight * visibleItemCount
   const maskHeight = (wrapperHeight - itemHeight) / 2
+  const hasColumns = normalized.columns.length > 0
 
   return (
     <View {...rest} style={[styles.container, { backgroundColor: tokens.colors.background }, style]} testID={testID}>
       {toolbarPosition === 'top' ? renderToolbar() : null}
       <View style={[styles.body, { height: wrapperHeight }]}>
         <View style={styles.columns} pointerEvents={loading ? 'none' : 'auto'}>
-          {normalized.columns.map((column, columnIndex) => (
-            <PickerColumn
-              key={columnIndex}
-              columnIndex={columnIndex}
-              options={column}
-              value={normalized.values[columnIndex]}
-          itemHeight={itemHeight}
-          visibleItemCount={visibleItemCount}
-          optionRender={optionRender}
-          readOnly={readOnly}
-          onSelect={handleSelect}
-          tokens={tokens}
-        />
-      ))}
-          <View
-            pointerEvents="none"
-            style={[
-              styles.indicator,
-              {
-                top: maskHeight,
-                height: itemHeight,
-                borderColor: tokens.colors.indicator,
-              },
-            ]}
-          />
-          <View
-            pointerEvents="none"
-            style={[
-              styles.mask,
-              { height: maskHeight, backgroundColor: tokens.colors.mask },
-            ]}
-          />
-          <View
-            pointerEvents="none"
-            style={[
-              styles.mask,
-              { height: maskHeight, bottom: 0, backgroundColor: tokens.colors.mask },
-            ]}
-          />
+          {hasColumns
+            ? normalized.columns.map((column, columnIndex) => (
+                <PickerColumn
+                  key={columnIndex}
+                  columnIndex={columnIndex}
+                  options={column}
+                  value={normalized.values[columnIndex]}
+                  itemHeight={itemHeight}
+                  visibleItemCount={visibleItemCount}
+                  optionRender={optionRender}
+                  getOptionTestID={getOptionTestID}
+                  getOptionA11yLabel={getOptionA11yLabel}
+                  disableRemoveClippedSubviewsOnWeb={disableRemoveClippedSubviewsOnWeb}
+                  debug={debug}
+                  readOnly={readOnly}
+                  onSelect={handleSelect}
+                  tokens={tokens}
+                />
+              ))
+            : null}
+          {hasColumns ? (
+            <>
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.indicator,
+                  {
+                    top: maskHeight,
+                    height: itemHeight,
+                    borderColor: tokens.colors.indicator,
+                  },
+                ]}
+              />
+              <GradientMask position="top" height={maskHeight} color={maskColor ?? tokens.colors.mask} />
+              <GradientMask position="bottom" height={maskHeight} color={maskColor ?? tokens.colors.mask} />
+            </>
+          ) : null}
         </View>
         {loading ? (
           <View style={styles.loading}>
@@ -494,10 +616,11 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  mask: {
+  gradientMask: {
     position: 'absolute',
     left: 0,
     right: 0,
+    zIndex: 3,
   },
   toolbar: {
     flexDirection: 'row',

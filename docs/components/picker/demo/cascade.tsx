@@ -1,5 +1,5 @@
 import React from 'react'
-import { Picker, type PickerValue } from 'react-native-system-ui'
+import { Picker, Toast, type PickerOption, type PickerValue } from 'react-native-system-ui'
 import { View, Text } from 'react-native'
 
 const columns = [
@@ -51,6 +51,17 @@ const columns = [
 
 export default function PickerCascadeDemo() {
   const [value, setValue] = React.useState<PickerValue[]>(['zhejiang', 'hangzhou', 'xihu'])
+  const brandColor = '#1989fa'
+
+  const optionRender = React.useCallback((option: PickerOption, { active }: { columnIndex: number; active: boolean }) => {
+    const color = active ? brandColor : '#323233'
+    const fontWeight = active ? '600' : '400'
+    return <Text style={{ color, fontWeight }}>{option.label}</Text>
+  }, [])
+
+  const handleConfirm = React.useCallback((vals: PickerValue[], opts: (PickerOption | undefined)[]) => {
+    Toast.show({ message: `已选：${opts.map(o => o?.label ?? o?.value).join(' / ')}` })
+  }, [])
 
   return (
     <View style={{ gap: 8, padding: 12, backgroundColor: '#f7f8fa' }}>
@@ -59,6 +70,9 @@ export default function PickerCascadeDemo() {
         columns={columns}
         value={value}
         onChange={setValue}
+        onConfirm={handleConfirm}
+        optionRender={optionRender}
+        debug
         confirmButtonText="确定"
         cancelButtonText="取消"
         readOnly={false}

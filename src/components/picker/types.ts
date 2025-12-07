@@ -33,11 +33,15 @@ export interface PickerProps extends ViewProps {
   visibleItemCount?: number
   loading?: boolean
   readOnly?: boolean
-  /** 滚动减速，默认 fast（与 React Vant 接近） */
   decelerationRate?: 'normal' | 'fast' | number
-  /** 滚动事件节流，默认 16ms */
   scrollEventThrottle?: number
+  disableRemoveClippedSubviewsOnWeb?: boolean
+  maskColor?: string
+  emitConfirmOnAutoSelect?: boolean
   optionRender?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => React.ReactNode
+  getOptionTestID?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => string | undefined
+  getOptionA11yLabel?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => string | undefined
+  debug?: boolean
   onChange?: (value: PickerValue[], options: (PickerOption | undefined)[]) => void
   onConfirm?: (value: PickerValue[], options: (PickerOption | undefined)[]) => void
   onCancel?: () => void
@@ -50,6 +54,12 @@ export interface PickerColumnProps {
   itemHeight: number
   visibleItemCount: number
   optionRender?: PickerProps['optionRender']
+  getOptionTestID?: PickerProps['getOptionTestID']
+  getOptionA11yLabel?: PickerProps['getOptionA11yLabel']
   readOnly?: boolean
+  decelerationRate?: PickerProps['decelerationRate']
+  scrollEventThrottle?: PickerProps['scrollEventThrottle']
+  disableRemoveClippedSubviewsOnWeb?: boolean
+  debug?: boolean
   onSelect: (option: PickerOption, columnIndex: number, optionIndex: number) => void
 }

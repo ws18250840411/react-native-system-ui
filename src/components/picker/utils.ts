@@ -8,6 +8,13 @@ export interface NormalizedPickerResult {
   isCascade: boolean
 }
 
+export interface PreparedPickerColumns {
+  type: 'single' | 'multiple' | 'cascade'
+  columnsList: PickerOption[][]
+  defaults: (PickerValue | undefined)[]
+  cascadeRoot?: PickerOption[]
+}
+
 export const toArrayValue = (value?: PickerValue[] | PickerValue | null): PickerValue[] => {
   if (Array.isArray(value)) return value.filter(v => v !== undefined && v !== null) as PickerValue[]
   if (value === undefined || value === null) return []
@@ -20,6 +27,19 @@ const isColumnWithOptions = (col: PickerColumn | PickerOption): col is { options
 const hasChildren = (option: PickerOption) =>
   !!option && Array.isArray(option.children) && (option.children as PickerOption[]).length > 0
 
+export const findEnabledIndex = (options: PickerOption[], startIndex: number) => {
+  if (!options.length) return -1
+  const clamp = Math.min(Math.max(startIndex, 0), options.length - 1)
+  if (!options[clamp]?.disabled) return clamp
+  for (let i = clamp + 1; i < options.length; i += 1) {
+    if (!options[i]?.disabled) return i
+  }
+  for (let i = clamp - 1; i >= 0; i -= 1) {
+    if (!options[i]?.disabled) return i
+  }
+  return -1
+}
+
 const normalizeMultiple = (
   columnsList: PickerOption[][],
   defaults: (PickerValue | undefined)[],
@@ -31,16 +51,12 @@ const normalizeMultiple = (
 
   columnsList.forEach((opts, index) => {
     const current = rawValue[index]
-    let targetIndex = opts.findIndex(item => item.value === current)
-    if (targetIndex < 0 && defaults[index] !== undefined) {
-      targetIndex = opts.findIndex(item => item.value === defaults[index])
-    }
-    if (targetIndex < 0 && opts.length > 0) {
-      targetIndex = 0
-    }
-
+    const defaultIndex = defaults[index] !== undefined ? opts.findIndex(item => item.value === defaults[index]) : -1
+    const currentIndex = opts.findIndex(item => item.value === current)
+    const startIndex = currentIndex >= 0 ? currentIndex : defaultIndex >= 0 ? defaultIndex : 0
+    const targetIndex = findEnabledIndex(opts, startIndex)
     const target = targetIndex >= 0 ? opts[targetIndex] : undefined
-    values[index] = (target?.value ?? current) as PickerValue
+    values[index] = (target?.value ?? current ?? defaults[index] ?? opts[0]?.value) as PickerValue
     options[index] = target
     indexes[index] = targetIndex
   })
@@ -65,8 +81,8 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
   while (currentOptions && currentOptions.length) {
     columns.push(currentOptions)
     const current = rawValue[depth]
-    let targetIndex = currentOptions.findIndex(item => item.value === current)
-    if (targetIndex < 0) targetIndex = 0
+    const startIndex = currentOptions.findIndex(item => item.value === current)
+    const targetIndex = findEnabledIndex(currentOptions, startIndex >= 0 ? startIndex : 0)
     const target = targetIndex >= 0 ? currentOptions[targetIndex] : undefined
     values[depth] = (target?.value ?? current) as PickerValue
     options[depth] = target
@@ -89,27 +105,27 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
   }
 }
 
-export const normalizePicker = (
-  columnsInput: PickerColumns = [],
-  rawValueInput: PickerValue[] = [],
-): NormalizedPickerResult => {
-  const rawValue = Array.isArray(rawValueInput) ? rawValueInput : []
+export const prepareColumns = (columnsInput: PickerColumns = []): PreparedPickerColumns => {
   if (!Array.isArray(columnsInput) || columnsInput.length === 0) {
-    return { columns: [], values: rawValue, options: [], indexes: [], isCascade: false }
+    return { type: 'single', columnsList: [], defaults: [], cascadeRoot: [] }
   }
 
   const everyPlainOption = columnsInput.every(item => !Array.isArray(item) && !isColumnWithOptions(item as any))
   const cascade = everyPlainOption && columnsInput.some(item => hasChildren(item as PickerOption))
 
   if (cascade) {
-    return normalizeCascade(columnsInput as PickerOption[], rawValue)
+    return {
+      type: 'cascade',
+      columnsList: [],
+      defaults: [],
+      cascadeRoot: columnsInput as PickerOption[],
+    }
   }
 
   const asArray = columnsInput as any[]
   const columnsList: PickerOption[][] = []
   const defaults: (PickerValue | undefined)[] = []
 
-  // 单列扁平结构也视为多列的第一列
   const treatAsSingleColumn = everyPlainOption && !cascade
   if (treatAsSingleColumn) {
     columnsList.push(columnsInput as PickerOption[])
@@ -126,20 +142,36 @@ export const normalizePicker = (
     })
   }
 
-  return normalizeMultiple(columnsList, defaults, rawValue)
+  return {
+    type: 'multiple',
+    columnsList,
+    defaults,
+  }
 }
 
-export const findEnabledIndex = (options: PickerOption[], startIndex: number) => {
-  if (!options.length) return -1
-  const clamp = Math.min(Math.max(startIndex, 0), options.length - 1)
-  if (!options[clamp]?.disabled) return clamp
-  for (let i = clamp + 1; i < options.length; i += 1) {
-    if (!options[i]?.disabled) return i
+export const normalizePicker = (
+  prepared: PreparedPickerColumns,
+  rawValueInput: PickerValue[] = [],
+): NormalizedPickerResult => {
+  const rawValue = Array.isArray(rawValueInput) ? rawValueInput : []
+
+  if (prepared.type === 'cascade' && prepared.cascadeRoot?.length) {
+    return normalizeCascade(prepared.cascadeRoot, rawValue)
   }
-  for (let i = clamp - 1; i >= 0; i -= 1) {
-    if (!options[i]?.disabled) return i
+
+  return normalizeMultiple(prepared.columnsList, prepared.defaults, rawValue)
+}
+
+export const normalizeValuesOnly = (
+  prepared: PreparedPickerColumns,
+  rawValueInput: PickerValue[] = [],
+): Pick<NormalizedPickerResult, 'values' | 'options' | 'indexes'> => {
+  const result = normalizePicker(prepared, rawValueInput)
+  return {
+    values: result.values,
+    options: result.options,
+    indexes: result.indexes,
   }
-  return clamp
 }
 
 export const shallowEqualArray = (a: PickerValue[] = [], b: PickerValue[] = []) => {
