@@ -17,6 +17,8 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     children,
     name,
     value,
+    iconRender,
+    bindGroup = true,
     shape,
     iconSize,
     checkedColor,
@@ -34,6 +36,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   const resolvedShape = shape ?? group?.shape ?? tokens.defaults.shape
   const resolvedIconSize = iconSize ?? group?.iconSize ?? tokens.defaults.iconSize
   const resolvedCheckedColor = checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
+  const resolvedIconRender = iconRender ?? group?.iconRender
   const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
   const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? false
   const resolvedDisabled = disabled || group?.state.isDisabled
@@ -49,15 +52,15 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     onChange: props.onChange,
   })
 
-  const isGroup = Boolean(group) && serializedValue !== undefined
+  const isGroup = Boolean(group) && serializedValue !== undefined && bindGroup
 
   React.useEffect(() => {
-    if (group && serializedValue && rawValue !== undefined) {
-      group.registerValue(serializedValue, rawValue)
+    if (group && bindGroup && serializedValue && rawValue !== undefined) {
+      group.registerValue(serializedValue, rawValue, resolvedDisabled)
       return () => group.unregisterValue(serializedValue)
     }
     return undefined
-  }, [group, serializedValue, rawValue])
+  }, [bindGroup, group, serializedValue, rawValue, resolvedDisabled])
 
   const ariaLabel = typeof children === 'string' ? children : (props as any)['aria-label']
 
@@ -131,7 +134,10 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
       <Pressable
         key="label"
         disabled={resolvedDisabled || resolvedLabelDisabled}
-        onPress={inputProps?.onPress}
+        onPress={e => {
+          props.onClick?.(e)
+          inputProps?.onPress?.(e)
+        }}
         accessibilityRole="text"
         style={spacingStyle}
       >
@@ -158,24 +164,32 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
       key="checkbox"
       {...inputProps}
       ref={inputRef}
+      onPress={e => {
+        props.onClick?.(e)
+        inputProps?.onPress?.(e)
+      }}
       style={[styles.iconWrapper, resolvedLabelPosition === 'left' ? { marginLeft: tokens.spacing.gap } : { marginRight: tokens.spacing.gap }]}
     >
-      <View
-        style={[
-          styles.icon,
-          {
-            width: resolvedIconSize,
-            height: resolvedIconSize,
-            borderRadius,
-            borderColor,
-            backgroundColor,
-          },
-        ]}
-      >
-        {isChecked ? (
-          <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
-        ) : null}
-      </View>
+      {resolvedIconRender ? (
+        resolvedIconRender({ checked: isChecked, disabled: resolvedDisabled }) ?? null
+      ) : (
+        <View
+          style={[
+            styles.icon,
+            {
+              width: resolvedIconSize,
+              height: resolvedIconSize,
+              borderRadius,
+              borderColor,
+              backgroundColor,
+            },
+          ]}
+        >
+          {isChecked ? (
+            <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
+          ) : null}
+        </View>
+      )}
     </Pressable>
   )
 

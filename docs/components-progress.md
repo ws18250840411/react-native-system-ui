@@ -33,12 +33,12 @@
 | --- | --- | --- |
 | Calendar 日历 | ✅ | 单选/多选/范围支持 `allowSameDay`、`maxRange`、自定义周标题与月份文案；新增 `poppable` 弹层/Cell 入口 demo 与 Popup API 说明，修复跨区间禁选与确认按钮主题色 |
 | Cascader 级联选择 | ✅ | 参考 React Vant：新增 `poppable` + render props Cell 触发、Popup/受控显隐与 `actions`；示例、文档、数据源与 React Vant demo 完全对齐（基础/Form/异步/字段名/受控），默认开启 Tabs 滑动动画，可关闭 `swipeable`；最终值只在叶子/达最大层级时提交，避免重复回调 |
-| Checkbox 复选框 | ⏳ |  |
+| Checkbox 复选框 | ✅ | 对齐 React Vant：支持 `iconRender`/`bindGroup`、`toggleAll(skipDisabled)`、组向 iconSize/checkedColor 透传与最大可选数；标签点击禁用/左右布局已覆盖 |
 | DatetimePicker 时间选择 | ⏳ |  |
 | Form 表单 | ⏳ |  |
 | Input 输入框 | ⏳ |  |
 | NumberKeyboard 数字键盘 | ⏳ |  |
-| Picker 选择器 | ⏳ |  |
+| Picker 选择器 | ✅ | 级联判定/受控同步/首帧副作用处理完成，Web 滚轮体验优化并补 utils 单测；demo 对齐 React Vant |
 | Radio 单选框 | ⏳ |  |
 | Rate 评分 | ⏳ |  |
 | Search 搜索 | ⏳ |  |
@@ -77,7 +77,6 @@
 | Popover 气泡卡片 | ⏳ |  |
 | Progress 进度条 | ⏳ |  |
 | Skeleton 骨架屏 | ⏳ |  |
-| Sticky 粘性布局 | 🚫 | 2025-12-04 暂停交付：React Native 端无法稳定复现跨端粘性定位体验，组件下线 |
 | Tag 标签 | ⏳ |  |
 | WaterMark 水印 | ⏳ |  |
 

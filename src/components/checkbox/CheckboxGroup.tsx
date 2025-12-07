@@ -1,15 +1,22 @@
-import React from 'react'
+import React, { forwardRef, useImperativeHandle } from 'react'
 import { StyleSheet, View, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState } from '@react-stately/checkbox'
 
 import { useTheme } from '../../design-system'
-import type { CheckboxGroupProps, CheckboxValue } from './types'
+import type {
+  CheckboxGroupProps,
+  CheckboxGroupDirection,
+  CheckboxIconRender,
+  CheckboxValue,
+} from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 
 const serialize = (value: CheckboxValue) => String(value)
 
-export const CheckboxGroup: React.FC<CheckboxGroupProps> = props => {
+type RegistryItem = { value: CheckboxValue; disabled?: boolean }
+
+export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | { checked?: boolean; skipDisabled?: boolean }) => void }, CheckboxGroupProps>((props, ref) => {
   const {
     value,
     defaultValue,
@@ -19,6 +26,7 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = props => {
     shape,
     iconSize,
     checkedColor,
+    iconRender,
     labelDisabled,
     max,
     gap: gapProp,
@@ -33,11 +41,11 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = props => {
   const { foundations } = useTheme()
   const gap = gapProp ?? foundations.spacing.md
 
-  const registryRef = React.useRef(new Map<string, CheckboxValue>())
+  const registryRef = React.useRef(new Map<string, RegistryItem>())
 
   const mapKeysToValues = React.useCallback(
     (keys: readonly string[]) => {
-      return keys.map(key => registryRef.current.get(key) ?? key)
+      return keys.map(key => registryRef.current.get(key)?.value ?? key)
     },
     []
   )
@@ -62,8 +70,8 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = props => {
     state
   )
 
-  const registerValue = React.useCallback((key: string, raw: CheckboxValue) => {
-    registryRef.current.set(key, raw)
+  const registerValue = React.useCallback((key: string, raw: CheckboxValue, itemDisabled?: boolean) => {
+    registryRef.current.set(key, { value: raw, disabled: itemDisabled })
   }, [])
 
   const unregisterValue = React.useCallback((key: string) => {
@@ -81,6 +89,39 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = props => {
       : [styles.item, { marginBottom: gap }]
   }
 
+  const toggleAll = React.useCallback(
+    (options: boolean | { checked?: boolean; skipDisabled?: boolean } = {}) => {
+      const opts = typeof options === 'boolean' ? { checked: options } : options
+      const { checked: targetChecked, skipDisabled } = opts
+      const current = new Set(state.value ?? [])
+
+      const nextKeys: string[] = []
+      registryRef.current.forEach((meta, key) => {
+        const isDisabledItem = !!meta.disabled || disabled
+        if (skipDisabled && isDisabledItem) {
+          if (current.has(key)) nextKeys.push(key)
+          return
+        }
+
+        const shouldSelect =
+          targetChecked === true
+            ? true
+            : targetChecked === false
+              ? false
+              : !current.has(key)
+
+        if (shouldSelect) {
+          nextKeys.push(key)
+        }
+      })
+
+      state.setValue(nextKeys)
+    },
+    [disabled, state],
+  )
+
+  useImperativeHandle(ref, () => ({ toggleAll }), [toggleAll])
+
   return (
     <CheckboxGroupContext.Provider
       value={{
@@ -88,6 +129,7 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = props => {
         direction,
         shape,
         iconSize,
+        iconRender,
         checkedColor,
         labelDisabled,
         max,
@@ -111,7 +153,7 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = props => {
       </View>
     </CheckboxGroupContext.Provider>
   )
-}
+})
 
 const styles = StyleSheet.create({
   horizontal: {
