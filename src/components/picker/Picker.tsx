@@ -91,6 +91,7 @@ const WheelPicker = React.memo(<T,>({
   const startOffsetRef = React.useRef(0)
   const startTimeRef = React.useRef(0)
   const wheelLock = React.useRef(false)
+  const decayAnimRef = React.useRef<Animated.CompositeAnimation | null>(null)
 
   const total = data.length
   const minOffset = -Math.max(0, total - 1) * itemHeight
@@ -151,6 +152,7 @@ const WheelPicker = React.memo(<T,>({
             startOffsetRef.current = v
             startTimeRef.current = Date.now()
             wheelLock.current = true
+            decayAnimRef.current?.stop()
           })
         },
         onPanResponderMove: (_, gesture) => {
@@ -166,15 +168,38 @@ const WheelPicker = React.memo(<T,>({
           if (shouldMomentum(distance, duration)) {
             targetOffset = momentumTarget(distance, duration, startOffsetRef.current, itemHeight, minOffset)
           }
+          const current = getOffsetValue()
+          const velocity = gesture.vy
           const { index } = computeIndex(targetOffset)
           if (index !== selectedIndex) onChange(index)
-          snapToIndex(index, true, false)
+
+          // 避免在边界继续惯性导致闪烁
+          const atTop = current >= 0 && velocity > 0
+          const atBottom = current <= minOffset && velocity < 0
+          if (atTop || atBottom) {
+            snapToIndex(index, true, false)
+            wheelLock.current = false
+            return
+          }
+
+          decayAnimRef.current?.stop()
+          decayAnimRef.current = Animated.decay(offset, {
+            velocity,
+            deceleration: 0.99,
+            useNativeDriver,
+          })
+          decayAnimRef.current.start(({ finished }) => {
+            if (!finished) return
+            const { index: finalIndex } = computeIndex(getOffsetValue())
+            if (finalIndex !== selectedIndex) onChange(finalIndex)
+            snapToIndex(finalIndex, true, false)
+          })
           wheelLock.current = false
         },
         onPanResponderTerminationRequest: () => false,
         onPanResponderTerminate: () => snapToIndex(selectedIndex, true),
       }),
-    [computeIndex, debug, getOffsetValue, itemHeight, minOffset, offset, readOnly, selectedIndex, snapToIndex],
+    [computeIndex, debug, getOffsetValue, itemHeight, minOffset, offset, readOnly, selectedIndex, snapToIndex, useNativeDriver],
   )
 
   const handleWheel = React.useCallback(
@@ -235,18 +260,40 @@ const WheelPicker = React.memo(<T,>({
           const diff = Animated.subtract(index, animatedIndex)
           const opacity = diff.interpolate({
             inputRange: [-3, -2, -1, 0, 1, 2, 3],
-            outputRange: [0.2, 0.4, 0.65, 1, 0.65, 0.4, 0.2],
+            outputRange: [0.05, 0.15, 0.4, 1, 0.4, 0.15, 0.05],
             extrapolate: 'clamp',
           })
           const scale = diff.interpolate({
             inputRange: [-3, -2, -1, 0, 1, 2, 3],
-            outputRange: [0.85, 0.9, 0.96, 1.08, 0.96, 0.9, 0.85],
+            outputRange: [0.7, 0.82, 0.94, 1.08, 0.94, 0.82, 0.7],
+            extrapolate: 'clamp',
+          })
+          const rotateX = diff.interpolate({
+            inputRange: [-3, -2, -1, 0, 1, 2, 3],
+            outputRange: ['25deg', '18deg', '10deg', '0deg', '-10deg', '-18deg', '-25deg'],
+            extrapolate: 'clamp',
+          })
+          const translateY = diff.interpolate({
+            inputRange: [-3, -2, -1, 0, 1, 2, 3],
+            outputRange: [-itemHeight * 0.5, -itemHeight * 0.25, -itemHeight * 0.12, 0, itemHeight * 0.12, itemHeight * 0.25, itemHeight * 0.5],
             extrapolate: 'clamp',
           })
           return (
             <Animated.View
               key={(item as any)?.value ?? index}
-              style={[styles.option, { height: itemHeight, opacity, transform: [{ scale }] }]}
+              style={[
+                styles.option,
+                {
+                  height: itemHeight,
+                  opacity,
+                  transform: [
+                    { perspective: 800 },
+                    { translateY },
+                    { rotateX },
+                    { scale },
+                  ],
+                },
+              ]}
             >
               {renderItem(item, index)}
             </Animated.View>

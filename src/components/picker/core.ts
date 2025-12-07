@@ -1,7 +1,7 @@
 import type { PickerOption } from './types'
 
-const MOMENTUM_LIMIT_TIME = 300
-const MOMENTUM_LIMIT_DISTANCE = 15
+const MOMENTUM_LIMIT_TIME = 180
+const MOMENTUM_LIMIT_DISTANCE = 5
 
 export const clamp = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val))
 
