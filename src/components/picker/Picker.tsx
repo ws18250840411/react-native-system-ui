@@ -205,15 +205,20 @@ const WheelPicker = React.memo(<T,>({
   const handleWheel = React.useCallback(
     (event: any) => {
       if (Platform.OS !== 'web' || readOnly || wheelLock.current) return
-      const delta = event?.nativeEvent?.deltaY ?? 0
+      const nativeEvent = event?.nativeEvent
+      // 阻止页面滚动，确保只影响当前 Picker
+      nativeEvent?.preventDefault?.()
+      nativeEvent?.stopPropagation?.()
+
+      const delta = nativeEvent?.deltaY ?? 0
       if (!delta) return
       const direction = delta > 0 ? 1 : -1
       const { index } = computeIndex(getOffsetValue())
-      const nextIndex = index + direction
+      const nextIndex = clamp(index + direction, 0, total - 1)
       if (nextIndex !== selectedIndex) onChange(nextIndex)
       snapToIndex(nextIndex, true, false)
     },
-    [computeIndex, getOffsetValue, readOnly, snapToIndex],
+    [computeIndex, getOffsetValue, readOnly, snapToIndex, total, selectedIndex],
   )
 
   if (!data.length) {
@@ -462,29 +467,61 @@ const Picker: React.FC<PickerProps> = props => {
     toArrayValue(valueProp ?? defaultValue ?? []),
   )
 
+  // 受控场景直接使用外部 value，避免依赖内部 state 带来的同步延迟
+  const mergedValue = React.useMemo(
+    () => (isControlled ? toArrayValue(valueProp) : innerValue),
+    [innerValue, isControlled, valueProp],
+  )
+
+  // 首次渲染时仅同步内部值，避免直接触发外部副作用（如 Toast、请求）
+  const didInitRef = React.useRef(false)
+
+  // 同步受控 value 到内部 state，仅在值实际变化时更新，避免无谓渲染
   React.useEffect(() => {
-    if (isControlled) {
-      setInnerValue(toArrayValue(valueProp))
+    if (!isControlled) return
+    const next = toArrayValue(valueProp)
+    if (!shallowEqualArray(innerValue, next)) {
+      setInnerValue(next)
     }
-  }, [isControlled, valueProp])
+  }, [innerValue, isControlled, valueProp])
 
   const preparedColumns: PreparedPickerColumns = React.useMemo(() => prepareColumns(columns), [columns])
 
-  const normalized = React.useMemo(() => normalizePicker(preparedColumns, innerValue), [preparedColumns, innerValue])
+  const normalized = React.useMemo(() => normalizePicker(preparedColumns, mergedValue), [preparedColumns, mergedValue])
 
   React.useEffect(() => {
-    if (!isControlled && !shallowEqualArray(innerValue, normalized.values)) {
+    if (isControlled) return
+
+    // 首次仅同步内部值，跳过回调以防止页面一加载就触发业务逻辑
+    if (!didInitRef.current) {
+      didInitRef.current = true
+      if (!shallowEqualArray(innerValue, normalized.values)) {
+        setInnerValue(normalized.values)
+      }
+      return
+    }
+
+    if (!shallowEqualArray(mergedValue, normalized.values)) {
       setInnerValue(normalized.values)
       onChange?.(normalized.values, normalized.options)
       if (emitConfirmOnAutoSelect) {
         onConfirm?.(normalized.values, normalized.options)
       }
     }
-  }, [emitConfirmOnAutoSelect, innerValue, isControlled, normalized.options, normalized.values, onChange, onConfirm])
+  }, [
+    emitConfirmOnAutoSelect,
+    isControlled,
+    innerValue,
+    mergedValue,
+    normalized.options,
+    normalized.values,
+    onChange,
+    onConfirm,
+  ])
 
   const handleSelect = React.useCallback(
     (option: PickerOption, columnIndex: number) => {
-      const base = [...innerValue]
+      const base = [...mergedValue]
       base[columnIndex] = option.value
       // 后续列需重算
       base.length = columnIndex + 1
@@ -498,7 +535,7 @@ const Picker: React.FC<PickerProps> = props => {
         onChange?.(next.values, next.options)
       }
     },
-    [innerValue, preparedColumns, isControlled, normalized.values, onChange],
+    [mergedValue, preparedColumns, isControlled, normalized.values, onChange],
   )
 
   const handleConfirm = React.useCallback(() => {

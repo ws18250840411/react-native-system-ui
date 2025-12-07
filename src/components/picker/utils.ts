@@ -110,6 +110,7 @@ export const prepareColumns = (columnsInput: PickerColumns = []): PreparedPicker
     return { type: 'single', columnsList: [], defaults: [], cascadeRoot: [] }
   }
 
+  // 仅当所有顶层项都是“普通选项”且存在 children 时视为级联
   const everyPlainOption = columnsInput.every(item => !Array.isArray(item) && !isColumnWithOptions(item as any))
   const cascade = everyPlainOption && columnsInput.some(item => hasChildren(item as PickerOption))
 
