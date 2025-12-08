@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
 
@@ -128,76 +128,118 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     ? { marginRight: tokens.spacing.gap }
     : { marginLeft: tokens.spacing.gap }
 
+  const handlePress = (e: GestureResponderEvent) => {
+    props.onClick?.(e)
+    inputProps?.onPress?.(e)
+  }
+
   const labelNode = children === null || children === undefined
     ? null
     : (
-      <Pressable
-        key="label"
-        disabled={resolvedDisabled || resolvedLabelDisabled}
-        onPress={e => {
-          props.onClick?.(e)
-          inputProps?.onPress?.(e)
-        }}
-        accessibilityRole="text"
-        style={spacingStyle}
+      <Text
+        accessible={false}
+        style={[
+          styles.label,
+          {
+            color: labelColor,
+            fontSize: tokens.typography.fontSize,
+            lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+            fontFamily: tokens.typography.fontFamily,
+            fontWeight: tokens.typography.fontWeight,
+          },
+          labelStyle,
+        ]}
       >
-        <Text
-          style={[
-            styles.label,
-            {
-              color: labelColor,
-              fontSize: tokens.typography.fontSize,
-              lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-              fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.fontWeight,
-            },
-            labelStyle,
-          ]}
-        >
-          {children}
-        </Text>
-      </Pressable>
+        {children}
+      </Text>
     )
 
-  const iconNode = (
-    <Pressable
-      key="checkbox"
-      {...inputProps}
-      ref={inputRef}
-      onPress={e => {
-        props.onClick?.(e)
-        inputProps?.onPress?.(e)
-      }}
-      style={[styles.iconWrapper, resolvedLabelPosition === 'left' ? { marginLeft: tokens.spacing.gap } : { marginRight: tokens.spacing.gap }]}
+  const iconVisual = resolvedIconRender ? (
+    resolvedIconRender({ checked: isChecked, disabled: resolvedDisabled }) ?? null
+  ) : (
+    <View
+      style={[
+        styles.icon,
+        {
+          width: resolvedIconSize,
+          height: resolvedIconSize,
+          borderRadius,
+          borderColor,
+          backgroundColor,
+        },
+      ]}
     >
-      {resolvedIconRender ? (
-        resolvedIconRender({ checked: isChecked, disabled: resolvedDisabled }) ?? null
-      ) : (
-        <View
-          style={[
-            styles.icon,
-            {
-              width: resolvedIconSize,
-              height: resolvedIconSize,
-              borderRadius,
-              borderColor,
-              backgroundColor,
-            },
-          ]}
-        >
-          {isChecked ? (
-            <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
-          ) : null}
-        </View>
-      )}
-    </Pressable>
+      {isChecked ? (
+        <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
+      ) : null}
+    </View>
   )
 
-  const content = resolvedLabelPosition === 'left'
-    ? [labelNode, iconNode]
-    : [iconNode, labelNode]
+  const renderContent = (iconWrapper: React.ReactNode, labelWrapper: React.ReactNode) =>
+    resolvedLabelPosition === 'left'
+      ? (
+          <>
+            {labelWrapper}
+            {iconWrapper}
+          </>
+        )
+      : (
+          <>
+            {iconWrapper}
+            {labelWrapper}
+          </>
+        )
 
-  return <View style={[styles.container, style]}>{content.filter(Boolean)}</View>
+  const interactive = !resolvedDisabled && !resolvedLabelDisabled
+
+  const labelWrapper = labelNode ? (
+    <View style={[styles.labelWrapper, spacingStyle]} pointerEvents="none" accessible={false}>
+      {labelNode}
+    </View>
+  ) : null
+
+  const iconWrapperStyle = [
+    styles.iconWrapper,
+    resolvedLabelPosition === 'left'
+      ? { marginLeft: tokens.spacing.gap }
+      : { marginRight: tokens.spacing.gap },
+  ]
+
+  if (interactive) {
+    return (
+      <Pressable
+        {...inputProps}
+        ref={inputRef}
+        onPress={handlePress}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
+        style={[styles.container, style]}
+      >
+        {renderContent(
+          <View style={iconWrapperStyle}>{iconVisual}</View>,
+          labelWrapper,
+        )}
+      </Pressable>
+    )
+  }
+
+  return (
+    <View style={[styles.container, style]}>
+      {renderContent(
+        <Pressable
+          {...inputProps}
+          ref={inputRef}
+          onPress={handlePress}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
+          style={iconWrapperStyle}
+        >
+          {iconVisual}
+        </Pressable>,
+        labelWrapper,
+      )}
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -220,5 +262,8 @@ const styles = StyleSheet.create({
   },
   label: {
     includeFontPadding: false,
+  },
+  labelWrapper: {
+    flexShrink: 1,
   },
 })

@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   View,
+  Platform,
   type TextInputProps,
 } from 'react-native'
 
@@ -142,6 +143,7 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
     () => wrapAffixContent(suffixSlot, tokens.colors.suffix),
     [suffixSlot, tokens.colors.suffix],
   )
+  const iconStyle = React.useMemo(() => [styles.icon, { marginHorizontal: tokens.spacing.iconGap / 2 }], [tokens.spacing.iconGap])
 
   const isControlled = valueProp !== undefined
   const [internalValue, setInternalValue] = React.useState<string>(toStringValue(defaultValue))
@@ -285,25 +287,31 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
 
   const ContainerComponent: React.ComponentType<any> = isInteractive ? Pressable : View
 
+  const isError = error || !!errorMessage
+
   const containerStyle = [
     styles.container,
     {
       paddingHorizontal: tokens.spacing.paddingHorizontal,
       paddingVertical,
+      minHeight: 48,
       backgroundColor: tokens.colors.background,
       borderBottomWidth: border ? tokens.border.width : 0,
-      borderBottomColor: border ? borderColor : 'transparent',
+      borderBottomColor: border ? (isError ? tokens.colors.error : borderColor) : 'transparent',
     },
     center && styles.center,
     disabled && { opacity: tokens.states.disabledOpacity },
     style,
   ]
 
-  const bodyStyle = [
-    styles.body,
-    { alignItems: controlAlignMap[resolvedControlAlign] },
-    contentStyle,
-  ]
+  const bodyStyle = React.useMemo(
+    () => [
+      styles.body,
+      { alignItems: controlAlignMap[resolvedControlAlign] },
+      contentStyle,
+    ],
+    [contentStyle, resolvedControlAlign],
+  )
 
   const renderLabel = () => {
     if (!label && !required) return null
@@ -314,7 +322,12 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
           {
             width: resolvedLabelWidth,
             marginRight: tokens.spacing.labelGap,
-            alignItems: labelAlign === 'right' ? 'flex-end' : 'flex-start',
+            justifyContent:
+              labelAlign === 'right'
+                ? 'flex-end'
+                : labelAlign === 'center'
+                  ? 'center'
+                  : 'flex-start',
           },
         ]}
       >
@@ -327,6 +340,8 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
                 {
                   color: error || errorMessage ? tokens.colors.error : tokens.colors.label,
                   fontSize: tokens.typography.labelSize,
+                  lineHeight: 20,
+                  textAlign: labelAlign === 'center' ? 'center' : labelAlign === 'right' ? 'right' : 'left',
                 },
                 labelStyle,
               ]}
@@ -347,16 +362,17 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
   ) => {
     if (!icon) return null
     if (!handler) {
-      return <View style={styles.icon}>{icon}</View>
+      return <View style={iconStyle}>{icon}</View>
     }
     return (
-      <Pressable hitSlop={8} style={styles.icon} onPress={handler} accessibilityRole="button">
+      <Pressable hitSlop={8} style={iconStyle} onPress={handler} accessibilityRole="button">
         {icon}
       </Pressable>
     )
   }
 
   const helperNode = errorMessage ?? helperDescription
+  const helperIndent = label ? resolvedLabelWidth + tokens.spacing.labelGap : 0
 
   const handleFocusEvent = (event: FocusEvent) => {
     handleFocusState.current = true
@@ -443,16 +459,22 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
               styles.input,
               {
                 textAlign: resolvedInputAlign,
-                color: resolvedEditable ? tokens.colors.text : tokens.colors.disabledText,
+                color: isError ? tokens.colors.error : resolvedEditable ? tokens.colors.text : tokens.colors.disabledText,
                 fontSize: tokens.typography.fontSize,
                 textAlignVertical: isTextarea ? 'top' : 'center',
                 height: isTextarea ? textareaHeight : undefined,
+                backgroundColor: 'transparent',
+                borderWidth: 0,
+                borderColor: 'transparent',
+                outlineColor: 'transparent',
               },
+              Platform.OS === 'web' ? { outlineStyle: 'none' } : null,
               inputStyle,
             ]}
-            placeholderTextColor={tokens.colors.placeholder}
+            placeholderTextColor={isError ? tokens.colors.error : tokens.colors.placeholder}
             value={inputValue}
             maxLength={maxLength}
+            underlineColorAndroid="transparent"
             onFocus={handleFocusEvent}
             onBlur={handleBlurEvent}
             onPressIn={handlePressIn}
@@ -483,7 +505,7 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
             }
           />
           {showClear ? (
-            <Pressable hitSlop={8} style={styles.icon} {...clearPress.interactionProps}>
+            <Pressable hitSlop={8} style={iconStyle} {...clearPress.interactionProps}>
               {clearIcon ?? (
                 <Text style={[styles.clearText, { color: tokens.colors.clearIcon }]}>×</Text>
               )}
@@ -511,18 +533,25 @@ export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
         ) : null}
       </View>
       {helperNode ? (
-        <Text
-          style={[
-            styles.message,
-            {
-              color: helperColor,
-              marginTop: tokens.spacing.messageMarginTop,
-              fontSize: tokens.typography.helperSize,
-            },
-          ]}
+        <View
+          style={{
+            paddingTop: tokens.spacing.messageMarginTop,
+            paddingHorizontal: tokens.spacing.paddingHorizontal,
+          }}
         >
-          {helperNode}
-        </Text>
+          <Text
+            style={[
+              styles.message,
+              {
+                color: helperColor,
+                fontSize: tokens.typography.helperSize,
+                marginLeft: helperIndent,
+              },
+            ]}
+          >
+            {helperNode}
+          </Text>
+        </View>
       ) : null}
       {renderWordLimit()}
     </ContainerComponent>
@@ -540,13 +569,14 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   rowCenter: {
     alignItems: 'center',
   },
   label: {
-    flexDirection: 'column',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   labelRow: {
     flexDirection: 'row',
@@ -554,22 +584,26 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 14,
+    lineHeight: 20,
   },
   required: {
     fontSize: 14,
-    marginBottom: 2,
+    marginRight: 4,
   },
   body: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: 0,
   },
   input: {
     flex: 1,
     padding: 0,
+    minWidth: 0,
+    flexShrink: 1,
   },
   icon: {
-    marginHorizontal: 4,
+    marginHorizontal: 6,
     justifyContent: 'center',
     alignItems: 'center',
   },

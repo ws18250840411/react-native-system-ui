@@ -17,13 +17,15 @@ import { Form } from 'react-native-system-ui'
 
 ## 代码演示
 
-### 基础用法
-
 <code title="基础用法" src="./form/demo/basic.tsx"></code>
 
-### 错误校验
+<code title="校验规则" src="./form/demo/rules.tsx"></code>
 
-<code title="表单校验" src="./form/demo/rules.tsx"></code>
+<code title="表单项类型" src="./form/demo/type.tsx"></code>
+
+<code title="Subscribe" src="./form/demo/subscribe.tsx"></code>
+
+<code title="useWatch" src="./form/demo/watch.tsx"></code>
 
 ## API
 
@@ -50,6 +52,8 @@ import { Form } from 'react-native-system-ui'
 | `resetFields()` | 重置为 `initialValues` |
 | `validateFields(names?)` | 主动触发校验（默认校验全部字段），成功时返回最新值，失败时抛出错误 |
 | `getFieldError(name)` | 获取某个字段的错误信息 | `string[]` |
+| `subscribe(listener)` | 订阅字段变更，返回取消订阅函数 | `(changedValues, allValues) => void` |
+| `useWatch(name?, formRef?)` | hook 形式监听字段或全部值 | - |
 
 ### Form.Item Props
 
@@ -66,6 +70,7 @@ import { Form } from 'react-native-system-ui'
 | `validateTrigger` | 触发校验的事件，默认为 `trigger` | `string \| string[]` | `onChangeText` |
 | `showValidateMessage` | 是否展示该表单项的错误提示 | `boolean` | `true` |
 | `required` | 强制展示必填星号（默认为 `rules` 中的 required 值） | `boolean` | - |
+| `dependencies` | 依赖的字段名，依赖字段变化时触发当前项校验 | `string[]` | - |
 | `children` | 必须是受控组件，如 Field | `ReactElement` | - |
 
 > `FormItemRule` 类型可通过 `import type { FormItemRule } from 'react-native-system-ui'` 获取。
@@ -85,3 +90,8 @@ Form.Item 的 `rules` 属性支持以下字段：
 | `validator` | 自定义校验函数 `(value, values) => boolean \| string \| Promise`，返回 `false` 或字符串代表失败 |
 | `validateTrigger` | 限定规则触发的事件名，等价于 react-vant 的 `validateTrigger` |
 | `message` | 当前规则失败时展示的文案 |
+
+### 订阅与监听
+
+- `Form.Subscribe`：`children(changedValues, form) => ReactNode`，可通过 `to` 指定监听字段。
+- `Form.useWatch(name?, formRef?)`：实时返回指定字段或整个表单的值，保持受控/非受控同步。

@@ -44,10 +44,9 @@ export const CellGroup: React.FC<CellGroupProps> = ({
   const showInset = inset || card
   const bodyStyles = [
     styles.body,
-    border && inset && {
+    border && showInset && {
       borderColor: tokens.border.color,
-      borderTopWidth: tokens.border.width,
-      borderBottomWidth: tokens.border.width,
+      borderWidth: tokens.border.width,
     },
     {
       backgroundColor: tokens.group.bodyBackground,
@@ -59,15 +58,7 @@ export const CellGroup: React.FC<CellGroupProps> = ({
       marginHorizontal: inset ? tokens.group.insetMarginHorizontal : 0,
       backgroundColor: tokens.container.background,
     },
-    card
-      ? createPlatformShadow({
-          color: tokens.group.cardShadow.color,
-          opacity: tokens.group.cardShadow.opacity,
-          radius: tokens.group.cardShadow.radius,
-          offsetY: tokens.group.cardShadow.offsetY,
-          elevation: tokens.group.cardShadow.elevation,
-        })
-      : null,
+    card ? createPlatformShadow(tokens.group.cardShadow) : null,
     bodyStyle,
   ]
 

@@ -19,4 +19,5 @@ export interface FormItemRule {
 
 export interface RegisteredFieldOptions {
   rules?: FormItemRule[]
+  dependencies?: string[]
 }

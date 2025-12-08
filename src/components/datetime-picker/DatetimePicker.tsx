@@ -2,6 +2,7 @@ import React from "react"
 
 import Picker from "../picker"
 import type { PickerOption } from "../picker/types"
+import { Popup } from "../popup/Popup"
 import { padZero, times, getTrueValue, getMonthEndDay, isValidDate } from "./utils"
 import type {
   DatetimePickerColumnType,
@@ -18,10 +19,66 @@ const DEFAULT_MAX_DATE = new Date(currentYear + 10, 11, 31)
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 const DatetimePicker: React.FC<DatetimePickerProps> = props => {
-  if (props.type === "time") {
-    return <TimePicker {...props} />
-  }
-  return <DatePicker {...props} />
+  const {
+    popup,
+    popupVisible,
+    defaultPopupVisible,
+    popupProps,
+    onPopupVisibleChange,
+    ...rest
+  } = props as any
+
+  const [innerVisible, setInnerVisible] = React.useState<boolean>(defaultPopupVisible ?? false)
+  const mergedVisible = popupVisible ?? innerVisible
+
+  const setVisible = React.useCallback((v: boolean) => {
+    if (popupVisible === undefined) setInnerVisible(v)
+    onPopupVisibleChange?.(v)
+  }, [popupVisible, onPopupVisibleChange])
+
+  const handleClose = React.useCallback(() => setVisible(false), [setVisible])
+
+  const pickerNode = props.type === "time"
+    ? (
+      <TimePicker
+        {...rest}
+        onConfirm={(val: any) => {
+          rest.onConfirm?.(val)
+          if (popup) setVisible(false)
+        }}
+        onCancel={() => {
+          rest.onCancel?.()
+          if (popup) handleClose()
+        }}
+      />
+    )
+    : (
+      <DatePicker
+        {...rest}
+        onConfirm={(val: any) => {
+          rest.onConfirm?.(val)
+          if (popup) setVisible(false)
+        }}
+        onCancel={() => {
+          rest.onCancel?.()
+          if (popup) handleClose()
+        }}
+      />
+    )
+
+  if (!popup) return pickerNode
+
+  return (
+    <Popup
+      visible={mergedVisible}
+      onClose={handleClose}
+      placement="bottom"
+      round
+      {...popupProps}
+    >
+      {pickerNode}
+    </Popup>
+  )
 }
 
 const DatePicker: React.FC<DatetimePickerDateProps> = props => {
@@ -55,6 +112,11 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
       setCurrentDate(formatValue(value))
     }
   }, [formatValue, value])
+
+  // 当可选范围变更时，保证当前值被重新 clamp，避免越界
+  React.useEffect(() => {
+    setCurrentDate(prev => formatValue(prev))
+  }, [formatValue])
 
   const getBoundary = React.useCallback(
     (boundaryType: "min" | "max", date: Date) => {

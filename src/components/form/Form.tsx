@@ -158,6 +158,8 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   const fieldsRef = React.useRef<Record<string, RegisteredFieldOptions>>({})
   const valuesRef = React.useRef(values)
   const errorsRef = React.useRef(errors)
+  const subscribersRef = React.useRef(new Set<(changed: Record<string, any>, all: Record<string, any>) => void>())
+  const formApiRef = React.useRef<FormInstance | null>(null)
 
   React.useEffect(() => {
     valuesRef.current = values
@@ -203,6 +205,10 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       setFieldErrors(name, [])
     }
   }, [setFieldErrors])
+
+  const notify = React.useCallback((changedValues: Record<string, any>, nextValues: Record<string, any>) => {
+    subscribersRef.current.forEach(listener => listener(changedValues, nextValues))
+  }, [])
 
   const runFieldValidation = React.useCallback(
     async (
@@ -267,10 +273,16 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         const next = { ...prev, [name]: value }
         onValuesChange?.(next, name, value)
         runFieldValidation(name, trigger, value, next)
+        Object.entries(fieldsRef.current).forEach(([fieldName, meta]) => {
+          if (meta.dependencies?.includes(name)) {
+            runFieldValidation(fieldName, trigger, next[fieldName], next)
+          }
+        })
+        notify({ [name]: value }, next)
         return next
       })
     },
-    [onValuesChange, runFieldValidation],
+    [notify, onValuesChange, runFieldValidation],
   )
 
   React.useImperativeHandle(
@@ -293,18 +305,53 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
             onValuesChange?.(merged, key, next[key])
             runFieldValidation(key, undefined, next[key], merged)
           })
+          notify(next, merged)
           return merged
         })
       },
       resetFields: () => {
         setValues(lastInitialValuesRef.current)
         setErrors({})
+        notify(lastInitialValuesRef.current, lastInitialValuesRef.current)
       },
       validateFields,
       getFieldError: (name: string) => errorsRef.current[name] ?? [],
     }),
-    [onFinish, onValuesChange, validateFields, runFieldValidation],
+    [notify, onFinish, onValuesChange, validateFields, runFieldValidation],
   )
+
+  React.useEffect(() => {
+    formApiRef.current = {
+      submit: async () => {
+        try {
+          const result = await validateFields()
+          onFinish?.(result)
+          return result
+        } catch (error) {
+          return undefined
+        }
+      },
+      getFieldsValue: () => valuesRef.current,
+      setFieldsValue: next => {
+        setValues(prev => {
+          const merged = { ...prev, ...next }
+          Object.keys(next).forEach(key => {
+            onValuesChange?.(merged, key, next[key])
+            runFieldValidation(key, undefined, next[key], merged)
+          })
+          notify(next, merged)
+          return merged
+        })
+      },
+      resetFields: () => {
+        setValues(lastInitialValuesRef.current)
+        setErrors({})
+        notify(lastInitialValuesRef.current, lastInitialValuesRef.current)
+      },
+      validateFields,
+      getFieldError: (name: string) => errorsRef.current[name] ?? [],
+    }
+  }, [notify, onFinish, onValuesChange, validateFields, runFieldValidation])
 
   const getFieldError = React.useCallback((name: string) => errors[name], [errors])
 
@@ -320,6 +367,12 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       registerField,
       getFieldError,
       validateField: contextValidateField,
+      getFieldsValue: () => valuesRef.current,
+      subscribe: (listener: (changed: Record<string, any>, all: Record<string, any>) => void) => {
+        subscribersRef.current.add(listener)
+        return () => subscribersRef.current.delete(listener)
+      },
+      form: formApiRef.current,
       colon,
       labelWidth,
       showValidateMessage,
@@ -337,5 +390,66 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 })
 
 InternalForm.displayName = 'Form'
+
+export const useWatch = (
+  name?: string | string[],
+  formRef?: React.MutableRefObject<FormInstance | null>
+) => {
+  const context = React.useContext(FormContext)
+
+  const names = React.useMemo(() => (Array.isArray(name) ? name : name ? [name] : undefined), [name])
+
+  const getSnapshot = React.useCallback(
+    (allValues?: Record<string, any>) => {
+      const source = allValues ?? context?.getFieldsValue?.() ?? formRef?.current?.getFieldsValue?.() ?? {}
+      if (!names) return source
+      if (names.length === 1) {
+        return source[names[0]]
+      }
+      const picked: Record<string, any> = {}
+      names.forEach(key => {
+        picked[key] = source[key]
+      })
+      return picked
+    },
+    [context, formRef, names],
+  )
+
+  const [value, setValue] = React.useState(() => getSnapshot())
+
+  React.useEffect(() => {
+    if (!context?.subscribe) return undefined
+    return context.subscribe((changed, all) => {
+      if (!names || names.some(key => key in changed)) {
+        setValue(getSnapshot(all))
+      }
+    })
+  }, [context, getSnapshot, names])
+
+  return value
+}
+
+export interface FormSubscribeProps {
+  to?: string[]
+  children: (changedValues: Record<string, any>, form: FormInstance | null) => React.ReactNode
+}
+
+export const FormSubscribe: React.FC<FormSubscribeProps> = ({ to, children }) => {
+  const context = React.useContext(FormContext)
+  const [payload, setPayload] = React.useState<{ changed: Record<string, any>; all: Record<string, any> }>(() => ({
+    changed: {},
+    all: context?.getFieldsValue?.() ?? {},
+  }))
+
+  React.useEffect(() => {
+    if (!context?.subscribe) return undefined
+    return context.subscribe((changed, all) => {
+      if (to && !Object.keys(changed).some(key => to.includes(key))) return
+      setPayload({ changed, all })
+    })
+  }, [context, to])
+
+  return <>{children(payload.changed, context?.form ?? null)}</>
+}
 
 export default InternalForm

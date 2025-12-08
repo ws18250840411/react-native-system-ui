@@ -17,6 +17,7 @@ export interface FormItemProps {
   intro?: React.ReactNode
   tooltip?: React.ReactNode
   rules?: FormItemRule[]
+  dependencies?: string[]
   valuePropName?: string
   trigger?: string
   validateTrigger?: string | string[]
@@ -32,6 +33,7 @@ export const FormItem: React.FC<FormItemProps> = ({
   intro,
   tooltip,
   rules,
+  dependencies,
   valuePropName = 'value',
   trigger = 'onChangeText',
   validateTrigger,
@@ -49,8 +51,8 @@ export const FormItem: React.FC<FormItemProps> = ({
   const normalizedRules = React.useMemo(() => rules ?? [], [rules])
 
   React.useEffect(() => {
-    return context.registerField(name, { rules: normalizedRules })
-  }, [context.registerField, name, normalizedRules])
+    return context.registerField(name, { rules: normalizedRules, dependencies })
+  }, [context.registerField, name, normalizedRules, dependencies])
 
   const mergedValue = context.values[name]
   const mergedShowMessage = showValidateMessage ?? context.showValidateMessage ?? true

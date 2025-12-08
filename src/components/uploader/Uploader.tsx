@@ -74,9 +74,16 @@ const Uploader = React.forwardRef<View, UploaderProps>((props, ref) => {
   } = props
 
   const tokens = useUploaderTokens()
-  const [items, setItems] = useControllableValue<UploaderValueItem[]>(props, {
+  const [rawItems, setItems] = useControllableValue<UploaderValueItem[]>(props, {
     defaultValue: [],
   })
+  const items = React.useMemo(() => ensureArray(rawItems ?? []), [rawItems])
+  const setSafeItems = React.useCallback(
+    (next: UploaderValueItem[]) => {
+      setItems(ensureArray(next))
+    },
+    [setItems],
+  )
 
   const sizeValue = React.useMemo(() => normalizeSize(previewSize, tokens.size), [previewSize, tokens.size])
   const canUpload = showUpload && !readOnly && !disabled && items.length < maxCount
@@ -96,9 +103,9 @@ const Uploader = React.forwardRef<View, UploaderProps>((props, ref) => {
         key: item.key ?? `${Date.now()}-${idx}`,
       }))
       const merged = [...items, ...normalized].slice(0, maxCount)
-      setItems(merged)
+      setSafeItems(merged)
     },
-    [items, maxCount, setItems],
+    [items, maxCount, setSafeItems],
   )
 
   const handleUploadPress = React.useCallback(async () => {
@@ -128,9 +135,9 @@ const Uploader = React.forwardRef<View, UploaderProps>((props, ref) => {
         }
       }
       const next = items.filter((_, idx) => idx !== index)
-      setItems(next)
+      setSafeItems(next)
     },
-    [disabled, items, onDelete, readOnly, setItems],
+    [disabled, items, onDelete, readOnly, setSafeItems],
   )
 
   const handlePreview = React.useCallback(

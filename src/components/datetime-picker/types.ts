@@ -1,6 +1,7 @@
 import type React from 'react'
 
 import type { PickerProps } from '../picker/types'
+import type { PopupProps } from '../popup/Popup'
 
 export type DatetimePickerColumnType = 'year' | 'month' | 'day' | 'hour' | 'minute'
 
@@ -12,6 +13,11 @@ export interface DatetimePickerSharedProps
   formatter?: (type: DatetimePickerColumnType, value: string) => string
   filter?: (type: DatetimePickerColumnType, values: string[]) => string[]
   columnsOrder?: DatetimePickerColumnType[]
+  popup?: boolean
+  popupVisible?: boolean
+  defaultPopupVisible?: boolean
+  popupProps?: Omit<PopupProps, 'visible' | 'children'>
+  onPopupVisibleChange?: (visible: boolean) => void
   children?: React.ReactNode
 }
 

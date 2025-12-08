@@ -62,39 +62,40 @@ export interface FieldTokens {
 
 const createFieldTokens = (foundations: Foundations): FieldTokens => ({
   defaults: {
-    labelWidth: 96,
+    labelWidth: 88, // 约 6.2em，贴合 react-vant
     clearTrigger: 'focus',
     inputAlign: 'left',
     textareaLineHeight: foundations.fontSize.md * foundations.typography.lineHeightMultiplier,
-    controlAlign: 'center',
+    controlAlign: 'flex-start',
   },
   colors: {
-    text: foundations.palette.default[900],
-    disabledText: foundations.palette.default[400],
-    placeholder: foundations.palette.default[400],
-    label: foundations.palette.default[600],
-    border: foundations.palette.default[200],
-    clearIcon: foundations.palette.default[300],
+    text: '#323233',
+    disabledText: '#c8c9cc',
+    placeholder: '#c8c9cc',
+    label: '#646566',
+    border: '#ebedf0',
+    clearIcon: '#c8c9cc',
     error: foundations.palette.danger[500],
-    description: foundations.palette.default[500],
-    background: '#ffffff',
-    counter: foundations.palette.default[400],
-    extra: foundations.palette.default[500],
-    prefix: foundations.palette.default[500],
+    description: '#969799',
+    background: '#ffffff', // 与 react-vant 一致，单元格白底
+    counter: '#969799',
+    extra: '#969799',
+    prefix: '#969799',
     suffix: foundations.palette.primary[500],
   },
   spacing: {
-    paddingVertical: foundations.spacing.sm,
-    paddingVerticalLarge: foundations.spacing.md,
-    paddingHorizontal: foundations.spacing.md,
-    labelGap: foundations.spacing.md,
-    iconGap: foundations.spacing.xs,
+    // 介于 rv cell 的 10px 与当前主题 spacing 之间取中值，贴近 react-vant
+    paddingVertical: Math.round((foundations.spacing.sm + foundations.spacing.md) / 2),
+    paddingVerticalLarge: Math.round((foundations.spacing.sm + foundations.spacing.md) / 2),
+    paddingHorizontal: foundations.spacing.lg, // 16，贴近 rv 默认 16px
+    labelGap: foundations.spacing.sm, // 8
+    iconGap: foundations.spacing.sm,
     prefixGap: foundations.spacing.xs,
     suffixGap: foundations.spacing.xs,
     extraGap: foundations.spacing.sm,
-    messageMarginTop: foundations.spacing.xs,
-    descriptionMarginTop: foundations.spacing.xs,
-    counterMarginTop: foundations.spacing.xs,
+    messageMarginTop: 4,
+    descriptionMarginTop: 4,
+    counterMarginTop: 4,
   },
   typography: {
     fontSize: foundations.fontSize.md,

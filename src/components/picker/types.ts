@@ -37,6 +37,10 @@ export interface PickerProps extends ViewProps {
   scrollEventThrottle?: number
   disableRemoveClippedSubviewsOnWeb?: boolean
   maskColor?: string
+  maskType?: 'gradient' | 'solid'
+  swipeDuration?: number
+  columnsTop?: React.ReactNode
+  columnsBottom?: React.ReactNode
   emitConfirmOnAutoSelect?: boolean
   optionRender?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => React.ReactNode
   getOptionTestID?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => string | undefined
@@ -61,5 +65,6 @@ export interface PickerColumnProps {
   scrollEventThrottle?: PickerProps['scrollEventThrottle']
   disableRemoveClippedSubviewsOnWeb?: boolean
   debug?: boolean
+  swipeDuration?: number
   onSelect: (option: PickerOption, columnIndex: number, optionIndex: number) => void
 }

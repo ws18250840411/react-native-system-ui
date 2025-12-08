@@ -30,6 +30,8 @@ const getVisibleCount = (count: number) => {
 
 type WheelPickerRender<T> = (item: T | null, index: number) => React.ReactNode
 
+type MaskType = 'gradient' | 'solid'
+
 type WheelPickerProps<T> = {
   data: T[]
   selectedIndex: number
@@ -43,20 +45,27 @@ type WheelPickerProps<T> = {
   scrollEventThrottle?: number
   disableRemoveClippedSubviewsOnWeb?: boolean
   debug?: boolean
+  swipeDuration?: number
 }
+
+const GRADIENT_STEPS = [0.9, 0.6, 0.3, 0]
 
 const GradientMask: React.FC<{
   height: number
   color: string
   position: 'top' | 'bottom'
-}> = ({ height, color, position }) => {
-  const steps = [0.9, 0.6, 0.3, 0]
+  maskType: MaskType
+}> = ({ height, color, position, maskType }) => {
   const isWeb = Platform.OS === 'web'
   const baseStyle = [
     styles.gradientMask,
     { height },
     position === 'top' ? { top: 0 } : { bottom: 0 },
   ]
+
+  if (maskType === 'solid') {
+    return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: color, opacity: 0.9 }]} />
+  }
 
   if (isWeb) {
     const angle = position === 'top' ? '180deg' : '0deg'
@@ -65,7 +74,7 @@ const GradientMask: React.FC<{
 
   return (
     <View pointerEvents="none" style={baseStyle}>
-      {steps.map((opacity, idx) => (
+      {GRADIENT_STEPS.map((opacity, idx) => (
         <View key={idx} style={{ flex: 1, backgroundColor: color, opacity }} />
       ))}
     </View>
@@ -85,6 +94,7 @@ const WheelPicker = React.memo(<T,>({
   scrollEventThrottle = 16,
   disableRemoveClippedSubviewsOnWeb = false,
   debug = false,
+  swipeDuration,
 }: WheelPickerProps<T>) => {
   const offset = React.useRef(new Animated.Value(0)).current
   const useNativeDriver = Platform.OS !== 'web'
@@ -141,6 +151,13 @@ const WheelPicker = React.memo(<T,>({
     snapToIndex(selectedIndex, false, false)
   }, [selectedIndex, snapToIndex])
 
+  const decayDeceleration = React.useMemo(() => {
+    if (!swipeDuration || swipeDuration <= 0) return 0.99
+    // 让速度在给定时间后衰减到约 1%，与 react-vant 的 swipeDuration 语义接近
+    const frames = swipeDuration / 16
+    return Math.pow(0.01, 1 / Math.max(frames, 1))
+  }, [swipeDuration])
+
   const panResponder = React.useMemo(
     () =>
       PanResponder.create({
@@ -185,7 +202,7 @@ const WheelPicker = React.memo(<T,>({
           decayAnimRef.current?.stop()
           decayAnimRef.current = Animated.decay(offset, {
             velocity,
-            deceleration: 0.99,
+            deceleration: decayDeceleration,
             useNativeDriver,
           })
           decayAnimRef.current.start(({ finished }) => {
@@ -199,7 +216,7 @@ const WheelPicker = React.memo(<T,>({
         onPanResponderTerminationRequest: () => false,
         onPanResponderTerminate: () => snapToIndex(selectedIndex, true),
       }),
-    [computeIndex, debug, getOffsetValue, itemHeight, minOffset, offset, readOnly, selectedIndex, snapToIndex, useNativeDriver],
+    [computeIndex, debug, decayDeceleration, getOffsetValue, itemHeight, minOffset, offset, readOnly, selectedIndex, snapToIndex, useNativeDriver],
   )
 
   const handleWheel = React.useCallback(
@@ -328,6 +345,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
       scrollEventThrottle,
       disableRemoveClippedSubviewsOnWeb,
       debug,
+      swipeDuration,
     } = props
     const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
@@ -361,6 +379,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
           scrollEventThrottle={scrollEventThrottle}
           disableRemoveClippedSubviewsOnWeb={disableRemoveClippedSubviewsOnWeb}
           debug={debug}
+          swipeDuration={swipeDuration}
           renderItem={item => {
             if (!item) return null
             const active = item.value === value
@@ -417,6 +436,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
     prev.readOnly === next.readOnly &&
     prev.decelerationRate === next.decelerationRate &&
     prev.scrollEventThrottle === next.scrollEventThrottle &&
+    prev.swipeDuration === next.swipeDuration &&
     prev.options === next.options &&
     prev.tokens === next.tokens &&
     prev.optionRender === next.optionRender &&
@@ -441,13 +461,17 @@ const Picker: React.FC<PickerProps> = props => {
     loading = false,
     readOnly = false,
     decelerationRate = 'fast',
+    swipeDuration = tokens.defaults.swipeDuration,
     scrollEventThrottle = 16,
+    columnsTop,
+    columnsBottom,
     optionRender,
     getOptionTestID,
     getOptionA11yLabel,
     emitConfirmOnAutoSelect = true,
     disableRemoveClippedSubviewsOnWeb = false,
     maskColor,
+  maskType = tokens.defaults.maskType,
     debug = false,
     onChange,
     onConfirm,
@@ -523,8 +547,6 @@ const Picker: React.FC<PickerProps> = props => {
     (option: PickerOption, columnIndex: number) => {
       const base = [...mergedValue]
       base[columnIndex] = option.value
-      // 后续列需重算
-      base.length = columnIndex + 1
 
       const next = normalizePicker(preparedColumns, base)
 
@@ -620,6 +642,7 @@ const Picker: React.FC<PickerProps> = props => {
       {toolbarPosition === 'top' ? renderToolbar() : null}
       <View style={[styles.body, { height: wrapperHeight }]}>
         <View style={styles.columns} pointerEvents={loading ? 'none' : 'auto'}>
+          {columnsTop}
           {hasColumns
             ? normalized.columns.map((column, columnIndex) => (
                 <PickerColumn
@@ -635,11 +658,13 @@ const Picker: React.FC<PickerProps> = props => {
                   disableRemoveClippedSubviewsOnWeb={disableRemoveClippedSubviewsOnWeb}
                   debug={debug}
                   readOnly={readOnly}
+                  swipeDuration={swipeDuration}
                   onSelect={handleSelect}
                   tokens={tokens}
                 />
               ))
             : null}
+          {columnsBottom}
           {hasColumns ? (
             <>
               <View
@@ -653,8 +678,8 @@ const Picker: React.FC<PickerProps> = props => {
                   },
                 ]}
               />
-              <GradientMask position="top" height={maskHeight} color={maskColor ?? tokens.colors.mask} />
-              <GradientMask position="bottom" height={maskHeight} color={maskColor ?? tokens.colors.mask} />
+              <GradientMask position="top" height={maskHeight} color={maskColor ?? tokens.colors.mask} maskType={maskType} />
+              <GradientMask position="bottom" height={maskHeight} color={maskColor ?? tokens.colors.mask} maskType={maskType} />
             </>
           ) : null}
         </View>

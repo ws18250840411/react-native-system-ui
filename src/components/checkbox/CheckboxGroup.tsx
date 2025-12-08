@@ -81,12 +81,15 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
   const childrenArray = React.Children.toArray(children).filter(Boolean)
 
   const itemStyleForIndex = (index: number): ViewStyle => {
-    if (index === childrenArray.length - 1) {
-      return styles.item
+    const isLast = index === childrenArray.length - 1
+    if (direction === 'horizontal') {
+      return [
+        styles.item,
+        !isLast && { marginRight: gap },
+        { marginBottom: gap },
+      ]
     }
-    return direction === 'horizontal'
-      ? [styles.item, { marginRight: gap }]
-      : [styles.item, { marginBottom: gap }]
+    return isLast ? styles.item : [styles.item, { marginBottom: gap }]
   }
 
   const toggleAll = React.useCallback(
@@ -122,20 +125,25 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
 
   useImperativeHandle(ref, () => ({ toggleAll }), [toggleAll])
 
+  const contextValue = React.useMemo(
+    () => ({
+      state,
+      direction,
+      shape,
+      iconSize,
+      iconRender,
+      checkedColor,
+      labelDisabled,
+      max,
+      registerValue,
+      unregisterValue,
+    }),
+    [state, direction, shape, iconSize, iconRender, checkedColor, labelDisabled, max, registerValue, unregisterValue]
+  )
+
   return (
     <CheckboxGroupContext.Provider
-      value={{
-        state,
-        direction,
-        shape,
-        iconSize,
-        iconRender,
-        checkedColor,
-        labelDisabled,
-        max,
-        registerValue,
-        unregisterValue,
-      }}
+      value={contextValue}
     >
       <View
         {...groupProps}

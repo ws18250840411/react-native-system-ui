@@ -34,9 +34,12 @@ export const Switch: React.FC<SwitchProps> = props => {
 
   const tokens = useSwitchTokens()
   const resolvedSize = size ?? tokens.defaults.size
+  // 防御性兜底，避免自定义 size 导致缺少尺寸配置
+  const safeSizeTokens =
+    tokens.sizes[resolvedSize] ??
+    tokens.sizes[tokens.defaults.size] ??
+    tokens.sizes.medium
   const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
-  const sizeTokens = tokens.sizes[resolvedSize]
-
   const isDisabled = disabled || loading
 
   const ariaLabelFromProps =
@@ -73,9 +76,9 @@ export const Switch: React.FC<SwitchProps> = props => {
     inputRange: [0, 1],
     outputRange: [
       0,
-      sizeTokens.trackWidth -
-        sizeTokens.handleSize -
-        sizeTokens.padding * 2,
+      safeSizeTokens.trackWidth -
+        safeSizeTokens.handleSize -
+        safeSizeTokens.padding * 2,
     ],
   })
 
@@ -128,9 +131,9 @@ export const Switch: React.FC<SwitchProps> = props => {
         style={[
           styles.track,
           {
-            width: sizeTokens.trackWidth,
-            height: sizeTokens.trackHeight,
-            borderRadius: sizeTokens.trackHeight / 2,
+            width:  safeSizeTokens.trackWidth,
+            height:  safeSizeTokens.trackHeight,
+            borderRadius:  safeSizeTokens.trackHeight / 2,
             backgroundColor: isDisabled ? tokens.colors.disabledTrack : trackColor,
           },
         ]}
@@ -140,11 +143,11 @@ export const Switch: React.FC<SwitchProps> = props => {
           style={[
             styles.handle,
             {
-              width: sizeTokens.handleSize,
-              height: sizeTokens.handleSize,
-              borderRadius: sizeTokens.handleSize / 2,
-              top: sizeTokens.padding,
-              left: sizeTokens.padding,
+              width:  safeSizeTokens.handleSize,
+              height:  safeSizeTokens.handleSize,
+              borderRadius:  safeSizeTokens.handleSize / 2,
+              top:  safeSizeTokens.padding,
+              left:  safeSizeTokens.padding,
               transform: [{ translateX }],
               backgroundColor: state.isSelected
                 ? tokens.colors.activeHandle

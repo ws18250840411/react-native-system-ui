@@ -109,11 +109,11 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       insetRadius: radii.lg,
       insetMarginHorizontal: spacing.lg,
       cardShadow: {
-        color: '#0f1a38',
-        opacity: 0.08,
-        radius: 12,
-        offsetY: 6,
-        elevation: 4,
+        color: '#000000',
+        opacity: 0,
+        radius: 0,
+        offsetY: 0,
+        elevation: 0,
       },
     },
   }

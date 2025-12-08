@@ -8,6 +8,9 @@ export interface FormContextValue {
   registerField: (name: string, options: RegisteredFieldOptions) => () => void
   getFieldError: (name: string) => string[] | undefined
   validateField: (name: string, trigger?: string) => Promise<boolean>
+  getFieldsValue: () => Record<string, any>
+  subscribe: (listener: (changedValues: Record<string, any>, allValues: Record<string, any>) => void) => () => void
+  form?: any
   colon?: boolean
   labelWidth?: number
   showValidateMessage?: boolean
