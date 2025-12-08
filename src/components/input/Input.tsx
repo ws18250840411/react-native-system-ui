@@ -17,6 +17,7 @@ import type {
   FieldShowWordLimit,
   FieldType,
 } from "../field/types"
+import type { FieldInstance } from "../field/types"
 import { useInputTokens } from "./tokens"
 
 export interface InputProps extends FieldProps {
@@ -75,7 +76,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
   } = props
 
   const tokens = useInputTokens()
-  const inputRef = React.useRef<TextInput>(null)
+  const inputRef = React.useRef<FieldInstance>(null)
 
   const handleChangeText = React.useCallback(
     (value: string) => {
@@ -99,7 +100,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
         inputRef.current?.clear?.()
       },
       get nativeElement() {
-        return inputRef.current
+        return inputRef.current?.nativeElement ?? null
       },
     }),
     [handleChangeText],

@@ -12,6 +12,7 @@ import { useAriaPress } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
 import Field from '../field'
 import type { FieldProps } from '../field'
+import type { FieldInstance } from '../field/types'
 import { useSearchTokens } from './tokens'
 import type { SearchProps, SearchRef, SearchShape } from './types'
 
@@ -87,7 +88,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const shouldShowAction = !!action || showAction
   const radius = shapeRadiusMap(shape, tokens.radius.square, tokens.radius.round)
 
-  const inputRef = React.useRef<TextInput>(null)
+  const inputRef = React.useRef<FieldInstance>(null)
   React.useImperativeHandle(
     ref,
     () => ({

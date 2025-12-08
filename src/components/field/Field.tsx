@@ -1,4 +1,4 @@
-import { Arrow, QuestionO } from '@react-vant/icons'
+import { Clear, QuestionO } from '@react-vant/icons'
 import React from 'react'
 import {
   Pressable,
@@ -6,628 +6,637 @@ import {
   Text,
   TextInput,
   View,
-  Platform,
-  type TextInputProps,
 } from 'react-native'
+import type { TextInputProps } from 'react-native'
 
+import Cell from '../cell'
 import Dialog from '../dialog'
-import { useAriaPress } from '../../hooks'
-import type { FieldFormatTrigger, FieldProps, FieldTooltip } from './types'
+import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 
-const arrowTransforms: Record<string, { transform: { rotate: string }[] }> = {
-  left: { transform: [{ rotate: '180deg' }] },
-  right: { transform: [{ rotate: '0deg' }] },
-  up: { transform: [{ rotate: '-90deg' }] },
-  down: { transform: [{ rotate: '90deg' }] },
+const isDef = (val: any) => val !== undefined && val !== null
+
+const trimExtraChar = (value: string, char: string, regExp: RegExp) => {
+  const index = value.indexOf(char)
+  if (index === -1) return value
+  if (char === '-' && index !== 0) {
+    return value.slice(0, index)
+  }
+  return value.slice(0, index + 1) + value.slice(index).replace(regExp, '')
 }
 
-const controlAlignMap = {
-  'flex-start': 'flex-start',
+const formatNumber = (value: string, allowDot = true, allowMinus = true) => {
+  let next = value
+  if (allowDot) {
+    next = trimExtraChar(next, '.', /\./g)
+  } else {
+    next = next.split('.')[0]
+  }
+
+  if (allowMinus) {
+    next = trimExtraChar(next, '-', /-/g)
+  } else {
+    next = next.replace(/-/g, '')
+  }
+
+  const regExp = allowDot ? /[^-0-9.]/g : /[^-0-9]/g
+  return next.replace(regExp, '')
+}
+
+const styles = StyleSheet.create({
+  body: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  controlWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  input: {
+    flex: 1,
+    padding: 0,
+    margin: 0,
+  },
+  textarea: {
+    flex: 1,
+    padding: 0,
+    margin: 0,
+    textAlignVertical: 'top',
+  },
+  children: {
+    minHeight: 24,
+    justifyContent: 'center',
+  },
+  leftIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rightIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  prefix: {
+    justifyContent: 'center',
+  },
+  suffix: {
+    justifyContent: 'center',
+  },
+  clearIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  labelWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  tooltip: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  message: {
+    marginTop: 4,
+  },
+  wordLimit: {
+    marginTop: 4,
+  },
+})
+
+const alignMap: Record<'left' | 'center' | 'right', 'flex-start' | 'center' | 'flex-end'> = {
+  left: 'flex-start',
   center: 'center',
-  'flex-end': 'flex-end',
-} as const
-
-type FocusEvent = Parameters<NonNullable<TextInputProps['onFocus']>>[0]
-type BlurEvent = Parameters<NonNullable<TextInputProps['onBlur']>>[0]
-type PressInEvent = Parameters<NonNullable<TextInputProps['onPressIn']>>[0]
-
-const toStringValue = (value?: string | number | null) => {
-  if (value === undefined || value === null) return ''
-  return typeof value === 'string' ? value : String(value)
+  right: 'flex-end',
 }
 
-const wrapAffixContent = (node: React.ReactNode, color: string): React.ReactNode | null => {
-  if (node === null || node === undefined || node === false) {
-    return null
+const mapKeyboardType = (type: FieldProps['type']): TextInputProps['keyboardType'] => {
+  switch (type) {
+    case 'number':
+      return 'decimal-pad'
+    case 'digit':
+      return 'number-pad'
+    case 'tel':
+      return 'phone-pad'
+    default:
+      return undefined
   }
-  if (typeof node === 'string' || typeof node === 'number') {
-    return <Text style={{ color }}>{node}</Text>
-  }
-  if (React.isValidElement(node)) {
-    return node
-  }
-  const mapped = React.Children.map(node, child => {
-    if (typeof child === 'string' || typeof child === 'number') {
-      return <Text style={{ color }}>{child}</Text>
-    }
-    return child
-  })
-  return mapped ?? null
 }
 
-export const Field = React.forwardRef<TextInput, FieldProps>((props, ref) => {
+export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) => {
+  const tokens = useFieldTokens()
+
   const {
     label,
-    labelStyle,
-    labelWidth,
-    labelAlign = 'left',
-    required,
+    labelWidth = tokens.defaults.labelWidth,
+    labelAlign = tokens.defaults.labelAlign,
+    inputAlign: inputAlignProp = tokens.defaults.inputAlign,
+    controlAlign = tokens.defaults.controlAlign,
+    required = false,
     colon = false,
-    tooltip,
     intro,
-    errorMessage,
     description,
+    tooltip,
     error = false,
+    errorMessage,
+    errorMessageAlign = 'left',
+    disabled = false,
+    readOnly = false,
     clearable = false,
-    clearTrigger,
-    inputAlign,
-    controlAlign,
-    center = false,
-    border = true,
-    size = 'normal',
-    clickable = false,
-    isLink = false,
-    arrowDirection = 'right',
+    clearTrigger = tokens.defaults.clearTrigger,
+    clearIcon = <Clear />,
     leftIcon,
     rightIcon,
     prefix,
-    suffix,
+    suffix: suffixProp,
     button,
     extra,
+    value: valueProp,
+    defaultValue = '',
     type = 'text',
-    rows,
-    autosize,
-    autoSize,
-    showWordLimit = false,
+    rows = tokens.defaults.rows,
+    autoSize = false,
     formatter,
-    formatTrigger = 'onChange',
-    clearIcon,
+    formatTrigger = tokens.defaults.formatTrigger,
+    showWordLimit = false,
+    onOverlimit,
     onClear,
     onClick,
-    onPress,
     onClickInput,
     onClickLeftIcon,
     onClickRightIcon,
-    onOverlimit,
-    style,
-    inputStyle,
+    border,
+    center,
+    clickable,
+    isLink,
+    arrowDirection,
+    size,
+    titleStyle,
     contentStyle,
-    value: valueProp,
-    defaultValue,
-    onChangeText,
-    readOnly = false,
-    disabled = false,
+    inputStyle,
+    labelStyle,
+    introStyle,
+    errorMessageStyle,
+    style,
     androidRipple,
-    editable = true,
-    keyboardType: keyboardTypeProp,
+    children,
+    placeholderTextColor,
     onFocus,
     onBlur,
     onPressIn,
+    onChangeText,
     maxLength,
-    secureTextEntry,
-    ...inputProps
+    ...restInputProps
   } = props
 
-  const tokens = useFieldTokens()
-  const resolvedType = type
-  const isTextarea = resolvedType === 'textarea'
-  const resolvedKeyboardType =
-    keyboardTypeProp ??
-    (resolvedType === 'number' || resolvedType === 'digit'
-      ? 'numeric'
-      : resolvedType === 'tel'
-        ? 'phone-pad'
-        : undefined)
+  const resolvedSuffix = suffixProp ?? button
+  const resolvedDescription = intro ?? description
+  const resolvedPlaceholderColor =
+    placeholderTextColor ??
+    (error ? tokens.colors.error : disabled ? tokens.colors.disabled : tokens.colors.placeholder)
 
-  const resolvedLabelWidth = labelWidth ?? tokens.defaults.labelWidth
-  const resolvedClearTrigger = clearTrigger ?? tokens.defaults.clearTrigger
-  const resolvedInputAlign = inputAlign ?? tokens.defaults.inputAlign
-  const resolvedControlAlign = controlAlign ?? tokens.defaults.controlAlign
-  const textareaAutosize = autoSize ?? autosize ?? false
-  const suffixSlot = suffix ?? button
-  const helperDescription = description ?? intro
-  const resolvedPressHandler = onPress ?? onClick
-  const prefixNode = React.useMemo(() => wrapAffixContent(prefix, tokens.colors.prefix), [prefix, tokens.colors.prefix])
-  const suffixNode = React.useMemo(
-    () => wrapAffixContent(suffixSlot, tokens.colors.suffix),
-    [suffixSlot, tokens.colors.suffix],
-  )
-  const iconStyle = React.useMemo(() => [styles.icon, { marginHorizontal: tokens.spacing.iconGap / 2 }], [tokens.spacing.iconGap])
-
+  const isTextarea = type === 'textarea'
   const isControlled = valueProp !== undefined
-  const [internalValue, setInternalValue] = React.useState<string>(toStringValue(defaultValue))
-  const inputValue = isControlled ? toStringValue(valueProp) : internalValue
-
-  const handleFocusState = React.useRef(false)
+  const [internalValue, setInternalValue] = React.useState(defaultValue)
+  const value = isControlled ? valueProp ?? '' : internalValue
+  const [focused, setFocused] = React.useState(false)
   const inputRef = React.useRef<TextInput>(null)
 
-  const mergedRef = React.useCallback(
-    (node: TextInput | null) => {
-      inputRef.current = node
-      if (typeof ref === 'function') {
-        ref(node)
-      } else if (ref) {
-        ;(ref as React.MutableRefObject<TextInput | null>).current = node
-      }
-    },
-    [ref],
-  )
+  const lineHeight = tokens.defaults.textareaLineHeight
+  const minRows = React.useMemo(() => {
+    if (!isTextarea) return 1
+    if (autoSize && typeof autoSize === 'object' && isDef(autoSize.minRows)) {
+      return Math.max(1, autoSize.minRows!)
+    }
+    return Math.max(1, rows)
+  }, [autoSize, isTextarea, rows])
 
-  const filterValueByType = React.useCallback(
-    (text: string) => {
-      if (resolvedType === 'digit') {
-        return text.replace(/[^0-9]/g, '')
-      }
-      if (resolvedType === 'number') {
-        return text.replace(/[^0-9.-]/g, '')
-      }
-      return text
-    },
-    [resolvedType],
-  )
+  const maxRows = React.useMemo(() => {
+    if (!isTextarea) return undefined
+    if (autoSize && typeof autoSize === 'object' && isDef(autoSize.maxRows)) {
+      return Math.max(1, autoSize.maxRows!)
+    }
+    return undefined
+  }, [autoSize, isTextarea])
+
+  const minHeight = isTextarea
+    ? Math.max(tokens.sizes.textareaMinHeight, minRows * lineHeight)
+    : undefined
+  const maxHeight = isTextarea && maxRows ? Math.max(tokens.sizes.textareaMinHeight, maxRows * lineHeight) : undefined
+  const [textareaHeight, setTextareaHeight] = React.useState<number | undefined>(minHeight)
 
   const formatValue = React.useCallback(
-    (text: string, trigger: FieldFormatTrigger) => {
+    (inputValue: string, trigger: 'onChange' | 'onBlur' = 'onChange') => {
       if (formatter && trigger === formatTrigger) {
-        return formatter(text)
+        return formatter(inputValue)
       }
-      return text
+      return inputValue
     },
-    [formatTrigger, formatter],
+    [formatter, formatTrigger],
   )
 
-  const commitValue = React.useCallback(
-    (next: string) => {
+  const updateValue = React.useCallback(
+    (next: string, trigger: 'onChange' | 'onBlur' = 'onChange') => {
+      const formatted = formatValue(next, trigger)
       if (!isControlled) {
-        setInternalValue(next)
+        setInternalValue(formatted)
       }
-      onChangeText?.(next)
+      onChangeText?.(formatted)
     },
-    [isControlled, onChangeText],
+    [formatValue, isControlled, onChangeText],
   )
 
-  const setValue = React.useCallback(
-    (next: string, trigger: FieldFormatTrigger = 'onChange') => {
-      const filtered = filterValueByType(next)
-      let limited = filtered
-      if (typeof maxLength === 'number' && filtered.length > maxLength) {
-        onOverlimit?.(filtered)
-        limited = filtered.slice(0, maxLength)
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      focus: () => inputRef.current?.focus(),
+      blur: () => inputRef.current?.blur(),
+      clear: () => updateValue(''),
+      get nativeElement() {
+        return inputRef.current
+      },
+    }),
+    [updateValue],
+  )
+
+  const finalTextAlign = controlAlign !== 'left' ? controlAlign : inputAlignProp
+
+  const showClear = React.useMemo(() => {
+    if (clearable && !readOnly) {
+      const hasValue = (value ?? '') !== ''
+      const trigger =
+        clearTrigger === 'always' || (clearTrigger === 'focus' && focused)
+      return hasValue && trigger
+    }
+    return false
+  }, [clearable, clearTrigger, focused, readOnly, value])
+
+  const handleChangeText = React.useCallback(
+    (text: string) => {
+      let next = text ?? ''
+
+      if (type === 'number' || type === 'digit') {
+        const allowDot = type === 'number'
+        next = formatNumber(next, allowDot, allowDot)
       }
-      const formatted = formatValue(limited, trigger)
-      commitValue(formatted)
+
+      if (typeof maxLength === 'number' && maxLength >= 0 && next.length > maxLength) {
+        onOverlimit?.(next)
+        next = next.slice(0, maxLength)
+      }
+
+      updateValue(next, 'onChange')
     },
-    [commitValue, filterValueByType, formatValue, maxLength, onOverlimit],
+    [maxLength, onOverlimit, type, updateValue],
   )
 
-  const [textareaHeight, setTextareaHeight] = React.useState<number | undefined>(() => {
-    if (!isTextarea) return undefined
-    const rowCount = rows ?? (typeof textareaAutosize === 'object' ? textareaAutosize.minRows ?? 1 : 1)
-    return rowCount * tokens.defaults.textareaLineHeight
-  })
-
-  React.useEffect(() => {
-    if (!isTextarea) return
-    const rowCount = rows ?? (typeof textareaAutosize === 'object' ? textareaAutosize.minRows ?? 1 : 1)
-    setTextareaHeight(rowCount * tokens.defaults.textareaLineHeight)
-  }, [isTextarea, rows, textareaAutosize, tokens.defaults.textareaLineHeight])
-
-  const resolvedEditable = editable && !disabled && !readOnly
-
-  const showClear =
-    !!inputValue &&
-    clearable &&
-    resolvedEditable &&
-    (!handleFocusState.current ? resolvedClearTrigger === 'always' : true)
-
-  const clearPress = useAriaPress({
-    onPress: () => {
-      setValue('', 'onChange')
-      onClear?.()
+  const handleFocus = React.useCallback(
+    (event: any) => {
+      setFocused(true)
+      onFocus?.(event)
+      if (readOnly) {
+        inputRef.current?.blur()
+      }
     },
-  })
-
-  const showArrow = isLink
-  const helperColor = errorMessage ? tokens.colors.error : tokens.colors.description
-  const borderColor = error || errorMessage ? tokens.colors.error : tokens.colors.border
-  const paddingVertical =
-    size === 'large' ? tokens.spacing.paddingVerticalLarge : tokens.spacing.paddingVertical
-
-  const tooltipNode = React.useMemo(() => {
-    if (!tooltip) return null
-    if (React.isValidElement(tooltip)) {
-      return <View style={styles.tooltip}>{tooltip}</View>
-    }
-    if (typeof tooltip === 'string') {
-      return (
-        <Pressable
-          style={styles.tooltip}
-          hitSlop={8}
-          onPress={() => {
-            Dialog.show({ message: tooltip })
-          }}
-        >
-          <QuestionO />
-        </Pressable>
-      )
-    }
-    const { icon, ...dialogOptions } = tooltip as Exclude<FieldTooltip, React.ReactNode>
-    return (
-      <Pressable
-        style={styles.tooltip}
-        hitSlop={8}
-        onPress={() => {
-          Dialog.show(dialogOptions)
-        }}
-      >
-        {icon ?? <QuestionO />}
-      </Pressable>
-    )
-  }, [tooltip])
-
-  const isInteractive = (clickable || isLink || typeof resolvedPressHandler === 'function') && !disabled
-  const rootPress = useAriaPress({
-    disabled: !isInteractive,
-    onPress: resolvedPressHandler,
-    extraProps: {
-      accessibilityRole: 'button',
-    },
-  })
-
-  const ContainerComponent: React.ComponentType<any> = isInteractive ? Pressable : View
-
-  const isError = error || !!errorMessage
-
-  const containerStyle = [
-    styles.container,
-    {
-      paddingHorizontal: tokens.spacing.paddingHorizontal,
-      paddingVertical,
-      minHeight: 48,
-      backgroundColor: tokens.colors.background,
-      borderBottomWidth: border ? tokens.border.width : 0,
-      borderBottomColor: border ? (isError ? tokens.colors.error : borderColor) : 'transparent',
-    },
-    center && styles.center,
-    disabled && { opacity: tokens.states.disabledOpacity },
-    style,
-  ]
-
-  const bodyStyle = React.useMemo(
-    () => [
-      styles.body,
-      { alignItems: controlAlignMap[resolvedControlAlign] },
-      contentStyle,
-    ],
-    [contentStyle, resolvedControlAlign],
+    [onFocus, readOnly],
   )
+
+  const handleBlur = React.useCallback(
+    (event: any) => {
+      setFocused(false)
+      onBlur?.(event)
+    },
+    [onBlur],
+  )
+
+  const handlePressIn = React.useCallback(
+    (event: any) => {
+      onPressIn?.(event)
+      onClickInput?.()
+    },
+    [onClickInput, onPressIn],
+  )
+
+  const handleContentSizeChange = React.useCallback(
+    (event: { nativeEvent: { contentSize: { height: number } } }) => {
+      if (!isTextarea) return
+      const contentHeight = event.nativeEvent.contentSize?.height ?? 0
+      if (!contentHeight) return
+
+      let nextHeight = contentHeight
+      if (autoSize) {
+        nextHeight = Math.max(minHeight ?? contentHeight, contentHeight)
+        if (maxHeight) {
+          nextHeight = Math.min(nextHeight, maxHeight)
+        }
+      } else if (minHeight) {
+        nextHeight = Math.max(minHeight, contentHeight)
+      }
+      setTextareaHeight(nextHeight)
+    },
+    [autoSize, isTextarea, maxHeight, minHeight],
+  )
+
+  const handleClear = React.useCallback(() => {
+    updateValue('')
+    onClear?.()
+  }, [onClear, updateValue])
 
   const renderLabel = () => {
-    if (!label && !required) return null
+    if (!label) return null
+    const content =
+      typeof label === 'string' || typeof label === 'number' ? (
+        <Text
+          style={[
+            {
+              color: disabled ? tokens.colors.disabled : tokens.colors.label,
+              fontSize: tokens.typography.labelSize,
+              textAlign: labelAlign,
+            },
+            labelStyle,
+          ]}
+          numberOfLines={2}
+        >
+          {label}
+          {colon ? ':' : ''}
+        </Text>
+      ) : (
+        label
+      )
+
     return (
       <View
         style={[
-          styles.label,
-          {
-            width: resolvedLabelWidth,
-            marginRight: tokens.spacing.labelGap,
-            justifyContent:
-              labelAlign === 'right'
-                ? 'flex-end'
-                : labelAlign === 'center'
-                  ? 'center'
-                  : 'flex-start',
-          },
+          styles.labelWrapper,
+          { width: labelWidth, marginRight: tokens.spacing.labelGap, minWidth: labelWidth },
         ]}
       >
-        {required ? <Text style={[styles.required, { color: tokens.colors.error }]}>*</Text> : null}
-        {label ? (
-          <View style={styles.labelRow}>
-            <Text
-              style={[
-                styles.labelText,
-                {
-                  color: error || errorMessage ? tokens.colors.error : tokens.colors.label,
-                  fontSize: tokens.typography.labelSize,
-                  lineHeight: 20,
-                  textAlign: labelAlign === 'center' ? 'center' : labelAlign === 'right' ? 'right' : 'left',
-                },
-                labelStyle,
-              ]}
-            >
-              {label}
-              {colon ? '：' : null}
-            </Text>
-            {tooltipNode}
-          </View>
-        ) : null}
+        {content}
+        {tooltip ? renderTooltip() : null}
       </View>
     )
   }
 
-  const renderIcon = (
-    icon?: React.ReactNode,
-    handler?: (() => void) | undefined,
-  ) => {
-    if (!icon) return null
-    if (!handler) {
-      return <View style={iconStyle}>{icon}</View>
+  const renderTooltip = () => {
+    if (!tooltip) return null
+    const defaultIcon = <QuestionO color={tokens.colors.tooltip} size={tokens.sizes.icon} />
+    let icon: React.ReactNode = defaultIcon
+    let dialogProps: FieldTooltipProps | { message: React.ReactNode } = { message: tooltip as React.ReactNode }
+
+    if (!(React.isValidElement(tooltip) || typeof tooltip === 'string')) {
+      const { icon: customIcon, ...rest } = tooltip as FieldTooltipProps
+      icon = customIcon ?? defaultIcon
+      dialogProps = rest as FieldTooltipProps
     }
+
     return (
-      <Pressable hitSlop={8} style={iconStyle} onPress={handler} accessibilityRole="button">
+      <Pressable
+        style={[styles.tooltip, { marginLeft: tokens.spacing.rightIconGap }]}
+        onPress={() => Dialog.show(dialogProps as any)}
+        accessibilityRole="button"
+      >
         {icon}
       </Pressable>
     )
   }
 
-  const helperNode = errorMessage ?? helperDescription
-  const helperIndent = label ? resolvedLabelWidth + tokens.spacing.labelGap : 0
-
-  const handleFocusEvent = (event: FocusEvent) => {
-    handleFocusState.current = true
-    onFocus?.(event)
-  }
-
-  const handleBlurEvent = (event: BlurEvent) => {
-    handleFocusState.current = false
-    if (formatter && formatTrigger === 'onBlur') {
-      const filtered = filterValueByType(inputValue)
-      const formatted = formatValue(filtered, 'onBlur')
-      if (formatted !== inputValue) {
-        commitValue(formatted)
-      }
-    }
-    onBlur?.(event)
-  }
-
-  const handlePressIn = (event: PressInEvent) => {
-    onClickInput?.()
-    onPressIn?.(event)
-  }
-
-  const renderWordLimit = () => {
-    if (!showWordLimit) return null
-    const currentCount = inputValue.length
-    const content =
-      typeof showWordLimit === 'function'
-        ? showWordLimit({ currentCount, maxLength })
-        : typeof maxLength === 'number' && maxLength > 0
-          ? `${currentCount}/${maxLength}`
-          : `${currentCount}`
-
-    if (content === null || content === undefined || content === false) {
-      return null
-    }
-
-    const wrapperStyle = {
-      marginTop: tokens.spacing.counterMarginTop,
-      alignSelf: 'flex-end' as const,
-    }
-
-    if (React.isValidElement(content)) {
-      return <View style={wrapperStyle}>{content}</View>
-    }
-
-    return (
-      <Text
+  const renderLeftIcon = () => {
+    if (!leftIcon) return null
+    const content = (
+      <View
         style={[
-          styles.counter,
+          styles.leftIcon,
           {
-            color: tokens.colors.counter,
-            fontSize: tokens.typography.counterSize,
+            marginRight: tokens.spacing.leftIconGap,
+            minWidth: tokens.sizes.icon,
           },
-          wrapperStyle,
         ]}
       >
+        {leftIcon}
+      </View>
+    )
+    if (!onClickLeftIcon) return content
+    return (
+      <Pressable onPress={onClickLeftIcon} accessibilityRole="button">
         {content}
-      </Text>
+      </Pressable>
     )
   }
 
+  const renderRightIcon = () => {
+    if (!rightIcon) return null
+    const node = (
+      <View
+        style={[
+          styles.rightIcon,
+          {
+            paddingHorizontal: tokens.spacing.rightIconGap,
+            marginLeft: tokens.spacing.rightIconGap,
+          },
+        ]}
+      >
+        {rightIcon}
+      </View>
+    )
+    if (!onClickRightIcon) return node
+    return (
+      <Pressable onPress={onClickRightIcon} accessibilityRole="button">
+        {node}
+      </Pressable>
+    )
+  }
+
+  const renderClearIcon = () => {
+    if (!showClear) return null
+    return (
+      <Pressable
+        style={[
+          styles.clearIcon,
+          {
+            paddingHorizontal: tokens.spacing.rightIconGap,
+            marginLeft: tokens.spacing.rightIconGap,
+          },
+        ]}
+        onPress={handleClear}
+        accessibilityRole="button"
+      >
+        {React.isValidElement(clearIcon)
+          ? clearIcon
+          : <Clear color={tokens.colors.clear} size={tokens.sizes.clearIcon} />}
+      </Pressable>
+    )
+  }
+
+  const renderControl = () => {
+    if (isDef(children)) {
+      return <View style={styles.children}>{children}</View>
+    }
+
+    const inputStyles = [
+      styles.input,
+      {
+        color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
+        fontSize: tokens.typography.inputSize,
+        textAlign: finalTextAlign,
+      },
+      inputStyle,
+    ]
+
+    if (isTextarea) {
+      inputStyles.push({
+        ...styles.textarea,
+        minHeight,
+        height: textareaHeight,
+        lineHeight,
+      })
+    }
+
+    return (
+      <TextInput
+        ref={inputRef}
+        style={inputStyles}
+        value={value}
+        onChangeText={handleChangeText}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onPressIn={handlePressIn}
+        editable={!disabled && !readOnly}
+        secureTextEntry={type === 'password'}
+        multiline={isTextarea}
+        numberOfLines={isTextarea ? rows : undefined}
+        keyboardType={restInputProps.keyboardType ?? mapKeyboardType(type)}
+        placeholderTextColor={resolvedPlaceholderColor}
+        onContentSizeChange={isTextarea ? handleContentSizeChange : undefined}
+        {...restInputProps}
+      />
+    )
+  }
+
+  const renderWordLimit = () => {
+    if (!showWordLimit || maxLength === undefined || maxLength === null) {
+      return null
+    }
+    const currentCount = (value ?? '').length
+    const content =
+      typeof showWordLimit === 'function'
+        ? showWordLimit({ currentCount, maxLength })
+        : `${currentCount}/${maxLength}`
+
+    if (content === null || content === false) return null
+
+    if (typeof content === 'string' || typeof content === 'number') {
+      return (
+        <Text
+          style={[
+            styles.wordLimit,
+            {
+              color: tokens.colors.wordLimit,
+              fontSize: tokens.typography.wordLimitSize,
+              textAlign: controlAlign,
+            },
+          ]}
+        >
+          {content}
+        </Text>
+      )
+    }
+
+    return content
+  }
+
+  const renderMessage = () => {
+    if (!errorMessage) return null
+    if (typeof errorMessage === 'string' || typeof errorMessage === 'number') {
+      return (
+        <Text
+          style={[
+            styles.message,
+            {
+              color: tokens.colors.error,
+              fontSize: tokens.typography.messageSize,
+              textAlign: errorMessageAlign,
+            },
+            errorMessageStyle,
+          ]}
+        >
+          {errorMessage}
+        </Text>
+      )
+    }
+    return <View style={[styles.message, { alignSelf: alignMap[errorMessageAlign] }]}>{errorMessage}</View>
+  }
+
+  const renderIntro = () => {
+    if (!resolvedDescription) return null
+    if (typeof resolvedDescription === 'string' || typeof resolvedDescription === 'number') {
+      return (
+        <Text
+          style={[
+            styles.message,
+            {
+              color: tokens.colors.intro,
+              fontSize: tokens.typography.introSize,
+              textAlign: controlAlign,
+            },
+            introStyle,
+          ]}
+        >
+          {resolvedDescription}
+        </Text>
+      )
+    }
+    return resolvedDescription
+  }
+
+  const contentWrapperStyle = [
+    {
+      width: '100%',
+      justifyContent: alignMap[controlAlign],
+    },
+    contentStyle,
+  ]
+
   return (
-    <ContainerComponent
-      style={isInteractive ? [...containerStyle, { opacity: rootPress.states.pressed ? 0.6 : 1 }] : containerStyle}
-      android_ripple={isInteractive ? androidRipple ?? { color: '#f2f3f5' } : undefined}
-      {...(isInteractive ? rootPress.interactionProps : {})}
+    <Cell
+      title={renderLabel()}
+      icon={renderLeftIcon()}
+      required={required}
+      border={border}
+      center={center}
+      size={size}
+      clickable={clickable}
+      isLink={isLink}
+      arrowDirection={arrowDirection}
+      extra={extra}
+      titleStyle={titleStyle}
+      style={style}
+      contentStyle={contentWrapperStyle}
+      onPress={onClick}
+      android_ripple={androidRipple}
     >
-      <View style={[styles.row, center && styles.rowCenter]}>
-        {renderLabel()}
-        <View style={bodyStyle}>
-          {prefixNode ? (
-            <View style={[styles.affix, { marginRight: tokens.spacing.prefixGap }]}>{prefixNode}</View>
-          ) : null}
-          {renderIcon(leftIcon, onClickLeftIcon)}
-          <TextInput
-            ref={mergedRef}
-            {...inputProps}
-            editable={resolvedEditable}
-            keyboardType={resolvedKeyboardType as TextInputProps['keyboardType']}
-            secureTextEntry={resolvedType === 'password' ? true : secureTextEntry}
-            multiline={isTextarea}
-            style={[
-              styles.input,
-              {
-                textAlign: resolvedInputAlign,
-                color: isError ? tokens.colors.error : resolvedEditable ? tokens.colors.text : tokens.colors.disabledText,
-                fontSize: tokens.typography.fontSize,
-                textAlignVertical: isTextarea ? 'top' : 'center',
-                height: isTextarea ? textareaHeight : undefined,
-                backgroundColor: 'transparent',
-                borderWidth: 0,
-                borderColor: 'transparent',
-                outlineColor: 'transparent',
-              },
-              Platform.OS === 'web' ? { outlineStyle: 'none' } : null,
-              inputStyle,
-            ]}
-            placeholderTextColor={isError ? tokens.colors.error : tokens.colors.placeholder}
-            value={inputValue}
-            maxLength={maxLength}
-            underlineColorAndroid="transparent"
-            onFocus={handleFocusEvent}
-            onBlur={handleBlurEvent}
-            onPressIn={handlePressIn}
-            onChangeText={text => setValue(text, 'onChange')}
-            onContentSizeChange={
-              isTextarea
-                ? event => {
-                    const { height } = event.nativeEvent.contentSize
-                    let nextHeight = height
-                    if (textareaAutosize) {
-                      const minRows =
-                        typeof textareaAutosize === 'object' ? textareaAutosize.minRows ?? rows : rows
-                      const maxRows = typeof textareaAutosize === 'object' ? textareaAutosize.maxRows : undefined
-                      const minHeight = (minRows ?? 1) * tokens.defaults.textareaLineHeight
-                      const maxHeight = maxRows
-                        ? maxRows * tokens.defaults.textareaLineHeight
-                        : undefined
-                      nextHeight = Math.max(minHeight, height)
-                      if (typeof maxHeight === 'number') {
-                        nextHeight = Math.min(nextHeight, maxHeight)
-                      }
-                    } else if (rows) {
-                      nextHeight = Math.max(rows * tokens.defaults.textareaLineHeight, height)
-                    }
-                    setTextareaHeight(nextHeight)
-                  }
-                : undefined
-            }
-          />
-          {showClear ? (
-            <Pressable hitSlop={8} style={iconStyle} {...clearPress.interactionProps}>
-              {clearIcon ?? (
-                <Text style={[styles.clearText, { color: tokens.colors.clearIcon }]}>×</Text>
-              )}
-            </Pressable>
-          ) : (
-            renderIcon(rightIcon, onClickRightIcon)
-          )}
-          {suffixNode ? (
-            <View style={[styles.affix, { marginLeft: tokens.spacing.suffixGap }]}>{suffixNode}</View>
-          ) : null}
-        </View>
-        {extra ? (
-          <View style={[styles.extra, { marginLeft: tokens.spacing.extraGap }]}>
-            {typeof extra === 'string' ? (
-              <Text style={{ color: tokens.colors.extra }}>{extra}</Text>
-            ) : (
-              extra
-            )}
+      <View style={[styles.body, { alignItems: center ? 'center' : 'flex-start' }]}>
+        {prefix ? (
+          <View style={[styles.prefix, { paddingRight: tokens.spacing.prefixGap }]}>
+            {prefix}
           </View>
         ) : null}
-        {showArrow ? (
-          <View style={[styles.arrow, arrowTransforms[arrowDirection] ?? arrowTransforms.right]}>
-            <Arrow size={tokens.arrow.size} color={tokens.arrow.color} />
+        <View style={styles.controlWrapper}>
+          {renderControl()}
+          {renderClearIcon()}
+        </View>
+        {renderRightIcon()}
+        {resolvedSuffix ? (
+          <View style={[styles.suffix, { paddingLeft: tokens.spacing.suffixGap }]}>
+            {resolvedSuffix}
           </View>
         ) : null}
       </View>
-      {helperNode ? (
-        <View
-          style={{
-            paddingTop: tokens.spacing.messageMarginTop,
-            paddingHorizontal: tokens.spacing.paddingHorizontal,
-          }}
-        >
-          <Text
-            style={[
-              styles.message,
-              {
-                color: helperColor,
-                fontSize: tokens.typography.helperSize,
-                marginLeft: helperIndent,
-              },
-            ]}
-          >
-            {helperNode}
-          </Text>
-        </View>
-      ) : null}
       {renderWordLimit()}
-    </ContainerComponent>
+      {renderMessage()}
+      {renderIntro()}
+    </Cell>
   )
 })
 
 Field.displayName = 'Field'
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'column',
-  },
-  center: {
-    justifyContent: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rowCenter: {
-    alignItems: 'center',
-  },
-  label: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  labelText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  required: {
-    fontSize: 14,
-    marginRight: 4,
-  },
-  body: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    minWidth: 0,
-  },
-  input: {
-    flex: 1,
-    padding: 0,
-    minWidth: 0,
-    flexShrink: 1,
-  },
-  icon: {
-    marginHorizontal: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  clearText: {
-    fontSize: 16,
-  },
-  message: {
-    marginTop: 4,
-  },
-  counter: {
-    textAlign: 'right',
-  },
-  tooltip: {
-    marginLeft: 4,
-  },
-  affix: {
-    justifyContent: 'center',
-  },
-  extra: {
-    justifyContent: 'center',
-  },
-  arrow: {
-    marginLeft: 4,
-  },
-})
 
 export default Field

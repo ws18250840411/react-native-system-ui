@@ -1,7 +1,21 @@
 import Field from './Field'
-import { FieldGroup } from './FieldGroup'
+import { CellGroup as FieldGroup } from '../cell'
+
+export { useFieldTokens } from './tokens'
+export { FieldGroup }
+export type {
+  FieldProps,
+  FieldInstance,
+  FieldType,
+  FieldClearTrigger,
+  FieldFormatTrigger,
+  FieldAutosizeConfig,
+  FieldTooltipProps,
+  FieldShowWordLimit,
+  FieldInputAlign,
+  FieldControlAlign,
+  FieldGroupProps,
+} from './types'
 
 export default Field
-export { Field, FieldGroup }
-export type { FieldProps } from './types'
-export type { FieldGroupProps } from './FieldGroup'
+export { Field }

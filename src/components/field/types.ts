@@ -2,85 +2,108 @@ import type React from 'react'
 import type {
   PressableProps,
   StyleProp,
+  TextInput,
   TextInputProps,
   TextStyle,
   ViewStyle,
 } from 'react-native'
 
-import type { DialogShowOptions } from '../dialog'
-import type { CellArrowDirection, CellSize } from '../cell/types'
+import type { DialogShowOptions } from '../dialog/types'
+import type { CellArrowDirection, CellGroupProps, CellSize } from '../cell/types'
 
-export type FieldClearTrigger = 'always' | 'focus'
-export type FieldInputAlign = 'left' | 'center' | 'right'
 export type FieldType =
+  | 'tel'
   | 'text'
-  | 'number'
   | 'digit'
+  | 'number'
+  | 'search'
   | 'password'
   | 'textarea'
-  | 'tel'
-  | 'search'
 
-export type FieldFormatTrigger = 'onChange' | 'onBlur'
+export type FieldInputAlign = 'left' | 'center' | 'right'
 
-export type FieldAutosizeConfig = { minRows?: number; maxRows?: number }
+export type FieldControlAlign = 'left' | 'center' | 'right'
 
-export interface FieldWordLimitInfo {
-  currentCount: number
-  maxLength?: number
+export type FieldClearTrigger = 'always' | 'focus'
+
+export type FieldFormatTrigger = 'onBlur' | 'onChange'
+
+export type FieldAutosizeConfig = {
+  maxRows?: number
+  minRows?: number
 }
 
-export type FieldShowWordLimit = boolean | ((info: FieldWordLimitInfo) => React.ReactNode)
+export type FieldTooltipProps = DialogShowOptions & {
+  icon?: React.ReactNode
+}
 
-export type FieldTooltip = React.ReactNode | (DialogShowOptions & { icon?: React.ReactNode })
+export type FieldShowWordLimit =
+  | boolean
+  | ((params: { currentCount: number; maxLength?: number }) => React.ReactNode)
 
-export interface FieldProps extends Omit<TextInputProps, 'style'> {
+export interface FieldProps
+  extends Omit<TextInputProps, 'style' | 'value' | 'defaultValue' | 'editable' | 'onChange' | 'onChangeText'> {
   label?: React.ReactNode
-  labelStyle?: StyleProp<TextStyle>
   labelWidth?: number
-  labelAlign?: 'left' | 'right'
+  labelAlign?: FieldInputAlign
+  inputAlign?: FieldInputAlign
+  controlAlign?: FieldControlAlign
   required?: boolean
   colon?: boolean
-  errorMessage?: React.ReactNode
-  description?: React.ReactNode
   intro?: React.ReactNode
-  tooltip?: FieldTooltip
+  description?: React.ReactNode
+  tooltip?: React.ReactNode | FieldTooltipProps
   error?: boolean
+  errorMessage?: React.ReactNode
+  errorMessageAlign?: FieldInputAlign
+  disabled?: boolean
+  readOnly?: boolean
   clearable?: boolean
   clearTrigger?: FieldClearTrigger
-  inputAlign?: FieldInputAlign
-  controlAlign?: 'flex-start' | 'center' | 'flex-end'
-  center?: boolean
-  border?: boolean
-  size?: CellSize
-  clickable?: boolean
-  isLink?: boolean
-  arrowDirection?: CellArrowDirection
+  clearIcon?: React.ReactNode
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
   prefix?: React.ReactNode
   suffix?: React.ReactNode
   button?: React.ReactNode
   extra?: React.ReactNode
+  value?: string
+  defaultValue?: string
   type?: FieldType
   rows?: number
-  autosize?: FieldAutosizeConfig | boolean
-  autoSize?: FieldAutosizeConfig | boolean
-  showWordLimit?: FieldShowWordLimit
+  autoSize?: boolean | FieldAutosizeConfig
   formatter?: (value: string) => string
   formatTrigger?: FieldFormatTrigger
-  clearIcon?: React.ReactNode
+  showWordLimit?: FieldShowWordLimit
+  onOverlimit?: (value: string) => void
+  onChangeText?: (value: string) => void
   onClear?: () => void
   onClick?: () => void
-  onPress?: () => void
   onClickInput?: () => void
   onClickLeftIcon?: () => void
   onClickRightIcon?: () => void
-  onOverlimit?: (value: string) => void
-  style?: StyleProp<ViewStyle>
-  inputStyle?: StyleProp<TextStyle>
+  border?: boolean
+  center?: boolean
+  clickable?: boolean
+  isLink?: boolean
+  arrowDirection?: CellArrowDirection
+  size?: CellSize
+  titleStyle?: StyleProp<TextStyle>
   contentStyle?: StyleProp<ViewStyle>
-  readOnly?: boolean
-  disabled?: boolean
+  inputStyle?: StyleProp<TextStyle>
+  labelStyle?: StyleProp<TextStyle>
+  introStyle?: StyleProp<TextStyle>
+  errorMessageStyle?: StyleProp<TextStyle>
+  style?: StyleProp<ViewStyle>
   androidRipple?: PressableProps['android_ripple']
+  children?: React.ReactNode
 }
+
+export interface FieldInstance {
+  focus: () => void
+  blur: () => void
+  clear: () => void
+  nativeElement: TextInput | null
+}
+
+export type FieldGroupProps = CellGroupProps
