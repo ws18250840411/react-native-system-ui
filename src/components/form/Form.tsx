@@ -270,6 +270,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   const setFieldValue = React.useCallback(
     (name: string, value: any, trigger?: string) => {
       setValues(prev => {
+        if (prev[name] === value) return prev
         const next = { ...prev, [name]: value }
         onValuesChange?.(next, name, value)
         runFieldValidation(name, trigger, value, next)
@@ -285,73 +286,47 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     [notify, onValuesChange, runFieldValidation],
   )
 
-  React.useImperativeHandle(
-    ref,
-    () => ({
-      submit: async () => {
-        try {
-          const result = await validateFields()
-          onFinish?.(result)
-          return result
-        } catch (error) {
-          return undefined
-        }
-      },
-      getFieldsValue: () => valuesRef.current,
-      setFieldsValue: next => {
-        setValues(prev => {
-          const merged = { ...prev, ...next }
-          Object.keys(next).forEach(key => {
+  const formApi = React.useMemo<FormInstance>(() => ({
+    submit: async () => {
+      try {
+        const result = await validateFields()
+        onFinish?.(result)
+        return result
+      } catch (error) {
+        return undefined
+      }
+    },
+    getFieldsValue: () => valuesRef.current,
+    setFieldsValue: next => {
+      setValues(prev => {
+        let changed = false
+        const merged = { ...prev }
+        Object.keys(next).forEach(key => {
+          if (prev[key] !== next[key]) {
+            changed = true
+            merged[key] = next[key]
             onValuesChange?.(merged, key, next[key])
             runFieldValidation(key, undefined, next[key], merged)
-          })
-          notify(next, merged)
-          return merged
+          }
         })
-      },
-      resetFields: () => {
-        setValues(lastInitialValuesRef.current)
-        setErrors({})
-        notify(lastInitialValuesRef.current, lastInitialValuesRef.current)
-      },
-      validateFields,
-      getFieldError: (name: string) => errorsRef.current[name] ?? [],
-    }),
-    [notify, onFinish, onValuesChange, validateFields, runFieldValidation],
-  )
+        if (!changed) return prev
+        notify(next, merged)
+        return merged
+      })
+    },
+    resetFields: () => {
+      setValues(lastInitialValuesRef.current)
+      setErrors({})
+      notify(lastInitialValuesRef.current, lastInitialValuesRef.current)
+    },
+    validateFields,
+    getFieldError: (name: string) => errorsRef.current[name] ?? [],
+  }), [notify, onFinish, onValuesChange, validateFields, runFieldValidation])
 
+  React.useImperativeHandle(ref, () => formApi, [formApi])
   React.useEffect(() => {
-    formApiRef.current = {
-      submit: async () => {
-        try {
-          const result = await validateFields()
-          onFinish?.(result)
-          return result
-        } catch (error) {
-          return undefined
-        }
-      },
-      getFieldsValue: () => valuesRef.current,
-      setFieldsValue: next => {
-        setValues(prev => {
-          const merged = { ...prev, ...next }
-          Object.keys(next).forEach(key => {
-            onValuesChange?.(merged, key, next[key])
-            runFieldValidation(key, undefined, next[key], merged)
-          })
-          notify(next, merged)
-          return merged
-        })
-      },
-      resetFields: () => {
-        setValues(lastInitialValuesRef.current)
-        setErrors({})
-        notify(lastInitialValuesRef.current, lastInitialValuesRef.current)
-      },
-      validateFields,
-      getFieldError: (name: string) => errorsRef.current[name] ?? [],
-    }
-  }, [notify, onFinish, onValuesChange, validateFields, runFieldValidation])
+    formApiRef.current = formApi
+  }, [formApi])
 
   const getFieldError = React.useCallback((name: string) => errors[name], [errors])
 

@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-在一组选项中进行单选，API 与 react-vant 保持一致，基于 `@react-native-aria/radio` 实现。
+在一组选项中进行单选，基于 `@react-native-aria/radio` 实现，支持受控/非受控用法。
 
 ## 引入
 

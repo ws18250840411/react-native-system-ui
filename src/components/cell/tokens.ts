@@ -70,7 +70,7 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
     },
     spacing: {
       iconGap: spacing.sm,
-      valueGap: spacing.md,
+      valueGap: spacing.none, // 官方 cell 标题与内容间无额外间距
       extraGap: spacing.sm,
       labelMarginTop: spacing.xs,
     },
@@ -97,7 +97,7 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       size: 16,
     },
     icon: {
-      size: 24,
+      size: 16, // 对齐 @cell-icon-size 16px
     },
     group: {
       marginBottom: spacing.md,

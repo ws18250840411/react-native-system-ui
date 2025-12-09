@@ -19,13 +19,13 @@ import { Popup } from 'react-native-system-ui'
 
 ### 基础用法
 
-通过 `visible` 与 `onClose` 受控弹层的打开/关闭状态，最常见的确认/提示面板点击 `Cell` 即可展示。为与 react-vant 保持一致，示例显式指定 `placement="center"` 并仅展示一块内容区域。
+通过 `visible` 与 `onClose` 受控弹层的打开/关闭状态，最常见的确认/提示面板点击 `Cell` 即可展示。示例中显式指定 `placement="center"` 并仅展示一块内容区域。
 
 <code title="基础用法" src="./popup/demo/base.tsx"></code>
 
 ### 弹出位置
 
-将 `placement`（react-vant 中为 `position`）设置为 `top`、`bottom`、`left`、`right` 即可在不同方向弹出；`center` 的场景可参考基础用法。示例与 react-vant 一样，为每个方向维护独立的弹层，并通过样式控制高度/宽度。
+将 `placement`（react-vant 中为 `position`）设置为 `top`、`bottom`、`left`、`right` 即可在不同方向弹出；`center` 的场景可参考基础用法。示例为每个方向维护独立的弹层，并通过样式控制高度/宽度。
 
 <code title="弹出位置" src="./popup/demo/placement.tsx"></code>
 
@@ -43,7 +43,7 @@ import { Popup } from 'react-native-system-ui'
 
 ### 圆角样式
 
-设置 `round` 后会根据弹出方向自动为对应边添加圆角。示例演示了与 react-vant 相同的底部圆角弹窗，配合 `closeable` 与固定位高度的底部弹层。
+设置 `round` 后会根据弹出方向自动为对应边添加圆角。示例演示底部圆角弹窗，配合 `closeable` 与固定位高度的底部弹层。
 
 <code title="圆角" src="./popup/demo/round.tsx"></code>
 

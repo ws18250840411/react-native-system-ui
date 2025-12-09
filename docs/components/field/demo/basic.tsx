@@ -7,12 +7,12 @@ export default function FieldBasicDemo() {
 
   return (
     <Field
-      label="姓名"
-      placeholder="请输入姓名"
+      label="文本"
+      tooltip="说明文字"
+      placeholder="请输入文本"
       description="We must make sure that you are a human."
       value={value}
       onChangeText={setValue}
-      clearable
     />
   )
 }

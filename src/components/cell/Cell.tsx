@@ -17,12 +17,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   body: {
-    flex: 1,
+    minWidth: 0,
     flexDirection: 'column',
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  titleText: {
+    display: 'flex', // 让 width/minWidth 在 RN Web 生效
   },
   value: {
     textAlign: 'right',
@@ -31,7 +34,9 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   valueContainer: {
+    flex: 1,
     flexShrink: 1,
+    minWidth: 0,
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
@@ -186,6 +191,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
                 ? (
                   <Text
                     style={[
+                      styles.titleText,
                       {
                         color: tokens.typography.titleColor,
                         fontSize:
@@ -232,6 +238,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
         style={[
           styles.valueContainer,
           { minHeight: tokens.typography.lineHeight },
+          { marginLeft: tokens.spacing.valueGap },
           onlyValue && styles.valueOnlyContainer,
           center && styles.valueCenter,
         ]}

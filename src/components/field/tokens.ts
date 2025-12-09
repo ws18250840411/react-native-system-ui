@@ -42,6 +42,7 @@ export interface FieldTokens {
   typography: {
     labelSize: number
     inputSize: number
+    inputLineHeight: number
     placeholderSize: number
     messageSize: number
     introSize: number
@@ -59,14 +60,16 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
 
   return {
     defaults: {
-      labelWidth: 96,
+      // 统一使用 72px（可通过 props 或主题覆写）
+      labelWidth: 72,
       labelAlign: 'left',
       inputAlign: 'left',
       controlAlign: 'left',
       clearTrigger: 'focus',
       formatTrigger: 'onChange',
       rows: 2,
-      textareaLineHeight: Math.round(fontSize.md * typography.lineHeightMultiplier),
+      // TextArea 行高参考 Web 默认 20px，便于按 px 换算 rows
+      textareaLineHeight: 20,
     },
     colors: {
       label: palette.default[700],
@@ -81,19 +84,21 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
       wordLimit: palette.default[700],
     },
     spacing: {
-      labelGap: spacing.sm,
-      leftIconGap: spacing.md,
-      rightIconGap: spacing.xs,
-      prefixGap: spacing.xs,
-      suffixGap: spacing.xs,
-      messageMarginTop: spacing.xs,
-      introMarginTop: spacing.xs,
-      wordLimitMarginTop: spacing.xs,
+      // labelGap 设为 0，确保总宽度即为 labelWidth
+      labelGap: spacing.none,
+      leftIconGap: spacing.xs, // 4
+      rightIconGap: spacing.sm * 1, // 8
+      prefixGap: spacing.sm * 1, // 8
+      suffixGap: spacing.sm * 1, // 8
+      messageMarginTop: spacing.none,
+      introMarginTop: spacing.none,
+      wordLimitMarginTop: spacing.none,
     },
     typography: {
       labelSize: fontSize.sm,
-      inputSize: fontSize.md,
-      placeholderSize: fontSize.md,
+      inputSize: fontSize.sm,
+      inputLineHeight: 24,
+      placeholderSize: fontSize.sm,
       messageSize: 12,
       introSize: 12,
       wordLimitSize: fontSize.sm,

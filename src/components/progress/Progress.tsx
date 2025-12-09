@@ -1,50 +1,8 @@
 import React from 'react'
 import { Animated, LayoutChangeEvent, Platform, StyleSheet, Text, View } from 'react-native'
 
-import { useTheme } from '../../design-system'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'
-
-interface ProgressTokens {
-  colors: {
-    track: string
-    indicator: string
-    pivotText: string
-  }
-  sizes: {
-    height: number
-    pivotFont: number
-    pivotPaddingHorizontal: number
-    pivotPaddingVertical: number
-  }
-}
-
-const createProgressTokens = (foundations: ReturnType<typeof useTheme>['foundations']): ProgressTokens => ({
-  colors: {
-    track: foundations.palette.default[100],
-    indicator: foundations.palette.primary[500],
-    pivotText: '#ffffff',
-  },
-  sizes: {
-    height: 4,
-    pivotFont: foundations.fontSize.xs,
-    pivotPaddingHorizontal: foundations.spacing.xs,
-    pivotPaddingVertical: 2,
-  },
-})
-
-const useProgressTokens = (overrides?: DeepPartial<ProgressTokens>): ProgressTokens => {
-  const { foundations, components } = useTheme()
-  const base = React.useMemo(() => createProgressTokens(foundations), [foundations])
-  const componentOverrides = components?.progress as DeepPartial<ProgressTokens> | undefined
-  const merged = componentOverrides
-    ? overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides
-    : overrides
-  return merged ? deepMerge(base, merged) : base
-}
 
 const clampPercentage = (value: number) => {
   if (Number.isNaN(value)) return 0
@@ -65,21 +23,26 @@ const parseStrokeWidth = (value: number | string | undefined, fallback: number) 
 }
 
 const parsePercentage = (percentage?: number | string) => {
-  if (typeof percentage === 'number') {
-    return percentage
-  }
+  if (typeof percentage === 'number') return percentage
   if (typeof percentage === 'string') {
-    const parsed = Number(percentage)
+    const normalized = percentage.trim().replace('%', '')
+    const parsed = Number(normalized)
     return Number.isNaN(parsed) ? 0 : parsed
   }
   return 0
+}
+
+const isGradientColor = (color?: string) => {
+  if (typeof color !== 'string') return false
+  const lower = color.toLowerCase()
+  return ['linear-gradient', 'radial-gradient', 'conic-gradient'].some(key => lower.includes(key))
 }
 
 const useAnimatedWidth = (
   percentage: number,
   trackWidth: number,
   animated: boolean,
-  duration: number
+  duration: number,
 ) => {
   const value = React.useRef(new Animated.Value(0)).current
 
@@ -109,14 +72,14 @@ export const Progress: React.FC<ProgressProps> = props => {
     strokeWidth,
     color,
     trackColor,
-  pivotText,
-  pivotColor,
-  textColor,
-  inactive = false,
-  showPivot = true,
-  animated,
-  transition = true,
-  animationDuration = 300,
+    pivotText,
+    pivotColor,
+    textColor,
+    inactive = false,
+    showPivot = true,
+    animated,
+    transition = true,
+    animationDuration = 300,
     style,
     pivotStyle,
     indicatorStyle,
@@ -126,60 +89,82 @@ export const Progress: React.FC<ProgressProps> = props => {
   const percentage = clampPercentage(parsePercentage(percentageProp))
   const resolvedStrokeWidth = React.useMemo(
     () => parseStrokeWidth(strokeWidth, tokens.sizes.height),
-    [strokeWidth, tokens.sizes.height]
+    [strokeWidth, tokens.sizes.height],
   )
+  const isGradient = isGradientColor(color)
+  const useGradient = isGradient && Platform.OS === 'web'
+
   const resolvedTrackColor = trackColor ?? tokens.colors.track
   const resolvedIndicatorColor = inactive
     ? tokens.colors.track
-    : color ?? tokens.colors.indicator
+    : !useGradient && isGradient
+      ? tokens.colors.indicator
+      : color ?? tokens.colors.indicator
   const resolvedPivotBackground = pivotColor ?? resolvedIndicatorColor
   const resolvedPivotTextColor = textColor ?? tokens.colors.pivotText
   const pivotContent = pivotText ?? `${percentage}%`
+  const safeDuration = Math.max(0, animationDuration)
 
   const shouldShowPivot = showPivot && pivotContent !== null && pivotContent !== false
-  const useGradient = typeof color === 'string' && color.includes('gradient') && Platform.OS === 'web'
 
-  const indicatorBaseStyle = StyleSheet.flatten([
-    {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      height: resolvedStrokeWidth,
-      backgroundColor: useGradient ? undefined : resolvedIndicatorColor,
-      borderRadius: resolvedStrokeWidth / 2,
-    },
-    useGradient
-      ? {
-          backgroundImage: color as any,
-        }
-      : null,
-    indicatorStyle,
-  ])
+  const shouldAnimateWidth =
+    ((typeof animated === 'boolean' ? animated : undefined) ?? transition ?? true) && !useGradient
+
+  const indicatorBaseStyle = React.useMemo(
+    () =>
+      StyleSheet.flatten([
+        {
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          height: resolvedStrokeWidth,
+          backgroundColor: useGradient ? undefined : resolvedIndicatorColor,
+          borderRadius: resolvedStrokeWidth / 2,
+        },
+        useGradient
+          ? {
+              backgroundImage: color as any,
+            }
+          : null,
+        indicatorStyle,
+      ]),
+    [color, indicatorStyle, resolvedIndicatorColor, resolvedStrokeWidth, useGradient],
+  )
 
   const [trackWidth, setTrackWidth] = React.useState(0)
   const [pivotWidth, setPivotWidth] = React.useState(0)
 
-  const enableAnimation = (typeof animated === 'boolean' ? animated : undefined) ?? transition ?? true
   const animatedWidth = useAnimatedWidth(
     percentage,
     trackWidth,
-    enableAnimation && !useGradient,
-    animationDuration
+    shouldAnimateWidth,
+    safeDuration,
   )
 
   const handleTrackLayout = (event: LayoutChangeEvent) => {
     const { width } = event.nativeEvent.layout
+    if (width === trackWidth) return
     setTrackWidth(width)
-    animatedWidth.setValue((percentage / 100) * width)
+    if (!shouldAnimateWidth) {
+      animatedWidth.setValue((percentage / 100) * width)
+    }
   }
 
-  const pivotBaseStyle = {
-    bottom: resolvedStrokeWidth + tokens.sizes.pivotPaddingVertical * 2,
-    backgroundColor: resolvedPivotBackground,
-    paddingHorizontal: tokens.sizes.pivotPaddingHorizontal,
-    paddingVertical: tokens.sizes.pivotPaddingVertical,
-    borderRadius: resolvedStrokeWidth,
-  }
+  const pivotBaseStyle = React.useMemo(
+    () => ({
+      bottom: resolvedStrokeWidth + tokens.sizes.pivotPaddingVertical * 2,
+      backgroundColor: resolvedPivotBackground,
+      paddingHorizontal: tokens.sizes.pivotPaddingHorizontal,
+      paddingVertical: tokens.sizes.pivotPaddingVertical,
+      borderRadius: resolvedStrokeWidth,
+    }),
+    [
+      resolvedPivotBackground,
+      resolvedStrokeWidth,
+      tokens.sizes.pivotPaddingHorizontal,
+      tokens.sizes.pivotPaddingVertical,
+    ],
+  )
 
   const renderPivotContent = () =>
     typeof pivotContent === 'string' || typeof pivotContent === 'number' ? (
@@ -213,14 +198,17 @@ export const Progress: React.FC<ProgressProps> = props => {
     const translateX = Animated.diffClamp(
       Animated.add(animatedWidth, -pivotWidth / 2),
       0,
-      Math.max(trackWidth - pivotWidth, 0)
+      Math.max(trackWidth - pivotWidth, 0),
     )
 
     return (
       <Animated.View
         style={[styles.pivot, pivotBaseStyle, { transform: [{ translateX }] }]}
         pointerEvents="none"
-        onLayout={event => setPivotWidth(event.nativeEvent.layout.width)}
+        onLayout={event => {
+          const nextWidth = event.nativeEvent.layout.width
+          if (nextWidth !== pivotWidth) setPivotWidth(nextWidth)
+        }}
       >
         {renderPivotContent()}
       </Animated.View>
@@ -235,7 +223,12 @@ export const Progress: React.FC<ProgressProps> = props => {
   }
 
   return (
-    <View style={style} {...rest}>
+    <View
+      style={style}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: percentage }}
+      {...rest}
+    >
       <View
         style={{
           height: resolvedStrokeWidth,
@@ -263,3 +256,5 @@ const styles = StyleSheet.create({
 })
 
 Progress.displayName = 'Progress'
+
+export default Progress

@@ -35,7 +35,7 @@
 | Cascader 级联选择 | ✅ | 参考 React Vant：新增 `poppable` + render props Cell 触发、Popup/受控显隐与 `actions`；示例、文档、数据源与 React Vant demo 完全对齐（基础/Form/异步/字段名/受控），默认开启 Tabs 滑动动画，可关闭 `swipeable`；最终值只在叶子/达最大层级时提交，避免重复回调 |
 | Checkbox 复选框 | ✅ | 对齐 React Vant：支持 `iconRender`/`bindGroup`、`toggleAll(skipDisabled)`、组向 iconSize/checkedColor 透传与最大可选数；标签点击禁用/左右布局已覆盖；单节点 Pressable + a11y 状态统一，context value memo 化，横向换行间距补齐 |
 | DatetimePicker 时间选择 | ✅ | 对齐 React Vant：补全 date/time/datetime/datehour/year-month/month-day/columnsOrder/filter/formatter/popup demo；Picker 端新增 columnsTop/columnsBottom、swipeDuration、visibleItemCount=6，值在 min/max 边界自动 clamp |
-| Form 表单 | ⏳ |  |
+| Form 表单 | ✅ | 校验/依赖更新去重，setFieldsValue 只处理实际变更，API memo 化 |
 | Input 输入框 | ⏳ |  |
 | NumberKeyboard 数字键盘 | ⏳ |  |
 | Picker 选择器 | ✅ | 级联判定/受控同步/首帧副作用处理完成，Web 滚轮体验优化并补 utils 单测；demo 对齐 React Vant |
@@ -69,13 +69,13 @@
 | CountDown 倒计时 | ⏳ |  |
 | Divider 分割线 | ⏳ |  |
 | Empty 空状态 | ⏳ |  |
-| Field 输入项 | ⏳ |  |
+| Field 输入项 | ✅ | onBlur 格式化、可达性 aria-describedby/invalid、样式 useMemo，清除/对齐逻辑已对齐官方 |
 | FloatingBall 浮动球 | ⏳ |  |
 | ImagePreview 图片预览 | ⏳ |  |
 | List 列表 | ⏳ |  |
 | NoticeBar 通知栏 | ⏳ |  |
 | Popover 气泡卡片 | ⏳ |  |
-| Progress 进度条 | ⏳ |  |
+| Progress 进度条 | ✅ | 渐变兼容（Web 背景图/原生回退纯色）、动画容错&去抖、a11y progressbar、百分比/行高解析完善并补单测 |
 | Skeleton 骨架屏 | ⏳ |  |
 | Tag 标签 | ⏳ |  |
 | WaterMark 水印 | ⏳ |  |

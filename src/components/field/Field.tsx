@@ -52,16 +52,26 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: 0,
+    overflow: 'hidden',
+    minHeight: 24,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     padding: 0,
     margin: 0,
+    borderWidth: 0,
+    outlineStyle: 'none',
+    backgroundColor: 'transparent',
   },
   textarea: {
     flex: 1,
     padding: 0,
     margin: 0,
+    borderWidth: 0,
+    outlineStyle: 'none',
+    backgroundColor: 'transparent',
     textAlignVertical: 'top',
   },
   children: {
@@ -90,16 +100,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 0,
+    flexGrow: 0,
+    minWidth: 0,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
   },
   tooltip: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   message: {
-    marginTop: 4,
+    marginTop: 0,
   },
   wordLimit: {
-    marginTop: 4,
+    marginTop: 0,
   },
 })
 
@@ -187,6 +204,21 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     maxLength,
     ...restInputProps
   } = props
+  const mergedTitleStyle = React.useMemo(
+    () => [
+      {
+        width: labelWidth,
+        minWidth: labelWidth,
+        maxWidth: labelWidth,
+        flexBasis: labelWidth,
+        marginRight: tokens.spacing.labelGap,
+        flexShrink: 0,
+        flexGrow: 0,
+      },
+      titleStyle,
+    ],
+    [labelWidth, titleStyle, tokens.spacing.labelGap],
+  )
 
   const resolvedSuffix = suffixProp ?? button
   const resolvedDescription = intro ?? description
@@ -199,7 +231,16 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const [internalValue, setInternalValue] = React.useState(defaultValue)
   const value = isControlled ? valueProp ?? '' : internalValue
   const [focused, setFocused] = React.useState(false)
+  const [pressingClear, setPressingClear] = React.useState(false)
   const inputRef = React.useRef<TextInput>(null)
+  const introId = React.useId()
+  const errorId = React.useId()
+  const describedBy = React.useMemo(() => {
+    const ids: string[] = []
+    if (errorMessage) ids.push(errorId)
+    if (resolvedDescription) ids.push(introId)
+    return ids.length ? ids : undefined
+  }, [errorId, errorMessage, introId, resolvedDescription])
 
   const lineHeight = tokens.defaults.textareaLineHeight
   const minRows = React.useMemo(() => {
@@ -264,11 +305,12 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     if (clearable && !readOnly) {
       const hasValue = (value ?? '') !== ''
       const trigger =
-        clearTrigger === 'always' || (clearTrigger === 'focus' && focused)
+        clearTrigger === 'always' ||
+        (clearTrigger === 'focus' && (focused || pressingClear))
       return hasValue && trigger
     }
     return false
-  }, [clearable, clearTrigger, focused, readOnly, value])
+  }, [clearable, clearTrigger, focused, pressingClear, readOnly, value])
 
   const handleChangeText = React.useCallback(
     (text: string) => {
@@ -302,10 +344,11 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const handleBlur = React.useCallback(
     (event: any) => {
+      updateValue(value ?? '', 'onBlur')
       setFocused(false)
       onBlur?.(event)
     },
-    [onBlur],
+    [onBlur, updateValue, value],
   )
 
   const handlePressIn = React.useCallback(
@@ -337,39 +380,38 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   )
 
   const handleClear = React.useCallback(() => {
+    // 清空受控/非受控值，并立刻保持焦点，避免 Web 上触发 blur 后按钮消失但文本未清空
     updateValue('')
+    inputRef.current?.clear?.()
+    inputRef.current?.focus?.()
     onClear?.()
   }, [onClear, updateValue])
 
   const renderLabel = () => {
     if (!label) return null
-    const content =
-      typeof label === 'string' || typeof label === 'number' ? (
-        <Text
-          style={[
-            {
-              color: disabled ? tokens.colors.disabled : tokens.colors.label,
-              fontSize: tokens.typography.labelSize,
-              textAlign: labelAlign,
-            },
-            labelStyle,
-          ]}
-          numberOfLines={2}
-        >
-          {label}
-          {colon ? ':' : ''}
-        </Text>
-      ) : (
-        label
-      )
+    const isPlain = typeof label === 'string' || typeof label === 'number'
+
+    const content = isPlain ? (
+      <Text
+        style={[
+          {
+            color: disabled ? tokens.colors.disabled : tokens.colors.label,
+            fontSize: tokens.typography.labelSize,
+            textAlign: labelAlign,
+          },
+          labelStyle,
+        ]}
+        numberOfLines={1}
+      >
+        {label}
+        {colon ? ':' : ''}
+      </Text>
+    ) : (
+      label
+    )
 
     return (
-      <View
-        style={[
-          styles.labelWrapper,
-          { width: labelWidth, marginRight: tokens.spacing.labelGap, minWidth: labelWidth },
-        ]}
-      >
+      <View style={styles.labelRow}>
         {content}
         {tooltip ? renderTooltip() : null}
       </View>
@@ -430,7 +472,6 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
           styles.rightIcon,
           {
             paddingHorizontal: tokens.spacing.rightIconGap,
-            marginLeft: tokens.spacing.rightIconGap,
           },
         ]}
       >
@@ -453,9 +494,15 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
           styles.clearIcon,
           {
             paddingHorizontal: tokens.spacing.rightIconGap,
-            marginLeft: tokens.spacing.rightIconGap,
           },
         ]}
+        onMouseDown={event => {
+          // 阻止鼠标按下让输入失焦（Web）
+          event.preventDefault?.()
+          event.stopPropagation?.()
+        }}
+        onPressIn={() => setPressingClear(true)}
+        onPressOut={() => setPressingClear(false)}
         onPress={handleClear}
         accessibilityRole="button"
       >
@@ -471,24 +518,43 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       return <View style={styles.children}>{children}</View>
     }
 
-    const inputStyles = [
-      styles.input,
-      {
-        color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
-        fontSize: tokens.typography.inputSize,
-        textAlign: finalTextAlign,
-      },
-      inputStyle,
-    ]
+    const inputStyles = React.useMemo(() => {
+      const base = [
+        styles.input,
+        {
+          color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
+          fontSize: tokens.typography.inputSize,
+          textAlign: finalTextAlign,
+          lineHeight: tokens.typography.inputLineHeight,
+          height: tokens.typography.inputLineHeight,
+        },
+        inputStyle,
+      ]
 
-    if (isTextarea) {
-      inputStyles.push({
-        ...styles.textarea,
-        minHeight,
-        height: textareaHeight,
-        lineHeight,
-      })
-    }
+      if (isTextarea) {
+        base.push({
+          ...styles.textarea,
+          minHeight,
+          height: textareaHeight,
+          lineHeight,
+        })
+      }
+      return base
+    }, [
+      disabled,
+      error,
+      finalTextAlign,
+      inputStyle,
+      isTextarea,
+      lineHeight,
+      minHeight,
+      textareaHeight,
+      tokens.colors.disabled,
+      tokens.colors.error,
+      tokens.colors.input,
+      tokens.typography.inputLineHeight,
+      tokens.typography.inputSize,
+    ])
 
     return (
       <TextInput
@@ -506,6 +572,9 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         keyboardType={restInputProps.keyboardType ?? mapKeyboardType(type)}
         placeholderTextColor={resolvedPlaceholderColor}
         onContentSizeChange={isTextarea ? handleContentSizeChange : undefined}
+        accessibilityDescribedBy={describedBy}
+        aria-describedby={describedBy?.join(' ')}
+        clearButtonMode="never"
         {...restInputProps}
       />
     )
@@ -548,6 +617,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     if (typeof errorMessage === 'string' || typeof errorMessage === 'number') {
       return (
         <Text
+          nativeID={errorId}
           style={[
             styles.message,
             {
@@ -557,12 +627,21 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
             },
             errorMessageStyle,
           ]}
+          accessibilityLiveRegion="polite"
         >
           {errorMessage}
         </Text>
       )
     }
-    return <View style={[styles.message, { alignSelf: alignMap[errorMessageAlign] }]}>{errorMessage}</View>
+    return (
+      <View
+        nativeID={errorId}
+        style={[styles.message, { alignSelf: alignMap[errorMessageAlign] }]}
+        accessibilityLiveRegion="polite"
+      >
+        {errorMessage}
+      </View>
+    )
   }
 
   const renderIntro = () => {
@@ -570,6 +649,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     if (typeof resolvedDescription === 'string' || typeof resolvedDescription === 'number') {
       return (
         <Text
+          nativeID={introId}
           style={[
             styles.message,
             {
@@ -584,16 +664,23 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         </Text>
       )
     }
-    return resolvedDescription
+    return (
+      <View nativeID={introId}>
+        {resolvedDescription}
+      </View>
+    )
   }
 
-  const contentWrapperStyle = [
-    {
-      width: '100%',
-      justifyContent: alignMap[controlAlign],
-    },
-    contentStyle,
-  ]
+  const contentWrapperStyle = React.useMemo(
+    () => [
+      {
+        width: '100%',
+        justifyContent: alignMap[controlAlign],
+      },
+      contentStyle,
+    ],
+    [contentStyle, controlAlign],
+  )
 
   return (
     <Cell
@@ -607,13 +694,15 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       isLink={isLink}
       arrowDirection={arrowDirection}
       extra={extra}
-      titleStyle={titleStyle}
+      titleStyle={mergedTitleStyle}
       style={style}
       contentStyle={contentWrapperStyle}
+      accessibilityState={error ? { invalid: true } : undefined}
+      accessibilityLabel={label && typeof label === 'string' ? label : undefined}
       onPress={onClick}
       android_ripple={androidRipple}
     >
-      <View style={[styles.body, { alignItems: center ? 'center' : 'flex-start' }]}>
+      <View style={styles.body}>
         {prefix ? (
           <View style={[styles.prefix, { paddingRight: tokens.spacing.prefixGap }]}>
             {prefix}

@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-表单项容器，支持标签、清除按钮、提示文案、左右插槽等能力，行为与 react-vant 的 Field 保持一致；若存在 React Native 限制，会在下文备注。
+表单项容器，支持标签、清除按钮、提示文案、左右插槽等能力。
 
 ## 引入
 
@@ -25,25 +25,33 @@ import { Field } from 'react-native-system-ui'
 
 <code title="图标与清除" src="./field/demo/icon.tsx"></code>
 
-### 前后缀插槽
+### 错误提示
 
-<code title="前后缀插槽" src="./field/demo/custom.tsx"></code>
+<code title="错误提示" src="./field/demo/error.tsx"></code>
 
-### 输入格式化
+### 插入按钮
 
-<code title="输入格式化" src="./field/demo/formatter.tsx"></code>
+<code title="插入按钮" src="./field/demo/custom.tsx"></code>
 
-### 自动增高的文本域
+### 格式化输入内容
 
-<code title="自动增高" src="./field/demo/textarea.tsx"></code>
+<code title="格式化输入内容" src="./field/demo/formatter.tsx"></code>
 
-### 分组展示
+### 高度自适应
 
-<code title="Field.Group" src="./field/demo/group.tsx"></code>
+<code title="高度自适应" src="./field/demo/textarea.tsx"></code>
 
-### 校验提示
+### 显示字数统计
 
-<code title="校验提示" src="./field/demo/error.tsx"></code>
+<code title="显示字数统计" src="./field/demo/word-limit.tsx"></code>
+
+### 输入框内容对齐
+
+<code title="输入框内容对齐" src="./field/demo/align.tsx"></code>
+
+### ref 调用
+
+<code title="ref 调用" src="./field/demo/ref.tsx"></code>
 
 ## API
 

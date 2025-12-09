@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { StyleSheet, Text, View } from 'react-native'
+import { Platform, StyleSheet, Text, View } from 'react-native'
 
 import Progress from '..'
 
@@ -41,5 +41,49 @@ describe('Progress', () => {
       .find(style => typeof style?.height === 'number' && style.height === 6)
 
     expect(trackStyle?.height).toBe(6)
+  })
+
+  it('accepts percentage strings with % suffix', () => {
+    const tree = renderer.create(<Progress percentage="40%" />)
+    const indicator = tree.root
+      .findAllByType(View)
+      .map(node => StyleSheet.flatten(node.props.style))
+      .find(style => typeof style?.width === 'string' && style.width === '40%')
+
+    expect(indicator?.width).toBe('40%')
+  })
+
+  it('clamps percentage between 0 and 100', () => {
+    const over = renderer.create(<Progress percentage={150} />)
+    const overStyle = over.root
+      .findAllByType(View)
+      .map(node => StyleSheet.flatten(node.props.style))
+      .find(style => typeof style?.width === 'string')
+    expect(overStyle?.width).toBe('100%')
+
+    const under = renderer.create(<Progress percentage={-20} />)
+    const underStyle = under.root
+      .findAllByType(View)
+      .map(node => StyleSheet.flatten(node.props.style))
+      .find(style => typeof style?.width === 'string')
+    expect(underStyle?.width).toBe('0%')
+  })
+
+  it('falls back to solid color when gradient is passed on native platforms', () => {
+    const originalOS = Platform.OS
+    Platform.OS = 'ios'
+
+    const tree = renderer.create(
+      <Progress percentage={50} color="linear-gradient(90deg, #f00, #0f0)" />
+    )
+    const indicator = tree.root
+      .findAllByType(View)
+      .map(node => StyleSheet.flatten(node.props.style))
+      .find(style => style?.width === '50%')
+
+    expect(indicator?.backgroundImage).toBeUndefined()
+    expect(indicator?.backgroundColor).toBeTruthy()
+
+    Platform.OS = originalOS
   })
 })

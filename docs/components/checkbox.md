@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-用于在选中和未选中状态之间切换，可单独使用，也可通过 `Checkbox.Group` 组合成列表，API 与 react-vant 基本保持一致，基于 `@react-native-aria/checkbox` 提供可访问能力。
+用于在选中和未选中状态之间切换，可单独使用，也可通过 `Checkbox.Group` 组合成列表，基于 `@react-native-aria/checkbox` 提供可访问能力。
 
 ## 引入
 

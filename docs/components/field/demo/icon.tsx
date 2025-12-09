@@ -5,18 +5,28 @@ import { Field } from "react-native-system-ui"
 
 export default function FieldIconDemo() {
   const [phone, setPhone] = React.useState("")
+  const [name, setName] = React.useState("")
 
   return (
-    <Field
-      label="手机号"
-      tooltip="仅用于登录验证"
-      leftIcon={<Text>📱</Text>}
-      rightIcon={<Text>⚙️</Text>}
-      clearable
-      keyboardType="phone-pad"
-      placeholder="请输入手机号"
-      value={phone}
-      onChangeText={setPhone}
-    />
+    <>
+      <Field
+        label="文本"
+        leftIcon={<Text>📦</Text>}
+        tooltip="提示"
+        placeholder="请输入内容"
+        center
+        value={name}
+        onChangeText={setName}
+      />
+      <Field
+        label="文本"
+        leftIcon={<Text>📱</Text>}
+        placeholder="请输入手机号"
+        center
+        clearable
+        value={phone}
+        onChangeText={setPhone}
+      />
+    </>
   )
 }
