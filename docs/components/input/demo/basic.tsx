@@ -1,20 +1,50 @@
 import React from "react"
+import { FieldGroup, Input } from "react-native-system-ui"
 
-import { Input } from "react-native-system-ui"
+export default function InputBasicDemo() {
+  const [state, setState] = React.useState({
+    text: "",
+    tel: "",
+    digit: "",
+    number: "",
+    password: "",
+  })
 
-const BasicInputDemo = () => {
-  const [value, setValue] = React.useState("")
+  const update = (key: keyof typeof state) => (val: string) =>
+    setState(prev => ({ ...prev, [key]: val }))
 
   return (
-    <Input
-      label="姓名"
-      placeholder="请输入姓名"
-      value={value}
-      onChangeText={setValue}
-      clearable
-      style={{ marginBottom: 12 }}
-    />
+    <FieldGroup title="基础用法">
+      <Input
+        value={state.text}
+        onChangeText={update("text")}
+        placeholder="请输入文本"
+        clearable
+      />
+      <Input
+        value={state.tel}
+        type="tel"
+        onChangeText={update("tel")}
+        placeholder="请输入手机号"
+      />
+      <Input
+        value={state.digit}
+        type="digit"
+        onChangeText={update("digit")}
+        placeholder="请输入整数"
+      />
+      <Input
+        value={state.number}
+        type="number"
+        onChangeText={update("number")}
+        placeholder="请输入数字"
+      />
+      <Input
+        value={state.password}
+        type="password"
+        onChangeText={update("password")}
+        placeholder="请输入密码"
+      />
+    </FieldGroup>
   )
 }
-
-export default BasicInputDemo

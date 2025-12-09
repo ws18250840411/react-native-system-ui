@@ -36,7 +36,7 @@
 | Checkbox 复选框 | ✅ | 对齐 React Vant：支持 `iconRender`/`bindGroup`、`toggleAll(skipDisabled)`、组向 iconSize/checkedColor 透传与最大可选数；标签点击禁用/左右布局已覆盖；单节点 Pressable + a11y 状态统一，context value memo 化，横向换行间距补齐 |
 | DatetimePicker 时间选择 | ✅ | 对齐 React Vant：补全 date/time/datetime/datehour/year-month/month-day/columnsOrder/filter/formatter/popup demo；Picker 端新增 columnsTop/columnsBottom、swipeDuration、visibleItemCount=6，值在 min/max 边界自动 clamp |
 | Form 表单 | ✅ | 校验/依赖更新去重，setFieldsValue 只处理实际变更，API memo 化 |
-| Input 输入框 | ⏳ |  |
+| Input 输入框 | ✅ | 基础/清除/插入内容/多行/字数统计/对齐/状态示例对齐官方 |
 | NumberKeyboard 数字键盘 | ⏳ |  |
 | Picker 选择器 | ✅ | 级联判定/受控同步/首帧副作用处理完成，Web 滚轮体验优化并补 utils 单测；demo 对齐 React Vant |
 | Radio 单选框 | ⏳ |  |

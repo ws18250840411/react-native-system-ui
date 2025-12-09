@@ -27,17 +27,23 @@ import { Input, type InputInstance } from 'react-native-system-ui'
 
 ### 插入内容
 
-<code src="./input/demo/slots.tsx" title="前后缀插槽"></code>
+<code src="./input/demo/slots.tsx" title="插入内容"></code>
 
-### 文本域
+### 多行输入
 
 <code src="./input/demo/textarea.tsx" title="多行输入"></code>
 
-### 引用 Ref
+### 字数统计
 
-Input/`Input.TextArea` 暴露 `focus`、`blur`、`clear` 与 `nativeElement`，方便手动控制焦点或清除内容。
+<code src="./input/demo/word-limit.tsx" title="字数统计"></code>
 
-<code src="./input/demo/ref.tsx" title="引用 Ref"></code>
+### 对齐方式
+
+<code src="./input/demo/align.tsx" title="对齐方式"></code>
+
+### 输入框状态
+
+<code src="./input/demo/status.tsx" title="输入框状态"></code>
 
 ## API
 
