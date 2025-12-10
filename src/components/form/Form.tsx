@@ -189,12 +189,19 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         if (!prevErrors) return prev
         const clone = { ...prev }
         delete clone[key]
+        errorsRef.current = clone
         return clone
       }
-      if (prevErrors && prevErrors.length === nextErrors.length && prevErrors.every((item, index) => item === nextErrors[index])) {
+      if (
+        prevErrors &&
+        prevErrors.length === nextErrors.length &&
+        prevErrors.every((item, index) => item === nextErrors[index])
+      ) {
         return prev
       }
-      return { ...prev, [key]: nextErrors }
+      const clone = { ...prev, [key]: nextErrors }
+      errorsRef.current = clone
+      return clone
     })
   }, [])
 
@@ -292,6 +299,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         const prevValue = getValueByName(prev, name)
         if (prevValue === value) return prev
         const next = setValueByName(prev, name, value)
+        valuesRef.current = next
         onValuesChange?.(next, nameKey, value)
         runFieldValidation(name, trigger, value, next)
         Object.entries(fieldsRef.current).forEach(([fieldName, meta]) => {
@@ -333,6 +341,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
           }
         })
         if (!changed) return prev
+        valuesRef.current = merged
         notify(next, merged)
         return merged
       })
@@ -345,6 +354,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         if (getValueByName(next, meta.name) !== undefined) return
         next = setValueByName(next, meta.name, meta.initialValue)
       })
+      valuesRef.current = next
       setValues(next)
       setErrors({})
       notify(next, next)
@@ -360,7 +370,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 
   const getFieldError = React.useCallback((name: NamePath) => errors[serializeNamePath(name)], [errors])
 
-  const getFieldValue = React.useCallback((name: NamePath) => getValueByName(valuesRef.current, name), [])
+  const getFieldValue = React.useCallback((name: NamePath) => getValueByName(values, name), [values])
 
   const contextValidateField = React.useCallback(
     (name: string, trigger?: string) => runFieldValidation(name, trigger),
@@ -375,7 +385,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       registerField,
       getFieldError,
       validateField: contextValidateField,
-      getFieldsValue: () => valuesRef.current,
+      getFieldsValue: () => values,
       subscribe: (listener: (changed: Record<string, any>, all: Record<string, any>) => void) => {
         subscribersRef.current.add(listener)
         return () => subscribersRef.current.delete(listener)

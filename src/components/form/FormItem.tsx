@@ -47,13 +47,24 @@ export const FormItem: React.FC<FormItemProps> = ({
   initialValue,
   children,
 }) => {
+  const renderProps = typeof children === 'function'
   const context = React.useContext(FormContext)
 
-  if (!context || !name) {
+  if (!context) {
+    if (renderProps) {
+      return (
+        <>
+          {(children as any)({
+            getFieldValue: () => undefined,
+            getFieldsValue: () => ({}),
+            form: null,
+          })}
+        </>
+      )
+    }
     return <>{children}</>
   }
 
-  const renderProps = typeof children === 'function'
   const normalizedRules = React.useMemo(() => rules ?? [], [rules])
   const prevValuesRef = React.useRef<Record<string, any>>(context.values)
 
@@ -67,6 +78,7 @@ export const FormItem: React.FC<FormItemProps> = ({
   }, [shouldUpdate, context.values])
 
   React.useEffect(() => {
+    if (!name) return undefined
     return context.registerField(name, { rules: normalizedRules, dependencies, initialValue })
   }, [context.registerField, name, normalizedRules, dependencies, initialValue])
 
@@ -88,6 +100,10 @@ export const FormItem: React.FC<FormItemProps> = ({
       form: context.form,
     })
     return <>{node}</>
+  }
+
+  if (!name) {
+    return <>{children}</>
   }
 
   if (!shouldRender) return null
