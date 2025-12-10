@@ -56,7 +56,7 @@ const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
     sizing: {
       keyHeight: 54,
       closeHeight: 44,
-      fontSize: fontSize.lg,
+      fontSize: 24,
     },
     radii: {
       key: radii.xs,

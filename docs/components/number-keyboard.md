@@ -25,9 +25,9 @@ import { NumberKeyboard } from 'react-native-system-ui'
 
 <code title="自定义按键" src="./number-keyboard/demo/custom.tsx"></code>
 
-### 受控输入
+### 双向绑定
 
-<code title="受控输入" src="./number-keyboard/demo/controlled.tsx"></code>
+<code title="双向绑定" src="./number-keyboard/demo/controlled.tsx"></code>
 
 ## API
 
@@ -39,10 +39,11 @@ import { NumberKeyboard } from 'react-native-system-ui'
 | `title` | 顶部标题 | `ReactNode` | - |
 | `extraKey` | 自定义左下角按键，支持传入单个或两个字符 | `string \| string[]` | - |
 | `closeButtonText` | 关闭按钮文案（为空则不展示） | `string` | - |
+| `closeButtonLoading` | 关闭按钮加载态，仅 `theme="custom"` 时生效 | `boolean` | `false` |
 | `deleteButtonText` | 删除按钮文案 | `string` | - |
 | `showDeleteKey` | 是否展示删除键 | `boolean` | `true` |
 | `randomKeyOrder` | 数字键是否随机排列 | `boolean` | `false` |
-| `blurOnClose` | 点击关闭按钮时是否触发 `onBlur` | `boolean` | `false` |
+| `blurOnClose` | 点击关闭按钮时是否触发 `onBlur` | `boolean` | `true` |
 | `safeAreaInsetBottom` | 是否适配底部安全区 | `boolean` | `true` |
 | `theme` | 样式风格，`default` / `custom` | `NumberKeyboardTheme` | `default` |
 | `maxlength` | 输入最大长度 | `number` | - |

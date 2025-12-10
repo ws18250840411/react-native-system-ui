@@ -2,6 +2,7 @@ import React from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import Loading from '../loading'
 import Portal from '../portal/Portal'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
@@ -20,26 +21,7 @@ const shuffle = <T,>(list: T[]) => {
 interface KeyboardKey {
   text?: string
   type: NumberKeyboardKeyType
-}
-
-const buildKeys = (extraKey?: string | string[], random = false): KeyboardKey[] => {
-  const numbers = random ? shuffle(BASE_KEYS.slice(0, 9)) : BASE_KEYS.slice(0, 9)
-  const keys: KeyboardKey[] = numbers.map(text => ({ text, type: '' }))
-  if (Array.isArray(extraKey)) {
-    extraKey.forEach(text => {
-      keys.push({ text, type: 'extra' })
-    })
-    keys.push({ type: 'delete' })
-  } else {
-    if (extraKey) {
-      keys.push({ text: extraKey, type: 'extra' })
-    } else {
-      keys.push({ text: '', type: 'extra' })
-    }
-    keys.push({ text: '0', type: '' })
-    keys.push({ type: 'delete' })
-  }
-  return keys
+  wider?: boolean
 }
 
 const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
@@ -51,8 +33,9 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     extraKey,
     randomKeyOrder,
     showDeleteKey = true,
-    closeButtonText = '完成',
+    closeButtonText,
     deleteButtonText,
+    closeButtonLoading,
     onChange,
     onInput,
     onDelete,
@@ -63,7 +46,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     value: valueProp,
     defaultValue = '',
     maxlength,
-    blurOnClose,
+    blurOnClose = true,
     safeAreaInsetBottom = true,
     numberKeyRender,
     deleteRender,
@@ -75,6 +58,11 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
   const [internalValue, setInternalValue] = React.useState(defaultValue)
   const isControlled = valueProp !== undefined
   const value = isControlled ? valueProp ?? '' : internalValue
+
+  const resolvedCloseText = React.useMemo(() => {
+    if (theme === 'custom') return closeButtonText ?? '完成'
+    return closeButtonText
+  }, [closeButtonText, theme])
 
   const changeValue = React.useCallback(
     (next: string) => {
@@ -97,10 +85,34 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     prevVisible.current = visible
   }, [visible, onShow, onHide])
 
-  const keys = React.useMemo(
-    () => buildKeys(extraKey, Boolean(randomKeyOrder)),
-    [extraKey, randomKeyOrder],
-  )
+  const keys = React.useMemo(() => {
+    const numbers = Boolean(randomKeyOrder)
+      ? shuffle(BASE_KEYS.slice(0, 9))
+      : BASE_KEYS.slice(0, 9)
+    const main: KeyboardKey[] = numbers.map(text => ({ text, type: '' }))
+
+    if (theme === 'custom') {
+      const extras = Array.isArray(extraKey) ? extraKey : extraKey ? [extraKey] : []
+      if (extras.length === 1) {
+        main.push({ text: '0', type: '', wider: true }, { text: extras[0], type: 'extra' })
+      } else if (extras.length >= 2) {
+        main.push(
+          { text: extras[0], type: 'extra' },
+          { text: '0', type: '' },
+          { text: extras[1], type: 'extra' },
+        )
+      } else {
+        main.push({ text: '0', type: '' })
+      }
+      return main
+    }
+
+    const normalizedExtra = Array.isArray(extraKey) ? extraKey[0] ?? '' : extraKey ?? ''
+    main.push({ text: normalizedExtra, type: 'extra' })
+    main.push({ text: '0', type: '' })
+    main.push({ type: showDeleteKey ? 'delete' : '', text: showDeleteKey ? undefined : '' })
+    return main
+  }, [extraKey, randomKeyOrder, showDeleteKey, theme, visible])
 
   const handleInput = (text?: string, type?: NumberKeyboardKeyType) => {
     if (type === 'delete') {
@@ -117,6 +129,11 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
       }
       return
     }
+    if (type === 'extra' && !text) {
+      onClose?.()
+      onBlur?.()
+      return
+    }
     if (!text) return
     if (maxlength !== undefined && value.length >= maxlength) {
       return
@@ -127,13 +144,22 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
   }
 
   const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
+  const [shouldRender, setShouldRender] = React.useState(visible)
+
   React.useEffect(() => {
+    if (visible) {
+      setShouldRender(true)
+    }
     Animated.timing(animated, {
       toValue: visible ? 1 : 0,
       duration: props.transition === false ? 0 : 200,
       useNativeDriver: true,
       easing: Easing.out(Easing.cubic),
-    }).start()
+    }).start(({ finished }) => {
+      if (finished && !visible) {
+        setShouldRender(false)
+      }
+    })
   }, [animated, visible, props.transition])
 
   const wrapperShadow = React.useMemo(
@@ -148,14 +174,99 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     []
   )
 
-  if (!visible && animated.__getValue() === 0) {
-    return null
-  }
-
   const translateY = animated.interpolate({
     inputRange: [0, 1],
     outputRange: [300, 0],
   })
+
+  const renderKeyContent = (key: KeyboardKey, index: number) => {
+    if (key.type === 'delete') {
+      if (deleteRender) return deleteRender()
+      if (deleteButtonText) {
+        return <Text style={styles.keyText}>{deleteButtonText}</Text>
+      }
+      return <Text style={[styles.keyText, { fontSize: tokens.sizing.fontSize }]}>⌫</Text>
+    }
+    if (key.type === 'extra') {
+      const extraText = key.text ?? ''
+      if (extraKeyRender) return extraKeyRender(extraText)
+      if (extraText) {
+        return <Text style={[styles.keyText, { fontSize: tokens.sizing.fontSize }]}>{extraText}</Text>
+      }
+      return <Text style={[styles.keyText, { fontSize: tokens.sizing.fontSize }]}>⌨︎</Text>
+    }
+    if (numberKeyRender) {
+      return numberKeyRender(key.text ?? '')
+    }
+    return <Text style={[styles.keyText, { fontSize: tokens.sizing.fontSize }]}>{key.text}</Text>
+  }
+
+  const renderKey = (
+    key: KeyboardKey,
+    index: number,
+    options?: { isClose?: boolean; isDelete?: boolean },
+  ) => {
+    const isClose = options?.isClose
+    const isDelete = options?.isDelete
+    const disabled = isClose && closeButtonLoading
+    const onPress = () => {
+      if (disabled) return
+      handleInput(key.text?.toString(), key.type)
+    }
+    const backgroundColor = isClose ? tokens.colors.closeBackground : tokens.colors.keyBackground
+    const activeBackground = tokens.colors.keyActiveBackground
+    const textColor = isClose ? tokens.colors.closeText : tokens.colors.keyText
+
+    const contentNode = renderKeyContent(key, index)
+
+    return (
+      <Pressable
+        key={`${key.type}-${index}-${key.text ?? index}`}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.key,
+          {
+            height: isClose ? tokens.sizing.closeHeight : tokens.sizing.keyHeight,
+            backgroundColor: disabled
+              ? tokens.colors.keyBackground
+              : pressed
+                ? activeBackground
+                : backgroundColor,
+            borderRadius: tokens.radii.key,
+            flexBasis: key.wider ? '64%' : '30%',
+            flexGrow: key.wider ? 2 : 1,
+            opacity: disabled ? 0.6 : 1,
+          },
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={
+          key.type === 'delete'
+            ? 'delete'
+            : key.type === 'close'
+              ? 'close'
+              : key.type === 'extra'
+                ? key.text ?? 'collapse'
+                : key.text
+        }
+      >
+        {isClose && closeButtonLoading ? (
+          <Loading size={18} color={textColor} />
+        ) : isDelete && !deleteRender && !deleteButtonText ? (
+          <Text style={[styles.keyText, { color: textColor }]}>⌫</Text>
+        ) : React.isValidElement(contentNode) ? (
+          contentNode
+        ) : (
+          <Text style={[styles.keyText, { color: textColor }]}>
+            {contentNode as any}
+          </Text>
+        )}
+      </Pressable>
+    )
+  }
+
+  if (!shouldRender && !visible) {
+    return null
+  }
 
   const keyboardNode = (
     <Animated.View
@@ -172,67 +283,63 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
         },
       ]}
     >
-      {(title || closeButtonText) && (
-        <View style={[styles.header, { padding: tokens.spacing.titlePadding }] }>
-          <Text style={[styles.title, { color: tokens.colors.title }]}>{title}</Text>
-          {closeButtonText ? (
-            <Pressable onPress={() => handleInput(undefined, 'close')}>
-              <Text style={{ color: tokens.colors.title }}>{closeButtonText}</Text>
+      {(title || closeButtonText) && theme === 'default' && (
+        <View style={[styles.header, { paddingHorizontal: tokens.spacing.titlePadding }]}>
+          <Text
+            style={[styles.title, styles.titleOverlay, { color: tokens.colors.title }]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          {resolvedCloseText ? (
+            <Pressable
+              onPress={() => handleInput(undefined, 'close')}
+              style={styles.headerClose}
+              accessibilityRole="button"
+              accessibilityLabel={resolvedCloseText}
+            >
+              <Text style={{ color: tokens.colors.title }}>{resolvedCloseText}</Text>
             </Pressable>
           ) : null}
         </View>
       )}
-      <View
-        style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          paddingHorizontal: tokens.spacing.paddingHorizontal,
-          paddingBottom: tokens.spacing.paddingVertical,
-          gap: tokens.spacing.keyGap,
-        }}
-      >
-        {keys.map((key, index) => {
-          if (key.type === 'delete' && !showDeleteKey) {
-            return null
-          }
-          const press = () => handleInput(key.text?.toString(), key.type)
-          const content = (() => {
-            if (key.type === 'delete') {
-              if (deleteRender) return deleteRender()
-              if (deleteButtonText) {
-                return <Text style={styles.keyText}>{deleteButtonText}</Text>
-              }
-              return <Text style={styles.keyText}>⌫</Text>
-            }
-            if (key.type === 'extra') {
-              const extraText = key.text ?? ''
-              if (extraKeyRender) return extraKeyRender(extraText)
-              return <Text style={styles.keyText}>{extraText}</Text>
-            }
-            if (numberKeyRender) {
-              return numberKeyRender(key.text ?? '')
-            }
-            return <Text style={styles.keyText}>{key.text}</Text>
-          })()
-          return (
-            <Pressable
-              key={`${key.type}-${index}-${key.text}`}
-              style={[
-                styles.key,
-                {
-                  height: tokens.sizing.keyHeight,
-                  backgroundColor: tokens.colors.keyBackground,
-                  borderRadius: tokens.radii.key,
-                  flexBasis: '30%',
-                },
-              ]}
-              onPress={press}
-            >
-              {content}
-            </Pressable>
-          )
-        })}
-      </View>
+
+      {theme === 'custom' ? (
+        <View
+          style={[
+            styles.customRow,
+            {
+              paddingHorizontal: tokens.spacing.paddingHorizontal,
+              paddingBottom: tokens.spacing.paddingVertical,
+              gap: tokens.spacing.keyGap,
+            },
+          ]}
+        >
+          <View style={[styles.customMain, { gap: tokens.spacing.keyGap }]}>
+            {keys.map((key, index) => renderKey(key, index))}
+          </View>
+          <View style={[styles.customSidebar, { gap: tokens.spacing.keyGap }]}>
+            {showDeleteKey
+              ? renderKey({ type: 'delete', text: deleteButtonText }, 999, { isDelete: true })
+              : null}
+            {renderKey({ type: 'close', text: resolvedCloseText }, 1000, { isClose: true })}
+          </View>
+        </View>
+      ) : (
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            paddingHorizontal: tokens.spacing.paddingHorizontal,
+            paddingBottom: tokens.spacing.paddingVertical,
+            gap: tokens.spacing.keyGap,
+          }}
+        >
+          {keys.map((key, index) =>
+            renderKey(key, index, { isDelete: key.type === 'delete' }),
+          )}
+        </View>
+      )}
     </Animated.View>
   )
 
@@ -249,11 +356,23 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
+    height: 44,
+    position: 'relative',
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  titleOverlay: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    textAlign: 'center',
+  },
+  headerClose: {
+    minWidth: 56,
+    alignItems: 'flex-end',
   },
   key: {
     justifyContent: 'center',
@@ -261,6 +380,19 @@ const styles = StyleSheet.create({
   },
   keyText: {
     fontSize: 20,
+  },
+  customRow: {
+    flexDirection: 'row',
+  },
+  customMain: {
+    flex: 3,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  customSidebar: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
 })
 

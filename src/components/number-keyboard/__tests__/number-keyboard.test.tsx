@@ -4,6 +4,7 @@ import { Pressable, Text } from "react-native"
 
 import NumberKeyboard from ".."
 import { PortalHost } from "../../portal"
+import Loading from "../../loading"
 
 const mountedTrees: renderer.ReactTestRenderer[] = []
 
@@ -53,5 +54,28 @@ describe("NumberKeyboard", () => {
       deleteKey.props.onPress()
     })
     expect(onDelete).toHaveBeenCalled()
+  })
+
+  it("keeps number 0 and extra keys when custom theme with multiple extraKey", () => {
+    const tree = renderInHost(
+      <NumberKeyboard visible theme="custom" extraKey={["X", "Y"]} />
+    )
+    const texts = tree.root.findAllByType(Text).map(node => node.props.children)
+    expect(texts).toContain("0")
+    expect(texts).toContain("X")
+    expect(texts).toContain("Y")
+  })
+
+  it("renders loading state on close button in custom theme", () => {
+    const tree = renderInHost(
+      <NumberKeyboard
+        visible
+        theme="custom"
+        closeButtonLoading
+        closeButtonText="关闭"
+      />
+    )
+    const loading = tree.root.findAllByType(Loading)
+    expect(loading.length).toBeGreaterThan(0)
   })
 })
