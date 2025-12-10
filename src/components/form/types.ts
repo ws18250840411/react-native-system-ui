@@ -5,6 +5,8 @@ export type FormRuleValidator = (
   values: Record<string, any>
 ) => void | boolean | string | Promise<void | boolean | string>
 
+export type NamePath = string | number | (string | number)[]
+
 export interface FormItemRule {
   required?: boolean
   message?: string
@@ -19,5 +21,6 @@ export interface FormItemRule {
 
 export interface RegisteredFieldOptions {
   rules?: FormItemRule[]
-  dependencies?: string[]
+  dependencies?: NamePath[]
+  initialValue?: any
 }

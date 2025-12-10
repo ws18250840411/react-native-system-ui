@@ -23,9 +23,19 @@ import { Form } from 'react-native-system-ui'
 
 <code title="表单项类型" src="./form/demo/type.tsx"></code>
 
+<code title="动态增减表单项" src="./form/demo/list.tsx"></code>
+
+<code title="弹层选择" src="./form/demo/popup.tsx"></code>
+
+<code title="自定义表单项" src="./form/demo/custom.tsx"></code>
+
+<code title="条件渲染/shouldUpdate" src="./form/demo/shouldUpdate.tsx"></code>
+
 <code title="Subscribe" src="./form/demo/subscribe.tsx"></code>
 
 <code title="useWatch" src="./form/demo/watch.tsx"></code>
+
+> `Form.List` 支持动态增删/移动数组项：`add(value?, index?)`、`remove(index)`、`move(from, to)`，子项 name 使用路径写法，如 `name={[field.name, 'name']}`。
 
 ## API
 
@@ -37,6 +47,7 @@ import { Form } from 'react-native-system-ui'
 | `colon` | 是否在 label 后展示冒号（下发给 Field） | `boolean` | `false` |
 | `labelWidth` | label 统一宽度（下发给 Field） | `number` | `96` |
 | `showValidateMessage` | 是否默认展示 Form.Item 的验证信息 | `boolean` | `true` |
+| `footer` | 底部区域，一般放提交按钮 | `ReactNode` | - |
 | `onValuesChange` | 任一字段变化时触发 | `(values, name, value) => void` | - |
 | `onFinish` | 调用 `submit` 且全部字段通过校验时触发 | `(values) => void` | - |
 

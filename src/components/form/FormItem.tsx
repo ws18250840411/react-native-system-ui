@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { FormContext } from './FormContext'
-import type { FormItemRule } from './types'
+import type { FormItemRule, NamePath } from './types'
 
 export type { FormItemRule } from './types'
 
@@ -11,19 +11,22 @@ const normalizeTrigger = (trigger?: string | string[]) => {
 }
 
 export interface FormItemProps {
-  name?: string
+  name?: NamePath
   label?: React.ReactNode
   description?: React.ReactNode
   intro?: React.ReactNode
   tooltip?: React.ReactNode
   rules?: FormItemRule[]
-  dependencies?: string[]
+  dependencies?: NamePath[]
   valuePropName?: string
   trigger?: string
   validateTrigger?: string | string[]
   showValidateMessage?: boolean
   required?: boolean
-  children: React.ReactElement
+  noStyle?: boolean
+  shouldUpdate?: (prev: Record<string, any>, next: Record<string, any>) => boolean
+  initialValue?: any
+  children: React.ReactNode
 }
 
 export const FormItem: React.FC<FormItemProps> = ({
@@ -39,22 +42,35 @@ export const FormItem: React.FC<FormItemProps> = ({
   validateTrigger,
   showValidateMessage,
   required,
+  noStyle,
+  shouldUpdate,
+  initialValue,
   children,
 }) => {
   const context = React.useContext(FormContext)
-  const child = React.Children.only(children) as React.ReactElement<any>
 
   if (!context || !name) {
-    return child
+    return <>{children}</>
   }
 
+  const renderProps = typeof children === 'function'
   const normalizedRules = React.useMemo(() => rules ?? [], [rules])
+  const prevValuesRef = React.useRef<Record<string, any>>(context.values)
 
   React.useEffect(() => {
-    return context.registerField(name, { rules: normalizedRules, dependencies })
-  }, [context.registerField, name, normalizedRules, dependencies])
+    prevValuesRef.current = context.values
+  }, [context.values])
 
-  const mergedValue = context.values[name]
+  const shouldRender = React.useMemo(() => {
+    if (!shouldUpdate) return true
+    return shouldUpdate(prevValuesRef.current, context.values)
+  }, [shouldUpdate, context.values])
+
+  React.useEffect(() => {
+    return context.registerField(name, { rules: normalizedRules, dependencies, initialValue })
+  }, [context.registerField, name, normalizedRules, dependencies, initialValue])
+
+  const mergedValue = context.getFieldValue(name)
   const mergedShowMessage = showValidateMessage ?? context.showValidateMessage ?? true
   const fieldErrors = context.getFieldError(name)
   const firstError = mergedShowMessage ? fieldErrors?.[0] : undefined
@@ -64,6 +80,26 @@ export const FormItem: React.FC<FormItemProps> = ({
     return normalizeTrigger(merged)
   }, [validateTrigger, trigger])
 
+  if (renderProps) {
+    if (!shouldRender) return null
+    const node = (children as any)({
+      getFieldValue: context.getFieldValue,
+      getFieldsValue: context.getFieldsValue,
+      form: context.form,
+    })
+    return <>{node}</>
+  }
+
+  if (!shouldRender) return null
+
+  const childArray = React.Children.toArray(children)
+  if (childArray.length !== 1) {
+    // 保底兜底：非单节点直接返回，避免运行时崩溃
+    return <>{children}</>
+  }
+
+  const child = childArray[0] as React.ReactElement<any>
+
   const handleChange = (next: any) => {
     context.setFieldValue(name, next, trigger)
     const original = child.props[trigger]
@@ -72,8 +108,19 @@ export const FormItem: React.FC<FormItemProps> = ({
     }
   }
 
+  const isFieldLike =
+    typeof (child as any)?.type?.displayName === 'string' &&
+    ((child as any).type.displayName.includes('Field') || (child as any).type.displayName.includes('Input'))
+
+  const resolveValue = () => {
+    if (child.props[valuePropName] !== undefined) return child.props[valuePropName]
+    if (mergedValue !== undefined) return mergedValue
+    if (isFieldLike && valuePropName === 'value') return ''
+    return mergedValue
+  }
+
   const injectedProps: Record<string, any> = {
-    [valuePropName]: child.props[valuePropName] ?? mergedValue ?? '',
+    [valuePropName]: resolveValue(),
     [trigger]: handleChange,
   }
 

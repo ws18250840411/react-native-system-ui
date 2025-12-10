@@ -226,8 +226,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const resolvedSuffix = suffixProp ?? button
   const resolvedDescription = intro ?? description
   const resolvedPlaceholderColor =
-    placeholderTextColor ??
-    (error ? tokens.colors.error : disabled ? tokens.colors.disabled : tokens.colors.placeholder)
+    placeholderTextColor ?? (disabled ? tokens.colors.disabled : tokens.colors.placeholder)
 
   const isTextarea = type === 'textarea'
   const isControlled = valueProp !== undefined

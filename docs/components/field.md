@@ -41,9 +41,9 @@ import { Field } from 'react-native-system-ui'
 
 <code title="高度自适应" src="./field/demo/textarea.tsx"></code>
 
-### 显示字数统计
 
-<code title="显示字数统计" src="./field/demo/word-limit.tsx"></code>
+
+> 默认字数统计文案右对齐，字号 12px、颜色 ，与 React Vant 保持一致；自定义时建议返回字符串以复用样式。
 
 ### 输入框内容对齐
 

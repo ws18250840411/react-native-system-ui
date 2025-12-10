@@ -1,5 +1,4 @@
 import React from 'react'
-import { StyleSheet, View, Text } from 'react-native'
 import {
   Button,
   Calendar,
@@ -23,11 +22,21 @@ export default function FormTypeDemo() {
   const [calendarVisible, setCalendarVisible] = React.useState(false)
 
   return (
-    <View style={styles.wrapper}>
-      <Form
-        ref={formRef}
-        initialValues={{ checkbox_group: ['c1', 'c2'], rate: 3, slider: 25, stepper: 1 }}
-      >
+    <Form
+      ref={formRef}
+      initialValues={{ checkbox_group: ['c1', 'c2'], rate: 3, slider: 25, stepper: 1 }}
+      style={{ paddingHorizontal: 12 }}
+      footer={(
+        <Button
+          round
+          block
+          type="primary"
+          text="提交"
+          onPress={() => formRef.current?.submit()}
+          style={{ marginTop: 12 }}
+        />
+      )}
+    >
         <Form.Item name="switch" label="开关" valuePropName="checked">
           <Switch size={20} />
         </Form.Item>
@@ -120,23 +129,6 @@ export default function FormTypeDemo() {
           <Field placeholder="请输入详细地址" type="textarea" rows={3} showWordLimit maxLength={140} />
         </Form.Item>
 
-        <View style={styles.footer}>
-          <Button round block type="primary" text="提交" onPress={() => formRef.current?.submit()} />
-        </View>
-      </Form>
-    </View>
+    </Form>
   )
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    padding: 12,
-    backgroundColor: '#f7f8fa',
-    borderRadius: 12,
-    gap: 8,
-  },
-  footer: {
-    marginTop: 16,
-    paddingHorizontal: 4,
-  },
-})
