@@ -1,9 +1,9 @@
 import React from "react"
-import { FieldGroup, Input, Toast } from "react-native-system-ui"
+import { Cell, Input, Toast } from "react-native-system-ui"
 
 export default function InputWordLimitDemo() {
   return (
-    <FieldGroup title="字数统计">
+    <Cell.Group>
       <Input
         placeholder="最多输入10个字符"
         maxLength={10}
@@ -12,8 +12,9 @@ export default function InputWordLimitDemo() {
       <Input.TextArea placeholder="字数统计" maxLength={50} showWordLimit />
       <Input.TextArea
         placeholder="自定义输出"
-        showWordLimit={({ currentCount }) => `已经输入${currentCount}个字啦 ✍️`}
+        maxLength={80}
+        showWordLimit={({ currentCount, maxLength }) => `已经输入${currentCount}/${maxLength ?? "∞"}个字啦 ✍️`}
       />
-    </FieldGroup>
+    </Cell.Group>
   )
 }

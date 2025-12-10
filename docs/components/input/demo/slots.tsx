@@ -1,11 +1,11 @@
 import React from "react"
-import { Button, FieldGroup, Input } from "react-native-system-ui"
+import { Button, Cell, Input } from "react-native-system-ui"
 
 export default function InputSlotsDemo() {
   const [value, setValue] = React.useState("")
 
   return (
-    <FieldGroup title="插入内容">
+    <Cell.Group>
       <Input
         value={value}
         onChangeText={setValue}
@@ -17,6 +17,6 @@ export default function InputSlotsDemo() {
           </Button>
         )}
       />
-    </FieldGroup>
+    </Cell.Group>
   )
 }

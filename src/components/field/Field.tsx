@@ -92,6 +92,9 @@ const styles = StyleSheet.create({
   suffix: {
     justifyContent: 'center',
   },
+  affixText: {
+    includeFontPadding: false,
+  },
   clearIcon: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -599,8 +602,10 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
             styles.wordLimit,
             {
               color: tokens.colors.wordLimit,
-              fontSize: tokens.typography.wordLimitSize,
-              textAlign: controlAlign,
+              fontSize: tokens.typography.wordLimitSize ?? 12,
+              // React Vant 默认字数统计靠右展示，这里保持一致
+              textAlign: 'right',
+              alignSelf: 'flex-end',
             },
           ]}
         >
@@ -682,6 +687,29 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     [contentStyle, controlAlign],
   )
 
+  const renderAffix = React.useCallback(
+    (node: React.ReactNode) => {
+      if (typeof node === 'string' || typeof node === 'number') {
+        return (
+          <Text
+            style={[
+              styles.affixText,
+              {
+                color: tokens.colors.input,
+                fontSize: tokens.typography.inputSize,
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {node}
+          </Text>
+        )
+      }
+      return node
+    },
+    [tokens.colors.input, tokens.typography.inputSize],
+  )
+
   return (
     <Cell
       title={renderLabel()}
@@ -705,7 +733,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       <View style={styles.body}>
         {prefix ? (
           <View style={[styles.prefix, { paddingRight: tokens.spacing.prefixGap }]}>
-            {prefix}
+            {renderAffix(prefix)}
           </View>
         ) : null}
         <View style={styles.controlWrapper}>
@@ -715,7 +743,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         {renderRightIcon()}
         {resolvedSuffix ? (
           <View style={[styles.suffix, { paddingLeft: tokens.spacing.suffixGap }]}>
-            {resolvedSuffix}
+            {renderAffix(resolvedSuffix)}
           </View>
         ) : null}
       </View>

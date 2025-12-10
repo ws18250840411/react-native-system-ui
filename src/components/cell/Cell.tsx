@@ -1,6 +1,6 @@
 import React from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import { Arrow } from '@react-vant/icons'
 
@@ -37,14 +37,20 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
     minWidth: 0,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-end',
   },
   valueOnlyContainer: {
+    justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
   valueCenter: {
-    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customContent: {
+    flexShrink: 1,
+    minWidth: 0,
   },
   iconWrapper: {
     justifyContent: 'center',
@@ -55,6 +61,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  hairline: {
+    position: 'absolute',
+    bottom: 0,
+  },
 })
 
 const arrowTransforms: Record<string, ViewStyle> = {
@@ -62,6 +72,11 @@ const arrowTransforms: Record<string, ViewStyle> = {
   right: {},
   up: { transform: [{ rotate: '-90deg' }] },
   down: { transform: [{ rotate: '90deg' }] },
+}
+
+type ExtendedViewStyle = ViewStyle & {
+  paddingStart?: number
+  paddingEnd?: number
 }
 
 export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
@@ -93,58 +108,122 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
   const tokens = useCellTokens()
   const group = React.useContext(CellGroupContext)
   const onlyValue = !title && !children
+  const isPrimitiveValue = typeof value === 'string' || typeof value === 'number'
+  const platform = Platform.OS
+  const lineHeight = tokens.typography.lineHeight ?? 24
 
   const showBorder = border && group.border && !group.isLast
   const showArrow = (isLink ?? false) || clickable
 
   const isInteractive = (clickable || showArrow || typeof onPress === 'function') && !disabled
 
-  const containerStyles: StyleProp<ViewStyle> = [
-    styles.container,
-    {
+  const baseContainerStyle = React.useMemo(
+    () => ({
       backgroundColor: tokens.container.background,
       paddingVertical:
         size === 'large'
           ? tokens.container.largePaddingVertical
           : tokens.container.paddingVertical,
       paddingHorizontal: tokens.container.paddingHorizontal,
-    },
+    }),
+    [size, tokens.container],
+  )
+
+  const containerStyles: StyleProp<ViewStyle> = [
+    styles.container,
+    baseContainerStyle,
     center && styles.center,
-    showBorder && {
-      borderColor: tokens.border.color,
-      borderBottomWidth: tokens.border.width,
-    },
     style,
   ]
 
+  const resolvedPadding = React.useMemo(() => {
+    const flattened = StyleSheet.flatten([styles.container, baseContainerStyle, center && styles.center, style]) as
+      | ExtendedViewStyle
+      | undefined
+    const horizontal = typeof flattened?.paddingHorizontal === 'number' ? flattened.paddingHorizontal : undefined
+
+    const resolveInset = (primary?: number | string, secondary?: number | string) => {
+      if (typeof primary === 'number') return primary
+      if (typeof secondary === 'number') return secondary
+      if (typeof horizontal === 'number') return horizontal
+      return tokens.container.paddingHorizontal
+    }
+
+    return {
+      left: resolveInset(flattened?.paddingLeft, flattened?.paddingStart),
+      right: resolveInset(flattened?.paddingRight, flattened?.paddingEnd),
+    }
+  }, [baseContainerStyle, center, style, tokens.container.paddingHorizontal])
+
+  const hairline = React.useMemo(() => {
+    if (!showBorder) return null
+    const baseHairlineWidth =
+      typeof tokens.border.width === 'number' ? tokens.border.width : StyleSheet.hairlineWidth
+    const hairlineStyle: ViewStyle = {
+      left: resolvedPadding.left,
+      right: resolvedPadding.right,
+      borderBottomColor: tokens.border.color,
+      borderBottomWidth: platform === 'web' ? 1 : baseHairlineWidth,
+    }
+
+    if (platform === 'web') {
+      hairlineStyle.transform = [{ scaleY: 0.5 }]
+    }
+
+    return <View pointerEvents="none" style={[styles.hairline, hairlineStyle]} />
+  }, [
+    platform,
+    resolvedPadding.left,
+    resolvedPadding.right,
+    showBorder,
+    tokens.border.color,
+    tokens.border.width,
+  ])
+
   const renderValue = () => {
     if (value !== undefined) {
-      if (typeof value === 'string' || typeof value === 'number') {
+      if (isPrimitiveValue) {
+        return (
+          <Text
+            style={[
+              styles.value,
+              onlyValue && styles.valueOnly,
+              {
+                color: tokens.typography.valueColor,
+                fontSize:
+                  size === 'large'
+                    ? tokens.typography.largeValueSize
+                    : tokens.typography.valueSize,
+              },
+              valueStyle,
+            ]}
+            numberOfLines={1}
+          >
+            {value}
+          </Text>
+        )
+      }
       return (
-        <Text
+        <View
           style={[
-            styles.value,
-            onlyValue && styles.valueOnly,
-            {
-              color: tokens.typography.valueColor,
-              fontSize:
-                size === 'large'
-                  ? tokens.typography.largeValueSize
-                  : tokens.typography.valueSize,
-            },
-            valueStyle,
+            styles.customContent,
+            { justifyContent: center ? 'center' : 'flex-start' },
+            contentStyle,
           ]}
-          numberOfLines={1}
         >
           {value}
-        </Text>
+        </View>
       )
-      }
-      return <>{value}</>
     }
     if (children) {
       return (
-        <View style={[{ justifyContent: center ? 'center' : 'flex-start' }, contentStyle]}>
+        <View
+          style={[
+            styles.customContent,
+            { justifyContent: center ? 'center' : 'flex-start' },
+            contentStyle,
+          ]}
+        >
           {children}
         </View>
       )
@@ -168,13 +247,10 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
           {icon}
         </View>
       ) : null}
-      <View style={[styles.body, { lineHeight: tokens.typography.lineHeight }]}>
+      <View style={[styles.body, { lineHeight }]}>
         {(title || required) && (
           <View
-            style={[
-              styles.titleRow,
-              { minHeight: tokens.typography.lineHeight, lineHeight: tokens.typography.lineHeight },
-            ]}
+              style={[styles.titleRow, { minHeight: lineHeight, lineHeight }]}
           >
             {required ? (
               <Text
@@ -237,9 +313,9 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
       <View
         style={[
           styles.valueContainer,
-          { minHeight: tokens.typography.lineHeight },
+          { minHeight: lineHeight },
           { marginLeft: tokens.spacing.valueGap },
-          onlyValue && styles.valueOnlyContainer,
+          !center && onlyValue && styles.valueOnlyContainer,
           center && styles.valueCenter,
         ]}
       >
@@ -278,6 +354,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
     return (
       <View style={containerStyles} {...rest}>
         {renderBody()}
+        {hairline}
       </View>
     )
   }
@@ -303,6 +380,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
       {...viewProps}
     >
       {renderBody()}
+      {hairline}
     </Pressable>
   )
 })

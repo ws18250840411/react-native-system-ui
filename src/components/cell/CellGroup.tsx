@@ -68,14 +68,18 @@ export const CellGroup: React.FC<CellGroupProps> = ({
     <View style={containerStyle}>
       {title ? <Text style={titleStyle}>{title}</Text> : null}
       <View style={bodyStyles}>
-        {childArray.map((child, index) => (
-          <CellGroupContext.Provider
-            key={index}
-            value={{ border, inset: inset || card, isLast: index === childArray.length - 1 }}
-          >
-            {child}
-          </CellGroupContext.Provider>
-        ))}
+        {childArray.map((child, index) => {
+          const key = React.isValidElement(child) && child.key != null ? child.key : index
+
+          return (
+            <CellGroupContext.Provider
+              key={key}
+              value={{ border, inset: inset || card, isLast: index === childArray.length - 1 }}
+            >
+              {child}
+            </CellGroupContext.Provider>
+          )
+        })}
       </View>
     </View>
   )

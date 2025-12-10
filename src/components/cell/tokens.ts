@@ -21,11 +21,15 @@ export interface CellTokens {
   }
   typography: {
     titleSize: number
+    lineHeight: number
     titleColor: string
     titleWeight: string
+    largeTitleSize: number
     labelSize: number
+    largeLabelSize: number
     labelColor: string
     valueSize: number
+    largeValueSize: number
     valueColor: string
     requiredColor: string
   }

@@ -74,14 +74,16 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
     colors: {
       label: palette.default[700],
       input: palette.default[800],
-      placeholder: palette.default[500],
+      // 对齐 React Vant placeholder 变量 @gray-5 (#c8c9cc)
+      placeholder: '#c8c9cc',
       error: palette.danger[500],
       disabled: palette.default[500],
       intro: palette.default[600],
       tooltip: palette.default[500],
       clear: palette.default[500],
       rightIcon: palette.default[500],
-      wordLimit: palette.default[700],
+      // React Vant 字数统计文案约为 #646566
+      wordLimit: '#646566',
     },
     spacing: {
       // labelGap 设为 0，确保总宽度即为 labelWidth
@@ -101,7 +103,8 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
       placeholderSize: fontSize.sm,
       messageSize: 12,
       introSize: 12,
-      wordLimitSize: fontSize.sm,
+      // 对齐官方 12px
+      wordLimitSize: fontSize.xs,
     },
     sizes: {
       icon: 16,

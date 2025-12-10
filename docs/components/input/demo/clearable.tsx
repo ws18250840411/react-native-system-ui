@@ -1,11 +1,11 @@
 import React from "react"
-import { FieldGroup, Input } from "react-native-system-ui"
+import { Cell, Input } from "react-native-system-ui"
 
 export default function InputClearableDemo() {
   const [value, setValue] = React.useState("")
 
   return (
-    <FieldGroup title="清除按钮">
+    <Cell.Group>
       <Input
         placeholder="请输入文本"
         value={value}
@@ -13,6 +13,6 @@ export default function InputClearableDemo() {
         clearable
         clearTrigger="always"
       />
-    </FieldGroup>
+    </Cell.Group>
   )
 }

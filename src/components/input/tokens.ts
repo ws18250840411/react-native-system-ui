@@ -25,7 +25,7 @@ const createInputTokens = (foundations: Foundations): InputTokens => ({
   defaults: {
     inputAlign: 'left',
     clearTrigger: 'focus',
-    border: false,
+    border: true,
   },
   spacing: {
     paddingHorizontal: foundations.spacing.md,

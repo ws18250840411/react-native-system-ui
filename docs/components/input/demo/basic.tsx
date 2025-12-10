@@ -1,5 +1,5 @@
 import React from "react"
-import { FieldGroup, Input } from "react-native-system-ui"
+import { Cell, Input } from "react-native-system-ui"
 
 export default function InputBasicDemo() {
   const [state, setState] = React.useState({
@@ -14,7 +14,7 @@ export default function InputBasicDemo() {
     setState(prev => ({ ...prev, [key]: val }))
 
   return (
-    <FieldGroup title="基础用法">
+    <Cell.Group>
       <Input
         value={state.text}
         onChangeText={update("text")}
@@ -45,6 +45,6 @@ export default function InputBasicDemo() {
         onChangeText={update("password")}
         placeholder="请输入密码"
       />
-    </FieldGroup>
+    </Cell.Group>
   )
 }
