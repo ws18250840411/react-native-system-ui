@@ -26,7 +26,7 @@ export default function PickerMultiDemo() {
   }, [])
 
   return (
-    <View style={{ gap: 8, padding: 12, backgroundColor: '#f7f8fa' }}>
+    <View style={{ gap: 8 }}>
       <Text style={{ color: '#646566' }}>当前：{value.join(' / ')}</Text>
       <Picker
         columns={columns}

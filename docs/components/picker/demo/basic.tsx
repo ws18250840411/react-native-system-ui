@@ -25,7 +25,7 @@ export default function PickerBasicDemo() {
   }, [])
 
   return (
-    <View style={{ padding: 12, backgroundColor: '#f7f8fa' }}>
+    <View>
       <Picker
         title="基础使用"
         columns={columns}
