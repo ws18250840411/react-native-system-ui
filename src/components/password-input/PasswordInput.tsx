@@ -53,27 +53,32 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       ...rest
     } = props
 
+    const isControlled = value !== undefined
+    const lengthSafe = Number.isFinite(length)
+      ? Math.max(1, Math.floor(length))
+      : 1
     const { foundations } = useTheme()
-    const borderColor = '#f5f6f7'
-    const colors = {
-      border: borderColor,
-      text: foundations.palette.default?.[900] ?? '#323233',
-      muted: foundations.palette.default?.[500] ?? '#969799',
-      error: foundations.palette.error?.[500] ?? '#ff4d4f',
-      cursor: foundations.palette.primary?.[600] ?? '#1989fa',
-      mask: foundations.palette.default?.[900] ?? '#323233',
-      background: foundations.palette.background?.base ?? '#ffffff',
-    }
-
-    const [code = '', setCode] = useControllableValue<string>(
-      { value, defaultValue, onChange },
-      { defaultValue: '' },
-    )
+    const colors = React.useMemo(() => {
+      const palette = foundations.palette ?? {}
+      const border = '#f5f6f7'
+      return {
+        border,
+        text: palette.default?.[900] ?? '#323233',
+        muted: palette.default?.[500] ?? '#969799',
+        error: palette.error?.[500] ?? '#ff4d4f',
+        cursor: '#323232',
+        mask: palette.default?.[900] ?? '#323233',
+        background: palette.background?.base ?? '#ffffff',
+      }
+    }, [foundations.palette])
 
     const inputRef = React.useRef<TextInput>(null)
+    const [cursorVisible, setCursorVisible] = React.useState(true)
+    const blinkTimer = React.useRef<ReturnType<typeof setInterval> | null>(null)
     const [focused, setFocused] = React.useState(autoFocus)
 
     const keyboardType = type === 'number' ? 'number-pad' : 'default'
+    const inputMode = type === 'number' ? 'numeric' : 'text'
 
     const normalizeValue = React.useCallback(
       (nextValue: string) => {
@@ -84,12 +89,21 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
         if (type === 'number') {
           next = sanitizeNumber(next)
         }
-        if (length > 0 && next.length > length) {
-          next = next.slice(0, length)
+        if (lengthSafe > 0 && next.length > lengthSafe) {
+          next = next.slice(0, lengthSafe)
         }
         return next
       },
-      [length, type],
+      [lengthSafe, type],
+    )
+
+    const [code = '', setCode] = useControllableValue<string>(
+      { value, defaultValue, onChange },
+      { defaultValue: '' },
+    )
+    const normalizedCode = React.useMemo(
+      () => normalizeValue(code ?? ''),
+      [code, normalizeValue],
     )
 
     const updateValue = React.useCallback(
@@ -130,6 +144,15 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     )
 
     React.useEffect(() => {
+      if (isControlled) {
+        return
+      }
+      if (normalizedCode !== code) {
+        setCode(normalizedCode)
+      }
+    }, [code, isControlled, normalizedCode, setCode])
+
+    React.useEffect(() => {
       if (autoFocus) {
         const timer = setTimeout(() => {
           focusInput()
@@ -156,22 +179,46 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     }, [onBlur])
 
     React.useEffect(() => {
-      if (code?.length === length && length > 0) {
-        onSubmit?.(code)
+      if (normalizedCode?.length === lengthSafe && lengthSafe > 0) {
+        onSubmit?.(normalizedCode)
         blurInput()
       }
-    }, [blurInput, code, length, onSubmit])
+    }, [blurInput, lengthSafe, normalizedCode, onSubmit])
+
+    React.useEffect(() => {
+      const shouldBlink = showCursor && focused && !disabled
+      if (blinkTimer.current) {
+        clearInterval(blinkTimer.current)
+        blinkTimer.current = null
+      }
+
+      if (shouldBlink) {
+        setCursorVisible(true)
+        blinkTimer.current = setInterval(() => {
+          setCursorVisible((v) => !v)
+        }, 500)
+      } else {
+        setCursorVisible(false)
+      }
+
+      return () => {
+        if (blinkTimer.current) {
+          clearInterval(blinkTimer.current)
+          blinkTimer.current = null
+        }
+      }
+    }, [disabled, focused, showCursor])
 
     const cells = React.useMemo(() => {
-      return Array.from({ length }, (_, index) => {
-        const char = code?.[index]
+      return Array.from({ length: lengthSafe }, (_, index) => {
+        const char = normalizedCode?.[index]
         const isFilled = !!char
         const showBlink =
           showCursor &&
           focused &&
           !disabled &&
-          code.length === index &&
-          index < length
+          normalizedCode.length === index &&
+          index < lengthSafe
         return {
           key: index,
           char,
@@ -179,7 +226,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
           showBlink,
         }
       })
-    }, [code, disabled, focused, length, showCursor])
+    }, [disabled, focused, lengthSafe, normalizedCode, showCursor])
 
     const gutterValue =
       typeof gutter === 'number' ? gutter : Number(gutter) || 0
@@ -208,6 +255,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
             },
           ]}
           onPress={focusInput}
+          disabled={disabled}
           accessibilityRole="button"
           accessibilityState={{ disabled }}
         >
@@ -239,7 +287,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
                   { borderColor: colors.border },
                   index > 0 ? { marginLeft: gutterValue } : null,
                 )
-              } else if (index < length - 1) {
+              } else if (index < lengthSafe - 1) {
                 baseCell.push({
                   borderRightWidth: StyleSheet.hairlineWidth,
                   borderRightColor: colors.border,
@@ -268,7 +316,10 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
                     <View
                       style={[
                         styles.cursor,
-                        { backgroundColor: colors.cursor },
+                        {
+                          backgroundColor: colors.cursor,
+                          opacity: cursorVisible ? 1 : 0,
+                        },
                         cursorStyle,
                       ]}
                     />
@@ -278,21 +329,30 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
             })}
             <TextInput
               ref={inputRef}
-              value={code}
+              value={normalizedCode}
               editable={!disabled}
               keyboardType={keyboardType}
-              maxLength={length}
+              inputMode={inputMode}
+              maxLength={lengthSafe}
               autoFocus={false}
+              secureTextEntry={mask}
               {...HIDDEN_INPUT_PROPS}
               style={styles.hiddenInput}
               onChangeText={handleChangeText}
               onFocus={handleFocus}
               onBlur={handleBlur}
+              accessible={false}
             />
           </View>
         </Pressable>
         {tip ? (
-          <Text style={[styles.infoText, { color: tipColor }]}>{tip}</Text>
+          <View style={styles.infoWrapper}>
+            {typeof tip === 'string' || typeof tip === 'number' ? (
+              <Text style={[styles.infoText, { color: tipColor }]}>{tip}</Text>
+            ) : (
+              tip
+            )}
+          </View>
         ) : null}
       </View>
     )
@@ -322,7 +382,7 @@ const styles = StyleSheet.create({
   },
   cellGutter: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 6,
+    borderRadius: 0,
   },
   cellText: {
     fontSize: 20,
@@ -335,16 +395,22 @@ const styles = StyleSheet.create({
   },
   cursor: {
     position: 'absolute',
-    width: 2,
-    height: 26,
-    borderRadius: 1,
+    width: StyleSheet.hairlineWidth || 1,
+    height: '40%',
+    borderRadius: 0.5,
+    top: '30%',
+    left: '50%',
+    marginLeft: -0.5,
   },
   hiddenInput: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0,
   },
-  infoText: {
+  infoWrapper: {
     marginTop: 8,
+    alignItems: 'center',
+  },
+  infoText: {
     fontSize: 14,
     color: '#969799',
     textAlign: 'center',
