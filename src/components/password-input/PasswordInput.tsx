@@ -314,6 +314,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
                   )}
                   {item.showBlink ? (
                     <View
+                      testID="password-input-cursor"
                       style={[
                         styles.cursor,
                         {

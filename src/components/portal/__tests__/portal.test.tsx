@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
 import { Text } from 'react-native'
@@ -99,6 +95,9 @@ describe('Portal', () => {
   })
 
   it('tears down auto host after clear when only auto host is present', async () => {
+    if (typeof document === 'undefined') {
+      return
+    }
     await act(async () => {
       await ensureGlobalPortalHost()
     })

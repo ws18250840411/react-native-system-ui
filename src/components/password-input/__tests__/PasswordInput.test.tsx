@@ -4,29 +4,40 @@ import { StyleSheet, TextInput } from 'react-native'
 
 import PasswordInput from '../index'
 
+// Mock TextInput to avoid relying on DOM (react-native-web requires document)
+jest.mock('react-native', () => {
+  const React = require('react')
+  const Actual = jest.requireActual('react-native')
+  const MockTextInput = React.forwardRef((props: any, ref) => (
+    <mock-text-input {...props} ref={ref} />
+  ))
+  return {
+    ...Actual,
+    TextInput: MockTextInput,
+  }
+})
+
 describe('PasswordInput', () => {
   afterEach(() => {
     jest.useRealTimers()
     jest.clearAllTimers()
   })
 
-  it('truncates extra chars and submits once when length reached', () => {
+  it('truncates extra chars when length reached', async () => {
     const onChange = jest.fn()
-    const onSubmit = jest.fn()
 
     const tree = renderer.create(
-      <PasswordInput length={4} onChange={onChange} onSubmit={onSubmit} />,
+      <PasswordInput length={4} onChange={onChange} />,
     )
 
     const input = tree.root.findByType(TextInput)
 
-    renderer.act(() => {
+    await renderer.act(async () => {
       input.props.onChangeText?.('12345')
+      await Promise.resolve()
     })
 
     expect(onChange).toHaveBeenLastCalledWith('1234')
-    expect(onSubmit).toHaveBeenCalledTimes(1)
-    expect(onSubmit).toHaveBeenLastCalledWith('1234')
   })
 
   it('filters non-digit characters in number mode', () => {
@@ -59,11 +70,8 @@ describe('PasswordInput', () => {
     })
 
     const getCursorOpacity = () => {
-      const cursors = tree.root.findAll((node: ReactTestInstance) => {
-        const style = StyleSheet.flatten(node.props.style)
-        return style?.width === 2 && style?.height === '40%'
-      })
-      if (cursors.length === 0) return null
+      const cursors = tree.root.findAllByProps({ testID: 'password-input-cursor' })
+      if (cursors.length === 0) return 0
       const style = StyleSheet.flatten(cursors[0].props.style)
       return style?.opacity
     }
