@@ -30,7 +30,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   } = props
 
   const { foundations } = useTheme()
-  const gap = gapProp ?? foundations.spacing.md
+  const gap = gapProp ?? foundations.spacing.sm
 
   const registryRef = React.useRef(new Map<string, RadioValue>())
   const registerValue = React.useCallback((key: string, raw: RadioValue) => {

@@ -4,6 +4,7 @@ import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 export type RadioValue = string | number
 export type RadioLabelPosition = 'left' | 'right'
 export type RadioGroupDirection = 'horizontal' | 'vertical'
+export type RadioShape = 'round' | 'square'
 
 export interface RadioProps extends Omit<ViewProps, 'children'> {
   name?: RadioValue
@@ -11,8 +12,9 @@ export interface RadioProps extends Omit<ViewProps, 'children'> {
   disabled?: boolean
   checked?: boolean
   defaultChecked?: boolean
-  iconSize?: number
+  iconSize?: number | string
   checkedColor?: string
+  shape?: RadioShape
   labelPosition?: RadioLabelPosition
   labelDisabled?: boolean
   style?: StyleProp<ViewStyle>
@@ -27,7 +29,7 @@ export interface RadioGroupProps extends ViewProps {
   onChange?: (value: RadioValue) => void
   disabled?: boolean
   direction?: RadioGroupDirection
-  iconSize?: number
+  iconSize?: number | string
   checkedColor?: string
   labelDisabled?: boolean
   gap?: number

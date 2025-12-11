@@ -30,6 +30,10 @@ export interface RadioTokens {
   spacing: {
     gap: number
   }
+  shape: {
+    roundRadius: number
+    squareRadius: number
+  }
 }
 
 const createRadioTokens = (foundations: Foundations): RadioTokens => {
@@ -57,6 +61,10 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
     },
     spacing: {
       gap: spacing.sm,
+    },
+    shape: {
+      roundRadius: 999,
+      squareRadius: 2,
     },
   }
 }

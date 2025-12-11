@@ -13,6 +13,15 @@ const serializeValue = (value: RadioValue | undefined) => {
   return String(value)
 }
 
+const parseSize = (size: number | string | undefined, fallback: number) => {
+  if (typeof size === 'number') return size
+  if (typeof size === 'string') {
+    const parsed = parseFloat(size)
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+  return fallback
+}
+
 export const Radio: React.FC<RadioProps> = props => {
   const {
     children,
@@ -20,6 +29,7 @@ export const Radio: React.FC<RadioProps> = props => {
     value,
     iconSize,
     checkedColor,
+    shape = 'round',
     labelPosition,
     labelDisabled,
     disabled,
@@ -31,11 +41,12 @@ export const Radio: React.FC<RadioProps> = props => {
   const tokens = useRadioTokens()
   const group = React.useContext(RadioGroupContext)
 
-  const resolvedIconSize = iconSize ?? group?.iconSize ?? tokens.defaults.iconSize
+  const resolvedIconSize = parseSize(iconSize ?? group?.iconSize, tokens.defaults.iconSize)
   const resolvedCheckedColor = checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
   const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
   const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? false
   const resolvedDisabled = disabled || group?.state.isDisabled
+  const resolvedShape = shape
 
   const optionValue = value ?? name
   const serializedValue = serializeValue(optionValue)
@@ -121,7 +132,10 @@ export const Radio: React.FC<RadioProps> = props => {
           {
             width: resolvedIconSize,
             height: resolvedIconSize,
-            borderRadius: resolvedIconSize / 2,
+            borderRadius:
+              resolvedShape === 'square'
+                ? tokens.shape.squareRadius
+                : resolvedIconSize / 2,
             borderColor,
             backgroundColor,
           },
@@ -132,7 +146,10 @@ export const Radio: React.FC<RadioProps> = props => {
             style={{
               width: resolvedIconSize / 2,
               height: resolvedIconSize / 2,
-              borderRadius: resolvedIconSize / 4,
+              borderRadius:
+                resolvedShape === 'square'
+                  ? tokens.shape.squareRadius
+                  : resolvedIconSize / 4,
               backgroundColor: resolvedCheckedColor,
             }}
           />
