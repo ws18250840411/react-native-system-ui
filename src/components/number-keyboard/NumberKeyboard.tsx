@@ -1,11 +1,13 @@
 import React from 'react'
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Animated, Easing, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
+
+const keyboardRegistry = new Set<() => void>()
 
 const BASE_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 
@@ -48,6 +50,8 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     maxlength,
     blurOnClose = true,
     safeAreaInsetBottom = true,
+    transition = true,
+    transitionDuration = 300,
     numberKeyRender,
     deleteRender,
     extraKeyRender,
@@ -63,6 +67,13 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     if (theme === 'custom') return closeButtonText ?? '完成'
     return closeButtonText
   }, [closeButtonText, theme])
+
+  const closeSelf = React.useCallback(() => {
+    onClose?.()
+    if (blurOnClose) {
+      onBlur?.()
+    }
+  }, [blurOnClose, onBlur, onClose])
 
   const changeValue = React.useCallback(
     (next: string) => {
@@ -84,6 +95,24 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     }
     prevVisible.current = visible
   }, [visible, onShow, onHide])
+
+  // 仅允许一个键盘可见：当本实例显示时，通知其他实例关闭
+  React.useEffect(() => {
+    if (visible) {
+      keyboardRegistry.add(closeSelf)
+      // 关闭其他已注册的键盘
+      keyboardRegistry.forEach(fn => {
+        if (fn !== closeSelf) {
+          fn()
+        }
+      })
+    } else {
+      keyboardRegistry.delete(closeSelf)
+    }
+    return () => {
+      keyboardRegistry.delete(closeSelf)
+    }
+  }, [visible, closeSelf])
 
   const keys = React.useMemo(() => {
     const numbers = Boolean(randomKeyOrder)
@@ -123,15 +152,11 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
       return
     }
     if (type === 'close') {
-      onClose?.()
-      if (blurOnClose) {
-        onBlur?.()
-      }
+      closeSelf()
       return
     }
     if (type === 'extra' && !text) {
-      onClose?.()
-      onBlur?.()
+      closeSelf()
       return
     }
     if (!text) return
@@ -142,25 +167,6 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     const next = `${value}${text}`
     changeValue(next)
   }
-
-  const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
-  const [shouldRender, setShouldRender] = React.useState(visible)
-
-  React.useEffect(() => {
-    if (visible) {
-      setShouldRender(true)
-    }
-    Animated.timing(animated, {
-      toValue: visible ? 1 : 0,
-      duration: props.transition === false ? 0 : 200,
-      useNativeDriver: true,
-      easing: Easing.out(Easing.cubic),
-    }).start(({ finished }) => {
-      if (finished && !visible) {
-        setShouldRender(false)
-      }
-    })
-  }, [animated, visible, props.transition])
 
   const wrapperShadow = React.useMemo(
     () =>
@@ -173,11 +179,6 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
       }),
     []
   )
-
-  const translateY = animated.interpolate({
-    inputRange: [0, 1],
-    outputRange: [300, 0],
-  })
 
   const renderKeyContent = (key: KeyboardKey, index: number) => {
     if (key.type === 'delete') {
@@ -264,6 +265,40 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     )
   }
 
+  const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
+  const [contentHeight, setContentHeight] = React.useState(0)
+  const [shouldRender, setShouldRender] = React.useState(visible)
+
+  const effectiveDuration = transition === false ? 0 : transitionDuration
+
+  React.useEffect(() => {
+    if (visible) {
+      setShouldRender(true)
+    }
+    Animated.timing(animated, {
+      toValue: visible ? 1 : 0,
+      duration: effectiveDuration,
+      useNativeDriver: true,
+      easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+    }).start(({ finished }) => {
+      if (finished && !visible) {
+        setShouldRender(false)
+      }
+    })
+  }, [animated, visible, effectiveDuration])
+
+  const translateY = animated.interpolate({
+    inputRange: [0, 1],
+    outputRange: [contentHeight || 320, 0],
+  })
+
+  const handleLayout = (e: LayoutChangeEvent) => {
+    const { height } = e.nativeEvent.layout
+    if (Math.abs(height - contentHeight) > 0.5) {
+      setContentHeight(height)
+    }
+  }
+
   if (!shouldRender && !visible) {
     return null
   }
@@ -272,6 +307,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     <Animated.View
       {...rest}
       pointerEvents={visible ? 'auto' : 'none'}
+      onLayout={handleLayout}
       style={[
         styles.wrapper,
         wrapperShadow,

@@ -26,15 +26,22 @@ import { useAriaOverlay } from '../../hooks'
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 export type PopupPlacement = 'top' | 'bottom' | 'left' | 'right' | 'center'
-export type PopupCloseIconPosition = 'top-right' | 'top-left'
+export type PopupCloseIconPosition =
+  | 'top-right'
+  | 'top-left'
+  | 'bottom-right'
+  | 'bottom-left'
 
 export interface PopupProps extends ViewProps {
   visible: boolean
+  /** 与 react-vant 对齐：position 等价于 placement */
+  position?: PopupPlacement
   placement?: PopupPlacement
   overlay?: boolean
   overlayStyle?: StyleProp<ViewStyle>
   overlayAccessibilityLabel?: string
   closeOnOverlayPress?: boolean
+  closeOnClickOverlay?: boolean
   overlayTestID?: string
   closeable?: boolean
   closeIcon?: React.ReactNode
@@ -155,11 +162,13 @@ const renderWithSafeArea = (
 export const Popup: React.FC<PopupProps> = props => {
   const {
     visible,
-    placement = 'bottom',
+    placement: placementProp,
+    position,
     overlay = true,
     overlayStyle,
     overlayAccessibilityLabel = '关闭弹层',
-    closeOnOverlayPress = true,
+    closeOnOverlayPress,
+    closeOnClickOverlay,
     overlayTestID = 'popup-overlay',
     closeable = false,
     closeIcon,
@@ -186,6 +195,9 @@ export const Popup: React.FC<PopupProps> = props => {
     ...rest
   } = props
 
+  const placement = placementProp ?? position ?? 'center'
+  const shouldCloseOnOverlay = closeOnClickOverlay ?? closeOnOverlayPress ?? true
+  const shouldTranslate = placement !== 'center'
   const safeAreaInsetBottom = safeAreaInsetBottomProp ?? false
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
 
@@ -193,38 +205,76 @@ export const Popup: React.FC<PopupProps> = props => {
   const [mounted, setMounted] = React.useState(visible)
   const [interactionVisible, setInteractionVisible] = React.useState(visible)
   const [contentSize, setContentSize] = React.useState({ width: 0, height: 0 })
-  const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
+  const progress = React.useRef(new Animated.Value(visible ? 1 : 0)).current
+  const animatingRef = React.useRef(false)
+  const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
+  const pendingShowRef = React.useRef(false)
+  const distanceRef = React.useRef(0)
+  const pendingLayoutRef = React.useRef<{ width: number; height: number } | null>(null)
   const prevVisible = React.useRef(visible)
 
-  React.useEffect(() => {
-    if (visible) {
-      setMounted(true)
-      setInteractionVisible(true)
-    }
+  const isVertical = placement === 'top' || placement === 'bottom'
+  const isHorizontal = placement === 'left' || placement === 'right'
+  const direction = placement === 'top' || placement === 'left' ? -1 : 1
 
-    const animation = Animated.timing(animated, {
-      toValue: visible ? 1 : 0,
-      duration,
-      easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    })
-
-    animation.start(({ finished }) => {
-      if (!finished) return
-      if (visible) {
-        onOpened?.()
-      } else {
-        setInteractionVisible(false)
-        if (destroyOnClose) {
-          setMounted(false)
-        }
-        onClosed?.()
+  const runAnimation = React.useCallback(
+    (show: boolean) => {
+      animatingRef.current = true
+      if (show) {
+        setMounted(true)
+        setInteractionVisible(true)
       }
-    })
-    return () => {
-      animation.stop()
+      // 对齐 react-vant：进入使用 ease-out，退出使用 ease-in（近似 CSS cubic-bezier 0.25,0.1,0.25,1 / 0.42,0,1,1）
+      const easing = show ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic)
+      animationRef.current?.stop()
+      const animation = Animated.timing(progress, {
+        toValue: show ? 1 : 0,
+        duration,
+        easing,
+        useNativeDriver: true,
+      })
+      animationRef.current = animation
+
+      animation.start(({ finished }) => {
+        if (!finished) return
+        animatingRef.current = false
+        const pending = pendingLayoutRef.current
+        if (pending) {
+          pendingLayoutRef.current = null
+          distanceRef.current = isVertical ? pending.height : pending.width
+          setContentSize(pending)
+        }
+        if (show) {
+          onOpened?.()
+        } else {
+          setInteractionVisible(false)
+          if (destroyOnClose) {
+            setMounted(false)
+          }
+          onClosed?.()
+        }
+      })
+    },
+    [destroyOnClose, duration, isVertical, onClosed, onOpened, progress]
+  )
+
+  React.useEffect(() => {
+    const needsMeasure = shouldTranslate && distanceRef.current === 0
+    if (visible) {
+      if (needsMeasure) {
+        pendingShowRef.current = true
+        progress.setValue(0)
+        setMounted(true)
+        setInteractionVisible(true)
+        return
+      }
+      pendingShowRef.current = false
+      runAnimation(true)
+    } else {
+      pendingShowRef.current = false
+      runAnimation(false)
     }
-  }, [animated, destroyOnClose, duration, onClosed, onOpened, visible])
+  }, [progress, runAnimation, shouldTranslate, visible])
 
   React.useEffect(() => {
     if (visible && !prevVisible.current) {
@@ -232,6 +282,13 @@ export const Popup: React.FC<PopupProps> = props => {
     }
     prevVisible.current = visible
   }, [onOpen, visible])
+
+  React.useEffect(
+    () => () => {
+      animationRef.current?.stop()
+    },
+    []
+  )
 
   const requestClose = React.useCallback(
     async (reason: 'close-icon' | 'overlay' | 'close') => {
@@ -276,7 +333,7 @@ export const Popup: React.FC<PopupProps> = props => {
   const { overlayRef, overlayProps } = useAriaOverlay({
     isOpen: visible,
     onClose: () => requestClose('overlay'),
-    isDismissable: closeOnOverlayPress,
+    isDismissable: shouldCloseOnOverlay,
     overlayProps: {
       accessibilityRole: 'dialog',
       accessibilityLiveRegion: 'polite',
@@ -297,64 +354,68 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const config = placementConfig[placement]
   const distance =
-    config.axis === 'x'
+    distanceRef.current ||
+    (config.axis === 'x'
       ? contentSize.width || windowWidth
-      : contentSize.height || windowHeight
-  const direction = placement === 'top' || placement === 'left' ? -1 : 1
-  const shouldTranslate = placement !== 'center'
+      : contentSize.height || windowHeight)
 
   const translateStyle: Animated.WithAnimatedObject<ViewStyle> = shouldTranslate
     ? {
-        transform: [
-          config.axis === 'y'
-            ? {
-                translateY: animated.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [distance * direction, 0],
-                }),
-              }
-            : {
-                translateX: animated.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [distance * direction, 0],
-                }),
-              },
-        ],
-      }
+      transform: [
+        config.axis === 'y'
+          ? {
+            translateY: progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [distance * direction, 0],
+            }),
+          }
+          : {
+            translateX: progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [distance * direction, 0],
+            }),
+          },
+      ],
+    }
     : { transform: [] }
 
-  if (config.scale) {
-    translateStyle.transform?.push({
-      scale: animated.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }),
-    })
-  }
-  const overlayOpacity = animated.interpolate({ inputRange: [0, 1], outputRange: [0, 1] })
-  const isVertical = placement === 'top' || placement === 'bottom'
-  const isHorizontal = placement === 'left' || placement === 'right'
+  const overlayOpacity = progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] })
+  const contentOpacity = placement === 'center' ? progress : 1
   const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = {
     ...translateStyle,
-    opacity: animated,
+    opacity: contentOpacity,
   }
 
   const handleContentLayout = React.useCallback(
     (event: LayoutChangeEvent) => {
       overlayOnLayout?.(event)
       const { width, height } = event.nativeEvent.layout
+      const next = { width, height }
+      const nextDistance = isVertical ? height : width
+      if (animatingRef.current) {
+        pendingLayoutRef.current = next
+        return
+      }
+      distanceRef.current = nextDistance
       setContentSize(prev => {
         if (Math.abs(prev.width - width) < 0.5 && Math.abs(prev.height - height) < 0.5) {
           return prev
         }
-        return { width, height }
+        return next
       })
+      if (pendingShowRef.current) {
+        pendingShowRef.current = false
+        runAnimation(true)
+      }
     },
-    [overlayOnLayout]
+    [isVertical, overlayOnLayout, runAnimation]
   )
 
   const shouldRender = mounted || visible
 
   if (!shouldRender) return null
 
-  const hidden = !visible
+  const hidden = (!visible && !interactionVisible) || pendingShowRef.current
 
   const hasCustomCloseIcon = closeIcon != null
 
@@ -382,11 +443,17 @@ export const Popup: React.FC<PopupProps> = props => {
         <Pressable
           style={[
             styles.closeIconBase,
-            closeIconPosition === "top-left" ? { left: 12 } : { right: 12 },
+            closeIconPosition === 'top-left'
+              ? { top: 12, left: 12 }
+              : closeIconPosition === 'bottom-left'
+                ? { bottom: 12, left: 12 }
+                : closeIconPosition === 'bottom-right'
+                  ? { bottom: 12, right: 12 }
+                  : { top: 12, right: 12 },
             !hasCustomCloseIcon ? styles.closeIconDefault : null,
           ]}
           hitSlop={8}
-          onPress={() => requestClose("close-icon")}
+          onPress={() => requestClose('close-icon')}
         >
           {hasCustomCloseIcon ? closeIcon : <Icon name="close" size={18} color="#c8c9cc" />}
         </Pressable>
@@ -422,11 +489,11 @@ export const Popup: React.FC<PopupProps> = props => {
               accessibilityRole="button"
               accessibilityLabel={overlayAccessibilityLabel}
               accessibilityHint={
-                closeOnOverlayPress ? '双击即可关闭弹层' : undefined
+                shouldCloseOnOverlay ? '双击即可关闭弹层' : undefined
               }
               onPress={() => {
                 onClickOverlay?.()
-                if (closeOnOverlayPress) {
+                if (shouldCloseOnOverlay) {
                   requestClose('overlay')
                 }
               }}
@@ -486,7 +553,6 @@ const styles = StyleSheet.create({
   },
   closeIconBase: {
     position: 'absolute',
-    top: 12,
     zIndex: 1,
     minWidth: 36,
     minHeight: 36,

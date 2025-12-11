@@ -23,11 +23,11 @@ export interface NumberKeyboardTokens {
     keyGap: number
     titlePadding: number
   }
-  sizing: {
-    keyHeight: number
-    closeHeight: number
-    fontSize: number
-  }
+    sizing: {
+      keyHeight: number
+      closeHeight: number
+      fontSize: number
+    }
   radii: {
     key: number
   }
@@ -56,7 +56,7 @@ const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
     sizing: {
       keyHeight: 54,
       closeHeight: 44,
-      fontSize: 24,
+      fontSize: 28,
     },
     radii: {
       key: radii.xs,

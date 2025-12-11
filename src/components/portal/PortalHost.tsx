@@ -53,6 +53,8 @@ const hostStack: PortalLayer[] = []
 const portalEntries = new Map<number, React.ReactNode>()
 let nextPortalKey = 1
 let warnedNative = false
+let autoHostActive = false
+let autoHostTeardownScheduled = false
 
 const getEntriesSnapshot = (): PortalEntry[] =>
   Array.from(portalEntries.entries()).map(([key, children]) => ({
@@ -77,7 +79,12 @@ const unregisterHost = (host: PortalLayer) => {
   if (index >= 0) {
     hostStack.splice(index, 1)
   }
-  notifyCurrentHost()
+  if (hostStack.length === 0) {
+    clearPortals()
+  } else {
+    notifyCurrentHost()
+  }
+  scheduleTeardownIfIdle()
 }
 
 const mountPortal = (children: React.ReactNode, key?: number) => {
@@ -95,13 +102,43 @@ const updatePortal = (key: number, children: React.ReactNode) => {
 const unmountPortal = (key: number) => {
   if (portalEntries.delete(key)) {
     notifyCurrentHost()
+    scheduleTeardownIfIdle()
   }
 }
 
+const teardownAutoHost = () => {
+  if (!autoHostActive) return
+  autoHostRoot?.unmount?.()
+  autoHostRoot = null
+  if (autoHostContainer?.parentNode) {
+    autoHostContainer.parentNode.removeChild(autoHostContainer)
+  }
+  autoHostContainer = null
+  autoHostActive = false
+  autoHostTeardownScheduled = false
+}
+
+const scheduleTeardownIfIdle = () => {
+  if (!autoHostActive) return
+  if (autoHostTeardownScheduled) return
+  if (portalEntries.size > 0) return
+  if (hostStack.length > 1) return
+  autoHostTeardownScheduled = true
+  Promise.resolve().then(() => {
+    if (portalEntries.size === 0 && (hostStack.length === 0 || hostStack.length === 1) && autoHostActive) {
+      teardownAutoHost()
+    } else {
+      autoHostTeardownScheduled = false
+    }
+  })
+}
+
 const clearPortals = () => {
-  if (portalEntries.size === 0) return
-  portalEntries.clear()
-  notifyCurrentHost()
+  if (portalEntries.size > 0) {
+    portalEntries.clear()
+    notifyCurrentHost()
+  }
+  scheduleTeardownIfIdle()
 }
 
 const globalManager: PortalManager = {
@@ -195,6 +232,7 @@ export const ensureGlobalPortalHost = () => {
       autoHostContainer.setAttribute('data-rnsu-portal-host', 'true')
       doc.body.appendChild(autoHostContainer)
       autoHostRoot = createRoot(autoHostContainer)
+      autoHostActive = true
       autoHostRoot.render(<PortalHost fixed />)
     })
     .catch(error => {

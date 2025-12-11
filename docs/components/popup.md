@@ -60,7 +60,7 @@ import { Popup } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `visible` | 是否显示 | `boolean` | - |
-| `placement` | 弹出位置 | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'bottom'` |
+| `placement` | 弹出位置 | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'center'` |
 | `overlay` | 是否显示遮罩 | `boolean` | `true` |
 | `overlayStyle` | 自定义遮罩样式 | `StyleProp<ViewStyle>` | - |
 | `overlayAccessibilityLabel` | 无障碍描述，用于提示遮罩按钮的用途 | `string` | `关闭弹层` |
@@ -70,7 +70,7 @@ import { Popup } from 'react-native-system-ui'
 | `closeOnPopstate` | 浏览器返回（popstate）是否关闭 | `boolean` | `false` |
 | `closeable` | 是否展示关闭图标 | `boolean` | `false` |
 | `closeIcon` | 自定义关闭图标 | `ReactNode` | - |
-| `closeIconPosition` | 关闭图标位置 | `'top-right' \| 'top-left'` | `'top-right'` |
+| `closeIconPosition` | 关闭图标位置 | `'top-right' \| 'top-left' \| 'bottom-left' \| 'bottom-right'` | `'top-right'` |
 | `round` | 是否根据位置自动设置圆角 | `boolean` | `false` |
 | `safeArea` | 是否使用 `SafeAreaView` 包裹内容 | `boolean` | `false` |
 | `safeAreaInsetTop` | 内容顶部是否预留安全区 | `boolean` | `false` |

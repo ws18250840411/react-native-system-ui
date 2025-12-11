@@ -4,7 +4,7 @@ import { Text } from 'react-native'
 
 import Portal from '../Portal'
 import { PortalContext } from '../PortalContext'
-import { PortalHost, portalStore } from '../PortalHost'
+import { PortalHost, ensureGlobalPortalHost, portalStore } from '../PortalHost'
 
 describe('Portal', () => {
   afterEach(() => {
@@ -92,5 +92,20 @@ describe('Portal', () => {
     act(() => {
       host.unmount()
     })
+  })
+
+  it('tears down auto host after clear when only auto host is present', async () => {
+    await act(async () => {
+      await ensureGlobalPortalHost()
+    })
+
+    expect(document.querySelector('[data-rnsu-portal-host="true"]')).not.toBeNull()
+
+    await act(async () => {
+      Portal.clear()
+      await Promise.resolve()
+    })
+
+    expect(document.querySelector('[data-rnsu-portal-host="true"]')).toBeNull()
   })
 })

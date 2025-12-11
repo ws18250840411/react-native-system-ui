@@ -20,6 +20,8 @@ export interface NumberKeyboardProps extends ViewProps {
   safeAreaInsetBottom?: boolean
   theme?: NumberKeyboardTheme
   transition?: boolean
+  /** 动画时长，单位 ms；当 transition 为 false 时忽略 */
+  transitionDuration?: number
   onInput?: (key: string) => void
   onDelete?: () => void
   onClose?: () => void
