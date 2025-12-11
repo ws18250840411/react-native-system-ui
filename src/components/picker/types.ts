@@ -39,6 +39,7 @@ export interface PickerProps extends ViewProps {
   maskColor?: string
   maskType?: 'gradient' | 'solid'
   swipeDuration?: number
+  effects?: boolean
   columnsTop?: React.ReactNode
   columnsBottom?: React.ReactNode
   emitConfirmOnAutoSelect?: boolean
@@ -66,5 +67,6 @@ export interface PickerColumnProps {
   disableRemoveClippedSubviewsOnWeb?: boolean
   debug?: boolean
   swipeDuration?: number
+  effects?: boolean
   onSelect: (option: PickerOption, columnIndex: number, optionIndex: number) => void
 }

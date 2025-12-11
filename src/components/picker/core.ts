@@ -1,7 +1,7 @@
 import type { PickerOption } from './types'
 
-const MOMENTUM_LIMIT_TIME = 180
-const MOMENTUM_LIMIT_DISTANCE = 5
+const MOMENTUM_LIMIT_TIME = 500
+const MOMENTUM_LIMIT_DISTANCE = 8
 
 export const clamp = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val))
 
@@ -40,7 +40,7 @@ export const momentumTarget = (
   minOffset: number,
 ) => {
   const speed = Math.abs(distance / duration)
-  const extra = (speed / 0.003) * (distance < 0 ? -1 : 1)
+  const extra = (speed / 0.0025) * (distance < 0 ? -1 : 1)
   const target = clamp(currentOffset + extra, minOffset, 0)
   const snapIndex = Math.round(-target / itemHeight)
   return indexToOffset(snapIndex, itemHeight)

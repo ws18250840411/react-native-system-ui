@@ -17,20 +17,8 @@ const columns = [
   ],
 ]
 
-const brandColor = '#1989fa'
-
 export default function PickerBasicDemo() {
   const [value, setValue] = React.useState(['nanjing'])
-
-  const optionRender = React.useCallback((option: PickerOption, { active }: { columnIndex: number; active: boolean }) => {
-    const color = active ? brandColor : '#323233'
-    const fontWeight = active ? '600' : '400'
-    return (
-      <Text style={{ color, fontWeight }}>
-        {option.label}
-      </Text>
-    )
-  }, [])
 
   const handleConfirm = React.useCallback((vals: PickerValue[], opts: (PickerOption | undefined)[]) => {
     Toast.show({ message: `已选：${opts.map(o => o?.label ?? o?.value).join(' / ')}` })
@@ -44,7 +32,6 @@ export default function PickerBasicDemo() {
         value={value}
         onChange={setValue}
         onConfirm={handleConfirm}
-        optionRender={optionRender}
         debug
         confirmButtonText="确认"
         cancelButtonText="取消"

@@ -51,13 +51,6 @@ const columns = [
 
 export default function PickerCascadeDemo() {
   const [value, setValue] = React.useState<PickerValue[]>(['zhejiang', 'hangzhou', 'xihu'])
-  const brandColor = '#1989fa'
-
-  const optionRender = React.useCallback((option: PickerOption, { active }: { columnIndex: number; active: boolean }) => {
-    const color = active ? brandColor : '#323233'
-    const fontWeight = active ? '600' : '400'
-    return <Text style={{ color, fontWeight }}>{option.label}</Text>
-  }, [])
 
   const handleConfirm = React.useCallback((vals: PickerValue[], opts: (PickerOption | undefined)[]) => {
     Toast.show({ message: `已选：${opts.map(o => o?.label ?? o?.value).join(' / ')}` })
@@ -71,7 +64,6 @@ export default function PickerCascadeDemo() {
         value={value}
         onChange={setValue}
         onConfirm={handleConfirm}
-        optionRender={optionRender}
         debug
         confirmButtonText="确定"
         cancelButtonText="取消"
