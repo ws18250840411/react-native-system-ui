@@ -168,7 +168,7 @@ const WheelPicker = React.memo(<T,>({
           ]}
           pointerEvents="none"
         />
-        <View style={webTransform} pointerEvents="none">
+        <View style={webTransform}>
           <View style={{ height: spacerHeight }} />
           {data.map((item, index) => {
             const content = renderItem(item, index)
