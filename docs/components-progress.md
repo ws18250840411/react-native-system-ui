@@ -38,6 +38,7 @@
 | Form 表单 | ✅ | 校验/依赖更新去重，setFieldsValue 只处理实际变更，API memo 化 |
 | Input 输入框 | ✅ | 基础/清除/插入内容/多行/字数统计/对齐/状态示例对齐官方 |
 | NumberKeyboard 数字键盘 | ⏳ |  |
+| PasswordInput 密码输入框 | ✅ | 新增格子密码输入组件，支持掩码/校验/自动提交，文档同步 |
 | Picker 选择器 | ✅ | 级联判定/受控同步/首帧副作用处理完成，Web 滚轮体验优化并补 utils 单测；demo 对齐 React Vant |
 | Radio 单选框 | ⏳ |  |
 | Rate 评分 | ⏳ |  |

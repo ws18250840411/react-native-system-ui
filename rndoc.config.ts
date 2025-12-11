@@ -100,6 +100,7 @@ export default defineConfig({
           '/components/form',
           '/components/input',
           '/components/number-keyboard',
+          '/components/password-input',
           '/components/picker',
           '/components/radio',
           '/components/rate',

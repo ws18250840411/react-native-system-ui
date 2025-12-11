@@ -73,6 +73,8 @@ export { default as Selector } from './selector'
 export type { SelectorProps, SelectorOption, SelectorValue } from './selector'
 export { default as Search } from './search'
 export type { SearchProps, SearchRef, SearchShape } from './search'
+export { default as PasswordInput } from './password-input'
+export type { PasswordInputProps, PasswordInputRef } from './password-input'
 export { default as Picker } from './picker'
 export type {
   PickerProps,
