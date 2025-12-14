@@ -16,6 +16,15 @@ const clampValue = (value: number | undefined, min: number, max: number) => {
   return value
 }
 
+const parseNumber = (value: number | string | undefined, fallback: number) => {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value)
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+  return fallback
+}
+
 const normalizeValue = (
   value: SliderValue | undefined,
   range: boolean,
@@ -100,7 +109,6 @@ const ThumbNode: React.FC<ThumbNodeProps> = ({
   size,
   activeColor,
   content,
-  percent,
   visualPercent,
   enhanceHandlers,
 }) => {
@@ -139,7 +147,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = ({
       {...handlers}
       {...createAccessibilityProps(inputProps)}
       pointerEvents={isDisabled ? 'none' : 'auto'}
-      style={[styles.thumb, thumbStyle]}
+      style={[content ? styles.thumbWrapper : styles.thumb, thumbStyle]}
     >
       {content ?? <View style={styles.defaultThumb} />}
     </View>
@@ -181,30 +189,42 @@ export const Slider: React.FC<SliderProps> = props => {
 
   const tokens = useSliderTokens()
   const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
-  const resolvedTrackHeight = barHeight ?? trackHeight ?? tokens.track.height
-  const resolvedThumbSize = buttonSize ?? thumbSize ?? tokens.thumb.size
-  const isDisabled = disabled || readOnly
+
+  const resolvedMin = parseNumber(min, 0)
+  const resolvedMax = parseNumber(max, 100)
+  const resolvedStepRaw = parseNumber(step, 1)
+  const resolvedStep = resolvedStepRaw > 0 ? resolvedStepRaw : 1
+
+  const resolvedTrackHeight = Math.max(
+    0,
+    parseNumber(barHeight ?? trackHeight, tokens.track.height)
+  )
+  const resolvedThumbSize = Math.max(
+    0,
+    parseNumber(buttonSize ?? thumbSize, tokens.thumb.size)
+  )
+
+  const ariaDisabled = disabled || readOnly
   const resolvedActiveColor = activeColor ?? tokens.colors.active
   const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
-  const scope = Math.max(max - min, 0.00001)
+  const scope = Math.max(resolvedMax - resolvedMin, 0.00001)
 
   const normalized = React.useMemo(
-    () => normalizeValue(valueProp, range, min, max),
-    [valueProp, range, min, max]
+    () => normalizeValue(valueProp, range, resolvedMin, resolvedMax),
+    [valueProp, range, resolvedMin, resolvedMax]
   )
   const isControlled = valueProp !== undefined
 
   const formatOutput = React.useCallback(
-    (values: readonly number[]) => toSliderValue(values, range, min),
-    [range, min]
+    (values: readonly number[]) => toSliderValue(values, range, resolvedMin),
+    [range, resolvedMin]
   )
 
   const state = useSliderState({
-    minValue: min,
-    maxValue: max,
-    step,
-    isDisabled,
-    isReadOnly: readOnly,
+    minValue: resolvedMin,
+    maxValue: resolvedMax,
+    step: resolvedStep,
+    isDisabled: ariaDisabled,
     numberFormatter: { format: (val: number) => val },
     orientation,
     value: isControlled ? normalized : undefined,
@@ -220,10 +240,10 @@ export const Slider: React.FC<SliderProps> = props => {
   const handleTrackLayout = React.useCallback((event: LayoutChangeEvent) => {
     const { layout } = event.nativeEvent
     setTrackLayout({
-      width: layout.width,
-      height: layout.height,
-      x: layout.x ?? 0,
-      y: layout.y ?? 0,
+      width: Math.max(layout.width, 1),
+      height: Math.max(layout.height, 1),
+      x: 0,
+      y: 0,
     })
   }, [])
 
@@ -232,8 +252,7 @@ export const Slider: React.FC<SliderProps> = props => {
   const { trackProps } = useSlider(
     {
       orientation,
-      isDisabled,
-      isReadOnly: readOnly,
+      isDisabled: ariaDisabled,
       'aria-label': accessibleLabel,
     } as any,
     state,
@@ -241,8 +260,9 @@ export const Slider: React.FC<SliderProps> = props => {
     ariaReverse
   )
 
-  const dragStatusRef = React.useRef<Record<number, boolean>>({})
   const getCurrentValue = React.useCallback(() => formatOutput(state.values), [state.values, formatOutput])
+  const dragStartedRef = React.useRef<Record<number, boolean>>({})
+  const dragStartValueRef = React.useRef<Record<number, SliderValue>>({})
 
   const enhanceHandlers = React.useCallback(
     (handlers: Record<string, any> | undefined, index: number) => {
@@ -252,7 +272,7 @@ export const Slider: React.FC<SliderProps> = props => {
       }
       const wrapped = { ...handlers }
 
-      const wrap = (
+      const wrapAfter = (
         key: string,
         callback: ((event: GestureResponderEvent) => void) | undefined
       ) => {
@@ -264,22 +284,40 @@ export const Slider: React.FC<SliderProps> = props => {
         }
       }
 
-      wrap('onPanResponderGrant', event => {
-        if (!dragStatusRef.current[index]) {
-          dragStatusRef.current[index] = true
-          onDragStart?.(event, getCurrentValue())
+      const wrapBefore = (
+        key: string,
+        callback: ((event: GestureResponderEvent) => void) | undefined
+      ) => {
+        if (!callback) return
+        const original = wrapped[key]
+        wrapped[key] = (...args: any[]) => {
+          callback(args[0])
+          original?.(...args)
+        }
+      }
+
+      wrapAfter('onPanResponderGrant', () => {
+        dragStartedRef.current[index] = false
+        dragStartValueRef.current[index] = getCurrentValue()
+      })
+
+      wrapBefore('onPanResponderMove', event => {
+        if (!dragStartedRef.current[index]) {
+          dragStartedRef.current[index] = true
+          onDragStart?.(event, dragStartValueRef.current[index] ?? getCurrentValue())
         }
       })
 
       const emitEnd = (event: GestureResponderEvent) => {
-        if (dragStatusRef.current[index]) {
-          dragStatusRef.current[index] = false
+        if (dragStartedRef.current[index]) {
+          dragStartedRef.current[index] = false
+          delete dragStartValueRef.current[index]
           onDragEnd?.(event, getCurrentValue())
         }
       }
 
-      wrap('onPanResponderRelease', emitEnd)
-      wrap('onPanResponderTerminate', emitEnd)
+      wrapAfter('onPanResponderRelease', emitEnd)
+      wrapAfter('onPanResponderTerminate', emitEnd)
 
       return wrapped
     },
@@ -289,13 +327,13 @@ export const Slider: React.FC<SliderProps> = props => {
   const values = state.values as number[]
 
   const percentFromValue = React.useCallback(
-    (value: number) => ((value - min) / scope) * 100,
-    [min, scope]
+    (value: number) => ((value - resolvedMin) / scope) * 100,
+    [resolvedMin, scope]
   )
 
   const thumbPercents = React.useMemo(
-    () => values.map(value => percentFromValue(value ?? min)),
-    [values, percentFromValue, min]
+    () => values.map(value => percentFromValue(value ?? resolvedMin)),
+    [values, percentFromValue, resolvedMin]
   )
 
   const thumbVisualPercents = React.useMemo(
@@ -310,10 +348,10 @@ export const Slider: React.FC<SliderProps> = props => {
     [thumbPercents, orientation, reverse]
   )
 
-  const trackOffsetPercent = range ? percentFromValue(values[0] ?? min) : 0
+  const trackOffsetPercent = range ? percentFromValue(values[0] ?? resolvedMin) : 0
   const trackSizePercent = range
-    ? percentFromValue(values[1] ?? values[0] ?? min) - trackOffsetPercent
-    : percentFromValue(values[0] ?? min)
+    ? percentFromValue(values[1] ?? values[0] ?? resolvedMin) - trackOffsetPercent
+    : percentFromValue(values[0] ?? resolvedMin)
 
   const positionKey = getPositionKey(orientation, reverse)
   const sizeKey = orientation === 'vertical' ? 'height' : 'width'
@@ -322,9 +360,9 @@ export const Slider: React.FC<SliderProps> = props => {
     () => ({
       [sizeKey]: `${Math.max(trackSizePercent, 0)}%`,
       [positionKey]: `${Math.max(trackOffsetPercent, 0)}%`,
-      backgroundColor: isDisabled ? resolvedInactiveColor : resolvedActiveColor,
+      backgroundColor: resolvedActiveColor,
     }),
-    [sizeKey, positionKey, trackSizePercent, trackOffsetPercent, isDisabled, resolvedInactiveColor, resolvedActiveColor]
+    [sizeKey, positionKey, trackSizePercent, trackOffsetPercent, resolvedActiveColor]
   )
 
   const trackBaseStyle =
@@ -336,7 +374,11 @@ export const Slider: React.FC<SliderProps> = props => {
       : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }]
 
   const thumbContentMap = React.useMemo(() => {
-    const shared = button ?? thumb
+    const currentValue = formatOutput(state.values)
+    const shared =
+      typeof button === 'function'
+        ? button({ value: currentValue })
+        : button ?? thumb
     const leftContent = leftButton ?? leftThumb ?? shared
     const rightContent = rightButton ?? rightThumb ?? shared
     return {
@@ -344,7 +386,16 @@ export const Slider: React.FC<SliderProps> = props => {
       left: leftContent,
       right: rightContent,
     }
-  }, [button, thumb, leftButton, leftThumb, rightButton, rightThumb])
+  }, [
+    button,
+    thumb,
+    leftButton,
+    leftThumb,
+    rightButton,
+    rightThumb,
+    formatOutput,
+    state.values,
+  ])
 
   const resolveThumbContent = React.useCallback(
     (index: number, total: number) => {
@@ -358,7 +409,12 @@ export const Slider: React.FC<SliderProps> = props => {
 
   return (
     <View
-      style={[styles.container, orientation === 'vertical' && styles.verticalContainer, style]}
+      style={[
+        styles.container,
+        orientation === 'vertical' && styles.verticalContainer,
+        disabled && { opacity: tokens.states.disabledOpacity },
+        style,
+      ]}
       onLayout={containerOnLayout}
       {...rest}
     >
@@ -367,7 +423,7 @@ export const Slider: React.FC<SliderProps> = props => {
           styles.trackWrapper,
           orientation === 'vertical' && styles.trackWrapperVertical,
         ]}
-        disabled={isDisabled}
+        disabled={ariaDisabled}
         onLayout={handleTrackLayout}
         {...trackProps}
       >
@@ -383,7 +439,7 @@ export const Slider: React.FC<SliderProps> = props => {
           reverse={reverse}
           ariaReverse={ariaReverse}
           trackLayout={trackLayout}
-          isDisabled={isDisabled}
+          isDisabled={ariaDisabled}
           state={state}
           size={resolvedThumbSize}
           activeColor={resolvedActiveColor}
@@ -441,6 +497,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 1,
+  },
+  thumbWrapper: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   defaultThumb: {
     width: 8,

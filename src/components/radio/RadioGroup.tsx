@@ -26,6 +26,8 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     name,
     children,
     style,
+    accessibilityLabel,
+    accessibilityHint,
     ...viewProps
   } = props
 
@@ -46,36 +48,50 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     isDisabled: disabled,
     onChange: key => {
       const raw = registryRef.current.get(key)
-      if (raw !== undefined) {
-        onChange?.(raw)
-      }
+      onChange?.(raw ?? key)
     },
     name,
   })
 
-  const { groupProps } = useRadioGroup({ isDisabled: disabled, name }, state)
+  const { groupProps } = useRadioGroup(
+    {
+      isDisabled: disabled,
+      'aria-label': accessibilityLabel,
+      'aria-describedby': accessibilityHint,
+      name,
+    },
+    state
+  )
 
   const childrenArray = React.Children.toArray(children).filter(Boolean)
   const itemStyleForIndex = (index: number): ViewStyle => {
-    if (index === childrenArray.length - 1) {
-      return styles.item
+    const isLast = index === childrenArray.length - 1
+    if (direction === 'horizontal') {
+      return [
+        styles.item,
+        !isLast && { marginRight: gap },
+        { marginBottom: gap },
+      ]
     }
-    return direction === 'horizontal'
-      ? [styles.item, { marginRight: gap }]
-      : [styles.item, { marginBottom: gap }]
+    return isLast ? styles.item : [styles.item, { marginBottom: gap }]
   }
+
+  const contextValue = React.useMemo(
+    () => ({
+      state,
+      direction,
+      iconSize,
+      checkedColor,
+      labelDisabled,
+      registerValue,
+      unregisterValue,
+    }),
+    [state, direction, iconSize, checkedColor, labelDisabled, registerValue, unregisterValue]
+  )
 
   return (
     <RadioGroupContext.Provider
-      value={{
-        state,
-        direction,
-        iconSize,
-        checkedColor,
-        labelDisabled,
-        registerValue,
-        unregisterValue,
-      }}
+      value={contextValue}
     >
       <View
         {...groupProps}

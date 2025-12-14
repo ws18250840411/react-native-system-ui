@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import type { SelectorProps, SelectorValue } from './types'
 import { useSelectorTokens } from './tokens'
+import { useControllableValue } from '../../hooks'
 
 const CHECK_MARK = '✓'
 
@@ -10,12 +11,10 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
   const tokens = useSelectorTokens()
   const {
     options,
-    columns = tokens.defaults.columns,
+    columns: columnsProp = tokens.defaults.columns,
     multiple = tokens.defaults.multiple,
     showCheckMark = tokens.defaults.showCheckMark,
     disabled = false,
-    defaultValue = [],
-    value: valueProp,
     onChange,
     itemStyle,
     labelStyle,
@@ -24,38 +23,43 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
     ...rest
   } = props
 
-  const isControlled = valueProp !== undefined
-  const [internalValue, setInternalValue] = React.useState<V[]>(defaultValue)
-  const value = isControlled ? (valueProp ?? []) : internalValue
+  const [value = [], triggerChange] = useControllableValue<V[]>(props, {
+    defaultValue: [],
+  })
 
-  const updateValue = React.useCallback(
+  const resolvedColumns = Math.max(1, Math.floor(columnsProp))
+  const basis = `${100 / resolvedColumns}%`
+  const itemMargin = tokens.spacing.gap / 2
+  const selectedSet = React.useMemo(() => new Set(value), [value])
+
+  const triggerValueChange = React.useCallback(
     (next: V[]) => {
-      if (!isControlled) {
-        setInternalValue(next)
+      const extend = {
+        get items() {
+          return options.filter(option => next.includes(option.value))
+        },
       }
-      onChange?.(next, {
-        items: options.filter(option => next.includes(option.value)),
-      })
+      triggerChange(next, extend)
     },
-    [isControlled, onChange, options],
+    [options, triggerChange],
   )
 
-  const toggleOption = (option: typeof options[number]) => {
-    if (disabled || option.disabled) return
-    const active = value.includes(option.value)
-    if (multiple) {
-      const next = active
-        ? value.filter(item => item !== option.value)
-        : [...value, option.value]
-      updateValue(next)
-    } else {
-      const next = active ? [] : [option.value]
-      updateValue(next)
-    }
-  }
-
-  const basis = columns ? `${100 / columns}%` : undefined
-  const itemMargin = tokens.spacing.gap / 2
+  const toggleOption = React.useCallback(
+    (option: typeof options[number]) => {
+      if (disabled || option.disabled) return
+      const active = selectedSet.has(option.value)
+      if (multiple) {
+        const next = active
+          ? value.filter(item => item !== option.value)
+          : [...value, option.value]
+        triggerValueChange(next)
+      } else {
+        const next = active ? [] : [option.value]
+        triggerValueChange(next)
+      }
+    },
+    [disabled, multiple, selectedSet, triggerValueChange, value],
+  )
 
   return (
     <View
@@ -65,10 +69,10 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
         { marginHorizontal: -itemMargin, marginVertical: -itemMargin },
         style,
       ]}
-      accessibilityRole="radiogroup"
+      accessibilityRole={multiple ? 'group' : 'radiogroup'}
     >
       {options.map(option => {
-        const active = value.includes(option.value)
+        const active = selectedSet.has(option.value)
         const isDisabled = disabled || option.disabled
         const interactive = !isDisabled
         const labelColor = active ? tokens.colors.textActive : tokens.colors.text
@@ -92,8 +96,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                 backgroundColor: active
                   ? tokens.colors.backgroundActive
                   : tokens.colors.background,
-                borderWidth: StyleSheet.hairlineWidth,
-                width: basis,
+                flex: 1,
                 opacity: isDisabled ? 0.45 : 1,
               },
               itemStyle,

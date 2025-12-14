@@ -6,7 +6,7 @@ import type {
   ViewStyle,
 } from 'react-native'
 
-import type { FieldProps } from '../field/types'
+import type { FieldInputAlign, FieldProps } from '../field/types'
 
 export type SearchShape = 'square' | 'round'
 
@@ -59,6 +59,10 @@ export interface SearchProps
   shape?: SearchShape
   /** 外层背景色 */
   background?: string
+  /** 搜索框内容对齐方式 */
+  align?: FieldInputAlign
+  /** 输入内容变化时触发（推荐） */
+  onChange?: (value: string) => void
   /** 点击键盘搜索时回调 */
   onSearch?: (value: string) => void
   /** 点击取消时回调 */

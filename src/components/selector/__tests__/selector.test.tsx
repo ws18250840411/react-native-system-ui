@@ -23,6 +23,7 @@ describe('Selector', () => {
       pressables[1].props.onPress?.()
     })
 
+    expect(handleChange).toHaveBeenCalledTimes(1)
     expect(handleChange).toHaveBeenCalledWith(['cd'], {
       items: [options[1]],
     })
@@ -31,6 +32,7 @@ describe('Selector', () => {
       pressables[1].props.onPress?.()
     })
 
+    expect(handleChange).toHaveBeenCalledTimes(2)
     expect(handleChange).toHaveBeenLastCalledWith([], { items: [] })
   })
 

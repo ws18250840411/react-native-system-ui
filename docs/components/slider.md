@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-滑动输入条，支持单滑块与双滑块模式，API 与 react-vant 对齐。
+滑动输入条，用于在给定的范围内选择一个值。
 
 ## 引入
 
@@ -19,43 +19,76 @@ import { Slider } from 'react-native-system-ui'
 
 ### 基础用法
 
-<code title="基础用法" src="./slider/demo/base.tsx"></code>
+<code title="基础用法" src="./slider/demo/basic.tsx"></code>
 
 ### 双滑块
 
+添加 `range` 属性就可以开启双滑块模式，确保 `value` 的值是一个数组。
+
 <code title="双滑块" src="./slider/demo/range.tsx"></code>
+
+### 指定选择范围
+
+<code title="指定选择范围" src="./slider/demo/range-limit.tsx"></code>
+
+### 禁用
+
+<code title="禁用" src="./slider/demo/disabled.tsx"></code>
+
+### 指定步长
+
+<code title="指定步长" src="./slider/demo/step.tsx"></code>
 
 ### 自定义样式
 
 <code title="自定义样式" src="./slider/demo/style.tsx"></code>
 
+### 自定义按钮
+
+<code title="自定义按钮" src="./slider/demo/button.tsx"></code>
+
 ### 垂直方向
+
+设置 `vertical` 属性后，滑块会垂直展示，且高度为 100% 父元素高度。
 
 <code title="垂直方向" src="./slider/demo/vertical.tsx"></code>
 
 ## API
 
-| 属性 | 说明 | 类型 | 默认值 |
+### Props
+
+| 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `value` | 当前值；`range` 时为 `[min,max]` | `number \| [number, number]` | `0` |
-| `min` | 最小值 | `number` | `0` |
-| `max` | 最大值 | `number` | `100` |
-| `step` | 步长 | `number` | `1` |
-| `range` | 是否启用双滑块 | `boolean` | `false` |
-| `reverse` | 是否反向 | `boolean` | `false` |
+| `value` | 当前进度百分比，在双滑块模式下为数组格式 | `number \| [number, number]` | `0` |
+| `max` | 最大值 | `number \| string` | `100` |
+| `min` | 最小值 | `number \| string` | `0` |
+| `step` | 步长 | `number \| string` | `1` |
+| `barHeight` | 进度条高度，默认单位为 `px` | `number \| string` | `2px` |
+| `buttonSize` | 滑块按钮大小，默认单位为 `px` | `number \| string` | `24px` |
+| `activeColor` | 进度条激活态颜色 | `string` | `#3f45ff` |
+| `inactiveColor` | 进度条非激活态颜色 | `string` | `#e5e5e5` |
+| `range` | 是否开启双滑块模式 | `boolean` | `false` |
+| `reverse` | 是否将进度条反转 | `boolean` | `false` |
+| `disabled` | 是否禁用滑块 | `boolean` | `false` |
+| `readOnly` | 是否为只读状态，只读状态下无法修改滑块的值 | `boolean` | `false` |
 | `vertical` | 是否垂直展示 | `boolean` | `false` |
-| `disabled` | 禁用状态 | `boolean` | `false` |
-| `readOnly` | 只读状态 | `boolean` | `false` |
-| `activeColor` | 激活轨道颜色 | `string` | `#3f45ff` |
-| `inactiveColor` | 未激活轨道颜色 | `string` | `#e5e5e5` |
-| `trackHeight` | 轨道粗细（px） | `number` | `2` |
-| `thumbSize` | 滑块按钮大小（px） | `number` | `24` |
-| `thumb` | 自定义滑块按钮节点 | `ReactNode` | - |
-| `leftThumb` | 自定义左侧滑块按钮（range） | `ReactNode` | - |
-| `rightThumb` | 自定义右侧滑块按钮（range） | `ReactNode` | - |
-| `onChange` | 拖动实时回调 | `(value: SliderValue) => void` | - |
-| `onChangeAfter` | 拖动结束回调 | `(value: SliderValue) => void` | - |
-| `onDragStart` | 开始拖动 | `(event, value) => void` | - |
-| `onDragEnd` | 结束拖动 | `(event, value) => void` | - |
+| `button` | 自定义滑块按钮 | `ReactNode \| ({ value }) => ReactNode` | - |
+| `leftButton` | 自定义左侧滑块按钮（双滑块模式下） | `ReactNode` | - |
+| `rightButton` | 自定义右侧滑块按钮 （双滑块模式下） | `ReactNode` | - |
+
+### Events
+
+`SliderValue` 指 `value`
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `onChange` | 进度变化时**实时触发** | `value: SliderValue` |
+| `onChangeAfter` | 进度变化且**结束拖动后触发** | `value: SliderValue` |
+| `onDragStart` | 开始拖动时触发 | `event: GestureResponderEvent, value: SliderValue` |
+| `onDragEnd` | 结束拖动时触发 | `event: GestureResponderEvent, value: SliderValue` |
+
+> `trackHeight/thumbSize/thumb/leftThumb/rightThumb` 为历史别名，优先使用 `barHeight/buttonSize/button/leftButton/rightButton`。
 
 > 轨道点击也会直接更新数值，并触发 `onChangeAfter`；在双滑块模式下，会自动跟随离点击位置更近的一侧。
+
+> 通过主题的 `components.slider` 可以批量覆盖默认高度、尺寸与颜色等 tokens。

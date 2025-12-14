@@ -1,17 +1,15 @@
 import React from 'react'
 import { Search } from 'react-native-system-ui'
 
-const BasicSearchDemo = () => {
+export default function SearchBasicDemo() {
   const [value, setValue] = React.useState('')
 
   return (
     <Search
-      placeholder='请输入搜索关键词'
       value={value}
-      onChangeText={setValue}
-      onSearch={text => console.log('search', text)}
+      onChange={setValue}
+      clearable
+      placeholder="请输入搜索关键词"
     />
   )
 }
-
-export default BasicSearchDemo

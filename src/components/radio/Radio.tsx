@@ -1,5 +1,11 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type GestureResponderEvent,
+} from 'react-native'
 import { useRadio } from '@react-native-aria/radio'
 import { useToggleState } from '@react-stately/toggle'
 import type { RadioGroupState } from '@react-stately/radio'
@@ -29,82 +35,84 @@ export const Radio: React.FC<RadioProps> = props => {
     value,
     iconSize,
     checkedColor,
+    iconRender,
     shape = 'round',
     labelPosition,
     labelDisabled,
     disabled,
     style,
     labelStyle,
+    onClick,
     ...rest
   } = props
 
   const tokens = useRadioTokens()
   const group = React.useContext(RadioGroupContext)
 
-  const resolvedIconSize = parseSize(iconSize ?? group?.iconSize, tokens.defaults.iconSize)
-  const resolvedCheckedColor = checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
-  const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
-  const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? false
-  const resolvedDisabled = disabled || group?.state.isDisabled
-  const resolvedShape = shape
-
   const optionValue = value ?? name
   const serializedValue = serializeValue(optionValue)
+  const isGroup = Boolean(group) && serializedValue !== undefined
+
+  const resolvedIconSize = parseSize(iconSize ?? group?.iconSize, tokens.defaults.iconSize)
+  const resolvedCheckedColor =
+    checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
+  const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
+  const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? false
+  const resolvedDisabled = Boolean(disabled || group?.state.isDisabled)
+  const resolvedShape = shape
+  const resolvedIconRender = iconRender
+
+  const standaloneKey = serializedValue ?? 'standalone'
 
   const inputRef = React.useRef<View>(null)
   const ariaLabel = typeof children === 'string' ? children : (props as any)['aria-label']
 
-  let inputProps: any
-  let isChecked = false
-
-  if (group && serializedValue) {
-    React.useEffect(() => {
-      group.registerValue(serializedValue, optionValue ?? serializedValue)
-      return () => {
-        group.unregisterValue(serializedValue)
-      }
-    }, [group, optionValue, serializedValue])
-
-    const { inputProps: groupInputProps } = useRadio(
-      {
-        value: serializedValue,
-        isDisabled: resolvedDisabled,
-        'aria-label': ariaLabel,
-        ...rest,
-      },
-      group.state,
-      inputRef
-    )
-
-    inputProps = groupInputProps
-    isChecked = group.state.selectedValue === serializedValue
-  } else {
-    const { isSelected, setSelected } = useToggleState({
+  const { isSelected: standaloneSelected, setSelected: setStandaloneSelected } =
+    useToggleState({
       isSelected: props.checked,
       defaultSelected: props.defaultChecked,
       onChange: next => props.onChange?.(next),
     })
 
-    const pseudoState = React.useMemo(() => ({
-      selectedValue: isSelected ? 'checked' : null,
-      setSelectedValue: (value: string | null) => {
-        setSelected(value !== null)
+  const pseudoState = React.useMemo(() => {
+    return {
+      selectedValue: standaloneSelected ? standaloneKey : null,
+      setSelectedValue: (next: string | null) => {
+        setStandaloneSelected(next === standaloneKey)
       },
-    }), [isSelected, setSelected]) as Partial<RadioGroupState> as RadioGroupState
+    } as Partial<RadioGroupState> as RadioGroupState
+  }, [setStandaloneSelected, standaloneKey, standaloneSelected])
 
-    const { inputProps: standaloneInputProps } = useRadio(
-      {
-        value: serializedValue ?? 'standalone',
-        isDisabled: resolvedDisabled,
-        'aria-label': ariaLabel,
-        ...rest,
-      },
-      pseudoState,
-      inputRef
-    )
+  React.useEffect(() => {
+    if (isGroup && group && serializedValue !== undefined) {
+      group.registerValue(serializedValue, optionValue ?? serializedValue)
+      return () => group.unregisterValue(serializedValue)
+    }
+    return undefined
+  }, [group, isGroup, optionValue, serializedValue])
 
-    inputProps = standaloneInputProps
-    isChecked = isSelected
+  const state = isGroup && group ? group.state : pseudoState
+  const radioValue = isGroup ? serializedValue! : standaloneKey
+
+  const { inputProps } = useRadio(
+    {
+      value: radioValue,
+      isDisabled: resolvedDisabled,
+      'aria-label': ariaLabel,
+      ...rest,
+    },
+    state,
+    inputRef
+  )
+
+  const isChecked =
+    isGroup && group && serializedValue !== undefined
+      ? group.state.selectedValue === serializedValue
+      : standaloneSelected
+
+  const handlePress = (event: GestureResponderEvent) => {
+    onClick?.(event)
+    inputProps?.onPress?.(event)
   }
 
   const borderColor = resolvedDisabled
@@ -118,60 +126,26 @@ export const Radio: React.FC<RadioProps> = props => {
     ? { marginRight: tokens.spacing.gap }
     : { marginLeft: tokens.spacing.gap }
 
-  const iconNode = (
-    <Pressable
-      key="radio-icon"
-      {...inputProps}
-      ref={inputRef}
-      testID={serializedValue ? `radio-icon-${serializedValue}` : undefined}
-      style={[styles.iconWrapper, resolvedLabelPosition === 'left' ? { marginLeft: tokens.spacing.gap } : { marginRight: tokens.spacing.gap }]}
-    >
-      <View
-        style={[
-          styles.icon,
-          {
-            width: resolvedIconSize,
-            height: resolvedIconSize,
-            borderRadius:
-              resolvedShape === 'square'
-                ? tokens.shape.squareRadius
-                : resolvedIconSize / 2,
-            borderColor,
-            backgroundColor,
-          },
-        ]}
-      >
-        {isChecked ? (
-          <View
-            style={{
-              width: resolvedIconSize / 2,
-              height: resolvedIconSize / 2,
-              borderRadius:
-                resolvedShape === 'square'
-                  ? tokens.shape.squareRadius
-                  : resolvedIconSize / 4,
-              backgroundColor: resolvedCheckedColor,
-            }}
-          />
-        ) : null}
-      </View>
-    </Pressable>
-  )
+  const labelColor = resolvedDisabled ? tokens.colors.labelDisabled : tokens.colors.label
+
+  const borderRadius =
+    resolvedShape === 'square' ? tokens.shape.squareRadius : tokens.shape.roundRadius
 
   const labelNode = children === null || children === undefined
     ? null
     : (
-      <Pressable
+      <View
         key="radio-label"
-        disabled={resolvedDisabled || resolvedLabelDisabled}
-        onPress={inputProps?.onPress}
-        style={spacingStyle}
+        style={[styles.labelWrapper, spacingStyle]}
+        pointerEvents="none"
+        accessible={false}
       >
         <Text
+          accessible={false}
           style={[
             styles.label,
             {
-              color: resolvedDisabled || resolvedLabelDisabled ? tokens.colors.labelDisabled : tokens.colors.label,
+              color: labelColor,
               fontSize: tokens.typography.fontSize,
               lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
               fontFamily: tokens.typography.fontFamily,
@@ -182,12 +156,77 @@ export const Radio: React.FC<RadioProps> = props => {
         >
           {children}
         </Text>
-      </Pressable>
+      </View>
     )
+
+  const interactive = !resolvedDisabled && !resolvedLabelDisabled
+
+  const iconVisual = resolvedIconRender ? (
+    resolvedIconRender({ checked: isChecked, disabled: resolvedDisabled }) ?? null
+  ) : (
+    <View
+      style={[
+        styles.icon,
+        {
+          width: resolvedIconSize,
+          height: resolvedIconSize,
+          borderRadius,
+          borderColor,
+          backgroundColor,
+        },
+      ]}
+    >
+      {isChecked ? (
+        <View
+          style={{
+            width: resolvedIconSize / 2,
+            height: resolvedIconSize / 2,
+            borderRadius,
+            backgroundColor: resolvedCheckedColor,
+          }}
+        />
+      ) : null}
+    </View>
+  )
+
+  const iconNode = interactive ? (
+    <View key="radio-icon" style={styles.iconWrapper}>
+      {iconVisual}
+    </View>
+  ) : (
+    <Pressable
+      {...inputProps}
+      key="radio-icon"
+      ref={inputRef}
+      testID={serializedValue !== undefined ? `radio-icon-${serializedValue}` : undefined}
+      onPress={handlePress}
+      accessibilityRole="radio"
+      accessibilityState={{ selected: isChecked, disabled: resolvedDisabled }}
+      style={styles.iconWrapper}
+    >
+      {iconVisual}
+    </Pressable>
+  )
 
   const nodes = resolvedLabelPosition === 'left'
     ? [labelNode, iconNode]
     : [iconNode, labelNode]
+
+  if (interactive) {
+    return (
+      <Pressable
+        {...inputProps}
+        ref={inputRef}
+        testID={serializedValue !== undefined ? `radio-icon-${serializedValue}` : undefined}
+        onPress={handlePress}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: isChecked, disabled: resolvedDisabled }}
+        style={[styles.container, style]}
+      >
+        {nodes.filter(Boolean)}
+      </Pressable>
+    )
+  }
 
   return <View style={[styles.container, style]}>{nodes.filter(Boolean)}</View>
 }
@@ -200,6 +239,9 @@ const styles = StyleSheet.create({
   iconWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  labelWrapper: {
+    flexShrink: 1,
   },
   icon: {
     borderWidth: StyleSheet.hairlineWidth,

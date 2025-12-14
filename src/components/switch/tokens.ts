@@ -4,70 +4,44 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
-import type { SwitchSize } from './types'
 
 export interface SwitchTokens {
   defaults: {
-    size: SwitchSize
-    labelPosition: 'left' | 'right'
+    size: number
   }
-  sizes: Record<
-    SwitchSize,
-    {
-      trackWidth: number
-      trackHeight: number
-      handleSize: number
-      padding: number
-    }
-  >
   colors: {
     activeTrack: string
     inactiveTrack: string
-    disabledTrack: string
     handle: string
-    activeHandle: string
-    label: string
-    labelDisabled: string
-    loading: string
+    border: string
   }
-  spacing: {
-    labelGap: number
+  opacity: {
+    disabled: number
+    pressed: number
+  }
+  animation: {
+    duration: number
   }
 }
 
 const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
-  const { palette, spacing } = foundations
+  const { palette, opacity } = foundations
   return {
     defaults: {
-      size: 'medium',
-      labelPosition: 'right',
-    },
-    sizes: {
-      medium: {
-        trackWidth: 52,
-        trackHeight: 32,
-        handleSize: 28,
-        padding: 2,
-      },
-      small: {
-        trackWidth: 44,
-        trackHeight: 26,
-        handleSize: 22,
-        padding: 2,
-      },
+      size: 30,
     },
     colors: {
       activeTrack: palette.primary[500],
-      inactiveTrack: palette.default[300],
-      disabledTrack: palette.default[200],
+      inactiveTrack: '#ffffff',
       handle: '#ffffff',
-      activeHandle: '#ffffff',
-      label: palette.default[800],
-      labelDisabled: palette.default[400],
-      loading: palette.primary[50],
+      border: 'rgba(0, 0, 0, 0.1)',
     },
-    spacing: {
-      labelGap: spacing.sm,
+    opacity: {
+      disabled: opacity.disabled,
+      pressed: opacity.pressed,
+    },
+    animation: {
+      duration: 150,
     },
   }
 }

@@ -1,38 +1,80 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, Text } from 'react-native'
+import { Pressable } from 'react-native'
 
 import Switch from '..'
 
 describe('Switch', () => {
-  it('calls onChange when toggled', () => {
+  it('toggles and calls onChange (uncontrolled)', () => {
     const handleChange = jest.fn()
     const tree = renderer.create(<Switch defaultChecked onChange={handleChange} />)
-    const pressable = tree.root.findByType(Pressable)
+    let pressable = tree.root.findByType(Pressable)
 
     act(() => {
       pressable.props.onPress?.({} as any)
     })
 
-    expect(handleChange).toHaveBeenCalled()
+    expect(handleChange).toHaveBeenLastCalledWith(false)
+
+    pressable = tree.root.findByType(Pressable)
+    act(() => {
+      pressable.props.onPress?.({} as any)
+    })
+
+    expect(handleChange).toHaveBeenLastCalledWith(true)
   })
 
-  it('does not toggle when loading/disabled', () => {
+  it('calls onClick but does not toggle when loading', () => {
+    const handleClick = jest.fn()
     const handleChange = jest.fn()
-    const tree = renderer.create(<Switch loading defaultChecked onChange={handleChange} />)
+    const tree = renderer.create(
+      <Switch loading defaultChecked onClick={handleClick} onChange={handleChange} />,
+    )
     const pressable = tree.root.findByType(Pressable)
 
     act(() => {
       pressable.props.onPress?.({} as any)
     })
 
+    expect(handleClick).toHaveBeenCalledTimes(1)
     expect(handleChange).not.toHaveBeenCalled()
   })
 
-  it('renders label in the correct position', () => {
-    const tree = renderer.create(<Switch label="通知" labelPosition="left" />)
-    const labels = tree.root.findAllByType(Text)
-    const labelText = labels.find(node => node.props.children === '通知')
-    expect(labelText).toBeDefined()
+  it('does not call onClick/onChange when disabled', () => {
+    const handleClick = jest.fn()
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Switch disabled defaultChecked onClick={handleClick} onChange={handleChange} />,
+    )
+    const pressable = tree.root.findByType(Pressable)
+
+    act(() => {
+      pressable.props.onPress?.({} as any)
+    })
+
+    expect(pressable.props.disabled).toBe(true)
+    expect(handleClick).not.toHaveBeenCalled()
+    expect(handleChange).not.toHaveBeenCalled()
+  })
+
+  it('supports custom activeValue/inactiveValue', () => {
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Switch activeValue={1} inactiveValue={0} defaultChecked={0} onChange={handleChange} />,
+    )
+    let pressable = tree.root.findByType(Pressable)
+
+    act(() => {
+      pressable.props.onPress?.({} as any)
+    })
+
+    expect(handleChange).toHaveBeenLastCalledWith(1)
+
+    pressable = tree.root.findByType(Pressable)
+    act(() => {
+      pressable.props.onPress?.({} as any)
+    })
+
+    expect(handleChange).toHaveBeenLastCalledWith(0)
   })
 })

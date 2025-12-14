@@ -4,75 +4,81 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
-import type { StepperSize, StepperTheme } from './types'
+import type { StepperTheme } from './types'
 
 export interface StepperTokens {
   defaults: {
-    size: StepperSize
     theme: StepperTheme
     showInput: boolean
     showPlus: boolean
     showMinus: boolean
     longPress: boolean
-  }
-  sizes: Record<StepperSize, {
-    height: number
-    buttonWidth: number
     inputWidth: number
-    fontSize: number
-  }>
+    buttonSize: number
+  }
   colors: {
-    border: string
+    active: string
     background: string
-    inputBackground: string
-    icon: string
-    iconDisabled: string
-    text: string
-    textDisabled: string
+    buttonIcon: string
+    buttonDisabledBackground: string
+    buttonDisabledIcon: string
+    roundTheme: string
+    inputText: string
+    inputDisabledText: string
+    inputDisabledBackground: string
   }
   radii: {
     default: number
-    round: number
+  }
+  typography: {
+    fontSize: number
+  }
+  opacity: {
+    disabled: number
+    roundDisabled: number
+    pressed: number
+  }
+  spacing: {
+    gap: number
   }
 }
 
 const createStepperTokens = (foundations: Foundations): StepperTokens => {
-  const { palette, radii, fontSize } = foundations
+  const { palette, radii, fontSize, opacity } = foundations
   return {
     defaults: {
-      size: 'medium',
       theme: 'default',
       showInput: true,
       showPlus: true,
       showMinus: true,
       longPress: true,
-    },
-    sizes: {
-      medium: {
-        height: 36,
-        buttonWidth: 36,
-        inputWidth: 72,
-        fontSize: fontSize.md,
-      },
-      small: {
-        height: 30,
-        buttonWidth: 30,
-        inputWidth: 60,
-        fontSize: fontSize.sm,
-      },
+      inputWidth: 32,
+      buttonSize: 28,
     },
     colors: {
-      border: palette.default[200],
-      background: palette.default[50],
-      inputBackground: '#ffffff',
-      icon: palette.default[800],
-      iconDisabled: palette.default[400],
-      text: palette.default[900],
-      textDisabled: palette.default[400],
+      active: '#e8e8e8',
+      background: palette.default[100],
+      buttonIcon: palette.default[900],
+      buttonDisabledBackground: '#ffffff',
+      buttonDisabledIcon: palette.default[400],
+      roundTheme: palette.primary[500],
+      inputText: palette.default[900],
+      inputDisabledText: palette.default[400],
+      inputDisabledBackground: palette.default[100],
     },
     radii: {
-      default: radii.sm,
-      round: radii.pill,
+      default: radii.md,
+    },
+    typography: {
+      fontSize: fontSize.md,
+    },
+    opacity: {
+      disabled: opacity.disabled,
+      roundDisabled: 0.3,
+      pressed: opacity.pressed,
+    },
+    spacing: {
+      gap: 2,
     },
   }
 }
@@ -91,4 +97,4 @@ export const useStepperTokens = (
   }, [components, foundations, overrides])
 }
 
-export type { StepperSize, StepperTheme }
+export type { StepperTheme }

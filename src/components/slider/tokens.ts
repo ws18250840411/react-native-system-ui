@@ -16,6 +16,9 @@ export interface SliderTokens {
     active: string
     inactive: string
   }
+  states: {
+    disabledOpacity: number
+  }
 }
 
 const createSliderTokens = (foundations: Foundations): SliderTokens => ({
@@ -28,6 +31,9 @@ const createSliderTokens = (foundations: Foundations): SliderTokens => ({
   colors: {
     active: foundations.palette.primary[500],
     inactive: foundations.palette.default[300],
+  },
+  states: {
+    disabledOpacity: foundations.opacity.disabled,
   },
 })
 

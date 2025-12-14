@@ -2,4 +2,4 @@ import Switch from './Switch'
 
 export default Switch
 export { Switch }
-export type { SwitchProps, SwitchSize } from './types'
+export type { SwitchProps } from './types'

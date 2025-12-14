@@ -68,6 +68,96 @@ describe('Uploader', () => {
     })
   })
 
+  it('does not delete when onDelete rejects', async () => {
+    const handleChange = jest.fn()
+    const onDelete = jest.fn().mockRejectedValue(new Error('cancel'))
+
+    let tree: renderer.ReactTestRenderer
+    await act(async () => {
+      tree = renderer.create(
+        <PortalHost>
+          <Uploader
+            defaultValue={[{ url: 'https://img.com/a.png' }]}
+            onDelete={onDelete}
+            onChange={handleChange}
+          />
+        </PortalHost>
+      )
+    })
+
+    const deleteBtn = tree.root.findByProps({ testID: 'rv-uploader-delete-0' })
+    await act(async () => {
+      await deleteBtn.props.onPress?.({})
+    })
+
+    expect(onDelete).toHaveBeenCalled()
+    expect(handleChange).not.toHaveBeenCalled()
+
+    await act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('does not call onClickUpload/onUpload when disabled', async () => {
+    const handleClickUpload = jest.fn()
+    const onUpload = jest.fn().mockResolvedValue({ url: 'https://img.com/a.png' })
+
+    let tree: renderer.ReactTestRenderer
+    await act(async () => {
+      tree = renderer.create(
+        <PortalHost>
+          <Uploader
+            disabled
+            onClickUpload={handleClickUpload}
+            onUpload={onUpload}
+            uploadText="上传"
+          />
+        </PortalHost>
+      )
+    })
+
+    const uploadButton = tree.root.findByProps({ testID: 'rv-uploader-upload' })
+    await act(async () => {
+      await uploadButton.props.onPress?.({} as any)
+    })
+
+    expect(uploadButton.props.disabled).toBe(true)
+    expect(handleClickUpload).not.toHaveBeenCalled()
+    expect(onUpload).not.toHaveBeenCalled()
+
+    await act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('allows deleting when disabled (disabled only affects upload)', async () => {
+    const handleChange = jest.fn()
+
+    let tree: renderer.ReactTestRenderer
+    await act(async () => {
+      tree = renderer.create(
+        <PortalHost>
+          <Uploader
+            disabled
+            defaultValue={[{ url: 'https://img.com/a.png' }]}
+            onChange={handleChange}
+          />
+        </PortalHost>
+      )
+    })
+
+    const deleteBtn = tree.root.findByProps({ testID: 'rv-uploader-delete-0' })
+    await act(async () => {
+      await deleteBtn.props.onPress?.({} as any)
+    })
+
+    expect(handleChange).toHaveBeenLastCalledWith([])
+
+    await act(() => {
+      tree.unmount()
+    })
+  })
+
   it('opens preview when pressing an item', () => {
     const handleClosePreview = jest.fn()
 

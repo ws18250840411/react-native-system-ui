@@ -3,11 +3,11 @@ simulator:
   compact: false
 ---
 
-# Selector 选项卡片
+# Selector 选择组
 
 ## 介绍
 
-以方块卡片呈现多选或单选项，适合展示标签、城市等少量数据，API 参考 react-vant Selector。
+在一组选项中选择一个或多个。
 
 ## 引入
 
@@ -45,6 +45,14 @@ import { Selector } from 'react-native-system-ui'
 | `labelStyle` | 选项文本样式 | `StyleProp<TextStyle>` | - |
 | `descriptionStyle` | 描述文本样式 | `StyleProp<TextStyle>` | - |
 
+## 类型定义
+
+### SelectorValue
+
+```ts | pure
+type SelectorValue = string | number
+```
+
 ### SelectorOption
 
 | 字段 | 说明 | 类型 |
@@ -53,5 +61,17 @@ import { Selector } from 'react-native-system-ui'
 | `description` | 描述文案 | `ReactNode` |
 | `value` | 唯一标识 | `SelectorValue` |
 | `disabled` | 禁用当前选项 | `boolean` |
+
+## 泛型
+
+`Selector` 支持泛型，你可以通过下面的方式手动控制 `value`、`onChange` 等属性的类型：
+
+```tsx | pure
+<Selector<'a' | 'b' | number>
+  options={options}
+  defaultValue={['a']}
+  onChange={(arr) => console.log(arr)}
+/>
+```
 
 > 通过 `components.selector` tokens 可统一覆盖颜色、边框、间距、圆角等视觉表现。

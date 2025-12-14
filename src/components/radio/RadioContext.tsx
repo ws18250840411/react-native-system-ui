@@ -1,15 +1,15 @@
 import React from 'react'
 import type { RadioGroupState } from '@react-stately/radio'
 
-import type { RadioGroupDirection } from './types'
+import type { RadioGroupDirection, RadioValue } from './types'
 
 export interface RadioGroupContextValue {
   state: RadioGroupState
   direction: RadioGroupDirection
-  iconSize?: number
+  iconSize?: number | string
   checkedColor?: string
   labelDisabled?: boolean
-  registerValue: (key: string, raw: string | number) => void
+  registerValue: (key: string, raw: RadioValue) => void
   unregisterValue: (key: string) => void
 }
 

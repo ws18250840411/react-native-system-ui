@@ -1,12 +1,9 @@
 import React from 'react'
 import { Radio } from 'react-native-system-ui'
 
-export default () => {
-  const [checked, setChecked] = React.useState(false)
-
-  return (
-    <Radio checked={checked} onChange={setChecked}>
-      单选项
-    </Radio>
-  )
-}
+export default () => (
+  <Radio.Group defaultValue="1">
+    <Radio name="1">单选框1</Radio>
+    <Radio name="2">单选框2</Radio>
+  </Radio.Group>
+)

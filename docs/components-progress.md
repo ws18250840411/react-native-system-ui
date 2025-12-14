@@ -40,14 +40,14 @@
 | NumberKeyboard 数字键盘 | ⏳ |  |
 | PasswordInput 密码输入框 | ✅ | 新增格子密码输入组件，支持掩码/校验/自动提交，文档同步 |
 | Picker 选择器 | ✅ | 级联判定/受控同步/首帧副作用处理完成，Web 滚轮体验优化并补 utils 单测；demo 对齐 React Vant |
-| Radio 单选框 | ⏳ |  |
-| Rate 评分 | ⏳ |  |
-| Search 搜索 | ⏳ |  |
-| Selector 多选器 | ⏳ |  |
-| Slider 滑块 | ⏳ |  |
-| Stepper 步进器 | ⏳ |  |
-| Switch 开关 | ⏳ |  |
-| Uploader 上传 | ⏳ |  |
+| Radio 单选框 | ✅ | 文档与示例完全对齐 React Vant（基础/方向/禁用/形状/颜色/尺寸/禁用文本/异步/Cell），补齐 `iconRender`/`onClick`；修复 Radio 条件 hooks、a11y/交互与间距，RadioGroup context memo 化并补横向换行间距 |
+| Rate 评分 | ✅ | 对齐 React Vant：补齐官方 demo（图标/样式/半星/数量/禁用/只读小数）与文档；实现改为 `useControllableValue`，`touchable` 仅控制滑动手势（点击仍可用），并支持 `count/size/gutter` 传字符串；补齐 Web 端半星点击坐标兼容、非只读半星值展示按 0.5 步进、滑动 10px 横向阈值 + `preventDefault`，`onIconPress` 仅在值变化时触发 |
+| Search 搜索 | ✅ | 对齐 React Vant：补齐官方 demo（基础/事件/对齐/禁用/背景/自定义按钮）与文档；新增 `align`/`onChange`（兼容 `onChangeText`），`actionText` 为自定义节点时不再触发默认取消逻辑；内部改为 `useControllableValue` 简化受控/非受控并补齐单测 |
+| Selector 多选器 | ✅ | 对齐 React Vant：补齐类型定义/泛型说明与基础示例；实现改为 `useControllableValue` 统一受控/非受控，`extend.items` 按官方用 getter 计算；columns 兜底为 ≥1，a11y 角色按单选/多选区分并补单测 |
+| Slider 滑块 | ✅ | 对齐 React Vant：补齐官方 demo（基础/双滑块/范围/禁用/步长/样式/按钮/垂直单双）与文档；支持 `min/max/step/barHeight/buttonSize` 字符串解析与 `button` render props；readOnly 不降级样式仅禁用交互，`onDragStart/End` 触发时机与自定义按钮渲染对齐 |
+| Stepper 步进器 | ✅ | 对齐 React Vant：补齐 placeholder/onClick/ref 方法与 onChange(detail.name)/onPlus/onMinus(event,value) 等事件签名；重构为 `useControllableValue`，长按加减无“松手多加一步”问题并修复浮点精度；样式补齐 `round` 主题与默认态 pressed/disabled 视觉，默认 `max=Number.MAX_VALUE` 且 `inputWidth/buttonSize/decimalLength` 支持字符串解析 |
+| Switch 开关 | ✅ | 对齐 React Vant：支持 `activeValue/inactiveValue`、`size number|string`（默认单位 px）；loading 可点击但不切换（仍触发 onClick）、disabled 不触发 onClick；补齐官方 demo（基础/禁用/加载/大小/颜色/异步/Cell）与单测 |
+| Uploader 上传 | ✅ | 对齐 React Vant：补齐 `accept/multiple/capture/beforeRead/maxSize/onOversize/resultType/upload`（Web 端）与 ref `chooseFile/closeImagePreview`；disabled/readOnly 仅禁用上传区域；新增 `deleteRender/isImageUrl` 与任务态（pending/failed）；文档与 demo（基础/自动上传/限制/预览/异步删除/Form）同步；RN 原生端文件选择需通过 `onUpload` 扩展或业务侧接入选择器回填 |
 
 ## 反馈组件
 

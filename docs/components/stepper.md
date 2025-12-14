@@ -31,32 +31,60 @@ import { Stepper } from 'react-native-system-ui'
 
 ## API
 
-| 属性 | 说明 | 类型 | 默认值 |
+### Props
+
+| 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `value` | 受控值 | `number \| null` | - |
-| `defaultValue` | 非受控默认值 | `number \| null` | `0` |
-| `min` | 最小值 | `number` | `0` |
-| `max` | 最大值 | `number` | `Number.MAX_SAFE_INTEGER` |
-| `step` | 每次递增/减的步长 | `number` | `1` |
-| `integer` | 是否只允许整数 | `boolean` | `false` |
-| `decimalLength` | 保留小数位数（自动取整） | `number` | - |
-| `disabled` | 是否禁用组件 | `boolean` | `false` |
-| `disablePlus` | 禁用增加按钮 | `boolean` | `false` |
-| `disableMinus` | 禁用减少按钮 | `boolean` | `false` |
-| `disableInput` | 是否禁止输入框编辑 | `boolean` | `false` |
-| `allowEmpty` | 输入框允许置空 | `boolean` | `false` |
-| `showPlus` / `showMinus` / `showInput` | 是否展示对应元素 | `boolean` | `true` |
-| `longPress` | 是否开启长按连续加减 | `boolean` | `true` |
-| `size` | 尺寸，`small` / `medium` | `StepperSize` | `medium` |
-| `theme` | 主题样式，`default` / `round` | `StepperTheme` | `default` |
-| `inputWidth` | 输入框宽度 | `number` | 依据尺寸 | |
-| `buttonSize` | 按钮宽高 | `number` | 依据尺寸 | |
+| `value` | 当前输入的值 | `number \| null` | - |
+| `defaultValue` | 默认值 | `number \| null` | `0` |
+| `min` | 最小值 | `number` | - |
+| `max` | 最大值 | `number` | `Number.MAX_VALUE` |
+| `step` | 步长，每次点击时改变的值 | `number` | `1` |
+| `name` | 标识符，可在 `onChange` 回调参数中获取 | `string` | - |
+| `inputWidth` | 输入框宽度，默认单位为 `px` | `number \| string` | `32px` |
+| `buttonSize` | 按钮大小以及输入框高度，默认单位为 `px` | `number \| string` | `28px` |
+| `decimalLength` | 固定显示的小数位数 | `number \| string` | - |
+| `theme` | 样式风格，可选值为 `round` | `StepperTheme` | `default` |
+| `placeholder` | 输入框占位提示文字 | `string` | - |
+| `integer` | 是否只允许输入整数 | `boolean` | `false` |
+| `disabled` | 是否禁用步进器 | `boolean` | `false` |
+| `disablePlus` | 是否禁用增加按钮 | `boolean` | `false` |
+| `disableMinus` | 是否禁用减少按钮 | `boolean` | `false` |
+| `disableInput` | 是否禁用输入框 | `boolean` | `false` |
+| `showPlus` | 是否显示增加按钮 | `boolean` | `true` |
+| `showMinus` | 是否显示减少按钮 | `boolean` | `true` |
+| `showInput` | 是否显示输入框 | `boolean` | `true` |
+| `longPress` | 是否开启长按手势 | `boolean` | `true` |
+| `allowEmpty` | 是否允许输入的值为空 | `boolean` | `false` |
 | `inputProps` | 透传给 `TextInput` 的属性 | `TextInputProps` | - |
 | `inputStyle` | 输入框样式 | `StyleProp<TextStyle>` | - |
 | `buttonStyle` | 按钮样式 | `StyleProp<ViewStyle>` | - |
-| `onChange` | 数值改变时触发 | `(value: number \| null) => void` | - |
-| `onPlus` / `onMinus` | 点击加/减按钮后触发 | `(value: number \| null) => void` | - |
-| `onOverlimit` | 达到边界仍尝试操作时触发 | `(type: 'plus' \| 'minus') => void` | - |
-| `onFocus` / `onBlur` | 输入框聚焦/失焦回调 | `(value: number \| null) => void` | - |
+
+### Events
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `onClick` | 点击输入框时触发 | `event: GestureResponderEvent` |
+| `onChange` | 当绑定值变化时触发的事件 | `value: number \| null, detail?: { name?: string }` |
+| `onOverlimit` | 点击不可用的按钮时触发 | `type: 'plus' \| 'minus'` |
+| `onPlus` | 点击增加按钮时触发 | `event: GestureResponderEvent, value: number \| null` |
+| `onMinus` | 点击减少按钮时触发 | `event: GestureResponderEvent, value: number \| null` |
+| `onFocus` | 输入框聚焦时触发 | `event: NativeSyntheticEvent<TextInputFocusEventData>` |
+| `onBlur` | 输入框失焦时触发 | `event: NativeSyntheticEvent<TextInputFocusEventData>` |
+
+## StepperRef
+
+| 方法 | 说明 |
+| --- | --- |
+| `focus()` | 获取焦点 |
+| `blur()` | 失去焦点 |
+
+## 类型定义
+
+组件导出以下类型定义：
+
+```ts
+import type { StepperTheme, StepperInstance } from 'react-native-system-ui'
+```
 
 > 支持通过主题的 `components.stepper` 覆盖 tokens，统一控制按钮尺寸、配色等设计语言。

@@ -1,11 +1,15 @@
 import React from 'react'
-import { useState } from 'react'
+import { Slider, Toast } from 'react-native-system-ui'
 
-import { Slider } from 'react-native-system-ui'
-
-export default () => {
-  const [value, setValue] = useState(45)
+export default function SliderStyleDemo() {
+  const [value, setValue] = React.useState(10)
   return (
-    <Slider value={value} onChange={setValue} activeColor="#f97316" trackHeight={6} thumbSize={28} />
+    <Slider
+      barHeight={4}
+      activeColor="#ee0a24"
+      value={value}
+      onChange={setValue}
+      onChangeAfter={v => Toast.info(`当前值：${v}`)}
+    />
   )
 }

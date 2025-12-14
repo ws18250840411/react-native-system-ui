@@ -1,5 +1,6 @@
 import type React from 'react'
 import type {
+  GestureResponderEvent,
   StyleProp,
   TextInputProps,
   TextStyle,
@@ -7,7 +8,6 @@ import type {
   ViewStyle,
 } from 'react-native'
 
-export type StepperSize = 'small' | 'medium'
 export type StepperTheme = 'default' | 'round'
 
 export interface StepperProps extends Omit<ViewProps, 'onChange'> {
@@ -17,7 +17,7 @@ export interface StepperProps extends Omit<ViewProps, 'onChange'> {
   max?: number
   step?: number
   integer?: boolean
-  decimalLength?: number
+  decimalLength?: number | string
   disabled?: boolean
   disablePlus?: boolean
   disableMinus?: boolean
@@ -27,18 +27,24 @@ export interface StepperProps extends Omit<ViewProps, 'onChange'> {
   showMinus?: boolean
   showInput?: boolean
   longPress?: boolean
-  size?: StepperSize
   theme?: StepperTheme
-  inputWidth?: number
-  buttonSize?: number
+  inputWidth?: number | string
+  buttonSize?: number | string
   name?: string
-  onChange?: (value: number | null) => void
-  onPlus?: (value: number | null) => void
-  onMinus?: (value: number | null) => void
+  placeholder?: string
+  onClick?: (event: GestureResponderEvent) => void
+  onChange?: (value: number | null, detail?: { name?: string }) => void
+  onPlus?: (event: GestureResponderEvent, value: number | null) => void
+  onMinus?: (event: GestureResponderEvent, value: number | null) => void
   onOverlimit?: (type: 'plus' | 'minus') => void
-  onFocus?: (value: number | null) => void
-  onBlur?: (value: number | null) => void
+  onFocus?: TextInputProps['onFocus']
+  onBlur?: TextInputProps['onBlur']
   inputProps?: TextInputProps
   inputStyle?: StyleProp<TextStyle>
   buttonStyle?: StyleProp<ViewStyle>
+}
+
+export interface StepperInstance {
+  focus: () => void
+  blur: () => void
 }

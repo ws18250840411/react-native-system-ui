@@ -4,6 +4,7 @@ import { View, Text } from 'react-native'
 
 export default function StepperCustomDemo() {
   const [price, setPrice] = React.useState(2.5)
+  const onPriceChange = (v: number | null) => setPrice(v ?? 0)
   return (
     <View style={{ gap: 12 }}>
       <Text>保留两位小数</Text>
@@ -13,10 +14,10 @@ export default function StepperCustomDemo() {
         decimalLength={2}
         min={0}
         max={10}
-        onChange={setPrice}
+        onChange={onPriceChange}
       />
-      <Text>小号 + 圆角主题</Text>
-      <Stepper size="small" theme="round" defaultValue={3} />
+      <Text>圆形按钮主题</Text>
+      <Stepper theme="round" defaultValue={3} buttonSize={28} inputWidth={40} />
     </View>
   )
 }

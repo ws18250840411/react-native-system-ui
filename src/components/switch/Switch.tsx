@@ -4,137 +4,135 @@ import {
   Animated,
   Pressable,
   StyleSheet,
-  Text,
   View,
   type PressableStateCallbackType,
+  type GestureResponderEvent,
 } from 'react-native'
 
-import { useAriaToggle } from '../../hooks'
+import { useControllableValue } from '../../hooks'
 import type { SwitchProps } from './types'
 import { useSwitchTokens } from './tokens'
 
 const AnimatedHandle = Animated.createAnimatedComponent(View)
 
+const parseNumber = (value: number | string | undefined, fallback: number) => {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value)
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+  return fallback
+}
+
 export const Switch: React.FC<SwitchProps> = props => {
   const {
     checked,
     defaultChecked,
-    disabled,
+    disabled = false,
     loading = false,
     size,
     activeColor,
     inactiveColor,
-    label,
-    labelPosition,
+    activeValue = true,
+    inactiveValue = false,
+    onClick,
     onChange,
     style,
-    labelStyle,
     ...rest
   } = props
 
   const tokens = useSwitchTokens()
-  const resolvedSize = size ?? tokens.defaults.size
-  // 防御性兜底，避免自定义 size 导致缺少尺寸配置
-  const safeSizeTokens =
-    tokens.sizes[resolvedSize] ??
-    tokens.sizes[tokens.defaults.size] ??
-    tokens.sizes.medium
-  const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
-  const isDisabled = disabled || loading
+  const resolvedSize = Math.max(0, parseNumber(size, tokens.defaults.size))
 
-  const ariaLabelFromProps =
-    (rest as any)['aria-label'] ??
-    (typeof rest.accessibilityLabel === 'string'
-      ? (rest.accessibilityLabel as string)
-      : undefined)
-  const resolvedAriaLabel =
-    ariaLabelFromProps ??
-    (typeof label === 'string' ? label : undefined) ??
-    'switch'
+  const padding = Math.max(2, Math.round(resolvedSize * 0.07))
+  const trackHeight = resolvedSize
+  const trackWidth = resolvedSize * 2
+  const handleSize = Math.max(0, trackHeight - padding * 2)
+  const translateDistance = Math.max(0, trackWidth - handleSize - padding * 2)
 
-  const { state, inputProps, inputRef } = useAriaToggle({
-    isSelected: checked,
-    defaultSelected: defaultChecked,
-    isDisabled,
-    onChange,
-    'aria-label': resolvedAriaLabel,
+  const [value, triggerChange] = useControllableValue<any>(props, {
+    valuePropName: 'checked',
+    defaultValuePropName: 'defaultChecked',
+    defaultValue: inactiveValue,
+    trigger: 'onChange',
   })
 
-  const progress = React.useRef(
-    new Animated.Value(state.isSelected ? 1 : 0)
-  ).current
+  const isChecked = React.useMemo(() => value === activeValue, [activeValue, value])
+
+  const progress = React.useRef(new Animated.Value(isChecked ? 1 : 0)).current
 
   React.useEffect(() => {
     Animated.timing(progress, {
-      toValue: state.isSelected ? 1 : 0,
-      duration: 150,
-      useNativeDriver: false,
+      toValue: isChecked ? 1 : 0,
+      duration: tokens.animation.duration,
+      useNativeDriver: true,
     }).start()
-  }, [progress, state.isSelected])
+  }, [isChecked, progress, tokens.animation.duration])
 
   const translateX = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [
       0,
-      safeSizeTokens.trackWidth -
-        safeSizeTokens.handleSize -
-        safeSizeTokens.padding * 2,
+      translateDistance,
     ],
   })
 
-  const trackColor = state.isSelected
-    ? activeColor ?? tokens.colors.activeTrack
-    : inactiveColor ?? tokens.colors.inactiveTrack
-
-  const labelColor = isDisabled
-    ? tokens.colors.labelDisabled
-    : tokens.colors.label
-
-  const renderLabel = () => {
-    if (!label) return null
-    if (React.isValidElement(label)) {
-      return label
-    }
-    return (
-      <Text style={[styles.label, { color: labelColor }, labelStyle]}>
-        {label}
-      </Text>
-    )
-  }
-
-  const labelNode = renderLabel()
+  const resolvedActiveColor = activeColor ?? tokens.colors.activeTrack
+  const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactiveTrack
+  const trackColor = isChecked ? resolvedActiveColor : resolvedInactiveColor
 
   const pressableStyle = React.useCallback(
     ({ pressed }: PressableStateCallbackType) => [
       styles.container,
-      resolvedLabelPosition === 'left' && styles.containerReverse,
       {
-        opacity: isDisabled ? 0.45 : pressed ? 0.8 : 1,
+        opacity: disabled ? tokens.opacity.disabled : pressed ? tokens.opacity.pressed : 1,
       },
       style,
     ],
-    [isDisabled, resolvedLabelPosition, style]
+    [disabled, style, tokens.opacity.disabled, tokens.opacity.pressed]
+  )
+
+  const handlePress = React.useCallback(
+    (event: GestureResponderEvent) => {
+      if (disabled) return
+      onClick?.(event)
+      if (loading) return
+
+      const next = isChecked ? inactiveValue : activeValue
+      if (Object.is(next, value)) return
+      triggerChange(next)
+    },
+    [
+      activeValue,
+      disabled,
+      inactiveValue,
+      isChecked,
+      loading,
+      onClick,
+      triggerChange,
+      value,
+    ],
   )
 
   return (
     <Pressable
-      ref={inputRef}
-      {...inputProps}
       {...rest}
-      disabled={isDisabled}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: isChecked, disabled }}
+      disabled={disabled}
       style={pressableStyle}
+      onPress={handlePress}
     >
-      {resolvedLabelPosition === 'left' && labelNode ? (
-        <View style={{ marginRight: tokens.spacing.labelGap }}>{labelNode}</View>
-      ) : null}
       <View
         style={[
           styles.track,
           {
-            width:  safeSizeTokens.trackWidth,
-            height:  safeSizeTokens.trackHeight,
-            borderRadius:  safeSizeTokens.trackHeight / 2,
-            backgroundColor: isDisabled ? tokens.colors.disabledTrack : trackColor,
+            width: trackWidth,
+            height: trackHeight,
+            borderRadius: trackHeight / 2,
+            backgroundColor: trackColor,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: tokens.colors.border,
           },
         ]}
         pointerEvents="none"
@@ -143,26 +141,21 @@ export const Switch: React.FC<SwitchProps> = props => {
           style={[
             styles.handle,
             {
-              width:  safeSizeTokens.handleSize,
-              height:  safeSizeTokens.handleSize,
-              borderRadius:  safeSizeTokens.handleSize / 2,
-              top:  safeSizeTokens.padding,
-              left:  safeSizeTokens.padding,
+              width: handleSize,
+              height: handleSize,
+              borderRadius: handleSize / 2,
+              top: padding,
+              left: padding,
               transform: [{ translateX }],
-              backgroundColor: state.isSelected
-                ? tokens.colors.activeHandle
-                : tokens.colors.handle,
+              backgroundColor: tokens.colors.handle,
             },
           ]}
         >
           {loading ? (
-            <ActivityIndicator size="small" color={tokens.colors.loading} />
+            <ActivityIndicator size="small" color={trackColor} />
           ) : null}
         </AnimatedHandle>
       </View>
-      {resolvedLabelPosition === 'right' && labelNode ? (
-        <View style={{ marginLeft: tokens.spacing.labelGap }}>{labelNode}</View>
-      ) : null}
     </Pressable>
   )
 }
@@ -172,9 +165,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  containerReverse: {
-    flexDirection: 'row-reverse',
-  },
   track: {
     position: 'relative',
   },
@@ -182,9 +172,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  label: {
-    fontSize: 14,
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 3 },
   },
 })
 

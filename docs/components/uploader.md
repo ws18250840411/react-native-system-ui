@@ -1,13 +1,15 @@
 ---
 simulator:
   compact: false
+  style:
+    background: '#fff'
 ---
 
-# Uploader 上传
+# Uploader 文件上传
 
 ## 介绍
 
-用于在客户端挑选图片或文件，并展示预览、删除、状态等信息；文件获取与上传可以通过 `onUpload` 回调接入任意 RN 方案。
+用于将本地的图片或文件上传至服务器。
 
 ## 引入
 
@@ -19,42 +21,85 @@ import { Uploader } from 'react-native-system-ui'
 
 ### 基础用法
 
-<code src="./uploader/demo/basic.tsx" title="基础"></code>
+<code title="基础用法" src="./uploader/demo/base.tsx"></code>
+
+### 自动上传
+
+通过 `upload` 方法可以完成文件自动上传。
+
+<code title="自动上传" src="./uploader/demo/upload.tsx"></code>
 
 ### 上传限制
 
-<code src="./uploader/demo/limit.tsx" title="上传限制"></code>
+`maxCount` `maxSize` 可以设置最大上传尺寸和最大数量。
+
+<code title="上传限制" src="./uploader/demo/limit.tsx"></code>
 
 ### 自定义预览
 
-<code src="./uploader/demo/custom.tsx" title="自定义预览"></code>
+- `previewCoverRender` 可以自定义预览信息
+- 想要自定义尺寸则可以使用 `previewSize`
+
+<code title="自定义预览" src="./uploader/demo/preview.tsx"></code>
+
+### 异步关闭
+
+`onDelete` 支持返回 `Promise`，可以很方便的用 `Dialog` 来完成确认功能。
+
+<code title="异步关闭" src="./uploader/demo/close.tsx"></code>
+
+### 表单中使用
+
+`Uploader` 组件支持 `Form.Item` 嵌套，如果你需要对数据结构进行处理，可以参考下面的例子。
+
+<code title="表单中使用" src="./uploader/demo/form.tsx"></code>
 
 ## API
 
+### Props
+
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `value` | 受控文件列表 | `UploaderValueItem[]` | - |
-| `defaultValue` | 默认文件列表 | `UploaderValueItem[]` | `[]` |
-| `onChange` | 文件列表变化回调 | `(items: UploaderValueItem[]) => void` | - |
-| `onUpload` | 点击上传区域时触发，返回新增的文件（支持 Promise） | `() => UploaderValueItem \| UploaderValueItem[] \| Promise<...>` | - |
-| `onClickUpload` | 点击上传区域（无论是否提供 `onUpload`） | `() => void` | - |
-| `maxCount` | 最大文件数量，超出后隐藏上传区域 | `number` | `Infinity` |
-| `showUpload` | 是否展示上传按钮 | `boolean` | `true` |
-| `uploadText` | 上传区域文案 | `string` | - |
-| `uploadIcon` | 自定义上传区域图标 | `ReactNode` | `+` |
-| `previewSize` | 预览方块尺寸，单位 px | `number \| string` | `80` |
-| `imageFit` | 预览图裁剪模式，参考 `Image` | `ImageFit` | `cover` |
-| `previewImage` | 是否显示图片预览 | `boolean` | `true` |
-| `previewFullImage` | 点击后是否打开全屏预览 | `boolean` | `true` |
-| `previewOptions` | 透传给 `ImagePreview` 的配置 | `ImagePreviewProps`（除 `visible/images`） | - |
-| `previewCoverRender` | 自定义覆盖在预览图上的内容 | `(item: UploaderValueItem) => ReactNode` | - |
-| `statusTextRender` | 自定义上传中/失败文案 | `(status, item) => ReactNode` | - |
+| `value` | 已上传的文件列表 | `UploaderValueItem[]` | - |
+| `defaultValue` | 默认上传的文件列表 | `UploaderValueItem[]` | `[]` |
+| `accept` | 允许上传的文件类型 | `string` | `image/*` |
+| `name` | 标识符（可用于业务侧区分） | `number \| string` | - |
+| `isImageUrl` | 手动指定是否为图片 | `(file: UploaderValueItem) => boolean` | - |
+| `previewSize` | 预览图和上传区域的尺寸，默认单位为 `px` | `number \| string` | `80px` |
+| `previewImage` | 是否在上传完成后展示预览图 | `boolean` | `true` |
+| `previewFullImage` | 是否在点击预览图后展示全屏图片预览 | `boolean` | `true` |
+| `previewCoverRender` | 自定义覆盖在预览区域上方的内容 | `(item: UploaderValueItem) => ReactNode` | - |
+| `previewOptions` | 全屏图片预览的配置项 | `object` | - |
+| `multiple` | 是否开启图片多选 | `boolean` | `false` |
+| `disabled` | 是否禁用文件上传 | `boolean` | `false` |
+| `readOnly` | 是否将上传区域设置为只读状态 | `boolean` | `false` |
 | `deletable` | 是否展示删除按钮 | `boolean` | `true` |
-| `onDelete` | 删除前回调，返回 `false`/`Promise<false>` 阻止删除 | `(item, index) => boolean \| Promise<boolean>` | - |
-| `onClickPreview` | 点击预览时触发 | `(item, index) => void` | - |
-| `onClosePreview` | 关闭全屏预览时触发 | `() => void` | - |
-| `disabled` | 禁用上传、删除、预览交互 | `boolean` | `false` |
-| `readOnly` | 只读模式，仅展示预览 | `boolean` | `false` |
+| `deleteRender` | 自定义删除按钮视图 | `(del: () => void) => ReactNode` | - |
+| `showUpload` | 是否展示上传区域 | `boolean` | `true` |
+| `capture` | 图片选取模式，可选值为 `camera`（Web 端） | `string` | - |
+| `maxSize` | 文件大小限制，单位为 `byte` | `number \| string \| (file: File) => boolean` | `Number.MAX_VALUE` |
+| `maxCount` | 文件上传数量限制 | `number \| string` | `Number.MAX_VALUE` |
+| `resultType` | 文件读取结果类型（Web 端） | `'dataUrl' \| 'text' \| 'file'` | `'dataUrl'` |
+| `uploadText` | 上传区域文字提示 | `string` | - |
+| `statusTextRender` | 自定义上传状态文案 | `(status: 'failed' \| 'pending') => ReactNode` | - |
+| `imageFit` | 预览图裁剪模式 | `ImageFit` | `cover` |
+| `uploadIcon` | 上传区域图标 | `ReactNode` | `+` |
+| `children` | 自定义上传按钮 | `ReactNode` | - |
+
+> `disabled/readOnly` 仅影响「上传区域」点击与文件选择，不影响预览与删除（与 react-vant 一致）。如果需要禁用删除，请设置 `deletable={false}`。
+
+### Events
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `upload` | 上传方法（Web 端文件选择时触发） | `(file: File) => Promise<UploaderValueItem>` |
+| `onChange` | 组件值更新时调用 | `(value: UploaderValueItem[]) => void` |
+| `onOversize` | 文件大小超过限制时触发（Web 端） | `(files: File[]) => void` |
+| `onClickUpload` | 点击上传区域时触发 | `(event: GestureResponderEvent) => void` |
+| `onClickPreview` | 点击预览图时触发 | `(item: UploaderValueItem, index: number) => void` |
+| `onClosePreview` | 关闭全屏图片预览时触发 | `() => void` |
+| `onDelete` | 删除文件预览时触发 | `(item: UploaderValueItem) => boolean \| Promise<boolean> \| void` |
+| `beforeRead` | 文件读取前回调，返回 `false` 可终止读取（Web 端） | `(file: File, files: File[]) => Promise<File \| false> \| File \| false` |
 
 ### UploaderValueItem
 
@@ -64,7 +109,26 @@ import { Uploader } from 'react-native-system-ui'
 | `url` | 图片地址 | `string` |
 | `thumbnail` | 缩略图地址 | `string` |
 | `source` | RN `ImageSourcePropType`，可用于本地静态资源 | `ImageSourcePropType` |
+| `file` | Web 端原始文件 | `File` |
 | `status` | 上传状态（`pending` \| `failed`） | `'pending' \| 'failed'` |
 | `message` | 自定义描述 | `string` |
 
-> 差异说明：RN 版本未内置文件选择能力，需要通过 `onUpload`（或 `onClickUpload` + 自行调用图片选择库）将选择的文件转换为 `UploaderValueItem` 后回填。
+### 类型定义
+
+组件导出以下类型定义：
+
+```ts
+import type { UploaderInstance, UploaderResultType, UploaderValueItem } from 'react-native-system-ui'
+```
+
+`UploaderInstance` 用法如下：
+
+```ts
+const uploaderRef = React.useRef<UploaderInstance>(null)
+uploaderRef.current?.chooseFile()
+```
+
+## 差异说明（React Native）
+
+- Web 端内置文件选择能力，支持 `accept/multiple/capture/beforeRead/maxSize/onOversize/resultType/upload` 等能力。
+- RN 原生端没有内置文件选择能力，可通过 `onUpload`（扩展能力）或 `onClickUpload` 自行接入图片选择库，然后回填 `value`。

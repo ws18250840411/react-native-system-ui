@@ -4,10 +4,10 @@ import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 export interface RateProps extends Omit<ViewProps, 'onChange'> {
   value?: number
   defaultValue?: number
-  count?: number
+  count?: number | string
   allowHalf?: boolean
-  size?: number
-  gutter?: number
+  size?: number | string
+  gutter?: number | string
   color?: string
   voidColor?: string
   disabledColor?: string

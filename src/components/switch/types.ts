@@ -1,19 +1,17 @@
 import type React from 'react'
-import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
-
-export type SwitchSize = 'small' | 'medium'
+import type { GestureResponderEvent, StyleProp, ViewProps, ViewStyle } from 'react-native'
 
 export interface SwitchProps extends Omit<ViewProps, 'onChange'> {
-  checked?: boolean
-  defaultChecked?: boolean
+  checked?: any
+  defaultChecked?: any
   disabled?: boolean
   loading?: boolean
-  size?: SwitchSize
+  size?: number | string
   activeColor?: string
   inactiveColor?: string
-  label?: React.ReactNode
-  labelPosition?: 'left' | 'right'
-  onChange?: (checked: boolean) => void
+  activeValue?: any
+  inactiveValue?: any
+  onChange?: (val: any) => void
+  onClick?: (event: GestureResponderEvent) => void
   style?: StyleProp<ViewStyle>
-  labelStyle?: StyleProp<TextStyle>
 }

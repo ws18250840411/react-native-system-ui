@@ -4,11 +4,11 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
+import { useControllableValue } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
 import Field from '../field'
 import type { FieldProps } from '../field'
@@ -42,26 +42,27 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     onSearch,
     onCancel,
     onChangeText,
+    onChange,
     onSubmitEditing,
     value: valueProp,
     defaultValue,
     returnKeyType,
     inputStyle,
+    align,
+    inputAlign,
     ...restFieldProps
   } = props
 
-  const [internalValue, setInternalValue] = React.useState(() => toValue(defaultValue))
-  const isControlled = valueProp !== undefined
-  const inputValue = isControlled ? toValue(valueProp) : internalValue
+  const [value, triggerChange] = useControllableValue<string>(props, { defaultValue: '' })
+  const inputValue = toValue(value)
+  const resolvedInputAlign = align ?? inputAlign
 
   const handleChange = React.useCallback(
     (next: string) => {
-      if (!isControlled) {
-        setInternalValue(next)
-      }
+      triggerChange(next)
       onChangeText?.(next)
     },
-    [isControlled, onChangeText],
+    [onChangeText, triggerChange],
   )
 
   const handleCancel = React.useCallback(() => {
@@ -86,6 +87,8 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const resolvedClearTrigger = clearTrigger ?? tokens.defaults.clearTrigger
   const resolvedReturnKeyType = returnKeyType ?? 'search'
   const shouldShowAction = !!action || showAction
+  const isCustomActionText = React.isValidElement(actionText)
+  const shouldRenderCancelAction = shouldShowAction && !action && !isCustomActionText
   const radius = shapeRadiusMap(shape, tokens.radius.square, tokens.radius.round)
 
   const inputRef = React.useRef<FieldInstance>(null)
@@ -99,8 +102,8 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     [handleChange],
   )
 
-  const actionPress = useAriaPress({
-    disabled: !!action || !shouldShowAction,
+  const cancelActionPress = useAriaPress({
+    disabled: !shouldRenderCancelAction,
     onPress: handleCancel,
     extraProps: {
       accessibilityRole: 'button',
@@ -162,16 +165,25 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
       )
     }
     if (!shouldShowAction) return null
+
+    if (isCustomActionText) {
+      return (
+        <View style={[styles.actionWrapper, { marginLeft: tokens.spacing.actionGap }]}>
+          {actionText}
+        </View>
+      )
+    }
+
     return (
       <Pressable
         style={[
           styles.actionWrapper,
           {
             marginLeft: tokens.spacing.actionGap,
-            opacity: actionPress.states.pressed ? 0.6 : 1,
+            opacity: cancelActionPress.states.pressed ? 0.6 : 1,
           },
         ]}
-        {...actionPress.interactionProps}
+        {...cancelActionPress.interactionProps}
       >
         <Text
           style={[
@@ -202,6 +214,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
             clearTrigger={resolvedClearTrigger}
             leftIcon={resolvedLeftIcon}
             rightIcon={rightIcon}
+            inputAlign={resolvedInputAlign}
             border={false}
             style={[styles.field, fieldStyle]}
             contentStyle={[styles.fieldContent, fieldContentStyle]}

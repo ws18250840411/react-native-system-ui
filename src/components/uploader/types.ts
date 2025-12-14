@@ -1,4 +1,4 @@
-import type { ImageSourcePropType, ViewProps } from 'react-native'
+import type { GestureResponderEvent, ImageSourcePropType, ViewProps } from 'react-native'
 import React from 'react'
 
 import type { ImageFit } from '../image'
@@ -6,11 +6,40 @@ import type { ImagePreviewProps } from '../image-preview'
 
 export type UploaderItemStatus = 'pending' | 'failed'
 
+export type UploaderResultType = 'dataUrl' | 'text' | 'file'
+
+export type UploaderFile = {
+  name?: string
+  type?: string
+  size?: number
+  [key: string]: any
+}
+
+type BivariantCallback<T extends (...args: any[]) => any> = { bivarianceHack: T }['bivarianceHack']
+
+export type UploaderMaxSize =
+  | number
+  | string
+  | BivariantCallback<(file: UploaderFile) => boolean>
+
+export type UploaderBeforeRead = BivariantCallback<
+  (
+    file: UploaderFile,
+    files: UploaderFile[],
+  ) => Promise<UploaderFile | false | undefined> | UploaderFile | false | undefined
+>
+
+export type UploaderInstance = {
+  chooseFile: () => void
+  closeImagePreview: () => void
+}
+
 export interface UploaderValueItem {
   key?: string | number
   url?: string
   thumbnail?: string
   source?: ImageSourcePropType
+  file?: UploaderFile
   status?: UploaderItemStatus
   message?: string
   [key: string]: any
@@ -19,7 +48,10 @@ export interface UploaderValueItem {
 export interface UploaderProps extends ViewProps {
   value?: UploaderValueItem[]
   defaultValue?: UploaderValueItem[]
-  maxCount?: number
+  accept?: string
+  name?: number | string
+  isImageUrl?: (file: UploaderValueItem) => boolean
+  multiple?: boolean
   previewSize?: number | string
   imageFit?: ImageFit
   previewImage?: boolean
@@ -32,12 +64,24 @@ export interface UploaderProps extends ViewProps {
   disabled?: boolean
   readOnly?: boolean
   deletable?: boolean
-  statusTextRender?: (status: UploaderItemStatus, item: UploaderValueItem) => React.ReactNode
+  deleteRender?: (del: () => void) => React.ReactNode
+  capture?: string
+  maxSize?: UploaderMaxSize
+  maxCount?: number | string
+  resultType?: UploaderResultType
+  statusTextRender?: (status: UploaderItemStatus) => React.ReactNode
   children?: React.ReactNode
-  onUpload?: () => Promise<UploaderValueItem | UploaderValueItem[] | void> | UploaderValueItem | UploaderValueItem[] | void
+  beforeRead?: UploaderBeforeRead
+  onOversize?: BivariantCallback<(files: UploaderFile[]) => void>
+  onClickUpload?: (event: GestureResponderEvent) => void
+  onUpload?: () =>
+    | Promise<UploaderValueItem | UploaderValueItem[] | void>
+    | UploaderValueItem
+    | UploaderValueItem[]
+    | void
+  upload?: BivariantCallback<(file: UploaderFile) => Promise<UploaderValueItem>>
   onChange?: (items: UploaderValueItem[]) => void
-  onDelete?: (item: UploaderValueItem, index: number) => boolean | Promise<boolean> | void
+  onDelete?: (item: UploaderValueItem) => boolean | Promise<boolean> | void
   onClickPreview?: (item: UploaderValueItem, index: number) => void
   onClosePreview?: () => void
-  onClickUpload?: () => void
 }

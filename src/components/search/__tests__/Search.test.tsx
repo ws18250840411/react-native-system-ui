@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { TextInput } from 'react-native'
+import { StyleSheet, Text, TextInput } from 'react-native'
 
 const globalAny: any = global
 if (!globalAny.document) {
@@ -46,7 +46,7 @@ describe('Search', () => {
       <Search
         defaultValue='hello'
         showAction
-        onChangeText={handleChange}
+        onChange={handleChange}
         onCancel={handleCancel}
       />
     )
@@ -61,5 +61,38 @@ describe('Search', () => {
 
     const input = tree.root.findByType(TextInput)
     expect(input.props.value).toBe('')
+  })
+
+  it('supports align prop', () => {
+    const tree = renderer.create(<Search align="center" />)
+    const input = tree.root.findByType(TextInput)
+    const flattened = StyleSheet.flatten(input.props.style)
+    expect(flattened.textAlign).toBe('center')
+  })
+
+  it('does not use default cancel behavior when actionText is element', () => {
+    const handleCancel = jest.fn()
+    const handleAction = jest.fn()
+    const tree = renderer.create(
+      <Search
+        defaultValue="hello"
+        showAction
+        onCancel={handleCancel}
+        actionText={<Text onPress={handleAction}>搜索</Text>}
+      />,
+    )
+
+    expect(() => tree.root.findByProps({ testID: 'rnsu-search-action' })).toThrow()
+
+    const actionNode = tree.root.find(node => node.props.children === '搜索')
+    act(() => {
+      actionNode.props.onPress?.()
+    })
+
+    expect(handleAction).toHaveBeenCalled()
+    expect(handleCancel).not.toHaveBeenCalled()
+
+    const input = tree.root.findByType(TextInput)
+    expect(input.props.value).toBe('hello')
   })
 })

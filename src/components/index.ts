@@ -33,7 +33,7 @@ export type {
 export { default as Form } from './form'
 export type { FormProps, FormInstance } from './form'
 export { default as Switch } from './switch'
-export type { SwitchProps, SwitchSize } from './switch'
+export type { SwitchProps } from './switch'
 export { default as Badge } from './badge'
 export type { BadgeProps } from './badge'
 export { default as Avatar } from './avatar'
@@ -66,7 +66,7 @@ export type { NoticeBarProps, NoticeBarMode } from './notice-bar'
 export { default as Slider } from './slider'
 export type { SliderProps, SliderValue } from './slider'
 export { default as Stepper } from './stepper'
-export type { StepperProps, StepperSize, StepperTheme } from './stepper'
+export type { StepperProps, StepperTheme, StepperInstance } from './stepper'
 export { default as Rate } from './rate'
 export type { RateProps } from './rate'
 export { default as Selector } from './selector'
@@ -143,7 +143,16 @@ export type { PullRefreshProps } from './pull-refresh'
 export { default as ImagePreview } from './image-preview'
 export type { ImagePreviewProps, ImagePreviewRef, ImagePreviewCloseParams } from './image-preview'
 export { default as Uploader } from './uploader'
-export type { UploaderProps, UploaderValueItem, UploaderItemStatus } from './uploader'
+export type {
+  UploaderProps,
+  UploaderValueItem,
+  UploaderItemStatus,
+  UploaderInstance,
+  UploaderResultType,
+  UploaderFile,
+  UploaderMaxSize,
+  UploaderBeforeRead,
+} from './uploader'
 export { useUploaderTokens } from './uploader'
 export { default as Skeleton } from './skeleton'
 export type { SkeletonProps, SkeletonAvatarShape } from './skeleton'
