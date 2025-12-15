@@ -1,5 +1,6 @@
 import React from 'react'
-import { Button, Icon, ImagePreview } from 'react-native-system-ui'
+import { Close } from 'react-native-system-icon'
+import { Button, ImagePreview } from 'react-native-system-ui'
 
 const images = [
   'https://fastly.jsdelivr.net/npm/@vant/assets/apple-1.jpg',
@@ -19,7 +20,7 @@ export default () => {
         startPosition={1}
         showIndicators
         closeable
-        closeIcon={<Icon name="close" color="#fff" size={18} />}
+        closeIcon={<Close size={18} fill="#fff" color="#fff" />}
         closeOnlyClickCloseIcon
         onClose={() => setVisible(false)}
       />

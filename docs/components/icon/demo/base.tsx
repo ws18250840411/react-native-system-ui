@@ -1,12 +1,12 @@
 import React from 'react'
 
-import { Icon, Space } from 'react-native-system-ui'
+import { Space } from 'react-native-system-ui'
+import { LikeO, LocationO, StarO } from 'react-native-system-icon'
 
 export default () => (
-  <Space gap={16}>
-    <Icon name="close" />
-    <Icon name="check" />
-    <Icon name="warning" />
-    <Icon name="info" />
+  <Space gap={20}>
+    <LocationO />
+    <LikeO />
+    <StarO />
   </Space>
 )

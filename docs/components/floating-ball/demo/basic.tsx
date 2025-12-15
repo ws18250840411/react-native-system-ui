@@ -1,8 +1,9 @@
 import React from 'react'
-import { FloatingBall, Icon } from 'react-native-system-ui'
+import { Info } from 'react-native-system-icon'
+import { FloatingBall } from 'react-native-system-ui'
 
 export default () => (
   <FloatingBall>
-    <Icon name="info" color="#fff" />
+    <Info fill="#fff" color="#fff" />
   </FloatingBall>
 )

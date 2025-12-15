@@ -1,14 +1,14 @@
 import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
-import Icon from '../icon'
 import Loading from '../loading'
 import Popup from '../popup'
 import type { ActionSheetAction, ActionSheetProps } from './types'
 import { useActionSheetTokens, type ActionSheetTokens } from './tokens'
 
-const defaultCloseIcon = <Icon name="close" size={18} />
+const defaultCloseIcon = <Close size={18} />
 
 const ActionSheetHeader: React.FC<{
   title: React.ReactNode
@@ -27,7 +27,7 @@ const ActionSheetHeader: React.FC<{
       {closeable ? (
         <Pressable accessibilityRole="button" hitSlop={8} {...closePress.interactionProps}>
           {React.isValidElement(closeIcon)
-            ? React.cloneElement(closeIcon, { color: tokens.colors.description })
+            ? React.cloneElement(closeIcon, { fill: tokens.colors.description, color: tokens.colors.description })
             : closeIcon}
         </Pressable>
       ) : null}

@@ -17,9 +17,9 @@ import { deepMerge } from '../../utils/deepMerge'
 import Portal from '../portal/Portal'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
-import Icon from '../icon'
 import Loading from '../loading'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import { Checked, Close } from 'react-native-system-icon'
 
 export type ToastPosition = 'top' | 'middle' | 'bottom'
 export type ToastType = 'info' | 'success' | 'fail' | 'loading'
@@ -191,9 +191,9 @@ export const Toast: React.FC<ToastProps> = props => {
     if (icon) return icon
     switch (type) {
       case 'success':
-        return <Icon name="check" size={24} color={tokens.colors.text} />
+        return <Checked size={24} fill={tokens.colors.text} color={tokens.colors.text} />
       case 'fail':
-        return <Icon name="close" size={24} color={tokens.colors.text} />
+        return <Close size={24} fill={tokens.colors.text} color={tokens.colors.text} />
       case 'loading':
         return loadingIndicator ?? <Loading type="spinner" color={tokens.colors.text} size="small" />
       default:

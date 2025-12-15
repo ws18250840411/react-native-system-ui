@@ -1,11 +1,12 @@
 import React from 'react'
-import { Button, Icon, ShareSheet } from 'react-native-system-ui'
+import { Button, ShareSheet } from 'react-native-system-ui'
+import { Info, Star, Warning } from 'react-native-system-icon'
 
 const options = [
   [
-    { name: '微信', icon: <Icon name="info" /> },
-    { name: '朋友圈', icon: <Icon name="star" /> },
-    { name: '微博', icon: <Icon name="warning" /> },
+    { name: '微信', icon: <Info /> },
+    { name: '朋友圈', icon: <Star /> },
+    { name: '微博', icon: <Warning /> },
   ],
 ]
 

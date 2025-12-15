@@ -1,7 +1,8 @@
 import React from 'react'
 import { Text, View } from 'react-native'
 
-import { Icon, Uploader } from 'react-native-system-ui'
+import { Fire } from 'react-native-system-icon'
+import { Uploader } from 'react-native-system-ui'
 
 import { demoData, upload } from './utils'
 
@@ -11,7 +12,7 @@ export default () => {
       defaultValue={demoData}
       upload={upload}
       previewSize={60}
-      uploadIcon={<Icon name="fire" />}
+      uploadIcon={<Fire />}
       previewCoverRender={item =>
         item.filename ? (
           <View

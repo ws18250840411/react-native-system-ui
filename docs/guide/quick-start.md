@@ -3,9 +3,14 @@
 ## 安装依赖
 
 ```bash
-pnpm add react-native-system-ui
+pnpm add react-native-system-ui react-native-svg
 # 或者
-yarn add react-native-system-ui
+yarn add react-native-system-ui react-native-svg
+
+# 如需在业务中直接使用图标组件（可 Tree Shaking）
+pnpm add react-native-system-icon
+# 或者
+yarn add react-native-system-icon
 ```
 
 请确保宿主工程已经安装 `react@>=19.0` 与 `react-native@>=0.79`。

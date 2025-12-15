@@ -1,5 +1,6 @@
 import React from 'react'
-import { ActionSheet, Button, Icon } from 'react-native-system-ui'
+import { Info, Star } from 'react-native-system-icon'
+import { ActionSheet, Button } from 'react-native-system-ui'
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
@@ -9,8 +10,8 @@ export default () => {
       <ActionSheet
         visible={visible}
         actions={[
-          { name: '复制链接', icon: <Icon name="info" /> },
-          { name: '收藏', icon: <Icon name="star" /> },
+          { name: '复制链接', icon: <Info /> },
+          { name: '收藏', icon: <Star /> },
           { name: '举报', color: '#fa5151' },
         ]}
         onSelect={() => setVisible(false)}

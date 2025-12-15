@@ -13,7 +13,10 @@ React Native 端的 react-vant 式移动组件库，参考 **react-vant** 的交
 
 ```bash
 # 安装（推荐 pnpm/yarn）
-pnpm add react-native-system-ui
+pnpm add react-native-system-ui react-native-svg
+
+# 如需在业务中直接使用图标组件（可 Tree Shaking）
+pnpm add react-native-system-icon
 
 # 同时保证项目已安装 react 和 react-native（>=19 / >=0.79）
 ```
@@ -103,7 +106,7 @@ export const AuroraBranding = () => (
 - ✳️ **Badge 组件**：提供数字/红点、`max` 截断、`offset` 偏移、自定义 `content`/`color` 与独立展示模式。
 - ✳️ **Grid 组件**：支持 `columnNum/gutter/square/border/direction/reverse` 等语义，`Grid.Item` 兼容 `badge/dot` 与 children 自定义内容。
 - ✳️ **Typography 组件**：提供 `Text/Title/Link`，支持 `type/size/ellipsis/strong/underline` 以及展开/收起、多语义排版。
-- ✳️ **Icon 组件**：内置常用图标（当前使用 Unicode 占位），支持 `size/color/rotate/spin`，并可通过 `component`/`children` 引入任意 `react-native-svg` 图形。
+- ✳️ **图标**：使用 `react-native-system-icon` 按需引入图标组件（同 react-vant 的 `@react-vant/icons` 思路），支持 RN/Web。
 - ✳️ **Loading 组件**：实现 `circular/spinner` 两种指示器、`color/size/text/vertical` 等配置，满足过渡加载场景。
 - ✳️ **Empty 组件**：提供 `image/description/children` 语义，占位符支持默认/错误/网络/搜索以及自定义插画。
 - ✳️ **Progress 组件**：复刻 `percentage/strokeWidth/color/pivot` 语义，支持文案与置灰配置。
@@ -116,7 +119,7 @@ export const AuroraBranding = () => (
 
 ## 路线图（下一步）
 
-1. **基础交互组件**：Cell、Icon、Space、Typography —— 打通排版/图标体系。
+1. **基础交互组件**：Cell、Space、Typography —— 打通排版体系；图标使用 `react-native-system-icon`。
 2. **反馈组件**：Toast、Loading、Dialog —— 依赖 Portal 能力（计划内）。
 3. **表单组件**：Field、Switch、Checkbox —— 与 rc-form 生态对接。
 4. **暗色模式**：扩展 tokens palette，支持按需切换。

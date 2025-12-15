@@ -4,7 +4,7 @@
 
 ## 1. 当前基线（2025-11-25）
 
-- **已完成功能**：`Button、Badge、Cell、Collapse、ConfigProvider、Dialog、Divider、Empty、Flex、Grid、Icon、Loading、NoticeBar、Popup、Portal、Progress、Slider、Space、Tag、Toast、Typography`，均已提供 docs + demo。
+- **已完成功能**：`Button、Badge、Cell、Collapse、ConfigProvider、Dialog、Divider、Empty、Flex、Grid、Loading、NoticeBar、Popup、Portal、Progress、Slider、Space、Tag、Toast、Typography`，均已提供 docs + demo。
 - **设计系统**：`ThemeProvider` 下发 foundations + `components` overrides；`themePresets` 已提供 light/dark/aurora 三套示例便于切换。
 - **基础设施缺口**
   1. `@react-native-aria` 统一封装：`useAriaPress/useAriaToggle/useAriaListBox/useAriaOverlay` 已抽象并补文档+单测，但需要在更多组件中验证。
@@ -26,7 +26,7 @@
 
 | 分类 | 组件 | 状态 | 优先级 | 依赖/前置 | 备注 |
 | --- | --- | --- | --- | --- | --- |
-| 基础展示 | Button, Badge, Cell, Collapse, Divider, Empty, Flex, Grid, Icon, Loading, NoticeBar, Popup, Portal, Progress, Slider, Space, Tag, Toast, Typography | ✅ 已完成 | - | 设计系统 | 需持续补全单测覆盖率 |
+| 基础展示 | Button, Badge, Cell, Collapse, Divider, Empty, Flex, Grid, Loading, NoticeBar, Popup, Portal, Progress, Slider, Space, Tag, Toast, Typography | ✅ 已完成 | - | 设计系统 | 需持续补全单测覆盖率 |
 | 设计/主题 | ConfigProvider, ThemeProvider, tokens | ✅ 已完成 | - | - | 已内置 themePresets.light/dark/aurora |
 | a11y Hooks | useAriaPress, useAriaToggle, useAriaListBox, useAriaOverlay | ⏳ 进行中 | P0 | `@react-native-aria/*` | hooks + 文档 + 单测已就位，等待批量接入 |
 | Overlay 能力 | OverlayStack, BackHandler 管理, SafeArea helper, 动画 preset | ⏳ 进行中 | P0 | Portal | 栈管理/BackHandler/滚动锁 + 单测完成，需继续完善动画、SafeArea |

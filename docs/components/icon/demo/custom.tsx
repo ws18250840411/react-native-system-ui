@@ -1,7 +1,7 @@
 import React from 'react'
 import { View } from 'react-native'
 
-import { Icon, Typography } from 'react-native-system-ui'
+import { Space } from 'react-native-system-ui'
 
 const Dot = ({ size = 24, color = '#3b82f6' }: { size?: number; color?: string }) => (
   <View
@@ -20,10 +20,8 @@ const Dot = ({ size = 24, color = '#3b82f6' }: { size?: number; color?: string }
 )
 
 export default () => (
-  <>
-    <Typography.Text>
-      可以通过 `component` 传入自定义图形（任意 React 元素），例如：
-    </Typography.Text>
-    <Icon component={Dot} size={32} color="#ef4444" />
-  </>
+  <Space gap={20}>
+    <Dot size={32} color="#ef4444" />
+    <Dot size={32} color="#3f45ff" />
+  </Space>
 )

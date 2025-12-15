@@ -50,8 +50,6 @@ export type {
   TypographyTitleLevel,
   EllipsisConfig,
 } from './typography'
-export { default as Icon } from './icon'
-export type { IconProps, BuiltInIconName } from './icon'
 export { default as Loading } from './loading'
 export type { LoadingProps, LoadingType } from './loading'
 export { default as Empty } from './empty'

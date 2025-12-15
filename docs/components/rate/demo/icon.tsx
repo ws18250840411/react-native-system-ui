@@ -1,12 +1,13 @@
 import React from 'react'
-import { Icon, Rate } from 'react-native-system-ui'
+import { Fire, FireO } from 'react-native-system-icon'
+import { Rate } from 'react-native-system-ui'
 
 export default function RateIconDemo() {
   const [value, setValue] = React.useState(3)
   return (
     <Rate
-      icon={<Icon name="fire" />}
-      voidIcon={<Icon name="fire-o" />}
+      icon={<Fire />}
+      voidIcon={<FireO />}
       value={value}
       onChange={setValue}
     />

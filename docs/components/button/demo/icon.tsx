@@ -1,10 +1,11 @@
 import React from 'react'
 
-import { Button, Icon } from 'react-native-system-ui'
+import { ShoppingCartO } from 'react-native-system-icon'
+import { Button } from 'react-native-system-ui'
 import './style.css'
 
 const renderCart = (color: string, size: number) => (
-  <Icon name="shopping-cart-o" color={color} size={size} />
+  <ShoppingCartO size={size} fill={color} color={color} />
 )
 
 export default () => (

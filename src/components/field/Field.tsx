@@ -7,10 +7,10 @@ import {
   View,
 } from 'react-native'
 import type { TextInputProps } from 'react-native'
+import { Clear, QuestionO } from 'react-native-system-icon'
 
 import Cell from '../cell'
 import Dialog from '../dialog'
-import Icon from '../icon'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 
@@ -422,7 +422,9 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const renderTooltip = () => {
     if (!tooltip) return null
-    const defaultIcon = <Icon name="question-o" color={tokens.colors.tooltip} size={tokens.sizes.icon} />
+    const defaultIcon = (
+      <QuestionO size={tokens.sizes.icon} fill={tokens.colors.tooltip} color={tokens.colors.tooltip} />
+    )
     let icon: React.ReactNode = defaultIcon
     let dialogProps: FieldTooltipProps | { message: React.ReactNode } = { message: tooltip as React.ReactNode }
 
@@ -510,7 +512,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       >
         {React.isValidElement(clearIcon)
           ? clearIcon
-          : <Icon name="clear" color={tokens.colors.clear} size={tokens.sizes.clearIcon} />}
+          : <Clear size={tokens.sizes.clearIcon} fill={tokens.colors.clear} color={tokens.colors.clear} />}
       </Pressable>
     )
   }

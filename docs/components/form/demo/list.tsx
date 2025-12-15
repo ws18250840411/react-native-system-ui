@@ -1,5 +1,6 @@
 import React from "react"
-import { Button, Cell, Form, Field, Icon } from "react-native-system-ui"
+import { AddO } from "react-native-system-icon"
+import { Button, Cell, Form, Field } from "react-native-system-ui"
 
 export default function FormListDemo() {
   const formRef = Form.useForm()
@@ -38,7 +39,7 @@ export default function FormListDemo() {
               <Button
                 plain
                 block
-                icon={<Icon name="add-o" size={16} />}
+                icon={<AddO size={16} />}
                 text="新增用户"
                 onPress={() => add({ name: "", age: "" })}
               />

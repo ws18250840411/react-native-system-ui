@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 
-import { Popup, Icon, Cell } from 'react-native-system-ui'
+import { Popup, Cell } from 'react-native-system-ui'
 
 type DemoType = 'default' | 'custom' | 'left' | null
 

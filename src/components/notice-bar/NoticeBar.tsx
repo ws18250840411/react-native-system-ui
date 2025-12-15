@@ -8,9 +8,9 @@ import {
   View,
   Platform,
 } from 'react-native'
+import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 
-import Icon from '../icon'
 import type { NoticeBarProps } from './types'
 import { useNoticeBarTokens } from './tokens'
 
@@ -182,12 +182,12 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     if (mode === 'closeable') {
       return (
         <Pressable hitSlop={8} {...closePress.interactionProps}>
-          <Icon name="close" size={16} color={resolvedColor} />
+          <Close size={16} fill={resolvedColor} color={resolvedColor} />
         </Pressable>
       )
     }
     if (mode === 'link') {
-      return <Icon name="arrow-right" size={16} color={resolvedColor} />
+      return <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
     }
     if (rightIcon) {
       return rightIcon

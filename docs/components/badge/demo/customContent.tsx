@@ -1,7 +1,8 @@
 import React from 'react'
 import { View } from 'react-native'
 
-import { Badge, Icon, Space } from 'react-native-system-ui'
+import { Badge, Space } from 'react-native-system-ui'
+import { Arrow, Checked, Close as CloseIcon } from 'react-native-system-icon'
 
 const Box = () => (
   <View
@@ -11,13 +12,13 @@ const Box = () => (
 
 export default () => (
   <Space gap={20}>
-    <Badge content={<Icon name="check" size={12} color="#fff" />}>
+    <Badge content={<Checked size={12} fill="#fff" color="#fff" />}>
       <Box />
     </Badge>
-    <Badge content={<Icon name="close" size={12} color="#fff" />}>
+    <Badge content={<CloseIcon size={12} fill="#fff" color="#fff" />}>
       <Box />
     </Badge>
-    <Badge content={<Icon name="arrow-right" size={12} color="#fff" />}>
+    <Badge content={<Arrow size={12} fill="#fff" color="#fff" />}>
       <Box />
     </Badge>
   </Space>

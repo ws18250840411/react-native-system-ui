@@ -22,7 +22,7 @@
 
 | 分类 | 任务 | 说明 | 依赖 | 状态 |
 | --- | --- | --- | --- | --- |
-| 基线组件 | `Button/Badge/Cell/Collapse/ConfigProvider/Dialog/Divider/Empty/Flex/Grid/Icon/Loading/NoticeBar/Popup/Portal/Progress/Slider/Space/Tag/Toast/Typography` | 已实现，持续维护 | 设计系统 | ✅ 完成 |
+| 基线组件 | `Button/Badge/Cell/Collapse/ConfigProvider/Dialog/Divider/Empty/Flex/Grid/Loading/NoticeBar/Popup/Portal/Progress/Slider/Space/Tag/Toast/Typography` | 已实现，持续维护 | 设计系统 | ✅ 完成 |
 | 主题扩展 | 夜间主题、品牌可配置示例 | 在 `ThemeProvider` 提供多套 preset（light/dark/aurora）+ 文档 | tokens | ✅ 完成 |
 | Aria Hook 封装 | `useAriaPress / useAriaToggle / useAriaListBox / useAriaOverlay`（`src/hooks/aria`） | 提供统一交互/可访问封装，供所有组件复用 | @react-native-aria | ⏳ 进行中（已补文档与单测，等待更多组件接入） |
 | Overlay 栈 | 遮罩堆叠、BackHandler、滚动锁、动画预设 | Popup/Dialog/ActionSheet 共享 | Portal | ⏳ 进行中（栈管理/BackHandler/滚动锁已实现并补单测，动画预设待办） |
@@ -30,7 +30,7 @@
 | 质量提升 | `Cell` token 化 + `Space` 接入 `useAriaPress` | 统一主题覆盖/间距，并让 Space 的可交互容器沿用 aria press 状态，满足巡检要求（2025-11-27 完成） | design system + hooks | ✅ 完成 |
 | 质量提升 #2 | `NoticeBar` token 化 + `Collapse` header 接入 `useAriaPress` | 去除硬编码配色/间距，让 collapse 面板符合统一可访问交互（2025-11-27 完成） | design system + hooks | ✅ 完成 |
 | 质量提升 #3 | `Popup` 接入 `useAriaOverlay` + `Toast` 可访问点击关闭 | Popup 统一 overlay 语义、Toast 使用 aria press 处理 `closeOnClick`（2025-11-27 完成） | hooks | ✅ 完成 |
-| 质量提升 #4 | `Icon/Flex` token 化 | Icon 默认尺寸/颜色可由 theme 控制，Flex gutter/对齐遵循 tokens（2025-11-27 完成） | design system | ✅ 完成 |
+| 质量提升 #4 | `Flex` token 化 | Flex gutter/对齐遵循 tokens（2025-11-27 完成） | design system | ✅ 完成 |
 | 质量提升 #5 | Portal 补文档与测试 | 新增 `Portal` 行为测试 + Docs/demo，指引如何挂载 Host 并使用静态 API（2025-11-27 完成） | overlay | ✅ 完成 |
 | 质量提升 #6 | Switch 组件首版 | 完成 Switch 实现 + token + 文档 demo + 单测（2025-11-27 完成） | useAriaToggle | ✅ 完成 |
 | 质量提升 #7 | Space token 化 | Space 默认 gap/方向依赖 `useSpaceTokens`，可按主题覆盖 presets（2025-11-27 完成） | design system | ✅ 完成 |

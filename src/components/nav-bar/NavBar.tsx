@@ -1,8 +1,8 @@
 import React from 'react'
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
-import Icon from '../icon'
 import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
 
@@ -62,7 +62,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const renderLeft = () => {
     const arrowNode = leftArrow
       ? typeof leftArrow === 'boolean'
-        ? <Icon name="arrow-left" size={18} color={sideColor} />
+        ? <ArrowLeft size={18} fill={sideColor} color={sideColor} />
         : leftArrow
       : null
 

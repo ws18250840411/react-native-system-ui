@@ -1,17 +1,18 @@
 import React from 'react'
 
-import { Cell, Icon, Toast } from 'react-native-system-ui'
+import { Info, Star } from 'react-native-system-icon'
+import { Cell, Toast } from 'react-native-system-ui'
 
 export default function ToastCustomIconDemo() {
   return (
     <Cell.Group title="自定义图标" card>
       <Cell
-        title="使用 Icon"
+        title="使用图标组件"
         isLink
         onPress={() =>
           Toast.show({
             message: '自定义图标',
-            icon: <Icon name="info" color="#2563eb" size={22} />,
+            icon: <Info size={22} fill="#2563eb" color="#2563eb" />,
           })
         }
       />
@@ -21,7 +22,7 @@ export default function ToastCustomIconDemo() {
         onPress={() =>
           Toast.show({
             message: '也可以放图片',
-            icon: <Icon name="star" color="#fbbf24" size={22} />,
+            icon: <Star size={22} fill="#fbbf24" color="#fbbf24" />,
             duration: 1500,
           })
         }

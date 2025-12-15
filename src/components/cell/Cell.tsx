@@ -1,8 +1,8 @@
 import React from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Arrow } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
-import Icon from '../icon'
 
 import { CellGroupContext } from './CellContext'
 import type { CellArrowDirection, CellProps } from './types'
@@ -345,13 +345,13 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
         {renderValue()}
       </View>
       {renderExtra()}
-      {hasRightIcon
-        ? rightIcon
-        : showArrow && (
+        {hasRightIcon
+          ? rightIcon
+          : showArrow && (
           <View style={[styles.rightIconWrapper, arrowTransforms[arrowDirection]]}>
-            <Icon name="arrow-right" size={tokens.arrow.size} color={tokens.arrow.color} />
+            <Arrow size={tokens.arrow.size} fill={tokens.arrow.color} />
           </View>
-        )}
+          )}
     </>
   )
 

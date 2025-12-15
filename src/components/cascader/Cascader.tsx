@@ -1,8 +1,8 @@
 import React from "react"
 import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native"
+import { Checked, Close } from "react-native-system-icon"
 
 import { useControllableValue } from "../../hooks"
-import Icon from "../icon"
 import Popup from "../popup"
 import Tabs from "../tabs"
 import type { TabsValue } from "../tabs"
@@ -305,10 +305,10 @@ const Cascader: React.FC<CascaderProps> = props => {
         onPress={() => handleSelect(option, tabIndex)}
         disabled={disabled}
       >
-        <View style={styles.optionContent}>
-          <View style={styles.optionLabel}>{content}</View>
+          <View style={styles.optionContent}>
+            <View style={styles.optionLabel}>{content}</View>
           {selected ? (
-            <Icon name="check" size={16} color={activeColor} />
+            <Checked size={16} fill={activeColor} color={activeColor} />
           ) : null}
         </View>
       </Pressable>
@@ -431,7 +431,9 @@ const Cascader: React.FC<CascaderProps> = props => {
               accessibilityRole="button"
               accessibilityLabel="关闭"
             >
-              {closeIcon ?? <Icon name="close" size={18} color={tokens.colors.placeholder} />}
+              {closeIcon ?? (
+                <Close size={18} fill={tokens.colors.placeholder} color={tokens.colors.placeholder} />
+              )}
             </Pressable>
           ) : null}
         </View>

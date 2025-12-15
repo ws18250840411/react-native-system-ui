@@ -1,12 +1,12 @@
 import React from 'react'
 import type { PressableStateCallbackType } from 'react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Close } from 'react-native-system-icon'
 
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
-import Icon from '../icon'
 import type { TagProps, TagSize, TagType } from './types'
 
 const isRenderable = (value: React.ReactNode) => value !== null && value !== undefined
@@ -229,7 +229,7 @@ export const Tag: React.FC<TagProps> = props => {
         }}
       >
         {iconNode ?? (
-          <Icon name="close" size={tokens.close.size} color={resolvedTextColor} />
+          <Close size={tokens.close.size} fill={resolvedTextColor} color={resolvedTextColor} />
         )}
       </Pressable>
     )

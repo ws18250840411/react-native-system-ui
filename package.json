@@ -58,6 +58,7 @@
     "@react-stately/slider": "^3.0.1",
     "@react-stately/toggle": "^3.9.2",
     "@react-types/checkbox": "^3.10.2",
-    "@react-types/listbox": "^3.7.4"
+    "@react-types/listbox": "^3.7.4",
+    "react-native-system-icon": "^0.1.0"
   }
 }

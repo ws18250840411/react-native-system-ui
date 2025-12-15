@@ -18,8 +18,8 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import { Close } from 'react-native-system-icon'
 import Button from '../button'
-import Icon from '../icon'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
 import type { DialogProps } from './types'
@@ -568,7 +568,7 @@ export const Dialog: React.FC<DialogProps> = props => {
                   onPress={handleCloseIcon}
                 >
                   {closeIcon ?? (
-                    <Icon name="close" size={tokens.sizes.closeSize} color={tokens.colors.closeIcon} />
+                    <Close size={tokens.sizes.closeSize} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />
                   )}
                 </Pressable>
               ) : null}
