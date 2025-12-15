@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, Easing, View } from 'react-native'
+import { Animated, Easing, Platform, View } from 'react-native'
 
 import { Space } from 'react-native-system-ui'
 import { ChatO, FireO } from 'react-native-system-icon'
@@ -15,7 +15,7 @@ const Spin: React.FC<{ children: React.ReactElement }> = ({ children }) => {
         toValue: 1,
         duration: 1000,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     )
     loop.start()

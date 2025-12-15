@@ -22,6 +22,7 @@
 | Cell 单元格 | ✅ | 二次审计通过：修复 title/value/children/label/extra 对 `0/''/false` 的渲染判定，label 支持非 Text 节点；移除 View 上无效 `lineHeight` 与 ref 类型修正（文档/demo 已对齐） |
 | ConfigProvider 全局配置 | ✅ | 二次审计通过：移除无意义 `useMemo`，Provider 值保持稳定（语言/主题 demo 已对齐） |
 | Typography 文本 | ✅ | 二次审计通过：移除死代码、精简结构（非 center/ellipsis 场景不再额外包 View），ellipsis 截断判定改为函数式 setState 降低重渲染 |
+| Icon 图标 | ✅ | 使用 `react-native-system-icon` 按需引入（支持 Tree Shaking），文档补齐图标列表（搜索/复制）与基础 demo；Web 端通过 `src/compat/react-native-svg.*` alias 规避 `react-native-svg` 引入问题 |
 | Image 图片 | ✅ | 二次审计通过：修复 tokens 访问不存在的 palette 字段；loadingText/errorText 支持非文本节点并移除 `gap`（三端兼容），ref 类型修正并补齐单测 |
 | Popup 弹出层 | ✅ | 二次审计通过：实现复核（动画/栈管理/a11y/安全区）无改动 |
 | Portal 传送门 | ✅ | 二次审计通过：实现复核（PortalHost/自动 Host/静态 API）无改动 |

@@ -23,6 +23,10 @@ pnpm add react-native-system-icon react-native-svg
 import { LocationO } from 'react-native-system-icon'
 ```
 
+## 图标列表
+
+<code src="./icon/demo/index.tsx" inline></code>
+
 ## 代码演示
 
 ### 基础用法
