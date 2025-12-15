@@ -1,5 +1,4 @@
 import React from 'react'
-import { VolumeO } from '@react-vant/icons'
 
 import { Collapse, Icon, Space } from 'react-native-system-ui'
 
@@ -17,7 +16,7 @@ export default () => (
         name="2"
         title="自定义标题"
         description="可以放任何元素"
-        icon={<VolumeO color="#f97316" />}
+        icon={<Icon name="volume-o" color="#f97316" />}
       >
         面板内容
       </Collapse.Panel>

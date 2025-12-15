@@ -1,17 +1,66 @@
 import React from 'react'
 import { Animated, Easing, Platform, Pressable, View } from 'react-native'
+import { Circle as RNCircle, G as RNG, Path as RNPath, Svg as RNSvg } from 'react-native-svg'
 
 import type { IconProps, BuiltInIconName } from './types'
 import { useIconTokens } from './tokens'
 import { BUILTIN_ICONS } from './builtins'
+import type { BuiltInIconNode } from './builtins'
 
 const AnimatedView = Animated.createAnimatedComponent(View)
 
-const renderBuiltInIcon = (name: BuiltInIconName, size: number, color: string) => {
+const renderBuiltInIcon = (
+  name: BuiltInIconName,
+  size: number,
+  color: string,
+  strokeWidth?: number,
+) => {
   const definition = BUILTIN_ICONS[name]
   if (!definition) return null
 
   if (Platform.OS === 'web') {
+    const renderNode = (node: BuiltInIconNode, key: string): React.ReactNode => {
+      if (node.type === 'g') {
+        return (
+          <g
+            key={key}
+            fillRule={node.fillRule}
+            transform={node.transform}
+            opacity={node.opacity}
+          >
+            {node.children.map((child, index) => renderNode(child, `${key}-${index}`))}
+          </g>
+        )
+      }
+
+      if (node.type === 'circle') {
+        return (
+          <circle
+            key={key}
+            cx={node.cx}
+            cy={node.cy}
+            r={node.r}
+            fill={color}
+            transform={node.transform}
+            opacity={node.opacity}
+          />
+        )
+      }
+
+      return (
+        <path
+          key={key}
+          d={node.d}
+          fill={color}
+          fillRule={node.fillRule}
+          transform={node.transform}
+          opacity={node.opacity}
+          stroke={node.stroke ? color : undefined}
+          strokeWidth={node.stroke ? (strokeWidth ?? 2) : undefined}
+        />
+      )
+    }
+
     return (
       <svg
         width={size}
@@ -19,39 +68,58 @@ const renderBuiltInIcon = (name: BuiltInIconName, size: number, color: string) =
         viewBox={definition.viewBox}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {definition.paths.map((path, index) => (
-          <path
-            key={index}
-            d={path.d}
-            fill={color}
-            fillRule={path.fillRule}
-          />
-        ))}
+        {definition.nodes.map((node, index) => renderNode(node, String(index)))}
       </svg>
     )
   }
 
-  // Native 端依赖 react-native-svg；为避免 Web 打包额外引入，这里使用运行时 require
-  let svg: any
-  try {
-    svg = require('react-native-svg')
-  } catch {
-    return null
+  // Native 端使用 react-native-svg（通过 Vite alias 自动选择平台特定模块）
+  const renderNode = (node: BuiltInIconNode, key: string): React.ReactNode => {
+    if (node.type === 'g') {
+      return (
+        <RNG
+          key={key}
+          fillRule={node.fillRule}
+          transform={node.transform}
+          opacity={node.opacity}
+        >
+          {node.children.map((child, index) => renderNode(child, `${key}-${index}`))}
+        </RNG>
+      )
+    }
+
+    if (node.type === 'circle') {
+      return (
+        <RNCircle
+          key={key}
+          cx={node.cx}
+          cy={node.cy}
+          r={node.r}
+          fill={color}
+          transform={node.transform}
+          opacity={node.opacity}
+        />
+      )
+    }
+
+    return (
+      <RNPath
+        key={key}
+        d={node.d}
+        fill={color}
+        fillRule={node.fillRule}
+        transform={node.transform}
+        opacity={node.opacity}
+        stroke={node.stroke ? color : undefined}
+        strokeWidth={node.stroke ? (strokeWidth ?? 2) : undefined}
+      />
+    )
   }
-  const Svg = (svg.default ?? svg.Svg) as React.ComponentType<any>
-  const Path = svg.Path as React.ComponentType<any>
 
   return (
-    <Svg width={size} height={size} viewBox={definition.viewBox}>
-      {definition.paths.map((path, index) => (
-        <Path
-          key={index}
-          d={path.d}
-          fill={color}
-          fillRule={path.fillRule}
-        />
-      ))}
-    </Svg>
+    <RNSvg width={size} height={size} viewBox={definition.viewBox}>
+      {definition.nodes.map((node, index) => renderNode(node, String(index)))}
+    </RNSvg>
   )
 }
 
@@ -107,7 +175,7 @@ export const Icon = React.forwardRef<View, IconProps>((props, ref) => {
     }
 
     if (name) {
-      const builtInIcon = renderBuiltInIcon(name, resolvedSize, resolvedColor)
+      const builtInIcon = renderBuiltInIcon(name, resolvedSize, resolvedColor, strokeWidth)
       if (builtInIcon) return builtInIcon
     }
 

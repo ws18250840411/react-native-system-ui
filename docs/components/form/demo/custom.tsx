@@ -1,6 +1,5 @@
 import React from "react"
-import { ArrowDown } from "@react-vant/icons"
-import { Button, Field, Form, Picker, Space } from "react-native-system-ui"
+import { Button, Field, Form, Icon, Picker, Space } from "react-native-system-ui"
 
 const columns = [
   { text: "86 🇨🇳", value: "86" },
@@ -30,7 +29,7 @@ const MobileInput: React.FC<MobileInputProps> = ({ value = { prefix: "86", value
         {(_, selected, actions) => (
           <Space align="center" onPress={() => actions.open?.()}>
             <Field value={`+${selected?.text ?? value.prefix}`} readOnly />
-            <ArrowDown />
+            <Icon name="arrow-down" />
           </Space>
         )}
       </Picker>

@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-语义化的图标渲染，内置 `close` / `clear` / `check` / `warning` / `info` / `star` / `arrow-left` / `arrow-right` / `search` / `question-o` / `loading` 等常用图标。
+语义化的图标渲染，内置 Vant 同款（与 `@react-vant/icons` 同名）的全量图标（如 `add-o` / `shopping-cart-o` / `volume-o` 等），并额外提供 `loading`。同时保留 `check` 作为 `checked` 的兼容别名。
 
 - Web 端：直接渲染原生 `<svg>` 标签
 - React Native 端：基于 `react-native-svg` 渲染
@@ -58,4 +58,4 @@ import { Icon } from 'react-native-system-ui'
 | `style` | 外层容器样式 | `StyleProp<ViewStyle>` | - |
 | 其他 `Pressable` 属性 | 在传入 `onPress` 时生效 | - | - |
 
-> React Native 端需要安装 `react-native-svg`；如需更多图标可把团队图标封装为 `component` 传入。
+> React Native 端需要安装 `react-native-svg`；如需更多（或品牌）图标仍可封装为 `component` 传入。

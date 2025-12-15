@@ -69,7 +69,9 @@ export default defineConfig({
       // 确保优先命中更具体的 alias，避免被 `react-native -> react-native-web` 前缀替换
       const nextAlias = [
         { find: 'react-native/Libraries/Utilities/codegenNativeComponent', replacement: codegenNativeComponentMock },
-        ...normalized.filter(item => item?.find !== 'react-native/Libraries/Utilities/codegenNativeComponent'),
+        // 将 react-native-svg 替换为包装模块，Vite 会根据扩展名自动选择 .web.ts 或 .native.ts
+        { find: 'react-native-svg', replacement: path.join(workspaceRoot, 'src/compat/react-native-svg') },
+        ...normalized.filter(item => item?.find !== 'react-native/Libraries/Utilities/codegenNativeComponent' && item?.find !== 'react-native-svg'),
       ]
 
       return {

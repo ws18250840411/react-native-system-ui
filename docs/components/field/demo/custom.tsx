@@ -1,7 +1,6 @@
 import React from "react"
 import { Text, Pressable } from "react-native"
-import { ArrowDown } from "@react-vant/icons"
-import { Button, Field, Popup, Picker } from "react-native-system-ui"
+import { Button, Field, Icon, Popup, Picker } from "react-native-system-ui"
 
 export default function FieldButtonDemo() {
   const [code, setCode] = React.useState("")
@@ -35,7 +34,7 @@ export default function FieldButtonDemo() {
             }}
           >
             <Text>+{area[0]}</Text>
-            <ArrowDown style={{ paddingLeft: 8, color: "#969799" }} />
+            <Icon name="arrow-down" style={{ marginLeft: 8 }} color="#969799" size={16} />
           </Pressable>
         }
         suffix={
