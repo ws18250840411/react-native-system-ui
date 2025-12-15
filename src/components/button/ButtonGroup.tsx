@@ -25,6 +25,8 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
   const wrapped = React.useMemo(() => {
     const validChildren = React.Children.toArray(children)
     return validChildren.map((child, index) => {
+      const key =
+        React.isValidElement(child) && child.key !== null ? child.key : index
       const isLast = index === validChildren.length - 1
       const marginStyles: ViewStyle =
         direction === 'horizontal'
@@ -32,7 +34,7 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
           : { marginBottom: isLast ? 0 : gap }
 
       return (
-        <View key={index} style={marginStyles}>
+        <View key={key} style={marginStyles}>
           {child}
         </View>
       )

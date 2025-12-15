@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, Text } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import { Checkbox } from '..'
 import { CheckboxGroup } from '../CheckboxGroup'
@@ -32,6 +32,16 @@ describe('Checkbox', () => {
     )
     const iconText = tree.root.findAllByType(Text).find(node => node.props.children === 'yes')
     expect(iconText).toBeTruthy()
+  })
+
+  it('accepts non-text label nodes', () => {
+    expect(() =>
+      renderer.create(
+        <Checkbox aria-label="非文本">
+          <View testID="label-node" />
+        </Checkbox>
+      )
+    ).not.toThrow()
   })
 })
 

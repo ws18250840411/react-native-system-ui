@@ -9,7 +9,8 @@
     "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build",
     "docs:build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
     "preview": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc preview",
-    "test": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc test"
+    "test": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" node node_modules/.pnpm/node_modules/jest/bin/jest.js --config node_modules/rndoc-cli/cjs/jest.config.cjs --rootDir . --runInBand",
+    "test:watch": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc test --watch"
   },
   "files": [
     "dist"
@@ -20,7 +21,8 @@
   "peerDependencies": {
     "react": ">=18.2.0",
     "react-dom": ">=18.2.0",
-    "react-native": ">=0.79.0"
+    "react-native": ">=0.79.0",
+    "react-native-svg": ">=15.0.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -32,6 +34,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-native": "0.79.2",
+    "react-native-svg": "^15.15.1",
     "react-native-web": "0.21.2",
     "react-test-renderer": "^19.2.0",
     "rndoc-cli": "^1.0.0",
@@ -55,7 +58,6 @@
     "@react-stately/slider": "^3.0.1",
     "@react-stately/toggle": "^3.9.2",
     "@react-types/checkbox": "^3.10.2",
-    "@react-types/listbox": "^3.7.4",
-    "@react-vant/icons": "^0.1.0"
+    "@react-types/listbox": "^3.7.4"
   }
 }

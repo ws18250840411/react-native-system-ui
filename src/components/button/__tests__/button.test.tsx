@@ -127,6 +127,13 @@ describe('Button', () => {
     expect(spinner.props.type).toBe('spinner')
   })
 
+  it('uses loading opacity when loading', () => {
+    const tree = renderWithProvider(<Button text="Loading" loading />)
+    const pressable = tree.root.findByType(Pressable)
+    const flattened = getStyleFromPressable(pressable)
+    expect(flattened.opacity).toBe(defaultTokens.opacity.loading)
+  })
+
   it('defaults accessibility label to text content', () => {
     const tree = renderWithProvider(<Button text="提交" />)
     const pressable = tree.root.findByType(Pressable)

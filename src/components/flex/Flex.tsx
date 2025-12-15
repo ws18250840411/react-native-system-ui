@@ -59,24 +59,27 @@ export const Flex: React.FC<FlexProps> = ({
   const resolvedWrap = wrap ?? tokens.defaults.wrap
   const resolvedAlign = align ?? tokens.defaults.align
   const resolvedJustify = justify ?? tokens.defaults.justify
-  const resolvedColumns = columns ?? tokens.defaults.columns
+  const resolvedColumns = Math.max(1, columns ?? tokens.defaults.columns)
   const gutterInput = gutter ?? tokens.defaults.gutter
 
-  const [horizontalGap, verticalGap] = React.useMemo(() => {
-    if (Array.isArray(gutterInput)) {
-      return [gutterInput[0] ?? 0, gutterInput[1] ?? 0]
-    }
-    return [gutterInput, 0]
-  }, [gutterInput])
+  let horizontalGap = 0
+  let verticalGap = 0
+  if (Array.isArray(gutterInput)) {
+    horizontalGap = gutterInput[0] ?? 0
+    verticalGap = gutterInput[1] ?? 0
+  } else {
+    horizontalGap = gutterInput
+  }
+  horizontalGap = Math.max(0, horizontalGap)
+  verticalGap = Math.max(0, verticalGap)
 
   const contextValue = React.useMemo<FlexContextValue>(
     () => ({
       horizontalGap,
       verticalGap,
       columns: resolvedColumns,
-      direction: resolvedDirection,
     }),
-    [horizontalGap, resolvedColumns, resolvedDirection, verticalGap]
+    [horizontalGap, resolvedColumns, verticalGap]
   )
 
   const containerStyle: StyleProp<ViewStyle> = [

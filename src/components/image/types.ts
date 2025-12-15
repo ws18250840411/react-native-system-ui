@@ -17,4 +17,5 @@ export interface ImageProps extends Omit<RNImageProps, 'source'> {
   errorText?: React.ReactNode
   fallback?: React.ReactNode
   containerStyle?: StyleProp<ViewStyle>
+  children?: React.ReactNode
 }

@@ -6,9 +6,114 @@ import Icon from '../icon'
 import Loading from '../loading'
 import Popup from '../popup'
 import type { ActionSheetAction, ActionSheetProps } from './types'
-import { useActionSheetTokens } from './tokens'
+import { useActionSheetTokens, type ActionSheetTokens } from './tokens'
 
 const defaultCloseIcon = <Icon name="close" size={18} />
+
+const ActionSheetHeader: React.FC<{
+  title: React.ReactNode
+  closeable: boolean
+  closeIcon: React.ReactNode
+  tokens: ActionSheetTokens
+  onClose: () => void
+}> = ({ title, closeable, closeIcon, tokens, onClose }) => {
+  const closePress = useAriaPress({
+    onPress: onClose,
+  })
+
+  return (
+    <View style={styles.header}>
+      <Text style={[styles.title, { color: tokens.colors.title, fontSize: tokens.typography.title }]}>{title}</Text>
+      {closeable ? (
+        <Pressable accessibilityRole="button" hitSlop={8} {...closePress.interactionProps}>
+          {React.isValidElement(closeIcon)
+            ? React.cloneElement(closeIcon, { color: tokens.colors.description })
+            : closeIcon}
+        </Pressable>
+      ) : null}
+    </View>
+  )
+}
+
+const ActionSheetItem: React.FC<{
+  action: ActionSheetAction
+  index: number
+  tokens: ActionSheetTokens
+  onPress: () => void
+}> = ({ action, index, tokens, onPress }) => {
+  const disabled = !!action.disabled
+  const loading = !!action.loading
+  const actionPress = useAriaPress({
+    disabled: disabled || loading,
+    onPress,
+    extraProps: {
+      accessibilityRole: 'button',
+      accessibilityState: { disabled, busy: loading },
+      testID: `rv-action-sheet-item-${index}`,
+    },
+  })
+
+  const color = action.color ?? tokens.colors.item
+
+  return (
+    <Pressable
+      style={[
+        styles.item,
+        {
+          paddingVertical: tokens.spacing.vertical,
+          borderTopWidth: index === 0 ? 0 : StyleSheet.hairlineWidth,
+          borderTopColor: tokens.colors.border,
+        },
+      ]}
+      {...actionPress.interactionProps}
+    >
+      {action.icon ? <View style={styles.icon}>{action.icon}</View> : null}
+      {loading ? (
+        <Loading size={20} />
+      ) : (
+        <View style={styles.itemTextWrapper}>
+          <Text
+            style={[
+              styles.itemText,
+              {
+                color: disabled ? tokens.colors.disabled : color,
+                fontSize: tokens.typography.item,
+              },
+            ]}
+          >
+            {action.name}
+          </Text>
+          {action.subname ? (
+            <Text style={[styles.subname, { color: tokens.colors.subitem }]}>{action.subname}</Text>
+          ) : null}
+        </View>
+      )}
+    </Pressable>
+  )
+}
+
+const ActionSheetCancel: React.FC<{
+  cancelText: React.ReactNode
+  tokens: ActionSheetTokens
+  onPress: () => void
+}> = ({ cancelText, tokens, onPress }) => {
+  const cancelPress = useAriaPress({
+    onPress,
+    extraProps: { accessibilityRole: 'button', testID: 'rv-action-sheet-cancel' },
+  })
+
+  return (
+    <>
+      <View style={[styles.cancelGap, { height: tokens.spacing.cancelGap, backgroundColor: tokens.colors.background }]} />
+      <Pressable
+        style={[styles.cancel, { borderColor: tokens.colors.border }]}
+        {...cancelPress.interactionProps}
+      >
+        <Text style={[styles.cancelText, { color: tokens.colors.cancel }]}>{cancelText}</Text>
+      </Pressable>
+    </>
+  )
+}
 
 const ActionSheet: React.FC<ActionSheetProps> = props => {
   const tokens = useActionSheetTokens()
@@ -60,106 +165,6 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     [close, closeOnSelect, onSelect]
   )
 
-  const renderHeader = () => {
-    if (!title) return null
-    const closePress = useAriaPress({
-      onPress: () => close('cancel'),
-    })
-
-    return (
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: tokens.colors.title, fontSize: tokens.typography.title }]}>{title}</Text>
-        {closeable ? (
-          <Pressable accessibilityRole="button" hitSlop={8} {...closePress.interactionProps}>
-            {React.isValidElement(closeIcon)
-              ? React.cloneElement(closeIcon, { color: tokens.colors.description })
-              : closeIcon}
-          </Pressable>
-        ) : null}
-      </View>
-    )
-  }
-
-  const renderDescription = () => {
-    if (!description) return null
-    return (
-      <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
-        {description}
-      </Text>
-    )
-  }
-
-  const renderAction = (action: ActionSheetAction, index: number) => {
-    const disabled = !!action.disabled
-    const loading = !!action.loading
-    const actionPress = useAriaPress({
-      disabled: disabled || loading,
-      onPress: () => handleActionPress(action, index),
-      extraProps: {
-        accessibilityRole: 'button',
-        accessibilityState: { disabled, busy: loading },
-        testID: `rv-action-sheet-item-${index}`,
-      },
-    })
-    const color = action.color ?? tokens.colors.item
-
-    return (
-      <Pressable
-        key={action.key ?? index}
-        style={[
-          styles.item,
-          {
-            paddingVertical: tokens.spacing.vertical,
-            borderTopWidth: index === 0 ? 0 : StyleSheet.hairlineWidth,
-            borderTopColor: tokens.colors.border,
-          },
-        ]}
-        {...actionPress.interactionProps}
-      >
-        {action.icon ? <View style={styles.icon}>{action.icon}</View> : null}
-        {loading ? (
-          <Loading size={20} />
-        ) : (
-          <View style={styles.itemTextWrapper}>
-            <Text
-              style={[
-                styles.itemText,
-                {
-                  color: disabled ? tokens.colors.disabled : color,
-                  fontSize: tokens.typography.item,
-                },
-              ]}
-            >
-              {action.name}
-            </Text>
-            {action.subname ? (
-              <Text style={[styles.subname, { color: tokens.colors.subitem }]}>{action.subname}</Text>
-            ) : null}
-          </View>
-        )}
-      </Pressable>
-    )
-  }
-
-  const renderCancel = () => {
-    if (!cancelText) return null
-    const cancelPress = useAriaPress({
-      onPress: () => close('cancel'),
-      extraProps: { accessibilityRole: 'button', testID: 'rv-action-sheet-cancel' },
-    })
-    return (
-      <>
-        <View style={[styles.cancelGap, { height: tokens.spacing.cancelGap, backgroundColor: tokens.colors.background }]} />
-        <Pressable
-          style={[styles.cancel, { borderColor: tokens.colors.border }]}
-          {...cancelPress.interactionProps}
-        >
-          <Text style={[styles.cancelText, { color: tokens.colors.cancel }]}>{cancelText}</Text>
-        </Pressable>
-      </>
-    )
-  }
-
   return (
     <Popup
       visible={visible}
@@ -172,11 +177,35 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       {...popupProps}
     >
       <View style={[styles.panel, { paddingHorizontal: tokens.spacing.horizontal, backgroundColor: tokens.colors.background }]}>
-        {renderHeader()}
-        {renderDescription()}
-        <View style={styles.actions}>{actions.map(renderAction)}</View>
+        {title ? (
+          <ActionSheetHeader
+            title={title}
+            closeable={closeable}
+            closeIcon={closeIcon}
+            tokens={tokens}
+            onClose={() => close('cancel')}
+          />
+        ) : null}
+        {description ? (
+          <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
+            {description}
+          </Text>
+        ) : null}
+        <View style={styles.actions}>
+          {actions.map((action, index) => (
+            <ActionSheetItem
+              key={action.key ?? index}
+              action={action}
+              index={index}
+              tokens={tokens}
+              onPress={() => handleActionPress(action, index)}
+            />
+          ))}
+        </View>
         {children}
-        {renderCancel()}
+        {cancelText ? (
+          <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={() => close('cancel')} />
+        ) : null}
       </View>
     </Popup>
   )
@@ -206,8 +235,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0,0,0,0.06)',
   },
   itemTextWrapper: {
     alignItems: 'center',
@@ -229,7 +256,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.06)',
   },
   cancelText: {
     fontSize: 16,

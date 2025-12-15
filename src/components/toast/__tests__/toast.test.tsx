@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { StyleSheet, Text } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 
 import Toast from '..'
 import { PortalHost } from '../../portal'
@@ -90,5 +90,37 @@ describe('Toast', () => {
     const overlay = tree.root.findByProps({ testID: 'rv-toast-overlay' })
     const style = StyleSheet.flatten(overlay.props.style)
     expect(style.backgroundColor).toBe('transparent')
+  })
+
+  it('calls onClosed after exit animation', () => {
+    const onClosed = jest.fn()
+    const tree = renderer.create(
+      <PortalHost>
+        <Toast visible message="bye" duration={0} onClosed={onClosed} />
+      </PortalHost>
+    )
+
+    act(() => {
+      tree.update(
+        <PortalHost>
+          <Toast visible={false} message="bye" duration={0} onClosed={onClosed} />
+        </PortalHost>
+      )
+    })
+
+    act(() => {
+      jest.runAllTimers()
+    })
+
+    expect(onClosed).toHaveBeenCalled()
+  })
+
+  it('accepts non-text message nodes', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <Toast visible duration={0} message={<View testID="toast-message" />} />
+      </PortalHost>
+    )
+    expect(tree.root.findByProps({ testID: 'toast-message' })).toBeDefined()
   })
 })

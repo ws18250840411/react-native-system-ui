@@ -1,4 +1,3 @@
-import { Clear, QuestionO } from '@react-vant/icons'
 import React from 'react'
 import {
   Pressable,
@@ -11,6 +10,7 @@ import type { TextInputProps } from 'react-native'
 
 import Cell from '../cell'
 import Dialog from '../dialog'
+import Icon from '../icon'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 
@@ -163,7 +163,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     readOnly = false,
     clearable = false,
     clearTrigger = tokens.defaults.clearTrigger,
-    clearIcon = <Clear />,
+    clearIcon,
     leftIcon,
     rightIcon,
     prefix,
@@ -422,7 +422,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const renderTooltip = () => {
     if (!tooltip) return null
-    const defaultIcon = <QuestionO color={tokens.colors.tooltip} size={tokens.sizes.icon} />
+    const defaultIcon = <Icon name="question-o" color={tokens.colors.tooltip} size={tokens.sizes.icon} />
     let icon: React.ReactNode = defaultIcon
     let dialogProps: FieldTooltipProps | { message: React.ReactNode } = { message: tooltip as React.ReactNode }
 
@@ -510,7 +510,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       >
         {React.isValidElement(clearIcon)
           ? clearIcon
-          : <Clear color={tokens.colors.clear} size={tokens.sizes.clearIcon} />}
+          : <Icon name="clear" color={tokens.colors.clear} size={tokens.sizes.clearIcon} />}
       </Pressable>
     )
   }

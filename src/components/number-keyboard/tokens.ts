@@ -23,11 +23,11 @@ export interface NumberKeyboardTokens {
     keyGap: number
     titlePadding: number
   }
-    sizing: {
-      keyHeight: number
-      closeHeight: number
-      fontSize: number
-    }
+  sizing: {
+    keyHeight: number
+    closeHeight: number
+    fontSize: number
+  }
   radii: {
     key: number
   }

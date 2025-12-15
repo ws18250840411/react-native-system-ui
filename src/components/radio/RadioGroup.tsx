@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, type ViewStyle } from 'react-native'
+import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
 import { useRadioGroup } from '@react-native-aria/radio'
 import { useRadioGroupState } from '@react-stately/radio'
 
@@ -53,18 +53,20 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     name,
   })
 
-  const { groupProps } = useRadioGroup(
+  const { radioGroupProps } = useRadioGroup(
     {
       isDisabled: disabled,
       'aria-label': accessibilityLabel,
-      'aria-describedby': accessibilityHint,
       name,
     },
     state
   )
 
+  const supportsGap = Platform.OS === 'web'
   const childrenArray = React.Children.toArray(children).filter(Boolean)
   const itemStyleForIndex = (index: number): ViewStyle => {
+    if (supportsGap) return styles.item
+
     const isLast = index === childrenArray.length - 1
     if (direction === 'horizontal') {
       return [
@@ -75,6 +77,13 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     }
     return isLast ? styles.item : [styles.item, { marginBottom: gap }]
   }
+
+  const containerGapStyle: ViewStyle | null = supportsGap
+    ? {
+        columnGap: direction === 'horizontal' ? gap : undefined,
+        rowGap: gap,
+      }
+    : null
 
   const contextValue = React.useMemo(
     () => ({
@@ -94,10 +103,13 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
       value={contextValue}
     >
       <View
-        {...groupProps}
+        {...radioGroupProps}
         {...viewProps}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
         style={[
           direction === 'horizontal' ? styles.horizontal : styles.vertical,
+          containerGapStyle,
           style,
         ]}
       >

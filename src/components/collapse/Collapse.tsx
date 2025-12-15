@@ -9,13 +9,13 @@ import {
   type ViewProps,
   type TextProps,
 } from 'react-native'
-import { Arrow } from '@react-vant/icons'
 
 import { useTheme } from '../../design-system'
 import { useAriaPress } from '../../hooks'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import Icon from '../icon'
 
 export type CollapseValue = string | string[]
 
@@ -293,7 +293,7 @@ const CollapsePanel: React.FC<CollapsePanelProps> = props => {
     }
     return (
       <Animated.View style={{ transform: [{ rotate: animation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] }) }] }}>
-        <Arrow size={14} color={tokens.colors.description} />
+        <Icon name="arrow-right" size={14} color={tokens.colors.description} />
       </Animated.View>
     )
   }

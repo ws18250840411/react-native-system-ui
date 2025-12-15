@@ -88,10 +88,6 @@ const useTypographyTokens = (overrides?: DeepPartial<TypographyTokens>) => {
   }, [foundations, components, overrides])
 }
 
-const isStringOrNumber = (value: React.ReactNode): value is string | number => {
-  return typeof value === 'string' || typeof value === 'number'
-}
-
 const resolveEllipsisRows = (ellipsis?: TypographyTextProps['ellipsis']) => {
   if (!ellipsis) return undefined
   if (typeof ellipsis === 'boolean') return ellipsis ? 1 : undefined
@@ -131,11 +127,9 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     (event: NativeSyntheticEvent<TextLayoutEventData>) => {
       if (!ellipsisRows || expanded) return
       const exceeded = event.nativeEvent.lines.length > ellipsisRows
-      if (exceeded !== isTruncated) {
-        setIsTruncated(exceeded)
-      }
+      setIsTruncated(prev => (prev === exceeded ? prev : exceeded))
     },
-    [ellipsisRows, expanded, isTruncated],
+    [ellipsisRows, expanded],
   )
 
   const resolvedColor = tokens.colors[type] ?? tokens.colors.default
@@ -165,8 +159,6 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     style,
   ]
 
-  const renderContent = () => children
-
   const hasActionText = !!ellipsisConfig && (ellipsisConfig.expandText || ellipsisConfig.collapseText)
   const shouldShowAction = hasActionText && (isTruncated || expanded || Platform.OS === 'web')
 
@@ -193,33 +185,33 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
       onTextLayout={ellipsisRows && !expanded ? handleTextLayout : undefined}
       {...textProps}
     >
-      {renderContent()}
+      {children}
     </Text>
   )
 
-  return (
-    <View style={center ? { alignItems: 'center' } : undefined}>
-      {shouldShowAction ? (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
-          {textNode}
-          <Text
-            onPress={handleToggleEllipsis}
-            suppressHighlighting
-            style={{
-              color: tokens.colors.primary,
-              fontSize: tokens.sizes.sm,
-              fontWeight: tokens.typography.weight.medium,
-              marginLeft: 4,
-            }}
-          >
-            {actionLabel}
-          </Text>
-        </View>
-      ) : (
-        textNode
-      )}
+  if (!shouldShowAction) {
+    return center ? <View style={{ alignItems: 'center' }}>{textNode}</View> : textNode
+  }
+
+  const actionNode = (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
+      {textNode}
+      <Text
+        onPress={handleToggleEllipsis}
+        suppressHighlighting
+        style={{
+          color: tokens.colors.primary,
+          fontSize: tokens.sizes.sm,
+          fontWeight: tokens.typography.weight.medium,
+          marginLeft: 4,
+        }}
+      >
+        {actionLabel}
+      </Text>
     </View>
   )
+
+  return center ? <View style={{ alignItems: 'center' }}>{actionNode}</View> : actionNode
 })
 
 TypographyTextBase.displayName = 'TypographyText'

@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Image as RNImage, Text } from 'react-native'
+import { Image as RNImage, Text, View } from 'react-native'
 
 import Image from '..'
 
@@ -33,5 +33,31 @@ describe('Image', () => {
     // overlay renders fallback text so we still ensure text is correct
     const errorText = tree.root.findAllByType(Text).find((node) => node.props.children === '出错')
     expect(errorText?.props.children).toBe('出错')
+  })
+
+  it('accepts non-text loadingText nodes', () => {
+    const tree = renderer.create(
+      <Image
+        src="https://example.com/a.png"
+        loadingText={<View testID="custom-loading" />}
+      />
+    )
+    const overlay = tree.root.findByProps({ testID: 'rv-image-loading' })
+    expect(overlay.findByProps({ testID: 'custom-loading' })).toBeDefined()
+  })
+
+  it('accepts non-text errorText nodes', () => {
+    const tree = renderer.create(
+      <Image
+        src="https://example.com/a.png"
+        errorText={<View testID="custom-error" />}
+      />
+    )
+    const rnImage = tree.root.findByType(RNImage)
+    act(() => {
+      rnImage.props.onError?.({})
+    })
+    const overlay = tree.root.findByProps({ testID: 'rv-image-error' })
+    expect(overlay.findByProps({ testID: 'custom-error' })).toBeDefined()
   })
 })

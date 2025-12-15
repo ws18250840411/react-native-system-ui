@@ -2,10 +2,10 @@ import React from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useAriaPress } from '../../hooks'
-import { Arrow } from '@react-vant/icons'
+import Icon from '../icon'
 
 import { CellGroupContext } from './CellContext'
-import type { CellProps } from './types'
+import type { CellArrowDirection, CellProps } from './types'
 import { useCellTokens } from './tokens'
 
 const styles = StyleSheet.create({
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
 })
 
-const arrowTransforms: Record<string, ViewStyle> = {
+const arrowTransforms: Record<CellArrowDirection, ViewStyle> = {
   left: { transform: [{ rotate: '180deg' }] },
   right: {},
   up: { transform: [{ rotate: '-90deg' }] },
@@ -79,7 +79,8 @@ type ExtendedViewStyle = ViewStyle & {
   paddingEnd?: number
 }
 
-export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
+export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellProps>(
+  (props, ref) => {
   const {
     title,
     value,
@@ -107,10 +108,19 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
 
   const tokens = useCellTokens()
   const group = React.useContext(CellGroupContext)
-  const onlyValue = !title && !children
-  const isPrimitiveValue = typeof value === 'string' || typeof value === 'number'
   const platform = Platform.OS
   const lineHeight = tokens.typography.lineHeight ?? 24
+
+  const hasTitle = title !== undefined && title !== null && title !== false
+  const hasValue = value !== undefined && value !== null && value !== false
+  const hasLabel = label !== undefined && label !== null && label !== false
+  const hasExtra = extra !== undefined && extra !== null && extra !== false
+  const hasChildren = children !== undefined && children !== null && children !== false
+  const hasIcon = icon !== undefined && icon !== null && icon !== false
+  const hasRightIcon = rightIcon !== undefined && rightIcon !== null && rightIcon !== false
+
+  const onlyValue = !hasTitle && !hasChildren
+  const isPrimitiveValue = typeof value === 'string' || typeof value === 'number'
 
   const showBorder = border && group.border && !group.isLast
   const showArrow = (isLink ?? false) || clickable
@@ -181,7 +191,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
   ])
 
   const renderValue = () => {
-    if (value !== undefined) {
+    if (hasValue) {
       if (isPrimitiveValue) {
         return (
           <Text
@@ -215,7 +225,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
         </View>
       )
     }
-    if (children) {
+    if (hasChildren) {
       return (
         <View
           style={[
@@ -233,7 +243,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
 
   const renderBody = () => (
     <>
-      {icon ? (
+      {hasIcon ? (
         <View
           style={[
             styles.iconWrapper,
@@ -247,10 +257,10 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
           {icon}
         </View>
       ) : null}
-      <View style={[styles.body, { lineHeight }]}>
-        {(title || required) && (
+      <View style={styles.body}>
+        {(hasTitle || required) && (
           <View
-              style={[styles.titleRow, { minHeight: lineHeight, lineHeight }]}
+              style={[styles.titleRow, { minHeight: lineHeight }]}
           >
             {required ? (
               <Text
@@ -262,7 +272,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
                 *
               </Text>
             ) : null}
-            {title
+            {hasTitle
               ? typeof title === 'string' || typeof title === 'number'
                 ? (
                   <Text
@@ -291,24 +301,37 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
               : null}
           </View>
         )}
-        {label ? (
-          <Text
-            style={[
-              {
-                marginTop: tokens.spacing.labelMarginTop,
-                color: tokens.typography.labelColor,
-                fontSize:
-                  size === 'large'
-                    ? tokens.typography.largeLabelSize
-                    : tokens.typography.labelSize,
-              },
-              labelStyle,
-            ]}
-            numberOfLines={2}
-          >
-            {label}
-          </Text>
-        ) : null}
+        {hasLabel
+          ? typeof label === 'string' || typeof label === 'number'
+            ? (
+              <Text
+                style={[
+                  {
+                    marginTop: tokens.spacing.labelMarginTop,
+                    color: tokens.typography.labelColor,
+                    fontSize:
+                      size === 'large'
+                        ? tokens.typography.largeLabelSize
+                        : tokens.typography.labelSize,
+                  },
+                  labelStyle,
+                ]}
+                numberOfLines={2}
+              >
+                {label}
+              </Text>
+            )
+            : (
+              <View
+                style={[
+                  { marginTop: tokens.spacing.labelMarginTop },
+                  labelStyle as StyleProp<ViewStyle>,
+                ]}
+              >
+                {label}
+              </View>
+            )
+          : null}
       </View>
       <View
         style={[
@@ -322,18 +345,18 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
         {renderValue()}
       </View>
       {renderExtra()}
-      {rightIcon
+      {hasRightIcon
         ? rightIcon
         : showArrow && (
           <View style={[styles.rightIconWrapper, arrowTransforms[arrowDirection]]}>
-            <Arrow size={tokens.arrow.size} color={tokens.arrow.color} />
+            <Icon name="arrow-right" size={tokens.arrow.size} color={tokens.arrow.color} />
           </View>
         )}
     </>
   )
 
   const renderExtra = () => {
-    if (extra === undefined || extra === null) return null
+    if (!hasExtra) return null
     if (typeof extra === 'string' || typeof extra === 'number') {
       return (
         <Text
@@ -366,9 +389,6 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
   const { interactionProps, states } = useAriaPress({
     disabled,
     onPress,
-    extraProps: {
-      accessibilityRole: 'button',
-    },
   })
 
   return (
@@ -376,6 +396,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
       ref={ref}
       style={[containerStyles, { opacity: states.pressed ? 0.6 : 1 }]}
       android_ripple={android_ripple ?? { color: '#f2f3f5' }}
+      accessibilityRole="button"
       {...interactionProps}
       {...viewProps}
     >
@@ -383,6 +404,7 @@ export const Cell = React.forwardRef<Pressable, CellProps>((props, ref) => {
       {hairline}
     </Pressable>
   )
-})
+  }
+)
 
 Cell.displayName = 'Cell'

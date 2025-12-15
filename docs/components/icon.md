@@ -7,9 +7,10 @@ simulator:
 
 ## 介绍
 
-语义化的图标渲染，默认内置 close / check / warning / info / star / arrow-left / arrow-right / loading，当图标库尚未接入时会使用 Unicode 字符进行占位，也可以传入自定义 `react-native-svg` 图形。
+语义化的图标渲染，内置 `close` / `clear` / `check` / `warning` / `info` / `star` / `arrow-left` / `arrow-right` / `search` / `question-o` / `loading` 等常用图标。
 
-> 当前内置图标基于字符占位，后续可以通过 `component` 注入真实的 `react-native-svg` 图标库。
+- Web 端：直接渲染原生 `<svg>` 标签
+- React Native 端：基于 `react-native-svg` 渲染
 
 ## 引入
 
@@ -47,7 +48,7 @@ import { Icon } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `name` | 内置图标名称，可选 `close` `check` `warning` `info` `star` `arrow-left` `arrow-right` `loading`（当前使用 Unicode 占位） | `BuiltInIconName` | - |
+| `name` | 内置图标名称 | `BuiltInIconName` | - |
 | `component` | 自定义图标组件，参数包含 `size` `color` `strokeWidth` | `React.ComponentType` | - |
 | `size` | 图标尺寸，单位 px | `number` | `24` |
 | `color` | 颜色，支持传入字符串或渐变数组 | `string \| string[]` | `#111827` |
@@ -57,4 +58,4 @@ import { Icon } from 'react-native-system-ui'
 | `style` | 外层容器样式 | `StyleProp<ViewStyle>` | - |
 | 其他 `Pressable` 属性 | 在传入 `onPress` 时生效 | - | - |
 
-> React Native 端无法直接复用 web `@react-vant/icons`，如需更多图标可结合 `react-native-svg` 或把团队图标封装为 `component` 传入。
+> React Native 端需要安装 `react-native-svg`；如需更多图标可把团队图标封装为 `component` 传入。

@@ -20,6 +20,9 @@ import { resolveSelectedRows } from "./utils"
 const DEFAULT_PLACEHOLDER = "请选择"
 const PENDING_VALUE = "__cascader_pending__"
 
+const isTextLike = (node: React.ReactNode): node is string | number =>
+  typeof node === "string" || typeof node === "number"
+
 const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
   textKey: fieldNames?.text ?? "text",
   valueKey: fieldNames?.value ?? "value",
@@ -274,11 +277,15 @@ const Cascader: React.FC<CascaderProps> = props => {
         ? option.color ?? tokens.colors.optionActiveText
         : baseColor
 
-    const content = optionRender ? (
-      optionRender({ option, selected })
-    ) : (
-      <Text style={[styles.optionText, selected && styles.optionTextActive, { color: textColor }]}>{label}</Text>
-    )
+    const content = optionRender
+      ? optionRender({ option, selected })
+      : isTextLike(label)
+        ? (
+          <Text style={[styles.optionText, selected && styles.optionTextActive, { color: textColor }]}>
+            {label}
+          </Text>
+        )
+        : label ?? null
 
     return (
       <Pressable
@@ -411,7 +418,7 @@ const Cascader: React.FC<CascaderProps> = props => {
             },
           ]}
         >
-          {typeof title === "string" ? (
+          {isTextLike(title) ? (
             <Text style={[styles.title, { color: tokens.colors.headerText }]}>{title}</Text>
           ) : (
             title

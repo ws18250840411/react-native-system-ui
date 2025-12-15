@@ -30,6 +30,9 @@ const DEFAULT_MAX = new Date(new Date().getFullYear() + 10, 11, 31)
 
 const defaultWeekDays = ["日", "一", "二", "三", "四", "五", "六"]
 
+const isTextLike = (node: React.ReactNode): node is string | number =>
+  typeof node === "string" || typeof node === "number"
+
 const Calendar: React.FC<CalendarProps> = props => {
   const tokens = useCalendarTokens()
   const {
@@ -192,11 +195,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     [minDate, maxDate]
   )
 
-  const confirmDisabled = type === "range"
-    ? value.length < 2
-    : type === "multiple"
-      ? value.length === 0
-      : value.length === 0
+  const confirmDisabled = type === "range" ? value.length < 2 : value.length === 0
 
   const maybeAutoConfirm = React.useCallback(
     (next: Date[]) => {
@@ -342,9 +341,15 @@ const Calendar: React.FC<CalendarProps> = props => {
             <Text style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}>{"<"}</Text>
           </Pressable>
           <View style={styles.headerCenter}>
-            {title ? <Text style={styles.headerTitle}>{title}</Text> : null}
+            {title !== undefined && title !== null && title !== false
+              ? isTextLike(title)
+                ? <Text style={styles.headerTitle}>{title}</Text>
+                : title
+              : null}
             {showSubtitle ? (
-              <Text style={styles.headerSubtitle}>{monthLabel}</Text>
+              isTextLike(monthLabel)
+                ? <Text style={styles.headerSubtitle}>{monthLabel}</Text>
+                : monthLabel
             ) : null}
           </View>
           <Pressable onPress={() => canGoNext && goToMonth(1)} disabled={!canGoNext}>
@@ -354,9 +359,15 @@ const Calendar: React.FC<CalendarProps> = props => {
       ) : null}
       <View style={styles.weekRow}>
         {weekLabels.map((label, index) => (
-          <Text key={`weekday-${index}`} style={[styles.weekLabel, { color: tokens.colors.text }]}>
-            {label}
-          </Text>
+          <View key={`weekday-${index}`} style={styles.weekLabelItem}>
+            {isTextLike(label)
+              ? (
+                <Text style={[styles.weekLabel, { color: tokens.colors.text }]}>
+                  {label}
+                </Text>
+              )
+              : label}
+          </View>
         ))}
       </View>
       <View style={[styles.days, { rowGap: tokens.spacing.row, columnGap: tokens.spacing.column }]}>
@@ -374,7 +385,9 @@ const Calendar: React.FC<CalendarProps> = props => {
           onPress={handleConfirm}
           disabled={confirmDisabled}
         >
-          <Text style={styles.confirmText}>{confirmText}</Text>
+          {isTextLike(confirmText)
+            ? <Text style={styles.confirmText}>{confirmText}</Text>
+            : confirmText}
         </Pressable>
       ) : null}
     </View>
@@ -511,8 +524,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 8,
   },
-  weekLabel: {
+  weekLabelItem: {
     width: `${100 / 7}%`,
+    alignItems: "center",
+  },
+  weekLabel: {
     textAlign: "center",
   },
   days: {

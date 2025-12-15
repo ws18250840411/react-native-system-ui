@@ -119,6 +119,7 @@ export const Toast: React.FC<ToastProps> = props => {
   const tokens = useToastTokens()
   const { mounted, animated } = usePresenceAnimation(visible, { duration: 160 })
   const prevVisibleRef = React.useRef(visible)
+  const closingRef = React.useRef(false)
 
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
@@ -144,18 +145,33 @@ export const Toast: React.FC<ToastProps> = props => {
   )
 
   React.useEffect(() => {
-    if (visible && !prevVisibleRef.current) {
-      onOpen?.()
-      if (onOpened) {
-        const timer = setTimeout(onOpened, 160)
-        return () => clearTimeout(timer)
+    if (visible) {
+      closingRef.current = false
+      if (!prevVisibleRef.current) {
+        onOpen?.()
+        if (onOpened) {
+          const timer = setTimeout(onOpened, 160)
+          return () => clearTimeout(timer)
+        }
       }
+      return
     }
-    if (!visible && prevVisibleRef.current && !mounted) {
+
+    if (prevVisibleRef.current) {
+      closingRef.current = true
+    }
+  }, [onOpen, onOpened, visible])
+
+  React.useEffect(() => {
+    if (!mounted && closingRef.current) {
+      closingRef.current = false
       onClosed?.()
     }
+  }, [mounted, onClosed])
+
+  React.useEffect(() => {
     prevVisibleRef.current = visible
-  }, [mounted, onClosed, onOpen, onOpened, visible])
+  }, [visible])
 
   const handleCloseOnPress = React.useCallback(() => {
     onClose?.()
@@ -187,6 +203,8 @@ export const Toast: React.FC<ToastProps> = props => {
   const iconNode = renderIcon()
 
   if (!mounted) return null
+
+  const hasMessage = message !== undefined && message !== null && message !== false
 
   return (
     <Portal>
@@ -226,9 +244,17 @@ export const Toast: React.FC<ToastProps> = props => {
           {iconNode ? (
             <View style={{ marginBottom: tokens.gap }}>{iconNode}</View>
           ) : null}
-          {message ? (
-            <Text style={[{ color: tokens.colors.text, textAlign: 'center' }, textStyle]}>{message}</Text>
-          ) : null}
+          {hasMessage
+            ? typeof message === 'string' || typeof message === 'number'
+              ? (
+                <Text style={[{ color: tokens.colors.text, textAlign: 'center' }, textStyle]}>
+                  {message}
+                </Text>
+              )
+              : (
+                <View style={{ alignItems: 'center' }}>{message}</View>
+              )
+            : null}
         </AnimatedPressableToast>
       </View>
     </Portal>

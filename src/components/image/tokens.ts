@@ -20,9 +20,9 @@ const createTokens = (foundations: Foundations): ImageTokens => {
   const { palette, radii } = foundations
   return {
     colors: {
-      background: palette.background?.muted ?? '#f7f8fa',
+      background: palette.default[50],
       text: palette.default[500],
-      error: palette.danger?.[500] ?? '#fa5151',
+      error: palette.danger[500],
     },
     radius: {
       default: radii.md,

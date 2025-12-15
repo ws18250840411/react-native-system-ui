@@ -62,7 +62,10 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     return undefined
   }, [bindGroup, group, serializedValue, rawValue, resolvedDisabled])
 
-  const ariaLabel = typeof children === 'string' ? children : (props as any)['aria-label']
+  const ariaLabel =
+    typeof children === 'string' || typeof children === 'number'
+      ? String(children)
+      : (props as any)['aria-label']
 
   let inputProps: any
   let isChecked = false
@@ -133,26 +136,37 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     inputProps?.onPress?.(e)
   }
 
-  const labelNode = children === null || children === undefined
-    ? null
-    : (
-      <Text
-        accessible={false}
-        style={[
-          styles.label,
-          {
-            color: labelColor,
-            fontSize: tokens.typography.fontSize,
-            lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-            fontFamily: tokens.typography.fontFamily,
-            fontWeight: tokens.typography.fontWeight,
-          },
-          labelStyle,
-        ]}
-      >
-        {children}
-      </Text>
-    )
+  const labelNode =
+    children === null || children === undefined || children === false
+      ? null
+      : typeof children === 'string' || typeof children === 'number'
+        ? (
+          <Text
+            accessible={false}
+            style={[
+              styles.label,
+              {
+                color: labelColor,
+                fontSize: tokens.typography.fontSize,
+                lineHeight:
+                  tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+                fontFamily: tokens.typography.fontFamily,
+                fontWeight: tokens.typography.fontWeight,
+              },
+              labelStyle,
+            ]}
+          >
+            {children}
+          </Text>
+        )
+        : (
+          <View
+            accessible={false}
+            style={labelStyle as any}
+          >
+            {children}
+          </View>
+        )
 
   const iconVisual = resolvedIconRender ? (
     resolvedIconRender({ checked: isChecked, disabled: resolvedDisabled }) ?? null

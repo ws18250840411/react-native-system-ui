@@ -65,7 +65,10 @@ export const Radio: React.FC<RadioProps> = props => {
   const standaloneKey = serializedValue ?? 'standalone'
 
   const inputRef = React.useRef<View>(null)
-  const ariaLabel = typeof children === 'string' ? children : (props as any)['aria-label']
+  const resolvedAccessibilityLabel =
+    (props as any).accessibilityLabel ??
+    (props as any)['aria-label'] ??
+    (typeof children === 'string' || typeof children === 'number' ? String(children) : undefined)
 
   const { isSelected: standaloneSelected, setSelected: setStandaloneSelected } =
     useToggleState({
@@ -98,7 +101,8 @@ export const Radio: React.FC<RadioProps> = props => {
     {
       value: radioValue,
       isDisabled: resolvedDisabled,
-      'aria-label': ariaLabel,
+      'aria-label': resolvedAccessibilityLabel,
+      accessibilityLabel: resolvedAccessibilityLabel,
       ...rest,
     },
     state,

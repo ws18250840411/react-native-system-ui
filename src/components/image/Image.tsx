@@ -12,7 +12,32 @@ const fitMap: Record<string, 'cover' | 'contain' | 'stretch' | 'center'> = {
   none: 'center',
 }
 
-const Image = React.forwardRef<RNImage, ImageProps>((props, ref) => {
+const renderOverlayLabel = (
+  node: React.ReactNode,
+  options: { color: string; marginTop?: number }
+) => {
+  if (node === undefined || node === null || node === false) return null
+  if (typeof node === 'string' || typeof node === 'number') {
+    return (
+      <Text
+        style={[
+          styles.text,
+          { color: options.color },
+          options.marginTop ? { marginTop: options.marginTop } : null,
+        ]}
+      >
+        {node}
+      </Text>
+    )
+  }
+  return options.marginTop ? (
+    <View style={{ marginTop: options.marginTop }}>{node}</View>
+  ) : (
+    node
+  )
+}
+
+const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((props, ref) => {
   const {
     src,
     source,
@@ -90,12 +115,14 @@ const Image = React.forwardRef<RNImage, ImageProps>((props, ref) => {
       {status === 'loading' && showLoading ? (
         <View style={styles.overlay} pointerEvents="none" testID="rv-image-loading">
           <ActivityIndicator />
-          {loadingText ? <Text style={[styles.text, { color: tokens.colors.text }]}>{loadingText}</Text> : null}
+          {renderOverlayLabel(loadingText, { color: tokens.colors.text, marginTop: 4 })}
         </View>
       ) : null}
       {status === 'error' && showError ? (
         <View style={styles.overlay} pointerEvents="none" testID="rv-image-error">
-          {fallback ?? <Text style={[styles.text, { color: tokens.colors.error }]}>{errorText}</Text>}
+          {fallback !== undefined && fallback !== null && fallback !== false
+            ? renderOverlayLabel(fallback, { color: tokens.colors.error })
+            : renderOverlayLabel(errorText, { color: tokens.colors.error })}
         </View>
       ) : null}
     </View>
@@ -107,7 +134,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
   },
   text: {
     fontSize: 12,

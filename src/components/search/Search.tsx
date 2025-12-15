@@ -1,4 +1,3 @@
-import { Search as SearchIcon } from '@react-vant/icons'
 import React from 'react'
 import {
   Pressable,
@@ -13,6 +12,7 @@ import { useLocale } from '../config-provider/useLocale'
 import Field from '../field'
 import type { FieldProps } from '../field'
 import type { FieldInstance } from '../field/types'
+import Icon from '../icon'
 import { useSearchTokens } from './tokens'
 import type { SearchProps, SearchRef, SearchShape } from './types'
 
@@ -39,6 +39,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     clearable = true,
     leftIcon,
     rightIcon,
+    errorMessage,
     onSearch,
     onCancel,
     onChangeText,
@@ -82,7 +83,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
 
   const resolvedBackground = background ?? tokens.colors.background
   const resolvedLeftIcon = leftIcon ?? (
-    <SearchIcon color={tokens.colors.icon} size={tokens.icon.size} />
+    <Icon name="search" color={tokens.colors.icon} size={tokens.icon.size} />
   )
   const resolvedClearTrigger = clearTrigger ?? tokens.defaults.clearTrigger
   const resolvedReturnKeyType = returnKeyType ?? 'search'
@@ -214,6 +215,8 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
             clearTrigger={resolvedClearTrigger}
             leftIcon={resolvedLeftIcon}
             rightIcon={rightIcon}
+            center={!errorMessage}
+            errorMessage={errorMessage}
             inputAlign={resolvedInputAlign}
             border={false}
             style={[styles.field, fieldStyle]}

@@ -1,6 +1,26 @@
 import { defineConfig } from 'rndoc-cli'
+import path from 'path'
 
 const workspaceRoot = process.cwd()
+const codegenNativeComponentMock = path.join(workspaceRoot, 'src/compat/codegenNativeComponent.ts')
+const reactNativeResolveExtensions = [
+  '.web.mjs',
+  '.web.js',
+  '.web.ts',
+  '.web.tsx',
+  '.web.jsx',
+  '.native.mjs',
+  '.native.js',
+  '.native.ts',
+  '.native.tsx',
+  '.native.jsx',
+  '.mjs',
+  '.js',
+  '.ts',
+  '.tsx',
+  '.jsx',
+  '.json',
+]
 
 const manualChunks = (id: string) => {
   if (id.includes('node_modules')) {
@@ -35,6 +55,35 @@ export default defineConfig({
   title: 'react-native-system-ui',
   description: '基于rndoc打造的React组件库',
   locales: false,
+  build: {
+    configureVite: (config: any) => {
+      // 解决 react-native-svg 等依赖在 Web 端引入 codegenNativeComponent 导致的 Vite optimizeDeps 报错
+      const resolve = config.resolve ?? {}
+      const alias = resolve.alias ?? []
+      const extensions = resolve.extensions ?? []
+
+      const normalized = Array.isArray(alias)
+        ? alias.slice()
+        : Object.entries(alias).map(([find, replacement]) => ({ find, replacement }))
+
+      // 确保优先命中更具体的 alias，避免被 `react-native -> react-native-web` 前缀替换
+      const nextAlias = [
+        { find: 'react-native/Libraries/Utilities/codegenNativeComponent', replacement: codegenNativeComponentMock },
+        ...normalized.filter(item => item?.find !== 'react-native/Libraries/Utilities/codegenNativeComponent'),
+      ]
+
+      return {
+        ...config,
+        resolve: {
+          ...resolve,
+          alias: nextAlias,
+          extensions: reactNativeResolveExtensions.concat(
+            extensions.filter((ext: string) => !reactNativeResolveExtensions.includes(ext)),
+          ),
+        },
+      }
+    },
+  },
   site: {
     themeConfig: {
       simulator: {
@@ -191,6 +240,8 @@ export default defineConfig({
     ],
     optimizeDeps: {
       include: ['react', 'react-dom', 'react-dom/client'],
+      // Icon 组件在 Native 端才会用到 react-native-svg，Web 文档站点无需预构建它
+      exclude: ['react-native-svg'],
     },
     server: {
       fs: {

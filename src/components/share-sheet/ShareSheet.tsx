@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import Popup from '../popup'
 import type { ShareSheetOption, ShareSheetOptions, ShareSheetProps } from './types'
-import { useShareSheetTokens } from './tokens'
+import { useShareSheetTokens, type ShareSheetTokens } from './tokens'
 
 const normalizeOptions = (options?: ShareSheetOptions): ShareSheetOption[][] => {
   if (!options || options.length === 0) return []
@@ -12,6 +12,58 @@ const normalizeOptions = (options?: ShareSheetOptions): ShareSheetOption[][] => 
     return options as ShareSheetOption[][]
   }
   return [options as ShareSheetOption[]]
+}
+
+const ShareSheetOptionItem: React.FC<{
+  option: ShareSheetOption
+  index: number
+  columns: number
+  tokens: ShareSheetTokens
+  onSelect: (option: ShareSheetOption, index: number) => void
+}> = ({ option, index, columns, tokens, onSelect }) => {
+  const press = useAriaPress({
+    onPress: () => onSelect(option, index),
+    extraProps: {
+      accessibilityRole: 'button',
+      testID: `rv-share-sheet-item-${index}`,
+    },
+  })
+
+  return (
+    <Pressable
+      style={[styles.option, { width: `${100 / columns}%`, paddingVertical: tokens.spacing.vertical }]}
+      {...press.interactionProps}
+    >
+      <View style={[styles.icon, { width: tokens.sizing.icon, height: tokens.sizing.icon, marginBottom: tokens.spacing.vertical }]}>
+        {option.icon}
+      </View>
+      <Text style={[styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]}>
+        {option.name}
+      </Text>
+      {option.description ? (
+        <Text style={[styles.optionDesc, { color: tokens.colors.optionDesc, marginTop: tokens.spacing.gap, fontSize: tokens.typography.optionDesc }]}>
+          {option.description}
+        </Text>
+      ) : null}
+    </Pressable>
+  )
+}
+
+const ShareSheetCancel: React.FC<{
+  cancelText: React.ReactNode
+  tokens: ShareSheetTokens
+  onPress: () => void
+}> = ({ cancelText, tokens, onPress }) => {
+  const cancelPress = useAriaPress({
+    onPress,
+    extraProps: { testID: 'rv-share-sheet-cancel', accessibilityRole: 'button' },
+  })
+
+  return (
+    <Pressable style={styles.cancel} {...cancelPress.interactionProps}>
+      <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
+    </Pressable>
+  )
 }
 
 const ShareSheet: React.FC<ShareSheetProps> = props => {
@@ -58,36 +110,6 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
     [close, closeOnSelect, onSelect]
   )
 
-  const renderOption = (option: ShareSheetOption, index: number) => {
-    const press = useAriaPress({
-      onPress: () => handleSelect(option, index),
-      extraProps: {
-        accessibilityRole: 'button',
-        testID: `rv-share-sheet-item-${index}`,
-      },
-    })
-    return (
-      <Pressable
-        key={option.key ?? index}
-        style={[styles.option, { width: `${100 / columns}%`, paddingVertical: tokens.spacing.vertical }]}
-        {...press.interactionProps}
-      >
-        <View style={[styles.icon, { width: tokens.sizing.icon, height: tokens.sizing.icon }]}>{option.icon}</View>
-        <Text style={[styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]}>
-          {option.name}
-        </Text>
-        {option.description ? (
-          <Text style={[styles.optionDesc, { color: tokens.colors.optionDesc }]}>{option.description}</Text>
-        ) : null}
-      </Pressable>
-    )
-  }
-
-  const cancelPress = useAriaPress({
-    onPress: () => close('cancel'),
-    extraProps: { testID: 'rv-share-sheet-cancel', accessibilityRole: 'button' },
-  })
-
   const renderGroups = () => {
     if (!groups.length && !children) return null
     let globalIndex = 0
@@ -95,9 +117,18 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
       <View key={groupIndex} style={styles.group}>
         <View style={styles.optionsRow}>
           {group.map(option => {
-            const node = renderOption(option, globalIndex)
+            const currentIndex = globalIndex
             globalIndex += 1
-            return node
+            return (
+              <ShareSheetOptionItem
+                key={option.key ?? currentIndex}
+                option={option}
+                index={currentIndex}
+                columns={columns}
+                tokens={tokens}
+                onSelect={handleSelect}
+              />
+            )
           })}
         </View>
       </View>
@@ -127,9 +158,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
         {renderGroups()}
         {children}
         {cancelText ? (
-          <Pressable style={styles.cancel} {...cancelPress.interactionProps}>
-            <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
-          </Pressable>
+          <ShareSheetCancel cancelText={cancelText} tokens={tokens} onPress={() => close('cancel')} />
         ) : null}
       </View>
     </Popup>
@@ -163,7 +192,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     borderRadius: 12,
-    marginBottom: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -171,7 +199,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   optionDesc: {
-    marginTop: 4,
     fontSize: 12,
   },
   cancel: {

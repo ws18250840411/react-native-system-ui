@@ -73,8 +73,8 @@ export const Space: React.FC<SpaceProps> = props => {
     align,
     justify = 'start',
     wrap: wrapProp,
-    block = false,
-    fill = false,
+    block,
+    fill,
     divider,
     style,
     onClick,
@@ -86,10 +86,9 @@ export const Space: React.FC<SpaceProps> = props => {
   const wrap = wrapProp ?? tokens.defaults.wrap
 
   const gapInput = resolveGapInput(gap, size, tokens.defaults.gapPreset)
-  const [horizontalGap, verticalGap] = React.useMemo(
-    () => parseGap(gapInput, tokens.presets),
-    [gapInput, tokens.presets]
-  )
+  const [rawHorizontalGap, rawVerticalGap] = parseGap(gapInput, tokens.presets)
+  const horizontalGap = Math.max(0, rawHorizontalGap)
+  const verticalGap = Math.max(0, rawVerticalGap)
 
   const isHorizontal = direction === 'horizontal'
   const shouldStretchJustify = justify === 'stretch'
@@ -99,73 +98,77 @@ export const Space: React.FC<SpaceProps> = props => {
   const shouldBlock = block ?? !isHorizontal
   const resolvedAlign: SpaceAlign = align ?? (isHorizontal ? 'center' : 'stretch')
   const supportsGap = Platform.OS === 'web'
-  const shouldFillMainAxis = isHorizontal && (fill || shouldStretchJustify)
+  const shouldFillMainAxis = isHorizontal && ((fill ?? false) || shouldStretchJustify)
 
   const childArray = React.Children.toArray(children).filter(
     child => child !== null && child !== undefined && child !== false
   )
 
-  const composedChildren: Array<{ node: React.ReactNode; isDivider: boolean }> = []
+  const composedChildren: Array<{
+    node: React.ReactNode
+    isDivider: boolean
+    key: React.Key
+  }> = []
   childArray.forEach((child, index) => {
-    composedChildren.push({ node: child, isDivider: false })
+    const key =
+      React.isValidElement(child) && child.key !== null ? child.key : index
+    composedChildren.push({ node: child, isDivider: false, key })
     if (divider && index < childArray.length - 1) {
-      composedChildren.push({ node: divider, isDivider: true })
+      composedChildren.push({ node: divider, isDivider: true, key: `divider-${String(key)}` })
     }
   })
 
-  const containerStyle: StyleProp<ViewStyle> = [
-    {
-      flexDirection: isHorizontal ? 'row' : 'column',
-      flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
-      alignItems: alignMap[resolvedAlign],
-      justifyContent: justifyMap[justifyForStyle],
-      width: shouldBlock ? '100%' : undefined,
-      ...(supportsGap
-        ? {
-            columnGap: isHorizontal ? horizontalGap : undefined,
-            rowGap: verticalGap,
-          }
-        : null),
-    },
-    style,
-  ]
+  const containerBaseStyle: ViewStyle = {
+    flexDirection: isHorizontal ? 'row' : 'column',
+    flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
+    alignItems: alignMap[resolvedAlign],
+    justifyContent: justifyMap[justifyForStyle],
+    width: shouldBlock ? '100%' : undefined,
+  }
 
-  const renderItem = (
-    node: React.ReactNode,
-    index: number,
-    isDivider: boolean,
-    isLastContent: boolean
-  ) => {
-    const itemStyle: ViewStyle = {}
+  if (supportsGap) {
+    containerBaseStyle.columnGap = isHorizontal ? horizontalGap : undefined
+    containerBaseStyle.rowGap = verticalGap
+  } else {
+    containerBaseStyle.marginHorizontal =
+      isHorizontal && horizontalGap ? -horizontalGap / 2 : undefined
+    containerBaseStyle.marginVertical = verticalGap ? -verticalGap / 2 : undefined
+  }
 
-    if (supportsGap) {
-      // gap handles spacing in web; divider just renders inline
-    } else if (isDivider) {
-      itemStyle.marginHorizontal = isHorizontal ? horizontalGap / 2 : 0
-      itemStyle.marginVertical = !isHorizontal ? verticalGap / 2 : 0
-    } else if (isHorizontal) {
-      itemStyle.marginRight = wrap || divider ? horizontalGap : isLastContent ? 0 : horizontalGap
-      itemStyle.marginBottom = verticalGap
-    } else {
-      itemStyle.marginBottom = isLastContent ? 0 : verticalGap
-    }
+  const spacingStyle: ViewStyle | undefined = supportsGap
+    ? undefined
+    : isHorizontal
+      ? {
+          paddingHorizontal: horizontalGap / 2,
+          paddingVertical: verticalGap / 2,
+        }
+      : {
+          paddingVertical: verticalGap / 2,
+        }
 
-    if (!isDivider) {
-      if (shouldFillMainAxis) {
-        itemStyle.flexGrow = 1
-        itemStyle.flexBasis = 0
-        itemStyle.minWidth = 0
-      }
-      if (!isHorizontal && (fill || shouldBlock)) {
-        itemStyle.width = '100%'
-      }
-    }
+  const renderItem = (item: (typeof composedChildren)[number]) => {
+    const fillStyle: ViewStyle | undefined = item.isDivider
+      ? undefined
+      : {
+          ...(shouldFillMainAxis
+            ? {
+                flexGrow: 1,
+                flexBasis: 0,
+                minWidth: 0,
+              }
+            : {}),
+          ...(!isHorizontal && (fill || shouldBlock) ? { width: '100%' } : {}),
+        }
 
     const child =
-      typeof node === 'string' || typeof node === 'number' ? <Text>{node}</Text> : node
+      typeof item.node === 'string' || typeof item.node === 'number' ? (
+        <Text>{item.node}</Text>
+      ) : (
+        item.node
+      )
 
     return (
-      <View key={index} style={itemStyle}>
+      <View key={item.key} style={[spacingStyle, fillStyle]}>
         {child}
       </View>
     )
@@ -178,22 +181,17 @@ export const Space: React.FC<SpaceProps> = props => {
     extraProps: interactive ? { accessibilityRole: 'button' } : undefined,
   })
 
-  const content = composedChildren.map((item, index) =>
-    renderItem(
-      item.node,
-      index,
-      item.isDivider,
-      item.isDivider ? false : index === composedChildren.length - 1
-    )
-  )
+  const content = composedChildren.map(renderItem)
 
   if (interactive) {
+    const pressableStyle: StyleProp<ViewStyle> = [
+      containerBaseStyle,
+      style,
+      states.pressed ? { opacity: 0.85 } : null,
+    ]
     return (
       <Pressable
-        style={({ pressed }) => [
-          containerStyle,
-          pressed || states.pressed ? { opacity: 0.85 } : null,
-        ]}
+        style={pressableStyle}
         {...interactionProps}
         {...rest}
       >
@@ -203,7 +201,7 @@ export const Space: React.FC<SpaceProps> = props => {
   }
 
   return (
-    <View style={containerStyle} {...rest}>
+    <View style={[containerBaseStyle, style]} {...rest}>
       {content}
     </View>
   )

@@ -1,5 +1,6 @@
 import React from "react"
 import renderer, { act } from "react-test-renderer"
+import { View } from "react-native"
 
 import Cascader from ".."
 import { PortalHost } from "../../portal"
@@ -168,5 +169,17 @@ describe("Cascader", () => {
       [loadedOptions[0], loadedOptions[0].children?.[0]],
     )
     expect(handleVisibleChange).toHaveBeenCalledWith(false)
+  })
+
+  it("accepts non-text option labels", () => {
+    expect(() =>
+      renderer.create(
+        <Cascader
+          options={[
+            { text: <View testID="cascader-label" />, value: "a" },
+          ]}
+        />
+      )
+    ).not.toThrow()
   })
 })

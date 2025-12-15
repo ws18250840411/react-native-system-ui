@@ -12,7 +12,7 @@ export default function CheckboxCellDemo() {
 
   return (
     <Checkbox.Group value={value} onChange={setValue}>
-      <Cell.Group inset>
+      <Cell.Group inset style={{ marginBottom: 0 }} bodyStyle={{ marginHorizontal: 0 }}>
         <Cell
           clickable
           title="到店自提"

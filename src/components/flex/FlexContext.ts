@@ -6,12 +6,10 @@ export interface FlexContextValue {
   horizontalGap: number
   verticalGap: number
   columns: number
-  direction: FlexDirection
 }
 
 export const FlexContext = React.createContext<FlexContextValue>({
   horizontalGap: 0,
   verticalGap: 0,
   columns: 24,
-  direction: 'row',
 })

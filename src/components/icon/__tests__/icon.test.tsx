@@ -7,8 +7,9 @@ import Icon from '..'
 describe('Icon', () => {
   it('renders built-in icon via name', () => {
     const tree = renderer.create(<Icon name="close" />)
-    const text = tree.root.findByType(Text)
-    expect(text.props.children).toBe('×')
+    const svg = tree.root.findByType('svg')
+    expect(svg.props.viewBox).toBe('0 0 1024 1024')
+    expect(tree.root.findAllByType('path').length).toBeGreaterThan(0)
   })
 
   it('supports custom component prop', () => {

@@ -18,7 +18,7 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({
   locale,
   children,
 }) => {
-  const localeValue = React.useMemo(() => locale ?? zhCN, [locale])
+  const localeValue = locale ?? zhCN
 
   return (
     <ThemeProvider value={theme}>

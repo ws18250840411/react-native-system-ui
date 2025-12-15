@@ -80,23 +80,22 @@ export const FlexItem: React.FC<FlexItemProps> = ({
 }) => {
   const { horizontalGap, verticalGap, columns } = React.useContext(FlexContext)
 
-  if (span === 0) {
+  if (typeof span === 'number' && span <= 0) {
     return null
   }
 
   const widthStyle: ViewStyle = {}
 
   if (typeof span === 'number') {
-    const percent = Math.min(Math.max(span, 0), columns) / columns
+    const resolvedColumns = columns > 0 ? columns : 1
+    const percent =
+      Math.min(Math.max(span, 0), resolvedColumns) / resolvedColumns
     widthStyle.width = `${percent * 100}%`
     widthStyle.flexGrow = 0
     widthStyle.flexShrink = 0
   }
 
   const flexStyle = parseFlex(flex)
-  if (flexStyle && span === undefined) {
-    delete widthStyle.width
-  }
 
   const itemStyle: StyleProp<ViewStyle> = [
     {

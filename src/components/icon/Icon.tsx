@@ -1,28 +1,59 @@
 import React from 'react'
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Animated, Easing, Platform, Pressable, View } from 'react-native'
 
 import type { IconProps, BuiltInIconName } from './types'
 import { useIconTokens } from './tokens'
-
-const BUILTIN_GLYPHS: Record<BuiltInIconName, string> = {
-  close: '×',
-  check: '✓',
-  info: 'ℹ',
-  warning: '⚠',
-  star: '★',
-  'arrow-left': '←',
-  'arrow-right': '→',
-  loading: '⟳',
-}
+import { BUILTIN_ICONS } from './builtins'
 
 const AnimatedView = Animated.createAnimatedComponent(View)
 
-const styles = StyleSheet.create({
-  glyph: {
-    textAlign: 'center',
-    includeFontPadding: false,
-  },
-})
+const renderBuiltInIcon = (name: BuiltInIconName, size: number, color: string) => {
+  const definition = BUILTIN_ICONS[name]
+  if (!definition) return null
+
+  if (Platform.OS === 'web') {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox={definition.viewBox}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {definition.paths.map((path, index) => (
+          <path
+            key={index}
+            d={path.d}
+            fill={color}
+            fillRule={path.fillRule}
+          />
+        ))}
+      </svg>
+    )
+  }
+
+  // Native 端依赖 react-native-svg；为避免 Web 打包额外引入，这里使用运行时 require
+  let svg: any
+  try {
+    svg = require('react-native-svg')
+  } catch {
+    return null
+  }
+  const Svg = (svg.default ?? svg.Svg) as React.ComponentType<any>
+  const Path = svg.Path as React.ComponentType<any>
+
+  return (
+    <Svg width={size} height={size} viewBox={definition.viewBox}>
+      {definition.paths.map((path, index) => (
+        <Path
+          key={index}
+          d={path.d}
+          fill={color}
+          fillRule={path.fillRule}
+        />
+      ))}
+    </Svg>
+  )
+}
 
 export const Icon = React.forwardRef<View, IconProps>((props, ref) => {
   const {
@@ -75,20 +106,9 @@ export const Icon = React.forwardRef<View, IconProps>((props, ref) => {
       return <Component size={resolvedSize} color={colorInput} strokeWidth={strokeWidth} />
     }
 
-    if (name && BUILTIN_GLYPHS[name]) {
-      return (
-        <Text
-          style={[
-            styles.glyph,
-            {
-              fontSize: resolvedSize,
-              color: resolvedColor,
-            },
-          ]}
-        >
-          {BUILTIN_GLYPHS[name]}
-        </Text>
-      )
+    if (name) {
+      const builtInIcon = renderBuiltInIcon(name, resolvedSize, resolvedColor)
+      if (builtInIcon) return builtInIcon
     }
 
     if (React.isValidElement(children)) {

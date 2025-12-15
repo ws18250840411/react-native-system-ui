@@ -260,7 +260,6 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           )
         : (
             <ActivityIndicator
-              style={buttonStyles.loadingIndicator}
               size={loadingSize}
               color={resolvedTextColor}
             />
@@ -358,14 +357,9 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       onPress,
       onPressStart: onPressIn,
       onPressEnd: onPressOut,
-      extraProps: {
-        accessibilityRole: resolvedAccessibilityRole,
-        accessibilityLabel: resolvedAccessibilityLabel,
-        accessibilityHint: resolvedAccessibilityHint,
-      },
     })
 
-    const resolvedOpacity = isDisabled
+    const resolvedOpacity = disabled
       ? buttonTokens.states.disabledOpacity
       : loading
         ? buttonTokens.states.loadingOpacity
@@ -450,9 +444,6 @@ const buttonStyles = StyleSheet.create({
   iconWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  loadingIndicator: {
-    marginRight: 6,
   },
   text: {
     fontWeight: '600',

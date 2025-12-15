@@ -6,7 +6,7 @@ export default function RadioCellDemo() {
 
   return (
     <Radio.Group value={value} onChange={setValue}>
-      <Cell.Group inset>
+      <Cell.Group inset style={{ marginBottom: 0 }} bodyStyle={{ marginHorizontal: 0 }}>
         <Cell
           clickable
           title="单选框 1"
@@ -23,4 +23,3 @@ export default function RadioCellDemo() {
     </Radio.Group>
   )
 }
-
