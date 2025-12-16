@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import Cell from '..'
 
@@ -15,6 +15,16 @@ describe('Cell', () => {
     const tree = renderer.create(<Cell title="Link" isLink />)
     const arrow = tree.root.findAllByProps({ size: 16 })
     expect(arrow.length).toBeGreaterThan(0)
+  })
+
+  it('does not render as Pressable when only isLink is set', () => {
+    const tree = renderer.create(<Cell title="Link" isLink />)
+    expect(tree.root.findAllByType(Pressable)).toHaveLength(0)
+  })
+
+  it('renders as Pressable when onPress is provided', () => {
+    const tree = renderer.create(<Cell title="Link" isLink onPress={() => {}} />)
+    expect(tree.root.findAllByType(Pressable).length).toBeGreaterThan(0)
   })
 
   it('renders numeric title and children', () => {

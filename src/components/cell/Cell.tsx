@@ -125,7 +125,13 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
   const showBorder = border && group.border && !group.isLast
   const showArrow = (isLink ?? false) || clickable
 
-  const isInteractive = (clickable || showArrow || typeof onPress === 'function') && !disabled
+  const hasPressHandler =
+    typeof onPress === 'function' ||
+    typeof rest.onLongPress === 'function' ||
+    typeof rest.onPressIn === 'function' ||
+    typeof rest.onPressOut === 'function'
+
+  const isInteractive = (clickable || hasPressHandler) && !disabled
 
   const baseContainerStyle = React.useMemo(
     () => ({
