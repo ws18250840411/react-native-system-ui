@@ -47,7 +47,6 @@ const styles = StyleSheet.create({
     height: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6,
   },
   blockText: {
     fontSize: 13,

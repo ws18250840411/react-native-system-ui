@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: false
+  compact: true
 ---
 
 # Input 输入框

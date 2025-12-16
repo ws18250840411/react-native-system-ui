@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: false
+  compact: true
 ---
 
 # ConfigProvider 全局配置

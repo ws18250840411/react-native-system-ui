@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: false
+  compact: true
 ---
 
 # DropdownMenu 下拉菜单

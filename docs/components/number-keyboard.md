@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: false
+  compact: true
 ---
 
 # NumberKeyboard 数字键盘

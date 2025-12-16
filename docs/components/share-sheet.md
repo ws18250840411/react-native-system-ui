@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: false
+  compact: true
 ---
 
 # ShareSheet 分享面板

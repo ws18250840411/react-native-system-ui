@@ -90,7 +90,7 @@ export default defineConfig({
     themeConfig: {
       simulator: {
         include: ['/components'],
-        compact: false,
+        compact: true,
       },
     },
   },

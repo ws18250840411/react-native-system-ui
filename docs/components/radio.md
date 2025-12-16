@@ -69,7 +69,7 @@ import { Radio } from 'react-native-system-ui'
 
 此时你需要再引入 `Cell` 和 `Cell.Group` 组件。
 
-<code title="与 Cell 组件一起使用" src="./radio/demo/cell.tsx"></code>
+<code title="与 Cell 组件一起使用" compact="true" src="./radio/demo/cell.tsx"></code>
 
 ## API
 

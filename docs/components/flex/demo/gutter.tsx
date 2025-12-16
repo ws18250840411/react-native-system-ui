@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     height: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6,
     backgroundColor: '#dfe4ff',
   },
   cellText: {
