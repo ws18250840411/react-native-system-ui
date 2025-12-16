@@ -12,9 +12,9 @@ export default () => (
     <NavBar
       title="标题"
       leftText="返回"
-      rightText="完成"
-      onPressLeft={() => Alert.alert('返回')}
-      onPressRight={() => Alert.alert('完成')}
+      rightText="按钮"
+      onPressLeft={() => Alert.alert('点击返回')}
+      onPressRight={() => Alert.alert('点击按钮')}
     />
     <Block />
     <Block />

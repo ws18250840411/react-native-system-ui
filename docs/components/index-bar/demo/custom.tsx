@@ -9,7 +9,7 @@ export default () => (
   <View style={{ height: 360 }}>
     <IndexBar highlightColor="#ff5722" indicatorStyle={{ backgroundColor: '#ff5722' }}>
       {sections.map(section => (
-        <IndexBar.Anchor key={section} index={section} title={`Section ${section}`}>
+        <IndexBar.Anchor key={section} index={section} title={`索引 ${section}`}>
           <Text style={{ padding: 16 }}>内容 {section}</Text>
         </IndexBar.Anchor>
       ))}

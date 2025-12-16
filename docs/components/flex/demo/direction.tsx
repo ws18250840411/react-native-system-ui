@@ -1,20 +1,26 @@
 import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
 import { Flex } from 'react-native-system-ui'
-import './style.css'
 
 type Tone = 'tone-1' | 'tone-2' | 'tone-3'
 
+const toneColors: Record<Tone, string> = {
+  'tone-1': '#3f45ff',
+  'tone-2': '#4c52ff',
+  'tone-3': '#5a60ff',
+}
+
 const Block = ({ label, tone }: { label: string; tone: Tone }) => (
-  <div className="demo-flex__item">
-    <div className={`demo-flex__block demo-flex__block--${tone}`}>{label}</div>
-  </div>
+  <View style={[styles.block, { backgroundColor: toneColors[tone] }]}>
+    <Text style={styles.blockText}>{label}</Text>
+  </View>
 )
 
 const DirectionRow = ({ direction }: { direction: 'row' | 'row-reverse' }) => {
   const tones: Tone[] = ['tone-1', 'tone-2', 'tone-3']
   return (
-    <div className="demo-flex__row">
+    <View style={styles.row}>
       <Flex direction={direction}>
         {tones.map((tone, index) => (
           <Flex.Item key={tone} span={8}>
@@ -22,13 +28,31 @@ const DirectionRow = ({ direction }: { direction: 'row' | 'row-reverse' }) => {
           </Flex.Item>
         ))}
       </Flex>
-    </div>
+    </View>
   )
 }
 
 export default () => (
-  <div className="demo-flex">
+  <View>
     <DirectionRow direction="row" />
     <DirectionRow direction="row-reverse" />
-  </div>
+  </View>
 )
+
+const styles = StyleSheet.create({
+  row: {
+    marginBottom: 10,
+  },
+  block: {
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+  },
+  blockText: {
+    fontSize: 13,
+    lineHeight: 30,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+})

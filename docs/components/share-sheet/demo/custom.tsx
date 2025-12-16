@@ -5,7 +5,7 @@ export default () => {
   const [visible, setVisible] = React.useState(false)
   return (
     <>
-      <Button text="自定义" onPress={() => setVisible(true)} />
+      <Button text="自定义内容" onPress={() => setVisible(true)} />
       <ShareSheet
         visible={visible}
         options={[{ name: '保存到相册', icon: <Button text="存" size="small" /> }]}

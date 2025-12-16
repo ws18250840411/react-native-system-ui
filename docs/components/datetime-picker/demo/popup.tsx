@@ -1,6 +1,6 @@
 import React from 'react'
-import { View, Text } from 'react-native'
-import { DatetimePicker, Button } from 'react-native-system-ui'
+import { View } from 'react-native'
+import { DatetimePicker, Field } from 'react-native-system-ui'
 
 export default function DatetimePickerPopupDemo() {
   const [visible, setVisible] = React.useState(false)
@@ -13,10 +13,14 @@ export default function DatetimePickerPopupDemo() {
 
   return (
     <View style={{ gap: 12 }}>
-      <Text>当前选择：{value.toLocaleString()}</Text>
-      <Button type="primary" onPress={() => setVisible(true)}>
-        打开弹层选择
-      </Button>
+      <Field
+        readOnly
+        clickable
+        label="选择时间"
+        value={value.toLocaleString()}
+        placeholder="请选择时间"
+        onClick={() => setVisible(true)}
+      />
       <DatetimePicker
         popup
         popupVisible={visible}

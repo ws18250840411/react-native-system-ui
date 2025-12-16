@@ -22,9 +22,7 @@ export default () => {
 
   return (
     <>
-      <Cell.Group title="异步关闭">
-        <Cell title="需要确认" isLink onPress={() => setVisible(true)} />
-      </Cell.Group>
+      <Cell title="异步关闭" isLink onPress={() => setVisible(true)} />
       <Popup
         visible={visible}
         placement="center"
@@ -35,13 +33,9 @@ export default () => {
       >
         <View style={styles.dialog}>
           <Space direction="vertical" gap={16} align="center">
-            <Button type="primary" size="large" onPress={() => setVisible(false)} style={styles.button}>
-              我知道了
-            </Button>
+            <Button type="primary" size="large" onPress={() => setVisible(false)} style={styles.button} text="关闭" />
             {loading ? (
-              <Button size="small" disabled>
-                松手即可关闭
-              </Button>
+              <Button size="small" disabled text="加载中..." />
             ) : null}
           </Space>
         </View>

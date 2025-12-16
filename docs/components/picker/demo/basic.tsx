@@ -1,42 +1,28 @@
 import React from 'react'
-import { Picker, Toast, type PickerOption, type PickerValue } from 'react-native-system-ui'
-import { View, Text } from 'react-native'
+import { Picker, Toast, type PickerOption } from 'react-native-system-ui'
 
-const columns = [
-  [
-    { label: '南京', value: 'nanjing' },
-    { label: '苏州', value: 'suzhou' },
-    { label: '常州', value: 'changzhou' },
-    { label: '淮安', value: 'huaian' },
-    { label: '扬州', value: 'yangzhou' },
-    { label: '南通', value: 'nantong' },
-    { label: '宿迁', value: 'suqian' },
-    { label: '泰州', value: 'taizhou' },
-    { label: '无锡', value: 'wuxi' },
-    { label: '长沙', value: 'changsha' },
-  ],
+const columns: PickerOption[] = [
+  { label: '南京', value: 0 },
+  { label: '苏州', value: 1 },
+  { label: '常州', value: 2 },
+  { label: '淮安', value: 3 },
+  { label: '扬州', value: 4 },
+  { label: '南通', value: 5 },
+  { label: '宿迁', value: 6 },
+  { label: '泰州', value: 7 },
+  { label: '无锡', value: 8 },
+  { label: '长沙', value: 9 },
 ]
 
 export default function PickerBasicDemo() {
-  const [value, setValue] = React.useState(['nanjing'])
-
-  const handleConfirm = React.useCallback((vals: PickerValue[], opts: (PickerOption | undefined)[]) => {
-    Toast.show({ message: `已选：${opts.map(o => o?.label ?? o?.value).join(' / ')}` })
-  }, [])
-
   return (
-    <View>
-      <Picker
-        title="基础使用"
-        columns={columns}
-        value={value}
-        onChange={setValue}
-        onConfirm={handleConfirm}
-        debug
-        confirmButtonText="确认"
-        cancelButtonText="取消"
-        readOnly={false}
-      />
-    </View>
+    <Picker
+      title="基础使用"
+      columns={columns}
+      defaultValue={0}
+      onChange={(_, opts) => console.log('选中项: ', opts)}
+      onCancel={() => Toast.info('点击取消按钮')}
+      onConfirm={() => Toast.info('点击确认按钮')}
+    />
   )
 }

@@ -12,20 +12,18 @@ export default function CheckboxCellDemo() {
 
   return (
     <Checkbox.Group value={value} onChange={setValue}>
-      <Cell.Group inset style={{ marginBottom: 0 }} bodyStyle={{ marginHorizontal: 0 }}>
+      <Cell.Group>
         <Cell
           clickable
-          title="到店自提"
-          label="支持指定时间取货"
-          onPress={() => toggle('pickup')}
-          rightIcon={<Checkbox name="pickup" />}
+          title="单选框1"
+          onPress={() => toggle('a')}
+          rightIcon={<Checkbox name="a" />}
         />
         <Cell
           clickable
-          title="同城配送"
-          label="最快 2 小时送达"
-          onPress={() => toggle('city')}
-          rightIcon={<Checkbox name="city" />}
+          title="单选框2"
+          onPress={() => toggle('b')}
+          rightIcon={<Checkbox name="b" />}
         />
       </Cell.Group>
     </Checkbox.Group>

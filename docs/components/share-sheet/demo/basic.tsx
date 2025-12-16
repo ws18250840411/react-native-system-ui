@@ -14,7 +14,7 @@ export default () => {
   const [visible, setVisible] = React.useState(false)
   return (
     <>
-      <Button text="打开 ShareSheet" onPress={() => setVisible(true)} />
+      <Button text="展示面板" onPress={() => setVisible(true)} />
       <ShareSheet visible={visible} options={options} onClose={() => setVisible(false)} />
     </>
   )

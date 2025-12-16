@@ -4,8 +4,8 @@ import { Popover, Button } from 'react-native-system-ui'
 
 export default () => (
   <Popover
-    trigger={<Button text="点击弹出" />}
+    trigger={<Button text="展示气泡" />}
   >
-    <Text>这里是 Popover 内容</Text>
+    <Text>内容</Text>
   </Popover>
 )

@@ -20,6 +20,7 @@ import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Loading from '../loading'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { Checked, Close } from 'react-native-system-icon'
+import { useOverlayStack } from '../overlay'
 
 export type ToastPosition = 'top' | 'middle' | 'bottom'
 export type ToastType = 'info' | 'success' | 'fail' | 'loading'
@@ -118,6 +119,7 @@ export const Toast: React.FC<ToastProps> = props => {
 
   const tokens = useToastTokens()
   const { mounted, animated } = usePresenceAnimation(visible, { duration: 160 })
+  const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'toast' })
   const prevVisibleRef = React.useRef(visible)
   const closingRef = React.useRef(false)
 
@@ -212,6 +214,7 @@ export const Toast: React.FC<ToastProps> = props => {
         style={[
           styles.backdrop,
           positionStyles[position],
+          stackZIndex ? { zIndex: stackZIndex } : null,
         ]}
         pointerEvents={forbidClick || overlay ? 'auto' : 'none'}
       >

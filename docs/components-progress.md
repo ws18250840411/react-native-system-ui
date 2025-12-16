@@ -59,7 +59,7 @@
 | DropdownMenu 下拉菜单 | ✅ | Menu/Item 实现与交互复核通过，遮罩与面板状态管理简洁；测试覆盖已存在 |
 | Loading 加载 | ✅ | circular/spinner 三端兼容（Web 下禁用 native driver），tokens 可覆盖；实现复核通过 |
 | PullRefresh 下拉刷新 | ✅ | 基于 RefreshControl 的轻量实现，受控/非受控与成功态提示已覆盖；实现复核通过 |
-| ShareSheet 分享面板 | ✅ | 修复 hooks 在循环内调用（抽出 OptionItem/Cancel 子组件），testID/交互保持一致 |
+| ShareSheet 分享面板 | ✅ | 修复 hooks 在循环内调用并统一 demo 入口/描述文案（展示面板/描述信息），交互保持一致 |
 
 ## 展示组件
 
@@ -67,16 +67,16 @@
 | --- | --- | --- |
 | Avatar 头像 | ✅ | 新增头像组件（图片/文本/徽标/尺寸），示例与 Ant Design Mobile 对齐 |
 | Badge 徽标 | ✅ | 数字/红点/最大值/偏移/独立展示已覆盖，子元素定位与测量逻辑稳定；实现复核通过 |
-| Collapse 折叠面板 | ⏳ |  |
-| CountDown 倒计时 | ⏳ |  |
-| Divider 分割线 | ⏳ |  |
-| Empty 空状态 | ⏳ |  |
+| Collapse 折叠面板 | ✅ | 对齐 react-vant：修正外边框/内边框语义并补齐 `border/isLink/size/readOnly`、`ref.toggle`；箭头旋转与内容测量动画优化，新增“禁用状态” demo（文案统一） |
+| CountDown 倒计时 | ✅ | 对齐 react-vant：补齐“自定义格式/自定义样式/手动控制” demo 并统一标题；默认文字样式 tokens 化；倒计时 tick 与 reset/onChange 语义对齐，文档补齐 format/events/类型/方法说明 |
+| Divider 分割线 | ✅ | 对齐 react-vant：实现/文档复核通过；demo 文案统一为“文字”，标题命名与结构对齐并补齐单测验证 |
+| Empty 空状态 | ✅ | 对齐 react-vant：预置 `default/error/network/search` 使用官方插画 URL，`image` 支持图片 URL/ReactNode 且自定义图片应用 `imageSize/imageStyle`；描述支持非文本节点，demo 结构与文案统一并补齐单测 |
 | Field 输入项 | ✅ | onBlur 格式化、可达性 aria-describedby/invalid、样式 useMemo，清除/对齐逻辑已对齐官方 |
 | FloatingBall 浮动球 | ⏳ |  |
 | ImagePreview 图片预览 | ⏳ |  |
 | List 列表 | ⏳ |  |
 | NoticeBar 通知栏 | ⏳ |  |
-| Popover 气泡卡片 | ⏳ |  |
+| Popover 气泡卡片 | ✅ | demo 文案已统一为占位内容（按钮/内容/方向），便于对比展示效果 |
 | Progress 进度条 | ✅ | 渐变兼容（Web 背景图/原生回退纯色）、动画容错&去抖、a11y progressbar、百分比/行高解析完善并补单测 |
 | Skeleton 骨架屏 | ⏳ |  |
 | Tag 标签 | ⏳ |  |
@@ -88,11 +88,11 @@
 | --- | --- | --- |
 | Grid 宫格 | ⏳ |  |
 | IndexBar 索引栏 | ⏳ |  |
-| NavBar 导航栏 | ⏳ |  |
+| NavBar 导航栏 | ✅ | demo 文案统一为“标题/描述信息/按钮/内容”，避免业务化描述干扰 |
 | Pagination 分页 | ⏳ |  |
 | Sidebar 侧边栏 | ⏳ |  |
-| Tabs 选项卡 | ⏳ | scrollspy + swipeable + lazyRenderPlaceholder 已齐，Sticky 模式因体验问题下线，下一步联动 Portal/Popup |
-| Tabbar 标签栏 | ⏳ |  |
+| Tabs 选项卡 | ✅ | demo 文案已统一为“标签名/内容/描述信息”，保留 scrollspy/swipeable 展示能力 |
+| Tabbar 标签栏 | ✅ | demo 文案统一为“标签名* / 内容 / 描述信息”，保留 badge/fixed 展示能力 |
 
 ## 业务组件
 

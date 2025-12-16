@@ -11,7 +11,7 @@ export default function PasswordInputPlainDemo() {
       onChange={setValue}
       mask={false}
       highlightTextStyle={{ color: '#1989fa' }}
-      info="明文展示并高亮当前字符"
+      info="明文展示并高亮输入字符"
     />
   )
 }

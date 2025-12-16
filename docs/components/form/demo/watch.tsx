@@ -1,24 +1,31 @@
 import React from 'react'
-import { Text } from 'react-native'
-import { Form, Field, FieldGroup } from 'react-native-system-ui'
+import { Field, Form } from 'react-native-system-ui'
 
-export default function FormWatchDemo() {
-  const formRef = Form.useForm()
+const Values: React.FC<{ formRef: ReturnType<typeof Form.useForm> }> = ({ formRef }) => {
   const username = Form.useWatch('username', formRef)
   const allValues = Form.useWatch(undefined, formRef)
 
   return (
-    <Form ref={formRef} initialValues={{ username: 'Jack', phone: '' }}>
-      <FieldGroup title="useWatch 监听">
-        <Form.Item name="username">
-          <Field label="用户名" placeholder="输入用户名" clearable />
-        </Form.Item>
-        <Form.Item name="phone">
-          <Field label="手机号" placeholder="输入手机号" clearable />
-        </Form.Item>
-      </FieldGroup>
-      <Text style={{ color: '#666' }}>实时用户名：{String(username ?? '')}</Text>
-      <Text style={{ color: '#666' }}>所有值：{JSON.stringify(allValues)}</Text>
+    <>
+      <Field readOnly label="实时用户名" value={username ? String(username) : ''} />
+      <Field readOnly label="所有值" value={allValues ? JSON.stringify(allValues) : ''} border={false} />
+    </>
+  )
+}
+
+export default function FormWatchDemo() {
+  const formRef = Form.useForm()
+
+  return (
+    <Form ref={formRef} initialValues={{ username: 'Jack', phone: '' }} style={{ paddingHorizontal: 12 }}>
+      <Form.Item name="username" label="用户名">
+        <Field placeholder="请输入用户名" clearable />
+      </Form.Item>
+      <Form.Item name="phone" label="手机号">
+        <Field placeholder="请输入手机号" clearable />
+      </Form.Item>
+
+      <Values formRef={formRef} />
     </Form>
   )
 }

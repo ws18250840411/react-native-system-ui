@@ -4,17 +4,21 @@ import { StyleSheet, Text, View } from 'react-native'
 import { Tabs } from 'react-native-system-ui'
 
 const sections = [
-  { key: 'overview', title: '概览', desc: '聚合近 24 小时的核心数据' },
-  { key: 'trend', title: '趋势', desc: '多维度分析渠道表现' },
-  { key: 'revenue', title: '营收', desc: '拆解业务线营收结构' },
-  { key: 'ops', title: '运营', desc: '排期、投放、增长等运营指标' },
+  { key: 'a', title: '标签名1' },
+  { key: 'b', title: '标签名2' },
+  { key: 'c', title: '标签名3' },
+  { key: 'd', title: '标签名4' },
 ]
 
-const Panel: React.FC<{ title: string; desc: string }> = ({ title, desc, children }) => (
+const Panel: React.FC<{ title: string }> = ({ title }) => (
   <View style={styles.panel}>
     <Text style={styles.panelTitle}>{title}</Text>
-    <Text style={styles.panelDesc}>{desc}</Text>
-    <View style={styles.panelBody}>{children}</View>
+    <Text style={styles.panelDesc}>描述信息</Text>
+    <View style={styles.panelBody}>
+      <Text style={styles.panelCopy}>内容</Text>
+      <Text style={styles.panelCopy}>内容</Text>
+      <Text style={styles.panelCopy}>内容</Text>
+    </View>
   </View>
 )
 
@@ -30,11 +34,7 @@ export default function TabsScrollspyDemo() {
       >
         {sections.map(section => (
           <Tabs.TabPane key={section.key} name={section.key} title={section.title}>
-            <Panel title={section.title} desc={section.desc}>
-              <Text style={styles.panelCopy}>
-                {section.title} 面板提供响应式的卡片组件，适配 React Vant 的展示密度。可结合 Portal/Popup 弹出补充信息。
-              </Text>
-            </Panel>
+            <Panel title={section.title} />
           </Tabs.TabPane>
         ))}
       </Tabs>

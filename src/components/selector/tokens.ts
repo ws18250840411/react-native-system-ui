@@ -21,6 +21,7 @@ export interface SelectorTokens {
     description: string
     disabledText: string
     check: string
+    checkForeground: string
   }
   spacing: {
     gap: number
@@ -43,13 +44,13 @@ const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
   const { palette, spacing, radii, typography, fontSize } = foundations
   return {
     defaults: {
-      columns: 2,
+      columns: 3,
       multiple: false,
       showCheckMark: true,
     },
     colors: {
-      border: palette.default[200],
-      borderActive: palette.primary[500],
+      border: 'transparent',
+      borderActive: 'transparent',
       background: palette.default[50],
       backgroundActive: palette.primary[50] ?? '#f2f6ff',
       text: palette.default[900],
@@ -57,15 +58,16 @@ const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
       description: palette.default[500],
       disabledText: palette.default[400],
       check: palette.primary[600],
+      checkForeground: palette.primary.foreground ?? '#ffffff',
     },
     spacing: {
-      gap: spacing.sm,
-      paddingVertical: spacing.sm,
+      gap: spacing.md,
+      paddingVertical: spacing.xs,
       paddingHorizontal: spacing.md,
-      descriptionMarginTop: spacing.xs,
+      descriptionMarginTop: spacing.xxs,
     },
     radii: {
-      item: radii.sm,
+      item: radii.xs,
     },
     typography: {
       fontSize: fontSize.md,

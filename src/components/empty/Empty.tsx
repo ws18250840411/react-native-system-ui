@@ -5,6 +5,7 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import Image from '../image'
 import type { EmptyImage, EmptyProps } from './types'
 
 interface EmptyTokens {
@@ -12,6 +13,7 @@ interface EmptyTokens {
     paddingVertical: number
     paddingHorizontal: number
     descriptionMargin: number
+    descriptionPaddingHorizontal: number
     footerMargin: number
   }
   colors: {
@@ -23,15 +25,22 @@ interface EmptyTokens {
     image: number
     fontSize: number
   }
+  typography: {
+    descriptionSize: number
+    descriptionLineHeight: number
+    descriptionFontFamily: string
+    descriptionFontWeight: string
+  }
 }
 
 const createEmptyTokens = (foundations: Foundations): EmptyTokens => {
   return {
     spacing: {
       paddingVertical: foundations.spacing.xl,
-      paddingHorizontal: foundations.spacing.xl,
-      descriptionMargin: foundations.spacing.md,
-      footerMargin: foundations.spacing.lg,
+      paddingHorizontal: 0,
+      descriptionMargin: foundations.spacing.lg,
+      descriptionPaddingHorizontal: 60,
+      footerMargin: 24,
     },
     colors: {
       description: foundations.palette.default[500],
@@ -39,8 +48,14 @@ const createEmptyTokens = (foundations: Foundations): EmptyTokens => {
       iconColor: foundations.palette.default[400],
     },
     sizes: {
-      image: 120,
+      image: 160,
       fontSize: foundations.fontSize.lg,
+    },
+    typography: {
+      descriptionSize: foundations.fontSize.sm,
+      descriptionLineHeight: 20,
+      descriptionFontFamily: foundations.typography.fontFamily,
+      descriptionFontWeight: foundations.typography.weight.regular,
     },
   }
 }
@@ -60,12 +75,8 @@ const useEmptyTokens = (overrides?: DeepPartial<EmptyTokens>) => {
   }, [foundations, components, overrides])
 }
 
-const IMAGE_SYMBOLS: Record<EmptyImage, string> = {
-  default: '☁',
-  error: '⚠',
-  network: '📡',
-  search: '🔍',
-}
+const PRESET_IMAGES: EmptyImage[] = ['default', 'error', 'network', 'search']
+const resolvePresetImage = (value: EmptyImage) => `https://img.yzcdn.cn/vant/empty-image-${value}.png`
 
 export const Empty: React.FC<EmptyProps> = props => {
   const tokens = useEmptyTokens()
@@ -81,48 +92,81 @@ export const Empty: React.FC<EmptyProps> = props => {
     ...rest
   } = props
 
+  const resolvedImageSize = imageSize ?? tokens.sizes.image
+
   const renderImage = () => {
     if (React.isValidElement(image)) {
-      return image
-    }
-
-    if (typeof image === 'string') {
-      if (/^https?:/.test(image)) {
-        return (
-          <View
-            style={{
-              width: imageSize ?? tokens.sizes.image,
-              height: imageSize ?? tokens.sizes.image,
-              backgroundColor: tokens.colors.iconBackground,
-              borderRadius: tokens.sizes.image / 8,
-            }}
-          />
-        )
-      }
-
-      const symbol = IMAGE_SYMBOLS[image as EmptyImage] ?? IMAGE_SYMBOLS.default
       return (
         <View
           style={[
             {
-              width: imageSize ?? tokens.sizes.image,
-              height: imageSize ?? tokens.sizes.image,
-              borderRadius: (imageSize ?? tokens.sizes.image) / 2,
-              backgroundColor: tokens.colors.iconBackground,
+              width: resolvedImageSize,
+              height: resolvedImageSize,
               alignItems: 'center',
               justifyContent: 'center',
             },
             imageStyle,
           ]}
         >
-          <Text style={{ fontSize: tokens.sizes.fontSize, color: tokens.colors.iconColor }}>
-            {symbol}
-          </Text>
+          {image}
         </View>
       )
     }
 
+    if (typeof image === 'string') {
+      const resolvedSrc = /^https?:/.test(image)
+        ? image
+        : PRESET_IMAGES.includes(image as EmptyImage)
+          ? resolvePresetImage(image as EmptyImage)
+          : resolvePresetImage('default')
+
+      return (
+        <Image
+          src={resolvedSrc}
+          width={resolvedImageSize}
+          height={resolvedImageSize}
+          fit="contain"
+          radius={0}
+          showLoading={false}
+          showError={false}
+          containerStyle={[{ backgroundColor: 'transparent' }, imageStyle]}
+        />
+      )
+    }
+
     return null
+  }
+
+  const renderDescription = () => {
+    if (description === null || description === undefined || description === false) return null
+
+    if (typeof description === 'string' || typeof description === 'number') {
+      return (
+        <Text
+          style={[
+            {
+              marginTop: gap,
+              paddingHorizontal: tokens.spacing.descriptionPaddingHorizontal,
+              textAlign: 'center',
+              color: tokens.colors.description,
+              fontSize: tokens.typography.descriptionSize,
+              lineHeight: tokens.typography.descriptionLineHeight,
+              fontFamily: tokens.typography.descriptionFontFamily,
+              fontWeight: tokens.typography.descriptionFontWeight,
+            },
+            descriptionStyle,
+          ]}
+        >
+          {description}
+        </Text>
+      )
+    }
+
+    return (
+      <View style={{ marginTop: gap, paddingHorizontal: tokens.spacing.descriptionPaddingHorizontal }}>
+        {description}
+      </View>
+    )
   }
 
   return (
@@ -139,20 +183,7 @@ export const Empty: React.FC<EmptyProps> = props => {
       {...rest}
     >
       {renderImage()}
-      {description ? (
-        <Text
-          style={[
-            {
-              marginTop: gap,
-              textAlign: 'center',
-              color: tokens.colors.description,
-            },
-            descriptionStyle,
-          ]}
-        >
-          {description}
-        </Text>
-      ) : null}
+      {renderDescription()}
       {children ? (
         <View style={{ marginTop: tokens.spacing.footerMargin }}>{children}</View>
       ) : null}

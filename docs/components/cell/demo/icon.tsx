@@ -1,14 +1,11 @@
 import React from 'react'
 
-import { PhoneO, ShopO } from 'react-native-system-icon'
+import { FireO, LocationO } from 'react-native-system-icon'
 import { Cell } from 'react-native-system-ui'
-import './style.css'
 
 export default () => (
-  <div className="demo-cell__section">
-    <Cell.Group>
-      <Cell title="店铺" icon={<ShopO />} isLink />
-      <Cell title="电话" icon={<PhoneO />} value="400-000-000" />
-    </Cell.Group>
-  </div>
+  <>
+    <Cell title="单元格" icon={<LocationO />} />
+    <Cell title="单元格" icon={<FireO />} />
+  </>
 )

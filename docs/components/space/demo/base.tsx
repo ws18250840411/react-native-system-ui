@@ -4,8 +4,8 @@ import { Space, Button } from 'react-native-system-ui'
 
 export default () => (
   <Space align="center">
-    Space
-    <Button text="Primary" type="primary" />
-    <Button text="Confirm" />
+    文字
+    <Button text="按钮" type="primary" />
+    <Button text="按钮" />
   </Space>
 )

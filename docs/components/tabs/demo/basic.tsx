@@ -1,34 +1,43 @@
-import React from "react"
+import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
-import { Tabs } from "react-native-system-ui"
-import "./style.css"
+import { Tabs } from 'react-native-system-ui'
 
-const primaryColor = "#3a7afe"
+const primaryColor = '#3a7afe'
 const baseTabs = [1, 2, 3]
 
 const makeTab = (prefix: string, index: number) => ({
   key: `${prefix}-${index}`,
-  title: `标签${index}`,
+  title: `标签名${index}`,
 })
 
 const DemoBlock: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="demo-tabs__block">{children}</div>
+  <View style={styles.block}>{children}</View>
 )
 
 const fullTabStyle = { flexBasis: `${100 / baseTabs.length}%`, flexGrow: 0 }
 
-const Pane: React.FC<{ children: React.ReactNode; tone?: "default" | "plain" }> = ({ children, tone = "default" }) => (
-  <div className={`demo-tabs__pane${tone === "plain" ? " demo-tabs__pane--plain" : ""}`}>{children}</div>
+const Pane: React.FC<{ children: React.ReactNode; tone?: 'default' | 'plain' }> = ({
+  children,
+  tone = 'default',
+}) => (
+  <View style={[styles.pane, tone === 'plain' ? styles.panePlain : null]}>
+    {typeof children === 'string' || typeof children === 'number' ? (
+      <Text style={styles.paneText}>{children}</Text>
+    ) : (
+      children
+    )}
+  </View>
 )
 
 export default function TabsBasicDemo() {
-  const lineTabs = baseTabs.map(item => ({ ...makeTab("line", item), desc: `下划线标签页 ${item}` }))
-  const capsuleTabs = baseTabs.map(item => ({ ...makeTab("capsule", item), desc: `胶囊标签页 ${item}` }))
-  const jumboTabs = baseTabs.map(item => ({ ...makeTab("jumbo", item), desc: `带描述信息的标签页 ${item}`, badge: item }))
-  const cardTabs = baseTabs.map(item => ({ ...makeTab("card", item), desc: `卡片标签页 ${item}` }))
+  const lineTabs = baseTabs.map(item => ({ ...makeTab('line', item), desc: `内容 ${item}` }))
+  const capsuleTabs = baseTabs.map(item => ({ ...makeTab('capsule', item), desc: `内容 ${item}` }))
+  const jumboTabs = baseTabs.map(item => ({ ...makeTab('jumbo', item), desc: `内容 ${item}`, badge: item }))
+  const cardTabs = baseTabs.map(item => ({ ...makeTab('card', item), desc: `内容 ${item}` }))
 
   return (
-    <div className="demo-tabs">
+    <View style={styles.root}>
       <DemoBlock>
         <Tabs
           defaultActive={lineTabs[0].key}
@@ -78,7 +87,7 @@ export default function TabsBasicDemo() {
               key={tab.key}
               name={tab.key}
               title={tab.title}
-              description="描述内容"
+              description="描述信息"
               badge={tab.badge}
             >
               <Pane>{tab.desc}</Pane>
@@ -102,6 +111,30 @@ export default function TabsBasicDemo() {
           ))}
         </Tabs>
       </DemoBlock>
-    </div>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  root: {
+    width: '100%',
+  },
+  block: {
+    paddingTop: 6,
+    marginBottom: 16,
+    backgroundColor: '#ffffff',
+  },
+  pane: {
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    backgroundColor: '#ffffff',
+  },
+  panePlain: {
+    backgroundColor: '#ffffff',
+  },
+  paneText: {
+    fontSize: 14,
+    color: '#323233',
+    lineHeight: 22,
+  },
+})

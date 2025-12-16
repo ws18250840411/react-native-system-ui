@@ -128,4 +128,22 @@ describe("Calendar", () => {
     expect(handleConfirm).toHaveBeenCalledTimes(1)
     expect(handleVisibleChange).toHaveBeenCalledWith(false)
   })
+
+  it("allows navigating months after selecting a value", () => {
+    const tree = renderer.create(
+      <Calendar
+        defaultValue={new Date(2024, 0, 20)}
+        minDate={new Date(2023, 0, 1)}
+        maxDate={new Date(2025, 11, 31)}
+      />,
+    )
+
+    const nextButton = tree.root.findByProps({ testID: "calendar-nav-next" })
+
+    act(() => {
+      nextButton.props.onPress()
+    })
+
+    expect(tree.root.findByProps({ testID: "calendar-day-2024-02-01" })).toBeTruthy()
+  })
 })

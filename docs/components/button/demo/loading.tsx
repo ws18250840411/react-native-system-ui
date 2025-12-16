@@ -1,11 +1,10 @@
 import React from 'react'
 
-import { Button } from 'react-native-system-ui'
-import './style.css'
+import { Button, Space } from 'react-native-system-ui'
 
 export default () => (
-  <div className="demo-button demo-button--column">
+  <Space direction="vertical" gap={12}>
     <Button text="加载中" type="primary" loading />
     <Button text="提交" type="primary" loading loadingText="提交中" />
-  </div>
+  </Space>
 )

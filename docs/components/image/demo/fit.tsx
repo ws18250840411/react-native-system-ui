@@ -1,18 +1,29 @@
 import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
-import { Image } from 'react-native-system-ui'
+import { Image, Space } from 'react-native-system-ui'
 import type { ImageFit } from 'react-native-system-ui'
-import './style.css'
 
 const fits: ImageFit[] = ['contain', 'cover', 'fill', 'none', 'scale-down']
 
 export default () => (
-  <div className="demo-image__grid">
+  <Space wrap gap={12}>
     {fits.map(fit => (
-      <div className="demo-image__item" key={fit}>
+      <View style={styles.item} key={fit}>
         <Image width={96} height={64} fit={fit} src="https://fastly.jsdelivr.net/npm/@vant/assets/apple-3.jpeg" radius={12} />
-        <span>{fit}</span>
-      </div>
+        <Text style={styles.label}>{fit}</Text>
+      </View>
     ))}
-  </div>
+  </Space>
 )
+
+const styles = StyleSheet.create({
+  item: {
+    alignItems: 'center',
+  },
+  label: {
+    marginTop: 6,
+    fontSize: 12,
+    color: '#667085',
+  },
+})

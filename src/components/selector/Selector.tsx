@@ -6,6 +6,8 @@ import { useSelectorTokens } from './tokens'
 import { useControllableValue } from '../../hooks'
 
 const CHECK_MARK = '✓'
+const CHECK_MARK_CORNER_HEIGHT = 8
+const CHECK_MARK_CORNER_WIDTH = 10
 
 export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
   const tokens = useSelectorTokens()
@@ -74,7 +76,6 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
       {options.map(option => {
         const active = selectedSet.has(option.value)
         const isDisabled = disabled || option.disabled
-        const interactive = !isDisabled
         const labelColor = active ? tokens.colors.textActive : tokens.colors.text
         const descriptionColor = isDisabled
           ? tokens.colors.disabledText
@@ -102,27 +103,21 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
               itemStyle,
             ]}
           >
-            <View style={styles.labelRow}>
-              <Text
-                style={[
-                  styles.label,
-                  {
-                    color: labelColor,
-                    fontSize: tokens.typography.fontSize,
-                    fontFamily: tokens.typography.fontFamily,
-                    fontWeight: tokens.typography.fontWeight,
-                  },
-                  labelStyle,
-                ]}
-              >
-                {option.label}
-              </Text>
-              {active && showCheckMark ? (
-                <Text style={[styles.checkMark, { color: tokens.colors.check }]}>
-                  {CHECK_MARK}
-                </Text>
-              ) : null}
-            </View>
+            <Text
+              style={[
+                styles.label,
+                {
+                  color: labelColor,
+                  fontSize: tokens.typography.fontSize,
+                  lineHeight: tokens.typography.fontSize * 1.4,
+                  fontFamily: tokens.typography.fontFamily,
+                  fontWeight: tokens.typography.fontWeight,
+                },
+                labelStyle,
+              ]}
+            >
+              {option.label}
+            </Text>
             {option.description ? (
               <Text
                 style={[
@@ -131,6 +126,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                     marginTop: tokens.spacing.descriptionMarginTop,
                     color: descriptionColor,
                     fontSize: tokens.typography.descriptionSize,
+                    lineHeight: tokens.typography.descriptionSize * 1.4,
                   },
                   descriptionStyle,
                 ]}
@@ -138,23 +134,45 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                 {option.description}
               </Text>
             ) : null}
+            {active && showCheckMark ? (
+              <>
+                <View
+                  style={[
+                    styles.checkMarkTriangle,
+                    {
+                      borderTopWidth: CHECK_MARK_CORNER_HEIGHT,
+                      borderBottomWidth: CHECK_MARK_CORNER_HEIGHT,
+                      borderLeftWidth: CHECK_MARK_CORNER_WIDTH,
+                      borderRightWidth: CHECK_MARK_CORNER_WIDTH,
+                      borderBottomColor: tokens.colors.check,
+                      borderRightColor: tokens.colors.check,
+                    },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.checkMark,
+                    { color: tokens.colors.checkForeground },
+                  ]}
+                >
+                  {CHECK_MARK}
+                </Text>
+              </>
+            ) : null}
           </View>
         )
-
-        if (!interactive) {
-          return (
-            <View key={String(option.value)} style={{ width: basis }}>
-              {itemContent}
-            </View>
-          )
-        }
 
         return (
           <Pressable
             key={String(option.value)}
             accessibilityRole={multiple ? 'checkbox' : 'radio'}
-            accessibilityState={{ checked: active, disabled: isDisabled }}
+            accessibilityState={
+              multiple
+                ? { checked: active, disabled: isDisabled }
+                : { selected: active, disabled: isDisabled }
+            }
             onPress={() => toggleOption(option)}
+            disabled={isDisabled}
             style={{ width: basis }}
           >
             {itemContent}
@@ -173,21 +191,32 @@ const styles = StyleSheet.create({
   item: {
     borderWidth: StyleSheet.hairlineWidth,
     justifyContent: 'center',
-  },
-  labelRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
+    overflow: 'hidden',
   },
   label: {
     includeFontPadding: false,
+    textAlign: 'center',
   },
   checkMark: {
-    fontSize: 12,
+    position: 'absolute',
+    right: 2,
+    bottom: 1,
+    fontSize: 10,
+    includeFontPadding: false,
+  },
+  checkMarkTriangle: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 0,
+    height: 0,
+    borderTopColor: 'transparent',
+    borderLeftColor: 'transparent',
   },
   description: {
     includeFontPadding: false,
+    textAlign: 'center',
   },
 })
 

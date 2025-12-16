@@ -8,15 +8,15 @@ const icon = (label: string, active: boolean) => (
 )
 
 export default () => (
-  <Tabbar defaultValue="home">
-    <Tabbar.Item name="home" icon={active => icon('H', active)}>
-      首页
+  <Tabbar defaultValue="tab1">
+    <Tabbar.Item name="tab1" icon={active => icon('1', active)}>
+      标签名1
     </Tabbar.Item>
-    <Tabbar.Item name="message" icon={active => icon('M', active)}>
-      消息
+    <Tabbar.Item name="tab2" icon={active => icon('2', active)}>
+      标签名2
     </Tabbar.Item>
-    <Tabbar.Item name="me" icon={active => icon('U', active)}>
-      我的
+    <Tabbar.Item name="tab3" icon={active => icon('3', active)}>
+      标签名3
     </Tabbar.Item>
   </Tabbar>
 )

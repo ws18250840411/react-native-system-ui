@@ -1,19 +1,22 @@
-import React from "react"
-import { Button, Field, Form, Toast } from "react-native-system-ui"
+import React from 'react'
 
-export default function FormRulesDemo() {
+import { Button, Field, Form, Toast } from 'react-native-system-ui'
+
+export default () => {
   const formRef = Form.useForm()
 
-  const handleFinish = (values: any) => {
-    console.log(values)
+  const asyncValidator = async (value?: string) => {
+    Toast.info({ message: '验证中...', duration: 800 })
+    await new Promise(resolve => setTimeout(resolve, 800))
+    return /^\d{6}$/.test(value ?? '') ? true : '请输入正确内容'
   }
 
   return (
     <Form
       ref={formRef}
-      onFinish={handleFinish}
+      onFinish={values => Toast.info(JSON.stringify(values))}
       style={{ paddingHorizontal: 12 }}
-      footer={
+      footer={(
         <Button
           round
           block
@@ -22,38 +25,32 @@ export default function FormRulesDemo() {
           onPress={() => formRef.current?.submit()}
           style={{ marginTop: 12 }}
         />
-      }
+      )}
     >
-      <Form.Item
-        name="regex"
-        label="正则校验"
-        rules={[{ pattern: /^\d{6}$/, message: "请输入6位数字" }]}
-      >
-        <Field placeholder="正则校验" />
+      <Form.Item name="pattern" label="正则校验" rules={[{ pattern: /^\d{6}$/, message: '请输入 6 位数字' }]}>
+        <Field placeholder="请输入 6 位数字" clearable />
       </Form.Item>
 
       <Form.Item
-        name="func"
+        name="validator"
         label="函数校验"
         rules={[{
-          validator: value => (/^1\d{10}$/.test(value ?? "") ? true : "请输入正确的手机号码"),
+          validator: value => (/^1\\d{10}$/.test(value ?? '') ? true : '请输入正确的手机号码'),
         }]}
       >
-        <Field placeholder="函数校验" />
+        <Field placeholder="请输入手机号" clearable />
       </Form.Item>
 
       <Form.Item
         name="async"
-        label="异步函数校验"
+        label="异步校验"
+        validateTrigger="onBlur"
         rules={[{
-          validator: async value => {
-            Toast.show({ message: "验证中...", duration: 800 })
-            await new Promise(resolve => setTimeout(resolve, 800))
-            return /^\d{6}$/.test(value ?? "") ? true : "请输入正确内容"
-          },
+          validateTrigger: 'onBlur',
+          validator: asyncValidator,
         }]}
       >
-        <Field placeholder="异步函数校验" border={false} />
+        <Field placeholder="请输入 6 位数字" border={false} />
       </Form.Item>
     </Form>
   )

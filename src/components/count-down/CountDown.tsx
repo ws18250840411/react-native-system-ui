@@ -4,6 +4,7 @@ import { Text, View } from 'react-native'
 import { useCountDown } from '../../hooks'
 import type { CountDownInstance, CountDownProps } from './types'
 import { parseFormat } from './utils'
+import { useCountDownTokens } from './tokens'
 
 const getTimeValue = (time?: number | string) => {
   if (typeof time === 'number') return time
@@ -27,6 +28,8 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     ...rest
   } = props
 
+  const tokens = useCountDownTokens()
+
   const normalizedTime = React.useMemo(() => Math.max(0, getTimeValue(time)), [time])
 
   const { start, pause, reset, current } = useCountDown({
@@ -36,7 +39,7 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     onFinish,
   })
 
-  const resetAndMaybeStart = React.useCallback(() => {
+  const resetTime = React.useCallback(() => {
     reset(normalizedTime)
     if (autoStart && normalizedTime > 0) {
       start()
@@ -44,24 +47,36 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
   }, [autoStart, normalizedTime, reset, start])
 
   React.useEffect(() => {
-    resetAndMaybeStart()
+    resetTime()
     return () => {
       pause()
     }
-  }, [pause, resetAndMaybeStart])
+  }, [normalizedTime])
 
   React.useImperativeHandle(ref, () => ({
     start,
     pause,
-    reset: resetAndMaybeStart,
-  }), [pause, resetAndMaybeStart, start])
+    reset: resetTime,
+  }), [pause, resetTime, start])
+
+  const defaultTextStyle = React.useMemo(() => ({
+    color: tokens.text.color,
+    fontSize: tokens.text.fontSize,
+    lineHeight: tokens.text.lineHeight,
+    fontFamily: tokens.text.fontFamily,
+    fontWeight: tokens.text.fontWeight,
+  }), [tokens.text.color, tokens.text.fontFamily, tokens.text.fontSize, tokens.text.fontWeight, tokens.text.lineHeight])
 
   const content = React.useMemo(() => {
     if (typeof children === 'function') {
-      return children(current)
+      const rendered = children(current)
+      if (typeof rendered === 'string' || typeof rendered === 'number') {
+        return <Text style={defaultTextStyle}>{rendered}</Text>
+      }
+      return rendered
     }
-    return <Text>{parseFormat(format, current)}</Text>
-  }, [children, current, format])
+    return <Text style={defaultTextStyle}>{parseFormat(format, current)}</Text>
+  }, [children, current, defaultTextStyle, format])
 
   return (
     <View style={style} {...rest}>

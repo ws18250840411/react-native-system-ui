@@ -19,7 +19,7 @@ import { Sidebar } from 'react-native-system-ui'
 
 ### 基础用法
 
-左侧列表用于切换分类，右侧内容区可自定义渲染。
+通过 `defaultValue` 设置默认选中项。
 
 <code src="./sidebar/demo/basic.tsx" title="基础用法"></code>
 
@@ -31,7 +31,7 @@ import { Sidebar } from 'react-native-system-ui'
 
 ### 受控模式
 
-通过 `value/onChange` 管理外部状态，实现与其他视图的联动。
+通过 `value/onChange` 管理外部状态。
 
 <code src="./sidebar/demo/controlled.tsx" title="受控导航"></code>
 

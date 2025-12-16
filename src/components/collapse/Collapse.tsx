@@ -2,7 +2,7 @@ import React from 'react'
 import {
   Animated,
   Easing,
-  Pressable,
+  Platform,
   StyleSheet,
   Text,
   View,
@@ -11,8 +11,8 @@ import {
 } from 'react-native'
 import { Arrow } from 'react-native-system-icon'
 
+import { Cell } from '../cell'
 import { useTheme } from '../../design-system'
-import { useAriaPress } from '../../hooks'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
@@ -32,15 +32,27 @@ export interface CollapseProps extends ViewProps {
 }
 
 export interface CollapsePanelProps extends ViewProps {
+  /** @private */
+  index?: number
   name?: string
   title?: React.ReactNode
   description?: React.ReactNode
+  label?: React.ReactNode
   icon?: React.ReactNode
   extra?: React.ReactNode
+  value?: React.ReactNode
+  border?: boolean
+  isLink?: boolean
+  size?: 'normal' | 'large'
   disabled?: boolean
+  readOnly?: boolean
   children?: React.ReactNode
   titleStyle?: TextProps['style']
   descriptionStyle?: TextProps['style']
+}
+
+export type CollapsePanelInstance = {
+  toggle: (expand?: boolean) => void
 }
 
 interface CollapseTokens {
@@ -50,6 +62,8 @@ interface CollapseTokens {
     description: string
     background: string
     active: string
+    arrow: string
+    disabled: string
   }
   spacing: {
     paddingVertical: number
@@ -75,8 +89,10 @@ const createCollapseTokens = (foundations: Foundations): CollapseTokens => {
       border: palette.default[200],
       title: palette.default[800],
       description: palette.default[500],
-      background: palette.default[50],
-      active: palette.default[100],
+      background: '#ffffff',
+      active: palette.default[50],
+      arrow: palette.default[400],
+      disabled: palette.default[400],
     },
     spacing: {
       paddingVertical: spacing.md,
@@ -97,7 +113,7 @@ const createCollapseTokens = (foundations: Foundations): CollapseTokens => {
 
 interface CollapseContextValue {
   activeKeys: string[]
-  toggle: (name: string) => void
+  toggle: (name: string, expand?: boolean) => void
   accordion: boolean
   iconPosition: 'left' | 'right'
   expandIcon?: CollapseProps['expandIcon']
@@ -137,7 +153,12 @@ const useCollapseTokens = (overrides?: DeepPartial<CollapseTokens>) => {
   }, [foundations, components, overrides])
 }
 
-export const Collapse: React.FC<CollapseProps> & { Panel: React.FC<CollapsePanelProps> } = props => {
+type CollapseComponent = React.FC<CollapseProps> & {
+  Panel: React.ForwardRefExoticComponent<CollapsePanelProps & React.RefAttributes<CollapsePanelInstance>>
+  Item: React.ForwardRefExoticComponent<CollapsePanelProps & React.RefAttributes<CollapsePanelInstance>>
+}
+
+export const Collapse = ((props: CollapseProps) => {
   const {
     children,
     accordion = false,
@@ -169,15 +190,27 @@ export const Collapse: React.FC<CollapseProps> & { Panel: React.FC<CollapsePanel
     : internalValue
 
   const toggle = React.useCallback(
-    (name: string) => {
+    (name: string, expand?: boolean) => {
       if (disabled) return
       const current = activeKeys
       const exists = current.includes(name)
       let next: string[]
       if (accordion) {
-        next = exists ? [] : [name]
+        if (expand === true) {
+          next = exists ? current : [name]
+        } else if (expand === false) {
+          next = exists ? [] : current
+        } else {
+          next = exists ? [] : [name]
+        }
       } else {
-        next = exists ? current.filter(item => item !== name) : [...current, name]
+        if (expand === true) {
+          next = exists ? current : [...current, name]
+        } else if (expand === false) {
+          next = exists ? current.filter(item => item !== name) : current
+        } else {
+          next = exists ? current.filter(item => item !== name) : [...current, name]
+        }
       }
       if (!controlled) {
         setInternalValue(next)
@@ -206,19 +239,47 @@ export const Collapse: React.FC<CollapseProps> & { Panel: React.FC<CollapsePanel
       return child
     }
     const name = (child.props as CollapsePanelProps).name ?? String(index)
-    return React.cloneElement(child, { name })
+    return React.cloneElement(child, { name, index })
   })
 
   return (
     <CollapseContext.Provider value={contextValue}>
-      <View style={style} {...rest}>
+      <View style={[styles.container, border && { backgroundColor: tokens.colors.background }, style]} {...rest}>
+        {border ? <Hairline position="top" color={tokens.colors.border} /> : null}
+        {border ? <Hairline position="bottom" color={tokens.colors.border} /> : null}
         {renderedChildren}
       </View>
     </CollapseContext.Provider>
   )
+}) as CollapseComponent
+
+const Hairline: React.FC<{
+  position: 'top' | 'bottom'
+  color: string
+  inset?: number
+}> = ({ position, color, inset = 0 }) => {
+  const platform = Platform.OS
+  const baseHairlineWidth = StyleSheet.hairlineWidth
+  const borderWidth = platform === 'web' ? 1 : baseHairlineWidth
+  const lineStyle =
+    position === 'top'
+      ? { top: 0, borderTopWidth: borderWidth, borderTopColor: color }
+      : { bottom: 0, borderBottomWidth: borderWidth, borderBottomColor: color }
+
+  return (
+    <View
+      pointerEvents="none"
+      style={[
+        styles.hairline,
+        { left: inset, right: inset },
+        lineStyle,
+        platform === 'web' ? { transform: [{ scaleY: 0.5 }] } : null,
+      ]}
+    />
+  )
 }
 
-const CollapsePanel: React.FC<CollapsePanelProps> = props => {
+const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps>((props, ref) => {
   const context = React.useContext(CollapseContext)
   if (!context) {
     throw new Error('Collapse.Panel must be used within Collapse')
@@ -237,11 +298,18 @@ const CollapsePanel: React.FC<CollapsePanelProps> = props => {
 
   const {
     name = '0',
+    index = 0,
     title,
     description,
+    label,
     icon,
     extra,
+    value,
+    border: panelBorder = true,
+    isLink = true,
+    size = 'normal',
     disabled,
+    readOnly,
     children,
     style,
     titleStyle,
@@ -252,7 +320,6 @@ const CollapsePanel: React.FC<CollapsePanelProps> = props => {
   const isActive = activeKeys.includes(String(name))
   const mergedDisabled = collapseDisabled || disabled
 
-  const contentRef = React.useRef<View>(null)
   const [contentHeight, setContentHeight] = React.useState(0)
   const animation = React.useRef(new Animated.Value(isActive ? 1 : 0)).current
 
@@ -265,23 +332,40 @@ const CollapsePanel: React.FC<CollapsePanelProps> = props => {
     }).start()
   }, [animation, isActive])
 
-  const handleToggle = () => {
-    if (mergedDisabled) return
-    toggle(String(name))
-  }
+  const resolvedLabel = description ?? label
+  const resolvedValue = extra ?? value
 
-  const handleLayout = (event: any) => {
-    if (contentHeight === 0) {
-      setContentHeight(event.nativeEvent.layout.height)
-    }
-  }
+  const handleToggle = React.useCallback(() => {
+    if (mergedDisabled || readOnly) return
+    toggle(String(name))
+  }, [mergedDisabled, name, readOnly, toggle])
+
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      toggle: (expand?: boolean) => {
+        if (mergedDisabled || readOnly) return
+        toggle(String(name), expand)
+      },
+    }),
+    [mergedDisabled, name, readOnly, toggle],
+  )
+
+  const handleContentLayout = React.useCallback(
+    (event: any) => {
+      const nextHeight = event.nativeEvent.layout.height
+      if (typeof nextHeight === 'number' && Number.isFinite(nextHeight) && nextHeight !== contentHeight) {
+        setContentHeight(nextHeight)
+      }
+    },
+    [contentHeight],
+  )
 
   const animatedStyle = {
     height: animation.interpolate({
       inputRange: [0, 1],
       outputRange: [0, contentHeight],
     }),
-    opacity: animation,
   }
 
   const renderExpandIcon = () => {
@@ -292,136 +376,125 @@ const CollapsePanel: React.FC<CollapsePanelProps> = props => {
       return expandIcon
     }
     return (
-      <Animated.View style={{ transform: [{ rotate: animation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] }) }] }}>
-        <Arrow size={14} fill={tokens.colors.description} />
+      <Animated.View
+        style={{
+          transform: [
+            {
+              rotate: animation.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '-90deg'] }),
+            },
+          ],
+        }}
+      >
+        <Arrow size={16} fill={mergedDisabled ? tokens.colors.disabled : tokens.colors.arrow} />
       </Animated.View>
     )
   }
 
   const renderChildren = () => {
     if (typeof children === 'string' || typeof children === 'number') {
-      return <Text style={{ color: tokens.colors.description, fontSize: tokens.typography.descriptionSize }}>{children}</Text>
+      return (
+        <Text
+          style={{
+            color: tokens.colors.description,
+            fontSize: tokens.typography.descriptionSize,
+            lineHeight: Math.round(tokens.typography.descriptionSize * 1.5),
+          }}
+        >
+          {children}
+        </Text>
+      )
     }
     return children
   }
 
-  const content = (
-    <Animated.View style={[styles.body, animatedStyle]}>
-      <View
-        onLayout={handleLayout}
-        style={{ paddingHorizontal: tokens.spacing.paddingHorizontal, paddingBottom: tokens.spacing.paddingVertical }}
-      >
-        {renderChildren()}
-      </View>
-    </Animated.View>
-  )
+  const showItemBorder = Boolean(panelBorder)
+  const showTopBorder = index > 0 && showItemBorder
+  const showHeaderBottomBorder = isActive && showItemBorder
+  const showExpandIcon = isLink && !readOnly
 
-  const showBorder = border && !accordion
+  const headerIcon =
+    iconPosition === 'left'
+      ? showExpandIcon || (icon !== undefined && icon !== null && icon !== false)
+        ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {showExpandIcon ? <View style={{ marginRight: icon ? 8 : 0 }}>{renderExpandIcon()}</View> : null}
+            {icon}
+          </View>
+        )
+        : undefined
+      : icon
 
-  const headerPress = useAriaPress({
-    disabled: mergedDisabled,
-    onPress: handleToggle,
-    extraProps: {
-      accessibilityRole: 'button',
-      accessibilityState: { expanded: isActive, disabled: mergedDisabled },
-    },
-  })
+  const headerRightIcon = iconPosition === 'right' && showExpandIcon ? renderExpandIcon() : undefined
 
   return (
     <View
       style={[
         styles.panel,
         {
-          borderColor: tokens.colors.border,
-          borderTopWidth: showBorder ? StyleSheet.hairlineWidth : 0,
+          backgroundColor: tokens.colors.background,
         },
         style,
       ]}
       {...rest}
     >
-      <Pressable
-        disabled={mergedDisabled}
-        {...headerPress.interactionProps}
-        style={[
-          styles.header,
-          {
-            paddingHorizontal: tokens.spacing.paddingHorizontal,
+      {showTopBorder ? <Hairline position="top" color={tokens.colors.border} inset={tokens.spacing.paddingHorizontal} /> : null}
+      <View style={styles.headerWrapper}>
+        <Cell
+          title={title}
+          label={resolvedLabel}
+          icon={headerIcon}
+          value={resolvedValue}
+          size={size}
+          border={false}
+          disabled={mergedDisabled}
+          onPress={readOnly ? undefined : handleToggle}
+          accessibilityState={{ expanded: isActive, disabled: mergedDisabled }}
+          titleStyle={titleStyle}
+          labelStyle={descriptionStyle}
+          rightIcon={headerRightIcon}
+        />
+        {showHeaderBottomBorder ? (
+          <Hairline position="bottom" color={tokens.colors.border} inset={tokens.spacing.paddingHorizontal} />
+        ) : null}
+      </View>
+      <Animated.View style={[styles.bodyWrapper, animatedStyle]}>
+        <View
+          onLayout={handleContentLayout}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
             paddingVertical: tokens.spacing.paddingVertical,
-            opacity: mergedDisabled ? 0.5 : headerPress.states.pressed ? 0.7 : 1,
-          },
-        ]}
-      >
-        {iconPosition === 'left' ? renderExpandIcon() : null}
-        {icon ? <View style={{ marginRight: 8 }}>{icon}</View> : null}
-        <View style={styles.headerText}>
-          {title ? (
-            <Text
-              style={[
-                styles.title,
-                {
-                  color: tokens.colors.title,
-                  fontSize: tokens.typography.titleSize,
-                  fontFamily: tokens.typography.fontFamily,
-                  fontWeight: tokens.typography.titleWeight,
-                },
-                titleStyle,
-              ]}
-              numberOfLines={1}
-            >
-              {title}
-            </Text>
-          ) : null}
-          {description ? (
-            <Text
-              style={[
-                styles.description,
-                {
-                  marginTop: tokens.spacing.descriptionTop,
-                  color: tokens.colors.description,
-                  fontSize: tokens.typography.descriptionSize,
-                },
-                descriptionStyle,
-              ]}
-              numberOfLines={2}
-            >
-              {description}
-            </Text>
-          ) : null}
+            paddingHorizontal: tokens.spacing.paddingHorizontal,
+            backgroundColor: tokens.colors.background,
+          }}
+        >
+          {renderChildren()}
         </View>
-        <View style={{ flexShrink: 0, marginLeft: 8 }}>{extra}</View>
-        {iconPosition === 'right' ? renderExpandIcon() : null}
-      </Pressable>
-      {contentHeight > 0 ? content : (
-        <View style={{ paddingHorizontal: tokens.spacing.paddingHorizontal }} onLayout={handleLayout}>
-          <View>{renderChildren()}</View>
-        </View>
-      )}
+      </Animated.View>
     </View>
   )
-}
+})
 
 Collapse.Panel = CollapsePanel
+Collapse.Item = CollapsePanel
 
 const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+  },
   panel: {
-    backgroundColor: '#fff',
+    position: 'relative',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  hairline: {
+    position: 'absolute',
   },
-  headerText: {
-    flex: 1,
+  headerWrapper: {
+    position: 'relative',
   },
-  title: {
-    fontSize: 16,
-    color: '#111',
-  },
-  description: {
-    fontSize: 14,
-    color: '#666',
-  },
-  body: {
+  bodyWrapper: {
+    position: 'relative',
     overflow: 'hidden',
   },
 })

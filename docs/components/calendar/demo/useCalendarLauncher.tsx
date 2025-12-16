@@ -1,8 +1,8 @@
-import React from "react"
-import { Calendar, Cell } from "react-native-system-ui"
-import type { CalendarProps } from "react-native-system-ui"
+import React from 'react'
+import { Calendar, Cell } from 'react-native-system-ui'
+import type { CalendarProps } from 'react-native-system-ui'
 
-type CalendarMode = NonNullable<CalendarProps["type"]>
+type CalendarMode = NonNullable<CalendarProps['type']>
 type CalendarValue = Date | Date[] | null
 
 type CalendarOverrides = Partial<
@@ -19,7 +19,7 @@ type CalendarOverrides = Partial<
   >
 >
 
-type CellExtraProps = Omit<React.ComponentProps<typeof Cell>, "title" | "value" | "onPress">
+type CellExtraProps = Omit<React.ComponentProps<typeof Cell>, 'title' | 'value' | 'onPress'>
 
 export interface CalendarLauncherOptions extends CalendarOverrides {
   key: string
@@ -47,25 +47,25 @@ const cloneValue = (value: CalendarValue): CalendarValue => {
 
 export const formatCalendarValue = (value: CalendarValue, type: CalendarMode) => {
   if (!value) {
-    return "请选择日期"
+    return '请选择日期'
   }
-  if (type === "single") {
-    return value instanceof Date ? value.toLocaleDateString() : "请选择日期"
+  if (type === 'single') {
+    return value instanceof Date ? value.toLocaleDateString() : '请选择日期'
   }
-  if (type === "multiple") {
-    return Array.isArray(value) && value.length ? `已选${value.length}个日期` : "请选择日期"
+  if (type === 'multiple') {
+    return Array.isArray(value) && value.length ? `共${value.length}个日期` : '请选择日期'
   }
   if (Array.isArray(value) && value.length === 2) {
     return `${value[0].toLocaleDateString()} ~ ${value[1].toLocaleDateString()}`
   }
-  return "请选择日期"
+  return '请选择日期'
 }
 
 export const useCalendarLauncher = (options: CalendarLauncherOptions): CalendarLauncherResult => {
   const {
     key,
     title,
-    type = "single",
+    type = 'single',
     showConfirm,
     cellProps,
     initialValue,
@@ -78,7 +78,7 @@ export const useCalendarLauncher = (options: CalendarLauncherOptions): CalendarL
   const [confirmedValue, setConfirmedValue] = React.useState<CalendarValue>(() => cloneValue(initialValue ?? null))
   const [draftValue, setDraftValue] = React.useState<CalendarValue>(null)
 
-  const resolvedShowConfirm = showConfirm ?? (type !== "single")
+  const resolvedShowConfirm = showConfirm ?? (type !== 'single')
 
   const handleVisibleChange = React.useCallback(
     (next: boolean) => {

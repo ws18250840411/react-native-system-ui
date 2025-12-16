@@ -3,15 +3,15 @@ import React from 'react'
 import { Collapse } from 'react-native-system-ui'
 
 export default () => (
-  <Collapse defaultValue={["1"]}>
-    <Collapse.Panel name="1" title="标题 1" description="描述信息">
-      内容一
-    </Collapse.Panel>
-    <Collapse.Panel name="2" title="标题 2">
-      内容二
-    </Collapse.Panel>
-    <Collapse.Panel name="3" title="标题 3">
-      内容三
-    </Collapse.Panel>
+  <Collapse defaultValue={['1']}>
+    <Collapse.Item name="1" title="标题1" label="描述信息">
+      文字
+    </Collapse.Item>
+    <Collapse.Item name="2" title="标题2">
+      文字
+    </Collapse.Item>
+    <Collapse.Item name="3" title="标题3">
+      文字
+    </Collapse.Item>
   </Collapse>
 )

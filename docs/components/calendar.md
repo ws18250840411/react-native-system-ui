@@ -12,24 +12,24 @@ simulator:
 ## 引入
 
 ```js
-import { Calendar } from react-native-system-ui
+import { Calendar } from 'react-native-system-ui'
 ```
 
 ## 代码演示
 
 ### 基础用法
 
-<code title="基础" src="./calendar/demo/basic.tsx"></code>
+<code title="基础用法" src="./calendar/demo/basic.tsx"></code>
 
 ### 范围选择
 
-<code title="范围" src="./calendar/demo/range.tsx"></code>
+<code title="范围选择" src="./calendar/demo/range.tsx"></code>
 
 > 默认情况下起止日期需要至少跨一天，可通过 `allowSameDay` 允许同日；若需要限制选择天数，可结合 `maxRange` 与 `onOverRange` 进行提示。
 
 ### 弹层模式
 
-<code title="弹层" src="./calendar/demo/popup.tsx"></code>
+<code title="弹层模式" src="./calendar/demo/popup.tsx"></code>
 
 > 参照 React Vant，常见信息录入通过 Cell 触发弹层。`poppable` 用于切换 Popup 承载，配合 `visible/defaultVisible/onVisibleChange` 控制展示节奏，可通过 `closeOnClickOverlay`、`closeOnConfirm` 管理遮罩或确认后的关闭时机。
 

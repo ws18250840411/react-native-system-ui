@@ -17,21 +17,39 @@ import { Form } from 'react-native-system-ui'
 
 ## 代码演示
 
+### 基础用法
+
 <code title="基础用法" src="./form/demo/basic.tsx"></code>
+
+### 校验规则
 
 <code title="校验规则" src="./form/demo/rules.tsx"></code>
 
+### 表单项类型
+
 <code title="表单项类型" src="./form/demo/type.tsx"></code>
+
+### 动态增减表单项
 
 <code title="动态增减表单项" src="./form/demo/list.tsx"></code>
 
+### 弹层选择
+
 <code title="弹层选择" src="./form/demo/popup.tsx"></code>
+
+### 自定义表单项
 
 <code title="自定义表单项" src="./form/demo/custom.tsx"></code>
 
+### 条件渲染/shouldUpdate
+
 <code title="条件渲染/shouldUpdate" src="./form/demo/shouldUpdate.tsx"></code>
 
-<code title="Subscribe" src="./form/demo/subscribe.tsx"></code>
+### 订阅
+
+<code title="订阅" src="./form/demo/subscribe.tsx"></code>
+
+### useWatch
 
 <code title="useWatch" src="./form/demo/watch.tsx"></code>
 
@@ -81,6 +99,9 @@ import { Form } from 'react-native-system-ui'
 | `validateTrigger` | 触发校验的事件，默认为 `trigger` | `string \| string[]` | `onChangeText` |
 | `showValidateMessage` | 是否展示该表单项的错误提示 | `boolean` | `true` |
 | `required` | 强制展示必填星号（默认为 `rules` 中的 required 值） | `boolean` | - |
+| `noStyle` | 与 react-vant 对齐：不渲染额外样式容器（当前实现中等价于默认表现） | `boolean` | `false` |
+| `shouldUpdate` | 是否在依赖字段变化时重新渲染，可用于条件渲染 | `(prev, next) => boolean` | - |
+| `initialValue` | 该字段的初始值（当表单没有同名初始值时生效） | `any` | - |
 | `dependencies` | 依赖的字段名，依赖字段变化时触发当前项校验 | `string[]` | - |
 | `children` | 必须是受控组件，如 Field | `ReactElement` | - |
 

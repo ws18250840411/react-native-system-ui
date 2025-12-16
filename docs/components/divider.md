@@ -35,7 +35,7 @@ import { Divider } from 'react-native-system-ui'
 
 <code title="内容位置" src="./divider/demo/position.tsx"></code>
 
-### 虚线样式
+### 虚线
 
 添加 `dashed` 属性可以把分割线改为虚线，同时可搭配 `lineColor`。
 

@@ -13,7 +13,7 @@ export default () => {
       <IndexBar value={active} onChange={setActive}>
         {letters.map(letter => (
           <IndexBar.Anchor key={letter} index={letter} title={`索引 ${letter}`}>
-            <Text style={{ padding: 16 }}>当前节：{letter}</Text>
+            <Text style={{ padding: 16 }}>内容 {letter}</Text>
           </IndexBar.Anchor>
         ))}
       </IndexBar>

@@ -5,18 +5,19 @@ export default () => (
   <DropdownMenu>
     <DropdownMenu.Item
       options={[
-        { label: '综合排序', value: 'all' },
-        { label: '销量优先', value: 'sale' },
-        { label: '价格优先', value: 'price' },
+        { label: '全部商品', value: 0 },
+        { label: '新款商品', value: 1 },
+        { label: '活动商品', value: 2 },
       ]}
-      defaultValue="all"
+      defaultValue={0}
     />
     <DropdownMenu.Item
       options={[
-        { label: '包邮', value: 'shipping' },
-        { label: '同城闪送', value: 'local' },
+        { label: '默认排序', value: 'a' },
+        { label: '好评排序', value: 'b' },
+        { label: '销量排序', value: 'c' },
       ]}
-      placeholder="配送"
+      defaultValue="a"
     />
   </DropdownMenu>
 )

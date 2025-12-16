@@ -19,7 +19,7 @@ export default () => {
         images={images}
         showIndex
         indexRender={({ index, len }) => (
-          <Text style={{ color: '#fff' }}>{`当前 ${index + 1} / ${len}`}</Text>
+          <Text style={{ color: '#fff' }}>{`${index + 1} / ${len}`}</Text>
         )}
         onClose={() => setVisible(false)}
       />

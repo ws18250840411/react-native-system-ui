@@ -8,10 +8,9 @@ const Block = () => (
 )
 
 export default () => (
-  <Grid gutter={12} border={false}>
-    <Grid.Item text="12px" icon={() => <Block />} />
-    <Grid.Item text="间距" icon={() => <Block />} />
-    <Grid.Item text="可调" icon={() => <Block />} />
-    <Grid.Item text="尺寸" icon={() => <Block />} />
+  <Grid gutter={10} border={false}>
+    {Array.from({ length: 8 }, (_, index) => (
+      <Grid.Item key={index} text="文字" icon={() => <Block />} />
+    ))}
   </Grid>
 )

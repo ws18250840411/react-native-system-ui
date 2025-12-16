@@ -9,13 +9,13 @@ export default function RadioCellDemo() {
       <Cell.Group inset style={{ marginBottom: 0 }} bodyStyle={{ marginHorizontal: 0 }}>
         <Cell
           clickable
-          title="单选框 1"
+          title="单选框1"
           onPress={() => setValue('1')}
           rightIcon={<Radio name="1" />}
         />
         <Cell
           clickable
-          title="单选框 2"
+          title="单选框2"
           onPress={() => setValue('2')}
           rightIcon={<Radio name="2" />}
         />

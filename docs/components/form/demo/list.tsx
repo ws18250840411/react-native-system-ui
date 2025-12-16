@@ -1,6 +1,7 @@
-import React from "react"
-import { AddO } from "react-native-system-icon"
-import { Button, Cell, Form, Field } from "react-native-system-ui"
+import React from 'react'
+
+import { AddO } from 'react-native-system-icon'
+import { Button, Cell, Form, Field, Toast } from 'react-native-system-ui'
 
 export default function FormListDemo() {
   const formRef = Form.useForm()
@@ -8,7 +9,8 @@ export default function FormListDemo() {
   return (
     <Form
       ref={formRef}
-      initialValues={{ users: [{ name: "react-native", age: "1" }] }}
+      initialValues={{ users: [{ name: '', age: '' }] }}
+      onFinish={values => Toast.info(JSON.stringify(values))}
       style={{ paddingHorizontal: 12 }}
       footer={(
         <Button
@@ -27,10 +29,10 @@ export default function FormListDemo() {
             <>
               {fields.map((field, idx) => (
                 <Cell.Group key={field.key} inset>
-                  <Form.Item name={[field.name, "name"]}>
+                  <Form.Item name={[field.name, 'name']}>
                     <Field label={`用户${idx + 1} 姓名`} placeholder="请输入姓名" clearable />
                   </Form.Item>
-                  <Form.Item name={[field.name, "age"]}>
+                  <Form.Item name={[field.name, 'age']}>
                     <Field label="年龄" placeholder="请输入年龄" clearable />
                   </Form.Item>
                   <Button size="small" type="danger" text="删除" onPress={() => remove(idx)} />
@@ -41,7 +43,7 @@ export default function FormListDemo() {
                 block
                 icon={<AddO size={16} />}
                 text="新增用户"
-                onPress={() => add({ name: "", age: "" })}
+                onPress={() => add({ name: '', age: '' })}
               />
             </>
           )}

@@ -17,24 +17,32 @@ import { Selector } from 'react-native-system-ui'
 
 ## 代码演示
 
-### 基础用法
+### 单选
 
-<code title="基础用法" src="./selector/demo/basic.tsx"></code>
+<code title="单选" src="./selector/demo/basic.tsx"></code>
 
-### 多选与自定义列数
+### 多选
 
-<code title="多选与列数" src="./selector/demo/multiple.tsx"></code>
+<code title="多选" src="./selector/demo/multiple.tsx"></code>
 
 ### 禁用状态
 
-<code title="禁用" src="./selector/demo/disabled.tsx"></code>
+<code title="禁用状态" src="./selector/demo/disabled.tsx"></code>
+
+### 描述选项
+
+<code title="描述选项" src="./selector/demo/description.tsx"></code>
+
+### 自定义样式
+
+<code title="自定义样式" src="./selector/demo/custom-style.tsx"></code>
 
 ## API
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `options` | 选项列表 | `SelectorOption[]` | - |
-| `columns` | 每行展示的列数 | `number` | `2` |
+| `columns` | 每行展示的列数 | `number` | `3` |
 | `multiple` | 是否多选 | `boolean` | `false` |
 | `disabled` | 禁用全部选项 | `boolean` | `false` |
 | `value` | 受控选中值列表 | `SelectorValue[]` | - |

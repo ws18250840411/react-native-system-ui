@@ -6,32 +6,24 @@ export default function CheckboxToggleAllDemo() {
     toggleAll: (options?: boolean | { checked?: boolean; skipDisabled?: boolean }) => void
   } | null>(null)
 
-  const toggleAll = (options?: boolean | { checked?: boolean; skipDisabled?: boolean }) => {
-    groupRef.current?.toggleAll(options)
-  }
+  const [value, setValue] = React.useState<(string | number)[]>(['a'])
 
   return (
     <Space direction="vertical" gap={12}>
+      <Checkbox.Group ref={groupRef} value={value} onChange={setValue}>
+        <Checkbox name="a">复选框组a</Checkbox>
+        <Checkbox name="b">复选框组b</Checkbox>
+        <Checkbox name="c">复选框组c</Checkbox>
+      </Checkbox.Group>
+
       <Space direction="horizontal" gap={8}>
-        <Button size="small" onPress={() => toggleAll(true)}>
+        <Button type="primary" onPress={() => groupRef.current?.toggleAll(true)}>
           全选
         </Button>
-        <Button size="small" onPress={() => toggleAll(false)}>
-          取消全选
-        </Button>
-        <Button size="small" type="primary" onPress={() => toggleAll({ skipDisabled: true })}>
-          反选（跳过禁用）
+        <Button type="primary" onPress={() => groupRef.current?.toggleAll()}>
+          反选
         </Button>
       </Space>
-
-      <Checkbox.Group ref={groupRef} defaultValue={['wechat']}>
-        <Checkbox name="wechat">微信通知</Checkbox>
-        <Checkbox name="email">邮件通知</Checkbox>
-        <Checkbox name="sms">短信通知</Checkbox>
-        <Checkbox name="push" disabled>
-          推送通知（禁用）
-        </Checkbox>
-      </Checkbox.Group>
     </Space>
   )
 }

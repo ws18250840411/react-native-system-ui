@@ -1,7 +1,11 @@
-import React, { Fragment } from "react"
-import { Button, Calendar, Form, Picker, Selector, Typography, Field } from "react-native-system-ui"
+import React from 'react'
 
-const cityColumns = ["南京", "苏州", "常州", "淮安", "扬州", "南通", "宿迁", "泰州", "无锡"]
+import { Button, Field, Form, Selector, Toast } from 'react-native-system-ui'
+
+const options = [
+  { label: '手机号', value: 'mobile' },
+  { label: '住址', value: 'address' },
+]
 
 export default function FormShouldUpdateDemo() {
   const formRef = Form.useForm()
@@ -9,8 +13,8 @@ export default function FormShouldUpdateDemo() {
   return (
     <Form
       ref={formRef}
-      colon
-      initialValues={{ type: ["mobile"] }}
+      initialValues={{ type: ['mobile'] }}
+      onFinish={values => Toast.info(JSON.stringify(values))}
       style={{ paddingHorizontal: 12 }}
       footer={
         <Button
@@ -23,50 +27,37 @@ export default function FormShouldUpdateDemo() {
         />
       }
     >
-      <Form.Item name="type" label="联系方式">
+      <Form.Item name="type" label="联系方式" trigger="onChange">
         <Selector
           multiple
-          options={[
-            { label: "手机号", value: "mobile" },
-            { label: "住址", value: "address" },
-          ]}
+          options={options}
         />
       </Form.Item>
 
-      <Form.Item noStyle shouldUpdate={(prev, next) => prev.type !== next.type}>
+      <Form.Item shouldUpdate={(prev, next) => prev.type !== next.type}>
         {({ getFieldValue }) => {
-          const type: string[] = getFieldValue("type") || []
-          const content: React.ReactNode[] = []
+          const selected = (getFieldValue('type') ?? []) as string[]
 
-          if (type.includes("mobile")) {
-            content.push(
-              <Form.Item key="mobile" name="mobile" label="手机号">
-                <Field placeholder="请输入手机号" />
-              </Form.Item>,
-            )
-          }
-
-          if (type.includes("address")) {
-            content.push(
-              <Fragment key="address">
-                <Form.Item
-                  name="area"
-                  label="区域"
-                  trigger="onConfirm"
-                  onClick={(_, actions) => actions?.current?.open?.()}
-                >
-                  <Picker popup columns={cityColumns}>
-                    {val => (val ? <Typography.Text>{val}</Typography.Text> : "请选择地址")}
-                  </Picker>
+          return (
+            <>
+              {selected.includes('mobile') ? (
+                <Form.Item name="mobile" label="手机号">
+                  <Field placeholder="请输入手机号" clearable />
                 </Form.Item>
-                <Form.Item name="area_address" label="详细地址">
-                  <Field placeholder="请输入详细地址" />
-                </Form.Item>
-              </Fragment>,
-            )
-          }
+              ) : null}
 
-          return content
+              {selected.includes('address') ? (
+                <>
+                  <Form.Item name="area" label="地区">
+                    <Field placeholder="请输入地区" clearable />
+                  </Form.Item>
+                  <Form.Item name="address" label="详细地址">
+                    <Field placeholder="请输入详细地址" border={false} />
+                  </Form.Item>
+                </>
+              ) : null}
+            </>
+          )
         }}
       </Form.Item>
     </Form>

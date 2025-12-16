@@ -1,20 +1,16 @@
 import React from 'react'
+import { View } from 'react-native'
 
 import { Grid } from 'react-native-system-ui'
 
-const Label = ({ text }: { text: string }) => (
-  <Grid.Item
-    text={text}
-    icon={() => null}
-    contentStyle={{ alignItems: 'flex-start' }}
-  />
+const Icon = () => (
+  <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: '#eef2ff' }} />
 )
 
 export default () => (
-  <Grid direction="horizontal">
-    <Label text="文字横排" />
-    <Label text="图标在左" />
-    <Label text="按钮入口" />
-    <Label text="更多" />
+  <Grid direction="horizontal" columnNum={3}>
+    <Grid.Item icon={() => <Icon />} text="文字" />
+    <Grid.Item icon={() => <Icon />} text="文字" />
+    <Grid.Item icon={() => <Icon />} text="文字" />
   </Grid>
 )

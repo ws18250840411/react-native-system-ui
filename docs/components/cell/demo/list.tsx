@@ -1,21 +1,25 @@
 import React from 'react'
 
-import { Cell, Avatar } from 'react-native-system-ui'
-import './style.css'
+import { Cell, Image } from 'react-native-system-ui'
 
 export default () => (
-  <div className="demo-cell__section">
-    <Cell.Group>
-      {Array.from({ length: 4 }).map((_, index) => (
-        <Cell
-          key={index}
-          center
-          title={`Avatar ${index}`}
-          label="Deserunt dolor"
-          icon={<Avatar size={40} />}
-          isLink
-        />
-      ))}
-    </Cell.Group>
-  </div>
+  <>
+    {Array.from({ length: 4 }).map((_, idx) => (
+      <Cell
+        key={idx}
+        center
+        title={`Avatar ${idx}`}
+        label="Deserunt dolor"
+        icon={
+          <Image
+            src="https://img.yzcdn.cn/vant/apple-1.jpg"
+            width={44}
+            height={44}
+            round
+          />
+        }
+        isLink
+      />
+    ))}
+  </>
 )

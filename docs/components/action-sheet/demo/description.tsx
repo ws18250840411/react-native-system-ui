@@ -9,7 +9,7 @@ export default () => {
       <ActionSheet
         visible={visible}
         title="分享"
-        description="选择你要分享的平台"
+        description="描述信息"
         actions={[
           { name: '朋友圈', subname: '最多 9 张' },
           { name: '好友', subname: '单条消息' },

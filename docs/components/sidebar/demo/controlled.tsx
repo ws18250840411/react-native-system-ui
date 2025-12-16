@@ -1,22 +1,21 @@
 import React from 'react'
-import { Text, View } from 'react-native'
-
-import { Sidebar } from 'react-native-system-ui'
+import { Toast, Sidebar } from 'react-native-system-ui'
 
 export default () => {
-  const [active, setActive] = React.useState(0)
+  const [active, setActive] = React.useState(2)
 
   return (
-    <View style={{ flexDirection: 'row', height: 200 }}>
-      <Sidebar value={active} onChange={setActive}>
-        <Sidebar.Item title="概览" />
-        <Sidebar.Item title="订单" />
-        <Sidebar.Item title="客户" />
-        <Sidebar.Item title="分析" />
-      </Sidebar>
-      <View style={{ flex: 1, padding: 16 }}>
-        <Text>当前选择：{['概览', '订单', '客户', '分析'][active]}</Text>
-      </View>
-    </View>
+    <Sidebar
+      value={active}
+      onChange={v => {
+        setActive(v)
+        Toast.info(`标签名 ${v + 1}`)
+      }}
+      style={{ height: 200 }}
+    >
+      <Sidebar.Item title="标签名1" />
+      <Sidebar.Item title="标签名2" />
+      <Sidebar.Item title="标签名3" />
+    </Sidebar>
   )
 }

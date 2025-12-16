@@ -10,17 +10,17 @@ export default () => (
       icon={active => <Text style={{ fontSize: 18 }}>{active ? '🔥' : '☀️'}</Text>}
       badge={<Badge dot color="#ff5b05" />}
     >
-      推荐
+      标签名1
     </Tabbar.Item>
     <Tabbar.Item
       name="cart"
       icon={active => <Text style={{ fontSize: 18 }}>{active ? '🛒' : '🧺'}</Text>}
       badge={<Badge content={6} />}
     >
-      购物车
+      标签名2
     </Tabbar.Item>
     <Tabbar.Item name="mine" icon={active => <Text style={{ fontSize: 18 }}>{active ? '⭐' : '☆'}</Text>}>
-      我的
+      标签名3
     </Tabbar.Item>
   </Tabbar>
 )

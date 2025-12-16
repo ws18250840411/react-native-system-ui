@@ -1,15 +1,16 @@
 import React from 'react'
+import { Text } from 'react-native'
 
 import { Space } from 'react-native-system-ui'
 
 const Link = ({ text, color }: { text: string; color?: string }) => (
-  <span style={{ color: color ?? '#2563eb' }}>{text}</span>
+  <Text style={{ color: color ?? '#2563eb' }}>{text}</Text>
 )
 
 export default () => (
-  <Space align="center" divider={<span style={{ color: '#cbd5f5' }}>|</span>}>
-    <Link text="Info" />
-    <Link text="Edit" />
-    <Link text="Delete" color="#dc2626" />
+  <Space align="center" divider={<Text style={{ color: '#cbd5f5' }}>|</Text>}>
+    <Link text="信息" />
+    <Link text="编辑" />
+    <Link text="删除" color="#dc2626" />
   </Space>
 )

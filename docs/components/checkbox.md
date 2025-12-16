@@ -24,29 +24,29 @@ import { Checkbox } from 'react-native-system-ui'
 
 <code title="基础用法" src="./checkbox/demo/basic.tsx"></code>
 
-### 自定义样式
+### 自定义
 
 `shape="square"` 可切换形状，`checkedColor`、`iconSize`、`iconRender` 支持定制样式。
 
-<code title="自定义样式" src="./checkbox/demo/custom.tsx"></code>
+<code title="自定义" src="./checkbox/demo/custom.tsx"></code>
 
-### 受控异步
+### 异步更新
 
 配合 `checked + onChange` 受控模式，在回调中手动更新状态，适合异步确认的场景。
 
-<code title="受控异步" src="./checkbox/demo/async.tsx"></code>
+<code title="异步更新" src="./checkbox/demo/async.tsx"></code>
 
-### 组合使用
+### 复选框组
 
 通过 `Checkbox.Group` 管理一组选项，`value/onChange` 与 react-vant 同步。
 
-<code title="组合使用" src="./checkbox/demo/group.tsx"></code>
+<code title="复选框组" src="./checkbox/demo/group.tsx"></code>
 
-### 布局方向
+### 水平排列
 
 `direction="horizontal"` 时横向排列，`gap` 可调整间距。
 
-<code title="布局方向" src="./checkbox/demo/direction.tsx"></code>
+<code title="水平排列" src="./checkbox/demo/direction.tsx"></code>
 
 ### 最大可选数
 
@@ -64,7 +64,7 @@ import { Checkbox } from 'react-native-system-ui'
 
 在 `Cell` 列表中放置 `Checkbox`，适合设置项等场景。
 
-<code title="搭配单元格使用" src="./checkbox/demo/cell.tsx"></code>
+<code title="搭配单元格组件使用" src="./checkbox/demo/cell.tsx"></code>
 
 ## API
 

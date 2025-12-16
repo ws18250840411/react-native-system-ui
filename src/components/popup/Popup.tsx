@@ -18,7 +18,7 @@ import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
-import { Close } from 'react-native-system-icon'
+import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
 import { useAriaOverlay } from '../../hooks'
@@ -455,7 +455,7 @@ export const Popup: React.FC<PopupProps> = props => {
           hitSlop={8}
           onPress={() => requestClose('close-icon')}
         >
-          {hasCustomCloseIcon ? closeIcon : <Close size={18} fill="#c8c9cc" color="#c8c9cc" />}
+          {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill="#c8c9cc" color="#c8c9cc" />}
         </Pressable>
       ) : null}
       {renderWithSafeArea(children, { safeArea, safeAreaInsetTop, safeAreaInsetBottom })}

@@ -71,7 +71,7 @@ import { Cell } from 'react-native-system-ui'
 
 可使用 `children` 自定义右侧内容。
 
-<code title="自定义内容" src="./cell/demo/custom.tsx"></code>
+<code title="自定义内容" src="./cell/demo/children.tsx"></code>
 
 ### 垂直居中
 

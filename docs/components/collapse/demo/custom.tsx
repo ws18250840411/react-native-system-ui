@@ -11,19 +11,19 @@ export default () => (
       }
       border={false}
     >
-      <Collapse.Panel name="1" title="自定义图标" description="使用 react-native-system-icon">
-        面板内容
-      </Collapse.Panel>
+      <Collapse.Item name="1" title="自定义图标" label="描述信息">
+        文字
+      </Collapse.Item>
     </Collapse>
     <Collapse border={false} iconPosition="left">
-      <Collapse.Panel
+      <Collapse.Item
         name="2"
         title="自定义标题"
-        description="可以放任何元素"
+        label="描述信息"
         icon={<VolumeO fill="#f97316" color="#f97316" />}
       >
-        面板内容
-      </Collapse.Panel>
+        文字
+      </Collapse.Item>
     </Collapse>
   </Space>
 )

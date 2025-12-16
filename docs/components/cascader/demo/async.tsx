@@ -1,16 +1,20 @@
-import React from "react"
-import { Cascader, Field, type CascaderOption } from "react-native-system-ui"
+import React from 'react'
+import { Cascader, Field, type CascaderOption } from 'react-native-system-ui'
 
 interface AsyncOption extends CascaderOption {
   loading?: boolean
   children?: AsyncOption[]
 }
 
-const formatValue = (rows: CascaderOption[]) => rows.map(item => item?.text).filter(Boolean).join(",")
+const formatValue = (rows: CascaderOption[]) =>
+  rows
+    .map(item => item?.text)
+    .filter(Boolean)
+    .join(' / ')
 
 export default function CascaderAsyncDemo() {
   const [dynamicOpts, setDynamicOpts] = React.useState<AsyncOption[]>([
-    { text: "浙江省", value: "330000", children: [] },
+    { text: '浙江省', value: '330000', children: [] },
   ])
   const [value, setValue] = React.useState<string[]>([])
 
@@ -24,13 +28,13 @@ export default function CascaderAsyncDemo() {
           next[0] = {
             ...next[0],
             children: [
-              { text: "杭州市", value: "330100" },
-              { text: "宁波市", value: "330200" },
+              { text: '杭州市', value: '330100' },
+              { text: '宁波市', value: '330200' },
             ],
           }
           return next
         })
-      }, 2000)
+      }, 800)
     }
   }
 
@@ -38,7 +42,7 @@ export default function CascaderAsyncDemo() {
     <Cascader
       poppable
       popupRound
-      title="请选择所在地区"
+      title="请选择地区"
       options={dynamicOpts}
       value={value}
       onChange={val => {
@@ -52,8 +56,8 @@ export default function CascaderAsyncDemo() {
           isLink
           readOnly
           value={formatValue(rows)}
-          placeholder="请选择所在地区"
-          onPress={actions.open}
+          placeholder="请选择地区"
+          onClick={actions.open}
         />
       )}
     </Cascader>

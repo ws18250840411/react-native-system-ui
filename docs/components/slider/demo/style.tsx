@@ -9,7 +9,7 @@ export default function SliderStyleDemo() {
       activeColor="#ee0a24"
       value={value}
       onChange={setValue}
-      onChangeAfter={v => Toast.info(`当前值：${v}`)}
+      onChangeAfter={v => Toast.info(`值：${Array.isArray(v) ? v.join(' ~ ') : v}`)}
     />
   )
 }

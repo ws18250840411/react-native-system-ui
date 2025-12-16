@@ -19,7 +19,7 @@ import { Popup } from 'react-native-system-ui'
 
 ### 基础用法
 
-通过 `visible` 与 `onClose` 受控弹层的打开/关闭状态，最常见的确认/提示面板点击 `Cell` 即可展示。示例中显式指定 `placement="center"` 并仅展示一块内容区域。
+通过 `visible` 与 `onClose` 受控弹层的打开/关闭状态，点击 `Cell` 即可展示。示例使用默认的 `center` 弹出位置，并仅展示一块内容区域。
 
 <code title="基础用法" src="./popup/demo/base.tsx"></code>
 

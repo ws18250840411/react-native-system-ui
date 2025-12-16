@@ -48,7 +48,7 @@ import { DropdownMenu } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `options` | 备选项列表 | `DropdownOption[]` | - |
-| `value` | 当前选择（受控） | `string \| number` | - |
+| `value` | 当前值（受控） | `string \| number` | - |
 | `defaultValue` | 默认值 | `string \| number` | - |
 | `placeholder` | 未选择时的占位 | `ReactNode` | `请选择` |
 | `label` | 自定义标题 | `ReactNode` | - |

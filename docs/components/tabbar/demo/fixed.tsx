@@ -15,15 +15,15 @@ export default () => {
       <AnimatedScrollView {...scrollProps} style={styles.scroll}>
         {blocks.map(block => (
           <View key={block} style={styles.block}>
-            <Text style={styles.blockTitle}>内容块 {block}</Text>
-            <Text style={styles.blockDesc}>向下滚动时 Tabbar 固定在底部并自动适配 Safe Area。</Text>
+            <Text style={styles.blockTitle}>内容 {block}</Text>
+            <Text style={styles.blockDesc}>描述信息</Text>
           </View>
         ))}
       </AnimatedScrollView>
       <Tabbar fixed placeholder>
-        <Tabbar.Item name="home">首页</Tabbar.Item>
-        <Tabbar.Item name="category">分类</Tabbar.Item>
-        <Tabbar.Item name="me">我的</Tabbar.Item>
+        <Tabbar.Item name="tab1">标签名1</Tabbar.Item>
+        <Tabbar.Item name="tab2">标签名2</Tabbar.Item>
+        <Tabbar.Item name="tab3">标签名3</Tabbar.Item>
       </Tabbar>
     </View>
   )

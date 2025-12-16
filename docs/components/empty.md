@@ -23,7 +23,7 @@ import { Empty } from 'react-native-system-ui'
 
 ### 图片类型
 
-通过 `image="error|network|search"` 切换不同语义。
+通过 `image="default|error|network|search"` 切换不同语义。
 
 <code title="图片类型" src="./empty/demo/type.tsx"></code>
 
@@ -43,11 +43,9 @@ import { Empty } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `image` | 图片类型，可选 `default` `error` `network` `search`，也可传入自定义节点 | `EmptyImage \| ReactNode` | `'default'` |
+| `image` | 图片类型，可选 `default` `error` `network` `search`，支持传入图片 URL 或自定义节点 | `EmptyImage \| string \| ReactNode` | `'default'` |
 | `imageSize` | 图片尺寸（px） | `number` | `tokens.sizes.image` |
 | `description` | 描述文案 | `ReactNode` | - |
 | `gap` | 图像与描述之间的间距 | `number` | `tokens.spacing.descriptionMargin` |
 | `imageStyle` | 图片容器样式 | `StyleProp<ViewStyle>` | - |
 | `descriptionStyle` | 文案样式 | `StyleProp<TextStyle>` | - |
-
-> 当前内置的 error/network/search 采用 Unicode 占位，后续可通过 `image` 传入真实插画或品牌插图。

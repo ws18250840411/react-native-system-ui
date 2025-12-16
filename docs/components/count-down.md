@@ -19,17 +19,27 @@ import { CountDown } from 'react-native-system-ui'
 
 ### 基础用法
 
-<code src="./count-down/demo/basic.tsx" title="基础"></code>
+<code title="基础用法" src="./count-down/demo/basic.tsx"></code>
 
-### 受控操作
+### 自定义格式
 
-<code src="./count-down/demo/controls.tsx" title="受控"></code>
+<code title="自定义格式" src="./count-down/demo/format.tsx"></code>
 
-### 毫秒显示
+### 毫秒级渲染
 
-<code src="./count-down/demo/millisecond.tsx" title="毫秒"></code>
+<code title="毫秒级渲染" src="./count-down/demo/millisecond.tsx"></code>
+
+### 自定义样式
+
+<code title="自定义样式" src="./count-down/demo/custom-style.tsx"></code>
+
+### 手动控制
+
+<code title="手动控制" src="./count-down/demo/ref.tsx"></code>
 
 ## API
+
+### Props
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
@@ -40,6 +50,36 @@ import { CountDown } from 'react-native-system-ui'
 | `children` | 自定义渲染函数 | `(current) => ReactNode` | - |
 | `onChange` | 时间变化回调 | `(current) => void` | - |
 | `onFinish` | 倒计时结束回调 | `() => void` | - |
+
+### format 格式
+
+| 格式 | 说明 |
+| --- | --- |
+| `DD` | 天数 |
+| `HH` | 小时 |
+| `mm` | 分钟 |
+| `ss` | 秒数 |
+| `S` | 毫秒（1 位） |
+| `SS` | 毫秒（2 位） |
+| `SSS` | 毫秒（3 位） |
+
+### Events
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `onFinish` | 倒计时结束时触发 | - |
+| `onChange` | 倒计时变化时触发 | `current: CountDownCurrentTime` |
+
+### CountDownCurrentTime 格式
+
+| 名称 | 说明 | 类型 |
+| --- | --- | --- |
+| `total` | 剩余总时间（毫秒） | `number` |
+| `days` | 剩余天数 | `number` |
+| `hours` | 剩余小时 | `number` |
+| `minutes` | 剩余分钟 | `number` |
+| `seconds` | 剩余秒数 | `number` |
+| `milliseconds` | 剩余毫秒 | `number` |
 
 ### CountDownInstance
 
@@ -52,4 +92,18 @@ ref.current?.pause()
 ref.current?.reset()
 ```
 
-> 差异说明：当前版本暂未提供服务端校时等能力，若需要对齐服务端时间可在业务侧监听 `onChange` 并手动调用 `reset`/`start`。
+### 方法
+
+| 方法名 | 说明 | 参数 | 返回值 |
+| --- | --- | --- | --- |
+| `start` | 开始倒计时 | - | - |
+| `pause` | 暂停倒计时 | - | - |
+| `reset` | 重设倒计时（若 `autoStart` 为 `true`，重设后会自动开始倒计时） | - | - |
+
+### 类型定义
+
+组件导出以下类型定义：
+
+```ts
+import type { CountDownInstance, CountDownCurrentTime } from 'react-native-system-ui'
+```

@@ -21,9 +21,9 @@ import { Stepper } from 'react-native-system-ui'
 
 <code title="基础用法" src="./stepper/demo/basic.tsx"></code>
 
-### 自定义精度
+### 自定义精度与样式
 
-<code title="自定义精度" src="./stepper/demo/custom.tsx"></code>
+<code title="自定义精度与样式" src="./stepper/demo/custom.tsx"></code>
 
 ### 禁用与只读
 

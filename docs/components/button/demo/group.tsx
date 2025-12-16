@@ -1,13 +1,12 @@
 import React from 'react'
 
-import { Button } from 'react-native-system-ui'
-import './style.css'
+import { Button, Space } from 'react-native-system-ui'
 
 export default () => (
-  <div className="demo-button demo-button--column">
+  <Space direction="vertical" gap={12}>
     <Button.Group type="primary" round>
       <Button text="上一页" />
       <Button text="下一页" />
     </Button.Group>
-  </div>
+  </Space>
 )

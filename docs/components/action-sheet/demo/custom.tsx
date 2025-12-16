@@ -6,7 +6,7 @@ export default () => {
   const [visible, setVisible] = React.useState(false)
   return (
     <>
-      <Button text="带图标" onPress={() => setVisible(true)} />
+      <Button text="自定义内容" onPress={() => setVisible(true)} />
       <ActionSheet
         visible={visible}
         actions={[

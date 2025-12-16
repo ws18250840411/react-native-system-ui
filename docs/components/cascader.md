@@ -12,7 +12,7 @@ simulator:
 ## 引入
 
 ```js
-import { Cascader } from react-native-system-ui
+import { Cascader } from 'react-native-system-ui'
 ```
 
 ## 代码演示
@@ -21,9 +21,9 @@ import { Cascader } from react-native-system-ui
 
 <code title="基础用法" src="./cascader/demo/basic.tsx"></code>
 
-### Form中使用
+### 表单中使用
 
-<code title="Form中使用" src="./cascader/demo/form.tsx"></code>
+<code title="表单中使用" src="./cascader/demo/form.tsx"></code>
 
 ### 异步加载选项
 

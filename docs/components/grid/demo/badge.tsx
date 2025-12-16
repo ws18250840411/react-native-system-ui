@@ -1,12 +1,15 @@
 import React from 'react'
+import { View } from 'react-native'
 
 import { Grid } from 'react-native-system-ui'
 
+const Icon = () => (
+  <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: '#eef2ff' }} />
+)
+
 export default () => (
-  <Grid>
-    <Grid.Item text="消息" icon={() => null} badge={{ content: 8 }} />
-    <Grid.Item text="更新" icon={() => null} dot />
-    <Grid.Item text="待办" icon={() => null} badge={{ content: 'NEW', color: '#f97316' }} />
-    <Grid.Item text="通知" icon={() => null} />
+  <Grid columnNum={2}>
+    <Grid.Item icon={() => <Icon />} text="文字" badge={{ dot: true }} />
+    <Grid.Item icon={() => <Icon />} text="文字" badge={{ content: '99+' }} />
   </Grid>
 )

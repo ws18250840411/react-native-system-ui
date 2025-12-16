@@ -19,9 +19,13 @@ const DemoIcon = ({ label }: { label: string }) => (
 )
 
 export default () => (
-  <Grid columnNum={3} iconColor="#4338ca">
-    {['待付款', '待收货', '退货', '发票', '客服', '更多'].map((label, index) => (
-      <Grid.Item key={label} text={label} icon={() => <DemoIcon label={`${index + 1}`} />} />
+  <Grid columnNum={3}>
+    {Array.from({ length: 6 }, (_, index) => (
+      <Grid.Item
+        key={index}
+        text="文字"
+        icon={() => <DemoIcon label={`${index + 1}`} />}
+      />
     ))}
   </Grid>
 )

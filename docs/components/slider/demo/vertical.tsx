@@ -7,7 +7,7 @@ export default function SliderVerticalDemo() {
   const [value2, setValue2] = React.useState<[number, number]>([20, 50])
 
   const onChangeAfter = (v: number | [number, number]) => {
-    Toast.info(`当前值：${v}`)
+    Toast.info(`值：${Array.isArray(v) ? v.join(' ~ ') : v}`)
   }
 
   return (

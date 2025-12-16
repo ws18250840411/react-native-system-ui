@@ -1,48 +1,47 @@
 import React from 'react'
-import { Picker, Toast, type PickerOption, type PickerValue } from 'react-native-system-ui'
-import { View, Text } from 'react-native'
+import { Picker } from 'react-native-system-ui'
 
 const columns = [
   {
-    label: '浙江省',
-    value: 'zhejiang',
+    label: '江苏',
+    value: '1',
     children: [
       {
-        label: '杭州市',
-        value: 'hangzhou',
+        label: '苏州',
+        value: '1-1',
         children: [
-          { label: '西湖区', value: 'xihu' },
-          { label: '余杭区', value: 'yuhang' },
+          { label: '姑苏区', value: '1-1-1' },
+          { label: '吴中区', value: '1-1-2' },
         ],
       },
       {
-        label: '宁波市',
-        value: 'ningbo',
+        label: '扬州',
+        value: '1-2',
         children: [
-          { label: '鄞州区', value: 'yinzhou' },
-          { label: '海曙区', value: 'haishu' },
+          { label: '广陵区', value: '1-2-1' },
+          { label: '邗江区', value: '1-2-2' },
         ],
       },
     ],
   },
   {
-    label: '江苏省',
-    value: 'jiangsu',
+    label: '浙江',
+    value: '2',
     children: [
       {
-        label: '南京市',
-        value: 'nanjing',
+        label: '杭州',
+        value: '2-1',
         children: [
-          { label: '秦淮区', value: 'qinhuai' },
-          { label: '鼓楼区', value: 'gulou' },
+          { label: '西湖区', value: '2-1-1' },
+          { label: '余杭区', value: '2-1-2' },
         ],
       },
       {
-        label: '苏州市',
-        value: 'suzhou',
+        label: '温州',
+        value: '2-2',
         children: [
-          { label: '姑苏区', value: 'gusu' },
-          { label: '吴中区', value: 'wuzhong' },
+          { label: '鹿城区', value: '2-2-1' },
+          { label: '瓯海区', value: '2-2-2' },
         ],
       },
     ],
@@ -50,25 +49,9 @@ const columns = [
 ]
 
 export default function PickerCascadeDemo() {
-  const [value, setValue] = React.useState<PickerValue[]>(['zhejiang', 'hangzhou', 'xihu'])
-
-  const handleConfirm = React.useCallback((vals: PickerValue[], opts: (PickerOption | undefined)[]) => {
-    Toast.show({ message: `已选：${opts.map(o => o?.label ?? o?.value).join(' / ')}` })
-  }, [])
+  const [value, setValue] = React.useState<(string | number)[]>(['2', '2-2', '2-2-2'])
 
   return (
-    <View style={{ gap: 8 }}>
-      <Text style={{ color: '#646566' }}>当前：{value.join(' / ')}</Text>
-      <Picker
-        columns={columns}
-        value={value}
-        onChange={setValue}
-        onConfirm={handleConfirm}
-        debug
-        confirmButtonText="确定"
-        cancelButtonText="取消"
-        readOnly={false}
-      />
-    </View>
+    <Picker columns={columns} value={value} onChange={setValue} />
   )
 }

@@ -153,15 +153,17 @@ const Calendar: React.FC<CalendarProps> = props => {
     return clampMonth(initial, minDate, maxDate)
   })
 
+  const firstValueTime = value.length ? value[0].getTime() : null
+  const minDateTime = minDate.getTime()
+  const maxDateTime = maxDate.getTime()
+
   React.useEffect(() => {
     if (!value.length) {
       return
     }
     const first = clampMonth(value[0], minDate, maxDate)
-    if (!isSameMonth(first, currentMonth)) {
-      setCurrentMonth(first)
-    }
-  }, [value, minDate, maxDate, currentMonth])
+    setCurrentMonth(prev => (isSameMonth(first, prev) ? prev : first))
+  }, [firstValueTime, minDateTime, maxDateTime])
 
   const monthDays = React.useMemo(
     () => buildMonth(currentMonth, weekStartsOn),
@@ -337,7 +339,11 @@ const Calendar: React.FC<CalendarProps> = props => {
     <View style={[styles.container, { backgroundColor: tokens.colors.background }, style]} {...rest}>
       {showHeader ? (
         <View style={styles.header}>
-          <Pressable onPress={() => canGoPrev && goToMonth(-1)} disabled={!canGoPrev}>
+          <Pressable
+            testID="calendar-nav-prev"
+            onPress={() => canGoPrev && goToMonth(-1)}
+            disabled={!canGoPrev}
+          >
             <Text style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}>{"<"}</Text>
           </Pressable>
           <View style={styles.headerCenter}>
@@ -352,7 +358,11 @@ const Calendar: React.FC<CalendarProps> = props => {
                 : monthLabel
             ) : null}
           </View>
-          <Pressable onPress={() => canGoNext && goToMonth(1)} disabled={!canGoNext}>
+          <Pressable
+            testID="calendar-nav-next"
+            onPress={() => canGoNext && goToMonth(1)}
+            disabled={!canGoNext}
+          >
             <Text style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}>{">"}</Text>
           </Pressable>
         </View>

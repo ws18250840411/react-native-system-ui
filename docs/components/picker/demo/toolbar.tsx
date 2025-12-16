@@ -1,30 +1,23 @@
 import React from 'react'
-import { Picker } from 'react-native-system-ui'
-import { View, Text } from 'react-native'
+import { Picker, Toast, type PickerOption } from 'react-native-system-ui'
 
-const columns = [
-  [
-    { label: '8:00', value: '0800' },
-    { label: '9:00', value: '0900' },
-    { label: '10:00', value: '1000' },
-  ],
+const columns: PickerOption[] = [
+  { label: '8:00', value: '0800' },
+  { label: '9:00', value: '0900' },
+  { label: '10:00', value: '1000' },
 ]
 
 export default function PickerToolbarDemo() {
-  const [value, setValue] = React.useState(['0800'])
-
   return (
-    <View style={{ gap: 8, padding: 12, backgroundColor: '#f7f8fa' }}>
-      <Text style={{ color: '#646566' }}>会议时间：{value[0]}</Text>
-      <Picker
-        columns={columns}
-        value={value}
-        onChange={setValue}
-        confirmButtonText="完成"
-        cancelButtonText="返回"
-        toolbarPosition="bottom"
-        readOnly={false}
-      />
-    </View>
+    <Picker
+      title="会议时间"
+      columns={columns}
+      defaultValue="0800"
+      confirmButtonText="完成"
+      cancelButtonText="返回"
+      toolbarPosition="bottom"
+      onCancel={() => Toast.info('点击取消按钮')}
+      onConfirm={() => Toast.info('点击确认按钮')}
+    />
   )
 }

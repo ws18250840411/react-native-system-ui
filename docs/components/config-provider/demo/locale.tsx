@@ -1,25 +1,25 @@
 import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
-import { ConfigProvider, zhCN, enUS, Button, useLocale } from 'react-native-system-ui'
-import './style.css'
+import { Button, ConfigProvider, Space, enUS, useLocale, zhCN } from 'react-native-system-ui'
 
 const LocaleViewer = () => {
   const locale = useLocale()
   return (
-    <div className="demo-config-provider__locale-preview">
-      <p>
-        <strong>Loading</strong>
-        {locale.loading}
-      </p>
-      <p>
-        <strong>Confirm</strong>
-        {locale.confirm}
-      </p>
-      <p>
-        <strong>Cancel</strong>
-        {locale.cancel}
-      </p>
-    </div>
+    <View style={styles.localePreview}>
+      <View style={styles.localeRow}>
+        <Text style={styles.localeLabel}>Loading</Text>
+        <Text style={styles.localeValue}>{locale.loading}</Text>
+      </View>
+      <View style={styles.localeRow}>
+        <Text style={styles.localeLabel}>Confirm</Text>
+        <Text style={styles.localeValue}>{locale.confirm}</Text>
+      </View>
+      <View style={styles.localeRow}>
+        <Text style={styles.localeLabel}>Cancel</Text>
+        <Text style={styles.localeValue}>{locale.cancel}</Text>
+      </View>
+    </View>
   )
 }
 
@@ -28,10 +28,10 @@ export default () => {
   const locale = language === 'en' ? enUS : zhCN
 
   return (
-    <div className="demo-config-provider">
-      <section className="demo-config-provider__panel">
-        <p className="demo-config-provider__title">语言切换</p>
-        <div className="demo-config-provider__actions">
+    <View style={styles.root}>
+      <View style={styles.panel}>
+        <Text style={styles.title}>语言切换</Text>
+        <Space wrap gap={8} style={styles.actions}>
           <Button
             text="中文"
             size="small"
@@ -44,11 +44,54 @@ export default () => {
             type={language === 'en' ? 'primary' : 'default'}
             onPress={() => setLanguage('en')}
           />
-        </div>
+        </Space>
         <ConfigProvider locale={locale}>
           <LocaleViewer />
         </ConfigProvider>
-      </section>
-    </div>
+      </View>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  root: {
+    width: '100%',
+  },
+  panel: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+  },
+  title: {
+    marginBottom: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1d1f2c',
+  },
+  actions: {
+    marginBottom: 12,
+    width: '100%',
+  },
+  localePreview: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#f4f7ff',
+  },
+  localeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  localeLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475467',
+    marginRight: 6,
+    minWidth: 56,
+  },
+  localeValue: {
+    fontSize: 13,
+    color: '#101828',
+    flexShrink: 1,
+  },
+})

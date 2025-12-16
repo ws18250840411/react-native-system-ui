@@ -20,9 +20,9 @@ const DemoIcon = ({ color }: { color: string }) => (
 
 export default () => (
   <Grid>
-    <Grid.Item text="订单" icon={(size, color) => <DemoIcon color={color} />} />
-    <Grid.Item text="物流" icon={(size, color) => <DemoIcon color={color} />} />
-    <Grid.Item text="客服" icon={(size, color) => <DemoIcon color={color} />} />
-    <Grid.Item text="更多" icon={(size, color) => <DemoIcon color={color} />} />
+    <Grid.Item text="文字" icon={(size, color) => <DemoIcon color={color} />} />
+    <Grid.Item text="文字" icon={(size, color) => <DemoIcon color={color} />} />
+    <Grid.Item text="文字" icon={(size, color) => <DemoIcon color={color} />} />
+    <Grid.Item text="文字" icon={(size, color) => <DemoIcon color={color} />} />
   </Grid>
 )

@@ -68,6 +68,7 @@
 
 - **文档**：中文优先，结构统一（介绍 → 引入 → 示例 → API 表）；特殊限制需在 “注意” 栏说明。
 - **示例**：演示必须覆盖常规场景、强调场景、自定义主题/颜色；涉及手势的 demo 提供交互说明。
+- **Demo 统一规范**：文案/结构/占位数据统一以便对比，详见 `docs/guide/demo-style.md`。
 - **测试**：对关键逻辑使用快照 + 交互测试；复杂状态使用 `@testing-library/react-native`；弹层需模拟 BackHandler/动画关闭流程。
 - **发布前校验**：运行 `pnpm test`、`pnpm docs:build`，并在真机或模拟器验证 iOS/Android/Web 行为。
 

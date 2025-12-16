@@ -2,5 +2,5 @@ import React from 'react'
 import { CountDown } from 'react-native-system-ui'
 
 export default () => (
-  <CountDown time={3 * 1000} format="ss:SSS" millisecond onFinish={() => {}} />
+  <CountDown time={30 * 60 * 60 * 1000} millisecond format="HH:mm:ss:SS" />
 )

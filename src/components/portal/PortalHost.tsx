@@ -39,7 +39,10 @@ class PortalLayer extends React.PureComponent<PortalLayerProps, PortalLayerState
             key={entry.key}
             pointerEvents="box-none"
             collapsable={false}
-            style={styles.portalEntry}
+            style={[
+              styles.portalEntry,
+              resolveEntryZIndex(entry.children),
+            ]}
           >
             {entry.children}
           </View>
@@ -47,6 +50,41 @@ class PortalLayer extends React.PureComponent<PortalLayerProps, PortalLayerState
       </View>
     )
   }
+}
+
+const resolveEntryZIndex = (children: React.ReactNode) => {
+  const zIndex = getMaxZIndex(children)
+  return typeof zIndex === 'number' ? { zIndex } : null
+}
+
+const getMaxZIndex = (node: React.ReactNode): number | undefined => {
+  if (!node) return undefined
+  if (Array.isArray(node)) {
+    let max: number | undefined
+    node.forEach(child => {
+      const value = getMaxZIndex(child)
+      if (typeof value === 'number') {
+        max = typeof max === 'number' ? Math.max(max, value) : value
+      }
+    })
+    return max
+  }
+
+  if (React.isValidElement(node)) {
+    const style = (node.props as any)?.style
+    if (style && typeof style !== 'function') {
+      const flattened = StyleSheet.flatten(style)
+      const zIndex = flattened?.zIndex
+      if (typeof zIndex === 'number') {
+        return zIndex
+      }
+    }
+
+    // 支持 Fragment / 包装组件：继续向内找
+    return getMaxZIndex((node.props as any)?.children)
+  }
+
+  return undefined
 }
 
 const hostStack: PortalLayer[] = []
@@ -190,6 +228,7 @@ export class PortalHost extends React.Component<PortalHostProps> {
 const styles = StyleSheet.create({
   root: {
     position: 'relative',
+    flex: 1,
   },
   portalLayer: {
     ...StyleSheet.absoluteFillObject,

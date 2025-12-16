@@ -14,7 +14,7 @@ export default () => {
       <Dialog
         visible={visible}
         title="温馨提示"
-        message="请确认是否要继续当前操作"
+        message="请确认是否要继续操作"
         showCancelButton
         onCancel={() => setVisible(false)}
         onConfirm={() => setVisible(false)}

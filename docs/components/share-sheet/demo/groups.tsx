@@ -23,7 +23,7 @@ export default () => {
       <ShareSheet
         visible={visible}
         title="分享至"
-        description="快捷分享"
+        description="描述信息"
         options={options}
         onClose={() => setVisible(false)}
       />

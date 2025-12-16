@@ -1,17 +1,17 @@
 import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
 import { Flex } from 'react-native-system-ui'
-import './style.css'
 
 const Cell = ({ label }: { label: string }) => (
-  <div className="demo-flex__item">
-    <div className="demo-flex__cell">{label}</div>
-  </div>
+  <View style={styles.cell}>
+    <Text style={styles.cellText}>{label}</Text>
+  </View>
 )
 
 export default () => (
-  <div className="demo-flex">
-    <div className="demo-flex__row">
+  <View>
+    <View style={styles.row}>
       <Flex gutter={[12, 12]}>
         {new Array(3).fill(null).map((_, index) => (
           <Flex.Item span={8} key={`row1-${index}`}>
@@ -19,8 +19,8 @@ export default () => (
           </Flex.Item>
         ))}
       </Flex>
-    </div>
-    <div className="demo-flex__row">
+    </View>
+    <View>
       <Flex gutter={[12, 12]}>
         {new Array(3).fill(null).map((_, index) => (
           <Flex.Item span={8} key={`row2-${index}`}>
@@ -28,6 +28,25 @@ export default () => (
           </Flex.Item>
         ))}
       </Flex>
-    </div>
-  </div>
+    </View>
+  </View>
 )
+
+const styles = StyleSheet.create({
+  row: {
+    marginBottom: 10,
+  },
+  cell: {
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+    backgroundColor: '#dfe4ff',
+  },
+  cellText: {
+    fontSize: 13,
+    lineHeight: 30,
+    fontWeight: '600',
+    color: '#4f5bff',
+  },
+})

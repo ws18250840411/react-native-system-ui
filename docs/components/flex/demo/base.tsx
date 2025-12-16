@@ -1,19 +1,26 @@
 import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
 import { Flex } from 'react-native-system-ui'
-import './style.css'
 
 type Tone = 'tone-1' | 'tone-2' | 'tone-3' | 'tone-4'
 
+const toneColors: Record<Tone, string> = {
+  'tone-1': '#3f45ff',
+  'tone-2': '#4c52ff',
+  'tone-3': '#5a60ff',
+  'tone-4': '#686eff',
+}
+
 const Block = ({ label, tone }: { label: string; tone: Tone }) => (
-  <div className="demo-flex__item">
-    <div className={`demo-flex__block demo-flex__block--${tone}`}>{label}</div>
-  </div>
+  <View style={[styles.block, { backgroundColor: toneColors[tone] }]}>
+    <Text style={styles.blockText}>{label}</Text>
+  </View>
 )
 
 export default () => (
-  <div className="demo-flex">
-    <div className="demo-flex__row">
+  <View>
+    <View style={styles.row}>
       <Flex justify="center" align="center">
         <Flex.Item span={12}>
           <Block label="span: 12" tone="tone-1" />
@@ -22,8 +29,8 @@ export default () => (
           <Block label="span: 12" tone="tone-2" />
         </Flex.Item>
       </Flex>
-    </div>
-    <div className="demo-flex__row">
+    </View>
+    <View>
       <Flex>
         <Flex.Item span={8}>
           <Block label="span: 8" tone="tone-2" />
@@ -35,6 +42,24 @@ export default () => (
           <Block label="span: 8" tone="tone-4" />
         </Flex.Item>
       </Flex>
-    </div>
-  </div>
+    </View>
+  </View>
 )
+
+const styles = StyleSheet.create({
+  row: {
+    marginBottom: 10,
+  },
+  block: {
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+  },
+  blockText: {
+    fontSize: 13,
+    lineHeight: 30,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+})

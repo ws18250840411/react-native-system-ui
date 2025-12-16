@@ -16,9 +16,8 @@ const SquareIcon = () => (
 
 export default () => (
   <Grid square>
-    <Grid.Item text="宫格" icon={() => <SquareIcon />} />
-    <Grid.Item text="正方形" icon={() => <SquareIcon />} />
-    <Grid.Item text="快捷入口" icon={() => <SquareIcon />} />
-    <Grid.Item text="更多" icon={() => <SquareIcon />} />
+    {Array.from({ length: 8 }, (_, index) => (
+      <Grid.Item key={index} text="文字" icon={() => <SquareIcon />} />
+    ))}
   </Grid>
 )

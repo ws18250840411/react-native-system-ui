@@ -1,17 +1,11 @@
 import React from 'react'
-import { View } from 'react-native'
 
 import { Empty } from 'react-native-system-ui'
 
-const CustomImage = () => (
-  <View
-    style={{
-      width: 100,
-      height: 60,
-      borderRadius: 12,
-      backgroundColor: '#dbeafe',
-    }}
+export default () => (
+  <Empty
+    image="https://img.yzcdn.cn/vant/custom-empty-image.png"
+    imageSize={90}
+    description="描述信息"
   />
 )
-
-export default () => <Empty image={<CustomImage />} description="自定义插画" />

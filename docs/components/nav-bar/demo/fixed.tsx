@@ -12,12 +12,12 @@ export default () => {
 
   return (
     <View style={styles.wrapper}>
-      <NavBar fixed placeholder title="吸顶导航" rightText="客服" onPressRight={() => {}} />
+      <NavBar fixed placeholder title="标题" rightText="按钮" onPressRight={() => {}} />
       <AnimatedScrollView {...scrollProps} style={styles.scroll}>
         {sections.map(section => (
           <View key={section} style={styles.section}>
-            <Text style={styles.sectionTitle}>内容区块 {section}</Text>
-            <Text style={styles.sectionDesc}>与 Tabbar 一样，NavBar 在 fixed 模式下会占位。</Text>
+            <Text style={styles.sectionTitle}>内容 {section}</Text>
+            <Text style={styles.sectionDesc}>描述信息</Text>
           </View>
         ))}
       </AnimatedScrollView>

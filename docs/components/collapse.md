@@ -25,6 +25,10 @@ import { Collapse } from 'react-native-system-ui'
 
 <code title="手风琴模式" src="./collapse/demo/accordion.tsx"></code>
 
+### 禁用状态
+
+<code title="禁用状态" src="./collapse/demo/disabled.tsx"></code>
+
 ### 自定义图标与标题
 
 <code title="自定义图标" src="./collapse/demo/custom.tsx"></code>
@@ -44,15 +48,21 @@ import { Collapse } from 'react-native-system-ui'
 | `expandIcon` | 自定义展开图标 | `ReactNode \| (active: boolean) => ReactNode` | 默认箭头 |
 | `disabled` | 是否禁用全部面板 | `boolean` | `false` |
 
-### Collapse.Panel Props
+### Collapse.Item Props
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `name` | 唯一标识符 | `string` | 子序号 |
 | `title` | 面板标题 | `ReactNode` | - |
-| `description` | 标题下方描述 | `ReactNode` | - |
+| `label` | 标题下方描述 | `ReactNode` | - |
 | `icon` | 标题左侧图标 | `ReactNode` | - |
-| `extra` | 标题右侧区域 | `ReactNode` | - |
+| `value` | 标题右侧区域 | `ReactNode` | - |
+| `border` | 是否显示内边框 | `boolean` | `true` |
+| `isLink` | 是否展示标题栏右侧箭头 | `boolean` | `true` |
+| `size` | 标题栏大小，可选值为 `large` | `'normal' \| 'large'` | `'normal'` |
 | `disabled` | 是否禁用当前面板 | `boolean` | `false` |
+| `readOnly` | 是否为只读状态，只读状态下无法操作面板 | `boolean` | `false` |
 
-> `Collapse.Panel` 内部可以放任意自定义内容；当传入 `expandIcon` 为函数时会收到当前展开状态。
+> `Collapse.Item` 内部可以放任意自定义内容；当传入 `expandIcon` 为函数时会收到当前展开状态。
+>
+> 为了兼容旧写法：`Collapse.Panel` 等价于 `Collapse.Item`，且 `description/extra` 分别是 `label/value` 的别名。

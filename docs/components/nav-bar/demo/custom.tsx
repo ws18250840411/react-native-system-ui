@@ -8,12 +8,12 @@ export default () => (
     background="#0f172a"
     tintColor="#f8fafc"
     leftArrow={false}
-    rightText="更多"
+    rightText="按钮"
     onPressRight={() => {}}
   >
     <View style={styles.center}>
-      <Text style={styles.title}>沉浸式标题</Text>
-      <Text style={styles.subtitle}>自定义居中内容</Text>
+      <Text style={styles.title}>标题</Text>
+      <Text style={styles.subtitle}>描述信息</Text>
     </View>
   </NavBar>
 )

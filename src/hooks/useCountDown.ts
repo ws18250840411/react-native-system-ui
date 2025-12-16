@@ -56,23 +56,21 @@ const useCountDown = (options: UseCountDownOptions) => {
   const tick = React.useCallback(() => {
     if (!countingRef.current) return
     clearTimer()
-    const interval = millisecond ? 30 : 1000
+    const remain = Math.max(endTimeRef.current - Date.now(), 0)
+    update(remain)
+    if (remain <= 0) return
+
+    const delay = millisecond
+      ? Math.max(1, Math.min(30, remain))
+      : Math.max(1, Math.min(remain, (remain % 1000) + 1))
+
     timerRef.current = setTimeout(() => {
-      const remain = Math.max(endTimeRef.current - Date.now(), 0)
-      update(remain)
-      if (remain > 0) {
-        tick()
-      }
-    }, interval)
+      tick()
+    }, delay)
   }, [clearTimer, millisecond, update])
 
   const start = React.useCallback(() => {
-    if (countingRef.current || remainRef.current <= 0) {
-      if (remainRef.current <= 0) {
-        update(0)
-      }
-      return
-    }
+    if (countingRef.current || remainRef.current <= 0) return
     countingRef.current = true
     endTimeRef.current = Date.now() + remainRef.current
     tick()
@@ -90,8 +88,8 @@ const useCountDown = (options: UseCountDownOptions) => {
     const next = Math.max(0, typeof newTime === 'number' ? newTime : time)
     remainRef.current = next
     endTimeRef.current = Date.now() + next
-    update(next)
-  }, [pause, time, update])
+    setCurrent(parseTime(next))
+  }, [pause, time])
 
   React.useEffect(() => () => clearTimer(), [clearTimer])
 

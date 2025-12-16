@@ -5,7 +5,7 @@ import { Space, Button } from 'react-native-system-ui'
 export default () => (
   <Space wrap gap={[8, 20]}>
     {new Array(6).fill(null).map((_, index) => (
-      <Button text="Button" key={index} />
+      <Button text="按钮" key={index} />
     ))}
   </Space>
 )
