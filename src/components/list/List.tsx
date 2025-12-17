@@ -1,44 +1,65 @@
 import React from 'react'
-import { ActivityIndicator, ScrollView, Text, View, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native'
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native'
 
+import { useLocale } from '../config-provider/useLocale'
+import Loading from '../loading'
 import type { ListProps, ListRef } from './types'
 
 const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
+  const locale = useLocale()
+
   const {
     onLoad,
     finished = false,
-    offset = 120,
-    loadingText = '加载中…',
+    offset = 300,
+    loadingText: loadingTextProp,
     finishedText,
-    errorText = '加载失败，点击重试',
+    errorText,
     children,
     contentContainerStyle,
     ...scrollProps
   } = props
 
+  const loadingText = typeof loadingTextProp === 'undefined' ? locale.loading : loadingTextProp
+
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'error'>('idle')
+  const loadingRef = React.useRef(false)
   const containerHeightRef = React.useRef(0)
   const contentHeightRef = React.useRef(0)
 
   const triggerLoad = React.useCallback(
     async (isRetry: boolean) => {
-      if (!onLoad || finished || status === 'loading') return
+      if (!onLoad || finished) return
+      if (loadingRef.current) return
+      if (status === 'error' && !isRetry) return
+
+      loadingRef.current = true
       setStatus('loading')
       try {
-        await onLoad(isRetry)
+        await Promise.resolve(onLoad(isRetry))
         setStatus('idle')
       } catch (error) {
         setStatus('error')
+      } finally {
+        loadingRef.current = false
       }
     },
     [finished, onLoad, status]
   )
 
   const check = React.useCallback(() => {
+    if (status !== 'idle') return
     if (contentHeightRef.current <= containerHeightRef.current && !finished) {
       triggerLoad(false)
     }
-  }, [finished, triggerLoad])
+  }, [finished, status, triggerLoad])
 
   React.useImperativeHandle(ref, () => ({ check }), [check])
 
@@ -93,25 +114,54 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
       onLayout={handleLayout}
     >
       {children}
-      <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+      <View style={{ paddingVertical: 16, alignItems: 'center' }} testID="rv-list-footer">
         {status === 'loading' ? (
-          <>
-            <ActivityIndicator />
-            {loadingText ? <Text style={{ marginTop: 4 }}>{loadingText}</Text> : null}
-          </>
+          typeof loadingText === 'string' || typeof loadingText === 'number'
+            ? (
+              <Loading size={16} testID="rv-list-loading">
+                {loadingText}
+              </Loading>
+            )
+            : (
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center' }}
+                testID="rv-list-loading"
+              >
+                <Loading size={16} />
+                {loadingText ? <View style={{ marginLeft: 8 }}>{loadingText}</View> : null}
+              </View>
+            )
         ) : null}
         {status === 'error'
           ? typeof errorText === 'function'
             ? errorText(retry)
-            : (
-              <Text onPress={retry} style={{ color: '#ff5b05' }}>
-                {errorText}
+            : errorText
+              ? typeof errorText === 'string' || typeof errorText === 'number'
+                ? (
+                  <Text testID="rv-list-error" onPress={retry} style={{ color: '#ff5b05' }}>
+                    {errorText}
+                  </Text>
+                )
+                : (
+                  <Pressable testID="rv-list-error" onPress={retry}>
+                    {errorText}
+                  </Pressable>
+                )
+              : null
+          : null}
+        {finished && status === 'idle' && finishedText
+          ? typeof finishedText === 'string' || typeof finishedText === 'number'
+            ? (
+              <Text testID="rv-list-finished" style={{ color: '#999999' }}>
+                {finishedText}
               </Text>
             )
+            : (
+              <View testID="rv-list-finished">
+                {finishedText}
+              </View>
+            )
           : null}
-        {finished && status === 'idle' && finishedText ? (
-          <Text style={{ color: '#999999' }}>{finishedText}</Text>
-        ) : null}
       </View>
     </ScrollView>
   )

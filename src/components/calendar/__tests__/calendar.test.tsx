@@ -2,9 +2,15 @@ import React from "react"
 import renderer, { act } from "react-test-renderer"
 
 import Calendar from ".."
-import { PortalHost } from "../../portal"
+import { Portal, PortalHost } from "../../portal"
 
 describe("Calendar", () => {
+  afterEach(() => {
+    act(() => {
+      Portal.clear()
+    })
+  })
+
   it("selects single date", () => {
     const handleSelect = jest.fn()
     const january2024 = new Date(2024, 0, 1)
@@ -119,7 +125,9 @@ describe("Calendar", () => {
       </PortalHost>,
     )
 
-    const dayButton = tree.root.findByProps({ testID: "calendar-day-2024-01-10" })
+    const dayButtons = tree.root.findAllByProps({ testID: "calendar-day-2024-01-10" })
+    expect(dayButtons.length).toBeGreaterThan(0)
+    const dayButton = dayButtons[0]
 
     act(() => {
       dayButton.props.onPress()
@@ -145,5 +153,90 @@ describe("Calendar", () => {
     })
 
     expect(tree.root.findByProps({ testID: "calendar-day-2024-02-01" })).toBeTruthy()
+  })
+
+  it("allows navigating months after reopening in poppable mode", () => {
+    let visible = true
+    let selected: Date | null = new Date(2024, 0, 20)
+
+    const tree = renderer.create(
+      <PortalHost>
+        <Calendar
+          poppable
+          visible={visible}
+          value={selected}
+          showConfirm={false}
+          minDate={new Date(2023, 0, 1)}
+          maxDate={new Date(2025, 11, 31)}
+          onSelect={next => {
+            selected = next as Date
+          }}
+          onVisibleChange={next => {
+            visible = next
+          }}
+        />
+      </PortalHost>,
+    )
+
+    const dayButtons = tree.root.findAllByProps({ testID: "calendar-day-2024-01-10" })
+    expect(dayButtons.length).toBeGreaterThan(0)
+    const dayButton = dayButtons[0]
+
+    act(() => {
+      dayButton.props.onPress()
+    })
+
+    act(() => {
+      tree.update(
+        <PortalHost>
+          <Calendar
+            poppable
+            visible={visible}
+            value={selected}
+            showConfirm={false}
+            minDate={new Date(2023, 0, 1)}
+            maxDate={new Date(2025, 11, 31)}
+            onSelect={next => {
+              selected = next as Date
+            }}
+            onVisibleChange={next => {
+              visible = next
+            }}
+          />
+        </PortalHost>,
+      )
+    })
+
+    act(() => {
+      visible = true
+      tree.update(
+        <PortalHost>
+          <Calendar
+            poppable
+            visible={visible}
+            value={selected}
+            showConfirm={false}
+            minDate={new Date(2023, 0, 1)}
+            maxDate={new Date(2025, 11, 31)}
+            onSelect={next => {
+              selected = next as Date
+            }}
+            onVisibleChange={next => {
+              visible = next
+            }}
+          />
+        </PortalHost>,
+      )
+    })
+
+    const nextButtons = tree.root.findAllByProps({ testID: "calendar-nav-next" })
+    expect(nextButtons.length).toBeGreaterThan(0)
+    const nextButton = nextButtons[0]
+    act(() => {
+      nextButton.props.onPress()
+    })
+
+    const febDays = tree.root.findAllByProps({ testID: "calendar-day-2024-02-01" })
+    expect(febDays.length).toBeGreaterThan(0)
   })
 })

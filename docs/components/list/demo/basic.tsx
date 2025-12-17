@@ -1,4 +1,5 @@
 import React from 'react'
+import { View } from 'react-native'
 import { List, Cell } from 'react-native-system-ui'
 
 export default () => {
@@ -17,10 +18,12 @@ export default () => {
   }
 
   return (
-    <List onLoad={loadMore} finished={finished} finishedText="没有更多了">
-      {data.map(item => (
-        <Cell key={item} title={item} />
-      ))}
-    </List>
+    <View style={{ height: 400 }}>
+      <List onLoad={loadMore} finished={finished} finishedText="没有更多了">
+        {data.map(item => (
+          <Cell key={item} title={item} />
+        ))}
+      </List>
+    </View>
   )
 }

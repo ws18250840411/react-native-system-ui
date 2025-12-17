@@ -7,6 +7,9 @@ import { useControllableValue } from '../../hooks'
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
 
+const isTextLike = (value: React.ReactNode): value is string | number =>
+  typeof value === 'string' || typeof value === 'number'
+
 const makePage = (number: number, text: React.ReactNode, active?: boolean): PaginationPageItem => ({
   number,
   text,
@@ -42,6 +45,8 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     return 1
   }, [itemsPerPage, pageCount, totalItems])
 
+  const currentPage = React.useMemo(() => clamp(page, 1, count), [count, page])
+
   const pages = React.useMemo(() => {
     if (mode !== 'multi') return []
     const items: PaginationPageItem[] = []
@@ -51,7 +56,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     const maxSized = limit < count
 
     if (maxSized) {
-      startPage = Math.max(page - Math.floor(limit / 2), 1)
+      startPage = Math.max(currentPage - Math.floor(limit / 2), 1)
       endPage = startPage + limit - 1
       if (endPage > count) {
         endPage = count
@@ -60,7 +65,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     }
 
     for (let number = startPage; number <= endPage; number += 1) {
-      items.push(makePage(number, number, number === page))
+      items.push(makePage(number, number, number === currentPage))
     }
 
     if (maxSized && forceEllipses) {
@@ -73,50 +78,67 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     }
 
     return items
-  }, [mode, showPageSize, count, page, forceEllipses])
+  }, [mode, showPageSize, count, currentPage, forceEllipses])
 
   React.useEffect(() => {
-    setPage(clamp(page, 1, count))
-  }, [count])
+    if (page !== currentPage) {
+      setPage(currentPage)
+    }
+  }, [currentPage, page, setPage])
 
   const handleSelect = React.useCallback((next: number) => {
     const target = clamp(next, 1, count)
     setPage(target)
   }, [count, setPage])
 
-  const renderPage = (item: PaginationPageItem, index: number) => (
-    <Pressable
-      key={`${item.number}-${index}`}
-      onPress={() => handleSelect(item.number)}
-      style={({ pressed }) => [
-        styles.item,
-        {
-          paddingHorizontal: tokens.spacing.paddingX,
-          paddingVertical: tokens.spacing.paddingY,
-          borderColor: tokens.colors.border,
-          borderRadius: tokens.radius,
-          backgroundColor: item.active ? tokens.colors.activeBackground : 'transparent',
-        },
-        pressed && !item.active ? { opacity: 0.7 } : null,
-      ]}
-      testID={`rv-pagination-page-${index}`}
-    >
-      <Text style={{
-        color: item.active ? tokens.colors.activeText : tokens.colors.text,
-        fontWeight: item.active ? '600' : '400',
-      }}>
-        {pageRender ? pageRender(item) : item.text}
-      </Text>
-    </Pressable>
-  )
+  const renderPage = (item: PaginationPageItem, index: number) => {
+    const node = pageRender ? pageRender(item) : item.text
+    const textColor = item.active ? tokens.colors.activeText : tokens.colors.text
+
+    return (
+      <Pressable
+        accessibilityRole="button"
+        key={`${item.number}-${index}`}
+        onPress={() => handleSelect(item.number)}
+        style={({ pressed }) => [
+          styles.item,
+          {
+            paddingHorizontal: tokens.spacing.paddingX,
+            paddingVertical: tokens.spacing.paddingY,
+            borderColor: tokens.colors.border,
+            borderRadius: tokens.radius,
+            backgroundColor: item.active ? tokens.colors.activeBackground : 'transparent',
+          },
+          pressed && !item.active ? { opacity: 0.7 } : null,
+        ]}
+        testID={`rv-pagination-page-${index}`}
+      >
+        {isTextLike(node) ? (
+          <Text style={{ color: textColor, fontWeight: item.active ? '600' : '400' }}>
+            {node}
+          </Text>
+        ) : (
+          node
+        )}
+      </Pressable>
+    )
+  }
 
   const renderDesc = () => {
     if (mode !== 'multi') {
+      const descNode = pageDesc ?? `${currentPage}/${count}`
+      if (!isTextLike(descNode)) {
+        return (
+          <View style={styles.desc} testID="rv-pagination-desc">
+            {descNode}
+          </View>
+        )
+      }
       return (
         <Text style={[styles.desc, { color: tokens.colors.text }]}
           testID="rv-pagination-desc"
         >
-          {pageDesc ?? `${page}/${count}`}
+          {descNode}
         </Text>
       )
     }
@@ -124,10 +146,12 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
   }
 
   const renderControl = (type: 'prev' | 'next') => {
-    const disabled = type === 'prev' ? page <= 1 : page >= count
-    const target = type === 'prev' ? page - 1 : page + 1
+    const disabled = type === 'prev' ? currentPage <= 1 : currentPage >= count
+    const target = type === 'prev' ? currentPage - 1 : currentPage + 1
+    const label = type === 'prev' ? prevText : nextText
     return (
       <Pressable
+        accessibilityRole="button"
         onPress={() => handleSelect(target)}
         disabled={disabled}
         style={({ pressed }) => [
@@ -143,9 +167,13 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         ]}
         testID={`rv-pagination-${type}`}
       >
-        <Text style={{ color: disabled ? tokens.colors.disabled : tokens.colors.text }}>
-          {type === 'prev' ? prevText : nextText}
-        </Text>
+        {isTextLike(label) ? (
+          <Text style={{ color: disabled ? tokens.colors.disabled : tokens.colors.text }}>
+            {label}
+          </Text>
+        ) : (
+          label
+        )}
       </Pressable>
     )
   }

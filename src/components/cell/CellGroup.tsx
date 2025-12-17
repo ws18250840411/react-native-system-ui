@@ -11,7 +11,6 @@ const styles = StyleSheet.create({
   title: {},
   body: {},
   inset: {
-    borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
   },
 })
@@ -42,20 +41,22 @@ export const CellGroup: React.FC<CellGroupProps> = ({
     },
   ]
   const showInset = inset || card
+  const showOuterBorder = border && !showInset
   const bodyStyles = [
     styles.body,
-    border && showInset && {
-      borderColor: tokens.border.color,
-      borderWidth: tokens.border.width,
+    showOuterBorder && {
+      borderTopColor: tokens.border.color,
+      borderBottomColor: tokens.border.color,
+      borderTopWidth: tokens.border.width,
+      borderBottomWidth: tokens.border.width,
     },
     {
       backgroundColor: tokens.group.bodyBackground,
     },
     showInset && styles.inset,
     showInset && {
-      borderColor: tokens.border.color,
       borderRadius: tokens.group.insetRadius,
-      marginHorizontal: inset ? tokens.group.insetMarginHorizontal : 0,
+      marginHorizontal: tokens.group.insetMarginHorizontal,
       backgroundColor: tokens.container.background,
     },
     card ? createPlatformShadow(tokens.group.cardShadow) : null,

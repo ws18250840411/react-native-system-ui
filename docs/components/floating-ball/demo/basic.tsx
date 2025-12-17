@@ -1,9 +1,6 @@
 import React from 'react'
-import { Info } from 'react-native-system-icon'
-import { FloatingBall } from 'react-native-system-ui'
+import { FloatingBall, Toast } from 'react-native-system-ui'
 
 export default () => (
-  <FloatingBall>
-    <Info fill="#fff" color="#fff" />
-  </FloatingBall>
+  <FloatingBall onPress={() => Toast.info('按钮')} />
 )

@@ -3,8 +3,9 @@ import React from 'react'
 import { Button, Space } from 'react-native-system-ui'
 
 export default () => (
-  <Space direction="vertical" gap={12}>
-    <Button text="加载中" type="primary" loading />
-    <Button text="提交" type="primary" loading loadingText="提交中" />
+  <Space wrap gap={[8, 12]}>
+    <Button loading type="primary" />
+    <Button loading type="primary" loadingType="spinner" />
+    <Button loading loadingText="加载中..." type="info" />
   </Space>
 )

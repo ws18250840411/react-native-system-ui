@@ -54,11 +54,22 @@ const WheelPicker = React.memo(<T,>({
   const containerHeight = itemHeight * (visibleRest * 2 + 1)
 
   // --- Native / RN Web FlatList branch ---
-  const onMomentumEnd = React.useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const dragEndTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const momentumRef = React.useRef(false)
+
+  const clearDragEndTimer = React.useCallback(() => {
+    if (dragEndTimerRef.current) {
+      clearTimeout(dragEndTimerRef.current)
+      dragEndTimerRef.current = null
+    }
+  }, [])
+
+  React.useEffect(() => () => clearDragEndTimer(), [clearDragEndTimer])
+
+  const emitIndexFromOffset = React.useCallback(
+    (offsetY: number) => {
       if (readOnly) return
-      const y = e.nativeEvent.contentOffset.y
-      const { index } = offsetToIndex(-y, itemHeight, total, data as any)
+      const { index } = offsetToIndex(-offsetY, itemHeight, total, data as any)
       const clamped = clamp(index, 0, Math.max(0, total - 1))
       if (clamped !== selectedIndex) onChange(clamped)
     },
@@ -207,7 +218,7 @@ const WheelPicker = React.memo(<T,>({
         }}
         getItemLayout={(_, index) => ({
           length: itemHeight,
-          offset: index * itemHeight,
+          offset: spacerHeight + index * itemHeight,
           index,
         })}
         showsVerticalScrollIndicator={false}
@@ -217,8 +228,29 @@ const WheelPicker = React.memo(<T,>({
         snapToAlignment="start"
         ListHeaderComponent={<View style={{ height: spacerHeight }} />}
         ListFooterComponent={<View style={{ height: spacerHeight }} />}
-        onMomentumScrollEnd={onMomentumEnd}
-        onScrollEndDrag={onMomentumEnd}
+        onScrollBeginDrag={() => {
+          momentumRef.current = false
+          clearDragEndTimer()
+        }}
+        onScrollEndDrag={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+          if (readOnly) return
+          const offsetY = e.nativeEvent.contentOffset.y
+          clearDragEndTimer()
+          dragEndTimerRef.current = setTimeout(() => {
+            if (!momentumRef.current) {
+              emitIndexFromOffset(offsetY)
+            }
+          }, 80)
+        }}
+        onMomentumScrollBegin={() => {
+          momentumRef.current = true
+          clearDragEndTimer()
+        }}
+        onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+          momentumRef.current = false
+          clearDragEndTimer()
+          emitIndexFromOffset(e.nativeEvent.contentOffset.y)
+        }}
         scrollEnabled={!readOnly}
       />
     </View>

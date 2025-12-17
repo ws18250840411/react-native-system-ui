@@ -56,6 +56,7 @@ export default defineConfig({
   description: '基于rndoc打造的React组件库',
   locales: false,
   build: {
+    disableTypeCheck: true,
     configureVite: (config: any) => {
       // 解决 react-native-svg 等依赖在 Web 端引入 codegenNativeComponent 导致的 Vite optimizeDeps 报错
       const resolve = config.resolve ?? {}

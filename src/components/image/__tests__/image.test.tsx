@@ -60,4 +60,16 @@ describe('Image', () => {
     const overlay = tree.root.findByProps({ testID: 'rv-image-error' })
     expect(overlay.findByProps({ testID: 'custom-error' })).toBeDefined()
   })
+
+  it('applies layout styles from `style` to the container', () => {
+    const tree = renderer.create(
+      <Image
+        src="https://example.com/a.png"
+        style={{ width: 100, height: 80 }}
+      />
+    )
+    const json = tree.toJSON() as any
+    expect(String(json.props.style.width)).toContain('100')
+    expect(String(json.props.style.height)).toContain('80')
+  })
 })

@@ -23,7 +23,7 @@
 | ConfigProvider 全局配置 | ✅ | 二次审计通过：移除无意义 `useMemo`，Provider 值保持稳定（语言/主题 demo 已对齐） |
 | Typography 文本 | ✅ | 二次审计通过：移除死代码、精简结构（非 center/ellipsis 场景不再额外包 View），ellipsis 截断判定改为函数式 setState 降低重渲染 |
 | Icon 图标 | ✅ | 使用 `react-native-system-icon` 按需引入（支持 Tree Shaking），文档补齐图标列表（搜索/复制）与基础 demo；Web 端通过 `src/compat/react-native-svg.*` alias 规避 `react-native-svg` 引入问题 |
-| Image 图片 | ✅ | 二次审计通过：修复 tokens 访问不存在的 palette 字段；loadingText/errorText 支持非文本节点并移除 `gap`（三端兼容），ref 类型修正并补齐单测 |
+| Image 图片 | ✅ | 二次审计通过：修复 tokens 访问不存在的 palette 字段；loadingText/errorText 支持非文本节点并移除 `gap`（三端兼容）；同步 `style` 中的布局属性到容器并调整 children 层级（与 react-vant 一致），ref 类型修正并补齐单测 |
 | Popup 弹出层 | ✅ | 二次审计通过：实现复核（动画/栈管理/a11y/安全区）无改动 |
 | Portal 传送门 | ✅ | 二次审计通过：实现复核（PortalHost/自动 Host/静态 API）无改动 |
 | Toast 轻提示 | ✅ | 二次审计通过：修复关闭后 `onClosed` 不触发导致静态 Toast 不清理；message 支持非文本节点并补齐单测（其余对齐保持） |
@@ -72,25 +72,25 @@
 | Divider 分割线 | ✅ | 对齐 react-vant：实现/文档复核通过；demo 文案统一为“文字”，标题命名与结构对齐并补齐单测验证 |
 | Empty 空状态 | ✅ | 对齐 react-vant：预置 `default/error/network/search` 使用官方插画 URL，`image` 支持图片 URL/ReactNode 且自定义图片应用 `imageSize/imageStyle`；描述支持非文本节点，demo 结构与文案统一并补齐单测 |
 | Field 输入项 | ✅ | onBlur 格式化、可达性 aria-describedby/invalid、样式 useMemo，清除/对齐逻辑已对齐官方 |
-| FloatingBall 浮动球 | ⏳ |  |
-| ImagePreview 图片预览 | ⏳ |  |
-| List 列表 | ⏳ |  |
-| NoticeBar 通知栏 | ⏳ |  |
+| FloatingBall 浮动球 | ✅ | 对齐 react-vant：补齐 `menu/adsorb/boundary/offset` 与 ref `open/close`；demo 文案统一并补齐单测覆盖 |
+| ImagePreview 图片预览 | ✅ | 对齐 react-vant：支持受控与静态 API（`open/clear/Host`），补齐页码/指示器/关闭控制与 `beforeClose`；暂未实现缩放/拖拽等高级手势 |
+| List 列表 | ✅ | 对齐 react-vant：默认 `offset=300`、内部防并发与错误重试（error 状态阻止自动加载，点击 `errorText` 重试），补齐错误/下拉刷新 demo 与单测；因基于 `ScrollView`，下拉刷新建议用 `refreshControl` 组合 |
+| NoticeBar 通知栏 | ✅ | 对齐 react-vant：滚动/换行/模式/自定义样式与 `onReplay`；补齐 `onPress` 类型与文档，支持非文本 `children`（避免嵌套 Text 崩溃）并补齐单测 |
 | Popover 气泡卡片 | ✅ | demo 文案已统一为占位内容（按钮/内容/方向），便于对比展示效果 |
 | Progress 进度条 | ✅ | 渐变兼容（Web 背景图/原生回退纯色）、动画容错&去抖、a11y progressbar、百分比/行高解析完善并补单测 |
-| Skeleton 骨架屏 | ⏳ |  |
-| Tag 标签 | ⏳ |  |
-| WaterMark 水印 | ⏳ |  |
+| Skeleton 骨架屏 | ✅ | 对齐 react-vant：默认最后一行 `60%`、title 高度跟随 `rowHeight`，avatar/title/row 动画一致；Web 下禁用 native driver，单测覆盖保持 |
+| Tag 标签 | ✅ | 对齐 react-vant：默认灰底白字（自定义 `color` 时保持可读性），支持 `plain/round/mark/closeable` 与自定义配色，并补齐默认色单测 |
+| WaterMark 水印 | ✅ | 对齐 react-vant：支持文字水印与全屏/局部覆盖，token 可配置（gap/rotate/fontSize/color/opacity）；补齐 `textStyle` 类型为 `StyleProp<TextStyle>`，暂不支持图片水印（大屏全屏会渲染较多节点） |
 
 ## 导航组件
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
-| Grid 宫格 | ⏳ |  |
-| IndexBar 索引栏 | ⏳ |  |
+| Grid 宫格 | ✅ | 对齐 react-vant：支持列数/间距/边框/正方形/图文方向与反转/徽标/自定义内容；修复 `direction="horizontal"` 与 `reverse` 下图文间距与对齐 |
+| IndexBar 索引栏 | ✅ | 对齐基础交互：侧边索引/吸顶标题/触摸指示器；修复 sticky 模式下跳转锚点需扣除吸顶高度（避免被标题遮挡），并补齐受控与自定义样式 demo |
 | NavBar 导航栏 | ✅ | demo 文案统一为“标题/描述信息/按钮/内容”，避免业务化描述干扰 |
-| Pagination 分页 | ⏳ |  |
-| Sidebar 侧边栏 | ⏳ |  |
+| Pagination 分页 | ✅ | 对齐 react-vant：支持 `multi/simple`、受控/非受控、ellipsis 跳转；修复受控页码越界未被 clamp 的问题，并允许 `prevText/nextText/pageDesc/pageRender` 传非文本节点（避免 Text 嵌套崩溃） |
+| Sidebar 侧边栏 | ✅ | 对齐 react-vant：受控/非受控、禁用态与徽标提示；修复 `badge=0`/`title=0` 等渲染判定并支持非文本标题节点，移除未使用的 `SidebarProps.contentStyle` 干扰 |
 | Tabs 选项卡 | ✅ | demo 文案已统一为“标签名/内容/描述信息”，保留 scrollspy/swipeable 展示能力 |
 | Tabbar 标签栏 | ✅ | demo 文案统一为“标签名* / 内容 / 描述信息”，保留 badge/fixed 展示能力 |
 
@@ -98,4 +98,4 @@
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
-| Area 省市区 | ⏳ |  |
+| Area 省市区 | ✅ | 基于 Picker 的省市区联动封装（`columnsNum`/受控/确认回调），demo 与单测已覆盖；数据结构兼容 react-vant areaList |

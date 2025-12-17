@@ -62,6 +62,14 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     state
   )
 
+  const resolvedRadioGroupProps = React.useMemo(() => {
+    if (!accessibilityHint) return radioGroupProps
+    return {
+      ...radioGroupProps,
+      'aria-describedby': accessibilityHint,
+    }
+  }, [accessibilityHint, radioGroupProps])
+
   const supportsGap = Platform.OS === 'web'
   const childrenArray = React.Children.toArray(children).filter(Boolean)
   const itemStyleForIndex = (index: number): ViewStyle => {
@@ -103,7 +111,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
       value={contextValue}
     >
       <View
-        {...radioGroupProps}
+        {...resolvedRadioGroupProps}
         {...viewProps}
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}

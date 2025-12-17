@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Typography } from 'react-native-system-ui'
 
-const content = 'React Native System UI 追求 react-vant 的排版体验，同时照顾移动端特性。'
+const content = 'React Native System UI 追求极致的排版体验，同时照顾移动端特性。'
 
 export default () => (
   <Typography.Text>

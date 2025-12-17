@@ -13,6 +13,8 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   // 兼容 npm 安装下 react-native 将部分依赖安装在自身 node_modules 内的情况
   path.resolve(projectRoot, 'node_modules/react-native/node_modules'),
+  // 兼容 monorepo/pnpm：当 demo 工程通过 extraNodeModules 引用工作区源码时，依赖可能位于工作区根目录 node_modules
+  path.resolve(workspaceRoot, 'node_modules'),
 ]
 
 config.resolver.extraNodeModules = {

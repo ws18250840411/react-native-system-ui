@@ -56,6 +56,52 @@ describe('ImagePreview', () => {
     })
   })
 
+  it('does not close on overlay when closeOnlyClickCloseIcon is true', async () => {
+    const handleClose = jest.fn()
+    let tree: renderer.ReactTestRenderer
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <ImagePreview visible images={['https://a.png']} closeOnlyClickCloseIcon onClose={handleClose} />
+        </PortalHost>
+      )
+    })
+
+    const [overlay] = tree.root.findAll(node => node.props.testID === 'rv-image-preview-overlay')
+    await act(async () => {
+      await overlay.props.onPress?.({})
+    })
+
+    expect(handleClose).not.toHaveBeenCalled()
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('passes correct reason to beforeClose when overlay pressed', async () => {
+    const beforeClose = jest.fn(() => true)
+    let tree: renderer.ReactTestRenderer
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <ImagePreview visible images={['https://a.png']} beforeClose={beforeClose} />
+        </PortalHost>
+      )
+    })
+
+    const [overlay] = tree.root.findAll(node => node.props.testID === 'rv-image-preview-overlay')
+    await act(async () => {
+      await overlay.props.onPress?.({})
+    })
+
+    expect(beforeClose).toHaveBeenCalledWith({ reason: 'overlay', index: 0, image: 'https://a.png' })
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
   it('updates active index on swipe and notifies onChange', async () => {
     const handleChange = jest.fn()
     let tree: renderer.ReactTestRenderer

@@ -51,8 +51,11 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const resolvedColor = color ?? tokens.colors.text
   const resolvedBackground = background ?? tokens.colors.background
   const content = text ?? children
+  const isTextContent = typeof content === 'string' || typeof content === 'number'
   const isVertical = direction === 'vertical'
   const [visible, setVisible] = React.useState(true)
+
+  const { onLayout: textOnLayout, ...restTextProps } = textProps ?? {}
 
   const [contentWidth, setContentWidth] = React.useState(0)
   const [containerWidth, setContainerWidth] = React.useState(0)
@@ -223,13 +226,14 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
       if (typeof single === 'string' || typeof single === 'number') {
         return (
           <Text
+            onLayout={textOnLayout}
             style={[
               styles.text,
               { color: resolvedColor, fontSize: tokens.typography.fontSize },
             ]}
             numberOfLines={1}
             ellipsizeMode="tail"
-            {...textProps}
+            {...restTextProps}
           >
             {single}
           </Text>
@@ -254,13 +258,14 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
             >
               {typeof item === 'string' || typeof item === 'number' ? (
                 <Text
+                  onLayout={textOnLayout}
                   style={[
                     styles.text,
                     { color: resolvedColor, fontSize: tokens.typography.fontSize },
                   ]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
-                  {...textProps}
+                  {...restTextProps}
                 >
                   {item}
                 </Text>
@@ -309,38 +314,68 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         {isVertical ? (
           renderVerticalContent()
         ) : shouldScroll ? (
-          <AnimatedText
-            onLayout={event => setContentWidth(event.nativeEvent.layout.width)}
-            style={[
-              styles.text,
-              styles.scrollText,
-              {
-                color: resolvedColor,
-                fontSize: tokens.typography.fontSize,
-                transform: [{ translateX }],
-              },
-            ]}
-            {...(Platform.OS === 'web'
-              ? {}
-              : { numberOfLines: 1 as const, ellipsizeMode: 'clip' as const })}
-            {...textProps}
-          >
-            {content}
-          </AnimatedText>
+          isTextContent ? (
+            <AnimatedText
+              onLayout={event => {
+                setContentWidth(event.nativeEvent.layout.width)
+                textOnLayout?.(event)
+              }}
+              style={[
+                styles.text,
+                styles.scrollText,
+                {
+                  color: resolvedColor,
+                  fontSize: tokens.typography.fontSize,
+                  transform: [{ translateX }],
+                },
+              ]}
+              {...(Platform.OS === 'web'
+                ? {}
+                : { numberOfLines: 1 as const, ellipsizeMode: 'clip' as const })}
+              {...restTextProps}
+            >
+              {content}
+            </AnimatedText>
+          ) : (
+            <Animated.View
+              onLayout={event => setContentWidth(event.nativeEvent.layout.width)}
+              style={[
+                styles.text,
+                { transform: [{ translateX }] },
+              ]}
+            >
+              {content}
+            </Animated.View>
+          )
         ) : (
-          <Text
-            onLayout={event => setContentWidth(event.nativeEvent.layout.width)}
-            style={[
-              styles.text,
-              { color: resolvedColor, fontSize: tokens.typography.fontSize },
-              wrapable && styles.wrapText,
-            ]}
-            numberOfLines={wrapable ? undefined : 1}
-            ellipsizeMode={wrapable ? 'tail' : 'clip'}
-            {...textProps}
-          >
-            {content}
-          </Text>
+          isTextContent ? (
+            <Text
+              onLayout={event => {
+                setContentWidth(event.nativeEvent.layout.width)
+                textOnLayout?.(event)
+              }}
+              style={[
+                styles.text,
+                { color: resolvedColor, fontSize: tokens.typography.fontSize },
+                wrapable && styles.wrapText,
+              ]}
+              numberOfLines={wrapable ? undefined : 1}
+              ellipsizeMode={wrapable ? 'tail' : 'clip'}
+              {...restTextProps}
+            >
+              {content}
+            </Text>
+          ) : (
+            <View
+              onLayout={event => setContentWidth(event.nativeEvent.layout.width)}
+              style={[
+                styles.text,
+                wrapable && styles.wrapText,
+              ]}
+            >
+              {content}
+            </View>
+          )
         )}
       </View>
       {rightNode ? (

@@ -21,6 +21,18 @@ import { List } from 'react-native-system-ui'
 
 <code src="./list/demo/basic.tsx" title="滚动加载"></code>
 
+### 错误提示
+
+若 `onLoad` 抛出错误，将进入错误状态并停止自动加载；提供 `errorText` 后可点击重试。
+
+<code src="./list/demo/error.tsx" title="错误提示"></code>
+
+### 下拉刷新
+
+由于 `List` 基于 `ScrollView` 实现，建议通过 `refreshControl` 组合下拉刷新能力（避免嵌套滚动容器）。
+
+<code src="./list/demo/refresh.tsx" title="下拉刷新"></code>
+
 ## API
 
 ### List Props
@@ -29,10 +41,10 @@ import { List } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `onLoad` | 触底触发加载，传入 `isRetry` 标识是否重试 | `(isRetry: boolean) => void \| Promise<void>` | - |
 | `finished` | 是否已经加载完成 | `boolean` | `false` |
-| `offset` | 触发加载的距离阈值（px） | `number` | `120` |
-| `loadingText` | 加载中文案 | `ReactNode` | `加载中…` |
+| `offset` | 触发加载的距离阈值（px） | `number` | `300` |
+| `loadingText` | 加载中文案 | `ReactNode` | `locale.loading` |
 | `finishedText` | 完成后文案 | `ReactNode` | - |
-| `errorText` | 错误文案或渲染函数 | `ReactNode \| (retry) => ReactNode` | `加载失败，点击重试` |
+| `errorText` | 错误文案或渲染函数（点击重试） | `ReactNode \| (retry) => ReactNode` | - |
 | 其余 | 继承 `ScrollView` 的全部属性 | - | - |
 
 ### ListRef
@@ -41,4 +53,4 @@ import { List } from 'react-native-system-ui'
 | --- | --- |
 | `check` | 主动检查是否需要触发加载 |
 
-> 组件内部维护 `loading`/`error` 状态，运行时无需额外状态管理；若 `onLoad` 返回的 Promise 被 reject，将展示错误文案并允许重试。
+> 组件内部维护 `loading`/`error` 状态并包含防并发重复请求逻辑；若 `onLoad` 返回的 Promise 被 reject，将进入错误状态并停止自动加载，提供 `errorText` 后可点击重试。

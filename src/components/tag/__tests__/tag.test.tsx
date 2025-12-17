@@ -14,6 +14,18 @@ describe('Tag', () => {
     expect(textStyle.color).toBeDefined()
   })
 
+  it('uses default tone colors when type is omitted', () => {
+    const tree = renderer.create(<Tag>默认</Tag>)
+
+    const container = tree.root.findByType(View)
+    const style = StyleSheet.flatten(container.props.style)
+    expect(style.backgroundColor).toBe('#888f9f')
+
+    const text = tree.root.findByType(Text)
+    const textStyle = StyleSheet.flatten(text.props.style)
+    expect(textStyle.color).toBe('#ffffff')
+  })
+
   it('renders plain tags with custom colors', () => {
     const tree = renderer.create(
       <Tag plain color="#123456" textColor="#654321">

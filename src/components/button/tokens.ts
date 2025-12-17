@@ -106,6 +106,21 @@ const mixColor = (colorA: string, colorB: string, ratio: number) => {
 
 const lighten = (color: string, amount = 0.85) => mixColor(color, '#ffffff', amount)
 
+const relativeLuminance = (color: string) => {
+  const rgb = hexToRgb(color)
+  if (!rgb) return null
+  const [r, g, b] = rgb.map(channel => channel / 255).map(channel => {
+    if (channel <= 0.03928) return channel / 12.92
+    return Math.pow((channel + 0.055) / 1.055, 2.4)
+  }) as [number, number, number]
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+const isDarkThemeBackground = (color: string) => {
+  const luminance = relativeLuminance(color)
+  return luminance !== null && luminance < 0.35
+}
+
 const createButtonTokens = (foundations: Foundations): ButtonTokens => {
   const { palette, spacing, radii, fontSize, opacity } = foundations
 
@@ -122,6 +137,12 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
     }
   }
 
+  const darkTheme = isDarkThemeBackground(palette.default[50])
+  const baseRadius = Math.max(0, Math.round(radii.xs / 2))
+  const defaultBackground = darkTheme ? palette.default[100] : '#ffffff'
+  const defaultBorder = darkTheme ? palette.default[300] : '#ebedf0'
+  const defaultText = darkTheme ? palette.default.foreground ?? '#f4f6fb' : '#323233'
+
   return {
     defaults: {
       type: 'default',
@@ -137,30 +158,30 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
       large: {
         height: 50,
         fontSize: fontSize.lg,
-        paddingHorizontal: spacing.xl,
+        paddingHorizontal: fontSize.lg,
         iconSize: fontSize.lg,
-        radius: radii.sm,
+        radius: baseRadius,
       },
       normal: {
         height: 44,
-        fontSize: fontSize.md,
-        paddingHorizontal: spacing.lg,
-        iconSize: fontSize.md,
-        radius: radii.xs,
+        fontSize: fontSize.sm,
+        paddingHorizontal: fontSize.md,
+        iconSize: fontSize.sm,
+        radius: baseRadius,
       },
       small: {
         height: 32,
-        fontSize: fontSize.sm,
-        paddingHorizontal: spacing.md,
-        iconSize: fontSize.sm,
-        radius: radii.xs,
+        fontSize: fontSize.xs,
+        paddingHorizontal: fontSize.xs,
+        iconSize: fontSize.xs,
+        radius: baseRadius,
       },
       mini: {
         height: 24,
-        fontSize: fontSize.xs,
-        paddingHorizontal: spacing.xs,
-        iconSize: fontSize.xs,
-        radius: radii.pill,
+        fontSize: fontSize.xxs,
+        paddingHorizontal: fontSize.xxs,
+        iconSize: fontSize.xxs,
+        radius: baseRadius,
       },
     },
     spacing: {
@@ -177,12 +198,14 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
     },
     toneMap: {
       default: {
-        background: palette.default[50],
-        border: palette.default[200],
-        text: palette.default[700],
-        tonalBackground: palette.default[100] ?? lighten(palette.default[200], 0.85),
-        tonalBorder: palette.default[200],
-        tonalText: palette.default[900] ?? '#111111',
+        background: defaultBackground,
+        border: defaultBorder,
+        text: defaultText,
+        tonalBackground:
+          (darkTheme ? palette.default[200] : palette.default[100]) ??
+          lighten(defaultBorder, 0.85),
+        tonalBorder: defaultBorder,
+        tonalText: defaultText,
       },
       primary: buildTone('primary'),
       info: buildTone('info'),

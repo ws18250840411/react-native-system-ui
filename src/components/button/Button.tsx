@@ -162,7 +162,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         ? tone.tonalText
         : derivedMode === 'contained' || derivedMode === 'elevated'
           ? tone.text
-          : normalizedColor ?? tone.border
+          : normalizedColor ?? (type === 'default' ? tone.text : tone.border)
 
     if (dark === true) {
       resolvedTextColor = '#ffffff'
@@ -178,13 +178,19 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     if (legacyPlain) {
       backgroundColor = '#ffffff'
       borderColor = normalizedColor ?? tone.border
-      resolvedTextColor = textColor ?? normalizedColor ?? tone.border
+      const fallbackTextColor =
+        type === 'default' && !normalizedColor ? tone.text : normalizedColor ?? tone.border
+      resolvedTextColor = textColor ?? fallbackTextColor
     }
 
+    const shouldRenderBorder =
+      derivedMode === 'outlined' ||
+      legacyPlain ||
+      (derivedMode === 'contained' && type === 'default')
     const resolvedBorderWidth =
       gradientFillEnabled && !legacyPlain
         ? 0
-        : derivedMode === 'outlined' || legacyPlain
+        : shouldRenderBorder
           ? hairline
             ? buttonTokens.border.hairlineWidth
             : buttonTokens.border.width
@@ -215,12 +221,12 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const shadowStyle: ViewStyle | undefined =
       shouldShowShadow && shadowTokens
         ? createPlatformShadow({
-            color: shadowTokens.color,
-            opacity: shadowTokens.opacity,
-            radius: shadowTokens.radius,
-            offsetY: shadowTokens.offsetY,
-            elevation: shadowTokens.elevation,
-          })
+          color: shadowTokens.color,
+          opacity: shadowTokens.opacity,
+          radius: shadowTokens.radius,
+          offsetY: shadowTokens.offsetY,
+          elevation: shadowTokens.elevation,
+        })
         : undefined
     const gradientWebStyle =
       gradientFillEnabled && supportsGradientFill && gradientString
@@ -252,18 +258,18 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       const spinnerSize = resolveSpinnerSize(loadingSize, sizeTokens.iconSize)
       const defaultIndicator = loadingType === 'spinner'
         ? (
-            <Loading
-              type="spinner"
-              size={spinnerSize}
-              color={resolvedTextColor}
-            />
-          )
+          <Loading
+            type="spinner"
+            size={spinnerSize}
+            color={resolvedTextColor}
+          />
+        )
         : (
-            <ActivityIndicator
-              size={loadingSize}
-              color={resolvedTextColor}
-            />
-          )
+          <ActivityIndicator
+            size={loadingSize}
+            color={resolvedTextColor}
+          />
+        )
 
       return (
         <View style={[buttonStyles.iconWrapper, buildIconWrapperStyle('left')]}>
@@ -291,6 +297,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
       const sharedTextStyle = {
         fontFamily: foundations.typography.fontFamily,
+        fontWeight: foundations.typography.weight.medium,
         fontSize: sizeTokens.fontSize,
         lineHeight: sizeTokens.fontSize * foundations.typography.lineHeightMultiplier,
         color: resolvedTextColor,
@@ -431,6 +438,7 @@ const buttonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    alignSelf: 'flex-start',
   },
   block: {
     alignSelf: 'stretch',
@@ -446,6 +454,6 @@ const buttonStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontWeight: '600',
+    fontWeight: '400',
   },
 })

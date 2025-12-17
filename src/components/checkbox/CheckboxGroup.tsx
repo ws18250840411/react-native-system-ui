@@ -70,6 +70,15 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     state
   )
 
+  const resolvedGroupProps = React.useMemo(
+    () => ({
+      ...groupProps,
+      // Workaround @react-native-aria/checkbox typo: ` aria-disabled`
+      'aria-disabled': disabled,
+    }),
+    [disabled, groupProps]
+  )
+
   const registerValue = React.useCallback((key: string, raw: CheckboxValue, itemDisabled?: boolean) => {
     registryRef.current.set(key, { value: raw, disabled: itemDisabled })
   }, [])
@@ -146,8 +155,10 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
       value={contextValue}
     >
       <View
-        {...groupProps}
+        {...resolvedGroupProps}
         {...viewProps}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
         style={[
           direction === 'horizontal' ? styles.horizontal : styles.vertical,
           style,

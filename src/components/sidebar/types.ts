@@ -5,7 +5,6 @@ export interface SidebarProps extends Omit<ViewProps, 'children'> {
   value?: number
   defaultValue?: number
   sideStyle?: StyleProp<ViewStyle>
-  contentStyle?: StyleProp<ViewStyle>
   children?: React.ReactNode
   onChange?: (value: number) => void
 }

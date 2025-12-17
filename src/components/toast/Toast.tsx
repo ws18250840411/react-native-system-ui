@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
   type StyleProp,
   type TextStyle,
   type ViewStyle,
@@ -18,9 +19,9 @@ import Portal from '../portal/Portal'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Loading from '../loading'
-import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { Checked, Close } from 'react-native-system-icon'
 import { useOverlayStack } from '../overlay'
+import type { LoadingType } from '../loading'
 
 export type ToastPosition = 'top' | 'middle' | 'bottom'
 export type ToastType = 'info' | 'success' | 'fail' | 'loading'
@@ -30,11 +31,14 @@ export interface ToastProps {
   message?: React.ReactNode
   icon?: React.ReactNode
   type?: ToastType
+  iconSize?: number
+  loadingType?: LoadingType
   duration?: number
   position?: ToastPosition
   forbidClick?: boolean
   overlay?: boolean
   overlayStyle?: StyleProp<ViewStyle>
+  closeOnClickOverlay?: boolean
   closeOnClick?: boolean
   loadingIndicator?: React.ReactNode
   style?: StyleProp<ViewStyle>
@@ -51,27 +55,43 @@ interface ToastTokens {
     backdrop: string
     variants: Record<ToastType, string>
   }
-  padding: number
+  fontSize: number
+  lineHeight: number
   radius: number
   gap: number
-  maxWidth: number
+  iconSize: number
+  maxWidth: number | string
+  textMinWidth: number
+  textPaddingVertical: number
+  textPaddingHorizontal: number
+  defaultPadding: number
+  defaultWidth: number
+  defaultMinHeight: number
 }
 
 const createToastTokens = (foundations: Foundations): ToastTokens => ({
   colors: {
     text: '#fff',
-    backdrop: 'rgba(0,0,0,0.35)',
+    backdrop: 'rgba(0,0,0,0.7)',
     variants: {
-      info: 'rgba(0,0,0,0.82)',
-      success: foundations.palette.success[600],
-      fail: foundations.palette.danger[600],
-      loading: 'rgba(0,0,0,0.82)',
+      info: 'rgba(0,0,0,0.7)',
+      success: 'rgba(0,0,0,0.7)',
+      fail: 'rgba(0,0,0,0.7)',
+      loading: 'rgba(0,0,0,0.7)',
     },
   },
-  padding: foundations.spacing.md,
-  radius: foundations.radii.lg,
-  gap: foundations.spacing.xs,
-  maxWidth: 320,
+  fontSize: foundations.fontSize.sm,
+  lineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
+  radius: foundations.radii.md,
+  gap: foundations.spacing.sm,
+  iconSize: 36,
+  maxWidth: '70%',
+  textMinWidth: 96,
+  textPaddingVertical: foundations.spacing.sm,
+  textPaddingHorizontal: foundations.spacing.md,
+  defaultPadding: foundations.spacing.lg,
+  defaultWidth: 88,
+  defaultMinHeight: 88,
 })
 
 const useToastTokens = (overrides?: DeepPartial<ToastTokens>) => {
@@ -88,12 +108,6 @@ const useToastTokens = (overrides?: DeepPartial<ToastTokens>) => {
   }, [foundations, components, overrides])
 }
 
-const positionStyles: Record<ToastPosition, ViewStyle> = {
-  top: { justifyContent: 'flex-start', paddingTop: 60 },
-  middle: { justifyContent: 'center' },
-  bottom: { justifyContent: 'flex-end', paddingBottom: 60 },
-}
-
 const AnimatedPressableToast = Animated.createAnimatedComponent(Pressable)
 
 export const Toast: React.FC<ToastProps> = props => {
@@ -102,11 +116,14 @@ export const Toast: React.FC<ToastProps> = props => {
     message,
     icon,
     type = 'info',
+    iconSize,
+    loadingType = 'circular',
     duration = 2000,
     position = 'middle',
     forbidClick = false,
     overlay = false,
     overlayStyle,
+    closeOnClickOverlay = false,
     closeOnClick = false,
     loadingIndicator,
     style,
@@ -118,10 +135,17 @@ export const Toast: React.FC<ToastProps> = props => {
   } = props
 
   const tokens = useToastTokens()
+  const { height: windowHeight } = useWindowDimensions()
   const { mounted, animated } = usePresenceAnimation(visible, { duration: 160 })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'toast' })
   const prevVisibleRef = React.useRef(visible)
   const closingRef = React.useRef(false)
+  const positionOffset = windowHeight > 0 ? Math.round(windowHeight * 0.2) : 60
+  const positionStyle = React.useMemo<ViewStyle>(() => {
+    if (position === 'top') return { justifyContent: 'flex-start', paddingTop: positionOffset }
+    if (position === 'bottom') return { justifyContent: 'flex-end', paddingBottom: positionOffset }
+    return { justifyContent: 'center' }
+  }, [position, positionOffset])
 
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
@@ -136,15 +160,6 @@ export const Toast: React.FC<ToastProps> = props => {
       if (timer) clearTimeout(timer)
     }
   }, [duration, onClose, visible])
-
-  const scale = React.useMemo(
-    () =>
-      animated.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0.92, 1],
-      }),
-    [animated]
-  )
 
   React.useEffect(() => {
     if (visible) {
@@ -191,38 +206,49 @@ export const Toast: React.FC<ToastProps> = props => {
 
   const renderIcon = () => {
     if (icon) return icon
+    const resolvedIconSize = iconSize ?? tokens.iconSize
     switch (type) {
       case 'success':
-        return <Checked size={24} fill={tokens.colors.text} color={tokens.colors.text} />
+        return <Checked size={resolvedIconSize} fill={tokens.colors.text} color={tokens.colors.text} />
       case 'fail':
-        return <Close size={24} fill={tokens.colors.text} color={tokens.colors.text} />
+        return <Close size={resolvedIconSize} fill={tokens.colors.text} color={tokens.colors.text} />
       case 'loading':
-        return loadingIndicator ?? <Loading type="spinner" color={tokens.colors.text} size="small" />
+        return (
+          loadingIndicator ?? (
+            <Loading type={loadingType} color={tokens.colors.text} size={resolvedIconSize} />
+          )
+        )
       default:
         return null
     }
   }
   const iconNode = renderIcon()
+  const isTextToast = type === 'info' && !iconNode
 
   if (!mounted) return null
 
-  const hasMessage = message !== undefined && message !== null && message !== false
+  const hasMessage =
+    message !== undefined &&
+    message !== null &&
+    message !== false &&
+    !(typeof message === 'string' && message.length === 0)
 
   return (
     <Portal>
       <View
         style={[
           styles.backdrop,
-          positionStyles[position],
+          positionStyle,
           stackZIndex ? { zIndex: stackZIndex } : null,
         ]}
-        pointerEvents={forbidClick || overlay ? 'auto' : 'none'}
+        pointerEvents={forbidClick || overlay || closeOnClick ? 'auto' : 'none'}
       >
         {overlay || forbidClick ? (
-          <View
+          <Pressable
             testID="rv-toast-overlay"
             style={[styles.overlay, overlay ? { backgroundColor: tokens.colors.backdrop } : null, overlayStyle]}
             pointerEvents="auto"
+            onPress={overlay && closeOnClickOverlay ? handleCloseOnPress : undefined}
             onStartShouldSetResponder={() => true}
             onMoveShouldSetResponder={() => true}
           />
@@ -233,12 +259,22 @@ export const Toast: React.FC<ToastProps> = props => {
           style={[
             styles.toast,
             {
-              padding: tokens.padding,
               borderRadius: tokens.radius,
               opacity: animated,
-              transform: [{ scale }],
               backgroundColor: tokens.colors.variants[type],
               maxWidth: tokens.maxWidth,
+              ...(isTextToast
+                ? ({
+                    minWidth: tokens.textMinWidth,
+                    minHeight: 0,
+                    paddingVertical: tokens.textPaddingVertical,
+                    paddingHorizontal: tokens.textPaddingHorizontal,
+                  } as ViewStyle)
+                : ({
+                    width: tokens.defaultWidth,
+                    minHeight: tokens.defaultMinHeight,
+                    padding: tokens.defaultPadding,
+                  } as ViewStyle)),
             },
             closeOnClick && toastPress.states.pressed ? { opacity: 0.85 } : null,
             style,
@@ -250,7 +286,7 @@ export const Toast: React.FC<ToastProps> = props => {
           {hasMessage
             ? typeof message === 'string' || typeof message === 'number'
               ? (
-                <Text style={[{ color: tokens.colors.text, textAlign: 'center' }, textStyle]}>
+                <Text style={[styles.message, { color: tokens.colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight }, textStyle]}>
                   {message}
                 </Text>
               )
@@ -264,29 +300,22 @@ export const Toast: React.FC<ToastProps> = props => {
   )
 }
 
-const toastShadow = createPlatformShadow({
-  color: 'rgba(0,0,0,0.25)',
-  opacity: 0.4,
-  radius: 12,
-  offsetY: 6,
-  elevation: 8,
-})
-
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     alignItems: 'center',
     backgroundColor: 'transparent',
-    paddingHorizontal: 40,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
   },
   toast: {
-    minWidth: 120,
     alignItems: 'center',
-    ...toastShadow,
+    justifyContent: 'center',
+  },
+  message: {
+    textAlign: 'center',
   },
 })
 

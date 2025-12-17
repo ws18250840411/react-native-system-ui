@@ -9,10 +9,12 @@ export type ToastInput = ToastShowOptions | React.ReactNode
 export interface ToastReturnType {
   clear: () => void
   update: (options: ToastInput) => void
+  config: (options: ToastInput | ((prev: ToastShowOptions) => ToastInput)) => void
 }
 
 const activeKeys = new Set<number>()
 const toastOptions = new Map<number, ToastShowOptions>()
+const toastControllers = new Map<number, { close: () => void }>()
 let allowMultiple = false
 
 const baseOptions: ToastShowOptions = {
@@ -61,6 +63,16 @@ const removeToast = (key: number) => {
   Portal.remove(key)
   activeKeys.delete(key)
   toastOptions.delete(key)
+  toastControllers.delete(key)
+}
+
+const closeToast = (key: number) => {
+  const controller = toastControllers.get(key)
+  if (controller) {
+    controller.close()
+  } else {
+    removeToast(key)
+  }
 }
 
 interface ToastPortalProps {
@@ -70,6 +82,13 @@ interface ToastPortalProps {
 
 const ToastPortal: React.FC<ToastPortalProps> = ({ id, options }) => {
   const [visible, setVisible] = React.useState(true)
+
+  React.useEffect(() => {
+    toastControllers.set(id, { close: () => setVisible(false) })
+    return () => {
+      toastControllers.delete(id)
+    }
+  }, [id])
 
   const handleClose = React.useCallback(() => {
     options.onClose?.()
@@ -88,8 +107,7 @@ const showToast = (input?: ToastInput, fallbackType: ToastType = 'info'): ToastR
   const opts = mergeOptions(parseOptions(input), fallbackType)
 
   if (!allowMultiple) {
-    activeKeys.forEach(key => removeToast(key))
-    activeKeys.clear()
+    activeKeys.forEach(key => closeToast(key))
   }
 
   const key = Portal.add(null)
@@ -97,13 +115,31 @@ const showToast = (input?: ToastInput, fallbackType: ToastType = 'info'): ToastR
   Portal.update(key, <ToastPortal id={key} options={opts} />)
   activeKeys.add(key)
 
+  const config: ToastReturnType['config'] = next => {
+    const prev = toastOptions.get(key)
+    if (!prev) return
+    const nextInput = typeof next === 'function' ? next(prev) : next
+    const parsed = parseOptions(nextInput)
+    const nextType = parsed.type ?? prev.type ?? fallbackType
+
+    const merged: ToastShowOptions = {
+      ...prev,
+      ...parsed,
+      type: nextType,
+    }
+
+    if ('duration' in parsed && (parsed.duration === undefined || parsed.duration === null)) {
+      merged.duration = nextType === 'loading' ? 0 : baseOptions.duration ?? 2000
+    }
+
+    toastOptions.set(key, merged)
+    Portal.update(key, <ToastPortal id={key} options={merged} />)
+  }
+
   return {
-    clear: () => removeToast(key),
-    update: next => {
-      const nextOpts = mergeOptions(parseOptions(next), opts.type ?? fallbackType)
-      toastOptions.set(key, nextOpts)
-      Portal.update(key, <ToastPortal id={key} options={nextOpts} />)
-    },
+    clear: () => closeToast(key),
+    update: next => config(next),
+    config,
   }
 }
 
@@ -114,9 +150,7 @@ export const ToastImperative = {
   fail: (options?: ToastInput) => showToast(options, 'fail'),
   loading: (options?: ToastInput) => showToast(options, 'loading'),
   clear: () => {
-    activeKeys.forEach(key => removeToast(key))
-    activeKeys.clear()
-    toastOptions.clear()
+    activeKeys.forEach(key => closeToast(key))
   },
   allowMultiple: (value = true) => {
     allowMultiple = value

@@ -1,10 +1,17 @@
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Cell from '..'
 
 describe('Cell', () => {
+  it('defaults to full width', () => {
+    const tree = renderer.create(<Cell title="Title" value="Value" />)
+    const container = tree.root.findByType(View)
+    const style = StyleSheet.flatten(container.props.style)
+    expect(style.width).toBe('100%')
+  })
+
   it('renders title and value', () => {
     const tree = renderer.create(<Cell title="Title" value="Value" />)
     const texts = tree.root.findAllByType(Text).map(node => node.props.children)

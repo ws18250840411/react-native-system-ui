@@ -1,0 +1,34 @@
+diff --git a/dist/chunk-2OOSWZYO.js b/dist/chunk-2OOSWZYO.js
+index 69e5b3b4c5a0cbf0cb401cf18f17f32fef40246c..80508e7598ffc22ff9e1c6601099da86509a9124 100644
+--- a/dist/chunk-2OOSWZYO.js
++++ b/dist/chunk-2OOSWZYO.js
+@@ -1,12 +1,9 @@
++import { createRequire as __createRequire } from "module";
++
+ var __typeError = (msg) => {
+   throw TypeError(msg);
+ };
+-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+-}) : x)(function(x) {
+-  if (typeof require !== "undefined") return require.apply(this, arguments);
+-  throw Error('Dynamic require of "' + x + '" is not supported');
+-});
++var __require = __createRequire(import.meta.url);
+ var __accessCheck = (obj, member, msg) => member.has(obj) || __typeError("Cannot " + msg);
+ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read from private field"), getter ? getter.call(obj) : member.get(obj));
+ var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+diff --git a/dist/chunk-UHRZWDJT.js b/dist/chunk-UHRZWDJT.js
+index d51649b1241e2e978f1146354ae5805114b85c5b..02a3a95ab1516e28421b4aa6487f4be139544d41 100644
+--- a/dist/chunk-UHRZWDJT.js
++++ b/dist/chunk-UHRZWDJT.js
+@@ -34,7 +34,8 @@ var compileBundlesByVite = async () => {
+ };
+ var compileBundlesByMdocBuild = async () => {
+   const { build: buildProps = {} } = context_default.opts;
+-  await builder_default["default"]({
++  const builder = builder_default.default ?? builder_default;
++  await builder({
+     cwd: ROOT,
+     clean: false,
+     needTransform: false,

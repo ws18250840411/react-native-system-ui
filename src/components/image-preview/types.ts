@@ -42,3 +42,13 @@ export interface CloseContext extends CloseParams {
 export type ImagePreviewRef = {
   swipeTo: (index: number, animated?: boolean) => void
 }
+
+export type ImagePreviewOpenOptions = Omit<ImagePreviewProps, 'visible'>
+
+export type ImagePreviewDestroy = () => void
+
+export interface ImagePreviewStatic {
+  Host: React.FC
+  open: (options: ImagePreviewOpenOptions) => ImagePreviewDestroy
+  clear: () => void
+}

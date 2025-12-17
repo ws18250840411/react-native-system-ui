@@ -105,6 +105,7 @@ import FlexDemoGutter from '../../docs/components/flex/demo/gutter'
 import FloatingBallDemoBasic from '../../docs/components/floating-ball/demo/basic'
 import FloatingBallDemoControlled from '../../docs/components/floating-ball/demo/controlled'
 import FloatingBallDemoDisabled from '../../docs/components/floating-ball/demo/disabled'
+import FloatingBallDemoMenu from '../../docs/components/floating-ball/demo/menu'
 import FormDemoBasic from '../../docs/components/form/demo/basic'
 import FormDemoCustom from '../../docs/components/form/demo/custom'
 import FormDemoList from '../../docs/components/form/demo/list'
@@ -130,6 +131,7 @@ import IconDemoRotate from '../../docs/components/icon/demo/rotate'
 import ImagePreviewDemoBasic from '../../docs/components/image-preview/demo/basic'
 import ImagePreviewDemoControls from '../../docs/components/image-preview/demo/controls'
 import ImagePreviewDemoCustomIndex from '../../docs/components/image-preview/demo/custom-index'
+import ImagePreviewDemoImperative from '../../docs/components/image-preview/demo/imperative'
 import ImageDemoBasic from '../../docs/components/image/demo/basic'
 import ImageDemoFit from '../../docs/components/image/demo/fit'
 import ImageDemoLoading from '../../docs/components/image/demo/loading'
@@ -145,6 +147,8 @@ import InputDemoStatus from '../../docs/components/input/demo/status'
 import InputDemoTextarea from '../../docs/components/input/demo/textarea'
 import InputDemoWordLimit from '../../docs/components/input/demo/word-limit'
 import ListDemoBasic from '../../docs/components/list/demo/basic'
+import ListDemoError from '../../docs/components/list/demo/error'
+import ListDemoRefresh from '../../docs/components/list/demo/refresh'
 import LoadingDemoColor from '../../docs/components/loading/demo/color'
 import LoadingDemoSize from '../../docs/components/loading/demo/size'
 import LoadingDemoText from '../../docs/components/loading/demo/text'
@@ -1719,21 +1723,26 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     ],
   },
   "floating-ball": {
-    title: "FloatingBall 浮动球",
+    title: "FloatingBall 悬浮球",
     demos: [
       {
         id: "basic",
-        title: "基础",
+        title: "基础用法",
         Component: FloatingBallDemoBasic,
       },
       {
+        id: "menu",
+        title: "带菜单",
+        Component: FloatingBallDemoMenu,
+      },
+      {
         id: "controlled",
-        title: "受控",
+        title: "受控位置",
         Component: FloatingBallDemoControlled,
       },
       {
         id: "disabled",
-        title: "禁用",
+        title: "禁用拖拽",
         Component: FloatingBallDemoDisabled,
       },
     ],
@@ -1756,6 +1765,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         title: "指示器",
         Component: ImagePreviewDemoControls,
       },
+      {
+        id: "imperative",
+        title: "静态调用",
+        Component: ImagePreviewDemoImperative,
+      },
     ],
   },
   "list": {
@@ -1765,6 +1779,16 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "basic",
         title: "滚动加载",
         Component: ListDemoBasic,
+      },
+      {
+        id: "error",
+        title: "错误提示",
+        Component: ListDemoError,
+      },
+      {
+        id: "refresh",
+        title: "下拉刷新",
+        Component: ListDemoRefresh,
       },
     ],
   },

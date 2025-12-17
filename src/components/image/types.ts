@@ -6,8 +6,8 @@ export type ImageFit = 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
 export interface ImageProps extends Omit<RNImageProps, 'source'> {
   src?: string
   source?: ImageSourcePropType
-  width?: number
-  height?: number
+  width?: number | string
+  height?: number | string
   radius?: number
   round?: boolean
   fit?: ImageFit

@@ -3,14 +3,30 @@ import renderer, { act } from 'react-test-renderer'
 import { StyleSheet, Text, View } from 'react-native'
 
 import Toast from '..'
+import Loading from '../../loading'
 import { PortalHost } from '../../portal'
 
 describe('Toast', () => {
   jest.useFakeTimers()
 
+  const roots: renderer.ReactTestRenderer[] = []
+  const render = (node: React.ReactElement) => {
+    const root = renderer.create(node)
+    roots.push(root)
+    return root
+  }
+
+  afterEach(() => {
+    act(() => {
+      roots.splice(0).forEach(root => root.unmount())
+      Toast.clear()
+      jest.runAllTimers()
+    })
+  })
+
   it('auto closes after duration', () => {
     const onClose = jest.fn()
-    renderer.create(
+    render(
       <PortalHost>
         <Toast visible message="hello" duration={1000} onClose={onClose} />
       </PortalHost>
@@ -24,7 +40,7 @@ describe('Toast', () => {
   })
 
   it('shows via static api and clears', () => {
-    const host = renderer.create(
+    const host = render(
       <PortalHost>
         <></>
       </PortalHost>
@@ -51,7 +67,7 @@ describe('Toast', () => {
   })
 
   it('allows multiple toast instances when enabled', () => {
-    const host = renderer.create(
+    const host = render(
       <PortalHost>
         <></>
       </PortalHost>
@@ -81,7 +97,7 @@ describe('Toast', () => {
   })
 
   it('keeps forbidClick overlay transparent when overlay option is false', () => {
-    const tree = renderer.create(
+    const tree = render(
       <PortalHost>
         <Toast visible message="loading" forbidClick duration={0} />
       </PortalHost>
@@ -92,9 +108,24 @@ describe('Toast', () => {
     expect(style.backgroundColor).toBe('transparent')
   })
 
+  it('closes when click overlay and closeOnClickOverlay is enabled', () => {
+    const onClose = jest.fn()
+    const tree = render(
+      <PortalHost>
+        <Toast visible message="overlay" overlay closeOnClickOverlay duration={0} onClose={onClose} />
+      </PortalHost>
+    )
+
+    const overlay = tree.root.findByProps({ testID: 'rv-toast-overlay' }) as renderer.ReactTestInstance
+    act(() => {
+      overlay.props.onPress?.({} as any)
+    })
+    expect(onClose).toHaveBeenCalled()
+  })
+
   it('calls onClosed after exit animation', () => {
     const onClosed = jest.fn()
-    const tree = renderer.create(
+    const tree = render(
       <PortalHost>
         <Toast visible message="bye" duration={0} onClosed={onClosed} />
       </PortalHost>
@@ -115,8 +146,56 @@ describe('Toast', () => {
     expect(onClosed).toHaveBeenCalled()
   })
 
+  it('passes iconSize and loadingType to loading indicator', () => {
+    const tree = render(
+      <PortalHost>
+        <Toast visible type="loading" iconSize={40} loadingType="spinner" duration={0} />
+      </PortalHost>
+    )
+
+    const loading = tree.root.findByType(Loading)
+    expect(loading.props.size).toBe(40)
+    expect(loading.props.type).toBe('spinner')
+  })
+
+  it('supports config alias on static handle', () => {
+    const host = render(
+      <PortalHost>
+        <></>
+      </PortalHost>
+    )
+
+    let handle: ReturnType<typeof Toast.show> | null = null
+    act(() => {
+      handle = Toast.show({ message: 'A', duration: 0, overlay: true })
+    })
+
+    const getMessages = () =>
+      host.root
+        .findAllByType(Text)
+        .map(node => node.props.children)
+        .flat()
+
+    expect(getMessages()).toContain('A')
+
+    act(() => {
+      handle?.config({ message: 'B' })
+    })
+
+    expect(getMessages()).toContain('B')
+
+    const overlay = host.root.findByProps({ testID: 'rv-toast-overlay' })
+    const style = StyleSheet.flatten(overlay.props.style)
+    expect(style.backgroundColor).toBe('rgba(0,0,0,0.7)')
+
+    act(() => {
+      Toast.clear()
+      jest.runAllTimers()
+    })
+  })
+
   it('accepts non-text message nodes', () => {
-    const tree = renderer.create(
+    const tree = render(
       <PortalHost>
         <Toast visible duration={0} message={<View testID="toast-message" />} />
       </PortalHost>

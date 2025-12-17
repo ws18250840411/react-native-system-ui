@@ -55,7 +55,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   const isGroup = Boolean(group) && serializedValue !== undefined && bindGroup
 
   React.useEffect(() => {
-    if (group && bindGroup && serializedValue && rawValue !== undefined) {
+    if (group && bindGroup && serializedValue !== undefined && rawValue !== undefined) {
       group.registerValue(serializedValue, rawValue, resolvedDisabled)
       return () => group.unregisterValue(serializedValue)
     }

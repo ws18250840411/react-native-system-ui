@@ -70,11 +70,12 @@ const IndexBarBase: React.FC<IndexBarProps> = props => {
     (index: string) => {
       const y = anchorLayouts.current.get(index)
       if (y !== undefined) {
-        scrollRef.current?.scrollTo({ y, animated: true })
+        const offset = sticky ? tokens.layout.stickyHeight : 0
+        scrollRef.current?.scrollTo({ y: Math.max(0, y - offset), animated: true })
       }
       setActiveIndex(index)
     },
-    [setActiveIndex]
+    [setActiveIndex, sticky, tokens.layout.stickyHeight]
   )
 
   const handleScroll = React.useCallback(

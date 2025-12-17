@@ -139,7 +139,13 @@ export type { ListProps, ListRef } from './list'
 export { default as PullRefresh } from './pull-refresh'
 export type { PullRefreshProps } from './pull-refresh'
 export { default as ImagePreview } from './image-preview'
-export type { ImagePreviewProps, ImagePreviewRef, ImagePreviewCloseParams } from './image-preview'
+export type {
+  ImagePreviewProps,
+  ImagePreviewRef,
+  ImagePreviewCloseParams,
+  ImagePreviewOpenOptions,
+  ImagePreviewDestroy,
+} from './image-preview'
 export { default as Uploader } from './uploader'
 export type {
   UploaderProps,

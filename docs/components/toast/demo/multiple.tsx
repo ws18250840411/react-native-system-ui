@@ -33,15 +33,12 @@ export default function ToastMultipleDemo() {
   }
 
   return (
-    <Cell.Group title="多条提示" card>
-      <Cell
-        title="允许多个 Toast"
-        value={<Switch value={multiple} onValueChange={setMultiple} />}
-      />
+    <>
+      <Cell title="允许多个 Toast" value={<Switch value={multiple} onValueChange={setMultiple} />} />
       <Cell title="显示第一个 Toast" isLink onPress={showFirst} />
       <Cell title="显示第二个 Toast" isLink onPress={showSecond} />
       <Cell title="清除第一个" isLink onPress={() => firstRef.current?.clear()} />
       <Cell title="清除第二个" isLink onPress={() => secondRef.current?.clear()} />
-    </Cell.Group>
+    </>
   )
 }

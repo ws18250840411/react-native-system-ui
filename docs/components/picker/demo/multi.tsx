@@ -17,8 +17,13 @@ export default function PickerMultiDemo() {
       <Picker
         columns={columns}
         value={value}
-        onChange={setValue}
-        onConfirm={vals => Toast.info(`值：${vals.join(' / ')}`)}
+        onChange={vals => {
+          const indexes = columns.map((columnOptions, columnIndex) =>
+            columnOptions.findIndex(option => option.value === vals[columnIndex])
+          )
+          Toast.info(`当前值：${vals}，当前索引：${indexes}`)
+          setValue(vals)
+        }}
       />
     </View>
   )

@@ -18,6 +18,7 @@ export interface NoticeBarProps extends ViewProps {
   items?: React.ReactNode[]
   verticalInterval?: number
   verticalDuration?: number
+  onPress?: () => void
   onClose?: () => void
   onReplay?: () => void
   textProps?: TextProps

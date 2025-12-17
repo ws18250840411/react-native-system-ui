@@ -84,7 +84,12 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
   }, [finalizeClose, runBeforeClose])
 
   const handlePopupBeforeClose = React.useCallback(async (reason: 'close-icon' | 'overlay' | 'close') => {
-    const mapped: ImagePreviewCloseReason = reason === 'close-icon' ? 'close-icon' : 'close'
+    const mapped: ImagePreviewCloseReason =
+      reason === 'close-icon'
+        ? 'close-icon'
+        : reason === 'overlay'
+          ? 'overlay'
+          : 'close'
     popupCloseReason.current = mapped
     return runBeforeClose(mapped)
   }, [runBeforeClose])
@@ -141,7 +146,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     if (!showIndex || images.length === 0) return null
     return (
       <View style={styles.index} testID="rv-image-preview-index">
-        <View style={[styles.indexBadge, { backgroundColor: tokens.colors.indexBackground }]}> 
+        <View style={[styles.indexBadge, { backgroundColor: tokens.colors.indexBackground }]}>
           {indexRender ? (
             indexRender({ index: active, len: images.length })
           ) : (
@@ -175,7 +180,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       visible={visible}
       overlay={overlay}
       overlayStyle={overlayStyle}
-      closeOnOverlayPress={false}
+      closeOnOverlayPress={!closeOnlyClickCloseIcon}
       closeOnBackPress={closeOnBackPress}
       closeOnPopstate={closeOnPopstate}
       zIndex={zIndex}
@@ -187,7 +192,6 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       round={false}
       overlayTestID="rv-image-preview-overlay"
       style={styles.popup}
-      onClickOverlay={() => requestClose('overlay')}
       beforeClose={handlePopupBeforeClose}
       onClose={handlePopupClose}
       onClosed={onClosed}

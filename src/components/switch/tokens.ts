@@ -41,7 +41,7 @@ const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
       pressed: opacity.pressed,
     },
     animation: {
-      duration: 150,
+      duration: 200,
     },
   }
 }

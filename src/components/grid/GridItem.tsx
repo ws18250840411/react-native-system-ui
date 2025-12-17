@@ -103,22 +103,20 @@ export const GridItem: React.FC<GridItemInternalProps> = props => {
       return null
     }
 
+    const hasText = isRenderable(text)
     const iconNode = icon
       ? typeof icon === 'function'
         ? icon(iconSize, resolvedIconColor)
         : icon
       : null
 
-    const iconWrapperStyle: ViewStyle = [
+    const iconWrapperStyle = [
       styles.iconWrapper,
+      hasText && direction === 'vertical' && !reverse ? { marginBottom: 8 } : null,
+      hasText && direction === 'vertical' && reverse ? { marginTop: 8 } : null,
+      hasText && direction === 'horizontal' && !reverse ? { marginRight: 8 } : null,
+      hasText && direction === 'horizontal' && reverse ? { marginLeft: 8 } : null,
     ]
-
-    if (direction === 'vertical' && !reverse) {
-      iconWrapperStyle.push({ marginBottom: 8 })
-    }
-    if (direction === 'horizontal' && !reverse) {
-      iconWrapperStyle.push({ marginRight: 8 })
-    }
 
     const content = iconNode ? (
       <View style={iconWrapperStyle}>{iconNode}</View>
@@ -225,6 +223,5 @@ const styles = StyleSheet.create({
   },
   text: {
     textAlign: 'center',
-    marginTop: 8,
   },
 })

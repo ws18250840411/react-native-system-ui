@@ -4,7 +4,7 @@ import { Cell, Toast } from 'react-native-system-ui'
 
 export default function ToastInteractionDemo() {
   return (
-    <Cell.Group title="交互控制" card>
+    <>
       <Cell
         title="禁止背景点击"
         isLink
@@ -14,6 +14,18 @@ export default function ToastInteractionDemo() {
         title="展示遮罩"
         isLink
         onPress={() => Toast.show({ message: '带遮罩提示', overlay: true, duration: 1500 })}
+      />
+      <Cell
+        title="点击遮罩关闭"
+        isLink
+        onPress={() =>
+          Toast.show({
+            message: '点击遮罩关闭',
+            overlay: true,
+            closeOnClickOverlay: true,
+            duration: 0,
+          })
+        }
       />
       <Cell
         title="点击提示即可关闭"
@@ -26,6 +38,6 @@ export default function ToastInteractionDemo() {
           })
         }
       />
-    </Cell.Group>
+    </>
   )
 }

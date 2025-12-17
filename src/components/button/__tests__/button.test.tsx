@@ -66,6 +66,20 @@ describe('Button', () => {
     expect(flattened.borderColor).toBe(defaultTokens.palette.primary[500])
   })
 
+  it('matches react-vant default button styles by default', () => {
+    const tree = renderWithProvider(<Button text="Default" />)
+    const pressable = tree.root.findByType(Pressable)
+    const flattened = getStyleFromPressable(pressable)
+    const label = tree.root.findByType(Text)
+    const textStyle = StyleSheet.flatten(label.props.style)
+
+    expect(flattened.backgroundColor).toBe('#ffffff')
+    expect(flattened.borderColor).toBe('#ebedf0')
+    expect(flattened.borderWidth).toBe(1)
+    expect(flattened.borderRadius).toBe(2)
+    expect(textStyle.color).toBe('#323233')
+  })
+
   it('renders plain buttons using color overrides just like react-vant', () => {
     const tree = renderWithProvider(
       <Button text="Plain" plain color="#ff5500" />

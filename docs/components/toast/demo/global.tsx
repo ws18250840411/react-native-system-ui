@@ -19,10 +19,10 @@ export default function ToastGlobalDemo() {
   }
 
   return (
-    <Cell.Group title="全局配置" card>
+    <>
       <Cell title="设置默认样式" isLink onPress={setPrimary} />
       <Cell title="配置 Loading 默认值" isLink onPress={setLoadingDefault} />
       <Cell title="重置默认配置" isLink onPress={reset} />
-    </Cell.Group>
+    </>
   )
 }

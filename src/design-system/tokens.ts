@@ -44,6 +44,7 @@ export interface Foundations {
     full: number
   }
   fontSize: {
+    xxs: number
     xs: number
     sm: number
     md: number
@@ -173,6 +174,7 @@ export const defaultFoundations: Foundations = {
     full: 9999,
   },
   fontSize: {
+    xxs: 10,
     xs: 12,
     sm: 14,
     md: 16,

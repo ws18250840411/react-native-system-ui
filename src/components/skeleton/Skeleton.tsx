@@ -1,8 +1,11 @@
 import React from 'react'
-import { Animated, StyleSheet, View } from 'react-native'
+import { Animated, Platform, StyleSheet, View } from 'react-native'
 
 import type { SkeletonProps } from './types'
 import { useSkeletonTokens } from './tokens'
+
+const DEFAULT_ROW_WIDTH = '100%'
+const DEFAULT_LAST_ROW_WIDTH = '60%'
 
 const normalizeValue = (value: number | string | undefined, fallback: number | string): number | string => {
   if (typeof value === 'number') return value
@@ -41,8 +44,16 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
 
   const tokens = useSkeletonTokens()
   const rows = Math.max(0, row ?? 0)
-  const rowWidths = resolveSeries(rows, rowWidth, '100%')
+  const rowWidths = resolveSeries(rows, rowWidth, DEFAULT_ROW_WIDTH)
   const rowHeights = resolveSeries(rows, rowHeight, 16)
+  if (
+    !Array.isArray(rowWidth) &&
+    rows > 1 &&
+    (typeof rowWidth === 'undefined' || rowWidth === DEFAULT_ROW_WIDTH)
+  ) {
+    rowWidths[rows - 1] = DEFAULT_LAST_ROW_WIDTH
+  }
+  const titleHeight = rowHeights[0] ?? 16
 
   const animated = React.useRef(new Animated.Value(0)).current
   const loopRef = React.useRef<Animated.CompositeAnimation | null>(null)
@@ -54,12 +65,12 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
           Animated.timing(animated, {
             toValue: 1,
             duration: tokens.animation.duration / 2,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
           Animated.timing(animated, {
             toValue: 0,
             duration: tokens.animation.duration / 2,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
         ]),
       )
@@ -93,7 +104,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   return (
     <View ref={ref} style={[styles.container, style]} {...rest}>
       {avatar ? (
-        <View
+        <Animated.View
           style={[
             styles.avatar,
             {
@@ -102,6 +113,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
               borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
               backgroundColor: tokens.colors.block,
             },
+            animatedStyle,
           ]}
         />
       ) : null}
@@ -112,6 +124,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
               styles.title,
               {
                 width: normalizeValue(titleWidth, '40%'),
+                height: titleHeight,
                 backgroundColor: tokens.colors.block,
                 borderRadius: round ? tokens.radius : 0,
               },

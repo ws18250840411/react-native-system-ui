@@ -32,21 +32,11 @@ export default function PortalStaticDemo() {
   }, [])
 
   return (
-    <View style={styles.stage}>
-      <Portal.Host fixed>
-        <Cell.Group title="静态调用" card>
-          <Cell title="Portal.add 显示提示" isLink onPress={showToast} />
-        </Cell.Group>
-      </Portal.Host>
-    </View>
+    <Cell title="Portal.add 显示提示" isLink onPress={showToast} />
   )
 }
 
 const styles = StyleSheet.create({
-  stage: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
   toast: {
     position: 'absolute',
     bottom: 60,

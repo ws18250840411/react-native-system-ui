@@ -63,10 +63,7 @@ const createTagTokens = (foundations: Foundations): TagTokens => {
       mark: false,
     },
     toneMap: {
-      default: {
-        background: palette.default[200],
-        text: palette.default.foreground ?? '#1f2937',
-      },
+      default: buildTone(palette, 'default', '#ffffff'),
       primary: buildTone(palette, 'primary'),
       success: buildTone(palette, 'success'),
       warning: buildTone(palette, 'warning', palette.warning.foreground ?? palette.warning[900]),

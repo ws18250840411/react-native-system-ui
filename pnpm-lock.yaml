@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  rndoc-cli@1.0.0:
+    hash: eztnwmwtnafsgwzkdllv6staju
+    path: patches/rndoc-cli@1.0.0.patch
+
 importers:
 
   .:
@@ -104,7 +109,7 @@ importers:
         version: 19.2.1(react@19.2.1)
       rndoc-cli:
         specifier: ^1.0.0
-        version: 1.0.0(@algolia/client-search@5.46.0)(@types/node@24.10.3)(@types/react@19.2.7)(postcss@8.5.6)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.2)
+        version: 1.0.0(patch_hash=eztnwmwtnafsgwzkdllv6staju)(@algolia/client-search@5.46.0)(@types/node@24.10.3)(@types/react@19.2.7)(postcss@8.5.6)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.2)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -11554,7 +11559,7 @@ snapshots:
     dependencies:
       glob: 7.2.3
 
-  rndoc-cli@1.0.0(@algolia/client-search@5.46.0)(@types/node@24.10.3)(@types/react@19.2.7)(postcss@8.5.6)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.2):
+  rndoc-cli@1.0.0(patch_hash=eztnwmwtnafsgwzkdllv6staju)(@algolia/client-search@5.46.0)(@types/node@24.10.3)(@types/react@19.2.7)(postcss@8.5.6)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.2):
     dependencies:
       '@babel/core': 7.28.5
       '@babel/plugin-transform-modules-commonjs': 7.27.1(@babel/core@7.28.5)

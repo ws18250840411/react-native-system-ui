@@ -16,6 +16,10 @@ export default function PickerToolbarDemo() {
       confirmButtonText="完成"
       cancelButtonText="返回"
       toolbarPosition="bottom"
+      onChange={values => {
+        const index = columns.findIndex(option => option.value === values[0])
+        Toast.info(`选中值${values[0]}，索引: ${index}`)
+      }}
       onCancel={() => Toast.info('点击取消按钮')}
       onConfirm={() => Toast.info('点击确认按钮')}
     />

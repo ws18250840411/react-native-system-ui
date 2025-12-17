@@ -29,6 +29,10 @@ import { ImagePreview } from 'react-native-system-ui'
 
 <code src="./image-preview/demo/controls.tsx" title="指示器"></code>
 
+### 静态调用
+
+<code src="./image-preview/demo/imperative.tsx" title="静态调用"></code>
+
 ## API
 
 | 属性 | 说明 | 类型 | 默认值 |
@@ -53,5 +57,15 @@ import { ImagePreview } from 'react-native-system-ui'
 | `onClose` | 请求关闭时触发 | `({ index, image }) => void` | `-` |
 | `beforeClose` | 关闭前回调，返回 `false` 阻止关闭 | `({ reason, index, image }) => boolean \| Promise<boolean>` | `-` |
 | `onClosed` | 关闭动画完成回调 | `() => void` | `-` |
+
+### 静态方法
+
+当需要在业务逻辑中直接打开预览时，可以使用静态方法。若项目未使用 `ConfigProvider`（它会自动挂载 `<ImagePreview.Host />`），记得在应用根部渲染一次 `<ImagePreview.Host />`，否则静态预览不会出现在界面上。
+
+| 方法 | 说明 | 返回值 |
+| --- | --- | --- |
+| `ImagePreview.open(options)` | 打开图片预览 | `() => void` |
+| `ImagePreview.clear()` | 关闭所有通过静态方法创建的预览 | `void` |
+| `ImagePreview.Host` | 手动挂载静态预览的渲染容器 | `ReactElement` |
 
 > 差异说明：当前版本暂未实现双指缩放/拖拽等高级手势，后续将结合 `gesture kit` 再迭代。

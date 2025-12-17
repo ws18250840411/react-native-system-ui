@@ -7,34 +7,26 @@ export default function PortalBasicDemo() {
   const [visible, setVisible] = React.useState(false)
 
   return (
-    <View style={styles.stage}>
-      <Portal.Host fixed>
-        <Cell.Group title="基础用法" card>
-          <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
-        </Cell.Group>
-        {visible ? (
-          <Portal>
-            <View style={styles.layer} pointerEvents="box-none">
-              <Pressable style={styles.mask} onPress={() => setVisible(false)} />
-              <View style={styles.dialog}>
-                <Text style={styles.title}>这里是 Portal 内容</Text>
-                <Button type="primary" block onPress={() => setVisible(false)}>
-                  我知道了
-                </Button>
-              </View>
+    <>
+      <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
+      {visible ? (
+        <Portal>
+          <View style={styles.layer} pointerEvents="box-none">
+            <Pressable style={styles.mask} onPress={() => setVisible(false)} />
+            <View style={styles.dialog}>
+              <Text style={styles.title}>这里是 Portal 内容</Text>
+              <Button type="primary" block onPress={() => setVisible(false)}>
+                我知道了
+              </Button>
             </View>
-          </Portal>
-        ) : null}
-      </Portal.Host>
-    </View>
+          </View>
+        </Portal>
+      ) : null}
+    </>
   )
 }
 
 const styles = StyleSheet.create({
-  stage: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
   layer: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',

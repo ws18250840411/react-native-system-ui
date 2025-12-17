@@ -2,6 +2,7 @@ import React from 'react'
 import {
   ActivityIndicator,
   Animated,
+  Easing,
   Pressable,
   StyleSheet,
   View,
@@ -14,6 +15,7 @@ import type { SwitchProps } from './types'
 import { useSwitchTokens } from './tokens'
 
 const AnimatedHandle = Animated.createAnimatedComponent(View)
+const switchEasing = Easing.bezier(0.25, 0.1, 0.25, 1)
 
 const parseNumber = (value: number | string | undefined, fallback: number) => {
   if (typeof value === 'number') return value
@@ -60,14 +62,28 @@ export const Switch: React.FC<SwitchProps> = props => {
   const isChecked = React.useMemo(() => value === activeValue, [activeValue, value])
 
   const progress = React.useRef(new Animated.Value(isChecked ? 1 : 0)).current
+  const colorProgress = React.useRef(new Animated.Value(isChecked ? 1 : 0)).current
 
   React.useEffect(() => {
-    Animated.timing(progress, {
-      toValue: isChecked ? 1 : 0,
-      duration: tokens.animation.duration,
-      useNativeDriver: true,
-    }).start()
-  }, [isChecked, progress, tokens.animation.duration])
+    const toValue = isChecked ? 1 : 0
+    progress.stopAnimation()
+    colorProgress.stopAnimation()
+
+    Animated.parallel([
+      Animated.timing(progress, {
+        toValue,
+        duration: tokens.animation.duration,
+        easing: switchEasing,
+        useNativeDriver: true,
+      }),
+      Animated.timing(colorProgress, {
+        toValue,
+        duration: tokens.animation.duration,
+        easing: switchEasing,
+        useNativeDriver: false,
+      }),
+    ]).start()
+  }, [colorProgress, isChecked, progress, tokens.animation.duration])
 
   const translateX = progress.interpolate({
     inputRange: [0, 1],
@@ -80,6 +96,12 @@ export const Switch: React.FC<SwitchProps> = props => {
   const resolvedActiveColor = activeColor ?? tokens.colors.activeTrack
   const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactiveTrack
   const trackColor = isChecked ? resolvedActiveColor : resolvedInactiveColor
+  const animatedTrackColor = colorProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [resolvedInactiveColor, resolvedActiveColor],
+  })
+
+  const trackBorderWidth = Math.max(1, StyleSheet.hairlineWidth)
 
   const pressableStyle = React.useCallback(
     ({ pressed }: PressableStateCallbackType) => [
@@ -123,15 +145,15 @@ export const Switch: React.FC<SwitchProps> = props => {
       style={pressableStyle}
       onPress={handlePress}
     >
-      <View
+      <Animated.View
         style={[
           styles.track,
           {
             width: trackWidth,
             height: trackHeight,
             borderRadius: trackHeight / 2,
-            backgroundColor: trackColor,
-            borderWidth: StyleSheet.hairlineWidth,
+            backgroundColor: animatedTrackColor,
+            borderWidth: trackBorderWidth,
             borderColor: tokens.colors.border,
           },
         ]}
@@ -139,7 +161,7 @@ export const Switch: React.FC<SwitchProps> = props => {
       >
         <AnimatedHandle
           style={[
-            styles.handle,
+            styles.handleOuter,
             {
               width: handleSize,
               height: handleSize,
@@ -151,11 +173,21 @@ export const Switch: React.FC<SwitchProps> = props => {
             },
           ]}
         >
-          {loading ? (
-            <ActivityIndicator size="small" color={trackColor} />
-          ) : null}
+          <View
+            style={[
+              styles.handleInner,
+              {
+                borderRadius: handleSize / 2,
+                backgroundColor: tokens.colors.handle,
+              },
+            ]}
+          >
+            {loading ? (
+              <ActivityIndicator size={13} color={trackColor} />
+            ) : null}
+          </View>
         </AnimatedHandle>
-      </View>
+      </Animated.View>
     </Pressable>
   )
 }
@@ -168,15 +200,22 @@ const styles = StyleSheet.create({
   track: {
     position: 'relative',
   },
-  handle: {
+  handleOuter: {
     position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 2,
+    elevation: 3,
     shadowColor: '#000000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.06,
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 3 },
+  },
+  handleInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOpacity: 0.12,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
   },
 })
 

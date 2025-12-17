@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-用于展示轻量级反馈信息，默认 2 秒后自动关闭，可定位在顶部/中部/底部。
+在页面中间弹出黑色半透明提示，用于消息通知、加载提示、操作结果提示等场景。
 
 ## 引入
 
@@ -55,6 +55,13 @@ Toast.show({ message: '处理中', position: 'top' })
 Toast.loading({ message: '加载中', forbidClick: true })
 ```
 
+静态方法会返回 toast 句柄，可用于动态更新或清除：
+
+```ts
+const toast = Toast.loading({ message: '加载中...', forbidClick: true })
+toast.config({ type: 'success', message: '完成', duration: 1500 })
+```
+
 ## API
 
 | 属性 | 说明 | 类型 | 默认值 |
@@ -63,23 +70,27 @@ Toast.loading({ message: '加载中', forbidClick: true })
 | `message` | 提示文本 | `ReactNode` | - |
 | `type` | 提示类型（决定默认图标） | `'info' \| 'success' \| 'fail' \| 'loading'` | `'info'` |
 | `icon` | 自定义图标 | `ReactNode` | - |
+| `iconSize` | 内置图标/加载图标大小 | `number` | `36` |
+| `loadingType` | 加载图标类型 | `'circular' \| 'spinner'` | `'circular'` |
 | `duration` | 自动关闭延时（ms），0 表示不会自动关闭 | `number` | `2000` |
 | `position` | 显示位置 | `'top' \| 'middle' \| 'bottom'` | `'middle'` |
 | `overlay` | 是否展示半透明遮罩 | `boolean` | `false` |
 | `overlayStyle` | 遮罩样式 | `StyleProp<ViewStyle>` | - |
 | `forbidClick` | 展示时禁止点击背景 | `boolean` | `false` |
+| `closeOnClickOverlay` | 点击遮罩层后是否关闭 | `boolean` | `false` |
 | `closeOnClick` | 点击 Toast 本身后是否立即关闭 | `boolean` | `false` |
 | `style` | Toast 容器样式 | `StyleProp<ViewStyle>` | - |
 | `textStyle` | 文本样式 | `StyleProp<TextStyle>` | - |
 | `onClose` | 关闭时触发（静态和受控模式均会回调） | `() => void` | - |
+| `onOpened` | 完全展示后的回调函数 | `() => void` | - |
 | `onClosed` | 动画结束后触发 | `() => void` | - |
 
 ### 静态方法
 
 | 方法 | 说明 |
 | --- | --- |
-| `Toast.show(options \\| message)` | 显示普通提示，返回 `{ clear, update }` 句柄 |
-| `Toast.success / fail / info / loading(options)` | 快捷方法，自动设置 `type`，返回 `{ clear, update }` |
+| `Toast.show(options \\| message)` | 显示普通提示，返回 `{ clear, config, update }` 句柄（`config/update` 等价） |
+| `Toast.success / fail / info / loading(options)` | 快捷方法，自动设置 `type`，返回 `{ clear, config, update }` |
 | `Toast.clear()` | 关闭所有通过静态方法创建的提示 |
 | `Toast.allowMultiple(value)` | 是否允许多个 Toast 同时存在，默认单例 |
 | `Toast.setDefaultOptions(options)` | 设置全局默认配置，或针对某个 `type` 设置默认项 |

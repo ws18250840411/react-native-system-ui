@@ -1,6 +1,14 @@
 import FloatingBall from './FloatingBall'
 
-export type { FloatingBallProps, FloatingBallPosition } from './types'
+export type {
+  FloatingBallAdsorbProps,
+  FloatingBallInstance,
+  FloatingBallMenuDirection,
+  FloatingBallMenuProps,
+  FloatingBallOffset,
+  FloatingBallProps,
+  FloatingBallPosition,
+} from './types'
 export { useFloatingBallTokens } from './tokens'
 
 export default FloatingBall

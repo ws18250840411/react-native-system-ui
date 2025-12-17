@@ -1,4 +1,5 @@
 import { useSlider, useSliderThumb } from '@react-native-aria/slider'
+import { isRTL } from '@react-native-aria/utils'
 import { useSliderState } from '@react-stately/slider'
 import React from 'react'
 import type { GestureResponderEvent, LayoutChangeEvent, ViewStyle } from 'react-native'
@@ -56,13 +57,6 @@ const toSliderValue = (values: readonly number[], range: boolean, fallback: numb
   return values[0] ?? fallback
 }
 
-const getPositionKey = (orientation: 'horizontal' | 'vertical', reverse: boolean) => {
-  if (orientation === 'vertical') {
-    return reverse ? 'bottom' : 'top'
-  }
-  return reverse ? 'right' : 'left'
-}
-
 const createAccessibilityProps = (inputProps: any) => {
   if (!inputProps) return {}
   const {
@@ -86,7 +80,6 @@ const createAccessibilityProps = (inputProps: any) => {
 interface ThumbNodeProps {
   index: number
   orientation: 'horizontal' | 'vertical'
-  reverse: boolean
   ariaReverse: boolean
   trackLayout: { width: number; height: number; x: number; y: number }
   isDisabled: boolean
@@ -101,7 +94,6 @@ interface ThumbNodeProps {
 const ThumbNode: React.FC<ThumbNodeProps> = ({
   index,
   orientation,
-  reverse,
   ariaReverse,
   trackLayout,
   isDisabled,
@@ -126,20 +118,17 @@ const ThumbNode: React.FC<ThumbNodeProps> = ({
   )
 
   const handlers = enhanceHandlers({ ...(thumbProps ?? {}) }, index) ?? {}
-  const positionKey = getPositionKey(orientation, reverse)
-
-  const translateStyle =
-    orientation === 'vertical'
-      ? ([{ translateY: -size / 2 }] as ViewStyle['transform'])
-      : ([{ translateX: (reverse ? 1 : -1) * size * 0.5 }] as ViewStyle['transform'])
+  const axisKey = orientation === 'vertical' ? 'top' : 'left'
+  const crossAxisKey = orientation === 'vertical' ? 'left' : 'top'
 
   const thumbStyle: ViewStyle = {
     width: size,
     height: size,
     borderRadius: size / 2,
     borderColor: activeColor,
-    [positionKey]: `${visualPercent}%`,
-    transform: translateStyle,
+    [axisKey]: `${visualPercent}%`,
+    [crossAxisKey]: '50%',
+    transform: [{ translateX: -size / 2 }, { translateY: -size / 2 }],
   }
 
   return (
@@ -325,6 +314,7 @@ export const Slider: React.FC<SliderProps> = props => {
   )
 
   const values = state.values as number[]
+  const reverseX = orientation === 'horizontal' ? reverse || isRTL() : reverse
 
   const percentFromValue = React.useCallback(
     (value: number) => ((value - resolvedMin) / scope) * 100,
@@ -343,26 +333,41 @@ export const Slider: React.FC<SliderProps> = props => {
           ? reverse
             ? percent
             : 100 - percent
-          : percent
+          : reverseX
+            ? 100 - percent
+            : percent
       ),
-    [thumbPercents, orientation, reverse]
+    [thumbPercents, orientation, reverse, reverseX]
   )
 
-  const trackOffsetPercent = range ? percentFromValue(values[0] ?? resolvedMin) : 0
-  const trackSizePercent = range
-    ? percentFromValue(values[1] ?? values[0] ?? resolvedMin) - trackOffsetPercent
-    : percentFromValue(values[0] ?? resolvedMin)
+  const activeRange = React.useMemo(() => {
+    const first = thumbVisualPercents[0] ?? 0
+    const second = thumbVisualPercents[1] ?? first
 
-  const positionKey = getPositionKey(orientation, reverse)
+    if (range && thumbVisualPercents.length > 1) {
+      const start = Math.min(first, second)
+      const end = Math.max(first, second)
+      return { offset: start, size: end - start }
+    }
+
+    const minAtStart = orientation === 'horizontal' ? !reverseX : reverse
+    return minAtStart
+      ? { offset: 0, size: first }
+      : { offset: first, size: 100 - first }
+  }, [orientation, range, reverse, reverseX, thumbVisualPercents])
+
+  const positionKey = orientation === 'vertical' ? 'top' : 'left'
   const sizeKey = orientation === 'vertical' ? 'height' : 'width'
 
   const activeTrackStyle: ViewStyle = React.useMemo(
-    () => ({
-      [sizeKey]: `${Math.max(trackSizePercent, 0)}%`,
-      [positionKey]: `${Math.max(trackOffsetPercent, 0)}%`,
-      backgroundColor: resolvedActiveColor,
-    }),
-    [sizeKey, positionKey, trackSizePercent, trackOffsetPercent, resolvedActiveColor]
+    () =>
+      ({
+        ...(orientation === 'vertical' ? { left: 0, width: '100%' } : { top: 0, height: '100%' }),
+        [sizeKey]: `${Math.max(activeRange.size, 0)}%`,
+        [positionKey]: `${Math.max(activeRange.offset, 0)}%`,
+        backgroundColor: resolvedActiveColor,
+      }) as ViewStyle,
+    [activeRange.offset, activeRange.size, orientation, positionKey, resolvedActiveColor, sizeKey]
   )
 
   const trackBaseStyle =
@@ -436,7 +441,6 @@ export const Slider: React.FC<SliderProps> = props => {
           key={`thumb-${index}`}
           index={index}
           orientation={orientation}
-          reverse={reverse}
           ariaReverse={ariaReverse}
           trackLayout={trackLayout}
           isDisabled={ariaDisabled}
@@ -460,7 +464,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   verticalContainer: {
-    height: 150,
+    height: '100%',
+    minHeight: 150,
     width: 40,
     alignItems: 'center',
     paddingVertical: 0,

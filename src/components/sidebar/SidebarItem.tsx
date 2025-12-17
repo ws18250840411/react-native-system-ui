@@ -7,8 +7,23 @@ import type { SidebarItemProps } from './types'
 import { useSidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
 
+const isRenderable = (value: React.ReactNode) =>
+  value !== undefined && value !== null && value !== false
+
 const SidebarItem: React.FC<SidebarItemProps> = props => {
-  const { title, badge, disabled = false, dot, textStyle, contentStyle, style, index = 0, children, ...rest } = props
+  const {
+    title,
+    badge,
+    disabled = false,
+    dot,
+    textStyle,
+    badgeStyle,
+    contentStyle,
+    style,
+    index = 0,
+    children,
+    ...rest
+  } = props
   const tokens = useSidebarTokens()
   const context = useSidebarContext()
 
@@ -55,22 +70,26 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
       </View>
       <View style={[styles.content, contentStyle]}>
         <View style={styles.titleRow}>
-          {title ? (
-            <Text
-              style={[
-                styles.title,
-                {
-                  color: isActive ? tokens.colors.titleActive : tokens.colors.title,
-                },
-                disabled && { color: tokens.colors.disabled },
-                textStyle,
-              ]}
-            >
-              {title}
-            </Text>
-          ) : null}
-          {badge ? (
-            <View style={styles.badge}>
+          {isRenderable(title)
+            ? typeof title === 'string' || typeof title === 'number'
+              ? (
+                <Text
+                  style={[
+                    styles.title,
+                    {
+                      color: isActive ? tokens.colors.titleActive : tokens.colors.title,
+                    },
+                    disabled && { color: tokens.colors.disabled },
+                    textStyle,
+                  ]}
+                >
+                  {title}
+                </Text>
+              )
+              : title
+            : null}
+          {isRenderable(badge) ? (
+            <View style={[styles.badge, badgeStyle]}>
               {typeof badge === 'string' || typeof badge === 'number' ? (
                 <Badge content={badge} />
               ) : (
@@ -82,7 +101,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
             <View style={[styles.dot, { backgroundColor: tokens.colors.indicator }]} />
           ) : null}
         </View>
-        {children ? (
+        {isRenderable(children) ? (
           <View style={styles.subContent}>
             {typeof children === 'string' || typeof children === 'number'
               ? <Text style={styles.subText}>{children}</Text>

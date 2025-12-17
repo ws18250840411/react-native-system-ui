@@ -38,7 +38,7 @@ import { WaterMark } from 'react-native-system-ui'
 | `opacity` | 透明度 | `number` | `0.15` |
 | `zIndex` | 层级 | `number` | `2000` |
 | `fullPage` | 是否铺满整个屏幕 | `boolean` | `true` |
-| `textStyle` | 自定义 `Text` 样式 | `TextStyle` | - |
+| `textStyle` | 自定义 `Text` 样式 | `StyleProp<TextStyle>` | - |
 | `onLayoutCalculated` | 布局计算完成回调 | `({ width, height }) => void` | - |
 
 > 差异说明：当前版本仅支持文本水印，如需图片水印可在后续迭代中接入 `Image`/Canvas 能力，或自行覆盖组件实现。

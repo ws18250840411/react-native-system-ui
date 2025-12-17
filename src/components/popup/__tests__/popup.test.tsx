@@ -32,6 +32,97 @@ describe('Popup', () => {
     })
   })
 
+  it('respects beforeClose returning false', async () => {
+    const handleClose = jest.fn()
+    const beforeClose = jest.fn(() => false)
+
+    let tree: renderer.ReactTestRenderer
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <Popup
+            visible
+            overlay
+            closeOnOverlayPress
+            beforeClose={beforeClose}
+            onClose={handleClose}
+            overlayTestID="test-overlay-before-close"
+          >
+            <></>
+          </Popup>
+        </PortalHost>,
+      )
+    })
+
+    const [overlay] = tree.root.findAll(
+      node => node.type === Pressable && node.props.testID === 'test-overlay-before-close'
+    )
+
+    await act(async () => {
+      overlay.props.onPress?.({} as any)
+      await Promise.resolve()
+    })
+
+    expect(beforeClose).toHaveBeenCalledWith('overlay')
+    expect(handleClose).not.toHaveBeenCalled()
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('awaits async beforeClose before calling onClose', async () => {
+    jest.useFakeTimers()
+    const handleClose = jest.fn()
+    const beforeClose = jest.fn(
+      () =>
+        new Promise<boolean>(resolve => {
+          setTimeout(() => resolve(true), 300)
+        })
+    )
+
+    let tree: renderer.ReactTestRenderer
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <Popup
+            visible
+            overlay
+            closeOnOverlayPress
+            beforeClose={beforeClose}
+            onClose={handleClose}
+            overlayTestID="test-overlay-before-close-async"
+          >
+            <></>
+          </Popup>
+        </PortalHost>,
+      )
+    })
+
+    const [overlay] = tree.root.findAll(
+      node => node.type === Pressable && node.props.testID === 'test-overlay-before-close-async'
+    )
+
+    await act(async () => {
+      overlay.props.onPress?.({} as any)
+      await Promise.resolve()
+    })
+
+    expect(handleClose).not.toHaveBeenCalled()
+
+    await act(async () => {
+      jest.advanceTimersByTime(300)
+      await Promise.resolve()
+    })
+
+    expect(beforeClose).toHaveBeenCalledWith('overlay')
+    expect(handleClose).toHaveBeenCalled()
+
+    act(() => {
+      tree.unmount()
+    })
+    jest.useRealTimers()
+  })
+
   it('closes on hardware back press when enabled', () => {
     const remove = jest.fn()
     const addSpy = jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({ remove } as any)

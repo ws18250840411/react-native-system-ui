@@ -4,7 +4,7 @@ import { Cell, Toast } from 'react-native-system-ui'
 
 export default function ToastBasicDemo() {
   return (
-    <Cell.Group title="基础用法" card>
+    <>
       <Cell title="文字提示" isLink onPress={() => Toast.info('提示内容')} />
       <Cell
         title="加载提示"
@@ -18,6 +18,6 @@ export default function ToastBasicDemo() {
       />
       <Cell title="成功提示" isLink onPress={() => Toast.success('操作成功')} />
       <Cell title="失败提示" isLink onPress={() => Toast.fail('操作失败')} />
-    </Cell.Group>
+    </>
   )
 }

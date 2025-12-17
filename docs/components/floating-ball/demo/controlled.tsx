@@ -8,9 +8,9 @@ export default () => {
       <FloatingBall
         position={position}
         onChange={setPosition}
-        magnetic={false}
+        adsorb={false}
       />
-      <Button text="回到右下" onPress={() => setPosition({ x: 260, y: 500 })} style={{ marginTop: 16 }} />
+      <Button text="按钮" onPress={() => setPosition({ x: 260, y: 500 })} style={{ marginTop: 16 }} />
     </>
   )
 }

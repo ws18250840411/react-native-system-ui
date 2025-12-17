@@ -1,4 +1,4 @@
-import type { ViewProps, TextStyle } from 'react-native'
+import type { StyleProp, TextStyle, ViewProps } from 'react-native'
 
 export interface WaterMarkProps extends ViewProps {
   content?: string
@@ -11,5 +11,5 @@ export interface WaterMarkProps extends ViewProps {
   zIndex?: number
   fullPage?: boolean
   onLayoutCalculated?: (size: { width: number; height: number }) => void
-  textStyle?: TextStyle
+  textStyle?: StyleProp<TextStyle>
 }

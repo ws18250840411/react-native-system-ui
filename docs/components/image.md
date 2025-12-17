@@ -47,8 +47,8 @@ import { Image } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `src` | 图片地址 | `string` | - |
 | `source` | ImageSourcePropType | `ImageSourcePropType` | - |
-| `width` | 宽度 | `number` | - |
-| `height` | 高度 | `number` | - |
+| `width` | 宽度 | `number \| string` | - |
+| `height` | 高度 | `number \| string` | - |
 | `radius` | 圆角 | `number` | 主题默认 |
 | `round` | 是否显示为圆形 | `boolean` | `false` |
 | `fit` | 填充方式（cover/contain 等） | `'cover' \| 'contain' \| 'fill' \| 'none' \| 'scale-down'` | `'cover'` |
@@ -61,3 +61,5 @@ import { Image } from 'react-native-system-ui'
 | 其余 | 继承 RN `Image` 属性 | - | - |
 
 > 组件内部未实现懒加载，如需按需加载可结合 `FlatList` 的虚拟化或 intersection observer 库实现。
+
+> 提示：如果通过 `style` 传入了布局属性（如 `width/height/flex/margin`），组件会同步应用到外层容器以保证占位层与圆角裁剪一致。
