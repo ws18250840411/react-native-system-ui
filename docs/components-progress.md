@@ -58,6 +58,8 @@
 | Dialog 弹窗 | ✅ | 已具备受控/静态 API、OverlayStack 返回键处理与 a11y（dialog/alert）映射；实现复核通过 |
 | DropdownMenu 下拉菜单 | ✅ | Menu/Item 实现与交互复核通过，遮罩与面板状态管理简洁；测试覆盖已存在 |
 | Loading 加载 | ✅ | circular/spinner 三端兼容（Web 下禁用 native driver），tokens 可覆盖；实现复核通过 |
+| Notify 消息提示 | ✅ | 顶部/底部通知组件（受控 + 静态 API），支持类型/自定义颜色/自动关闭与 safeArea；进入/退出动画一致 |
+| Overlay 遮罩层 | ✅ | 通用遮罩组件，支持点击回调/滚动锁/返回键关闭与自定义层级；复用 Portal + OverlayStack |
 | PullRefresh 下拉刷新 | ✅ | 基于 RefreshControl 的轻量实现，受控/非受控与成功态提示已覆盖；实现复核通过 |
 | ShareSheet 分享面板 | ✅ | 修复 hooks 在循环内调用并统一 demo 入口/描述文案（展示面板/描述信息），交互保持一致 |
 
@@ -67,6 +69,7 @@
 | --- | --- | --- |
 | Avatar 头像 | ✅ | 新增头像组件（图片/文本/徽标/尺寸），示例与 Ant Design Mobile 对齐 |
 | Badge 徽标 | ✅ | 数字/红点/最大值/偏移/独立展示已覆盖，子元素定位与测量逻辑稳定；实现复核通过 |
+| Circle 环形进度条 | ✅ | Web 使用 conic-gradient，Native 端依赖 react-native-svg；支持顺/逆时针、起始位置与动画 |
 | Collapse 折叠面板 | ✅ | 对齐参考实现：修正外边框/内边框语义并补齐 `border/isLink/size/readOnly`、`ref.toggle`；箭头旋转与内容测量动画优化，新增“禁用状态” demo（文案统一） |
 | CountDown 倒计时 | ✅ | 对齐参考实现：补齐“自定义格式/自定义样式/手动控制” demo 并统一标题；默认文字样式 tokens 化；倒计时 tick 与 reset/onChange 语义对齐，文档补齐 format/events/类型/方法说明 |
 | Divider 分割线 | ✅ | 对齐参考实现：实现/文档复核通过；demo 文案统一为“文字”，标题命名与结构对齐并补齐单测验证 |
@@ -75,6 +78,7 @@
 | FloatingBall 浮动球 | ✅ | 对齐参考实现：补齐 `menu/adsorb/boundary/offset` 与 ref `open/close`；demo 文案统一并补齐单测覆盖 |
 | ImagePreview 图片预览 | ✅ | 对齐参考实现：支持受控与静态 API（`open/clear/Host`），补齐页码/指示器/关闭控制与 `beforeClose`；暂未实现缩放/拖拽等高级手势 |
 | List 列表 | ✅ | 对齐参考实现：默认 `offset=300`、内部防并发与错误重试（error 状态阻止自动加载，点击 `errorText` 重试），补齐错误/下拉刷新 demo 与单测；因基于 `ScrollView`，下拉刷新建议用 `refreshControl` 组合 |
+| SwipeCell 滑动单元格 | ✅ | 左右滑动单元格（PanResponder），支持左右操作区、阈值/动画、onOpen/onClose/onChange 与 ref 控制 |
 | NoticeBar 通知栏 | ✅ | 对齐参考实现：滚动/换行/模式/自定义样式与 `onReplay`；补齐 `onPress` 类型与文档，支持非文本 `children`（避免嵌套 Text 崩溃）并补齐单测 |
 | Popover 气泡卡片 | ✅ | demo 文案已统一为占位内容（按钮/内容/方向），便于对比展示效果 |
 | Progress 进度条 | ✅ | 渐变兼容（Web 背景图/原生回退纯色）、动画容错&去抖、a11y progressbar、百分比/行高解析完善并补单测 |

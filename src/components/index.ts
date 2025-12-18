@@ -59,6 +59,8 @@ export type { ImageProps, ImageFit } from './image'
 export { useImageTokens } from './image'
 export { default as Progress } from './progress'
 export type { ProgressProps } from './progress'
+export { default as Circle } from './circle'
+export type { CircleProps, CircleStartPosition, CircleLineCap } from './circle'
 export { default as NoticeBar } from './notice-bar'
 export type { NoticeBarProps, NoticeBarMode } from './notice-bar'
 export { default as Slider } from './slider'
@@ -88,18 +90,23 @@ export { default as Collapse } from './collapse'
 export type { CollapseProps, CollapsePanelProps, CollapseValue } from './collapse'
 export { default as Popup } from './popup'
 export type { PopupProps, PopupPlacement } from './popup'
+export { default as Overlay } from './overlay'
+export type { OverlayProps } from './overlay'
 export { default as Dialog } from './dialog'
 export type {
   DialogProps,
   DialogTheme,
   DialogMessageAlign,
   DialogActionState,
+  DialogBeforeCloseAction,
   DialogShowOptions,
   DialogAlertOptions,
   DialogConfirmOptions,
 } from './dialog'
 export { default as Toast } from './toast'
 export type { ToastProps, ToastPosition } from './toast'
+export { default as Notify } from './notify'
+export type { NotifyProps, NotifyType, NotifyPosition } from './notify'
 export { Portal } from './portal'
 export { PortalHost } from './portal'
 export type { PortalProps } from './portal/Portal'
@@ -125,17 +132,26 @@ export type { SidebarProps, SidebarItemProps } from './sidebar'
 export { default as IndexBar } from './index-bar'
 export type { IndexBarProps, IndexAnchorProps } from './index-bar'
 export { default as ActionSheet } from './action-sheet'
-export type { ActionSheetProps, ActionSheetAction } from './action-sheet'
+export type { ActionSheetProps, ActionSheetAction, ActionSheetCloseAction } from './action-sheet'
 export { default as ShareSheet } from './share-sheet'
 export type { ShareSheetProps, ShareSheetOption, ShareSheetOptions } from './share-sheet'
 export { default as DropdownMenu } from './dropdown-menu'
-export type { DropdownMenuProps, DropdownItemProps, DropdownOption } from './dropdown-menu'
+export type {
+  DropdownMenuProps,
+  DropdownItemProps,
+  DropdownOption,
+  DropdownMenuDirection,
+  DropdownMenuInstance,
+  DropdownItemInstance,
+} from './dropdown-menu'
 export { default as Popover } from './popover'
 export type { PopoverProps, PopoverPlacement } from './popover'
 export { default as Area } from './area'
 export type { AreaProps } from './area'
 export { default as List } from './list'
 export type { ListProps, ListRef } from './list'
+export { default as SwipeCell } from './swipe-cell'
+export type { SwipeCellProps, SwipeCellRef, SwipeCellSide, SwipeCellPosition } from './swipe-cell'
 export { default as PullRefresh } from './pull-refresh'
 export type { PullRefreshProps } from './pull-refresh'
 export { default as ImagePreview } from './image-preview'

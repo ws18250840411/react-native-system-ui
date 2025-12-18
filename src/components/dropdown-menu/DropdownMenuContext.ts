@@ -1,11 +1,17 @@
 import * as React from 'react'
 
+import type { DropdownMenuDirection } from './types'
+
 export interface DropdownMenuContextValue {
   activeIndex: number | null
-  toggleItem: (index: number, panel: React.ReactNode) => void
-  updatePanel: (index: number, panel: React.ReactNode) => void
+  registerPanel: (index: number, panel: React.ReactNode) => void
+  toggleItem: (index: number) => void
+  showItem: (index: number) => void
   closeMenu: () => void
   activeColor?: string
+  activeIcon?: React.ReactNode
+  direction: DropdownMenuDirection
+  disabled?: boolean
 }
 
 export const DropdownMenuContext = React.createContext<DropdownMenuContextValue | null>(null)

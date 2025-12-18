@@ -2,40 +2,54 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
-import type { DropdownItemProps, DropdownOption } from './types'
+import type { DropdownItemInstance, DropdownItemProps, DropdownOption } from './types'
 import { useDropdownMenuContext } from './DropdownMenuContext'
 import { useDropdownMenuTokens } from './tokens'
 
-const DropdownItem: React.FC<DropdownItemProps> = props => {
+const getOptionText = (option?: DropdownOption) => option?.text ?? option?.label
+
+const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((props, ref) => {
   const {
     options,
     placeholder = '请选择',
+    title,
     label,
+    disabled: itemDisabledProp = false,
     closeOnSelect = true,
     textStyle,
     panelStyle,
     children,
     onChange,
+    onOpen,
+    onClose,
     style,
     index = 0,
+    barScrollable = false,
     ...rest
   } = props
 
   const tokens = useDropdownMenuTokens()
-  const { activeIndex, toggleItem, updatePanel, closeMenu, activeColor } = useDropdownMenuContext()
+  const { activeIndex, registerPanel, toggleItem, showItem, closeMenu, activeColor, activeIcon, direction, disabled: menuDisabled } = useDropdownMenuContext()
   const [value, triggerChange] = useControllableValue(props, {
     defaultValue: undefined,
     trigger: 'onChange',
   })
 
   const isActive = activeIndex === index
+  const itemDisabled = menuDisabled || itemDisabledProp
 
   const selectedOption = options?.find(option => option.value === value)
-  const displayLabel = label ?? selectedOption?.label ?? placeholder
-  const displayColor = selectedOption ? (activeColor ?? tokens.colors.activeText) : tokens.colors.placeholder
+  const selectedText = getOptionText(selectedOption)
+  const displayLabel = title ?? label ?? selectedText ?? placeholder
+  const displayColor = itemDisabled
+    ? tokens.colors.disabledText
+    : selectedOption
+      ? (activeColor ?? tokens.colors.activeText)
+      : tokens.colors.placeholder
 
   const handleSelect = React.useCallback(
     (option: DropdownOption) => {
+      if (option.disabled) return
       triggerChange(option.value, option)
       if (closeOnSelect) {
         closeMenu()
@@ -59,6 +73,7 @@ const DropdownItem: React.FC<DropdownItemProps> = props => {
       <View style={[styles.optionPanel, panelStyle]}>
         {options.map(option => {
           const active = value === option.value
+          const optionText = getOptionText(option)
           return (
             <Pressable
               key={String(option.value)}
@@ -71,46 +86,92 @@ const DropdownItem: React.FC<DropdownItemProps> = props => {
                 style={[
                   styles.optionText,
                   { color: active ? (activeColor ?? tokens.colors.activeText) : tokens.colors.text },
-                  option.disabled && { color: tokens.colors.placeholder },
+                  option.disabled && { color: tokens.colors.disabledText },
                 ]}
               >
-                {option.label}
+                {optionText}
               </Text>
-              {active ? <Text style={[styles.activeIndicator, { color: activeColor ?? tokens.colors.activeText }]}>✓</Text> : null}
+              {active
+                ? activeIcon ?? (
+                  <Text style={[styles.activeIndicator, { color: activeColor ?? tokens.colors.activeText }]}>
+                    ✓
+                  </Text>
+                )
+                : null}
             </Pressable>
           )
         })}
       </View>
     )
-  }, [activeColor, children, handleSelect, options, panelStyle, tokens.colors.activeText, tokens.colors.placeholder, tokens.colors.text, value])
+  }, [
+    activeColor,
+    activeIcon,
+    children,
+    handleSelect,
+    options,
+    panelStyle,
+    tokens.colors.activeText,
+    tokens.colors.disabledText,
+    tokens.colors.placeholder,
+    tokens.colors.text,
+    value,
+  ])
 
   React.useEffect(() => {
-    if (isActive) {
-      updatePanel(index, panelContent)
+    registerPanel(index, panelContent)
+  }, [index, panelContent, registerPanel])
+
+  const prevActiveRef = React.useRef(isActive)
+  React.useEffect(() => {
+    if (isActive && !prevActiveRef.current) {
+      onOpen?.()
     }
-  }, [index, isActive, panelContent, updatePanel])
+    if (!isActive && prevActiveRef.current) {
+      onClose?.()
+    }
+    prevActiveRef.current = isActive
+  }, [isActive, onClose, onOpen])
 
   const handleToggle = () => {
+    if (itemDisabled) return
     if (isActive) {
       closeMenu()
     } else {
-      toggleItem(index, panelContent)
+      toggleItem(index)
     }
   }
+
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      toggle: handleToggle,
+      open: () => {
+        if (itemDisabled) return
+        if (isActive) return
+        showItem(index)
+      },
+      close: () => {
+        if (!isActive) return
+        closeMenu()
+      },
+    }),
+    [closeMenu, handleToggle, index, isActive, itemDisabled, showItem],
+  )
 
   return (
     <Pressable
       {...rest}
-      style={[styles.item, style]}
+      style={[styles.item, barScrollable ? styles.itemScrollable : null, style]}
       onPress={handleToggle}
       accessibilityRole="button"
       testID={`rv-dropdown-trigger-${index}`}
+      disabled={itemDisabled}
     >
       <Text
         style={[
           styles.title,
           textStyle,
-          { color: selectedOption ? (activeColor ?? tokens.colors.activeText) : tokens.colors.placeholder },
+          { color: displayColor },
         ]}
         numberOfLines={1}
       >
@@ -119,7 +180,7 @@ const DropdownItem: React.FC<DropdownItemProps> = props => {
       <Text style={[styles.arrow, { color: tokens.colors.placeholder }]}>{isActive ? '▲' : '▼'}</Text>
     </Pressable>
   )
-}
+})
 
 const styles = StyleSheet.create({
   item: {
@@ -128,6 +189,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     flex: 1,
+  },
+  itemScrollable: {
+    flex: 0,
+    paddingHorizontal: 12,
   },
   title: {
     fontSize: 16,

@@ -16,6 +16,9 @@ import type { StepperInstance, StepperProps } from './types'
 const LONG_PRESS_DELAY = 600
 const LONG_PRESS_INTERVAL = 100
 
+const isPromiseLike = (value: unknown): value is Promise<unknown> =>
+  !!value && typeof value === 'object' && typeof (value as any).then === 'function'
+
 const add = (num1: number, num2: number) => {
   const cardinal = 10 ** 10
   return Math.round((num1 + num2) * cardinal) / cardinal
@@ -70,8 +73,10 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
 
   const {
     min,
-    max = Number.MAX_VALUE,
+    max,
     step = 1,
+    autoFixed = true,
+    beforeChange,
     integer = false,
     decimalLength: decimalLengthProp,
     disabled = false,
@@ -101,6 +106,9 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     ...rest
   } = p
 
+  const [changing, setChanging] = React.useState(false)
+  const changingRef = React.useRef(false)
+
   const decimalLength = React.useMemo(
     () => parseDecimalLength(decimalLengthProp),
     [decimalLengthProp]
@@ -125,8 +133,9 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     const raw = p.defaultValue
     if (raw === null) return null
     const base = typeof raw === 'number' && Number.isFinite(raw) ? raw : 0
-    return clampValue(formatValue(base, integer, decimalLength), min, max)
-  }, [decimalLength, integer, max, min, p.defaultValue])
+    const formatted = formatValue(base, integer, decimalLength)
+    return autoFixed ? clampValue(formatted, min, max) : formatted
+  }, [autoFixed, decimalLength, integer, max, min, p.defaultValue])
 
   const [value, triggerChange] = useControllableValue<number | null>(
     { ...p, defaultValue: resolvedDefaultValue },
@@ -196,9 +205,68 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const applyNextValue = React.useCallback(
     (nextRaw: number) => {
       const formatted = formatValue(nextRaw, integer, decimalLength)
-      return clampValue(formatted, min, max)
+      return autoFixed ? clampValue(formatted, min, max) : formatted
     },
-    [decimalLength, integer, max, min],
+    [autoFixed, decimalLength, integer, max, min],
+  )
+
+  const performValueChange = React.useCallback(
+    (next: number | null, committed?: (committedValue: number | null) => void) => {
+      if (changingRef.current) {
+        return 'noop' as const
+      }
+
+      const commit = () => {
+        const didChange = setValue(next)
+        if (!didChange) return 'noop' as const
+        setInputText(valueToString(next, decimalLength))
+        committed?.(next)
+        return 'changed' as const
+      }
+
+      if (!beforeChange) {
+        return commit()
+      }
+
+      try {
+        const result = beforeChange(next)
+
+        if (isPromiseLike(result)) {
+          changingRef.current = true
+          setChanging(true)
+
+          result
+            .then(allowed => {
+              if (allowed === false) {
+                setInputText(valueToString(valueRef.current, decimalLength))
+                return
+              }
+              commit()
+            })
+            .catch(error => {
+              console.error(error)
+              commit()
+            })
+            .finally(() => {
+              changingRef.current = false
+              setChanging(false)
+            })
+
+          return 'pending' as const
+        }
+
+        if (result === false) {
+          setInputText(valueToString(valueRef.current, decimalLength))
+          return 'noop' as const
+        }
+
+        return commit()
+      } catch (error) {
+        console.error(error)
+        return commit()
+      }
+    },
+    [beforeChange, decimalLength, setInputText, setValue],
   )
 
   const stepOnce = React.useCallback(
@@ -207,6 +275,10 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       event?: GestureResponderEvent,
       options?: { emitOverlimit?: boolean; emitButtonCallbacks?: boolean },
     ) => {
+      if (changingRef.current) {
+        return 'noop' as const
+      }
+
       const emitOverlimit = options?.emitOverlimit ?? true
       const emitButtonCallbacks = options?.emitButtonCallbacks ?? Boolean(event)
 
@@ -219,31 +291,24 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       const diff = type === 'plus' ? resolvedStep : -resolvedStep
       const next = applyNextValue(add(current, diff))
 
-      const didChange = setValue(next)
-      if (!didChange) return 'noop' as const
-
-      setInputText(valueToString(next, decimalLength))
-
-      if (emitButtonCallbacks && event) {
+      return performValueChange(next, committedValue => {
+        if (!emitButtonCallbacks || !event) return
         if (type === 'plus') {
-          onPlus?.(event, next)
+          onPlus?.(event, committedValue)
         } else {
-          onMinus?.(event, next)
+          onMinus?.(event, committedValue)
         }
-      }
-
-      return 'changed' as const
+      })
     },
     [
       applyNextValue,
-      decimalLength,
       getCurrentNumber,
       isActionDisabled,
       onMinus,
       onOverlimit,
       onPlus,
+      performValueChange,
       resolvedStep,
-      setValue,
     ],
   )
 
@@ -271,6 +336,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const startLongPress = React.useCallback(
     (type: 'plus' | 'minus') => {
       if (!longPress) return
+      if (changingRef.current) return
       if (isActionDisabled(type)) return
 
       clearLongPress()
@@ -282,7 +348,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
           emitOverlimit: true,
           emitButtonCallbacks: false,
         })
-        if (first === 'overlimit') {
+        if (first !== 'changed') {
           clearLongPress()
           return
         }
@@ -292,7 +358,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
             emitOverlimit: true,
             emitButtonCallbacks: false,
           })
-          if (result === 'overlimit') {
+          if (result !== 'changed') {
             clearLongPress()
           }
         }, LONG_PRESS_INTERVAL)
@@ -320,8 +386,9 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const currentForCompare = typeof value === 'number' && Number.isFinite(value) ? value : 0
   const minNumber = typeof min === 'number' && Number.isFinite(min) ? min : undefined
   const maxNumber = typeof max === 'number' && Number.isFinite(max) ? max : undefined
-  const minusDisabled = disabled || disableMinus || (minNumber !== undefined && currentForCompare <= minNumber)
-  const plusDisabled = disabled || disablePlus || (maxNumber !== undefined && currentForCompare >= maxNumber)
+  const disabledForAll = disabled || changing
+  const minusDisabled = disabledForAll || disableMinus || (minNumber !== undefined && currentForCompare <= minNumber)
+  const plusDisabled = disabledForAll || disablePlus || (maxNumber !== undefined && currentForCompare >= maxNumber)
   const radius = tokens.radii.default
 
   const buttonBaseStyle = React.useMemo(
@@ -463,7 +530,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
 
   const handleChangeText = React.useCallback(
     (text: string) => {
-      if (disableInput || disabled) return
+      if (disableInput || disabled || changingRef.current) return
 
       setInputText(text)
       inputProps?.onChangeText?.(text)
@@ -471,9 +538,9 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       const trimmed = text.trim()
       if (trimmed === '') {
         if (allowEmpty) {
-          setValue(null)
+          performValueChange(null)
         } else {
-          setValue(resolvedDefaultValue)
+          performValueChange(resolvedDefaultValue)
         }
         return
       }
@@ -481,9 +548,18 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       const numeric = Number.parseFloat(trimmed)
       if (!Number.isFinite(numeric)) return
 
-      setValue(applyNextValue(numeric))
+      performValueChange(applyNextValue(numeric))
     },
-    [allowEmpty, applyNextValue, disableInput, disabled, inputProps, resolvedDefaultValue, setInputText, setValue],
+    [
+      allowEmpty,
+      applyNextValue,
+      disableInput,
+      disabled,
+      inputProps,
+      performValueChange,
+      resolvedDefaultValue,
+      setInputText,
+    ],
   )
 
   const handleFocus = React.useCallback(
@@ -503,24 +579,26 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     (event: any) => {
       setHasFocus(false)
 
-      const trimmed = inputValueRef.current.trim()
-      if (trimmed === '') {
-        if (allowEmpty) {
-          setValue(null)
+      if (!changingRef.current) {
+        const trimmed = inputValueRef.current.trim()
+        if (trimmed === '') {
+          if (allowEmpty) {
+            performValueChange(null)
+          } else {
+            performValueChange(resolvedDefaultValue)
+          }
         } else {
-          setValue(resolvedDefaultValue)
-        }
-      } else {
-        const numeric = Number.parseFloat(trimmed)
-        if (Number.isFinite(numeric)) {
-          setValue(applyNextValue(numeric))
+          const numeric = Number.parseFloat(trimmed)
+          if (Number.isFinite(numeric)) {
+            performValueChange(applyNextValue(numeric))
+          }
         }
       }
 
       onBlur?.(event)
       inputProps?.onBlur?.(event)
     },
-    [allowEmpty, applyNextValue, inputProps, onBlur, resolvedDefaultValue, setValue],
+    [allowEmpty, applyNextValue, inputProps, onBlur, performValueChange, resolvedDefaultValue],
   )
 
   const handleInputPressIn = React.useCallback(
@@ -556,8 +634,8 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const renderInput = () => {
     if (!showInput) return null
 
-    const editable = !disabled && !disableInput
-    const inputDisabled = disabled || disableInput
+    const editable = !disabledForAll && !disableInput
+    const inputDisabled = disabledForAll || disableInput
 
     const inputBackground =
       theme === 'round'

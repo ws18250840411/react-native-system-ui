@@ -10,7 +10,9 @@ export interface DropdownMenuTokens {
     text: string
     activeText: string
     placeholder: string
+    disabledText: string
     panelBackground: string
+    mask: string
     divider: string
   }
   spacing: {
@@ -29,7 +31,9 @@ const createTokens = (foundations: Foundations): DropdownMenuTokens => {
       text: palette.default[900],
       activeText: palette.primary[600],
       placeholder: palette.default[500],
-      panelBackground: palette.background?.base ?? '#ffffff',
+      disabledText: palette.default[400],
+      panelBackground: '#ffffff',
+      mask: 'rgba(0,0,0,0.45)',
       divider: palette.default[200],
     },
     spacing: {

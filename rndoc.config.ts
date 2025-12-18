@@ -1,7 +1,11 @@
 import { defineConfig } from 'rndoc-cli'
+import { createRequire } from 'module'
 import path from 'path'
 
 const workspaceRoot = process.cwd()
+const require = createRequire(import.meta.url)
+const rndocCliRoot = path.dirname(require.resolve('rndoc-cli/package.json'))
+const resolveFromRndoc = (name: string) => require.resolve(name, { paths: [rndocCliRoot] })
 const codegenNativeComponentMock = path.join(workspaceRoot, 'src/compat/codegenNativeComponent.ts')
 const reactNativeResolveExtensions = [
   '.web.mjs',
@@ -57,6 +61,10 @@ export default defineConfig({
   locales: false,
   build: {
     disableTypeCheck: true,
+    extraBabelPresets: [
+      resolveFromRndoc('@babel/preset-typescript'),
+      resolveFromRndoc('@babel/preset-react'),
+    ],
     configureVite: (config: any) => {
       // 解决 react-native-svg 等依赖在 Web 端引入 codegenNativeComponent 导致的 Vite optimizeDeps 报错
       const resolve = config.resolve ?? {}
@@ -69,6 +77,8 @@ export default defineConfig({
 
       // 确保优先命中更具体的 alias，避免被 `react-native -> react-native-web` 前缀替换
       const nextAlias = [
+        // 文档站点开发时直接指向源码，避免依赖 dist 的导出是否最新
+        { find: /^react-native-system-ui$/, replacement: path.join(workspaceRoot, 'src/index.ts') },
         { find: 'react-native/Libraries/Utilities/codegenNativeComponent', replacement: codegenNativeComponentMock },
         // 将 react-native-svg 替换为包装模块，Vite 会根据扩展名自动选择 .web.ts 或 .native.ts
         { find: 'react-native-svg', replacement: path.join(workspaceRoot, 'src/compat/react-native-svg') },
@@ -171,6 +181,8 @@ export default defineConfig({
           '/components/dialog',
           '/components/dropdown-menu',
           '/components/loading',
+          '/components/notify',
+          '/components/overlay',
           '/components/pull-refresh',
           '/components/share-sheet',
         ],
@@ -180,6 +192,7 @@ export default defineConfig({
         children: [
           '/components/avatar',
           '/components/badge',
+          '/components/circle',
           '/components/collapse',
           '/components/count-down',
           '/components/divider',
@@ -191,6 +204,7 @@ export default defineConfig({
           '/components/notice-bar',
           '/components/popover',
           '/components/progress',
+          '/components/swipe-cell',
           '/components/skeleton',
           '/components/tag',
           '/components/water-mark',

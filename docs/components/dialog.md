@@ -35,6 +35,12 @@ import { Dialog } from 'react-native-system-ui'
 
 <code title="圆角按钮" src="./dialog/demo/theme.tsx"></code>
 
+### 异步关闭
+
+通过 `beforeClose` 可以在关闭前执行异步逻辑，返回 `false` 可阻止本次触发。
+
+<code title="异步关闭" src="./dialog/demo/before-close.tsx"></code>
+
 ### 静态调用
 
 Dialog 提供静态方法，可在业务逻辑中直接调用。
@@ -72,6 +78,7 @@ Dialog 提供静态方法，可在业务逻辑中直接调用。
 | `titleStyle` | 标题文本样式 | `StyleProp<TextStyle>` | - |
 | `messageStyle` | 文案样式 | `StyleProp<TextStyle>` | - |
 | `style` | 容器样式 | `StyleProp<ViewStyle>` | - |
+| `beforeClose` | 关闭前拦截（对齐 Vant `beforeClose`），返回 `false` 可阻止本次触发，支持 Promise | `(action: 'confirm' \| 'cancel' \| 'close') => boolean \| Promise<boolean>` | - |
 | `onCancel` | 点击取消按钮时触发（静态调用时返回 `false` 可阻止关闭） | `() => void \| boolean \| Promise<void \| boolean>` | - |
 | `onConfirm` | 点击确认按钮时触发（静态调用时返回 `false` 可阻止关闭） | `() => void \| boolean \| Promise<void \| boolean>` | - |
 | `onClose` | 遮罩/关闭按钮/系统返回触发时回调（静态调用时返回 `false` 可阻止关闭） | `() => void \| boolean \| Promise<void \| boolean>` | - |

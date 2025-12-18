@@ -9,6 +9,8 @@ import type { ActionSheetAction, ActionSheetProps } from './types'
 import { useActionSheetTokens, type ActionSheetTokens } from './tokens'
 
 const defaultCloseIcon = <Close size={18} />
+const isPromiseLike = (value: unknown): value is Promise<unknown> =>
+  !!value && typeof value === 'object' && typeof (value as any).then === 'function'
 
 const ActionSheetHeader: React.FC<{
   title: React.ReactNode
@@ -64,6 +66,7 @@ const ActionSheetItem: React.FC<{
           borderTopWidth: index === 0 ? 0 : StyleSheet.hairlineWidth,
           borderTopColor: tokens.colors.border,
         },
+        action.style,
       ]}
       {...actionPress.interactionProps}
     >
@@ -123,9 +126,11 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     description,
     cancelText,
     actions = [],
-    closeOnSelect = true,
+    closeOnClickAction,
+    closeOnSelect,
     closeable = true,
     closeIcon = defaultCloseIcon,
+    beforeClose,
     onSelect,
     onCancel,
     onClose,
@@ -137,19 +142,43 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     ...popupProps
   } = props
 
-  const close = React.useCallback(
-    (reason: 'action' | 'cancel') => {
-      if (reason === 'cancel') {
-        onCancel?.()
+  const shouldCloseOnClickAction = closeOnClickAction ?? closeOnSelect ?? false
+
+  const runBeforeClose = React.useCallback(
+    async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
+      if (!beforeClose) return true
+      try {
+        const result = beforeClose(action)
+        if (isPromiseLike(result)) {
+          const resolved = await result
+          return resolved !== false
+        }
+        return result !== false
+      } catch (error) {
+        console.error(error)
+        return true
       }
-      onClose?.()
     },
-    [onCancel, onClose]
+    [beforeClose],
   )
 
-  const handlePopupClose = React.useCallback(() => {
-    close('cancel')
-  }, [close])
+  const requestClose = React.useCallback(
+    async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
+      const allowed = await runBeforeClose(action)
+      if (!allowed) return
+      onClose?.()
+    },
+    [onClose, runBeforeClose],
+  )
+
+  const handleCancel = React.useCallback(() => {
+    onCancel?.()
+    void requestClose('cancel')
+  }, [onCancel, requestClose])
+
+  const handleCloseIcon = React.useCallback(() => {
+    void requestClose('close-icon')
+  }, [requestClose])
 
   const handleActionPress = React.useCallback(
     (action: ActionSheetAction, index: number) => {
@@ -157,12 +186,13 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
         return
       }
       action.onPress?.(action)
+      action.callback?.(action)
       onSelect?.(action, index)
-      if (closeOnSelect) {
-        close('action')
+      if (shouldCloseOnClickAction) {
+        void requestClose('action')
       }
     },
-    [close, closeOnSelect, onSelect]
+    [onSelect, requestClose, shouldCloseOnClickAction]
   )
 
   return (
@@ -173,7 +203,8 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       safeAreaInsetBottom={safeAreaInsetBottom}
       overlay={overlay}
       lockScroll={lockScroll}
-      onClose={handlePopupClose}
+      beforeClose={beforeClose}
+      onClose={onClose}
       {...popupProps}
     >
       <View style={[styles.panel, { paddingHorizontal: tokens.spacing.horizontal, backgroundColor: tokens.colors.background }]}>
@@ -183,7 +214,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
             closeable={closeable}
             closeIcon={closeIcon}
             tokens={tokens}
-            onClose={() => close('cancel')}
+            onClose={handleCloseIcon}
           />
         ) : null}
         {description ? (
@@ -204,7 +235,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
         </View>
         {children}
         {cancelText ? (
-          <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={() => close('cancel')} />
+          <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={handleCancel} />
         ) : null}
       </View>
     </Popup>

@@ -9,6 +9,7 @@ export default () => {
       <Button text="自定义内容" onPress={() => setVisible(true)} />
       <ActionSheet
         visible={visible}
+        title="标题"
         actions={[
           { name: '复制链接', icon: <Info /> },
           { name: '收藏', icon: <Star /> },

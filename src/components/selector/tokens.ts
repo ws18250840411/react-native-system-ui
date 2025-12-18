@@ -52,7 +52,7 @@ const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
       border: 'transparent',
       borderActive: 'transparent',
       background: palette.default[50],
-      backgroundActive: palette.primary[50] ?? '#f2f6ff',
+      backgroundActive: '#efefff',
       text: palette.default[900],
       textActive: palette.primary[600],
       description: palette.default[500],
@@ -61,9 +61,9 @@ const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
       checkForeground: palette.primary.foreground ?? '#ffffff',
     },
     spacing: {
-      gap: spacing.md,
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.md,
+      gap: spacing.sm,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.lg,
       descriptionMarginTop: spacing.xxs,
     },
     radii: {

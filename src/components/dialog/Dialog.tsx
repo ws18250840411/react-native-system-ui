@@ -60,6 +60,9 @@ const useStableNativeId = () => {
   return nativeId
 }
 
+const isPromiseLike = (value: unknown): value is Promise<unknown> =>
+  !!value && typeof value === 'object' && typeof (value as any).then === 'function'
+
 interface DialogTokens {
   colors: {
     background: string
@@ -219,6 +222,7 @@ export const Dialog: React.FC<DialogProps> = props => {
     closeOnClickOverlay = false,
     onClickOverlay,
     onClickCloseIcon,
+    beforeClose,
     showCancelButton = false,
     showConfirmButton = true,
     cancelButtonText,
@@ -291,29 +295,92 @@ export const Dialog: React.FC<DialogProps> = props => {
 
   const mergedCloseOnOverlayPress = closeOnOverlayPress || closeOnClickOverlay
 
-  const handleOverlayPress = () => {
+  const runBeforeClose = React.useCallback(
+    (action: 'confirm' | 'cancel' | 'close') => {
+      if (!beforeClose) return true
+      try {
+        return beforeClose(action)
+      } catch (error) {
+        console.error(error)
+        return true
+      }
+    },
+    [beforeClose],
+  )
+
+  const requestClose = React.useCallback(() => {
+    const result = runBeforeClose('close')
+    if (result === false) return
+    if (isPromiseLike(result)) {
+      void result
+        .then(resolved => {
+          if (resolved === false) return
+          onClose?.()
+        })
+        .catch(error => {
+          console.error(error)
+          onClose?.()
+        })
+      return
+    }
+    onClose?.()
+  }, [onClose, runBeforeClose])
+
+  const handleOverlayPress = React.useCallback(() => {
     if (!mergedCloseOnOverlayPress) return
-    onClose?.()
-  }
+    requestClose()
+  }, [mergedCloseOnOverlayPress, requestClose])
 
-  const handleCloseIcon = () => {
+  const handleCloseIcon = React.useCallback(() => {
     onClickCloseIcon?.()
-    onClose?.()
-  }
+    requestClose()
+  }, [onClickCloseIcon, requestClose])
 
-  const handleCancel = () => {
+  const handleCancel = React.useCallback(() => {
     if (cancelProps?.loading) return
+    const result = runBeforeClose('cancel')
+    if (result === false) return
+    if (isPromiseLike(result)) {
+      void result
+        .then(resolved => {
+          if (resolved === false) return
+          onCancel?.()
+        })
+        .catch(error => {
+          console.error(error)
+          onCancel?.()
+        })
+      return
+    }
     onCancel?.()
-  }
+  }, [cancelProps?.loading, onCancel, runBeforeClose])
 
-  const handleConfirm = () => {
+  const handleConfirm = React.useCallback(() => {
     if (confirmProps?.loading) return
+    const result = runBeforeClose('confirm')
+    if (result === false) return
+    if (isPromiseLike(result)) {
+      void result
+        .then(resolved => {
+          if (resolved === false) return
+          onConfirm?.()
+        })
+        .catch(error => {
+          console.error(error)
+          onConfirm?.()
+        })
+      return
+    }
     onConfirm?.()
-  }
+  }, [confirmProps?.loading, onConfirm, runBeforeClose])
+
+  const handleStackClose = React.useCallback(() => {
+    void requestClose()
+  }, [requestClose])
 
   const { zIndex: stackZIndex, isTopMost } = useOverlayStack({
     visible,
-    onClose,
+    onClose: handleStackClose,
     closeOnBack: true,
     lockScroll: true,
     type: 'dialog',

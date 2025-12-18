@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -156,8 +157,8 @@ export const Switch: React.FC<SwitchProps> = props => {
             borderWidth: trackBorderWidth,
             borderColor: tokens.colors.border,
           },
+          { pointerEvents: 'none' },
         ]}
-        pointerEvents="none"
       >
         <AnimatedHandle
           style={[
@@ -202,20 +203,32 @@ const styles = StyleSheet.create({
   },
   handleOuter: {
     position: 'absolute',
-    elevation: 3,
-    shadowColor: '#000000',
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 3 },
+    ...(Platform.OS === 'web'
+      ? {
+        boxShadow: '0px 3px 3px rgba(0, 0, 0, 0.06)',
+      }
+      : {
+        elevation: 3,
+        shadowColor: '#000000',
+        shadowOpacity: 0.06,
+        shadowRadius: 3,
+        shadowOffset: { width: 0, height: 3 },
+      }),
   },
   handleInner: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000000',
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 2 },
+    ...(Platform.OS === 'web'
+      ? {
+        boxShadow: '0px 2px 2px rgba(0, 0, 0, 0.12)',
+      }
+      : {
+        shadowColor: '#000000',
+        shadowOpacity: 0.12,
+        shadowRadius: 2,
+        shadowOffset: { width: 0, height: 2 },
+      }),
   },
 })
 

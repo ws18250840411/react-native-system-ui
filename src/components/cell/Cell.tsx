@@ -187,7 +187,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       hairlineStyle.transform = [{ scaleY: 0.5 }]
     }
 
-    return <View pointerEvents="none" style={[styles.hairline, hairlineStyle]} />
+    return <View style={[styles.hairline, hairlineStyle, { pointerEvents: 'none' }]} />
   }, [
     platform,
     resolvedPadding.left,

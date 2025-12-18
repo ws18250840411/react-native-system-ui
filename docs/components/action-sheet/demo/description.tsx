@@ -1,5 +1,5 @@
 import React from 'react'
-import { ActionSheet, Button } from 'react-native-system-ui'
+import { ActionSheet, Button, Toast } from 'react-native-system-ui'
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
@@ -15,6 +15,10 @@ export default () => {
           { name: '好友', subname: '单条消息' },
         ]}
         cancelText="取消"
+        onSelect={action => {
+          setVisible(false)
+          Toast.info(String(action.name ?? ''))
+        }}
         onClose={() => setVisible(false)}
       />
     </>

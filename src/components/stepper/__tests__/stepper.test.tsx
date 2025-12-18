@@ -89,4 +89,35 @@ describe('Stepper', () => {
     expect(handleChange.mock.calls.map(call => call[0])).toEqual([1, 2, 3])
     jest.useRealTimers()
   })
+
+  it('supports beforeChange to block updates', () => {
+    const beforeChange = jest.fn(() => false)
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Stepper defaultValue={1} onChange={handleChange} beforeChange={beforeChange} />,
+    )
+    const plus = tree.root.findByProps({ testID: 'stepper-plus' }) as React.ReactElement<any>
+
+    act(() => {
+      plus.props.onPress({})
+    })
+
+    expect(beforeChange).toHaveBeenCalledWith(2)
+    expect(handleChange).not.toHaveBeenCalled()
+  })
+
+  it('supports async beforeChange', async () => {
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Stepper defaultValue={1} onChange={handleChange} beforeChange={() => Promise.resolve(true)} />,
+    )
+    const plus = tree.root.findByProps({ testID: 'stepper-plus' }) as React.ReactElement<any>
+
+    await act(async () => {
+      plus.props.onPress({})
+      await Promise.resolve()
+    })
+
+    expect(handleChange).toHaveBeenCalledWith(2, { name: undefined })
+  })
 })

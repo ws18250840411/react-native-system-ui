@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { BackHandler } from 'react-native'
+import { BackHandler, Platform } from 'react-native'
 
 export interface OverlayStackEntry {
   key: number
@@ -119,6 +119,7 @@ let locked = false
 let previousOverflow = ''
 
 const syncBackHandler = () => {
+  if (Platform.OS === 'web') return
   const entries = overlayStackStore.getSnapshot()
   const hasClosable = entries.some(entry => entry.closeOnBack && entry.onClose)
   if (hasClosable && !backHandlerSubscription && BackHandler?.addEventListener) {

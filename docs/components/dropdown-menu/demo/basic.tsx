@@ -5,17 +5,17 @@ export default () => (
   <DropdownMenu>
     <DropdownMenu.Item
       options={[
-        { label: '全部商品', value: 0 },
-        { label: '新款商品', value: 1 },
-        { label: '活动商品', value: 2 },
+        { text: '全部商品', value: 0 },
+        { text: '新款商品', value: 1 },
+        { text: '活动商品', value: 2 },
       ]}
       defaultValue={0}
     />
     <DropdownMenu.Item
       options={[
-        { label: '默认排序', value: 'a' },
-        { label: '好评排序', value: 'b' },
-        { label: '销量排序', value: 'c' },
+        { text: '默认排序', value: 'a' },
+        { text: '好评排序', value: 'b' },
+        { text: '销量排序', value: 'c' },
       ]}
       defaultValue="a"
     />

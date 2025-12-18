@@ -135,31 +135,37 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
   }, [portalKeyRef])
 
   const handleCancel = React.useCallback(async () => {
+    const allowed = await runHook(() => options.beforeClose?.('cancel'))
+    if (!allowed) return
     const shouldClose = await runHook(options.onCancel)
     if (!shouldClose) return
     if (meta.mode === 'confirm') {
       meta.reject?.(false)
     }
     close()
-  }, [close, meta, options.onCancel])
+  }, [close, meta, options.beforeClose, options.onCancel])
 
   const handleConfirm = React.useCallback(async () => {
+    const allowed = await runHook(() => options.beforeClose?.('confirm'))
+    if (!allowed) return
     const shouldClose = await runHook(options.onConfirm)
     if (!shouldClose) return
     if (meta.mode === 'alert' || meta.mode === 'confirm') {
       meta.resolve?.(true)
     }
     close()
-  }, [close, meta, options.onConfirm])
+  }, [close, meta, options.beforeClose, options.onConfirm])
 
   const handleClose = React.useCallback(async () => {
+    const allowed = await runHook(() => options.beforeClose?.('close'))
+    if (!allowed) return
     const shouldClose = await runHook(options.onClose)
     if (!shouldClose) return
     if (meta.mode === 'confirm') {
       meta.reject?.(false)
     }
     close()
-  }, [close, meta, options.onClose])
+  }, [close, meta, options.beforeClose, options.onClose])
 
   const handleClosed = React.useCallback(() => {
     options.onClosed?.()

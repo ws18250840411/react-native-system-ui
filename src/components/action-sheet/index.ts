@@ -1,6 +1,6 @@
 import ActionSheet from './ActionSheet'
 
-export type { ActionSheetProps, ActionSheetAction } from './types'
+export type { ActionSheetProps, ActionSheetAction, ActionSheetCloseAction } from './types'
 export { useActionSheetTokens } from './tokens'
 
 export default ActionSheet

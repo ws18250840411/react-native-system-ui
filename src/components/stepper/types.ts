@@ -16,6 +16,10 @@ export interface StepperProps extends Omit<ViewProps, 'onChange'> {
   min?: number
   max?: number
   step?: number
+  /** 是否自动将输入值修正到 min/max 范围内（对齐 Vant：auto-fixed，默认 true） */
+  autoFixed?: boolean
+  /** 值变更前的拦截回调，返回 false 可阻止变更，支持 Promise（对齐 Vant：before-change） */
+  beforeChange?: (value: number | null) => boolean | Promise<boolean>
   integer?: boolean
   decimalLength?: number | string
   disabled?: boolean

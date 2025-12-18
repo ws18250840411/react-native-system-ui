@@ -173,7 +173,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
             }
             onPress={() => toggleOption(option)}
             disabled={isDisabled}
-            style={{ width: basis }}
+            style={[styles.pressable, { width: basis }]}
           >
             {itemContent}
           </Pressable>
@@ -188,8 +188,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
+  pressable: {
+    outlineStyle: 'none',
+  },
   item: {
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 0,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -200,9 +203,9 @@ const styles = StyleSheet.create({
   },
   checkMark: {
     position: 'absolute',
-    right: 2,
+    right: 1,
     bottom: 1,
-    fontSize: 10,
+    fontSize: 8,
     includeFontPadding: false,
   },
   checkMarkTriangle: {

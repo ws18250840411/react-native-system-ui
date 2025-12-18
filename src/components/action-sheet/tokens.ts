@@ -32,7 +32,7 @@ const createTokens = (foundations: Foundations): ActionSheetTokens => {
   const { palette, spacing, fontSize } = foundations
   return {
     colors: {
-      background: palette.background?.base ?? '#ffffff',
+      background: '#ffffff',
       title: palette.default[900],
       description: palette.default[500],
       item: palette.default[900],

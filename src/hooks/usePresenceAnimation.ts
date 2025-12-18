@@ -4,14 +4,19 @@ import { Animated, Easing } from 'react-native'
 interface PresenceOptions {
   duration?: number
   easing?: (value: number) => number
+  /**
+   * 初次挂载时是否执行进入动画
+   * @default false
+   */
+  appear?: boolean
 }
 
 export const usePresenceAnimation = (
   visible: boolean,
-  { duration = 180, easing = Easing.out(Easing.cubic) }: PresenceOptions = {}
+  { duration = 180, easing = Easing.out(Easing.cubic), appear = false }: PresenceOptions = {}
 ) => {
   const [mounted, setMounted] = React.useState(visible)
-  const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
+  const animated = React.useRef(new Animated.Value(visible && !appear ? 1 : 0)).current
 
   React.useEffect(() => {
     if (visible) {
