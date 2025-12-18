@@ -16,14 +16,14 @@ export interface PullRefreshTokens {
 }
 
 const createTokens = (foundations: Foundations): PullRefreshTokens => {
-  const { palette, spacing } = foundations
+  const { palette } = foundations
   return {
     colors: {
       text: palette.default[600],
       success: palette.success?.[500] ?? '#4caf50',
     },
     sizing: {
-      headHeight: spacing.xl,
+      headHeight: 50,
     },
   }
 }

@@ -1,6 +1,6 @@
 # React Native System UI 路线图
 
-> 目标：在 2026 Q1 前用 React Native 复刻 react-vant 主要组件，依托 `@react-native-aria` 提供一致的可访问能力，并同步交付文档与测试。
+> 目标：在 2026 Q1 前用 React Native 交付一套高质量的移动端组件集，依托 `@react-native-aria` 提供一致的可访问能力，并同步交付文档与测试。
 
 ## 1. 当前基线（2025-11-25）
 
@@ -30,7 +30,7 @@
 | 设计/主题 | ConfigProvider, ThemeProvider, tokens | ✅ 已完成 | - | - | 已内置 themePresets.light/dark/aurora |
 | a11y Hooks | useAriaPress, useAriaToggle, useAriaListBox, useAriaOverlay | ⏳ 进行中 | P0 | `@react-native-aria/*` | hooks + 文档 + 单测已就位，等待批量接入 |
 | Overlay 能力 | OverlayStack, BackHandler 管理, SafeArea helper, 动画 preset | ⏳ 进行中 | P0 | Portal | 栈管理/BackHandler/滚动锁 + 单测完成，需继续完善动画、SafeArea |
-| 表单容器 | Form, Form.Item, useFormContext | ⏳ 计划中 | P0 | Tokens + Hook | 设计对齐 react-vant Form |
+| 表单容器 | Form, Form.Item, useFormContext | ⏳ 计划中 | P0 | Tokens + Hook | 设计对齐既定表单交互 |
 | 输入控件 | Field, Input, TextArea | ⏳ 计划中 | P0 | Form, useAriaPress | 先实现受控 + 校验态 |
 | 选择控件 | Checkbox, CheckboxGroup, Radio, RadioGroup, Switch | ⏳ 进行中 | P0 | useAriaToggle | Checkbox/Radio 已完成，Switch 复用 aria toggle |
 | 数值控件 | Stepper, Rate, Selector, NumberKeyboard | ⏳ 计划中 | P1 | 输入控件 | Rate 依赖手势与动画 |
@@ -48,6 +48,6 @@
 ## 4. 工作流约定
 
 1. **组件 Checklist**：Token → Props → 实现 → Docs → Demo → Test → 主题可调 → 交互验证（iOS/Android/Web）。
-2. **文档同步**：新增组件时同步创建 `docs/components/<component>/*.md + demo`，中文描述 + API 表对齐 react-vant。
+2. **文档同步**：新增组件时同步创建 `docs/components/<component>/*.md + demo`，中文描述 + API 表保持统一规范。
 3. **测试策略**：逻辑层使用 `react-test-renderer`；涉及手势的组件需补 e2e（Detox）或录屏验证；Overlay/动画需快照 + 定时器测试。
 4. **版本节奏**：每完成一个里程碑发布 `alpha.x`；在 M3 完成后尝试 `beta`，M4 完成后发布 `1.0.0`。

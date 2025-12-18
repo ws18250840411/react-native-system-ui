@@ -28,22 +28,27 @@ const NavBarBase: React.FC<NavBarProps> = props => {
     descriptionStyle,
     sideStyle,
     onPressLeft,
+    onClickLeft,
     onPressRight,
+    onClickRight,
     style,
     ...rest
   } = props
+
+  const handlePressLeft = onPressLeft ?? onClickLeft
+  const handlePressRight = onPressRight ?? onClickRight
 
   const [height, setHeight] = React.useState(tokens.layout.height)
 
   const resolvedColor = tintColor ?? tokens.colors.text
   const sideColor = tintColor ?? tokens.colors.icon
 
-  const hasLeftAction = Boolean(leftText || leftIcon || leftArrow || onPressLeft)
-  const hasRightAction = Boolean(rightText || rightIcon || onPressRight)
+  const hasLeftAction = Boolean(leftText || leftIcon || leftArrow || handlePressLeft)
+  const hasRightAction = Boolean(rightText || rightIcon || handlePressRight)
 
   const leftPress = useAriaPress({
-    disabled: !onPressLeft,
-    onPress: onPressLeft,
+    disabled: !handlePressLeft,
+    onPress: handlePressLeft,
     extraProps: {
       accessibilityRole: 'button',
       accessibilityLabel: '返回',
@@ -51,8 +56,8 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   })
 
   const rightPress = useAriaPress({
-    disabled: !onPressRight,
-    onPress: onPressRight,
+    disabled: !handlePressRight,
+    onPress: handlePressRight,
     extraProps: {
       accessibilityRole: 'button',
       accessibilityLabel: '操作',
@@ -75,7 +80,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
         hitSlop={8}
         testID="rv-navbar-left"
         style={[styles.side, sideStyle]}
-        {...(onPressLeft ? leftPress.interactionProps : {})}
+        {...(handlePressLeft ? leftPress.interactionProps : {})}
       >
         {arrowNode}
         {leftIcon}
@@ -95,7 +100,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
         hitSlop={8}
         testID="rv-navbar-right"
         style={[styles.side, styles.rightAlign, sideStyle]}
-        {...(onPressRight ? rightPress.interactionProps : {})}
+        {...(handlePressRight ? rightPress.interactionProps : {})}
       >
         {rightText ? (
           <Text style={[styles.sideText, { color: sideColor }]}>{rightText}</Text>

@@ -67,10 +67,22 @@ const parseDocs = mdSource => {
   return { title, demos }
 }
 
+const rnDemoOverrides = {
+  uploader: {
+    base: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'base.tsx'),
+    upload: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'upload.tsx'),
+    limit: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'limit.tsx'),
+    preview: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'preview.tsx'),
+    close: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'close.tsx'),
+    form: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'form.tsx'),
+  },
+}
+
 const buildImportPath = (fromFile, toFile) => {
   const relative = path.relative(path.dirname(fromFile), toFile)
   const normalized = toPosixPath(relative)
-  return normalized.replace(/\.(tsx|ts|jsx|js)$/i, '')
+  const withoutExt = normalized.replace(/\.(tsx|ts|jsx|js)$/i, '')
+  return withoutExt.startsWith('.') ? withoutExt : `./${withoutExt}`
 }
 
 const rndocConfig = fs.readFileSync(rndocConfigPath, 'utf8')
@@ -111,7 +123,8 @@ for (const group of groups) {
     const { title: componentTitle, demos } = parseDocs(mdSource)
 
     const mappedDemos = demos.map(demo => {
-      const absDemoPath = path.resolve(path.dirname(mdPath), demo.src)
+      const overridePath = rnDemoOverrides[slug]?.[demo.id]
+      const absDemoPath = overridePath ?? path.resolve(path.dirname(mdPath), demo.src)
       const importPath = buildImportPath(outputPath, absDemoPath)
       const varBase = `${toPascalCase(slug)}Demo${toPascalCase(demo.id)}`
       let varName = safeIdentifier(varBase)

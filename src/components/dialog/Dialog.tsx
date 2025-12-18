@@ -216,6 +216,9 @@ export const Dialog: React.FC<DialogProps> = props => {
     overlayStyle,
     overlayTestID = 'dialog-overlay',
     closeOnOverlayPress = false,
+    closeOnClickOverlay = false,
+    onClickOverlay,
+    onClickCloseIcon,
     showCancelButton = false,
     showConfirmButton = true,
     cancelButtonText,
@@ -286,12 +289,15 @@ export const Dialog: React.FC<DialogProps> = props => {
     }
   }, [mounted, onClosed, opacity, scale, visible])
 
+  const mergedCloseOnOverlayPress = closeOnOverlayPress || closeOnClickOverlay
+
   const handleOverlayPress = () => {
-    if (!closeOnOverlayPress) return
+    if (!mergedCloseOnOverlayPress) return
     onClose?.()
   }
 
   const handleCloseIcon = () => {
+    onClickCloseIcon?.()
     onClose?.()
   }
 
@@ -534,7 +540,9 @@ export const Dialog: React.FC<DialogProps> = props => {
               ]}
               pointerEvents={visible ? 'auto' : 'none'}
               onPress={() => {
-                if (!closeOnOverlayPress || !isTopMost) return
+                if (!isTopMost) return
+                onClickOverlay?.()
+                if (!mergedCloseOnOverlayPress) return
                 handleOverlayPress()
               }}
             />

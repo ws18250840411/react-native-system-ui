@@ -62,4 +62,4 @@ import { ShareSheet } from 'react-native-system-ui'
 | `description` | 副标题 | `ReactNode` |
 | `onPress` | 点击回调（先于 `onSelect` 执行） | `(option) => void` |
 
-> 当前实现聚焦分享栅格场景，暂未提供 react-vant 的图片资源加载、懒加载等能力；如需网络图标，可在 `icon` 中传入自定义组件。
+> 当前实现聚焦分享栅格场景，暂未提供图片资源加载、懒加载等能力；如需网络图标，可在 `icon` 中传入自定义组件。

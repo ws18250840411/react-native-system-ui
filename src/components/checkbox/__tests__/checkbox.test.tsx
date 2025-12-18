@@ -67,22 +67,60 @@ describe('CheckboxGroup', () => {
   it('toggleAll respects skipDisabled', () => {
     const ref = React.createRef<{ toggleAll: (options?: any) => void }>()
     const onChange = jest.fn()
-    renderer.create(
-      <CheckboxGroup ref={ref} defaultValue={['a']} onChange={onChange}>
-        <Checkbox name="a" aria-label="选项A">
-          A
-        </Checkbox>
-        <Checkbox name="b" disabled aria-label="选项B">
-          B
-        </Checkbox>
-      </CheckboxGroup>
-    )
+    act(() => {
+      renderer.create(
+        <CheckboxGroup ref={ref} defaultValue={['a']} onChange={onChange}>
+          <Checkbox name="a" aria-label="选项A">
+            A
+          </Checkbox>
+          <Checkbox name="b" disabled aria-label="选项B">
+            B
+          </Checkbox>
+        </CheckboxGroup>
+      )
+    })
 
     act(() => {
       ref.current?.toggleAll({ checked: true, skipDisabled: true })
     })
 
     expect(onChange).toHaveBeenCalledWith(['a'])
+  })
+
+  it('toggleAll supports empty string values', () => {
+    const ref = React.createRef<{ toggleAll: (options?: any) => void }>()
+    const onChange = jest.fn()
+
+    act(() => {
+      renderer.create(
+        <CheckboxGroup ref={ref} defaultValue={[]} onChange={onChange}>
+          <Checkbox name="" aria-label="空值">
+            Empty
+          </Checkbox>
+          <Checkbox name="a" aria-label="选项A">
+            A
+          </Checkbox>
+        </CheckboxGroup>
+      )
+    })
+
+    act(() => {
+      ref.current?.toggleAll(true)
+    })
+
+    expect(onChange).toHaveBeenCalledWith(['', 'a'])
+  })
+
+  it('sets aria-disabled on group container when disabled', () => {
+    const tree = renderer.create(
+      <CheckboxGroup disabled accessibilityLabel="分组">
+        <Checkbox name="a" aria-label="选项A">A</Checkbox>
+      </CheckboxGroup>
+    )
+
+    const group = tree.root.findByProps({ 'aria-label': '分组' })
+    expect(group.props['aria-disabled']).toBe(true)
+    expect(group.props[' aria-disabled']).toBeUndefined()
   })
 
   it('bindGroup=false keeps checkbox standalone inside group', () => {

@@ -5,18 +5,11 @@ import { Pressable, Text } from 'react-native'
 import Popover from '..'
 import { PortalHost } from '../../portal'
 
-const Trigger = React.forwardRef((props: any, ref) => {
-  React.useImperativeHandle(ref, () => ({
-    measureInWindow: (cb: any) => cb(50, 100, 40, 20),
-  }))
-  return <Pressable {...props} testID="rv-popover-trigger" />
-})
-
 describe('Popover', () => {
   it('toggles visibility when trigger pressed', () => {
     const tree = renderer.create(
       <PortalHost>
-        <Popover trigger={<Trigger />}>
+        <Popover reference={<Pressable testID="rv-popover-reference" />}>
           <Text>content</Text>
         </Popover>
       </PortalHost>
@@ -29,10 +22,12 @@ describe('Popover', () => {
       })
     })
 
-    const trigger = tree.root.findByProps({ testID: 'rv-popover-trigger' })
+    const reference = tree.root.findByProps({ testID: 'rv-popover-reference' })
     act(() => {
-      trigger.props.onPress?.({})
+      reference.props.onPress?.({})
     })
+
+    expect(tree.root.findAllByProps({ testID: 'rv-popover-backdrop' }).length).toBe(1)
 
     expect(tree).toBeTruthy()
   })

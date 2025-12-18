@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-提供表单上下文，协调 Field 值的收集、验证与提交，行为对齐 react-vant 的 Form。
+提供表单上下文，协调 Field 值的收集、验证与提交。
 
 ## 引入
 
@@ -99,7 +99,7 @@ import { Form } from 'react-native-system-ui'
 | `validateTrigger` | 触发校验的事件，默认为 `trigger` | `string \| string[]` | `onChangeText` |
 | `showValidateMessage` | 是否展示该表单项的错误提示 | `boolean` | `true` |
 | `required` | 强制展示必填星号（默认为 `rules` 中的 required 值） | `boolean` | - |
-| `noStyle` | 与 react-vant 对齐：不渲染额外样式容器（当前实现中等价于默认表现） | `boolean` | `false` |
+| `noStyle` | 不渲染额外样式容器（当前实现中等价于默认表现） | `boolean` | `false` |
 | `shouldUpdate` | 是否在依赖字段变化时重新渲染，可用于条件渲染 | `(prev, next) => boolean` | - |
 | `initialValue` | 该字段的初始值（当表单没有同名初始值时生效） | `any` | - |
 | `dependencies` | 依赖的字段名，依赖字段变化时触发当前项校验 | `string[]` | - |
@@ -120,7 +120,7 @@ Form.Item 的 `rules` 属性支持以下字段：
 | `min`/`max` | 字符串长度或数字大小范围 |
 | `len` | 固定长度或特定数值 |
 | `validator` | 自定义校验函数 `(value, values) => boolean \| string \| Promise`，返回 `false` 或字符串代表失败 |
-| `validateTrigger` | 限定规则触发的事件名，等价于 react-vant 的 `validateTrigger` |
+| `validateTrigger` | 限定规则触发的事件名 |
 | `message` | 当前规则失败时展示的文案 |
 
 ### 订阅与监听

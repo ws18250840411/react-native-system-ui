@@ -43,7 +43,7 @@ import { FloatingBall } from 'react-native-system-ui'
 | `adsorb` | 近边吸附能力（别名：`magnetic`） | `boolean \| AdsorbProps` | `true` |
 | `draggable` | 是否开启拖拽 | `boolean` | `true` |
 | `boundary` | 限制拖动范围在屏幕边界内 | `boolean` | `true` |
-| `offset` | 初始位置（react-vant 风格） | `OffsetProps` | `{ right: 0, bottom: '30vh' }` |
+| `offset` | 初始位置 | `OffsetProps` | `{ right: 0, bottom: '30vh' }` |
 | `disabled` | 禁用点击/拖拽 | `boolean` | `false` |
 | `size` | 悬浮球尺寸 | `number` | `tokens.size` |
 | `padding` | 可拖拽范围与边界的间距 | `number` | `tokens.padding` |

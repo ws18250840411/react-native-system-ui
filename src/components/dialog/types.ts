@@ -27,6 +27,9 @@ export interface DialogProps extends Omit<ViewProps, 'children'> {
   overlayStyle?: StyleProp<ViewStyle>
   overlayTestID?: string
   closeOnOverlayPress?: boolean
+  closeOnClickOverlay?: boolean
+  onClickOverlay?: () => void
+  onClickCloseIcon?: () => void
   showCancelButton?: boolean
   cancelButtonText?: React.ReactNode
   cancelButtonColor?: string
@@ -41,9 +44,9 @@ export interface DialogProps extends Omit<ViewProps, 'children'> {
   messageStyle?: StyleProp<TextStyle>
   style?: StyleProp<ViewStyle>
   children?: React.ReactNode
-  onCancel?: () => void
-  onConfirm?: () => void
-  onClose?: () => void
+  onCancel?: () => void | boolean | Promise<void | boolean>
+  onConfirm?: () => void | boolean | Promise<void | boolean>
+  onClose?: () => void | boolean | Promise<void | boolean>
   onClosed?: () => void
 }
 

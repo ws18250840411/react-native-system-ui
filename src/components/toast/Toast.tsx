@@ -271,7 +271,7 @@ export const Toast: React.FC<ToastProps> = props => {
                     paddingHorizontal: tokens.textPaddingHorizontal,
                   } as ViewStyle)
                 : ({
-                    width: tokens.defaultWidth,
+                    minWidth: tokens.defaultWidth,
                     minHeight: tokens.defaultMinHeight,
                     padding: tokens.defaultPadding,
                   } as ViewStyle)),

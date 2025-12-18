@@ -4,7 +4,7 @@
 
 ## 1. 开发要求（必须遵守）
 
-1. **API 对齐**：组件 props、事件、文档结构保持与 `react-vant` 一致，除非 React Native 无法实现，差异需在文档中单独注明。
+1. **API 对齐**：组件 props、事件、文档结构保持统一规范（命名与语义一致），除非 React Native 无法实现，差异需在文档中单独注明。
 2. **@react-native-aria 优先**：交互组件必须优先使用 `@react-native-aria` + `@react-stately`，若缺乏对应模块，再评估自研；统一封装存放于 `src/hooks/aria`。
 3. **Token 驱动**：每个组件目录自带 `create<Component>Tokens` + `use<Component>Tokens`，通过 `deepMerge` 合并主题 overrides。
 4. **无全局副作用**：组件只和自己的 Context 交互，Portal 与 Overlay 依赖 `PortalContext` 管理，不污染全局。
@@ -38,7 +38,7 @@
 | 质量提升 #9 | Button useButtonTokens | 将 Button 的 token 抽到 hook，允许主题 overrides（2025-11-27 完成） | design system | ✅ 完成 |
 | 质量提升 #10 | Field 组件首版 | 新增 Field 输入框/Group，补齐清除/textarea/图标/文案等能力 + 文档、单测（2025-11-27 完成） | form | ✅ 完成 |
 | 质量提升 #11 | Form 组件 | 提供 Form/Form.Item + useForm，实现字段收集/校验/提交 + 文档示例（2025-11-27 完成） | form | ✅ 完成 |
-| 质量提升 #12 | Field react-vant 对齐 | 增补前后缀/tooltip/点击反馈/formatter/onOverlimit 等 API，并完善文档 + 单测（2025-11-28 完成） | form | ✅ 完成 |
+| 质量提升 #12 | Field API 补齐 | 增补前后缀/tooltip/点击反馈/formatter/onOverlimit 等 API，并完善文档 + 单测（2025-11-28 完成） | form | ✅ 完成 |
 | 质量提升 #13 | Form 校验增强 | 扩展 rules/validateTrigger/async validator + Form docs/demo/单测（2025-11-28 完成） | form | ✅ 完成 |
 | 表单容器 | Form + Form.Item + useFormContext | 支撑 Field/Input 校验 | tokens + hooks | ✅ 完成（2025-11-28） |
 | Field/Input/TextArea | 受控输入、校验反馈、clear-icon | 依赖 Form | Form | ✅ 完成（2025-11-30，Input.TextArea + demo/单测对齐） |
@@ -56,7 +56,7 @@
 
 ## 4. 组件开发 Checklist
 
-1. 明确 props/API（参照 react-vant）并在 `types.ts` 定义。
+1. 明确 props/API（参照统一规范）并在 `types.ts` 定义。
 2. 设计 tokens → `create<Component>Tokens` + `use<Component>Tokens`。
 3. 编写组件实现，优先复用 hooks（主题、aria、动画、SafeArea）。
 4. 增加单测（状态渲染、交互回调、主题覆盖）。

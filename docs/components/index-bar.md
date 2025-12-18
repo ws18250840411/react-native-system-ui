@@ -41,22 +41,31 @@ import { IndexBar } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `value` | 当前激活索引（受控） | `string` | - |
-| `defaultValue` | 默认索引 | `string` | 第一项 |
+| `value` | 当前激活索引（受控） | `string \| number` | - |
+| `defaultValue` | 默认索引 | `string \| number` | 第一项 |
+| `zIndex` | 侧边索引与粘性标题层级 | `number` | `1` |
 | `sticky` | 是否在顶部显示吸附标题 | `boolean` | `true` |
+| `stickyOffsetTop` | 吸附标题距离顶部的偏移量 | `number` | `0` |
+| `indexList` | 自定义侧边索引列表（不传则从 `Anchor` 自动生成） | `(string \| number)[]` | - |
+| `itemRender` | 自定义索引项渲染 | `(item, active) => ReactNode` | - |
 | `showIndicator` | 是否显示触摸浮层 | `boolean` | `true` |
 | `highlightColor` | 激活态颜色 | `string` | 主题主色 |
 | `indicatorStyle` | 指示器样式 | `StyleProp<ViewStyle>` | - |
 | `indexTextStyle` | 侧边索引文字样式 | `StyleProp<TextStyle>` | - |
 | `safeAreaInsetTop` | 粘性标题是否适配顶部安全区 | `boolean` | `false` |
-| `onChange` | 索引切换回调 | `(index: string) => void` | - |
+| `onChange` | 索引切换回调 | `(index: string \| number) => void` | - |
+| `onSelect` | 点击侧边索引时触发 | `(index: string \| number) => void` | - |
 
 ### IndexBar.Anchor Props
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `index` | 字母/标识 | `string` | - |
+| `index` | 字母/标识 | `string \| number` | - |
 | `title` | 粘性标题文案 | `ReactNode` | `index` |
 | `children` | 区域内容 | `ReactNode` | - |
 
-> 差异说明：当前实现聚焦移动端触摸场景，暂未提供 react-vant 的 `stickyOffsetTop`、`onSelect`（区分触摸/滚动来源）等参数；需要更复杂的滚动同步可结合 `ScrollView` 自定义 padding 和 `onChange`。 
+### IndexBar Ref
+
+| 方法 | 说明 | 类型 |
+| --- | --- | --- |
+| `scrollTo` | 滚动到指定锚点 | `(index: string \| number) => void` |

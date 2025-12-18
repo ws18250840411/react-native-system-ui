@@ -3,8 +3,11 @@ import type { ScrollViewProps, ViewProps } from 'react-native'
 
 export interface ListProps extends Omit<ScrollViewProps, 'onScroll'> {
   onLoad?: (isRetry: boolean) => void | Promise<void>
+  loading?: boolean
+  error?: boolean
   finished?: boolean
   offset?: number
+  immediateCheck?: boolean
   loadingText?: React.ReactNode
   finishedText?: React.ReactNode
   errorText?: React.ReactNode | ((retry: () => void) => React.ReactNode)

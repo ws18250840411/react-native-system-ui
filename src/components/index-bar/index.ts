@@ -1,7 +1,7 @@
 import IndexBarBase from './IndexBar'
 import IndexAnchor from './IndexAnchor'
 
-export type { IndexBarProps, IndexAnchorProps } from './types'
+export type { IndexBarInstance, IndexBarProps, IndexBarValue, IndexAnchorProps } from './types'
 export { useIndexBarTokens } from './tokens'
 
 const IndexBar = IndexBarBase as typeof IndexBarBase & {

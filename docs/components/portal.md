@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-Portal 用于在页面任意位置挂载节点，常见于弹窗、Toast 这类“脱离当前层级”的组件。它与 React Vant 的 `Teleport` 能力一致，通过全局 `PortalHost` 维护挂载队列，保证多个 Portal 按插入顺序叠加。
+Portal 用于在页面任意位置挂载节点，常见于弹窗、Toast 这类“脱离当前层级”的组件。它提供类似 `Teleport` 的能力，通过全局 `PortalHost` 维护挂载队列，保证多个 Portal 按插入顺序叠加。
 
 ## 引入
 
@@ -21,7 +21,7 @@ import { Portal } from 'react-native-system-ui'
 
 ### 基础用法
 
-与 React Vant 一样，最常见的是在 `Cell`/按钮中触发展示，再由 `Portal` 将浮层挂载到 Host 层。
+最常见的是在 `Cell`/按钮中触发展示，再由 `Portal` 将浮层挂载到 Host 层。
 
 <code title="基础用法" src="./portal/demo/basic.tsx"></code>
 

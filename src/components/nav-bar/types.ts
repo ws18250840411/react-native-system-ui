@@ -21,5 +21,7 @@ export interface NavBarProps extends Omit<ViewProps, 'children'> {
   descriptionStyle?: StyleProp<TextStyle>
   sideStyle?: StyleProp<ViewStyle>
   onPressLeft?: () => void
+  onClickLeft?: () => void
   onPressRight?: () => void
+  onClickRight?: () => void
 }

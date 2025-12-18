@@ -46,6 +46,6 @@ import { Skeleton } from 'react-native-system-ui'
 | `round` | 是否使用圆角块 | `boolean` | `false` |
 | `style` | 根节点样式 | `ViewStyle` | - |
 
-> 提示：当 `rowWidth` 使用默认值且 `row > 1` 时，最后一行会自动使用 `60%`（与 react-vant 一致）。
+> 提示：当 `rowWidth` 使用默认值且 `row > 1` 时，最后一行会自动使用 `60%`。
 
 > 差异说明：RN 版暂未提供图片/按钮等复杂占位，若有特殊需求可通过自定义 `children` + `loading={false}` 在加载完成后渲染真实内容。

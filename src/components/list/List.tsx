@@ -17,8 +17,11 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
 
   const {
     onLoad,
+    loading,
+    error,
     finished = false,
     offset = 300,
+    immediateCheck = true,
     loadingText: loadingTextProp,
     finishedText,
     errorText,
@@ -29,7 +32,13 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
 
   const loadingText = typeof loadingTextProp === 'undefined' ? locale.loading : loadingTextProp
 
-  const [status, setStatus] = React.useState<'idle' | 'loading' | 'error'>('idle')
+  const loadingControlled = typeof loading !== 'undefined'
+  const errorControlled = typeof error !== 'undefined'
+  const [innerLoading, setInnerLoading] = React.useState(false)
+  const [innerError, setInnerError] = React.useState(false)
+  const mergedLoading = loadingControlled ? !!loading : innerLoading
+  const mergedError = errorControlled ? !!error : innerError
+
   const loadingRef = React.useRef(false)
   const containerHeightRef = React.useRef(0)
   const contentHeightRef = React.useRef(0)
@@ -38,28 +47,30 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     async (isRetry: boolean) => {
       if (!onLoad || finished) return
       if (loadingRef.current) return
-      if (status === 'error' && !isRetry) return
+      if (mergedLoading) return
+      if (mergedError && !isRetry) return
 
       loadingRef.current = true
-      setStatus('loading')
+      if (!loadingControlled) setInnerLoading(true)
+      if (!errorControlled) setInnerError(false)
       try {
         await Promise.resolve(onLoad(isRetry))
-        setStatus('idle')
       } catch (error) {
-        setStatus('error')
+        if (!errorControlled) setInnerError(true)
       } finally {
         loadingRef.current = false
+        if (!loadingControlled) setInnerLoading(false)
       }
     },
-    [finished, onLoad, status]
+    [errorControlled, finished, loadingControlled, mergedError, mergedLoading, onLoad]
   )
 
   const check = React.useCallback(() => {
-    if (status !== 'idle') return
+    if (mergedLoading || mergedError) return
     if (contentHeightRef.current <= containerHeightRef.current && !finished) {
       triggerLoad(false)
     }
-  }, [finished, status, triggerLoad])
+  }, [finished, mergedError, mergedLoading, triggerLoad])
 
   React.useImperativeHandle(ref, () => ({ check }), [check])
 
@@ -79,18 +90,22 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     (width: number, height: number) => {
       props.onContentSizeChange?.(width, height)
       contentHeightRef.current = height
-      check()
+      if (immediateCheck) {
+        check()
+      }
     },
-    [check, props]
+    [check, immediateCheck, props]
   )
 
   const handleLayout = React.useCallback(
     (event: any) => {
       props.onLayout?.(event)
       containerHeightRef.current = event.nativeEvent.layout.height
-      check()
+      if (immediateCheck) {
+        check()
+      }
     },
-    [check, props]
+    [check, immediateCheck, props]
   )
 
   const retry = React.useCallback(() => {
@@ -98,11 +113,12 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   }, [triggerLoad])
 
   React.useEffect(() => {
+    if (!immediateCheck) return
     const timer = setTimeout(() => {
       check()
     }, 0)
     return () => clearTimeout(timer)
-  }, [check])
+  }, [check, immediateCheck])
 
   return (
     <ScrollView
@@ -115,7 +131,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     >
       {children}
       <View style={{ paddingVertical: 16, alignItems: 'center' }} testID="rv-list-footer">
-        {status === 'loading' ? (
+        {mergedLoading ? (
           typeof loadingText === 'string' || typeof loadingText === 'number'
             ? (
               <Loading size={16} testID="rv-list-loading">
@@ -132,7 +148,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
               </View>
             )
         ) : null}
-        {status === 'error'
+        {mergedError
           ? typeof errorText === 'function'
             ? errorText(retry)
             : errorText
@@ -149,7 +165,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
                 )
               : null
           : null}
-        {finished && status === 'idle' && finishedText
+        {finished && !mergedLoading && !mergedError && finishedText
           ? typeof finishedText === 'string' || typeof finishedText === 'number'
             ? (
               <Text testID="rv-list-finished" style={{ color: '#999999' }}>

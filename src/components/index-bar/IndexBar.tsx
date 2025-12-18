@@ -2,34 +2,39 @@ import React from 'react'
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
-import type { IndexAnchorProps, IndexBarProps } from './types'
+import type { IndexAnchorProps, IndexBarInstance, IndexBarProps, IndexBarValue } from './types'
 import { useIndexBarTokens } from './tokens'
 
 interface ParsedAnchor {
   element: React.ReactElement<IndexAnchorProps>
-  index: string
+  index: IndexBarValue
   title?: React.ReactNode
 }
 
-const IndexBarBase: React.FC<IndexBarProps> = props => {
+const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, ref) => {
   const {
     children,
     value,
     defaultValue,
     highlightColor,
+    zIndex = 1,
     sticky = true,
+    stickyOffsetTop = 0,
+    indexList,
+    itemRender,
     showIndicator = true,
     indicatorStyle,
     indexTextStyle,
     safeAreaInsetTop = false,
     onChange,
+    onSelect,
     style,
     ...rest
   } = props
 
   const tokens = useIndexBarTokens()
   const scrollRef = React.useRef<ScrollView>(null)
-  const anchorLayouts = React.useRef<Map<string, number>>(new Map())
+  const anchorLayouts = React.useRef<Map<IndexBarValue, number>>(new Map())
 
   const anchors = React.useMemo<ParsedAnchor[]>(() => {
     return React.Children.toArray(children)
@@ -44,61 +49,70 @@ const IndexBarBase: React.FC<IndexBarProps> = props => {
       .filter(Boolean) as ParsedAnchor[]
   }, [children])
 
-  const firstIndex = anchors[0]?.index
-  const [activeIndex, setActiveIndex] = useControllableValue<string>(props, {
-    defaultValue: firstIndex,
+  const navItems = React.useMemo<IndexBarValue[]>(() => {
+    if (indexList && indexList.length) return indexList
+    return anchors.map(anchor => anchor.index)
+  }, [anchors, indexList])
+
+  const firstIndex = navItems[0]
+  const [activeIndex, setActiveIndex] = useControllableValue<IndexBarValue>(props, {
+    defaultValue: typeof firstIndex === 'undefined' ? anchors[0]?.index : firstIndex,
     valuePropName: 'value',
     defaultValuePropName: 'defaultValue',
     trigger: 'onChange',
   })
 
   const currentIndex = React.useMemo(() => {
-    if (!activeIndex) return firstIndex
-    const exists = anchors.some(anchor => anchor.index === activeIndex)
+    if (activeIndex === undefined || activeIndex === null) return firstIndex
+    const exists = navItems.some(item => item === activeIndex)
     return exists ? activeIndex : firstIndex
-  }, [activeIndex, anchors, firstIndex])
+  }, [activeIndex, firstIndex, navItems])
 
   const [indicator, setIndicator] = React.useState<{ visible: boolean; label?: string }>({
     visible: false,
   })
 
-  const handleAnchorLayout = React.useCallback((index: string, layoutY: number) => {
+  const handleAnchorLayout = React.useCallback((index: IndexBarValue, layoutY: number) => {
     anchorLayouts.current.set(index, layoutY)
   }, [])
 
   const scrollToIndex = React.useCallback(
-    (index: string) => {
+    (index: IndexBarValue) => {
       const y = anchorLayouts.current.get(index)
       if (y !== undefined) {
-        const offset = sticky ? tokens.layout.stickyHeight : 0
+        const offset = sticky ? tokens.layout.stickyHeight + stickyOffsetTop : 0
         scrollRef.current?.scrollTo({ y: Math.max(0, y - offset), animated: true })
       }
       setActiveIndex(index)
     },
-    [setActiveIndex, sticky, tokens.layout.stickyHeight]
+    [setActiveIndex, sticky, stickyOffsetTop, tokens.layout.stickyHeight]
   )
+
+  React.useImperativeHandle(ref, () => ({ scrollTo: scrollToIndex }), [scrollToIndex])
 
   const handleScroll = React.useCallback(
     (event: any) => {
       const offsetY = event?.nativeEvent?.contentOffset?.y ?? 0
       const sorted = [...anchorLayouts.current.entries()].sort((a, b) => a[1] - b[1])
       let current = sorted[0]?.[0]
+      const threshold = sticky ? tokens.layout.stickyHeight + stickyOffsetTop : 0
       for (const [index, layoutY] of sorted) {
-        if (offsetY + 1 >= layoutY) {
+        if (offsetY + threshold + 1 >= layoutY) {
           current = index
         }
       }
-      if (current && current !== currentIndex) {
+      if (current !== undefined && current !== null && current !== currentIndex) {
         setActiveIndex(current)
       }
     },
-    [currentIndex, setActiveIndex]
+    [currentIndex, setActiveIndex, sticky, stickyOffsetTop, tokens.layout.stickyHeight]
   )
 
-  const handlePressIn = (index: string) => {
+  const handlePressIn = (index: IndexBarValue) => {
     if (showIndicator) {
-      setIndicator({ visible: true, label: index })
+      setIndicator({ visible: true, label: String(index) })
     }
+    onSelect?.(index)
     scrollToIndex(index)
   }
 
@@ -139,6 +153,7 @@ const IndexBarBase: React.FC<IndexBarProps> = props => {
           height: tokens.layout.indicatorSize,
           borderRadius: tokens.layout.indicatorSize / 2,
           backgroundColor: tokens.colors.indicatorBackground,
+          zIndex,
         },
         indicatorStyle,
       ]}
@@ -167,9 +182,9 @@ const IndexBarBase: React.FC<IndexBarProps> = props => {
       </ScrollView>
       {sticky ? (
         safeAreaInsetTop ? (
-          <SafeAreaView style={styles.stickyWrapper}>{stickyNode}</SafeAreaView>
+          <SafeAreaView style={[styles.stickyWrapper, { top: stickyOffsetTop, zIndex }]}>{stickyNode}</SafeAreaView>
         ) : (
-          <View style={styles.stickyWrapper}>{stickyNode}</View>
+          <View style={[styles.stickyWrapper, { top: stickyOffsetTop, zIndex }]}>{stickyNode}</View>
         )
       ) : null}
       <View
@@ -177,28 +192,32 @@ const IndexBarBase: React.FC<IndexBarProps> = props => {
           styles.indexList,
           {
             paddingVertical: tokens.layout.paddingVertical,
+            zIndex,
           },
         ]}
       >
-        {anchors.map(anchor => {
-          const isActive = anchor.index === currentIndex
+        {navItems.map(item => {
+          const isActive = item === currentIndex
+          const node = itemRender?.(item, isActive)
           return (
             <Pressable
-              key={anchor.index}
-              testID={`rv-indexbar-nav-${anchor.index}`}
+              key={String(item)}
+              testID={`rv-indexbar-nav-${String(item)}`}
               style={styles.indexItem}
-              onPressIn={() => handlePressIn(anchor.index)}
+              onPressIn={() => handlePressIn(item)}
               onPressOut={handlePressOut}
             >
-              <Text
-                style={[
-                  styles.indexText,
-                  { color: isActive ? highlight : tokens.colors.text },
-                  indexTextStyle,
-                ]}
-              >
-                {anchor.index}
-              </Text>
+              {node ?? (
+                <Text
+                  style={[
+                    styles.indexText,
+                    { color: isActive ? highlight : tokens.colors.text },
+                    indexTextStyle,
+                  ]}
+                >
+                  {String(item)}
+                </Text>
+              )}
             </Pressable>
           )
         })}
@@ -206,7 +225,7 @@ const IndexBarBase: React.FC<IndexBarProps> = props => {
       {indicatorNode}
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: {

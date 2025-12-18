@@ -55,7 +55,8 @@ import { Sidebar } from 'react-native-system-ui'
 | `badge` | 徽标，可传数字/字符串或自定义节点 | `ReactNode` | - |
 | `dot` | 右上角红点 | `boolean` | `false` |
 | `disabled` | 是否禁用 | `boolean` | `false` |
+| `onClick` | 点击当前项触发 | `(value: number) => void` | - |
 | `textStyle` | 标题样式 | `StyleProp<TextStyle>` | - |
 | `contentStyle` | 自定义内部布局 | `StyleProp<ViewStyle>` | - |
 
-> 差异说明：当前版本未实现 react-vant 的 `change` 事件中断（如 `beforeChange`）、同步右侧内容区域等策略，业务可在 `onChange` 中配合自身逻辑处理。
+> 差异说明：当前版本未实现 `change` 事件中断（如 `beforeChange`）、同步右侧内容区域等策略，业务可在 `onChange` 中配合自身逻辑处理。

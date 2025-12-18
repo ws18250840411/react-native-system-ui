@@ -71,11 +71,14 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
   )
 
   const resolvedGroupProps = React.useMemo(
-    () => ({
-      ...groupProps,
-      // Workaround @react-native-aria/checkbox typo: ` aria-disabled`
-      'aria-disabled': disabled,
-    }),
+    () => {
+      const { [' aria-disabled']: __ariaDisabledTypo, ...restGroupProps } = (groupProps ?? {}) as any
+      return {
+        ...restGroupProps,
+        // Workaround @react-native-aria/checkbox typo: ` aria-disabled`
+        'aria-disabled': disabled,
+      }
+    },
     [disabled, groupProps]
   )
 

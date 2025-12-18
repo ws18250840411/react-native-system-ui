@@ -107,4 +107,4 @@ export const OptionList = ({ options, selectedKeys, onSelectionChange }) => {
 }
 ```
 
-> 如需新增 hook，请先在 `plan-board` 中登记，并补充：① 类型定义；② 对应 `__tests__`；③ 使用示例，保持与 react-vant 语义一致。
+> 如需新增 hook，请先在 `plan-board` 中登记，并补充：① 类型定义；② 对应 `__tests__`；③ 使用示例，保持语义一致性。

@@ -16,6 +16,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
     badge,
     disabled = false,
     dot,
+    onClick,
     textStyle,
     badgeStyle,
     contentStyle,
@@ -40,6 +41,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
     disabled,
     onPress: () => {
       if (!disabled) {
+        onClick?.(index)
         context.onSelect(index)
       }
     },

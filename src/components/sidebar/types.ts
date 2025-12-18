@@ -14,6 +14,7 @@ export interface SidebarItemProps extends ViewProps {
   badge?: React.ReactNode
   disabled?: boolean
   dot?: boolean
+  onClick?: (value: number) => void
   textStyle?: StyleProp<TextStyle>
   badgeStyle?: StyleProp<ViewStyle>
   contentStyle?: StyleProp<ViewStyle>

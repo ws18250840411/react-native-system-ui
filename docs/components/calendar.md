@@ -31,7 +31,7 @@ import { Calendar } from 'react-native-system-ui'
 
 <code title="弹层模式" src="./calendar/demo/popup.tsx"></code>
 
-> 参照 React Vant，常见信息录入通过 Cell 触发弹层。`poppable` 用于切换 Popup 承载，配合 `visible/defaultVisible/onVisibleChange` 控制展示节奏，可通过 `closeOnClickOverlay`、`closeOnConfirm` 管理遮罩或确认后的关闭时机。
+> 常见信息录入可通过 Cell 触发弹层。`poppable` 用于切换 Popup 承载，配合 `visible/defaultVisible/onVisibleChange` 控制展示节奏，可通过 `closeOnClickOverlay`、`closeOnConfirm` 管理遮罩或确认后的关闭时机。
 
 ## API
 

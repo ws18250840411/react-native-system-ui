@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-仿照 React Vant 的格子密码输入，常与 NumberKeyboard 联动，用于输入支付密码、验证码等定长口令。
+格子密码输入，常与 NumberKeyboard 联动，用于输入支付密码、验证码等定长口令。
 
 ## 引入
 

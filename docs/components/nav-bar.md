@@ -61,5 +61,7 @@ import { NavBar } from 'react-native-system-ui'
 | `sideStyle` | 左右侧区域样式 | `StyleProp<ViewStyle>` | - |
 | `onPressLeft` | 左侧点击回调 | `() => void` | - |
 | `onPressRight` | 右侧点击回调 | `() => void` | - |
+| `onClickLeft` | 同 `onPressLeft`（与 react-vant/vant 命名对齐） | `() => void` | - |
+| `onClickRight` | 同 `onPressRight`（与 react-vant/vant 命名对齐） | `() => void` | - |
 
-> 差异说明：当前版本暂未提供 react-vant 中的 `left-align`、`loading`、多标签滚动联动等扩展能力；若需浸入式渐变或滚动透明度联动，可结合 `Animated` 自定义背景，并利用 `children` 覆盖中间区域。
+> 差异说明：当前版本暂未提供 `left-align`、`loading`、多标签滚动联动等扩展能力；若需浸入式渐变或滚动透明度联动，可结合 `Animated` 自定义背景，并利用 `children` 覆盖中间区域。

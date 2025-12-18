@@ -1,6 +1,6 @@
 # React Native System UI
 
-> 让 react-vant 的体验以 React Native 方式重生。
+> 让成熟的移动端交互以 React Native 方式重生。
 
 ```tsx | pure
 import React from 'react'
@@ -13,7 +13,7 @@ export default () => (
 )
 ```
 
-- 🌈 **一致语义**：API 尽量沿用 react-vant，减少学习负担。
+- 🌈 **一致语义**：API 语义尽量保持主流习惯，减少学习负担。
 - 🧱 **可组合设计系统**：tokens + hooks + 工具组成骨架，可被业务复用或扩展。
 - ⚡️ **原生性能**：无多余 DOM、直连 React Native StyleSheet。
 

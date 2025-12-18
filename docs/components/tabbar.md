@@ -53,7 +53,7 @@ import { Tabbar } from 'react-native-system-ui'
 | `safeAreaInsetBottom` | 是否适配底部安全区（`fixed` 时默认开启） | `boolean` | `true` |
 | `contentStyle` | 内部容器样式 | `StyleProp<ViewStyle>` | - |
 | `style` | 外层容器样式 | `StyleProp<ViewStyle>` | - |
-| `onChange` | 切换时回调 | `(name: TabbarValue) => void` | - |
+| `onChange` | 切换时回调 | `(name: TabbarValue, index: number) => void` | - |
 
 ### Tabbar.Item Props
 
@@ -61,10 +61,12 @@ import { Tabbar } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `name` | 标签标识，匹配 `value` | `TabbarValue` | 索引 |
 | `icon` | 图标，可传组件或 `(active) => ReactNode` 回调 | `ReactNode \| (active: boolean) => ReactNode` | - |
-| `badge` | 自定义徽标内容，一般使用 `Badge` 组件 | `ReactNode` | - |
+| `badge` | 徽标内容（数字/字符串会自动渲染 `Badge`） | `ReactNode` | - |
+| `dot` | 显示小红点 | `boolean` | `false` |
 | `children` | 标签文本，支持函数 `(active) => ReactNode` | `ReactNode \| (active: boolean) => ReactNode` | - |
 | `disabled` | 是否禁用 | `boolean` | `false` |
+| `onClick` | 点击回调（在切换前触发） | `() => void` | - |
 | `textStyle` | 文本样式 | `StyleProp<TextStyle>` | - |
 | `iconStyle` | 图标容器样式 | `StyleProp<ViewStyle>` | - |
 
-> 差异说明：暂未实现 `safeAreaInsetBottom=false` 时自动填充手势区域、`beforeChange`、`route` 等 react-vant 扩展能力，如有需要可在 `onChange` 中自定义拦截逻辑或结合导航容器实现。
+> 差异说明：暂未实现 `safeAreaInsetBottom=false` 时自动填充手势区域、`beforeChange`、`route` 等扩展能力，如有需要可在 `onChange` 中自定义拦截逻辑或结合导航容器实现。

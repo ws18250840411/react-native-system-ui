@@ -2,15 +2,21 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
+import Badge from '../badge'
 import { useTabbarTokens } from './tokens'
 import { TabbarContext, useTabbarContext } from './TabbarContext'
 import type { TabbarItemProps, TabbarValue } from './types'
+
+const isRenderable = (value: React.ReactNode) =>
+  value !== undefined && value !== null && value !== false
 
 const TabbarItem: React.FC<TabbarItemProps> = props => {
   const {
     name,
     icon,
     badge,
+    dot = false,
+    onClick,
     textStyle,
     iconStyle,
     children,
@@ -48,6 +54,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     disabled,
     onPress: () => {
       if (!disabled) {
+        onClick?.()
         context.onSelect(itemName, index ?? 0)
       }
     },
@@ -73,7 +80,15 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     >
       <View style={[styles.iconWrapper, iconStyle]}>
         {renderIcon()}
-        {badge ? <View style={styles.badge}>{badge}</View> : null}
+        {isRenderable(badge) || dot ? (
+          <View style={styles.badge}>
+            {isRenderable(badge)
+              ? typeof badge === 'string' || typeof badge === 'number'
+                ? <Badge content={badge} />
+                : badge
+              : <Badge dot />}
+          </View>
+        ) : null}
       </View>
       {children ? (
         <Text

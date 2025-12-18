@@ -30,12 +30,16 @@ import { PullRefresh } from 'react-native-system-ui'
 | `refreshing` | 受控刷新状态 | `boolean` | - |
 | `defaultRefreshing` | 非受控默认值 | `boolean` | `false` |
 | `onRefresh` | 下拉触发回调，可返回 Promise | `() => void \| Promise<void>` | - |
-| `pullingText` | 下拉时文案 | `ReactNode` | `下拉即可刷新…` |
-| `loosingText` | 释放文案 | `ReactNode` | `释放立即刷新…` |
-| `loadingText` | 刷新中文案 | `ReactNode` | `刷新中…` |
-| `successText` | 刷新成功文案 | `ReactNode` | `刷新成功` |
-| `headHeight` | 顶部提示高度 | `number` | 主题默认 |
+| `onRefreshEnd` | 刷新流程结束后触发（无论成功/失败） | `() => void` | - |
+| `pullingText` | 下拉过程文案 | `ReactNode \| ({ distance }) => ReactNode` | `locale.vanPullRefresh.pulling` |
+| `loosingText` | 释放过程文案 | `ReactNode \| ({ distance }) => ReactNode` | `locale.vanPullRefresh.loosing` |
+| `loadingText` | 加载过程文案 | `ReactNode \| ({ distance }) => ReactNode` | `locale.vanPullRefresh.loading` |
+| `successText` | 刷新成功文案（传 `null/false` 可关闭） | `ReactNode \| ({ distance }) => ReactNode` | `刷新成功` |
+| `successDuration` | 成功提示展示时长（ms） | `number \| string` | `500` |
+| `animationDuration` | 文案淡入淡出时长（ms），设为 0 可关闭动画 | `number \| string` | `300` |
+| `headHeight` | 顶部提示高度 | `number \| string` | `50` |
+| `pullDistance` | 触发释放刷新的距离阈值（仅影响文案状态判断） | `number \| string` | `headHeight` |
 | `disabled` | 是否禁用 | `boolean` | `false` |
 | 其余 | 继承 `ScrollView` 属性 | - | - |
 
-> 下拉刷新内部使用 `RefreshControl`，因此当 `ScrollView` 嵌套在其他滚动容器中时，请确保外层允许垂直滚动，以避免冲突。
+> 下拉刷新内部使用 `RefreshControl`。为了避免嵌套滚动冲突，建议让 `PullRefresh` 作为页面最外层滚动容器使用；`pullDistance` 仅用于文案状态（pulling/loosing）判断，不会改变原生触发阈值。

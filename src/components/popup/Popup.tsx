@@ -434,8 +434,8 @@ export const Popup: React.FC<PopupProps> = props => {
           ...buildRadius(round, placement, tokens.radius.round),
         },
         animatedContentStyle,
-        hidden ? styles.hiddenContent : null,
         style,
+        hidden ? styles.hiddenContent : null,
       ]}
       {...rest}
     >
@@ -569,6 +569,12 @@ const styles = StyleSheet.create({
   },
   hiddenContent: {
     pointerEvents: 'none',
+    opacity: 0,
+    // 避免关闭后仍保留离屏阴影（Web 的 boxShadow / Native 的 elevation）
+    boxShadow: 'none',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   safeAreaView: {
     width: '100%',

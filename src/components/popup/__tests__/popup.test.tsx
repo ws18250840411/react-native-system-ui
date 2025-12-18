@@ -1,9 +1,24 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, BackHandler, SafeAreaView } from 'react-native'
+import { Pressable, BackHandler, SafeAreaView, View } from 'react-native'
 
 import Popup from '..'
 import { PortalHost } from '../../portal'
+
+const getStyleValue = (style: any, key: string) => {
+  if (!style) return undefined
+  if (Array.isArray(style)) {
+    for (let i = style.length - 1; i >= 0; i -= 1) {
+      const value = getStyleValue(style[i], key)
+      if (typeof value !== 'undefined') return value
+    }
+    return undefined
+  }
+  if (typeof style === 'object') {
+    return style[key]
+  }
+  return undefined
+}
 
 describe('Popup', () => {
   it('calls onClose when overlay is pressed', () => {
@@ -210,5 +225,47 @@ describe('Popup', () => {
     act(() => {
       treeWithInset.unmount()
     })
+  })
+
+  it('does not leave offscreen shadow after closing (web)', () => {
+    jest.useFakeTimers()
+
+    let tree: renderer.ReactTestRenderer
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <Popup visible placement="left" duration={0} destroyOnClose={false}>
+            <></>
+          </Popup>
+        </PortalHost>,
+      )
+    })
+
+    act(() => {
+      tree.update(
+        <PortalHost>
+          <Popup visible={false} placement="left" duration={0} destroyOnClose={false}>
+            <></>
+          </Popup>
+        </PortalHost>,
+      )
+      jest.runAllTimers()
+    })
+
+    const popupContent = tree.root.findAll(
+      node =>
+        Array.isArray(node.props.style) &&
+        node.props.style.some((s: any) => s?.padding === 16) &&
+        node.props.style.some((s: any) => s?.width === '80%') &&
+        node.props.style.some((s: any) => s?.height === '100%'),
+    )[0]
+
+    expect(getStyleValue(popupContent.props.style, 'opacity')).toBe(0)
+    expect(getStyleValue(popupContent.props.style, 'boxShadow')).toBe('none')
+
+    act(() => {
+      tree.unmount()
+    })
+    jest.useRealTimers()
   })
 })

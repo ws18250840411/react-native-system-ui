@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: true
+  compact: false
 ---
 
 # Checkbox 复选框
@@ -38,7 +38,7 @@ import { Checkbox } from 'react-native-system-ui'
 
 ### 复选框组
 
-通过 `Checkbox.Group` 管理一组选项，`value/onChange` 与 react-vant 同步。
+通过 `Checkbox.Group` 管理一组选项，`value/onChange` 语义与常见实现保持一致。
 
 <code title="复选框组" src="./checkbox/demo/group.tsx"></code>
 
@@ -128,7 +128,7 @@ import { Checkbox } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `toggleAll` | 切换所有子项；传 `true` 全选，`false` 全不选，`{ skipDisabled: true }` 可跳过禁用项 | `boolean \| { checked?: boolean; skipDisabled?: boolean }` | `void` |
 
-## 与 react-vant 的差异
+## 差异说明
 
-- `Checkbox.Group` 的默认值属性命名为 `defaultValue`（遵循 React Native 受控/非受控写法），迁移自 react-vant 时对应其 `defaultChecked`。
+- `Checkbox.Group` 的默认值属性命名为 `defaultValue`（遵循 React Native 受控/非受控写法）；在一些实现中默认值属性名为 `defaultChecked`。
 - 暂未暴露单个 `Checkbox` 的实例方法/类型（`toggle`、`CheckboxInstance`），批量操作请使用受控模式或 `Group.toggleAll`。

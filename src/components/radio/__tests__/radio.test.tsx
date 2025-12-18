@@ -58,6 +58,18 @@ describe('RadioGroup', () => {
     expect(group.props['aria-label']).toBe('选择项')
   })
 
+  it('maps accessibilityHint to aria-describedby', () => {
+    const tree = renderer.create(
+      <RadioGroup accessibilityLabel="选择项" accessibilityHint="提示信息" value="a" onChange={() => {}}>
+        <Radio name="a">A</Radio>
+        <Radio name="b">B</Radio>
+      </RadioGroup>
+    )
+
+    const group = tree.root.findByProps({ role: 'radiogroup' })
+    expect(group.props['aria-describedby']).toBe('提示信息')
+  })
+
   it('respects defaultValue selection', () => {
     const tree = renderer.create(
       <RadioGroup defaultValue="a" onChange={() => {}}>

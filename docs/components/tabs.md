@@ -19,7 +19,7 @@ import { Tabs } from 'react-native-system-ui'
 
 ### 基础用法
 
-提供 React Vant 同款的 4 种展现形式：
+提供 4 种常见展现形式：
 
 - `line` 下划线风格
 - `capsule` 胶囊风格

@@ -25,13 +25,13 @@ import { Popup } from 'react-native-system-ui'
 
 ### 弹出位置
 
-将 `placement`（react-vant 中为 `position`）设置为 `top`、`bottom`、`left`、`right` 即可在不同方向弹出；`center` 的场景可参考基础用法。示例为每个方向维护独立的弹层，并通过样式控制高度/宽度。
+将 `placement`（部分实现中命名为 `position`）设置为 `top`、`bottom`、`left`、`right` 即可在不同方向弹出；`center` 的场景可参考基础用法。示例为每个方向维护独立的弹层，并通过样式控制高度/宽度。
 
 <code title="弹出位置" src="./popup/demo/placement.tsx"></code>
 
 ### 关闭图标
 
-开启 `closeable` 后会展示默认关闭图标，可用 `closeIcon` 自定义图标节点，并用 `closeIconPosition` 控制位置。示例沿用了 react-vant 的三个场景：默认、替换图标以及左上角位置。
+开启 `closeable` 后会展示默认关闭图标，可用 `closeIcon` 自定义图标节点，并用 `closeIconPosition` 控制位置。示例覆盖三个常见场景：默认、替换图标以及左上角位置。
 
 <code title="关闭图标" src="./popup/demo/closeable.tsx"></code>
 

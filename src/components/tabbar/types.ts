@@ -18,13 +18,15 @@ export interface TabbarProps<T = TabbarValue> extends Omit<ViewProps, 'children'
   iconSize?: number
   style?: StyleProp<ViewStyle>
   contentStyle?: StyleProp<ViewStyle>
-  onChange?: (name: T) => void
+  onChange?: (name: T, index: number) => void
 }
 
 export interface TabbarItemProps<T = TabbarValue> extends ViewProps {
   name?: T
   icon?: React.ReactNode | ((active: boolean) => React.ReactNode)
   badge?: React.ReactNode
+  dot?: boolean
+  onClick?: () => void
   textStyle?: StyleProp<TextStyle>
   iconStyle?: StyleProp<ViewStyle>
   children?: React.ReactNode | ((active: boolean) => React.ReactNode)

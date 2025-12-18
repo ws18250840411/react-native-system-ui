@@ -86,7 +86,7 @@ import { Uploader } from 'react-native-system-ui'
 | `uploadIcon` | 上传区域图标 | `ReactNode` | `+` |
 | `children` | 自定义上传按钮 | `ReactNode` | - |
 
-> `disabled/readOnly` 仅影响「上传区域」点击与文件选择，不影响预览与删除（与 react-vant 一致）。如果需要禁用删除，请设置 `deletable={false}`。
+> `disabled/readOnly` 仅影响「上传区域」点击与文件选择，不影响预览与删除。如果需要禁用删除，请设置 `deletable={false}`。
 
 ### Events
 

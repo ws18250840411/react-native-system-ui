@@ -15,10 +15,10 @@ export interface WaterMarkTokens {
 }
 
 const createTokens = (foundations: Foundations): WaterMarkTokens => {
-  const { palette, spacing } = foundations
+  const { palette } = foundations
   return {
-    gapX: spacing.xl,
-    gapY: spacing.xxl,
+    gapX: 24,
+    gapY: 48,
     rotate: -22,
     fontSize: 14,
     color: palette.default[500],

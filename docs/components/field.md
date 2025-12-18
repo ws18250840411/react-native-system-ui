@@ -43,7 +43,7 @@ import { Field } from 'react-native-system-ui'
 
 
 
-> 默认字数统计文案右对齐，字号 12px、颜色 ，与 React Vant 保持一致；自定义时建议返回字符串以复用样式。
+> 默认字数统计文案右对齐，字号 12px，使用次级文本色；自定义时建议返回字符串以复用样式。
 
 ### 输入框内容对齐
 
@@ -86,7 +86,7 @@ import { Field } from 'react-native-system-ui'
 | `extra` | 行尾额外内容 | `ReactNode` | - |
 | `value` | 受控值 | `string` | - |
 | `defaultValue` | 初始值（非受控） | `string` | `''` |
-| `type` | 输入类型，同 `react-vant` | `text \| number \| digit \| password \| textarea \| tel \| search` | `text` |
+| `type` | 输入类型 | `text \| number \| digit \| password \| textarea \| tel \| search` | `text` |
 | `rows` | `type="textarea"` 行数 | `number` | `1` |
 | `autoSize` | 文本域自动增高（兼容 `autosize`） | `boolean \| { minRows?: number; maxRows?: number }` | `false` |
 | `formatter` | 自定义格式化函数 | `(value: string) => string` | - |

@@ -65,4 +65,4 @@ interface AreaList {
 }
 ```
 
-> 省市区数据可复用 react-vant 的 [Area](https://vant-contrib.gitee.io/vant/v3/#/zh-CN/area) 数据结构；若需要自定义异步加载，可先处理数据再传入组件。
+> 省市区数据结构兼容 Vant 的 [Area](https://vant-contrib.gitee.io/vant/v3/#/zh-CN/area) 示例；若需要自定义异步加载，可先处理数据再传入组件。

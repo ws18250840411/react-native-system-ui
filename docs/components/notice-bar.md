@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-循环播放展示一组消息通知，默认行为与 react-vant 一致。
+循环播放展示一组消息通知，默认交互遵循移动端常见习惯。
 
 ## 引入
 
@@ -73,4 +73,4 @@ import { NoticeBar } from 'react-native-system-ui'
 | `onPress` | 整体点击回调 | `() => void` | - |
 | `onReplay` | 每次横向滚动重新开始时触发 | `() => void` | - |
 
-> 当前滚动能力依赖 `Animated` 与 `measure` API，在 React Native Web 环境下需要组件挂载完成后才能正确计算宽度；在纯原生端行为与 react-vant 一致。
+> 当前滚动能力依赖 `Animated` 与 `measure` API，在 React Native Web 环境下需要组件挂载完成后才能正确计算宽度；纯原生端不受此限制。

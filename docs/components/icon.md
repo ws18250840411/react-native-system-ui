@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-语义化的矢量图标。图标来自 `react-native-system-icon`（与 `@react-vant/icons` 同名/同源，支持 Tree Shaking）。
+语义化的矢量图标。图标来自 `react-native-system-icon`，支持 Tree Shaking。
 
 在业务中通常直接从 `react-native-system-icon` 按需引入图标组件（如 `LocationO` / `ShoppingCartO` / `VolumeO`）。
 

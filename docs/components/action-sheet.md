@@ -68,4 +68,4 @@ import { ActionSheet } from 'react-native-system-ui'
 | `icon` | 自定义图标 | `ReactNode` |
 | `onPress` | 点击回调（先于 `onSelect` 执行） | `(action) => void` |
 
-> 与 react-vant 相比，当前版本暂未提供 `closeOnClickOverlay`、`round` 动画配置等额外属性，如有需要可直接透传 `Popup` 对应参数。
+> 当前版本暂未提供 `closeOnClickOverlay`、`round` 动画配置等额外属性，如有需要可直接透传 `Popup` 对应参数。

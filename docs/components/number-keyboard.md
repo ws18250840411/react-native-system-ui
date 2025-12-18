@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-弹出式数字键盘，常与 Field/PasswordInput 搭配，用于输入金额、验证码等。API 参考 react-vant NumberKeyboard。
+弹出式数字键盘，常与 Field/PasswordInput 搭配，用于输入金额、验证码等。
 
 ## 引入
 

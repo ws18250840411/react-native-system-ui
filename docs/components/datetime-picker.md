@@ -43,7 +43,7 @@ import { DatetimePicker } from 'react-native-system-ui'
 
 ### 弹层模式
 
-通过组合 `Popup` 可以实现与 react-vant 类似的弹出选择。
+通过组合 `Popup` 可以实现常见的弹出选择。
 
 <code title="Popup 组合" src="./datetime-picker/demo/popup.tsx"></code>
 
@@ -94,9 +94,9 @@ import { DatetimePicker } from 'react-native-system-ui'
 
 `year \| month \| day \| hour \| minute`
 
-## 与 react-vant 的一致性说明
+## 一致性说明
 
-- 支持 `columnsOrder`/`filter`/`formatter`，列类型、顺序与 react-vant 文档一致。
+- 支持 `columnsOrder`/`filter`/`formatter`，列类型、顺序遵循文档说明。
 - `minDate/maxDate` 与 `minHour/maxHour/minMinute/maxMinute` 的边界会自动 clamp 当前值，避免越界。
 - 其余通用属性（如标题、确认/取消按钮文案、选项高度、可见列数）直接透传 `Picker`。
-- 内置 `popup` 模式，无需手动包裹 Popup，亦可传递 `popupProps` 定制；保持与 react-vant 弹层用法一致。
+- 内置 `popup` 模式，无需手动包裹 Popup，亦可传递 `popupProps` 定制。
