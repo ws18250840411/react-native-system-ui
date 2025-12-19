@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable } from 'react-native'
+import { Pressable, View } from 'react-native'
 
 import DropdownMenu from '..'
 
@@ -42,5 +42,29 @@ describe('DropdownMenu', () => {
     })
 
     expect(onChange).toHaveBeenCalledWith('a', expect.objectContaining({ value: 'a' }))
+  })
+
+  it('accepts non-text ReactNode labels and icons', () => {
+    const tree = renderer.create(
+      <DropdownMenu activeIcon={<View testID="dm-active-icon" />}>
+        <Item
+          defaultValue="a"
+          placeholder={<View testID="dm-placeholder" />}
+          options={[
+            { text: <View testID="dm-option-a" />, value: 'a', icon: <View testID="dm-option-icon" /> },
+            { text: 'B', value: 'b' },
+          ]}
+        />
+      </DropdownMenu>
+    )
+
+    const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
+    act(() => {
+      trigger.props.onPress?.({} as any)
+    })
+
+    expect(tree.root.findAllByProps({ testID: 'dm-option-a' }).length).toBeGreaterThan(0)
+    expect(tree.root.findByProps({ testID: 'dm-option-icon' })).toBeTruthy()
+    expect(tree.root.findByProps({ testID: 'dm-active-icon' })).toBeTruthy()
   })
 })

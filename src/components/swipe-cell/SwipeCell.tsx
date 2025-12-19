@@ -196,6 +196,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
     () =>
       PanResponder.create({
         onMoveShouldSetPanResponder: (_evt, gesture) => !disabled && isHorizontalSwipe(gesture),
+        onMoveShouldSetPanResponderCapture: (_evt, gesture) => !disabled && isHorizontalSwipe(gesture),
         onPanResponderGrant: () => {
           translateX.stopAnimation(value => {
             startXRef.current = value
@@ -225,7 +226,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   )
 
   return (
-    <View style={[styles.root, style]}>
+    <View style={[styles.root, style]} {...panResponder.panHandlers}>
       {left ? (
         <View
           style={[styles.left, leftStyle]}
@@ -247,7 +248,6 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
       ) : null}
 
       <Animated.View
-        {...panResponder.panHandlers}
         style={[
           styles.content,
           contentStyle,
@@ -287,4 +287,3 @@ const styles = StyleSheet.create({
 })
 
 export default SwipeCell
-

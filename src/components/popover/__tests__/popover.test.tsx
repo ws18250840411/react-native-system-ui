@@ -27,7 +27,10 @@ describe('Popover', () => {
       reference.props.onPress?.({})
     })
 
-    expect(tree.root.findAllByProps({ testID: 'rv-popover-backdrop' }).length).toBe(1)
+    const backdrops = tree.root.findAll(
+      node => node.type === Pressable && node.props.testID === 'rv-popover-backdrop'
+    )
+    expect(backdrops.length).toBe(1)
 
     expect(tree).toBeTruthy()
   })

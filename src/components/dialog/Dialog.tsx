@@ -246,15 +246,17 @@ export const Dialog: React.FC<DialogProps> = props => {
 
   const dialogRef = React.useRef<View>(null)
   const titleNativeId = useStableNativeId()
+  const hasTitle = title !== undefined && title !== null && title !== false && title !== ''
+  const hasMessage = message !== undefined && message !== null && message !== false && message !== ''
   const ariaConfig = React.useMemo(() => {
-    if (title) {
+    if (hasTitle) {
       return { 'aria-labelledby': titleNativeId }
     }
-    if (typeof title === 'undefined' && typeof message === 'string') {
-      return { 'aria-label': message }
+    if (!hasTitle && (typeof message === 'string' || typeof message === 'number') && String(message) !== '') {
+      return { 'aria-label': String(message) }
     }
     return {}
-  }, [message, title, titleNativeId])
+  }, [hasTitle, message, titleNativeId])
   const { dialogProps, titleProps } = useDialog(
     ariaConfig,
     dialogRef as unknown as React.RefObject<FocusableElement>
@@ -397,7 +399,7 @@ export const Dialog: React.FC<DialogProps> = props => {
     : { minWidth: tokens.sizes.minWidth, maxWidth: tokens.sizes.maxWidth }
 
   const renderTitle = () => {
-    if (!title) return null
+    if (!hasTitle) return null
     const defaultTitleStyle = [
       styles.title,
       {
@@ -436,7 +438,7 @@ export const Dialog: React.FC<DialogProps> = props => {
 
   const renderMessage = () => {
     const hasChildren = !(children === null || children === undefined || children === false)
-    if (!message && !hasChildren) return null
+    if (!hasMessage && !hasChildren) return null
     const hasCustom = hasChildren
     const contentNode =
       hasCustom

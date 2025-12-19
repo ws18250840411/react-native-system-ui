@@ -140,7 +140,7 @@ export const Badge: React.FC<BadgeProps> = props => {
       numericMax !== null &&
       numericContent > numericMax
     ) {
-      return `${max}+`
+      return `${numericMax}+`
     }
     return content
   }, [visible, dot, numericContent, numericMax, max, content])

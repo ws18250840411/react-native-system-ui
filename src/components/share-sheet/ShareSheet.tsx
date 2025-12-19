@@ -6,6 +6,20 @@ import Popup from '../popup'
 import type { ShareSheetOption, ShareSheetOptions, ShareSheetProps } from './types'
 import { useShareSheetTokens, type ShareSheetTokens } from './tokens'
 
+const isValidNode = (node: React.ReactNode) =>
+  node !== undefined &&
+  node !== null &&
+  node !== false &&
+  !(typeof node === 'string' && node.length === 0)
+
+const renderTextNode = (node: React.ReactNode, textStyle: any) => {
+  if (!isValidNode(node)) return null
+  if (typeof node === 'string' || typeof node === 'number') {
+    return <Text style={textStyle}>{node}</Text>
+  }
+  return node
+}
+
 const normalizeOptions = (options?: ShareSheetOptions): ShareSheetOption[][] => {
   if (!options || options.length === 0) return []
   if (Array.isArray(options[0])) {
@@ -21,6 +35,7 @@ const ShareSheetOptionItem: React.FC<{
   tokens: ShareSheetTokens
   onSelect: (option: ShareSheetOption, index: number) => void
 }> = ({ option, index, columns, tokens, onSelect }) => {
+  const resolvedColumns = columns > 0 ? columns : 1
   const press = useAriaPress({
     onPress: () => onSelect(option, index),
     extraProps: {
@@ -31,19 +46,38 @@ const ShareSheetOptionItem: React.FC<{
 
   return (
     <Pressable
-      style={[styles.option, { width: `${100 / columns}%`, paddingVertical: tokens.spacing.vertical }]}
+      style={[
+        styles.option,
+        { width: `${100 / resolvedColumns}%`, paddingVertical: tokens.spacing.vertical },
+      ]}
       {...press.interactionProps}
     >
       <View style={[styles.icon, { width: tokens.sizing.icon, height: tokens.sizing.icon, marginBottom: tokens.spacing.vertical }]}>
         {option.icon}
       </View>
-      <Text style={[styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]}>
-        {option.name}
-      </Text>
-      {option.description ? (
-        <Text style={[styles.optionDesc, { color: tokens.colors.optionDesc, marginTop: tokens.spacing.gap, fontSize: tokens.typography.optionDesc }]}>
-          {option.description}
-        </Text>
+      {renderTextNode(
+        option.name,
+        [styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]
+      )}
+      {isValidNode(option.description) ? (
+        typeof option.description === 'string' || typeof option.description === 'number' ? (
+          <Text
+            style={[
+              styles.optionDesc,
+              {
+                color: tokens.colors.optionDesc,
+                marginTop: tokens.spacing.gap,
+                fontSize: tokens.typography.optionDesc,
+              },
+            ]}
+          >
+            {option.description}
+          </Text>
+        ) : (
+          <View style={{ marginTop: tokens.spacing.gap, alignItems: 'center' }}>
+            {option.description}
+          </View>
+        )
       ) : null}
     </Pressable>
   )
@@ -61,7 +95,11 @@ const ShareSheetCancel: React.FC<{
 
   return (
     <Pressable style={styles.cancel} {...cancelPress.interactionProps}>
-      <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
+      {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
+        <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
+      ) : (
+        cancelText
+      )}
     </Pressable>
   )
 }
@@ -88,6 +126,14 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   } = props
 
   const groups = React.useMemo(() => normalizeOptions(options), [options])
+  const resolvedColumns = React.useMemo(() => {
+    if (typeof columns !== 'number' || !Number.isFinite(columns) || columns <= 0) return 4
+    return Math.max(1, Math.floor(columns))
+  }, [columns])
+
+  const hasTitle = isValidNode(title)
+  const hasDescription = isValidNode(description)
+  const hasCancelText = isValidNode(cancelText)
 
   const close = React.useCallback(
     (reason: 'cancel' | 'select') => {
@@ -124,7 +170,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
                 key={option.key ?? currentIndex}
                 option={option}
                 index={currentIndex}
-                columns={columns}
+                columns={resolvedColumns}
                 tokens={tokens}
                 onSelect={handleSelect}
               />
@@ -147,19 +193,52 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
       {...popupProps}
     >
       <View style={[styles.wrapper, { paddingHorizontal: tokens.spacing.horizontal, backgroundColor: tokens.colors.background }]}>
-        {title ? (
-          <Text style={[styles.title, { color: tokens.colors.title, fontSize: tokens.typography.title }]}>{title}</Text>
-        ) : null}
-        {description ? (
-          <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
-            {description}
-          </Text>
-        ) : null}
+        {hasTitle
+          ? typeof title === 'string' || typeof title === 'number'
+            ? (
+              <Text
+                style={[
+                  styles.title,
+                  { color: tokens.colors.title, fontSize: tokens.typography.title },
+                ]}
+              >
+                {title}
+              </Text>
+            )
+            : (
+              <View style={styles.titleNode}>{title}</View>
+            )
+          : null}
+        {hasDescription
+          ? typeof description === 'string' || typeof description === 'number'
+            ? (
+              <Text
+                style={[
+                  styles.description,
+                  {
+                    color: tokens.colors.description,
+                    fontSize: tokens.typography.description,
+                  },
+                ]}
+              >
+                {description}
+              </Text>
+            )
+            : (
+              <View style={styles.descriptionNode}>{description}</View>
+            )
+          : null}
         {renderGroups()}
         {children}
-        {cancelText ? (
-          <ShareSheetCancel cancelText={cancelText} tokens={tokens} onPress={() => close('cancel')} />
-        ) : null}
+        {hasCancelText
+          ? (
+            <ShareSheetCancel
+              cancelText={cancelText}
+              tokens={tokens}
+              onPress={() => close('cancel')}
+            />
+          )
+          : null}
       </View>
     </Popup>
   )
@@ -176,6 +255,14 @@ const styles = StyleSheet.create({
   },
   description: {
     textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  titleNode: {
+    alignItems: 'center',
+  },
+  descriptionNode: {
+    alignItems: 'center',
     marginTop: 4,
     marginBottom: 12,
   },

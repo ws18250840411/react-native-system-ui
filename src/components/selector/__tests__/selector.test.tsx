@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable } from 'react-native'
+import { Pressable, View } from 'react-native'
 
 import Selector from '..'
 
@@ -54,5 +54,22 @@ describe('Selector', () => {
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(['hz', 'cq'], expect.any(Object))
+  })
+
+  it('supports ReactNode label and description', () => {
+    const tree = renderer.create(
+      <Selector
+        options={[
+          {
+            label: <View testID="custom-label" />,
+            description: <View testID="custom-description" />,
+            value: 'a',
+          },
+        ]}
+      />,
+    )
+
+    expect(tree.root.findByProps({ testID: 'custom-label' })).toBeTruthy()
+    expect(tree.root.findByProps({ testID: 'custom-description' })).toBeTruthy()
   })
 })

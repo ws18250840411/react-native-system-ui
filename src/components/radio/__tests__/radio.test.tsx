@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act, type ReactTestRenderer } from 'react-test-renderer'
-import { Pressable } from 'react-native'
+import { Pressable, View } from 'react-native'
 
 import { Radio } from '..'
 import { RadioGroup } from '../RadioGroup'
@@ -42,6 +42,15 @@ describe('Radio', () => {
     const pressable = tree.root.findByType(Pressable)
     expect(pressable.props.disabled).toBe(true)
     expect(pressable.props.accessibilityState?.disabled).toBe(true)
+  })
+
+  it('supports non-text children as label', () => {
+    const tree = renderer.create(
+      <Radio accessibilityLabel="自定义标签">
+        <View testID="custom-label" />
+      </Radio>,
+    )
+    expect(tree.root.findByProps({ testID: 'custom-label' })).toBeTruthy()
   })
 })
 

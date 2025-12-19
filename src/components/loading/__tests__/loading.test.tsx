@@ -12,6 +12,15 @@ describe('Loading', () => {
     expect(text.props.children).toBe('加载中')
   })
 
+  it('accepts non-text children', () => {
+    const tree = renderer.create(
+      <Loading>
+        <View testID="loading-custom" />
+      </Loading>,
+    )
+    expect(tree.root.findByProps({ testID: 'loading-custom' })).toBeTruthy()
+  })
+
   it('renders spinner type', () => {
     const tree = renderer.create(<Loading type="spinner" size={24} />)
     const lines = tree.root.findAll(

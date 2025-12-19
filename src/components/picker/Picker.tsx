@@ -172,8 +172,10 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
             const disabled = !!item.disabled
             const textColor = disabled
               ? tokens.colors.textDisabled
-              : tokens.colors.textMuted
-            const content = optionRender ? optionRender(item, { columnIndex, active: false }) : item.label ?? item.value
+              : active
+                ? tokens.colors.text
+                : tokens.colors.textMuted
+            const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
             const testID = getOptionTestID?.(item, { columnIndex, active })
             const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
             return (
@@ -285,6 +287,75 @@ const Picker: React.FC<PickerProps> = props => {
     onCancel?.()
   }, [onCancel])
 
+  const renderActionContent = React.useCallback(
+    (content: React.ReactNode, options: { color: string }) => {
+      if (React.isValidElement(content)) {
+        return (
+          <View style={{ minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>
+            {content}
+          </View>
+        )
+      }
+      if (typeof content === 'string' || typeof content === 'number') {
+        return (
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.actionText,
+              {
+                color: options.color,
+                fontSize: tokens.typography.toolbarSize,
+                fontFamily: tokens.typography.fontFamily,
+                fontWeight: tokens.typography.toolbarWeight,
+              },
+            ]}
+          >
+            {content}
+          </Text>
+        )
+      }
+      return <View style={{ minWidth: 44 }} />
+    },
+    [tokens.typography.fontFamily, tokens.typography.toolbarSize, tokens.typography.toolbarWeight],
+  )
+
+  const renderTitleContent = React.useCallback(
+    (content: React.ReactNode) => {
+      if (content === undefined || content === null) {
+        return <View />
+      }
+      if (React.isValidElement(content)) {
+        return (
+          <View style={[styles.title, { alignItems: 'center', justifyContent: 'center' }]}>
+            {content}
+          </View>
+        )
+      }
+      return (
+        <Text
+          style={[
+            styles.title,
+            {
+              fontSize: tokens.typography.toolbarSize,
+              fontFamily: tokens.typography.fontFamily,
+              color: tokens.colors.text,
+              fontWeight: tokens.typography.toolbarWeight,
+            },
+          ]}
+          numberOfLines={1}
+        >
+          {content as any}
+        </Text>
+      )
+    },
+    [
+      tokens.colors.text,
+      tokens.typography.fontFamily,
+      tokens.typography.toolbarSize,
+      tokens.typography.toolbarWeight,
+    ],
+  )
+
   const renderToolbar = () => {
     if (!showToolbar) return null
     return (
@@ -299,52 +370,11 @@ const Picker: React.FC<PickerProps> = props => {
         ]}
       >
         <Pressable onPress={handleCancel} accessibilityRole="button">
-          <Text
-            style={[
-              styles.actionText,
-              {
-                color: tokens.colors.cancel,
-                fontSize: tokens.typography.toolbarSize,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.toolbarWeight,
-              },
-            ]}
-          >
-            {cancelButtonText}
-          </Text>
+          {renderActionContent(cancelButtonText, { color: tokens.colors.cancel })}
         </Pressable>
-        {title ? (
-          <Text
-            style={[
-              styles.title,
-              {
-                fontSize: tokens.typography.toolbarSize,
-                fontFamily: tokens.typography.fontFamily,
-                color: tokens.colors.text,
-                fontWeight: tokens.typography.toolbarWeight,
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {title}
-          </Text>
-        ) : (
-          <View />
-        )}
+        {renderTitleContent(title)}
         <Pressable onPress={handleConfirm} accessibilityRole="button">
-          <Text
-            style={[
-              styles.actionText,
-              {
-                color: tokens.colors.confirm,
-                fontSize: tokens.typography.toolbarSize,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.toolbarWeight,
-              },
-            ]}
-          >
-            {confirmButtonText}
-          </Text>
+          {renderActionContent(confirmButtonText, { color: tokens.colors.confirm })}
         </Pressable>
       </View>
     )

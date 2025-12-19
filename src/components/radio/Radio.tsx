@@ -144,22 +144,26 @@ export const Radio: React.FC<RadioProps> = props => {
         pointerEvents="none"
         accessible={false}
       >
-        <Text
-          accessible={false}
-          style={[
-            styles.label,
-            {
-              color: labelColor,
-              fontSize: tokens.typography.fontSize,
-              lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-              fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.fontWeight,
-            },
-            labelStyle,
-          ]}
-        >
-          {children}
-        </Text>
+        {typeof children === 'string' || typeof children === 'number' ? (
+          <Text
+            accessible={false}
+            style={[
+              styles.label,
+              {
+                color: labelColor,
+                fontSize: tokens.typography.fontSize,
+                lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+                fontFamily: tokens.typography.fontFamily,
+                fontWeight: tokens.typography.fontWeight,
+              },
+              labelStyle,
+            ]}
+          >
+            {children}
+          </Text>
+        ) : (
+          children
+        )}
       </View>
     )
 

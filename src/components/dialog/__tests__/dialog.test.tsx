@@ -38,6 +38,13 @@ describe('Dialog', () => {
     expect(texts).toContain('内容')
   })
 
+  it('renders numeric title and message', () => {
+    const tree = renderInHost(<Dialog visible title={0} message={0} />)
+
+    const hasZero = tree.root.findAllByType(Text).some(node => node.props.children === 0)
+    expect(hasZero).toBe(true)
+  })
+
   it('fires confirm handler', () => {
     const onConfirm = jest.fn()
     const tree = renderInHost(<Dialog visible onConfirm={onConfirm} />)

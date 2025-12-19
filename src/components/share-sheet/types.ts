@@ -7,6 +7,7 @@ export interface ShareSheetOption {
   name: React.ReactNode
   icon: React.ReactNode
   description?: React.ReactNode
+  onPress?: (option: ShareSheetOption) => void
 }
 
 export type ShareSheetOptions = ShareSheetOption[] | ShareSheetOption[][]

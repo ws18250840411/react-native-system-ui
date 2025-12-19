@@ -58,6 +58,34 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     [closeMenu, closeOnSelect, triggerChange]
   )
 
+  const renderActiveIcon = React.useCallback(() => {
+    const color = activeColor ?? tokens.colors.activeText
+    if (activeIcon) {
+      if (React.isValidElement(activeIcon)) {
+        const iconProps = (activeIcon.props ?? {}) as Record<string, unknown>
+        const canSetColor = Object.prototype.hasOwnProperty.call(iconProps, 'fill') || Object.prototype.hasOwnProperty.call(iconProps, 'color')
+        return canSetColor ? React.cloneElement(activeIcon, { fill: color, color }) : activeIcon
+      }
+      if (typeof activeIcon === 'string' || typeof activeIcon === 'number') {
+        return <Text style={[styles.activeIndicator, { color }]}>{activeIcon}</Text>
+      }
+      return <View style={styles.activeIndicatorNode}>{activeIcon}</View>
+    }
+    return <Text style={[styles.activeIndicator, { color }]}>✓</Text>
+  }, [activeColor, activeIcon, tokens.colors.activeText])
+
+  const renderOptionIcon = React.useCallback(
+    (optionIcon: DropdownOption['icon']) => {
+      if (!optionIcon) return null
+      if (React.isValidElement(optionIcon)) return optionIcon
+      if (typeof optionIcon === 'string' || typeof optionIcon === 'number') {
+        return <Text style={styles.optionIconText}>{optionIcon}</Text>
+      }
+      return optionIcon
+    },
+    [],
+  )
+
   const panelContent = React.useMemo(() => {
     if (children) {
       return (
@@ -74,6 +102,11 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
         {options.map(option => {
           const active = value === option.value
           const optionText = getOptionText(option)
+          const optionColor = option.disabled
+            ? tokens.colors.disabledText
+            : active
+              ? (activeColor ?? tokens.colors.activeText)
+              : tokens.colors.text
           return (
             <Pressable
               key={String(option.value)}
@@ -82,22 +115,19 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
               disabled={option.disabled}
               testID={`rv-dropdown-option-${option.value}`}
             >
-              <Text
-                style={[
-                  styles.optionText,
-                  { color: active ? (activeColor ?? tokens.colors.activeText) : tokens.colors.text },
-                  option.disabled && { color: tokens.colors.disabledText },
-                ]}
-              >
-                {optionText}
-              </Text>
-              {active
-                ? activeIcon ?? (
-                  <Text style={[styles.activeIndicator, { color: activeColor ?? tokens.colors.activeText }]}>
-                    ✓
-                  </Text>
-                )
-                : null}
+              <View style={styles.optionLeft}>
+                {option.icon ? (
+                  <View style={styles.optionIcon}>
+                    {renderOptionIcon(option.icon)}
+                  </View>
+                ) : null}
+                {typeof optionText === 'string' || typeof optionText === 'number' ? (
+                  <Text style={[styles.optionText, { color: optionColor }]}>{optionText}</Text>
+                ) : (
+                  <View style={styles.optionTextNode}>{optionText}</View>
+                )}
+              </View>
+              {active ? renderActiveIcon() : null}
             </Pressable>
           )
         })}
@@ -167,16 +197,20 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
       testID={`rv-dropdown-trigger-${index}`}
       disabled={itemDisabled}
     >
-      <Text
-        style={[
-          styles.title,
-          textStyle,
-          { color: displayColor },
-        ]}
-        numberOfLines={1}
-      >
-        {displayLabel}
-      </Text>
+      {typeof displayLabel === 'string' || typeof displayLabel === 'number' ? (
+        <Text
+          style={[
+            styles.title,
+            textStyle,
+            { color: displayColor },
+          ]}
+          numberOfLines={1}
+        >
+          {displayLabel}
+        </Text>
+      ) : (
+        <View style={styles.titleNode}>{displayLabel}</View>
+      )}
       <Text style={[styles.arrow, { color: tokens.colors.placeholder }]}>{isActive ? '▲' : '▼'}</Text>
     </Pressable>
   )
@@ -198,6 +232,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  titleNode: {
+    flexShrink: 1,
+  },
   arrow: {
     marginLeft: 4,
     fontSize: 10,
@@ -213,10 +250,28 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
+  optionLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+  optionIcon: {
+    marginRight: 8,
+  },
+  optionIconText: {
+    fontSize: 16,
+  },
   optionText: {
     fontSize: 16,
   },
+  optionTextNode: {
+    flex: 1,
+  },
   activeIndicator: {
+    marginLeft: 12,
+  },
+  activeIndicatorNode: {
     marginLeft: 12,
   },
   customPanel: {

@@ -25,7 +25,11 @@ const ActionSheetHeader: React.FC<{
 
   return (
     <View style={styles.header}>
-      <Text style={[styles.title, { color: tokens.colors.title, fontSize: tokens.typography.title }]}>{title}</Text>
+      {typeof title === 'string' || typeof title === 'number' ? (
+        <Text style={[styles.title, { color: tokens.colors.title, fontSize: tokens.typography.title }]}>{title}</Text>
+      ) : (
+        <View style={styles.titleNode}>{title}</View>
+      )}
       {closeable ? (
         <Pressable accessibilityRole="button" hitSlop={8} {...closePress.interactionProps}>
           {React.isValidElement(closeIcon)
@@ -56,6 +60,9 @@ const ActionSheetItem: React.FC<{
   })
 
   const color = action.color ?? tokens.colors.item
+  const name = action.name
+  const subname = action.subname
+  const hasSubname = subname !== undefined && subname !== null && subname !== false
 
   return (
     <Pressable
@@ -75,19 +82,27 @@ const ActionSheetItem: React.FC<{
         <Loading size={20} />
       ) : (
         <View style={styles.itemTextWrapper}>
-          <Text
-            style={[
-              styles.itemText,
-              {
-                color: disabled ? tokens.colors.disabled : color,
-                fontSize: tokens.typography.item,
-              },
-            ]}
-          >
-            {action.name}
-          </Text>
-          {action.subname ? (
-            <Text style={[styles.subname, { color: tokens.colors.subitem }]}>{action.subname}</Text>
+          {typeof name === 'string' || typeof name === 'number' ? (
+            <Text
+              style={[
+                styles.itemText,
+                {
+                  color: disabled ? tokens.colors.disabled : color,
+                  fontSize: tokens.typography.item,
+                },
+              ]}
+            >
+              {name}
+            </Text>
+          ) : (
+            name
+          )}
+          {hasSubname ? (
+            typeof subname === 'string' || typeof subname === 'number' ? (
+              <Text style={[styles.subname, { color: tokens.colors.subitem }]}>{subname}</Text>
+            ) : (
+              <View style={styles.subnameNode}>{subname}</View>
+            )
           ) : null}
         </View>
       )}
@@ -112,7 +127,11 @@ const ActionSheetCancel: React.FC<{
         style={[styles.cancel, { borderColor: tokens.colors.border }]}
         {...cancelPress.interactionProps}
       >
-        <Text style={[styles.cancelText, { color: tokens.colors.cancel }]}>{cancelText}</Text>
+        {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
+          <Text style={[styles.cancelText, { color: tokens.colors.cancel }]}>{cancelText}</Text>
+        ) : (
+          cancelText
+        )}
       </Pressable>
     </>
   )
@@ -143,6 +162,9 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
   } = props
 
   const shouldCloseOnClickAction = closeOnClickAction ?? closeOnSelect ?? false
+  const hasTitle = title !== undefined && title !== null && title !== false
+  const hasDescription = description !== undefined && description !== null && description !== false
+  const hasCancelText = cancelText !== undefined && cancelText !== null && cancelText !== false
 
   const runBeforeClose = React.useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
@@ -208,7 +230,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       {...popupProps}
     >
       <View style={[styles.panel, { paddingHorizontal: tokens.spacing.horizontal, backgroundColor: tokens.colors.background }]}>
-        {title ? (
+        {hasTitle ? (
           <ActionSheetHeader
             title={title}
             closeable={closeable}
@@ -217,10 +239,14 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
             onClose={handleCloseIcon}
           />
         ) : null}
-        {description ? (
-          <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
-            {description}
-          </Text>
+        {hasDescription ? (
+          typeof description === 'string' || typeof description === 'number' ? (
+            <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
+              {description}
+            </Text>
+          ) : (
+            <View style={styles.descriptionNode}>{description}</View>
+          )
         ) : null}
         <View style={styles.actions}>
           {actions.map((action, index) => (
@@ -234,7 +260,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
           ))}
         </View>
         {children}
-        {cancelText ? (
+        {hasCancelText ? (
           <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={handleCancel} />
         ) : null}
       </View>
@@ -256,7 +282,13 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: '600',
   },
+  titleNode: {
+    flex: 1,
+  },
   description: {
+    marginBottom: 8,
+  },
+  descriptionNode: {
     marginBottom: 8,
   },
   actions: {
@@ -276,6 +308,9 @@ const styles = StyleSheet.create({
   subname: {
     marginTop: 4,
     fontSize: 12,
+  },
+  subnameNode: {
+    marginTop: 4,
   },
   icon: {
     marginRight: 12,

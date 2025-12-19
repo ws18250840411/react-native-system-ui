@@ -184,20 +184,28 @@ export const Loading: React.FC<LoadingProps> = props => {
 
   const indicator = type === 'spinner' ? renderSpinner() : renderCircular()
 
-  const textNode = children ? (
-    <Text
-      style={[
-        {
-          marginLeft: vertical ? 0 : tokens.spacing.gap,
-          marginTop: vertical ? tokens.spacing.gap : 0,
-          fontSize: textSize,
-          color: textColor,
-        },
-        textStyle as TextStyle,
-      ]}
-    >
-      {children}
-    </Text>
+  const hasChildren = children !== undefined && children !== null && children !== false
+  const textSpacingStyle = {
+    marginLeft: vertical ? 0 : tokens.spacing.gap,
+    marginTop: vertical ? tokens.spacing.gap : 0,
+  }
+  const textNode = hasChildren ? (
+    typeof children === 'string' || typeof children === 'number' ? (
+      <Text
+        style={[
+          textSpacingStyle,
+          {
+            fontSize: textSize,
+            color: textColor,
+          },
+          textStyle as TextStyle,
+        ]}
+      >
+        {children}
+      </Text>
+    ) : (
+      <View style={textSpacingStyle}>{children}</View>
+    )
   ) : null
 
   const containerStyle: StyleProp<ViewStyle> = [

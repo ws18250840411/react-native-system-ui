@@ -1,13 +1,28 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
+import { Text, View } from 'react-native'
 
 import ShareSheet from '..'
-import { PortalHost } from '../../portal'
+import { Portal, PortalHost } from '../../portal'
 
 describe('ShareSheet', () => {
+  const roots: renderer.ReactTestRenderer[] = []
+  const render = (node: React.ReactElement) => {
+    const root = renderer.create(node)
+    roots.push(root)
+    return root
+  }
+
+  afterEach(() => {
+    act(() => {
+      roots.splice(0).forEach(root => root.unmount())
+      Portal.clear()
+    })
+  })
+
   it('fires onSelect when option pressed', () => {
     const onSelect = jest.fn()
-    const tree = renderer.create(
+    const tree = render(
       <PortalHost>
         <ShareSheet
           visible
@@ -27,10 +42,43 @@ describe('ShareSheet', () => {
     expect(onSelect.mock.calls[0][0].name).toBe('微信')
   })
 
+  it('calls option.onPress when option selected', () => {
+    const optionOnPress = jest.fn()
+    const tree = render(
+      <PortalHost>
+        <ShareSheet
+          visible
+          closeOnSelect={false}
+          options={[[{ name: '微信', icon: <></>, onPress: optionOnPress }]]}
+          onClose={() => {}}
+        />
+      </PortalHost>
+    )
+
+    const option = tree.root.findByProps({ testID: 'rv-share-sheet-item-0' })
+    act(() => {
+      option.props.onPress?.({})
+    })
+
+    expect(optionOnPress).toHaveBeenCalled()
+    expect(optionOnPress.mock.calls[0][0].name).toBe('微信')
+  })
+
+  it('renders custom title node without nesting in Text', () => {
+    const tree = render(
+      <PortalHost>
+        <ShareSheet visible title={<View testID="custom-title" />} onClose={() => {}} />
+      </PortalHost>
+    )
+
+    const title = tree.root.findByProps({ testID: 'custom-title' })
+    expect(title.parent?.type).not.toBe(Text)
+  })
+
   it('calls onCancel when cancel tapped', () => {
     const onCancel = jest.fn()
     const onClose = jest.fn()
-    const tree = renderer.create(
+    const tree = render(
       <PortalHost>
         <ShareSheet visible cancelText="返回" onCancel={onCancel} onClose={onClose} />
       </PortalHost>

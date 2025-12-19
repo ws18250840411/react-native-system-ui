@@ -152,7 +152,9 @@ export const Overlay: React.FC<OverlayProps> = props => {
         pointerEvents="box-none"
         style={[
           styles.portal,
-          resolvedZIndex ? { zIndex: resolvedZIndex } : null,
+          resolvedZIndex !== undefined && resolvedZIndex !== null
+            ? { zIndex: resolvedZIndex }
+            : null,
           style,
         ]}
       >

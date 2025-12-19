@@ -86,7 +86,7 @@ export const Avatar = React.forwardRef<Pressable, AvatarProps>(
 
     const renderContent = () => {
       if (src) {
-        const source = typeof src === 'string' ? { uri: src } : (src as any)
+        const source = typeof src === 'string' ? { uri: src } : src
         return (
           <Image
             source={source}

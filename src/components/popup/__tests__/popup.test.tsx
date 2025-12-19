@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, BackHandler, SafeAreaView, View } from 'react-native'
+import { Pressable, BackHandler, SafeAreaView, View, Platform } from 'react-native'
 
 import Popup from '..'
 import { PortalHost } from '../../portal'
@@ -139,6 +139,8 @@ describe('Popup', () => {
   })
 
   it('closes on hardware back press when enabled', () => {
+    const originalOS = Platform.OS
+    Platform.OS = 'android'
     const remove = jest.fn()
     const addSpy = jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({ remove } as any)
     const handleClose = jest.fn()
@@ -161,6 +163,7 @@ describe('Popup', () => {
 
     expect(handleClose).toHaveBeenCalled()
     addSpy.mockRestore()
+    Platform.OS = originalOS
     act(() => {
       tree.unmount()
     })

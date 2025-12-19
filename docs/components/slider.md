@@ -75,6 +75,7 @@ import { Slider } from 'react-native-system-ui'
 | `button` | 自定义滑块按钮 | `ReactNode \| ({ value }) => ReactNode` | - |
 | `leftButton` | 自定义左侧滑块按钮（双滑块模式下） | `ReactNode` | - |
 | `rightButton` | 自定义右侧滑块按钮 （双滑块模式下） | `ReactNode` | - |
+| `ariaLabel` | 无障碍 label | `string` | `'Slider'` |
 
 ### Events
 

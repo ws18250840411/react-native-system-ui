@@ -59,7 +59,8 @@ const toArray = <T,>(value: T | T[] | undefined | null): T[] => {
 const isImageUrlString = (url: string) => IMAGE_REGEXP.test(url)
 
 const isImageFile = (item: UploaderValueItem, forced?: boolean) => {
-  if (forced) return true
+  if (forced === true) return true
+  if (forced === false) return false
   if (item.file && item.file.type) {
     return item.file.type.indexOf('image') === 0
   }
@@ -68,7 +69,8 @@ const isImageFile = (item: UploaderValueItem, forced?: boolean) => {
   return false
 }
 
-const resolveSource = (item: UploaderValueItem) => {
+const resolveSource = (item: UploaderValueItem, isImage: boolean) => {
+  if (!isImage) return undefined
   if (item.source) return item.source
   if (item.thumbnail) return { uri: item.thumbnail }
   if (item.url) return { uri: item.url }
@@ -184,6 +186,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     ...rest
   } = props
 
+  const uploadDisabled = disabled || readOnly
   const tokens = useUploaderTokens()
   const [rawItems, triggerChange] = useControllableValue<UploaderValueItem[]>(props, {
     defaultValue: [],
@@ -291,8 +294,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
 
   const handleWebFiles = React.useCallback(
     async (files: File[]) => {
-      if (disabled) return
-      if (readOnly) return
+      if (uploadDisabled) return
       if (!files.length) return
 
       let nextFiles = files
@@ -314,10 +316,14 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
       if (!nextFiles.length) return
 
       if (isOversize(nextFiles, maxSizeValue)) {
-        const { invalid } = filterFiles(nextFiles, maxSizeValue)
-        onOversize?.(invalid)
-        return
+        const { valid, invalid } = filterFiles(nextFiles, maxSizeValue)
+        if (invalid.length) {
+          onOversize?.(invalid)
+        }
+        nextFiles = valid
       }
+
+      if (!nextFiles.length) return
 
       const newTasks: InternalTask[] = nextFiles.map(file => ({
         id: idRef.current++,
@@ -376,16 +382,15 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     [
       beforeRead,
       createObjectUrl,
-      disabled,
       maxCountValue,
       maxSizeValue,
       normalizeItem,
       onOversize,
-      readOnly,
       resultType,
       revokeObjectUrl,
       updateItems,
       upload,
+      uploadDisabled,
     ],
   )
 
@@ -434,24 +439,24 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     if (!input) return
     input.accept = accept
     input.multiple = multiple
-    input.disabled = disabled || readOnly
+    input.disabled = uploadDisabled
     if (capture) {
       input.setAttribute('capture', capture)
     } else {
       input.removeAttribute('capture')
     }
-  }, [accept, capture, disabled, multiple, readOnly])
+  }, [accept, capture, multiple, uploadDisabled])
 
   const canShowUpload = React.useMemo(() => {
     return showUpload && (maxCountValue === 0 || items.length + tasks.length < maxCountValue)
   }, [items.length, maxCountValue, showUpload, tasks.length])
 
   const chooseFile = React.useCallback(() => {
-    if (Platform.OS === 'web' && webInputRef.current && !(disabled || readOnly)) {
+    if (Platform.OS === 'web' && webInputRef.current && !uploadDisabled) {
       webInputRef.current.click()
       return
     }
-    if (disabled || readOnly) return
+    if (uploadDisabled) return
     if (onUpload) {
       Promise.resolve(onUpload())
         .then(result => {
@@ -466,7 +471,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
         })
         .catch(() => {})
     }
-  }, [disabled, maxCountValue, normalizeItem, onUpload, readOnly, updateItems])
+  }, [maxCountValue, normalizeItem, onUpload, updateItems, uploadDisabled])
 
   const closeImagePreview = React.useCallback(() => {
     setPreviewVisible(false)
@@ -479,11 +484,11 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
 
   const handleUploadPress = React.useCallback(
     async (event: any) => {
-      if (disabled) return
+      if (uploadDisabled) return
       onClickUpload?.(event)
       chooseFile()
     },
-    [chooseFile, disabled, onClickUpload],
+    [chooseFile, onClickUpload, uploadDisabled],
   )
 
   const handleDelete = React.useCallback(
@@ -555,11 +560,12 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
 
   return (
     <View style={[styles.container, style]} {...rest} testID="rv-uploader">
-      <View style={[styles.items, disabled ? { opacity: 0.65 } : null]}>
+      <View style={styles.items}>
         {previewImage ? (
           <>
             {items.map((item, index) => {
-              const source = resolveSource(item)
+              const isImage = isImageFile(item, isImageUrl?.(item))
+              const source = resolveSource(item, isImage)
               const fileName = item.file?.name ?? item.filename ?? item.url ?? ''
 
               return (
@@ -698,9 +704,10 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
                 borderColor: tokens.colors.border,
               },
               pressed ? { opacity: 0.85 } : null,
+              uploadDisabled ? { opacity: 0.65 } : null,
             ]}
             onPress={handleUploadPress}
-            disabled={disabled}
+            disabled={uploadDisabled}
             testID="rv-uploader-upload"
           >
             {children ?? (
@@ -716,12 +723,18 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
       </View>
       {previewFullImage ? (
         <ImagePreview
+          {...previewOptions}
           visible={previewVisible}
           images={previewImages}
           startPosition={previewIndex}
-          onClose={closePreview}
-          onClosed={() => setPreviewVisible(false)}
-          {...previewOptions}
+          onClose={params => {
+            previewOptions?.onClose?.(params)
+            closePreview()
+          }}
+          onClosed={() => {
+            previewOptions?.onClosed?.()
+            setPreviewVisible(false)
+          }}
         />
       ) : null}
     </View>

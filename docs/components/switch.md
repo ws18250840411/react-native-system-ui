@@ -33,7 +33,7 @@ import { Switch } from 'react-native-system-ui'
 
 ### 加载状态
 
-通过 `loading` 属性设置开关为加载状态，加载状态下开关不可点击。
+通过 `loading` 属性设置开关为加载状态：点击仍会触发 `onClick`，但不会触发 `onChange`（不会切换状态）。
 
 <code title="加载状态" src="./switch/demo/loading.tsx"></code>
 

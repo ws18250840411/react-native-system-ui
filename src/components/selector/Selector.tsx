@@ -80,6 +80,9 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
         const descriptionColor = isDisabled
           ? tokens.colors.disabledText
           : tokens.colors.description
+        const labelContent = option.label
+        const descriptionContent = option.description
+        const hasDescription = descriptionContent !== undefined && descriptionContent !== null
 
         const itemContent = (
           <View
@@ -103,36 +106,45 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
               itemStyle,
             ]}
           >
-            <Text
-              style={[
-                styles.label,
-                {
-                  color: labelColor,
-                  fontSize: tokens.typography.fontSize,
-                  lineHeight: tokens.typography.fontSize * 1.4,
-                  fontFamily: tokens.typography.fontFamily,
-                  fontWeight: tokens.typography.fontWeight,
-                },
-                labelStyle,
-              ]}
-            >
-              {option.label}
-            </Text>
-            {option.description ? (
+            {typeof labelContent === 'string' || typeof labelContent === 'number' ? (
               <Text
                 style={[
-                  styles.description,
+                  styles.label,
                   {
-                    marginTop: tokens.spacing.descriptionMarginTop,
-                    color: descriptionColor,
-                    fontSize: tokens.typography.descriptionSize,
-                    lineHeight: tokens.typography.descriptionSize * 1.4,
+                    color: labelColor,
+                    fontSize: tokens.typography.fontSize,
+                    lineHeight: tokens.typography.fontSize * 1.4,
+                    fontFamily: tokens.typography.fontFamily,
+                    fontWeight: tokens.typography.fontWeight,
                   },
-                  descriptionStyle,
+                  labelStyle,
                 ]}
               >
-                {option.description}
+                {labelContent}
               </Text>
+            ) : (
+              labelContent
+            )}
+
+            {hasDescription ? (
+              typeof descriptionContent === 'string' || typeof descriptionContent === 'number' ? (
+                <Text
+                  style={[
+                    styles.description,
+                    {
+                      marginTop: tokens.spacing.descriptionMarginTop,
+                      color: descriptionColor,
+                      fontSize: tokens.typography.descriptionSize,
+                      lineHeight: tokens.typography.descriptionSize * 1.4,
+                    },
+                    descriptionStyle,
+                  ]}
+                >
+                  {descriptionContent}
+                </Text>
+              ) : (
+                <View style={{ marginTop: tokens.spacing.descriptionMarginTop }}>{descriptionContent}</View>
+              )
             ) : null}
             {active && showCheckMark ? (
               <>

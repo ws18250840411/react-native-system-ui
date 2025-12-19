@@ -14,6 +14,9 @@ jest.mock('react-native', () => ({
   BackHandler: {
     addEventListener: (...args: any[]) => mockAddEventListener(...args),
   },
+  Platform: {
+    OS: 'android',
+  },
 }))
 
 const resetStore = () => {

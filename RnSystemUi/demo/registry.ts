@@ -6,6 +6,7 @@ import type React from 'react'
 import ActionSheetDemoBasic from '../../docs/components/action-sheet/demo/basic'
 import ActionSheetDemoCustom from '../../docs/components/action-sheet/demo/custom'
 import ActionSheetDemoDescription from '../../docs/components/action-sheet/demo/description'
+import ActionSheetDemoStatus from '../../docs/components/action-sheet/demo/status'
 import AreaDemoBasic from '../../docs/components/area/demo/basic'
 import AreaDemoColumns from '../../docs/components/area/demo/columns'
 import AreaDemoControlled from '../../docs/components/area/demo/controlled'
@@ -53,6 +54,9 @@ import CheckboxDemoDirection from '../../docs/components/checkbox/demo/direction
 import CheckboxDemoGroup from '../../docs/components/checkbox/demo/group'
 import CheckboxDemoMax from '../../docs/components/checkbox/demo/max'
 import CheckboxDemoRef from '../../docs/components/checkbox/demo/ref'
+import CircleDemoBasic from '../../docs/components/circle/demo/basic'
+import CircleDemoCustom from '../../docs/components/circle/demo/custom'
+import CircleDemoDynamic from '../../docs/components/circle/demo/dynamic'
 import CollapseDemoAccordion from '../../docs/components/collapse/demo/accordion'
 import CollapseDemoBase from '../../docs/components/collapse/demo/base'
 import CollapseDemoCustom from '../../docs/components/collapse/demo/custom'
@@ -75,6 +79,7 @@ import DatetimePickerDemoPopup from '../../docs/components/datetime-picker/demo/
 import DatetimePickerDemoTime from '../../docs/components/datetime-picker/demo/time'
 import DatetimePickerDemoYearMonth from '../../docs/components/datetime-picker/demo/year-month'
 import DialogDemoBasic from '../../docs/components/dialog/demo/basic'
+import DialogDemoBeforeClose from '../../docs/components/dialog/demo/before-close'
 import DialogDemoCustom from '../../docs/components/dialog/demo/custom'
 import DialogDemoImperative from '../../docs/components/dialog/demo/imperative'
 import DialogDemoTheme from '../../docs/components/dialog/demo/theme'
@@ -85,8 +90,11 @@ import DividerDemoPosition from '../../docs/components/divider/demo/position'
 import DividerDemoText from '../../docs/components/divider/demo/text'
 import DividerDemoVertical from '../../docs/components/divider/demo/vertical'
 import DropdownMenuDemoBasic from '../../docs/components/dropdown-menu/demo/basic'
+import DropdownMenuDemoColor from '../../docs/components/dropdown-menu/demo/color'
 import DropdownMenuDemoControlled from '../../docs/components/dropdown-menu/demo/controlled'
 import DropdownMenuDemoCustom from '../../docs/components/dropdown-menu/demo/custom'
+import DropdownMenuDemoDirection from '../../docs/components/dropdown-menu/demo/direction'
+import DropdownMenuDemoDisabled from '../../docs/components/dropdown-menu/demo/disabled'
 import EmptyDemoBase from '../../docs/components/empty/demo/base'
 import EmptyDemoCustom from '../../docs/components/empty/demo/custom'
 import EmptyDemoFooter from '../../docs/components/empty/demo/footer'
@@ -163,9 +171,15 @@ import NoticeBarDemoScroll from '../../docs/components/notice-bar/demo/scroll'
 import NoticeBarDemoStyle from '../../docs/components/notice-bar/demo/style'
 import NoticeBarDemoVertical from '../../docs/components/notice-bar/demo/vertical'
 import NoticeBarDemoWrap from '../../docs/components/notice-bar/demo/wrap'
+import NotifyDemoBasic from '../../docs/components/notify/demo/basic'
+import NotifyDemoCustom from '../../docs/components/notify/demo/custom'
+import NotifyDemoDuration from '../../docs/components/notify/demo/duration'
+import NotifyDemoType from '../../docs/components/notify/demo/type'
 import NumberKeyboardDemoBasic from '../../docs/components/number-keyboard/demo/basic'
 import NumberKeyboardDemoControlled from '../../docs/components/number-keyboard/demo/controlled'
 import NumberKeyboardDemoCustom from '../../docs/components/number-keyboard/demo/custom'
+import OverlayDemoBasic from '../../docs/components/overlay/demo/basic'
+import OverlayDemoContent from '../../docs/components/overlay/demo/content'
 import PaginationDemoBasic from '../../docs/components/pagination/demo/basic'
 import PaginationDemoCustom from '../../docs/components/pagination/demo/custom'
 import PaginationDemoSimple from '../../docs/components/pagination/demo/simple'
@@ -247,8 +261,13 @@ import SpaceDemoGap from '../../docs/components/space/demo/gap'
 import SpaceDemoVertical from '../../docs/components/space/demo/vertical'
 import SpaceDemoWrap from '../../docs/components/space/demo/wrap'
 import StepperDemoBasic from '../../docs/components/stepper/demo/basic'
+import StepperDemoBeforeChange from '../../docs/components/stepper/demo/before-change'
 import StepperDemoCustom from '../../docs/components/stepper/demo/custom'
 import StepperDemoDisabled from '../../docs/components/stepper/demo/disabled'
+import StepperDemoRange from '../../docs/components/stepper/demo/range'
+import SwipeCellDemoBasic from '../../docs/components/swipe-cell/demo/basic'
+import SwipeCellDemoBoth from '../../docs/components/swipe-cell/demo/both'
+import SwipeCellDemoControl from '../../docs/components/swipe-cell/demo/control'
 import SwitchDemoAsync from '../../docs/components/switch/demo/async'
 import SwitchDemoBasic from '../../docs/components/switch/demo/basic'
 import SwitchDemoCell from '../../docs/components/switch/demo/cell'
@@ -356,6 +375,8 @@ export const menuGroups: MenuGroup[] = [
       "dialog",
       "dropdown-menu",
       "loading",
+      "notify",
+      "overlay",
       "pull-refresh",
       "share-sheet"
     ]
@@ -365,6 +386,7 @@ export const menuGroups: MenuGroup[] = [
     "slugs": [
       "avatar",
       "badge",
+      "circle",
       "collapse",
       "count-down",
       "divider",
@@ -376,6 +398,7 @@ export const menuGroups: MenuGroup[] = [
       "notice-bar",
       "popover",
       "progress",
+      "swipe-cell",
       "skeleton",
       "tag",
       "water-mark"
@@ -1306,14 +1329,24 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         Component: StepperDemoBasic,
       },
       {
+        id: "range",
+        title: "步长与范围",
+        Component: StepperDemoRange,
+      },
+      {
         id: "custom",
         title: "自定义精度与样式",
         Component: StepperDemoCustom,
       },
       {
         id: "disabled",
-        title: "禁用与只读",
+        title: "禁用与禁用输入",
         Component: StepperDemoDisabled,
+      },
+      {
+        id: "before-change",
+        title: "异步变更",
+        Component: StepperDemoBeforeChange,
       },
     ],
   },
@@ -1406,6 +1439,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         Component: ActionSheetDemoDescription,
       },
       {
+        id: "status",
+        title: "选项状态",
+        Component: ActionSheetDemoStatus,
+      },
+      {
         id: "custom",
         title: "自定义内容",
         Component: ActionSheetDemoCustom,
@@ -1431,6 +1469,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         Component: DialogDemoTheme,
       },
       {
+        id: "before-close",
+        title: "异步关闭",
+        Component: DialogDemoBeforeClose,
+      },
+      {
         id: "imperative",
         title: "静态调用",
         Component: DialogDemoImperative,
@@ -1449,6 +1492,21 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "custom",
         title: "自定义面板",
         Component: DropdownMenuDemoCustom,
+      },
+      {
+        id: "color",
+        title: "自定义高亮",
+        Component: DropdownMenuDemoColor,
+      },
+      {
+        id: "direction",
+        title: "向上展开",
+        Component: DropdownMenuDemoDirection,
+      },
+      {
+        id: "disabled",
+        title: "禁用菜单",
+        Component: DropdownMenuDemoDisabled,
       },
       {
         id: "controlled",
@@ -1484,6 +1542,46 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "vertical",
         title: "垂直排列",
         Component: LoadingDemoVertical,
+      },
+    ],
+  },
+  "notify": {
+    title: "Notify 消息提示",
+    demos: [
+      {
+        id: "basic",
+        title: "基础用法",
+        Component: NotifyDemoBasic,
+      },
+      {
+        id: "type",
+        title: "通知类型",
+        Component: NotifyDemoType,
+      },
+      {
+        id: "duration",
+        title: "动态更新",
+        Component: NotifyDemoDuration,
+      },
+      {
+        id: "custom",
+        title: "自定义颜色",
+        Component: NotifyDemoCustom,
+      },
+    ],
+  },
+  "overlay": {
+    title: "Overlay 遮罩层",
+    demos: [
+      {
+        id: "basic",
+        title: "基础用法",
+        Component: OverlayDemoBasic,
+      },
+      {
+        id: "content",
+        title: "自定义内容",
+        Component: OverlayDemoContent,
       },
     ],
   },
@@ -1559,6 +1657,26 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "standalone",
         title: "独立展示",
         Component: BadgeDemoStandalone,
+      },
+    ],
+  },
+  "circle": {
+    title: "Circle 环形进度条",
+    demos: [
+      {
+        id: "basic",
+        title: "基础用法",
+        Component: CircleDemoBasic,
+      },
+      {
+        id: "custom",
+        title: "自定义样式",
+        Component: CircleDemoCustom,
+      },
+      {
+        id: "dynamic",
+        title: "动态控制",
+        Component: CircleDemoDynamic,
       },
     ],
   },
@@ -1869,6 +1987,26 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "transition",
         title: "过渡效果",
         Component: ProgressDemoTransition,
+      },
+    ],
+  },
+  "swipe-cell": {
+    title: "SwipeCell 滑动单元格",
+    demos: [
+      {
+        id: "basic",
+        title: "基础用法",
+        Component: SwipeCellDemoBasic,
+      },
+      {
+        id: "both",
+        title: "双侧滑动",
+        Component: SwipeCellDemoBoth,
+      },
+      {
+        id: "control",
+        title: "Ref 控制",
+        Component: SwipeCellDemoControl,
       },
     ],
   },

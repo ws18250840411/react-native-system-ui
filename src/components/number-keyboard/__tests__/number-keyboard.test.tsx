@@ -1,6 +1,6 @@
 import React from "react"
 import renderer, { act } from "react-test-renderer"
-import { Pressable, Text } from "react-native"
+import { Pressable, SafeAreaView, Text } from "react-native"
 
 import NumberKeyboard from ".."
 import { PortalHost } from "../../portal"
@@ -77,5 +77,27 @@ describe("NumberKeyboard", () => {
     )
     const loading = tree.root.findAllByType(Loading)
     expect(loading.length).toBeGreaterThan(0)
+  })
+
+  it("renders SafeAreaView when safeAreaInsetBottom is true", () => {
+    const tree = renderInHost(
+      <NumberKeyboard visible safeAreaInsetBottom />
+    )
+    expect(tree.root.findAllByType(SafeAreaView).length).toBe(1)
+  })
+
+  it("does not render SafeAreaView when safeAreaInsetBottom is false", () => {
+    const tree = renderInHost(
+      <NumberKeyboard visible safeAreaInsetBottom={false} />
+    )
+    expect(tree.root.findAllByType(SafeAreaView).length).toBe(0)
+  })
+
+  it("disables placeholder key when showDeleteKey is false", () => {
+    const tree = renderInHost(
+      <NumberKeyboard visible showDeleteKey={false} />
+    )
+    const disabledKeys = tree.root.findAllByType(Pressable).filter(node => node.props.disabled)
+    expect(disabledKeys.length).toBe(1)
   })
 })

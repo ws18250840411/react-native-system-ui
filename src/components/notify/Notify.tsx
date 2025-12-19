@@ -234,7 +234,9 @@ export const Notify: React.FC<NotifyProps> = props => {
         style={[
           styles.portal,
           position === 'bottom' ? { bottom: 0 } : { top: 0 },
-          resolvedZIndex ? { zIndex: resolvedZIndex } : null,
+          resolvedZIndex !== undefined && resolvedZIndex !== null
+            ? { zIndex: resolvedZIndex }
+            : null,
         ]}
       >
         <AnimatedPressable
@@ -315,4 +317,3 @@ const styles = StyleSheet.create({
 Notify.displayName = 'Notify'
 
 export default Notify
-

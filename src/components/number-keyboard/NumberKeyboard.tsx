@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, Easing, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
+import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Loading from '../loading'
@@ -205,8 +205,9 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     options?: { isClose?: boolean },
   ) => {
     const isClose = options?.isClose
-    const disabled = isClose && closeButtonLoading
-    const onPress = () => handleInput(key.text?.toString(), key.type)
+    const isPlaceholder = key.type === '' && !key.text
+    const disabled = isPlaceholder || (isClose && closeButtonLoading)
+    const onPress = disabled ? undefined : () => handleInput(key.text?.toString(), key.type)
     const backgroundColor = isClose ? tokens.colors.closeBackground : tokens.colors.keyBackground
     const activeBackground = tokens.colors.keyActiveBackground
     const inactiveTextColor = isClose ? tokens.colors.closeText : tokens.colors.keyText
@@ -223,20 +224,25 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
           {
             flexBasis: key.wider ? '64%' : '30%',
             flexGrow: key.wider ? 2 : 1,
-            opacity: disabled ? 0.6 : 1,
+            opacity: isPlaceholder ? 1 : disabled ? 0.6 : 1,
           },
         ]}
-        accessibilityRole="button"
+        accessible={!isPlaceholder}
+        accessibilityRole={isPlaceholder ? undefined : 'button'}
         accessibilityLabel={
-          key.type === 'delete'
-            ? 'delete'
-            : key.type === 'close'
-              ? resolvedCloseText ?? 'close'
-              : key.type === 'extra'
-                ? key.text ?? 'collapse'
-                : key.text
+          isPlaceholder
+            ? undefined
+            : key.type === 'delete'
+              ? 'delete'
+              : key.type === 'close'
+                ? resolvedCloseText ?? 'close'
+                : key.type === 'extra'
+                  ? key.text ?? 'collapse'
+                  : key.text
         }
-        accessibilityState={{ disabled: !!disabled }}
+        accessibilityState={isPlaceholder ? undefined : { disabled: !!disabled }}
+        accessibilityElementsHidden={isPlaceholder}
+        importantForAccessibility={isPlaceholder ? 'no-hide-descendants' : undefined}
       >
         {({ pressed }) => {
           const isPressed = pressed && !disabled
@@ -324,7 +330,6 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
         {
           transform: [{ translateY }],
           backgroundColor: tokens.colors.background,
-          paddingBottom: safeAreaInsetBottom ? 12 : 0,
         },
       ]}
     >
@@ -383,6 +388,8 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
           {keys.map((key, index) => renderKey(key, index))}
         </View>
       )}
+
+      {safeAreaInsetBottom ? <SafeAreaView style={{ width: '100%' }} /> : null}
     </Animated.View>
   )
 

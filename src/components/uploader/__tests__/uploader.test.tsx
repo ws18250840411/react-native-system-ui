@@ -130,6 +130,38 @@ describe('Uploader', () => {
     })
   })
 
+  it('does not call onClickUpload/onUpload when readOnly', async () => {
+    const handleClickUpload = jest.fn()
+    const onUpload = jest.fn().mockResolvedValue({ url: 'https://img.com/a.png' })
+
+    let tree: renderer.ReactTestRenderer
+    await act(async () => {
+      tree = renderer.create(
+        <PortalHost>
+          <Uploader
+            readOnly
+            onClickUpload={handleClickUpload}
+            onUpload={onUpload}
+            uploadText="上传"
+          />
+        </PortalHost>
+      )
+    })
+
+    const uploadButton = tree.root.findByProps({ testID: 'rv-uploader-upload' })
+    await act(async () => {
+      await uploadButton.props.onPress?.({} as any)
+    })
+
+    expect(uploadButton.props.disabled).toBe(true)
+    expect(handleClickUpload).not.toHaveBeenCalled()
+    expect(onUpload).not.toHaveBeenCalled()
+
+    await act(() => {
+      tree.unmount()
+    })
+  })
+
   it('allows deleting when disabled (disabled only affects upload)', async () => {
     const handleChange = jest.fn()
 
@@ -183,6 +215,75 @@ describe('Uploader', () => {
     })
 
     expect(handleClosePreview).toHaveBeenCalled()
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('respects isImageUrl=false (does not open preview)', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <Uploader
+          defaultValue={[{ url: 'https://img.com/a.png', filename: 'a.png' }]}
+          isImageUrl={() => false}
+        />
+      </PortalHost>
+    )
+
+    const previewPressable = tree.root.findByProps({ testID: 'rv-uploader-preview-0' })
+    act(() => {
+      previewPressable.props.onPress?.({})
+    })
+
+    const preview = tree.root.findByType(ImagePreview)
+    expect(preview.props.visible).toBe(false)
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('merges previewOptions callbacks with internal close', () => {
+    const handleClosePreview = jest.fn()
+    const previewOnClose = jest.fn()
+    const previewOnClosed = jest.fn()
+
+    const tree = renderer.create(
+      <PortalHost>
+        <Uploader
+          defaultValue={[{ url: 'https://img.com/a.png' }]}
+          onClosePreview={handleClosePreview}
+          previewOptions={{
+            onClose: previewOnClose,
+            onClosed: previewOnClosed,
+          }}
+        />
+      </PortalHost>
+    )
+
+    const previewPressable = tree.root.findByProps({ testID: 'rv-uploader-preview-0' })
+    act(() => {
+      previewPressable.props.onPress?.({})
+    })
+
+    let preview = tree.root.findByType(ImagePreview)
+    expect(preview.props.visible).toBe(true)
+
+    act(() => {
+      preview.props.onClose?.({ index: 0, image: 'https://img.com/a.png' })
+    })
+
+    preview = tree.root.findByType(ImagePreview)
+    expect(preview.props.visible).toBe(false)
+    expect(previewOnClose).toHaveBeenCalled()
+    expect(handleClosePreview).toHaveBeenCalled()
+
+    act(() => {
+      preview.props.onClosed?.()
+    })
+
+    expect(previewOnClosed).toHaveBeenCalled()
 
     act(() => {
       tree.unmount()

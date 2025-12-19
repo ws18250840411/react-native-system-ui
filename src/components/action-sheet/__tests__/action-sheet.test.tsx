@@ -1,5 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
+import { View } from 'react-native'
 
 import ActionSheet from '..'
 import { PortalHost } from '../../portal'
@@ -79,5 +80,29 @@ describe('ActionSheet', () => {
     })
 
     expect(onCancel).toHaveBeenCalled()
+  })
+
+  it('accepts non-text ReactNode content', () => {
+    let tree: renderer.ReactTestRenderer | undefined
+
+    expect(() => {
+      tree = renderInHost(
+        <ActionSheet
+          visible
+          title={<View testID="as-title" />}
+          description={<View testID="as-description" />}
+          cancelText={<View testID="as-cancel" />}
+          actions={[
+            { name: <View testID="as-action-name" />, subname: <View testID="as-action-subname" /> },
+          ]}
+        />
+      )
+    }).not.toThrow()
+
+    expect(tree?.root.findByProps({ testID: 'as-title' })).toBeTruthy()
+    expect(tree?.root.findByProps({ testID: 'as-description' })).toBeTruthy()
+    expect(tree?.root.findByProps({ testID: 'as-cancel' })).toBeTruthy()
+    expect(tree?.root.findByProps({ testID: 'as-action-name' })).toBeTruthy()
+    expect(tree?.root.findByProps({ testID: 'as-action-subname' })).toBeTruthy()
   })
 })
