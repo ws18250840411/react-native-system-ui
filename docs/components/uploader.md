@@ -77,7 +77,7 @@ import { Uploader } from 'react-native-system-ui'
 | `deleteRender` | 自定义删除按钮视图 | `(del: () => void) => ReactNode` | - |
 | `showUpload` | 是否展示上传区域 | `boolean` | `true` |
 | `capture` | 图片选取模式，可选值为 `camera`（Web 端） | `string` | - |
-| `maxSize` | 文件大小限制，单位为 `byte` | `number \| string \| (file: File) => boolean` | `Number.MAX_VALUE` |
+| `maxSize` | 文件大小限制，单位为 `byte`（Web 下 `file` 为 `File`） | `number \| string \| (file: UploaderFile) => boolean` | `Number.MAX_VALUE` |
 | `maxCount` | 文件上传数量限制 | `number \| string` | `Number.MAX_VALUE` |
 | `resultType` | 文件读取结果类型（Web 端） | `'dataUrl' \| 'text' \| 'file'` | `'dataUrl'` |
 | `uploadText` | 上传区域文字提示 | `string` | - |
@@ -92,14 +92,14 @@ import { Uploader } from 'react-native-system-ui'
 
 | 事件名 | 说明 | 回调参数 |
 | --- | --- | --- |
-| `upload` | 上传方法（Web 端文件选择时触发） | `(file: File) => Promise<UploaderValueItem>` |
+| `upload` | 上传方法（Web 端文件选择时触发；Web 下 `file` 为 `File`） | `(file: UploaderFile) => Promise<UploaderValueItem>` |
 | `onChange` | 组件值更新时调用 | `(value: UploaderValueItem[]) => void` |
-| `onOversize` | 文件大小超过限制时触发（Web 端） | `(files: File[]) => void` |
+| `onOversize` | 文件大小超过限制时触发（Web 端；Web 下 `file` 为 `File`） | `(files: UploaderFile[]) => void` |
 | `onClickUpload` | 点击上传区域时触发 | `(event: GestureResponderEvent) => void` |
 | `onClickPreview` | 点击预览图时触发 | `(item: UploaderValueItem, index: number) => void` |
 | `onClosePreview` | 关闭全屏图片预览时触发 | `() => void` |
 | `onDelete` | 删除文件预览时触发 | `(item: UploaderValueItem) => boolean \| Promise<boolean> \| void` |
-| `beforeRead` | 文件读取前回调，返回 `false` 可终止读取（Web 端） | `(file: File, files: File[]) => Promise<File \| false> \| File \| false` |
+| `beforeRead` | 文件读取前回调，返回 `false` 可终止读取（Web 端；Web 下 `file` 为 `File`） | `(file: UploaderFile, files: UploaderFile[]) => Promise<UploaderFile \| false> \| UploaderFile \| false` |
 
 ### UploaderValueItem
 
@@ -109,7 +109,7 @@ import { Uploader } from 'react-native-system-ui'
 | `url` | 图片地址 | `string` |
 | `thumbnail` | 缩略图地址 | `string` |
 | `source` | RN `ImageSourcePropType`，可用于本地静态资源 | `ImageSourcePropType` |
-| `file` | Web 端原始文件 | `File` |
+| `file` | 原始文件（Web 下为 `File`；原生端可自定义结构） | `UploaderFile` |
 | `status` | 上传状态（`pending` \| `failed`） | `'pending' \| 'failed'` |
 | `message` | 自定义描述 | `string` |
 

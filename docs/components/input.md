@@ -67,7 +67,7 @@ import { Input, type InputInstance } from 'react-native-system-ui'
 | `formatTrigger` | 格式化触发时机 | `onChange \| onBlur` | `onChange` |
 | `onChange` | 输入变化回调 | `(value: string) => void` | - |
 | `onClear` | 点击清除按钮时触发 | `() => void` | - |
-| `onOverlimit` | 超过 `maxLength` 时触发 | `() => void` | - |
+| `onOverlimit` | 超过 `maxLength` 时触发 | `(value: string) => void` | - |
 | 其余属性 | 透传给内部 `TextInput` | - | - |
 
 ### Input.TextArea Props

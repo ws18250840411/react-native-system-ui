@@ -207,7 +207,11 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
 
   const labelWrapper = labelNode ? (
-    <View style={[styles.labelWrapper, spacingStyle]} pointerEvents="none" accessible={false}>
+    <View
+      style={[styles.labelWrapper, spacingStyle]}
+      pointerEvents={resolvedLabelDisabled ? 'none' : undefined}
+      accessible={false}
+    >
       {labelNode}
     </View>
   ) : null

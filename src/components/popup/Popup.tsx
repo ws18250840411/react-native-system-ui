@@ -2,6 +2,7 @@ import React from 'react'
 import {
   Animated,
   Easing,
+  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -231,7 +232,7 @@ export const Popup: React.FC<PopupProps> = props => {
         toValue: show ? 1 : 0,
         duration,
         easing,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       })
       animationRef.current = animation
 

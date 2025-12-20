@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, Easing } from 'react-native'
+import { Animated, Easing, Platform } from 'react-native'
 
 interface PresenceOptions {
   duration?: number
@@ -17,6 +17,7 @@ export const usePresenceAnimation = (
 ) => {
   const [mounted, setMounted] = React.useState(visible)
   const animated = React.useRef(new Animated.Value(visible && !appear ? 1 : 0)).current
+  const useNativeDriver = Platform.OS !== 'web'
 
   React.useEffect(() => {
     if (visible) {
@@ -25,19 +26,19 @@ export const usePresenceAnimation = (
         toValue: 1,
         duration,
         easing,
-        useNativeDriver: true,
+        useNativeDriver,
       }).start()
     } else {
       Animated.timing(animated, {
         toValue: 0,
         duration,
         easing,
-        useNativeDriver: true,
+        useNativeDriver,
       }).start(() => {
         setMounted(false)
       })
     }
-  }, [animated, duration, easing, visible])
+  }, [animated, duration, easing, useNativeDriver, visible])
 
   return { mounted, animated }
 }

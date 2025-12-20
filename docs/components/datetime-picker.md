@@ -74,7 +74,7 @@ import { DatetimePicker } from 'react-native-system-ui'
 | `maxMinute` | 可选最大分钟（`type="time"`） | `number` | `59` |
 | `columnsOrder` | 自定义列顺序 | `DatetimePickerColumnType[]` | - |
 | `filter` | 选项过滤函数 | `(type, values) => values` | - |
-| `formatter` | 选项格式化函数 | `(type, value) => ReactNode` | `value => value` |
+| `formatter` | 选项格式化函数 | `(type, value) => string` | `value => value` |
 | `onChange` | 选中项变化回调 | `(value) => void` | - |
 | `onConfirm` | 点击确认回调 | `(value) => void` | - |
 | `onCancel` | 点击取消回调（继承自 Picker） | `() => void` | - |

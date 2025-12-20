@@ -37,8 +37,8 @@ import { Calendar } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `value` | 当前值 | `Date \| Date[]` | - |
-| `defaultValue` | 非受控默认值 | `Date \| Date[]` | - |
+| `value` | 当前值（传 `null` 表示默认不选中） | `Date \| Date[] \| null` | - |
+| `defaultValue` | 非受控默认值（可传 `null`） | `Date \| Date[] \| null` | - |
 | `type` | 选择类型 | `single \| range \| multiple` | `single` |
 | `minDate` | 最小可选日期 | `Date` | 当前日期 -10 年 |
 | `maxDate` | 最大可选日期 | `Date` | 当前日期 +10 年 |

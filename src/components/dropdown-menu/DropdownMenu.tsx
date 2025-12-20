@@ -1,6 +1,8 @@
 import React from 'react'
-import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Animated, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
 
+import Portal from '../portal/Portal'
+import { useOverlayStack } from '../overlay'
 import type { DropdownMenuInstance, DropdownMenuProps } from './types'
 import { DropdownMenuContext } from './DropdownMenuContext'
 import { useDropdownMenuTokens } from './tokens'
@@ -55,6 +57,9 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   const [panel, setPanel] = React.useState<React.ReactNode>(null)
   const [mounted, setMounted] = React.useState(false)
   const [barHeight, setBarHeight] = React.useState(0)
+  const barRef = React.useRef<View>(null)
+  const [barFrame, setBarFrame] = React.useState<{ y: number; height: number } | null>(null)
+  const { height: windowHeight } = useWindowDimensions()
 
   const panelRegistryRef = React.useRef(new Map<number, React.ReactNode>())
 
@@ -80,7 +85,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
       const animation = Animated.timing(progress, {
         toValue,
         duration: durationMs,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       })
       animationRef.current = animation
       animation.start(({ finished }) => {
@@ -133,12 +138,37 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     [closeMenu, showItem, toggleItem],
   )
 
+  const requestMeasure = React.useCallback(() => {
+    const node = barRef.current as any
+    if (node && typeof node.measureInWindow === 'function') {
+      node.measureInWindow((_x: number, y: number, _w: number, height: number) => {
+        if (!Number.isFinite(y) || !Number.isFinite(height)) return
+        setBarFrame(prev => {
+          if (prev && Math.abs(prev.y - y) < 0.5 && Math.abs(prev.height - height) < 0.5) {
+            return prev
+          }
+          return { y, height }
+        })
+      })
+      return
+    }
+
+    setBarFrame(prev => {
+      const fallback = { y: 0, height: barHeight }
+      if (prev && Math.abs(prev.y - fallback.y) < 0.5 && Math.abs(prev.height - fallback.height) < 0.5) {
+        return prev
+      }
+      return fallback
+    })
+  }, [barHeight])
+
   const prevActiveIndexRef = React.useRef<number | null>(null)
   React.useEffect(() => {
     const prev = prevActiveIndexRef.current
     prevActiveIndexRef.current = activeIndex
     if (activeIndex !== null && prev === null) {
       setMounted(true)
+      requestMeasure()
       setPanel(panelRegistryRef.current.get(activeIndex) ?? null)
       onOpen?.()
       progress.setValue(0)
@@ -153,7 +183,12 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
         onClosed?.()
       })
     }
-  }, [activeIndex, onClose, onClosed, onOpen, onOpened, progress, runAnimation])
+  }, [activeIndex, onClose, onClosed, onOpen, onOpened, progress, requestMeasure, runAnimation])
+
+  React.useEffect(() => {
+    if (!mounted) return
+    requestMeasure()
+  }, [mounted, requestMeasure, windowHeight])
 
   const barScrollable = React.useMemo(() => {
     if (threshold === undefined) return false
@@ -187,8 +222,14 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const shouldRenderMask = mounted && (overlay || closeOnClickOutside)
   const shouldCloseOnMask = closeOnClickOverlay || closeOnClickOutside
-  const maskInsetStyle = direction === 'up' ? { bottom: barHeight } : { top: barHeight }
-  const panelInsetStyle = direction === 'up' ? { bottom: barHeight } : { top: barHeight }
+
+  const resolvedBarTop = barFrame?.y ?? 0
+  const resolvedBarHeight = barFrame?.height ?? barHeight
+  const resolvedBarBottom = resolvedBarTop + resolvedBarHeight
+  const bottomInset = Math.max(0, windowHeight - resolvedBarTop)
+
+  const maskInsetStyle = direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }
+  const panelInsetStyle = direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }
   const panelRadiusStyle =
     direction === 'up'
       ? {
@@ -216,15 +257,29 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     }
   }, [direction, progress])
 
+  const { zIndex: stackZIndex } = useOverlayStack({
+    visible: mounted,
+    lockScroll: shouldRenderMask,
+    zIndex,
+    type: 'dropdown-menu',
+  })
+
+  const resolvedZIndex = stackZIndex ?? zIndex
+
   return (
     <DropdownMenuContext.Provider value={contextValue}>
       <View {...rest} style={[styles.container, style]}>
         <View
+          ref={barRef}
+          collapsable={false}
           style={[
             styles.barWrapper,
             { paddingHorizontal: tokens.spacing.horizontal, borderBottomColor: tokens.colors.divider },
           ]}
-          onLayout={event => setBarHeight(event.nativeEvent.layout.height)}
+          onLayout={event => {
+            setBarHeight(event.nativeEvent.layout.height)
+            requestMeasure()
+          }}
         >
           {barScrollable ? (
             <ScrollView
@@ -249,40 +304,48 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
           )}
         </View>
 
-        {shouldRenderMask ? (
-          <AnimatedPressable
-            style={[
-              styles.mask,
-              maskInsetStyle,
-              {
-                backgroundColor: overlay ? tokens.colors.mask : 'transparent',
-                opacity: progress,
-                zIndex,
-              },
-            ]}
-            testID="rv-dropdown-mask"
-            pointerEvents={shouldCloseOnMask ? 'auto' : 'none'}
-            onPress={shouldCloseOnMask ? closeMenu : undefined}
-          />
-        ) : null}
-
         {mounted ? (
-          <Animated.View
-            style={[
-              styles.panel,
-              panelInsetStyle,
-              panelRadiusStyle,
-              panelAnimatedStyle,
-              {
-                backgroundColor: tokens.colors.panelBackground,
-                maxHeight: tokens.sizing.panelMaxHeight,
-                zIndex: zIndex + 1,
-              },
-            ]}
-            pointerEvents="box-none"
-          >
-            {panel}
-          </Animated.View>
+          <Portal>
+            <View style={styles.portal} pointerEvents="box-none">
+              {shouldRenderMask ? (
+                <AnimatedPressable
+                  style={[
+                    styles.mask,
+                    maskInsetStyle,
+                    {
+                      backgroundColor: overlay ? tokens.colors.mask : 'transparent',
+                      opacity: progress,
+                      zIndex: resolvedZIndex,
+                    },
+                  ]}
+                  testID="rv-dropdown-mask"
+                  pointerEvents={mounted ? 'auto' : 'none'}
+                  onPress={() => {
+                    if (shouldCloseOnMask) {
+                      closeMenu()
+                    }
+                  }}
+                />
+              ) : null}
+
+              <Animated.View
+                style={[
+                  styles.panel,
+                  panelInsetStyle,
+                  panelRadiusStyle,
+                  panelAnimatedStyle,
+                  {
+                    backgroundColor: tokens.colors.panelBackground,
+                    maxHeight: tokens.sizing.panelMaxHeight,
+                    zIndex: resolvedZIndex + 1,
+                  },
+                ]}
+                pointerEvents="box-none"
+              >
+                {panel}
+              </Animated.View>
+            </View>
+          </Portal>
         ) : null}
       </View>
     </DropdownMenuContext.Provider>
@@ -304,6 +367,9 @@ const styles = StyleSheet.create({
   },
   barScrollContent: {
     flexDirection: 'row',
+  },
+  portal: {
+    ...StyleSheet.absoluteFillObject,
   },
   mask: {
     ...StyleSheet.absoluteFillObject,

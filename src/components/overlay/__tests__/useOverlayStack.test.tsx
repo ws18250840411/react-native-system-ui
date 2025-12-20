@@ -42,6 +42,32 @@ describe('useOverlayStack', () => {
     resetStore()
   })
 
+  it('normalizes small zIndex values relative to base', () => {
+    const values = new Map<string, UseOverlayStackResult>()
+    const base = overlayStackStore.getBaseZIndex()
+
+    const App = ({ zIndex }: { zIndex: number }) => (
+      <Recorder
+        name="only"
+        visible
+        options={{ zIndex }}
+        onValue={(name, value) => values.set(name, value)}
+      />
+    )
+
+    const tree = renderer.create(<App zIndex={10} />)
+    expect(values.get('only')?.zIndex).toBe(base + 10)
+
+    act(() => {
+      tree.update(<App zIndex={2048} />)
+    })
+    expect(values.get('only')?.zIndex).toBe(2048)
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
   it('mounts/unmounts entries with visibility flag and reports top-most state', () => {
     const values = new Map<string, UseOverlayStackResult>()
 

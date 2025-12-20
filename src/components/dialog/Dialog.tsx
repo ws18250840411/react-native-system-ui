@@ -3,6 +3,7 @@ import React from 'react'
 import {
   ActivityIndicator,
   Animated,
+  Platform,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -281,13 +282,13 @@ export const Dialog: React.FC<DialogProps> = props => {
     if (visible) {
       setMounted(true)
       Animated.parallel([
-        Animated.timing(opacity, { toValue: 1, duration: 150, useNativeDriver: true }),
-        Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 150, useNativeDriver: Platform.OS !== 'web' }),
+        Animated.spring(scale, { toValue: 1, useNativeDriver: Platform.OS !== 'web' }),
       ]).start()
     } else if (mounted) {
       Animated.parallel([
-        Animated.timing(opacity, { toValue: 0, duration: 150, useNativeDriver: true }),
-        Animated.timing(scale, { toValue: 0.96, duration: 150, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 150, useNativeDriver: Platform.OS !== 'web' }),
+        Animated.timing(scale, { toValue: 0.96, duration: 150, useNativeDriver: Platform.OS !== 'web' }),
       ]).start(() => {
         setMounted(false)
         onClosed?.()

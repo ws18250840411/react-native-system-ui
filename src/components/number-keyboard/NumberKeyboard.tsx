@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
+import { Animated, Easing, Platform, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Loading from '../loading'
@@ -293,7 +293,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     Animated.timing(animated, {
       toValue: visible ? 1 : 0,
       duration: effectiveDuration,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
       easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
     }).start(({ finished }) => {
       if (finished && !visible) {

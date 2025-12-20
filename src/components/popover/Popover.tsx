@@ -2,6 +2,7 @@ import React from 'react'
 import {
   Animated,
   Easing,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -329,16 +330,16 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
       requestMeasure()
       setMounted(true)
       Animated.parallel([
-        Animated.timing(opacity, { toValue: 1, duration, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(scale, { toValue: 1, duration, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }),
+        Animated.timing(scale, { toValue: 1, duration, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }),
       ]).start(() => {
         mountedRef.current = true
         onOpened?.()
       })
     } else if (mounted) {
       Animated.parallel([
-        Animated.timing(opacity, { toValue: 0, duration, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(scale, { toValue: 0.96, duration, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }),
+        Animated.timing(scale, { toValue: 0.96, duration, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }),
       ]).start(() => {
         mountedRef.current = false
         setMounted(false)

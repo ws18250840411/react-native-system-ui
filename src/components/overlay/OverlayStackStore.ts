@@ -72,7 +72,7 @@ export class OverlayStackStore {
     const next: OverlayStackEntry = {
       ...prev,
       ...options,
-      zIndex: options.zIndex ?? prev.zIndex,
+      zIndex: typeof options.zIndex === 'number' ? this.resolveZIndex(options.zIndex) : prev.zIndex,
     }
     this.entries = [...this.entries.slice(0, index), next, ...this.entries.slice(index + 1)]
     this.emit()
@@ -96,7 +96,10 @@ export class OverlayStackStore {
 
   private resolveZIndex = (provided?: number) => {
     if (typeof provided === 'number') {
-      return provided
+      if (!Number.isFinite(provided)) {
+        return this.baseZIndex
+      }
+      return provided >= this.baseZIndex ? provided : this.baseZIndex + provided
     }
     const top = this.peek()
     if (!top) {

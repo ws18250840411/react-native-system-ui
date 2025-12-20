@@ -10,7 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 
-import { Circle as SvgCircle, Svg } from '../../icons/systemIconSvg'
+import { Circle as SvgCircle, Svg } from 'react-native-system-icon'
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'

@@ -58,8 +58,8 @@ import { Field } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `label` | 左侧标题内容 | `ReactNode` | - |
-| `labelWidth` | 标题宽度 | `number` | `96` |
-| `labelAlign` | 标题对齐方式 | `left \| right` | `left` |
+| `labelWidth` | 标题宽度 | `number` | `72` |
+| `labelAlign` | 标题对齐方式 | `left \| center \| right` | `left` |
 | `required` | 是否显示必填星号 | `boolean` | `false` |
 | `colon` | 是否在标题后展示冒号 | `boolean` | `false` |
 | `intro` | 额外提示信息（与 `description` 互斥） | `ReactNode` | - |
@@ -71,7 +71,7 @@ import { Field } from 'react-native-system-ui'
 | `clearTrigger` | 清除按钮触发时机 | `always \| focus` | `focus` |
 | `onClear` | 点击清除按钮回调 | `() => void` | - |
 | `inputAlign` | 输入内容对齐 | `left \| center \| right` | `left` |
-| `controlAlign` | 输入区域垂直对齐方式 | `flex-start \| center \| flex-end` | `center` |
+| `controlAlign` | 输入控件区域对齐方式（水平） | `left \| center \| right` | `left` |
 | `center` | 是否垂直居中整体行内容 | `boolean` | `false` |
 | `border` | 是否显示底部分隔线 | `boolean` | `true` |
 | `size` | 行高尺寸 | `normal \| large` | `normal` |
@@ -87,7 +87,7 @@ import { Field } from 'react-native-system-ui'
 | `value` | 受控值 | `string` | - |
 | `defaultValue` | 初始值（非受控） | `string` | `''` |
 | `type` | 输入类型 | `text \| number \| digit \| password \| textarea \| tel \| search` | `text` |
-| `rows` | `type="textarea"` 行数 | `number` | `1` |
+| `rows` | `type="textarea"` 行数 | `number` | `2` |
 | `autoSize` | 文本域自动增高（兼容 `autosize`） | `boolean \| { minRows?: number; maxRows?: number }` | `false` |
 | `formatter` | 自定义格式化函数 | `(value: string) => string` | - |
 | `formatTrigger` | 格式化触发时机 | `onChange \| onBlur` | `onChange` |

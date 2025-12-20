@@ -75,7 +75,7 @@ export const Switch: React.FC<SwitchProps> = props => {
         toValue,
         duration: tokens.animation.duration,
         easing: switchEasing,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(colorProgress, {
         toValue,

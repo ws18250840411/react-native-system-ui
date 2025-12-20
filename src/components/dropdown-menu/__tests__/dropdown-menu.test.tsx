@@ -1,7 +1,8 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, View } from 'react-native'
+import { View } from 'react-native'
 
+import { PortalHost } from '../../portal'
 import DropdownMenu from '..'
 
 const { Item } = DropdownMenu
@@ -9,9 +10,11 @@ const { Item } = DropdownMenu
 describe('DropdownMenu', () => {
   it('toggles panel when clicking item', () => {
     const tree = renderer.create(
-      <DropdownMenu>
-        <Item options={[{ label: 'A', value: 'a' }]} />
-      </DropdownMenu>
+      <PortalHost>
+        <DropdownMenu>
+          <Item options={[{ label: 'A', value: 'a' }]} />
+        </DropdownMenu>
+      </PortalHost>
     )
 
     const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
@@ -21,14 +24,20 @@ describe('DropdownMenu', () => {
 
     const mask = tree.root.findByProps({ testID: 'rv-dropdown-mask' })
     expect(mask).toBeTruthy()
+
+    act(() => {
+      tree.unmount()
+    })
   })
 
   it('fires onChange when selecting option', () => {
     const onChange = jest.fn()
     const tree = renderer.create(
-      <DropdownMenu>
-        <Item options={[{ label: 'A', value: 'a' }]} onChange={onChange} />
-      </DropdownMenu>
+      <PortalHost>
+        <DropdownMenu>
+          <Item options={[{ label: 'A', value: 'a' }]} onChange={onChange} />
+        </DropdownMenu>
+      </PortalHost>
     )
 
     const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
@@ -42,20 +51,26 @@ describe('DropdownMenu', () => {
     })
 
     expect(onChange).toHaveBeenCalledWith('a', expect.objectContaining({ value: 'a' }))
+
+    act(() => {
+      tree.unmount()
+    })
   })
 
   it('accepts non-text ReactNode labels and icons', () => {
     const tree = renderer.create(
-      <DropdownMenu activeIcon={<View testID="dm-active-icon" />}>
-        <Item
-          defaultValue="a"
-          placeholder={<View testID="dm-placeholder" />}
-          options={[
-            { text: <View testID="dm-option-a" />, value: 'a', icon: <View testID="dm-option-icon" /> },
-            { text: 'B', value: 'b' },
-          ]}
-        />
-      </DropdownMenu>
+      <PortalHost>
+        <DropdownMenu activeIcon={<View testID="dm-active-icon" />}>
+          <Item
+            defaultValue="a"
+            placeholder={<View testID="dm-placeholder" />}
+            options={[
+              { text: <View testID="dm-option-a" />, value: 'a', icon: <View testID="dm-option-icon" /> },
+              { text: 'B', value: 'b' },
+            ]}
+          />
+        </DropdownMenu>
+      </PortalHost>
     )
 
     const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
@@ -66,5 +81,9 @@ describe('DropdownMenu', () => {
     expect(tree.root.findAllByProps({ testID: 'dm-option-a' }).length).toBeGreaterThan(0)
     expect(tree.root.findByProps({ testID: 'dm-option-icon' })).toBeTruthy()
     expect(tree.root.findByProps({ testID: 'dm-active-icon' })).toBeTruthy()
+
+    act(() => {
+      tree.unmount()
+    })
   })
 })

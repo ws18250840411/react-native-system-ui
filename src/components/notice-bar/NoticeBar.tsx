@@ -103,7 +103,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
           toValue: -contentWidth,
           duration,
           easing: Easing.linear,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ]).start(({ finished }) => {
         if (finished && !cancelled) {
@@ -136,7 +136,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
           toValue: -itemHeight * nextIndex,
           duration: verticalDuration,
           easing: Easing.linear,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }).start(({ finished }) => {
           if (cancelled || !finished) {
             return

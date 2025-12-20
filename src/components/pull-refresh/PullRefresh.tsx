@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   Animated,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -174,7 +175,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       opacity.setValue(toValue)
       return
     }
-    Animated.timing(opacity, { toValue, duration: animationDurationMs, useNativeDriver: true }).start()
+    Animated.timing(opacity, { toValue, duration: animationDurationMs, useNativeDriver: Platform.OS !== 'web' }).start()
   }, [animationDurationMs, opacity, status])
 
   const renderStatus = () => {
