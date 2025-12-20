@@ -171,6 +171,19 @@ const resolveWebRotation = (position: CircleStartPosition) => {
   }
 }
 
+const isTransparentColor = (value: string) => {
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) return true
+  if (normalized === 'transparent') return true
+  const rgbaMatch = normalized.match(/^rgba\(([^)]*)\)$/)
+  if (rgbaMatch) {
+    const parts = rgbaMatch[1].split(',').map(part => part.trim())
+    const alpha = Number(parts[3])
+    return Number.isFinite(alpha) && alpha === 0
+  }
+  return false
+}
+
 export const Circle: React.FC<CircleProps> = props => {
   const {
     rate: rateProp = 0,
@@ -220,10 +233,15 @@ export const Circle: React.FC<CircleProps> = props => {
     const innerSize = Math.max(0, resolvedSize - safeStroke * 2)
     const progressAngle = (rate / 100) * 360
     const rotation = resolveWebRotation(startPosition)
+    const shouldRenderInner = innerSize > 0 && !isTransparentColor(fill)
 
     const gradient = clockwise
       ? `conic-gradient(from ${rotation}deg, ${resolvedColor} 0deg ${progressAngle}deg, ${resolvedLayerColor} ${progressAngle}deg 360deg)`
       : `conic-gradient(from ${rotation}deg, ${resolvedLayerColor} 0deg ${360 - progressAngle}deg, ${resolvedColor} ${360 - progressAngle}deg 360deg)`
+
+    const webMask = safeStroke > 0
+      ? (`radial-gradient(farthest-side, transparent calc(100% - ${safeStroke}px), #000 calc(100% - ${safeStroke}px))`)
+      : undefined
 
     return (
       <View
@@ -244,10 +262,20 @@ export const Circle: React.FC<CircleProps> = props => {
               height: resolvedSize,
               borderRadius: resolvedSize / 2,
               backgroundImage: gradient as any,
+              ...(webMask
+                ? ({
+                    WebkitMaskImage: webMask,
+                    maskImage: webMask,
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskSize: '100% 100%',
+                    maskSize: '100% 100%',
+                  } as any)
+                : null),
             },
           ]}
         />
-        {innerSize > 0 ? (
+        {shouldRenderInner ? (
           <View
             style={[
               styles.webInner,
@@ -256,6 +284,8 @@ export const Circle: React.FC<CircleProps> = props => {
                 height: innerSize,
                 borderRadius: innerSize / 2,
                 backgroundColor: fill,
+                left: safeStroke,
+                top: safeStroke,
               },
             ]}
           />
