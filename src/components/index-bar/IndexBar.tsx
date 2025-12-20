@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import type { IndexAnchorProps, IndexBarInstance, IndexBarProps, IndexBarValue } from './types'
@@ -91,7 +91,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
   React.useImperativeHandle(ref, () => ({ scrollTo: scrollToIndex }), [scrollToIndex])
 
   const handleScroll = React.useCallback(
-    (event: any) => {
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetY = event?.nativeEvent?.contentOffset?.y ?? 0
       const sorted = [...anchorLayouts.current.entries()].sort((a, b) => a[1] - b[1])
       let current = sorted[0]?.[0]

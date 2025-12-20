@@ -97,9 +97,9 @@ const WheelPicker = React.memo(<T,>({
   }, [isWeb, itemHeight, selectedIndex])
 
   const handleWheel = React.useCallback(
-    (event: any) => {
+    (event: unknown) => {
       if (!isWeb || readOnly) return
-      const delta = event?.nativeEvent?.deltaY ?? 0
+      const delta = (event as any)?.nativeEvent?.deltaY ?? 0
       if (!delta) return
       const direction = delta > 0 ? 1 : -1
       const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data as any)

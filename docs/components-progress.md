@@ -7,6 +7,8 @@
 > 4. 调整示例视觉使其与参考实现相似，必要时抽离样式；若参考实现 demo 包含弹层入口、Cell 触发等组合交互，需同步实现并在文档展示。
 > 5. 核查完毕后在下列表中将状态改为 ✅，未开始/进行中用 ⏳ 并备注当前结论或阻塞。
 
+最近更新：2025-12-20 补充二审（质量项）——清理 `src/components` 内事件参数的 `any`，将 `onLayout/onScroll/onFocus/onBlur/onPress` 等回调统一替换为更精确的事件类型/从组件 props 推导，避免 TS 漏网与误用；相关测试已通过（`npm test`）。
+
 ## 布局组件
 
 | 组件 | 状态 | 备注 |
@@ -69,37 +71,37 @@
 | --- | --- | --- |
 | Avatar 头像 | ✅ | 二次审计通过：修正 Image `source` 类型断言并精简；其余实现复核无改动（图片/文本/icon/尺寸），示例与 Ant Design Mobile 对齐 |
 | Badge 徽标 | ✅ | 二次审计通过：`max` 为字符串时的展示值改用解析后的数值（避免空格等导致 `${max}+` 格式异常）；其余实现复核无改动（定位/测量/偏移/独立展示） |
-| Circle 环形进度条 | ✅ | Web 使用 conic-gradient，Native 端依赖 react-native-svg；支持顺/逆时针、起始位置与动画 |
-| Collapse 折叠面板 | ✅ | 对齐参考实现：修正外边框/内边框语义并补齐 `border/isLink/size/readOnly`、`ref.toggle`；箭头旋转与内容测量动画优化，新增“禁用状态” demo（文案统一） |
-| CountDown 倒计时 | ✅ | 对齐参考实现：补齐“自定义格式/自定义样式/手动控制” demo 并统一标题；默认文字样式 tokens 化；倒计时 tick 与 reset/onChange 语义对齐，文档补齐 format/events/类型/方法说明 |
-| Divider 分割线 | ✅ | 对齐参考实现：实现/文档复核通过；demo 文案统一为“文字”，标题命名与结构对齐并补齐单测验证 |
-| Empty 空状态 | ✅ | 对齐参考实现：预置 `default/error/network/search` 使用官方插画 URL，`image` 支持图片 URL/ReactNode 且自定义图片应用 `imageSize/imageStyle`；描述支持非文本节点，demo 结构与文案统一并补齐单测 |
-| Field 输入项 | ✅ | onBlur 格式化、可达性 aria-describedby/invalid、样式 useMemo，清除/对齐逻辑已对齐官方 |
-| FloatingBall 浮动球 | ✅ | 对齐参考实现：补齐 `menu/adsorb/boundary/offset` 与 ref `open/close`；demo 文案统一并补齐单测覆盖 |
-| ImagePreview 图片预览 | ✅ | 对齐参考实现：支持受控与静态 API（`open/clear/Host`），补齐页码/指示器/关闭控制与 `beforeClose`；暂未实现缩放/拖拽等高级手势 |
-| List 列表 | ✅ | 对齐参考实现：默认 `offset=300`、内部防并发与错误重试（error 状态阻止自动加载，点击 `errorText` 重试），补齐错误/下拉刷新 demo 与单测；因基于 `ScrollView`，下拉刷新建议用 `refreshControl` 组合 |
+| Circle 环形进度条 | ✅ | 二次审计通过：Web 使用 conic-gradient，Native 端依赖 react-native-svg；支持顺/逆时针、起始位置与动画 |
+| Collapse 折叠面板 | ✅ | 二次审计通过：修正外边框/内边框语义并补齐 `border/isLink/size/readOnly`、`ref.toggle`；箭头旋转与内容测量动画优化，新增“禁用状态” demo（文案统一） |
+| CountDown 倒计时 | ✅ | 二次审计通过：补齐“自定义格式/自定义样式/手动控制” demo 并统一标题；默认文字样式 tokens 化；倒计时 tick 与 reset/onChange 语义对齐，文档补齐 format/events/类型/方法说明 |
+| Divider 分割线 | ✅ | 二次审计通过：实现/文档复核通过；demo 文案统一为“文字”，标题命名与结构对齐并补齐单测验证 |
+| Empty 空状态 | ✅ | 二次审计通过：预置 `default/error/network/search` 使用官方插画 URL，`image` 支持图片 URL/ReactNode 且自定义图片应用 `imageSize/imageStyle`；描述支持非文本节点，demo 结构与文案统一并补齐单测 |
+| Field 输入项 | ✅ | 二次审计通过：onBlur 格式化、可达性 aria-describedby/invalid、样式 useMemo，清除/对齐逻辑已对齐官方 |
+| FloatingBall 浮动球 | ✅ | 二次审计通过：补齐 `menu/adsorb/boundary/offset` 与 ref `open/close`；demo 文案统一并补齐单测覆盖 |
+| ImagePreview 图片预览 | ✅ | 二次审计通过：支持受控与静态 API（`open/clear/Host`），补齐页码/指示器/关闭控制与 `beforeClose`；暂未实现缩放/拖拽等高级手势 |
+| List 列表 | ✅ | 二次审计通过：默认 `offset=300`、内部防并发与错误重试（error 状态阻止自动加载，点击 `errorText` 重试），补齐错误/下拉刷新 demo 与单测；因基于 `ScrollView`，下拉刷新建议用 `refreshControl` 组合 |
 | SwipeCell 滑动单元格 | ✅ | 二次审计通过：PanResponder 绑定到 root 并启用 move capture，支持从操作区继续拖拽回中间/另一侧（修复“双侧滑动” demo 不能回到中间的问题），单测补齐 |
-| NoticeBar 通知栏 | ✅ | 对齐参考实现：滚动/换行/模式/自定义样式与 `onReplay`；补齐 `onPress` 类型与文档，支持非文本 `children`（避免嵌套 Text 崩溃）并补齐单测 |
-| Popover 气泡卡片 | ✅ | demo 文案已统一为占位内容（按钮/内容/方向），便于对比展示效果 |
-| Progress 进度条 | ✅ | 渐变兼容（Web 背景图/原生回退纯色）、动画容错&去抖、a11y progressbar、百分比/行高解析完善并补单测 |
-| Skeleton 骨架屏 | ✅ | 对齐参考实现：默认最后一行 `60%`、title 高度跟随 `rowHeight`，avatar/title/row 动画一致；Web 下禁用 native driver，单测覆盖保持 |
-| Tag 标签 | ✅ | 对齐参考实现：默认灰底白字（自定义 `color` 时保持可读性），支持 `plain/round/mark/closeable` 与自定义配色，并补齐默认色单测 |
-| WaterMark 水印 | ✅ | 对齐参考实现：支持文字水印与全屏/局部覆盖，token 可配置（gap/rotate/fontSize/color/opacity）；补齐 `textStyle` 类型为 `StyleProp<TextStyle>`，暂不支持图片水印（大屏全屏会渲染较多节点） |
+| NoticeBar 通知栏 | ✅ | 二次审计通过：滚动/换行/模式/自定义样式与 `onReplay`；补齐 `onPress` 类型与文档，支持非文本 `children`（避免嵌套 Text 崩溃）并补齐单测 |
+| Popover 气泡卡片 | ✅ | 二次审计通过：demo 文案已统一为占位内容（按钮/内容/方向），便于对比展示效果 |
+| Progress 进度条 | ✅ | 二次审计通过：渐变兼容（Web 背景图/原生回退纯色）、动画容错&去抖、a11y progressbar、百分比/行高解析完善并补单测 |
+| Skeleton 骨架屏 | ✅ | 二次审计通过：默认最后一行 `60%`、title 高度跟随 `rowHeight`，avatar/title/row 动画一致；Web 下禁用 native driver，单测覆盖保持 |
+| Tag 标签 | ✅ | 二次审计通过：默认灰底白字（自定义 `color` 时保持可读性），支持 `plain/round/mark/closeable` 与自定义配色，并补齐默认色单测 |
+| WaterMark 水印 | ✅ | 二次审计通过：支持文字水印与全屏/局部覆盖，token 可配置（gap/rotate/fontSize/color/opacity）；补齐 `textStyle` 类型为 `StyleProp<TextStyle>`，暂不支持图片水印（大屏全屏会渲染较多节点） |
 
 ## 导航组件
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
-| Grid 宫格 | ✅ | 对齐参考实现：支持列数/间距/边框/正方形/图文方向与反转/徽标/自定义内容；修复 `direction="horizontal"` 与 `reverse` 下图文间距与对齐 |
-| IndexBar 索引栏 | ✅ | 对齐基础交互：侧边索引/吸顶标题/触摸指示器；修复 sticky 模式下跳转锚点需扣除吸顶高度（避免被标题遮挡），并补齐受控与自定义样式 demo |
-| NavBar 导航栏 | ✅ | demo 文案统一为“标题/描述信息/按钮/内容”，避免业务化描述干扰 |
-| Pagination 分页 | ✅ | 对齐参考实现：支持 `multi/simple`、受控/非受控、ellipsis 跳转；修复受控页码越界未被 clamp 的问题，并允许 `prevText/nextText/pageDesc/pageRender` 传非文本节点（避免 Text 嵌套崩溃） |
-| Sidebar 侧边栏 | ✅ | 对齐参考实现：受控/非受控、禁用态与徽标提示；修复 `badge=0`/`title=0` 等渲染判定并支持非文本标题节点，移除未使用的 `SidebarProps.contentStyle` 干扰 |
-| Tabs 选项卡 | ✅ | demo 文案已统一为“标签名/内容/描述信息”，保留 scrollspy/swipeable 展示能力 |
-| Tabbar 标签栏 | ✅ | demo 文案统一为“标签名* / 内容 / 描述信息”，保留 badge/fixed 展示能力 |
+| Grid 宫格 | ✅ | 二次审计通过：支持列数/间距/边框/正方形/图文方向与反转/徽标/自定义内容；修复 `direction="horizontal"` 与 `reverse` 下图文间距与对齐 |
+| IndexBar 索引栏 | ✅ | 二次审计通过：侧边索引/吸顶标题/触摸指示器；修复 sticky 模式下跳转锚点需扣除吸顶高度（避免被标题遮挡），并补齐受控与自定义样式 demo |
+| NavBar 导航栏 | ✅ | 二次审计通过：demo 文案统一为“标题/描述信息/按钮/内容”，避免业务化描述干扰 |
+| Pagination 分页 | ✅ | 二次审计通过：支持 `multi/simple`、受控/非受控、ellipsis 跳转；修复受控页码越界未被 clamp 的问题，并允许 `prevText/nextText/pageDesc/pageRender` 传非文本节点（避免 Text 嵌套崩溃） |
+| Sidebar 侧边栏 | ✅ | 二次审计通过：受控/非受控、禁用态与徽标提示；修复 `badge=0`/`title=0` 等渲染判定并支持非文本标题节点，移除未使用的 `SidebarProps.contentStyle` 干扰 |
+| Tabs 选项卡 | ✅ | 二次审计通过：demo 文案已统一为“标签名/内容/描述信息”，保留 scrollspy/swipeable 展示能力 |
+| Tabbar 标签栏 | ✅ | 二次审计通过：demo 文案统一为“标签名* / 内容 / 描述信息”，保留 badge/fixed 展示能力 |
 
 ## 业务组件
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
-| Area 省市区 | ✅ | 基于 Picker 的省市区联动封装（`columnsNum`/受控/确认回调），demo 与单测已覆盖；数据结构兼容常见 AreaList（province_list/city_list/county_list） |
+| Area 省市区 | ✅ | 二次审计通过：基于 Picker 的省市区联动封装（`columnsNum`/受控/确认回调），demo 与单测已覆盖；数据结构兼容常见 AreaList（province_list/city_list/county_list） |

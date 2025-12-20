@@ -132,7 +132,7 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
   React.useImperativeHandle(ref, () => ({ show, hide }), [hide, show])
 
   const handleReferencePress = React.useCallback(
-    (event: any) => {
+    () => {
       if (trigger !== 'click') return
       if (internalVisible) {
         hide()
@@ -151,9 +151,9 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
       const originalOnPress = (reference.props as any)?.onPress
       return React.cloneElement(reference as any, {
         ...(reference.props ?? {}),
-        onPress: (event: any) => {
+        onPress: (event: Parameters<NonNullable<React.ComponentProps<typeof Pressable>['onPress']>>[0]) => {
           originalOnPress?.(event)
-          handleReferencePress(event)
+          handleReferencePress()
         },
       })
     }

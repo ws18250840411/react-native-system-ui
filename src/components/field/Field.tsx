@@ -15,6 +15,9 @@ import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 
 const isDef = (val: any) => val !== undefined && val !== null
+const isRenderableNode = (val: React.ReactNode) => val !== undefined && val !== null && val !== false
+const isTextLikeNode = (val: React.ReactNode): val is string | number =>
+  typeof val === 'string' || typeof val === 'number'
 
 const trimExtraChar = (value: string, char: string, regExp: RegExp) => {
   const index = value.indexOf(char)
@@ -239,8 +242,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const errorId = React.useId()
   const describedBy = React.useMemo(() => {
     const ids: string[] = []
-    if (errorMessage) ids.push(errorId)
-    if (resolvedDescription) ids.push(introId)
+    if (isRenderableNode(errorMessage)) ids.push(errorId)
+    if (isRenderableNode(resolvedDescription)) ids.push(introId)
     return ids.length ? ids : undefined
   }, [errorId, errorMessage, introId, resolvedDescription])
 
@@ -334,7 +337,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   )
 
   const handleFocus = React.useCallback(
-    (event: any) => {
+    (event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
       setFocused(true)
       onFocus?.(event)
       if (readOnly) {
@@ -345,7 +348,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   )
 
   const handleBlur = React.useCallback(
-    (event: any) => {
+    (event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
       updateValue(value ?? '', 'onBlur')
       setFocused(false)
       onBlur?.(event)
@@ -354,7 +357,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   )
 
   const handlePressIn = React.useCallback(
-    (event: any) => {
+    (event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => {
       onPressIn?.(event)
       onClickInput?.()
     },
@@ -390,8 +393,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }, [onClear, updateValue])
 
   const renderLabel = () => {
-    if (!label) return null
-    const isPlain = typeof label === 'string' || typeof label === 'number'
+    if (!isRenderableNode(label)) return null
+    const isPlain = isTextLikeNode(label)
 
     const content = isPlain ? (
       <Text
@@ -415,20 +418,20 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     return (
       <View style={styles.labelRow}>
         {content}
-        {tooltip ? renderTooltip() : null}
+        {isRenderableNode(tooltip) ? renderTooltip() : null}
       </View>
     )
   }
 
   const renderTooltip = () => {
-    if (!tooltip) return null
+    if (!isRenderableNode(tooltip)) return null
     const defaultIcon = (
       <QuestionO size={tokens.sizes.icon} fill={tokens.colors.tooltip} color={tokens.colors.tooltip} />
     )
     let icon: React.ReactNode = defaultIcon
     let dialogProps: FieldTooltipProps | { message: React.ReactNode } = { message: tooltip as React.ReactNode }
 
-    if (!(React.isValidElement(tooltip) || typeof tooltip === 'string')) {
+    if (!(React.isValidElement(tooltip) || typeof tooltip === 'string' || typeof tooltip === 'number')) {
       const { icon: customIcon, ...rest } = tooltip as FieldTooltipProps
       icon = customIcon ?? defaultIcon
       dialogProps = rest as FieldTooltipProps
@@ -619,8 +622,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }
 
   const renderMessage = () => {
-    if (!errorMessage) return null
-    if (typeof errorMessage === 'string' || typeof errorMessage === 'number') {
+    if (!isRenderableNode(errorMessage)) return null
+    if (isTextLikeNode(errorMessage)) {
       return (
         <Text
           nativeID={errorId}
@@ -651,8 +654,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }
 
   const renderIntro = () => {
-    if (!resolvedDescription) return null
-    if (typeof resolvedDescription === 'string' || typeof resolvedDescription === 'number') {
+    if (!isRenderableNode(resolvedDescription)) return null
+    if (isTextLikeNode(resolvedDescription)) {
       return (
         <Text
           nativeID={introId}
@@ -727,7 +730,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       style={style}
       contentStyle={contentWrapperStyle}
       accessibilityState={error ? { invalid: true } : undefined}
-      accessibilityLabel={label && typeof label === 'string' ? label : undefined}
+      accessibilityLabel={isTextLikeNode(label) ? String(label) : undefined}
       onPress={onClick}
       android_ripple={androidRipple}
     >

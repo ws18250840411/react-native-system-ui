@@ -7,6 +7,8 @@ import {
   View,
   Pressable,
   useWindowDimensions,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native'
 
 import Popup from '../popup'
@@ -129,7 +131,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     onChange?.(active)
   }, [active, onChange])
 
-  const handleMomentumEnd = React.useCallback((event: any) => {
+  const handleMomentumEnd = React.useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (images.length === 0) return
     const { contentOffset, layoutMeasurement } = event.nativeEvent
     const layoutWidth = layoutMeasurement?.width || viewportWidth

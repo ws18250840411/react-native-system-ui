@@ -6,7 +6,8 @@ const workspaceRoot = process.cwd()
 const require = createRequire(import.meta.url)
 const rndocCliRoot = path.dirname(require.resolve('rndoc-cli/package.json'))
 const resolveFromRndoc = (name: string) => require.resolve(name, { paths: [rndocCliRoot] })
-const codegenNativeComponentMock = path.join(workspaceRoot, 'src/compat/codegenNativeComponent.ts')
+const codegenNativeComponentMock = path.join(workspaceRoot, 'scripts/shims/codegenNativeComponent.tsx')
+const reactNativeSvgShim = path.join(workspaceRoot, 'scripts/shims/react-native-svg')
 const reactNativeResolveExtensions = [
   '.web.mjs',
   '.web.js',
@@ -81,7 +82,7 @@ export default defineConfig({
         { find: /^react-native-system-ui$/, replacement: path.join(workspaceRoot, 'src/index.ts') },
         { find: 'react-native/Libraries/Utilities/codegenNativeComponent', replacement: codegenNativeComponentMock },
         // 将 react-native-svg 替换为包装模块，Vite 会根据扩展名自动选择 .web.ts 或 .native.ts
-        { find: 'react-native-svg', replacement: path.join(workspaceRoot, 'src/compat/react-native-svg') },
+        { find: 'react-native-svg', replacement: reactNativeSvgShim },
         ...normalized.filter(item => item?.find !== 'react-native/Libraries/Utilities/codegenNativeComponent' && item?.find !== 'react-native-svg'),
       ]
 

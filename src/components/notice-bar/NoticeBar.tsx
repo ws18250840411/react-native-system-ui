@@ -7,6 +7,7 @@ import {
   Text,
   View,
   Platform,
+  type LayoutChangeEvent,
 } from 'react-native'
 import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
@@ -203,10 +204,10 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   }
 
   const rightNode = renderRight()
-  const hasLeft = leftIcon !== null && leftIcon !== undefined
+  const hasLeft = leftIcon !== null && leftIcon !== undefined && leftIcon !== false
   const hasRight = Boolean(rightNode)
 
-  const handleItemLayout = (event: any) => {
+  const handleItemLayout = (event: LayoutChangeEvent) => {
     if (itemHeight === 0) {
       const height = event?.nativeEvent?.layout?.height
       if (height) {
@@ -296,7 +297,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
       {...barPress.interactionProps}
       {...rest}
     >
-      {leftIcon !== null && leftIcon !== undefined ? (
+      {leftIcon !== null && leftIcon !== undefined && leftIcon !== false ? (
         <View style={[styles.sideSection, { minWidth: tokens.layout.sideMinWidth }]}>
           {leftIcon}
         </View>

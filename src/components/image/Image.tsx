@@ -43,6 +43,14 @@ const layoutStyleKeys = [
   'end',
 ] as const
 
+type RNImageOnLoadEvent = Parameters<
+  NonNullable<React.ComponentProps<typeof RNImage>['onLoad']>
+>[0]
+
+type RNImageOnErrorEvent = Parameters<
+  NonNullable<React.ComponentProps<typeof RNImage>['onError']>
+>[0]
+
 const renderOverlayLabel = (
   node: React.ReactNode,
   options: { color: string; marginTop?: number }
@@ -131,12 +139,12 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     setStatus(actualSource ? 'loading' : 'idle')
   }, [actualSource])
 
-  const handleLoad = (event: any) => {
+  const handleLoad = (event: RNImageOnLoadEvent) => {
     setStatus('loaded')
     onLoad?.(event)
   }
 
-  const handleError = (event: any) => {
+  const handleError = (event: RNImageOnErrorEvent) => {
     setStatus('error')
     onError?.(event)
   }

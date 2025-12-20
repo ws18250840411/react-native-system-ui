@@ -4,6 +4,7 @@ import {
   ScrollView,
   Text,
   View,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native'
@@ -11,6 +12,8 @@ import {
 import { useLocale } from '../config-provider/useLocale'
 import Loading from '../loading'
 import type { ListProps, ListRef } from './types'
+
+const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
 
 const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const locale = useLocale()
@@ -98,7 +101,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   )
 
   const handleLayout = React.useCallback(
-    (event: any) => {
+    (event: LayoutChangeEvent) => {
       props.onLayout?.(event)
       containerHeightRef.current = event.nativeEvent.layout.height
       if (immediateCheck) {
@@ -148,36 +151,32 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
               </View>
             )
         ) : null}
-        {mergedError
-          ? typeof errorText === 'function'
-            ? errorText(retry)
-            : errorText
-              ? typeof errorText === 'string' || typeof errorText === 'number'
-                ? (
-                  <Text testID="rv-list-error" onPress={retry} style={{ color: '#ff5b05' }}>
-                    {errorText}
-                  </Text>
-                )
-                : (
-                  <Pressable testID="rv-list-error" onPress={retry}>
-                    {errorText}
-                  </Pressable>
-                )
-              : null
-          : null}
-        {finished && !mergedLoading && !mergedError && finishedText
-          ? typeof finishedText === 'string' || typeof finishedText === 'number'
-            ? (
-              <Text testID="rv-list-finished" style={{ color: '#999999' }}>
-                {finishedText}
+        {mergedError ? (
+          typeof errorText === 'function' ? (
+            errorText(retry)
+          ) : isRenderableNode(errorText) ? (
+            typeof errorText === 'string' || typeof errorText === 'number' ? (
+              <Text testID="rv-list-error" onPress={retry} style={{ color: '#ff5b05' }}>
+                {errorText}
               </Text>
+            ) : (
+              <Pressable testID="rv-list-error" onPress={retry}>
+                {errorText}
+              </Pressable>
             )
-            : (
-              <View testID="rv-list-finished">
-                {finishedText}
-              </View>
-            )
-          : null}
+          ) : null
+        ) : null}
+        {finished && !mergedLoading && !mergedError && isRenderableNode(finishedText) ? (
+          typeof finishedText === 'string' || typeof finishedText === 'number' ? (
+            <Text testID="rv-list-finished" style={{ color: '#999999' }}>
+              {finishedText}
+            </Text>
+          ) : (
+            <View testID="rv-list-finished">
+              {finishedText}
+            </View>
+          )
+        ) : null}
       </View>
     </ScrollView>
   )

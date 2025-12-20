@@ -89,13 +89,13 @@ export const Rate: React.FC<RateProps> = props => {
   )
 
   const resolveEventPosition = React.useCallback(
-    (event: any): { x?: number; width?: number } => {
-      const nativeEvent = event?.nativeEvent
+    (event: GestureResponderEvent): { x?: number; width?: number } => {
+      const nativeEvent = event.nativeEvent as any
       const locationX = nativeEvent?.locationX
       if (typeof locationX === 'number' && Number.isFinite(locationX)) return { x: locationX }
 
       const clientX = nativeEvent?.clientX
-      const currentTarget = event?.currentTarget
+      const currentTarget = (event as any)?.currentTarget
       if (
         typeof clientX === 'number' &&
         Number.isFinite(clientX) &&

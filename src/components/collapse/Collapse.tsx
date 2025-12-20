@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type LayoutChangeEvent,
   type ViewProps,
   type TextProps,
 } from 'react-native'
@@ -352,7 +353,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   )
 
   const handleContentLayout = React.useCallback(
-    (event: any) => {
+    (event: LayoutChangeEvent) => {
       const nextHeight = event.nativeEvent.layout.height
       if (typeof nextHeight === 'number' && Number.isFinite(nextHeight) && nextHeight !== contentHeight) {
         setContentHeight(nextHeight)

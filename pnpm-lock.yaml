@@ -63,8 +63,8 @@ importers:
         specifier: ^3.7.4
         version: 3.7.4(react@19.2.3)
       react-native-system-icon:
-        specifier: ^1.0.1
-        version: 1.0.1(react-native-svg@15.15.1(react-native@0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3))(react@19.2.3))(react-native@0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3))(react@19.2.3)
+        specifier: ^1.0.2
+        version: 1.0.2(react-native@0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3))(react@19.2.3)
     devDependencies:
       '@types/jest':
         specifier: ^30.0.0
@@ -93,9 +93,6 @@ importers:
       react-native:
         specifier: 0.83.0
         version: 0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3)
-      react-native-svg:
-        specifier: ^15.15.1
-        version: 15.15.1(react-native@0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3))(react@19.2.3)
       react-native-web:
         specifier: 0.21.2
         version: 0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -4778,12 +4775,11 @@ packages:
       react: '*'
       react-native: '*'
 
-  react-native-system-icon@1.0.1:
-    resolution: {integrity: sha512-EvVJelsULYm4U21LT/WeUbbdcY+zvZocrUWGoucH+asHJBMox5qPS157/oWCDt3tY3YfSr2ioVRmTHwDpyb0Cw==}
+  react-native-system-icon@1.0.2:
+    resolution: {integrity: sha512-ptN9yVmK1kTxkrMqYNMVZuutaHP61uht9YWIIqZ/vn3SpXRj9ehE1ZmN6MuLI8hvgy4uRocMD3z3y6qAiqF0Lw==}
     peerDependencies:
       react: '>=18.0.0'
       react-native: '>=0.72.0'
-      react-native-svg: '>=15.0.0'
 
   react-native-web@0.21.2:
     resolution: {integrity: sha512-SO2t9/17zM4iEnFvlu2DA9jqNbzNhoUP+AItkoCOyFmDMOhUnBBznBDCYN92fGdfAkfQlWzPoez6+zLxFNsZEg==}
@@ -11353,7 +11349,7 @@ snapshots:
       react-native: 0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3)
       warn-once: 0.1.1
 
-  react-native-system-icon@1.0.1(react-native-svg@15.15.1(react-native@0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3))(react@19.2.3))(react-native@0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3))(react@19.2.3):
+  react-native-system-icon@1.0.2(react-native@0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3))(react@19.2.3):
     dependencies:
       react: 19.2.3
       react-native: 0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3)

@@ -29,4 +29,10 @@ describe('Empty', () => {
     const tree = renderer.create(<Empty image="error" description="描述信息" />)
     expect(tree.root.findAllByType(RNImage).length).toBeGreaterThan(0)
   })
+
+  it('renders footer when children is 0', () => {
+    const tree = renderer.create(<Empty description="描述信息">{0 as any}</Empty>)
+    const texts = tree.root.findAllByType(Text)
+    expect(texts.some(node => node.props.children === 0)).toBe(true)
+  })
 })

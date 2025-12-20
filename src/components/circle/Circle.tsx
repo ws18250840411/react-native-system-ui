@@ -10,6 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 
+import { Circle as SvgCircle, Svg } from '../../icons/systemIconSvg'
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
@@ -266,7 +267,6 @@ export const Circle: React.FC<CircleProps> = props => {
     )
   }
 
-  const { Svg, Circle: SvgCircle } = require('react-native-svg') as typeof import('react-native-svg')
   const AnimatedCircle = React.useMemo(() => Animated.createAnimatedComponent(SvgCircle), [SvgCircle])
 
   const radius = Math.max(0, (resolvedSize - resolvedStrokeWidth) / 2)
@@ -355,4 +355,3 @@ const styles = StyleSheet.create({
 Circle.displayName = 'Circle'
 
 export default Circle
-

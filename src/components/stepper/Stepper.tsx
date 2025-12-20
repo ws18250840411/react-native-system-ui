@@ -563,7 +563,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   )
 
   const handleFocus = React.useCallback(
-    (event: any) => {
+    (event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onFocus']>>[0]) => {
       setHasFocus(true)
       if (disableInput) {
         inputRef.current?.blur()
@@ -576,7 +576,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   )
 
   const handleBlur = React.useCallback(
-    (event: any) => {
+    (event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onBlur']>>[0]) => {
       setHasFocus(false)
 
       if (!changingRef.current) {
@@ -602,7 +602,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   )
 
   const handleInputPressIn = React.useCallback(
-    (event: any) => {
+    (event: GestureResponderEvent) => {
       onClick?.(event)
       inputProps?.onPressIn?.(event)
     },

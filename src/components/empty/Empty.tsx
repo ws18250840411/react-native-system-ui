@@ -184,9 +184,11 @@ export const Empty: React.FC<EmptyProps> = props => {
     >
       {renderImage()}
       {renderDescription()}
-      {children ? (
-        <View style={{ marginTop: tokens.spacing.footerMargin }}>{children}</View>
-      ) : null}
+      {children === null || children === undefined || children === false ? null : (
+        <View style={{ marginTop: tokens.spacing.footerMargin }}>
+          {typeof children === 'string' || typeof children === 'number' ? <Text>{children}</Text> : children}
+        </View>
+      )}
     </View>
   )
 }

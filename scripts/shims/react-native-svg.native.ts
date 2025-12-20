@@ -1,4 +1,4 @@
-// Native 端重新导出 react-native-svg
+// 仅用于构建层的 shim（Native 端透传 react-native-svg）
 export {
   Svg,
   Path,
@@ -18,7 +18,11 @@ export {
   Line,
   Text,
   TSpan,
+  TextPath,
+  Pattern,
   Symbol,
+  Marker,
+  Image,
   ForeignObject,
   Filter,
   FeOffset,
@@ -31,3 +35,4 @@ export {
   FeColorMatrix,
 } from 'react-native-svg'
 export { default } from 'react-native-svg'
+

@@ -28,6 +28,18 @@ describe('NavBar', () => {
     expect(texts.some(node => node.props.children === '标题')).toBe(true)
   })
 
+  it('renders 0 for title and side text', () => {
+    const tree = renderer.create(
+      <NavBar title={0} leftArrow={false} leftText={0} rightText={0} />
+    )
+
+    expect(tree.root.findByProps({ testID: 'rv-navbar-left' })).toBeDefined()
+    expect(tree.root.findByProps({ testID: 'rv-navbar-right' })).toBeDefined()
+
+    const zeros = tree.root.findAllByType(Text).filter(node => node.props.children === 0)
+    expect(zeros).toHaveLength(3)
+  })
+
   it('renders placeholder when fixed', () => {
     const tree = renderer.create(<NavBar fixed placeholder title="Nav" />)
     expect(tree.root.findAllByProps({ testID: 'rv-navbar-placeholder' }).length).toBe(1)

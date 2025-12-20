@@ -127,4 +127,16 @@ describe('List', () => {
     expect(onLoad).toHaveBeenCalledTimes(2)
     expect(onLoad).toHaveBeenLastCalledWith(true)
   })
+
+  it('renders errorText when it is 0', () => {
+    const tree = renderer.create(<List error loading={false} errorText={0 as any} />)
+    const errorNode = tree.root.findByProps({ testID: 'rv-list-error' })
+    expect(errorNode.props.children).toBe(0)
+  })
+
+  it('renders finishedText when it is 0', () => {
+    const tree = renderer.create(<List finished loading={false} error={false} finishedText={0 as any} />)
+    const finishedNode = tree.root.findByProps({ testID: 'rv-list-finished' })
+    expect(finishedNode.props.children).toBe(0)
+  })
 })

@@ -115,7 +115,7 @@ export const Divider: React.FC<DividerProps> = props => {
   const borderStyle = dashed ? 'dashed' : 'solid'
 
   const renderContent = () => {
-    if (children === null || children === undefined) {
+    if (children === null || children === undefined || children === false) {
       return null
     }
 
@@ -166,7 +166,7 @@ export const Divider: React.FC<DividerProps> = props => {
     )
   }
 
-  const hasContent = children !== null && children !== undefined
+  const hasContent = children !== null && children !== undefined && children !== false
   const ratios = flexRatioMap[contentPosition]
 
   const lineBaseStyle = [

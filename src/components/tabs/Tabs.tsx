@@ -22,6 +22,10 @@ const requestFrame =
     ? requestAnimationFrame
     : (cb: (time?: number) => void) => setTimeout(cb, 16)
 
+const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
+const isTextLikeNode = (node: React.ReactNode): node is string | number =>
+  typeof node === 'string' || typeof node === 'number'
+
 interface ParsedPane extends TabPaneProps {
   key: React.Key
   name: TabsValue
@@ -188,36 +192,63 @@ const TabBarItem: React.FC<TabItemProps> = ({
         >
           {renderTitle}
         </Text>
-        {renderDescription ? (
-          <Text
-            style={[
-              styles.description,
-              isJumbo
-                ? {
-                  color: descriptionColor,
-                  fontSize: tokens.typography.descriptionSize,
-                  marginTop: 8,
-                  textAlign: 'center',
-                  backgroundColor: isActive
-                    ? tokens.colors.jumboDescriptionActiveBackground
-                    : tokens.colors.jumboDescriptionBackground,
-                  paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-                  paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-                  borderRadius: tokens.jumbo.descriptionRadius,
-                }
-                : {
-                  color: descriptionColor,
-                  fontSize: tokens.typography.descriptionSize,
-                  marginTop: 2,
-                  textAlign: 'center',
-                },
-              descriptionStyle,
-            ]}
-          >
-            {renderDescription}
-          </Text>
-        ) : null}
-        {pane.badge ? (
+        {isRenderableNode(renderDescription)
+          ? isTextLikeNode(renderDescription)
+            ? (
+                <Text
+                  style={[
+                    styles.description,
+                    isJumbo
+                      ? {
+                          color: descriptionColor,
+                          fontSize: tokens.typography.descriptionSize,
+                          marginTop: 8,
+                          textAlign: 'center',
+                          backgroundColor: isActive
+                            ? tokens.colors.jumboDescriptionActiveBackground
+                            : tokens.colors.jumboDescriptionBackground,
+                          paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+                          paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+                          borderRadius: tokens.jumbo.descriptionRadius,
+                        }
+                      : {
+                          color: descriptionColor,
+                          fontSize: tokens.typography.descriptionSize,
+                          marginTop: 2,
+                          textAlign: 'center',
+                        },
+                    descriptionStyle,
+                  ]}
+                >
+                  {renderDescription}
+                </Text>
+              )
+            : (
+                <View
+                  style={[
+                    styles.description,
+                    isJumbo
+                      ? {
+                          marginTop: 8,
+                          alignItems: 'center',
+                          backgroundColor: isActive
+                            ? tokens.colors.jumboDescriptionActiveBackground
+                            : tokens.colors.jumboDescriptionBackground,
+                          paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+                          paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+                          borderRadius: tokens.jumbo.descriptionRadius,
+                        }
+                      : {
+                          marginTop: 2,
+                          alignItems: 'center',
+                        },
+                  ]}
+                >
+                  {renderDescription}
+                </View>
+              )
+          : null}
+        {isRenderableNode(pane.badge) ? (
           <View style={styles.badge}>
             {typeof pane.badge === 'string' || typeof pane.badge === 'number' ? (
               <Text style={styles.badgeText}>{pane.badge}</Text>

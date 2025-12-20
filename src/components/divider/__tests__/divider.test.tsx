@@ -44,4 +44,10 @@ describe('Divider', () => {
 
     expect(leftStyle.flexGrow).toBeLessThan(rightStyle.flexGrow)
   })
+
+  it('treats false children as no content', () => {
+    const tree = renderer.create(<Divider>{false as any}</Divider>)
+    expect(tree.root.findAllByType(Text)).toHaveLength(0)
+    expect(tree.root.findAllByType(View)).toHaveLength(2)
+  })
 })

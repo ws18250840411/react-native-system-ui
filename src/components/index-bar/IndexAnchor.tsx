@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import type { IndexAnchorProps } from './types'
 
@@ -7,7 +7,7 @@ const IndexAnchor: React.FC<IndexAnchorProps> = props => {
   const { index, title, children, active, highlightColor, onLayoutCapture, style, onLayout, ...rest } = props
 
   const handleLayout = React.useCallback(
-    (event: any) => {
+    (event: LayoutChangeEvent) => {
       const layoutY = event?.nativeEvent?.layout?.y ?? 0
       onLayoutCapture?.(index, layoutY)
       onLayout?.(event)

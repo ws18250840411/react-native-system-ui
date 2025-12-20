@@ -77,12 +77,14 @@ const resolveSource = (item: UploaderValueItem, isImage: boolean) => {
   return undefined
 }
 
-const normalizeMaxSize = (maxSize: UploaderMaxSize | undefined, fallback: number): UploaderMaxSize => {
+type NormalizedMaxSize = Exclude<UploaderMaxSize, string>
+
+const normalizeMaxSize = (maxSize: UploaderMaxSize | undefined, fallback: number): NormalizedMaxSize => {
   if (typeof maxSize === 'function') return maxSize
   return parseNumber(maxSize, fallback)
 }
 
-const isOversize = (files: File[], maxSize: UploaderMaxSize) => {
+const isOversize = (files: File[], maxSize: NormalizedMaxSize) => {
   return files.some(file => {
     if (!file) return false
     if (typeof maxSize === 'function') {
@@ -92,7 +94,7 @@ const isOversize = (files: File[], maxSize: UploaderMaxSize) => {
   })
 }
 
-const filterFiles = (files: File[], maxSize: UploaderMaxSize) => {
+const filterFiles = (files: File[], maxSize: NormalizedMaxSize) => {
   const valid: File[] = []
   const invalid: File[] = []
   files.forEach(file => {
@@ -289,7 +291,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   const previewImages = React.useMemo(() => {
     return imageFiles
       .map(item => item.source ?? item.url ?? item.thumbnail)
-      .filter(Boolean)
+      .filter((value): value is NonNullable<typeof value> => value !== null && value !== undefined)
   }, [imageFiles])
 
   const handleWebFiles = React.useCallback(
@@ -483,7 +485,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   }), [chooseFile, closeImagePreview])
 
   const handleUploadPress = React.useCallback(
-    async (event: any) => {
+    async (event: Parameters<NonNullable<React.ComponentProps<typeof Pressable>['onPress']>>[0]) => {
       if (uploadDisabled) return
       onClickUpload?.(event)
       chooseFile()
