@@ -49,11 +49,11 @@ import { NavBar } from 'react-native-system-ui'
 | `leftIcon` | 左侧自定义图标 | `ReactNode` | - |
 | `rightIcon` | 右侧自定义图标 | `ReactNode` | - |
 | `leftArrow` | 是否展示默认返回箭头或自定义箭头节点 | `boolean \| ReactNode` | `true` |
-| `fixed` | 是否固定在顶部 | `boolean` | `true` |
-| `placeholder` | 固定时是否渲染占位元素 | `boolean` | `true` |
-| `zIndex` | 固定时的层级 | `number` | `99` |
+| `fixed` | 是否固定在顶部 | `boolean` | `false` |
+| `placeholder` | 固定时是否渲染占位元素 | `boolean` | `false` |
+| `zIndex` | 固定时的层级 | `number` | `1` |
 | `border` | 是否显示底部分隔线 | `boolean` | `true` |
-| `safeAreaInsetTop` | 是否适配顶部安全区（固定时默认开启） | `boolean` | `true` |
+| `safeAreaInsetTop` | 是否适配顶部安全区 | `boolean` | `false` |
 | `background` | 背景色 | `string` | 主题背景 |
 | `tintColor` | 标题与按钮文字颜色 | `string` | 主题文本色 |
 | `titleStyle` | 标题样式 | `StyleProp<TextStyle>` | - |

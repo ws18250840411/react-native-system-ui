@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
 
@@ -223,12 +223,20 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
       : { marginRight: tokens.spacing.gap },
   ]
 
+  // rndoc mobile simulator 使用 @vant/touch-emulator，在 RN Web 组件上会导致按压事件异常；
+  // 通过 data-no-touch-simulate 跳过 touch 模拟，仅保留 mouse/pointer 事件。
+  const noTouchSimulateProps = Platform.OS === 'web'
+    ? ({ dataSet: { noTouchSimulate: true } } as any)
+    : {}
+
   if (interactive) {
     return (
       <Pressable
+        {...noTouchSimulateProps}
         {...inputProps}
         ref={inputRef}
         onPress={handlePress}
+        pointerEvents={Platform.OS === 'web' ? 'box-only' : undefined}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
         style={[styles.container, style]}
@@ -245,9 +253,11 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     <View style={[styles.container, style]}>
       {renderContent(
         <Pressable
+          {...noTouchSimulateProps}
           {...inputProps}
           ref={inputRef}
           onPress={handlePress}
+          pointerEvents={Platform.OS === 'web' ? 'box-only' : undefined}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
           style={iconWrapperStyle}

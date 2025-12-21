@@ -58,7 +58,10 @@ const parseGap = (
   presets: Record<SpaceSizePreset, number>
 ): [number, number] => {
   if (Array.isArray(value)) {
-    return [parseValue(value[0], presets), parseValue(value[1], presets)]
+    // 对齐 CSS gap 语义：`gap: <row-gap> <column-gap>`，数组写法为 [vertical, horizontal]
+    const verticalGap = parseValue(value[0], presets)
+    const horizontalGap = parseValue(value[1], presets)
+    return [horizontalGap, verticalGap]
   }
   const parsed = parseValue(value, presets)
   return [parsed, parsed]

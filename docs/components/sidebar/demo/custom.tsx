@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Badge, Sidebar } from 'react-native-system-ui'
+import { Sidebar } from 'react-native-system-ui'
 
 export default () => (
   <Sidebar defaultValue={1} style={{ height: 240 }}>

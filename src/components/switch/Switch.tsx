@@ -139,6 +139,7 @@ export const Switch: React.FC<SwitchProps> = props => {
 
   return (
     <Pressable
+      {...(Platform.OS === 'web' ? ({ dataSet: { noTouchSimulate: true } } as any) : {})}
       {...rest}
       accessibilityRole="switch"
       accessibilityState={{ checked: isChecked, disabled }}

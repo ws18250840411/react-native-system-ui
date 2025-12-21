@@ -46,7 +46,7 @@ describe('NavBar', () => {
   })
 
   it('applies SafeAreaView when safeAreaInsetTop is true', () => {
-    const tree = renderer.create(<NavBar fixed />)
+    const tree = renderer.create(<NavBar fixed safeAreaInsetTop />)
     expect(tree.root.findAllByType(SafeAreaView).length).toBe(1)
   })
 })

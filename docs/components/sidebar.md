@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-用于在较宽的页面中展示垂直分类菜单，支持受控/非受控切换、徽标、禁用态等。
+用于在较宽的页面中展示垂直分类菜单，支持受控/非受控切换、徽标、禁用态等，可搭配内容区展示。
 
 ## 引入
 
@@ -35,6 +35,12 @@ import { Sidebar } from 'react-native-system-ui'
 
 <code src="./sidebar/demo/controlled.tsx" title="受控导航"></code>
 
+### 自定义内容区
+
+在 `Sidebar.Item` 中传入 `children` 即可渲染内容区，并可通过 `contentStyle` 自定义内容区样式。
+
+<code src="./sidebar/demo/content.tsx" title="自定义内容区"></code>
+
 ## API
 
 ### Sidebar Props
@@ -57,6 +63,7 @@ import { Sidebar } from 'react-native-system-ui'
 | `disabled` | 是否禁用 | `boolean` | `false` |
 | `onClick` | 点击当前项触发 | `(value: number) => void` | - |
 | `textStyle` | 标题样式 | `StyleProp<TextStyle>` | - |
-| `contentStyle` | 自定义内部布局 | `StyleProp<ViewStyle>` | - |
+| `contentStyle` | 内容区域样式（仅激活项生效） | `StyleProp<ViewStyle>` | - |
+| `children` | 内容区域内容（仅激活项展示） | `ReactNode` | - |
 
-> 差异说明：当前版本未实现 `change` 事件中断（如 `beforeChange`）、同步右侧内容区域等策略，业务可在 `onChange` 中配合自身逻辑处理。
+> 差异说明：当前版本暂未提供 `beforeChange` 等切换拦截能力，如需异步确认可在 `onChange` 中自行处理并回退选中态。

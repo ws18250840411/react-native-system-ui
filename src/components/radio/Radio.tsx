@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -203,6 +204,7 @@ export const Radio: React.FC<RadioProps> = props => {
     </View>
   ) : (
     <Pressable
+      {...(Platform.OS === 'web' ? ({ dataSet: { noTouchSimulate: true } } as any) : {})}
       {...inputProps}
       key="radio-icon"
       ref={inputRef}
@@ -223,6 +225,7 @@ export const Radio: React.FC<RadioProps> = props => {
   if (interactive) {
     return (
       <Pressable
+        {...(Platform.OS === 'web' ? ({ dataSet: { noTouchSimulate: true } } as any) : {})}
         {...inputProps}
         ref={inputRef}
         testID={serializedValue !== undefined ? `radio-icon-${serializedValue}` : undefined}

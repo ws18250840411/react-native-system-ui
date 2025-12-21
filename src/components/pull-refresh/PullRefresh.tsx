@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   Animated,
+  PanResponder,
   Platform,
   RefreshControl,
   ScrollView,
@@ -36,8 +37,11 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     ...scrollProps
   } = props
 
+  const isWeb = Platform.OS === 'web'
   const locale = useLocale()
   const tokens = usePullRefreshTokens()
+
+  const translateY = React.useRef(new Animated.Value(0)).current
   const headHeightNumber = React.useMemo(() => {
     const raw = typeof headHeight === 'undefined' ? tokens.sizing.headHeight : headHeight
     if (typeof raw === 'number') return raw
@@ -71,12 +75,38 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const mergedRefreshing = isControlled ? !!refreshing : innerRefreshing
 
   const distanceRef = React.useRef(0)
+  const scrollTopRef = React.useRef(0)
+  const draggingRef = React.useRef(false)
   const [distance, setDistance] = React.useState(0)
   const [showSuccess, setShowSuccess] = React.useState(false)
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const mergedRefreshingRef = React.useRef(mergedRefreshing)
   const refreshTriggeredRef = React.useRef(false)
   const refreshSucceededRef = React.useRef(false)
+
+  const setDistanceValue = React.useCallback(
+    (nextDistance: number, options: { animate?: boolean } = {}) => {
+      const { animate = false } = options
+      const normalized = Math.max(0, Math.round(nextDistance))
+      distanceRef.current = normalized
+
+      if (isWeb) {
+        translateY.stopAnimation()
+        if (animate && animationDurationMs > 0) {
+          Animated.timing(translateY, {
+            toValue: normalized,
+            duration: animationDurationMs,
+            useNativeDriver: false,
+          }).start()
+        } else {
+          translateY.setValue(normalized)
+        }
+      }
+
+      setDistance(prev => (Math.abs(prev - normalized) < 1 ? prev : normalized))
+    },
+    [animationDurationMs, isWeb, translateY],
+  )
 
   React.useEffect(() => {
     return () => {
@@ -141,6 +171,24 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       }
     }
   }, [disabled, mergedRefreshing, onRefresh, props.onRefreshEnd, setRefreshing, triggerSuccess])
+
+  // Web 端没有原生下拉回弹与 RefreshControl，需要用拖拽手势模拟内容下移。
+  React.useEffect(() => {
+    if (!isWeb) return
+    if (draggingRef.current) return
+
+    if (disabled) {
+      setDistanceValue(0, { animate: true })
+      return
+    }
+
+    if (mergedRefreshing || showSuccess) {
+      setDistanceValue(headHeightNumber, { animate: true })
+      return
+    }
+
+    setDistanceValue(0, { animate: true })
+  }, [disabled, headHeightNumber, isWeb, mergedRefreshing, setDistanceValue, showSuccess])
 
   React.useEffect(() => {
     if (!refreshTriggeredRef.current) return
@@ -209,15 +257,104 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const handleScroll = React.useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       scrollProps.onScroll?.(event)
-      if (disabled) return
       const offset = event.nativeEvent.contentOffset?.y ?? 0
+
+      if (isWeb) {
+        scrollTopRef.current = Math.max(0, offset)
+        return
+      }
+
+      if (disabled) return
       const nextDistance = offset < 0 ? -offset : 0
+
       if (Math.abs(distanceRef.current - nextDistance) < 1) return
       distanceRef.current = nextDistance
       setDistance(nextDistance)
     },
-    [disabled, scrollProps],
+    [disabled, isWeb, scrollProps],
   )
+
+  const easeDistance = React.useCallback(
+    (raw: number) => {
+      const pullDistance = pullDistanceNumber
+      let eased = raw
+
+      if (eased > pullDistance) {
+        if (eased < pullDistance * 2) {
+          eased = pullDistance + (eased - pullDistance) / 2
+        } else {
+          eased = pullDistance * 1.5 + (eased - pullDistance * 2) / 4
+        }
+      }
+
+      return Math.round(eased)
+    },
+    [pullDistanceNumber],
+  )
+
+  const panResponder = React.useMemo(() => {
+    if (!isWeb) return null
+    return PanResponder.create({
+      onMoveShouldSetPanResponder: (_event, gestureState) => {
+        if (disabled) return false
+        if (mergedRefreshingRef.current) return false
+        if (showSuccess) return false
+        if (scrollTopRef.current > 0) return false
+
+        const { dx, dy } = gestureState
+        if (dy <= 0) return false
+        if (Math.abs(dy) <= Math.abs(dx)) return false
+
+        return true
+      },
+      onPanResponderGrant: () => {
+        draggingRef.current = true
+      },
+      onPanResponderMove: (event, gestureState) => {
+        if (disabled) return
+        if (mergedRefreshingRef.current) return
+        if (showSuccess) return
+        if (scrollTopRef.current > 0) return
+
+        const raw = Math.max(0, gestureState.dy ?? 0)
+        setDistanceValue(easeDistance(raw), { animate: false })
+
+        if (typeof (event as any)?.preventDefault === 'function') {
+          ;(event as any).preventDefault()
+        }
+      },
+      onPanResponderRelease: async (_event, gestureState) => {
+        draggingRef.current = false
+        if (disabled) return
+        if (mergedRefreshingRef.current) return
+        if (showSuccess) return
+
+        const nextDistance = easeDistance(Math.max(0, gestureState.dy))
+        const shouldRefresh = nextDistance >= pullDistanceNumber
+
+        if (shouldRefresh) {
+          setDistanceValue(headHeightNumber, { animate: true })
+          await handleRefresh()
+          return
+        }
+
+        setDistanceValue(0, { animate: true })
+      },
+      onPanResponderTerminate: () => {
+        draggingRef.current = false
+        setDistanceValue(0, { animate: true })
+      },
+    })
+  }, [
+    disabled,
+    easeDistance,
+    handleRefresh,
+    headHeightNumber,
+    isWeb,
+    pullDistanceNumber,
+    setDistanceValue,
+    showSuccess,
+  ])
 
   return (
     <ScrollView
@@ -235,31 +372,42 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       onScroll={handleScroll}
       scrollEventThrottle={16}
     >
-      <View
-        pointerEvents="none"
-        style={[
-          styles.head,
-          {
-            height: headHeightNumber,
-            marginTop: -headHeightNumber,
-          },
-        ]}
+      <Animated.View
+        {...(panResponder
+          ? ({
+              ...panResponder.panHandlers,
+              // rndoc mobile simulator 使用 @vant/touch-emulator；为避免 mouse+touch 双事件干扰手势判断，这里跳过 touch 模拟，仅用原生事件流即可。
+              dataSet: { noTouchSimulate: true },
+            } as any)
+          : {})}
+        style={isWeb ? { transform: [{ translateY }] } : undefined}
       >
-        <Animated.View style={{ opacity }}>
-          {(() => {
-            const node = renderStatus()
-            if (typeof node === 'string' || typeof node === 'number') {
-              return (
-                <Text style={{ color: status === 'success' ? tokens.colors.success : tokens.colors.text }}>
-                  {node}
-                </Text>
-              )
-            }
-            return node
-          })()}
-        </Animated.View>
-      </View>
-      {children}
+        <View
+          pointerEvents="none"
+          style={[
+            styles.head,
+            {
+              height: headHeightNumber,
+              marginTop: -headHeightNumber,
+            },
+          ]}
+        >
+          <Animated.View style={{ opacity }}>
+            {(() => {
+              const node = renderStatus()
+              if (typeof node === 'string' || typeof node === 'number') {
+                return (
+                  <Text style={{ color: status === 'success' ? tokens.colors.success : tokens.colors.text }}>
+                    {node}
+                  </Text>
+                )
+              }
+              return node
+            })()}
+          </Animated.View>
+        </View>
+        {children}
+      </Animated.View>
     </ScrollView>
   )
 })

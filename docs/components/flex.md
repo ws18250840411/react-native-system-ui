@@ -42,7 +42,7 @@ import { Flex } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `direction` | 项目定位方向，可选 `row` `row-reverse` `column` `column-reverse` | `FlexDirection` | `row` |
-| `wrap` | 子元素换行方式，可选 `nowrap` `wrap` `wrap-reverse` | `FlexWrap` | `wrap` |
+| `wrap` | 子元素换行方式，可选 `nowrap` `wrap` `wrap-reverse` | `FlexWrap` | `nowrap` |
 | `gutter` | 列间距，支持 `[水平, 垂直]` | `number \| [number, number]` | `0` |
 | `align` | 垂直对齐方式，可选 `start` `center` `end` `baseline` `stretch` | `FlexAlign` | `start` |
 | `justify` | 水平排列方式，可选 `start` `end` `center` `around` `between` | `FlexJustify` | `start` |

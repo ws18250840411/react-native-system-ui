@@ -119,3 +119,8 @@ import { Cell } from 'react-native-system-ui'
 | `onPress` | 点击单元格（未禁用）时触发 | `PressableProps['onPress']` |
 
 > React Native 环境不支持路由 `replace` 等 DOM 能力，因此 `replace`、`to` 等属性未实现，如需跳转请结合 React Navigation / Expo Router 使用。
+
+## 差异说明
+
+- React Vant 提供 `titleClass/valueClass/labelClass` 等 className 能力；本库在 React Native 环境以 `titleStyle/valueStyle/labelStyle` 等样式 props 作为替代。
+- React Vant 的点击事件为 `onClick`；本库使用 `onPress`（基于 `Pressable`）。

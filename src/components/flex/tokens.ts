@@ -21,7 +21,7 @@ export interface FlexTokens {
 const createFlexTokens = (_foundations: Foundations): FlexTokens => ({
   defaults: {
     direction: 'row',
-    wrap: 'wrap',
+    wrap: 'nowrap',
     gutter: 0,
     align: 'start',
     justify: 'start',

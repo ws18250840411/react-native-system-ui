@@ -116,6 +116,12 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
       return
     }
 
+    if (Platform.OS === 'web' && node && typeof node.getBoundingClientRect === 'function') {
+      const rect = node.getBoundingClientRect()
+      setAnchor({ x: rect.left, y: rect.top, width: rect.width, height: rect.height })
+      return
+    }
+
     if (layoutRef.current) {
       setAnchor(layoutRef.current)
     }

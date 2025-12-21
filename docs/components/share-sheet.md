@@ -19,21 +19,27 @@ import { ShareSheet } from 'react-native-system-ui'
 
 ### 基础用法
 
-最常见的分享渠道列表。
+分享面板通过 `options` 定义分享选项。
 
-<code src="./share-sheet/demo/basic.tsx" title="基础示例"></code>
+<code src="./share-sheet/demo/basic.tsx" title="基础用法"></code>
 
-### 分组展示
+### 展示多行选项
 
-当分享渠道较多时可自动换行，并通过多组数据分隔。
+当分享选项较多时，可将 `options` 定义为二维数组，每个子数组会作为一行选项展示。
 
-<code src="./share-sheet/demo/groups.tsx" title="分组展示"></code>
+<code src="./share-sheet/demo/groups.tsx" title="展示多行选项"></code>
 
-### 自定义内容
+### 自定义图标
 
-可以在底部插入自定义按钮或说明，并控制是否点击后自动关闭。
+除了使用图标组件外，也可以在 `icon` 中传入图片节点来使用自定义图标。
 
-<code src="./share-sheet/demo/custom.tsx" title="自定义区域"></code>
+<code src="./share-sheet/demo/custom.tsx" title="自定义图标"></code>
+
+### 展示描述信息
+
+通过 `description` 属性可以设置标题下方的描述文字，在 `options` 内设置 `description` 可添加分享选项描述。
+
+<code src="./share-sheet/demo/description.tsx" title="展示描述信息"></code>
 
 ## API
 

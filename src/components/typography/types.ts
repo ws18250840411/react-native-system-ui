@@ -23,6 +23,7 @@ export interface EllipsisConfig {
 export interface TypographyBaseProps extends Omit<TextProps, 'children'> {
   children?: React.ReactNode
   type?: TypographyType
+  color?: string | TypographyType
   size?: TypographySize
   level?: TypographyTitleLevel
   disabled?: boolean

@@ -1,21 +1,32 @@
 import React from 'react'
-import { Button, ShareSheet } from 'react-native-system-ui'
-import { Info, Star, Warning } from 'react-native-system-icon'
+import { Cell, ShareSheet } from 'react-native-system-ui'
+import { Photo, Qr, Share, ShareO, Wechat } from 'react-native-system-icon'
 
 const options = [
-  [
-    { name: '微信', icon: <Info /> },
-    { name: '朋友圈', icon: <Star /> },
-    { name: '微博', icon: <Warning /> },
-  ],
+  { name: '微信', icon: <Wechat /> },
+  { name: '微博', icon: <Share /> },
+  { name: '复制链接', icon: <ShareO /> },
+  { name: '分享海报', icon: <Photo /> },
+  { name: '二维码', icon: <Qr /> },
 ]
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
   return (
     <>
-      <Button text="展示面板" onPress={() => setVisible(true)} />
-      <ShareSheet visible={visible} options={options} onClose={() => setVisible(false)} />
+      <Cell title="显示分享面板" clickable isLink onPress={() => setVisible(true)} />
+      <ShareSheet
+        visible={visible}
+        title="立即分享给好友"
+        options={options}
+        closeOnSelect={false}
+        onCancel={() => setVisible(false)}
+        onSelect={(option, index) => {
+          console.log('option', option)
+          console.log('index', index)
+          setVisible(false)
+        }}
+      />
     </>
   )
 }

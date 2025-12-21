@@ -15,6 +15,8 @@ simulator:
 import { ConfigProvider } from 'react-native-system-ui'
 ```
 
+> `ConfigProvider` 内部会自动包裹 `ThemeProvider` 与 `PortalHost`，作为主题与弹层能力的统一出口（使用 `Popup`/`Toast`/`Dialog` 等无需再额外渲染 `PortalHost`）。
+
 ## 代码演示
 
 ### 语言切换
@@ -45,3 +47,9 @@ import { ConfigProvider, zhCN, enUS, useLocale } from 'react-native-system-ui'
 ```
 
 > React Native 环境不存在 `tag`、`prefers-color-scheme` 等 DOM 能力，如需深度主题切换，可结合 `ConfigProvider` + `ThemeProvider` 自行注入 tokens。
+
+## 差异说明
+
+- React Vant 通过 `themeVars` 覆盖 CSS 变量实现主题定制；本库以设计 tokens（`theme`）驱动样式，适配 React Native 的跨端渲染模型。
+- React Vant 支持 `tag` 指定根节点标签；本库在 React Native 环境不支持对应 DOM 能力。
+- 本库在 `ConfigProvider` 内置 `PortalHost`，保证弹层组件有统一的渲染出口。

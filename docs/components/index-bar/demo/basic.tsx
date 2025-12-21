@@ -1,24 +1,23 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
-import { IndexBar } from 'react-native-system-ui'
+import { Cell, IndexBar } from 'react-native-system-ui'
 
-const DATA = {
-  A: ['阿里巴巴', '阿姆斯特丹'],
-  B: ['北京', '柏林', '波士顿'],
-  C: ['成都', '重庆', '长沙'],
+const indexList: string[] = []
+const charCodeOfA = 'A'.charCodeAt(0)
+
+for (let i = 0; i < 26; i += 1) {
+  indexList.push(String.fromCharCode(charCodeOfA + i))
 }
 
 export default () => (
   <View style={{ height: 400 }}>
     <IndexBar>
-      {Object.entries(DATA).map(([index, cities]) => (
-        <IndexBar.Anchor key={index} index={index} title={`字母 ${index}`}>
-          {cities.map(city => (
-            <Text key={city} style={{ paddingVertical: 8, paddingHorizontal: 16 }}>
-              {city}
-            </Text>
-          ))}
+      {indexList.map(item => (
+        <IndexBar.Anchor key={item} index={item}>
+          <Cell title="文本" />
+          <Cell title="文本" />
+          <Cell title="文本" />
         </IndexBar.Anchor>
       ))}
     </IndexBar>

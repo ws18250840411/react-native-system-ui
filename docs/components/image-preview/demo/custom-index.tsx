@@ -3,9 +3,9 @@ import { Button, ImagePreview } from 'react-native-system-ui'
 import { Text } from 'react-native'
 
 const images = [
-  'https://fastly.jsdelivr.net/npm/@vant/assets/apple-1.jpg',
-  'https://fastly.jsdelivr.net/npm/@vant/assets/apple-2.jpg',
-  'https://fastly.jsdelivr.net/npm/@vant/assets/apple-3.jpg',
+  'https://img.yzcdn.cn/vant/apple-1.jpg',
+  'https://img.yzcdn.cn/vant/apple-2.jpg',
+  'https://img.yzcdn.cn/vant/apple-3.jpg',
 ]
 
 export default () => {

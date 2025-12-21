@@ -42,4 +42,4 @@ import { PullRefresh } from 'react-native-system-ui'
 | `disabled` | 是否禁用 | `boolean` | `false` |
 | 其余 | 继承 `ScrollView` 属性 | - | - |
 
-> 下拉刷新内部使用 `RefreshControl`。为了避免嵌套滚动冲突，建议让 `PullRefresh` 作为页面最外层滚动容器使用；`pullDistance` 仅用于文案状态（pulling/loosing）判断，不会改变原生触发阈值。
+> iOS/Android 端内部使用 `RefreshControl`，Web 端使用拖拽手势模拟下拉回弹（桌面可直接鼠标下拉）。为了避免嵌套滚动冲突，建议让 `PullRefresh` 作为页面最外层滚动容器使用；`pullDistance` 仅用于文案状态（pulling/loosing）判断，不会改变原生触发阈值。

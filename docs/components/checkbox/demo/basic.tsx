@@ -6,7 +6,13 @@ export default () => {
 
   return (
     <Space direction="vertical" gap={12}>
-      <Checkbox checked={checked} onChange={setChecked}>
+      <Checkbox
+        checked={checked}
+        onChange={(val) => {
+          setChecked(val)
+          console.log('checked', val)
+        }}
+      >
         复选框
       </Checkbox>
       <Checkbox defaultChecked onChange={val => console.log(val)}>

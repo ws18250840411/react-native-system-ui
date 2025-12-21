@@ -47,6 +47,12 @@ import { Popup } from 'react-native-system-ui'
 
 <code title="圆角" src="./popup/demo/round.tsx"></code>
 
+### 标题弹窗
+
+设置 `title` 和 `description` 属性后，会在弹层顶部渲染标题与描述，常用于底部弹窗。
+
+<code title="标题弹窗" src="./popup/demo/title.tsx"></code>
+
 ### 安全区域
 
 通过 `safeArea` 或 `safeAreaInsetTop/Bottom` 适配刘海屏与底部 Home Indicator，确保弹层内容不被遮挡。
@@ -60,18 +66,20 @@ import { Popup } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `visible` | 是否显示 | `boolean` | - |
-| `placement` | 弹出位置 | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'center'` |
+| `placement` / `position` | 弹出位置 | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'center'` |
 | `overlay` | 是否显示遮罩 | `boolean` | `true` |
 | `overlayStyle` | 自定义遮罩样式 | `StyleProp<ViewStyle>` | - |
 | `overlayAccessibilityLabel` | 无障碍描述，用于提示遮罩按钮的用途 | `string` | `关闭弹层` |
 | `overlayTestID` | 遮罩测试标识 | `string` | `popup-overlay` |
-| `closeOnOverlayPress` | 点击遮罩是否关闭 | `boolean` | `true` |
+| `closeOnOverlayPress` / `closeOnClickOverlay` | 点击遮罩是否关闭 | `boolean` | `true` |
 | `closeOnBackPress` | Android 返回键是否关闭 | `boolean` | `false` |
 | `closeOnPopstate` | 浏览器返回（popstate）是否关闭 | `boolean` | `false` |
 | `closeable` | 是否展示关闭图标 | `boolean` | `false` |
 | `closeIcon` | 自定义关闭图标 | `ReactNode` | - |
 | `closeIconPosition` | 关闭图标位置 | `'top-right' \| 'top-left' \| 'bottom-left' \| 'bottom-right'` | `'top-right'` |
 | `round` | 是否根据位置自动设置圆角 | `boolean` | `false` |
+| `title` | 弹出层标题 | `ReactNode` | - |
+| `description` | 弹出层描述 | `ReactNode` | - |
 | `safeArea` | 是否使用 `SafeAreaView` 包裹内容 | `boolean` | `false` |
 | `safeAreaInsetTop` | 内容顶部是否预留安全区 | `boolean` | `false` |
 | `safeAreaInsetBottom` | 内容底部是否预留安全区 | `boolean` | `false` |
@@ -100,3 +108,9 @@ import type { PopupPlacement, PopupCloseIconPosition } from 'react-native-system
 ```
 
 > `beforeClose` 会收到触发来源（`close-icon`、`overlay`、`close`），可用于二次确认或异步校验。
+
+## 差异说明
+
+- React Vant 的 `duration` 单位为秒，本库为毫秒（ms）。
+- React Vant 提供 `teleport`（挂载节点）能力；本库不提供该 prop，但可通过在局部区域内包裹 `Portal.Host` / `ConfigProvider` 来控制弹层挂载位置与配置作用域。
+- React Vant 的 `className/overlayClass/transition` 等 DOM 能力在 React Native 环境不适用，本库以样式 props（如 `style/overlayStyle`）替代。

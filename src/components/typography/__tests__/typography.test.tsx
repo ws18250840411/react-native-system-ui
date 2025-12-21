@@ -1,5 +1,5 @@
 import React from 'react'
-import { Linking, Text } from 'react-native'
+import { Linking, StyleSheet, Text } from 'react-native'
 import renderer, { act } from 'react-test-renderer'
 
 import Typography from '..'
@@ -68,5 +68,14 @@ describe('Typography', () => {
     })
 
     expect(openURLSpy).toHaveBeenCalledWith('https://example.com')
+  })
+
+  it('supports color override', () => {
+    const tree = renderer.create(
+      <Typography.Text color="#ff0000">文字</Typography.Text>,
+    )
+    const text = tree.root.findByType(Text)
+    const style = StyleSheet.flatten(text.props.style)
+    expect(style.color).toBe('#ff0000')
   })
 })

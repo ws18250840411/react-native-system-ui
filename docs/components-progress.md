@@ -24,7 +24,7 @@
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
-| Button 按钮 | ✅ | 三审通过：对照 React Vant API + RN Paper 交互策略，三端点击/禁用/加载语义一致；二次审计通过：修复 loading 态误用 disabledOpacity、去除 loading 图标重复间距；`Button.Group` key 更稳定（类型/文档/demo 已对齐） |
+| Button 按钮 | ✅ | 三审通过：对照 React Vant API + RN Paper 交互策略，三端点击/禁用/加载语义一致；二次审计通过：修复 loading 态误用 disabledOpacity、去除 loading 图标重复间距；补充：文档说明 loading 默认显示文字（与 RN Paper 一致）；`Button.Group` key 更稳定（类型/文档/demo 已对齐） |
 | Cell 单元格 | ✅ | 三审通过：hairline/点击态/箭头渲染三端一致（Web 0.5px 细线策略保持）；二次审计通过：修复 title/value/children/label/extra 对 `0/''/false` 的渲染判定，label 支持非 Text 节点；移除 View 上无效 `lineHeight` 与 ref 类型修正（文档/demo 已对齐） |
 | ConfigProvider 全局配置 | ✅ | 三审通过：作为全局主题/语言入口并内置 PortalHost，三端一致性复核通过；二次审计通过：移除无意义 `useMemo`，Provider 值保持稳定（语言/主题 demo 已对齐） |
 | Typography 文本 | ✅ | 三审通过：ellipsis/展开收起在 Web 与原生端行为一致性复核通过；二次审计通过：移除死代码、精简结构（非 center/ellipsis 场景不再额外包 View），ellipsis 截断判定改为函数式 setState 降低重渲染 |
@@ -109,3 +109,11 @@
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
 | Area 省市区 | ✅ | 三审通过：基于 Picker 的联动与弹层交互三端一致性复核通过；二次审计通过：基于 Picker 的省市区联动封装（`columnsNum`/受控/确认回调），demo 与单测已覆盖；数据结构兼容常见 AreaList（province_list/city_list/county_list） |
+
+待解决问题（更新：2025-12-21）：
+1. ✅ PullRefresh 下拉刷新：Web 端通过 PanResponder 模拟拖拽下拉，并修复 rndoc touch-emulator 事件冲突。
+2. ✅ ShareSheet 分享面板：demo 已按官方文档对齐，并补齐描述信息示例。
+3. ✅ ImagePreview 图片预览：demo 图片源与示例已按官方文档对齐。
+4. ✅ Popover 气泡卡片：基础用法 Web 端定位已修正（getBoundingClientRect）。
+5. ✅ Grid / IndexBar / NavBar / Sidebar：文档与 demo 已对齐官方默认值与展示。
+6. ✅ Checkbox 复选框：修复 rndoc touch-emulator 导致的点击无效（dataSet noTouchSimulate + Web `pointerEvents="box-only"`）。

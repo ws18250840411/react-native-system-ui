@@ -37,7 +37,7 @@ import { Space } from 'react-native-system-ui'
 
 ### 间距大小
 
-通过 `size` 或 `gap` 自定义间距大小，`size` 支持 `mini` `small` `normal` `large` 这几种预设，数组形式可分别设置水平与垂直间距。
+通过 `size` 或 `gap` 自定义间距大小，`size` 支持 `mini` `small` `normal` `large` 这几种预设；数组形式为 `[vertical, horizontal]`（同 CSS `gap` 语义）。
 
 <code title="间距大小" src="./space/demo/gap.tsx"></code>
 
@@ -63,8 +63,8 @@ import { Space } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `size` | 间距大小，支持预设 `mini` `small` `normal` `large`，也接受数字或像素字符串，数组形式可分别指定水平/垂直 | `SpaceGap \| SpaceSizePreset` | `normal` |
-| `gap` | 自定义间距，语义同 `size`，优先级更高 | `number \| string \| [number \| string, number \| string]` | - |
+| `size` | 间距大小，支持预设 `mini` `small` `normal` `large`，也接受数字或像素字符串；数组形式为 `[vertical, horizontal]` | `SpaceGap \| SpaceSizePreset` | `normal` |
+| `gap` | 自定义间距，语义同 `size`，优先级更高；数组形式为 `[vertical, horizontal]` | `number \| string \| [number \| string, number \| string]` | - |
 | `justify` | 主轴对齐方式 | `'start' \| 'end' \| 'center' \| 'between' \| 'around' \| 'evenly' \| 'stretch'` | `'start'` |
 | `align` | 交叉轴对齐方式 | `'start' \| 'end' \| 'center' \| 'baseline' \| 'stretch'` | `'center'`（`direction="vertical"` 时默认为 `stretch`） |
 | `direction` | 间距方向 | `'horizontal' \| 'vertical'` | `'horizontal'` |
@@ -76,3 +76,9 @@ import { Space } from 'react-native-system-ui'
 
 > 在 React Native 环境中，分隔符会作为额外的子元素插入，建议传入纯视觉节点（如 `View` 或 `Text`）。
 > 由于 React Native 暂不支持 `justifyContent: 'stretch'`，当 `justify="stretch"` 时组件会自动启用与 `fill` 相同的逻辑（仅水平方向生效），以便子元素沿主轴等分可用空间。
+
+## 差异说明
+
+- React Vant 仅提供 `gap`，本库额外提供 `size`（预设间距）与 `fill`（主轴填充）以便更贴近 React Native 端的常用写法。
+- React Vant 未传 `align` 时在 CSS 中等同 `alignItems: stretch`；本库在 `direction="horizontal"` 时默认 `align="center"`，如需保持一致可显式传 `align="stretch"`。
+- 本库在 `direction="vertical"` 且未显式传 `block` 时会默认占满宽度（便于列表/表单场景）；如需与 React Vant 的“非 block”一致，可传 `block={false}`。

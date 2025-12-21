@@ -19,21 +19,22 @@ import { IndexBar } from 'react-native-system-ui'
 
 ### 基础用法
 
-自动根据 `IndexBar.Anchor` 渲染侧边索引，支持默认粘性标题与触摸指示器。
+- 点击索引栏时，会自动跳转到对应的 `IndexBar.Anchor` 锚点位置。
+- 可以通过 `indexList` 属性自定义展示的索引字符列表。
 
-<code src="./index-bar/demo/basic.tsx" title="基础索引"></code>
+<code src="./index-bar/demo/basic.tsx" title="基础用法"></code>
 
-### 受控模式
+### 自定义索引列表
+
+通过 `indexList` 传入自定义索引数组。
+
+<code src="./index-bar/demo/custom.tsx" title="自定义索引列表"></code>
+
+### 受控模式（扩展）
 
 通过 `value/onChange` 管理当前激活索引，可与外部按钮或搜索结果联动。
 
 <code src="./index-bar/demo/controlled.tsx" title="受控切换"></code>
-
-### 自定义主题
-
-使用 `highlightColor` 与 `indicatorStyle` 自定义高亮颜色，满足品牌化需求。
-
-<code src="./index-bar/demo/custom.tsx" title="主题自定义"></code>
 
 ## API
 

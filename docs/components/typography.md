@@ -45,6 +45,8 @@ import { Typography } from 'react-native-system-ui'
 
 `ellipsis` 支持布尔、行数以及 `{ rows, expandText, collapseText }` 形式，可附带展开/收起操作。
 
+> 开启 `ellipsis` 后，建议 `children` 为纯文本或嵌套 `Text`（如 `Typography.Text`），避免传入 `View` 等节点导致 React Native 报错。
+
 <code title="文本省略" src="./typography/demo/ellipsis.tsx"></code>
 
 ### 链接
@@ -60,6 +62,7 @@ import { Typography } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `type` | 文本类型，可选 `default` `primary` `success` `warning` `danger` `secondary` `light` | `TypographyType` | `default` |
+| `color` | 自定义文字颜色，支持直接传入颜色值或 `TypographyType`（优先级高于 `type`） | `string \| TypographyType` | - |
 | `size` | 文本大小，可选 `xs` `sm` `md` `lg` `xl` `xxl` | `TypographySize` | `md` |
 | `disabled` | 是否禁用，并降低不透明度 | `boolean` | `false` |
 | `strong` | 是否加粗 | `boolean` | `false` |
@@ -73,13 +76,12 @@ import { Typography } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `rows` | 保留的行数 | `number` | `1` |
+| `symbol` | 省略符号（暂不支持，传入会被忽略） | `string` | - |
 | `expandText` | 展开操作文案 | `string` | - |
 | `collapseText` | 收起操作文案 | `string` | - |
-| `suffixText` | 省略后追加的后缀文本 | `string` | - |
-| `suffixCount` | 省略时强制保留末尾字符数量（仅 `children` 为纯文本时生效） | `number` | - |
 | `onExpand` | 展开/收起时触发 | `(expanded: boolean) => void` | - |
 
-> 移动端依赖 `numberOfLines` 实现省略，`symbol` 自定义符号暂不支持，suffix 能力仅在纯文本内容下生效。
+> 移动端依赖 `numberOfLines` 实现省略，目前仅支持 `rows/expandText/collapseText` 等基础能力；React Vant 的 `symbol/suffixText/suffixCount/onContentClick` 等高级截断能力暂不支持。
 
 ### Typography.Title Props
 
@@ -98,3 +100,8 @@ import { Typography } from 'react-native-system-ui'
 | `href` | 点击时打开的链接地址 | `string` | - |
 
 > 如需自定义导航逻辑，可直接传入 `onPress`，此时不会自动打开 `href`。
+
+## 差异说明
+
+- React Vant 提供 `tag`、`onClick` 等 DOM 能力；本库在 React Native 环境使用 `Text` 渲染，并以 `onPress` 对齐事件模型。
+- React Vant 的 `Typography.Link` 支持 `target` 等 DOM 属性；本库暂不支持。

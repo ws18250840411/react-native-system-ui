@@ -34,10 +34,10 @@ const createTokens = (foundations: Foundations): NavBarTokens => {
   const { palette, spacing, fontSize } = foundations
   return {
     defaults: {
-      fixed: true,
-      placeholder: true,
+      fixed: false,
+      placeholder: false,
       border: true,
-      safeAreaInsetTop: true,
+      safeAreaInsetTop: false,
     },
     colors: {
       background: palette.background?.base ?? '#ffffff',

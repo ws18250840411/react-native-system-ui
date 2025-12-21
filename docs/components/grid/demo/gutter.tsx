@@ -1,16 +1,15 @@
 import React from 'react'
-import { View } from 'react-native'
-
 import { Grid } from 'react-native-system-ui'
-
-const Block = () => (
-  <View style={{ width: 30, height: 30, borderRadius: 8, backgroundColor: '#10b981' }} />
-)
+import { ShopO } from 'react-native-system-icon'
 
 export default () => (
   <Grid gutter={10} border={false}>
     {Array.from({ length: 8 }, (_, index) => (
-      <Grid.Item key={index} text="文字" icon={() => <Block />} />
+      <Grid.Item
+        key={index}
+        icon={(size, color) => <ShopO size={size} fill={color} color={color} />}
+        text="文字"
+      />
     ))}
   </Grid>
 )

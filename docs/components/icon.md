@@ -60,3 +60,7 @@ import { LocationO } from 'react-native-system-icon'
 所有图标组件都支持 `react-native-svg` 的 `SvgProps`，并额外提供 `size`（同时设置 `width`/`height`，默认 `24`）。
 
 > React Native 端需要安装 `react-native-svg`；Web 端会渲染原生 `<svg>`。
+
+## 差异说明
+
+- React Vant 提供 `Icon` 组件与 `createFromIconfontCN` 等能力；本库以 `react-native-system-icon` 的“按需导出图标组件”形式提供图标（更符合 React Native 生态与 Tree Shaking 习惯）。

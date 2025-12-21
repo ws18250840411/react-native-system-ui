@@ -104,6 +104,7 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
   const {
     children,
     type = 'default',
+    color: colorProp,
     size = 'md',
     level,
     disabled = false,
@@ -132,7 +133,10 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     [ellipsisRows, expanded],
   )
 
-  const resolvedColor = tokens.colors[type] ?? tokens.colors.default
+  let resolvedColor = tokens.colors[type] ?? tokens.colors.default
+  if (colorProp !== undefined && colorProp !== null) {
+    resolvedColor = tokens.colors[colorProp as any] ?? String(colorProp)
+  }
   const fontSize = level ? tokens.titles[level].fontSize : tokens.sizes[size]
   const lineHeight = level ? tokens.titles[level].lineHeight : fontSize * 1.3
 

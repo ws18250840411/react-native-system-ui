@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, BackHandler, SafeAreaView, View, Platform } from 'react-native'
+import { Pressable, BackHandler, SafeAreaView, View, Platform, Text } from 'react-native'
 
 import Popup from '..'
 import { PortalHost } from '../../portal'
@@ -270,5 +270,23 @@ describe('Popup', () => {
       tree.unmount()
     })
     jest.useRealTimers()
+  })
+
+  it('renders title and description when provided', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <Popup visible placement="bottom" title="标题" description="描述">
+          <View />
+        </Popup>
+      </PortalHost>,
+    )
+
+    const texts = tree.root.findAllByType(Text)
+    expect(texts.some(node => node.props.children === '标题')).toBe(true)
+    expect(texts.some(node => node.props.children === '描述')).toBe(true)
+
+    act(() => {
+      tree.unmount()
+    })
   })
 })

@@ -1,23 +1,12 @@
 import React from 'react'
-import { View } from 'react-native'
 
 import { Grid } from 'react-native-system-ui'
-
-const SquareIcon = () => (
-  <View
-    style={{
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      backgroundColor: '#0ea5e9',
-    }}
-  />
-)
+import { ShopO } from 'react-native-system-icon'
 
 export default () => (
   <Grid square>
     {Array.from({ length: 8 }, (_, index) => (
-      <Grid.Item key={index} text="文字" icon={() => <SquareIcon />} />
+      <Grid.Item key={index} icon={(size, color) => <ShopO size={size} fill={color} color={color} />} text="文字" />
     ))}
   </Grid>
 )

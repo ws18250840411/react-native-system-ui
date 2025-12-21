@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import type { SidebarItemProps, SidebarProps } from './types'
@@ -49,6 +49,20 @@ const SidebarBase: React.FC<SidebarProps> = props => {
     )
   }, [items])
 
+  const activeItem = React.useMemo(() => {
+    return items.find(item => item.index === currentIndex)?.element
+  }, [currentIndex, items])
+
+  const activeContentStyle = activeItem?.props?.contentStyle
+  const activeContentNode = React.useMemo(() => {
+    const content = activeItem?.props?.children
+    if (content === null || content === undefined || content === false) return null
+    if (typeof content === 'string' || typeof content === 'number') {
+      return <Text>{content}</Text>
+    }
+    return content
+  }, [activeItem])
+
   return (
     <View
       {...rest}
@@ -69,6 +83,9 @@ const SidebarBase: React.FC<SidebarProps> = props => {
           {clonedItems}
         </SidebarContext.Provider>
       </View>
+      <View style={[styles.content, { backgroundColor: tokens.colors.background }, activeContentStyle]}>
+        {activeContentNode}
+      </View>
     </View>
   )
 }
@@ -79,6 +96,10 @@ const styles = StyleSheet.create({
   },
   side: {
     borderRightWidth: StyleSheet.hairlineWidth,
+  },
+  content: {
+    flex: 1,
+    minWidth: 0,
   },
 })
 

@@ -19,10 +19,10 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
     onClick,
     textStyle,
     badgeStyle,
-    contentStyle,
+    contentStyle: _contentStyle,
     style,
     index = 0,
-    children,
+    children: _children,
     ...rest
   } = props
   const tokens = useSidebarTokens()
@@ -70,7 +70,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
           />
         ) : null}
       </View>
-      <View style={[styles.content, contentStyle]}>
+      <View style={styles.content}>
         <View style={styles.titleRow}>
           {isRenderable(title)
             ? typeof title === 'string' || typeof title === 'number'
@@ -103,13 +103,6 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
             <View style={[styles.dot, { backgroundColor: tokens.colors.indicator }]} />
           ) : null}
         </View>
-        {isRenderable(children) ? (
-          <View style={styles.subContent}>
-            {typeof children === 'string' || typeof children === 'number'
-              ? <Text style={styles.subText}>{children}</Text>
-              : children}
-          </View>
-        ) : null}
       </View>
     </Pressable>
   )
@@ -145,13 +138,6 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-  },
-  subContent: {
-    marginTop: 4,
-  },
-  subText: {
-    color: '#666',
-    fontSize: 14,
   },
 })
 

@@ -60,3 +60,7 @@ import { Portal } from 'react-native-system-ui'
 | `Portal.clear()` | 清空当前所有挂载的 Portal 节点，常用于退出页面或文档切换时的兜底清理。 |
 
 > 静态方法默认会尝试自动创建 `PortalHost`（Web 环境下通过 DOM 自动注入），但在 React Native 真机/模拟器中仍需手动挂载一次 Host。
+
+## 差异说明
+
+- React Vant 不提供独立的 `Portal` 组件，类似能力以 `teleport` 参数内置在 `Popup/Toast` 等组件中；本库将其抽象为独立的 `Portal`，便于跨端统一弹层出口与静态 API 实现。

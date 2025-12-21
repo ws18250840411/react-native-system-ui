@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native'
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
@@ -23,7 +23,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
     leftArrow = true,
     fixed = tokens.defaults.fixed,
     placeholder = tokens.defaults.placeholder,
-    zIndex = 99,
+    zIndex = 1,
     border = tokens.defaults.border,
     safeAreaInsetTop = fixed ? tokens.defaults.safeAreaInsetTop : false,
     background = tokens.colors.background,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   fixed: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
     top: 0,
     left: 0,
     right: 0,

@@ -1,19 +1,13 @@
 import React from 'react'
-import { Cell, Image, ShareSheet } from 'react-native-system-ui'
+import { Cell, ShareSheet } from 'react-native-system-ui'
+import { Photo, Qr, Share, ShareO, Wechat } from 'react-native-system-icon'
 
 const options = [
-  {
-    name: '名称',
-    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-fire.png" width={48} height={48} />,
-  },
-  {
-    name: '名称',
-    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-light.png" width={48} height={48} />,
-  },
-  {
-    name: '名称',
-    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-water.png" width={48} height={48} />,
-  },
+  { name: '微信', icon: <Wechat /> },
+  { name: '微博', icon: <Share /> },
+  { name: '复制链接', icon: <ShareO />, description: '描述信息' },
+  { name: '分享海报', icon: <Photo /> },
+  { name: '二维码', icon: <Qr /> },
 ]
 
 export default () => {
@@ -25,6 +19,7 @@ export default () => {
         visible={visible}
         options={options}
         title="立即分享给好友"
+        description="描述信息"
         closeOnSelect={false}
         onCancel={() => setVisible(false)}
         onSelect={(option, index) => {
@@ -36,3 +31,4 @@ export default () => {
     </>
   )
 }
+

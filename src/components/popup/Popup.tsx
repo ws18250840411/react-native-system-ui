@@ -6,10 +6,12 @@ import {
   Pressable,
   SafeAreaView,
   StyleSheet,
+  Text,
   View,
   useWindowDimensions,
   type LayoutChangeEvent,
   type StyleProp,
+  type TextStyle,
   type ViewStyle,
   type ViewProps,
 } from 'react-native'
@@ -38,6 +40,8 @@ export interface PopupProps extends ViewProps {
   /** 与 react-vant 对齐：position 等价于 placement */
   position?: PopupPlacement
   placement?: PopupPlacement
+  title?: React.ReactNode
+  description?: React.ReactNode
   overlay?: boolean
   overlayStyle?: StyleProp<ViewStyle>
   overlayAccessibilityLabel?: string
@@ -140,6 +144,20 @@ const buildRadius = (round: boolean | undefined, placement: PopupPlacement, radi
   }
 }
 
+const isRenderable = (node: React.ReactNode) =>
+  node !== undefined && node !== null && node !== false
+
+const renderHeaderNode = (
+  node: React.ReactNode,
+  options: { textStyle: TextStyle; wrapperStyle: ViewStyle },
+) => {
+  if (!isRenderable(node)) return null
+  if (typeof node === 'string' || typeof node === 'number') {
+    return <Text style={options.textStyle}>{node}</Text>
+  }
+  return <View style={options.wrapperStyle}>{node}</View>
+}
+
 const renderWithSafeArea = (
   children: React.ReactNode,
   opts: { safeArea: boolean; safeAreaInsetTop: boolean; safeAreaInsetBottom: boolean }
@@ -165,6 +183,8 @@ export const Popup: React.FC<PopupProps> = props => {
     visible,
     placement: placementProp,
     position,
+    title,
+    description,
     overlay = true,
     overlayStyle,
     overlayAccessibilityLabel = '关闭弹层',
@@ -420,6 +440,36 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const hasCustomCloseIcon = closeIcon != null
 
+  const hasHeader = isRenderable(title) || isRenderable(description)
+  const headerPaddingStyle =
+    closeable && closeIconPosition.startsWith('top-')
+      ? closeIconPosition.endsWith('right')
+        ? { paddingRight: 44 }
+        : { paddingLeft: 44 }
+      : undefined
+
+  const headerNode = hasHeader ? (
+    <View style={[styles.header, headerPaddingStyle]}>
+      {renderHeaderNode(title, {
+        textStyle: styles.title,
+        wrapperStyle: styles.titleWrapper,
+      })}
+      {renderHeaderNode(description, {
+        textStyle: styles.description,
+        wrapperStyle: styles.descriptionWrapper,
+      })}
+    </View>
+  ) : null
+
+  const contentBody = hasHeader ? (
+    <>
+      {headerNode}
+      {children}
+    </>
+  ) : (
+    children
+  )
+
   const content = (
     <Animated.View
       ref={overlayRef}
@@ -459,7 +509,7 @@ export const Popup: React.FC<PopupProps> = props => {
           {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill="#c8c9cc" color="#c8c9cc" />}
         </Pressable>
       ) : null}
-      {renderWithSafeArea(children, { safeArea, safeAreaInsetTop, safeAreaInsetBottom })}
+      {renderWithSafeArea(contentBody, { safeArea, safeAreaInsetTop, safeAreaInsetBottom })}
     </Animated.View>
   )
 
@@ -538,6 +588,38 @@ const styles = StyleSheet.create({
   popup: {
     padding: 16,
     ...popupShadow,
+  },
+  header: {
+    width: '100%',
+  },
+  titleWrapper: {
+    marginTop: 20,
+    marginBottom: 12,
+    marginHorizontal: 12,
+    alignItems: 'center',
+  },
+  title: {
+    marginTop: 20,
+    marginBottom: 12,
+    marginHorizontal: 12,
+    fontWeight: '500',
+    color: '#323233',
+    fontSize: 16,
+    lineHeight: 16,
+    textAlign: 'center',
+    includeFontPadding: false,
+  },
+  descriptionWrapper: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+  },
+  description: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    color: '#969799',
+    fontSize: 14,
+    lineHeight: 20,
+    includeFontPadding: false,
   },
   popupVertical: {
     alignSelf: 'stretch',
