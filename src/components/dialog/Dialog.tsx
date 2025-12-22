@@ -1,18 +1,5 @@
-import { useDialog } from '@react-native-aria/dialog'
 import React from 'react'
-import {
-  ActivityIndicator,
-  Animated,
-  Platform,
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  type TextStyle,
-  type ViewProps,
-  type ViewStyle,
-} from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
 
 import { useLocale } from '../config-provider/useLocale'
 import { useTheme } from '../../design-system'
@@ -21,45 +8,8 @@ import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import { Close } from 'react-native-system-icon'
 import Button from '../button'
-import Portal from '../portal/Portal'
-import { useOverlayStack } from '../overlay'
+import Popup from '../popup'
 import type { DialogProps } from './types'
-import type { FocusableElement } from '@react-types/shared'
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
-
-type DialogA11yProps = Pick<
-  ViewProps,
-  'accessible' | 'accessibilityRole' | 'accessibilityLabel' | 'accessibilityLabelledBy' | 'accessibilityHint'
->
-
-const mapDialogAccessibility = (props?: Record<string, any>): DialogA11yProps => {
-  if (!props) return { accessible: true, accessibilityRole: 'dialog' }
-  const mapped: DialogA11yProps = { accessible: true, accessibilityRole: 'dialog' }
-  const role = props.role as string | undefined
-  if (role) {
-    mapped.accessibilityRole = role === 'alertdialog' ? 'alert' : (role as ViewProps['accessibilityRole'])
-  }
-  if (props['aria-label']) {
-    mapped.accessibilityLabel = String(props['aria-label'])
-  }
-  if (props['aria-labelledby']) {
-    mapped.accessibilityLabelledBy = props['aria-labelledby']
-  }
-  if (props['aria-describedby']) {
-    mapped.accessibilityHint = String(props['aria-describedby'])
-  }
-  return mapped
-}
-
-let idCounter = 0
-const useStableNativeId = () => {
-  const [nativeId] = React.useState(() => {
-    idCounter += 1
-    return `rn-system-dialog-title-${idCounter}`
-  })
-  return nativeId
-}
 
 const isPromiseLike = (value: unknown): value is Promise<unknown> =>
   !!value && typeof value === 'object' && typeof (value as any).then === 'function'
@@ -69,7 +19,6 @@ interface DialogTokens {
     background: string
     title: string
     message: string
-    overlay: string
     divider: string
     cancel: string
     confirm: string
@@ -110,7 +59,6 @@ const createDialogTokens = (foundations: Foundations): DialogTokens => {
       background: '#ffffff',
       title: foreground,
       message: secondary,
-      overlay: 'rgba(0,0,0,0.45)',
       divider: 'rgba(0,0,0,0.08)',
       cancel: palette.default[700],
       confirm: palette.danger[500],
@@ -166,42 +114,49 @@ interface ActionButtonProps {
   onPress?: () => void
 }
 
-const ActionButton: React.FC<ActionButtonProps> = props => {
+const ActionButton: React.FC<ActionButtonProps> = React.memo(props => {
   const { text, color, tokens, dividerPosition = 'none', loading, disabled, onPress } = props
   const textColor = color ?? tokens.colors.confirm
 
-  const renderContent = () => {
+  const buttonStyle = React.useCallback(
+    ({ pressed }: { pressed: boolean }) => [
+      styles.actionButton,
+      {
+        height: tokens.sizes.actionHeight,
+        borderColor: tokens.colors.divider,
+        borderLeftWidth: dividerPosition === 'left' ? StyleSheet.hairlineWidth : 0,
+        borderRightWidth: dividerPosition === 'right' ? StyleSheet.hairlineWidth : 0,
+        opacity: pressed && !disabled && !loading ? 0.8 : 1,
+      },
+    ],
+    [tokens.sizes.actionHeight, tokens.colors.divider, dividerPosition, disabled, loading]
+  )
+
+  const textStyle = React.useMemo(() => [styles.actionText, { color: textColor }], [textColor])
+
+  const renderContent = React.useMemo(() => {
     if (loading) {
       return <ActivityIndicator size="small" color={textColor} />
     }
-
     if (React.isValidElement(text)) {
       return text
     }
-
-    return <Text style={[styles.actionText, { color: textColor }]}>{text ?? ''}</Text>
-  }
+    return <Text style={textStyle}>{text ?? ''}</Text>
+  }, [loading, text, textColor, textStyle])
 
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled || loading}
-      style={({ pressed }) => [
-        styles.actionButton,
-        {
-          height: tokens.sizes.actionHeight,
-          borderColor: tokens.colors.divider,
-          borderLeftWidth: dividerPosition === 'left' ? StyleSheet.hairlineWidth : 0,
-          borderRightWidth: dividerPosition === 'right' ? StyleSheet.hairlineWidth : 0,
-          opacity: pressed && !disabled && !loading ? 0.8 : 1,
-        },
-      ]}
+      style={buttonStyle}
       onPress={disabled || loading ? undefined : onPress}
     >
-      {renderContent()}
+      {renderContent}
     </Pressable>
   )
-}
+})
+
+ActionButton.displayName = 'ActionButton'
 
 export const Dialog: React.FC<DialogProps> = props => {
   const locale = useLocale()
@@ -245,58 +200,14 @@ export const Dialog: React.FC<DialogProps> = props => {
     ...rest
   } = props
 
-  const dialogRef = React.useRef<View>(null)
-  const titleNativeId = useStableNativeId()
-  const hasTitle = title !== undefined && title !== null && title !== false && title !== ''
-  const hasMessage = message !== undefined && message !== null && message !== false && message !== ''
-  const ariaConfig = React.useMemo(() => {
-    if (hasTitle) {
-      return { 'aria-labelledby': titleNativeId }
-    }
-    if (!hasTitle && (typeof message === 'string' || typeof message === 'number') && String(message) !== '') {
-      return { 'aria-label': String(message) }
-    }
-    return {}
-  }, [hasTitle, message, titleNativeId])
-  const { dialogProps, titleProps } = useDialog(
-    ariaConfig,
-    dialogRef as unknown as React.RefObject<FocusableElement>
+  const hasTitle = React.useMemo(
+    () => title !== undefined && title !== null && title !== false && title !== '',
+    [title]
   )
-  const dialogAccessibilityProps = React.useMemo(
-    () => mapDialogAccessibility(dialogProps as Record<string, any>),
-    [dialogProps]
+  const hasMessage = React.useMemo(
+    () => message !== undefined && message !== null && message !== false && message !== '',
+    [message]
   )
-  const titleAccessibilityProps = React.useMemo(
-    () => ({
-      nativeID: (titleProps as Record<string, any> | undefined)?.id ?? titleNativeId,
-      accessibilityRole: 'header' as const,
-    }),
-    [titleNativeId, titleProps]
-  )
-
-  const [mounted, setMounted] = React.useState(visible)
-  const opacity = React.useRef(new Animated.Value(visible ? 1 : 0)).current
-  const scale = React.useRef(new Animated.Value(visible ? 1 : 0.96)).current
-
-  React.useEffect(() => {
-    if (visible) {
-      setMounted(true)
-      Animated.parallel([
-        Animated.timing(opacity, { toValue: 1, duration: 150, useNativeDriver: Platform.OS !== 'web' }),
-        Animated.spring(scale, { toValue: 1, useNativeDriver: Platform.OS !== 'web' }),
-      ]).start()
-    } else if (mounted) {
-      Animated.parallel([
-        Animated.timing(opacity, { toValue: 0, duration: 150, useNativeDriver: Platform.OS !== 'web' }),
-        Animated.timing(scale, { toValue: 0.96, duration: 150, useNativeDriver: Platform.OS !== 'web' }),
-      ]).start(() => {
-        setMounted(false)
-        onClosed?.()
-      })
-    }
-  }, [mounted, onClosed, opacity, scale, visible])
-
-  const mergedCloseOnOverlayPress = closeOnOverlayPress || closeOnClickOverlay
 
   const runBeforeClose = React.useCallback(
     (action: 'confirm' | 'cancel' | 'close') => {
@@ -328,11 +239,6 @@ export const Dialog: React.FC<DialogProps> = props => {
     }
     onClose?.()
   }, [onClose, runBeforeClose])
-
-  const handleOverlayPress = React.useCallback(() => {
-    if (!mergedCloseOnOverlayPress) return
-    requestClose()
-  }, [mergedCloseOnOverlayPress, requestClose])
 
   const handleCloseIcon = React.useCallback(() => {
     onClickCloseIcon?.()
@@ -377,134 +283,148 @@ export const Dialog: React.FC<DialogProps> = props => {
     onConfirm?.()
   }, [confirmProps?.loading, onConfirm, runBeforeClose])
 
-  const handleStackClose = React.useCallback(() => {
-    void requestClose()
-  }, [requestClose])
+  const handlePopupBeforeClose = React.useCallback(
+    async (reason: 'close-icon' | 'overlay' | 'close') => {
+      if (!beforeClose) return true
+      const actionMap: Record<string, 'confirm' | 'cancel' | 'close'> = {
+        'close-icon': 'close',
+        overlay: 'close',
+        close: 'close',
+      }
+      const action = actionMap[reason] ?? 'close'
+      return await runBeforeClose(action)
+    },
+    [beforeClose, runBeforeClose]
+  )
 
-  const { zIndex: stackZIndex, isTopMost } = useOverlayStack({
-    visible,
-    onClose: handleStackClose,
-    closeOnBack: true,
-    lockScroll: true,
-    type: 'dialog',
-  })
+  const widthStyle = React.useMemo<StyleProp<ViewStyle>>(
+    () =>
+      width
+        ? typeof width === 'number'
+          ? { width }
+          : { width: String(width) as any }
+        : { minWidth: tokens.sizes.minWidth, maxWidth: tokens.sizes.maxWidth },
+    [width, tokens.sizes.minWidth, tokens.sizes.maxWidth]
+  )
 
-  if (!mounted) {
-    return null
-  }
+  const hasChildren = React.useMemo(
+    () => !(children === null || children === undefined || children === false),
+    [children]
+  )
 
-  const widthStyle: StyleProp<ViewStyle> = width
-    ? typeof width === 'number'
-      ? { width }
-      : { width }
-    : { minWidth: tokens.sizes.minWidth, maxWidth: tokens.sizes.maxWidth }
-
-  const renderTitle = () => {
+  const renderTitle = React.useCallback(() => {
     if (!hasTitle) return null
-    const defaultTitleStyle = [
-      styles.title,
-      {
-        color: tokens.colors.title,
-        fontSize: tokens.typography.titleSize,
-        lineHeight: tokens.typography.titleLineHeight,
-        fontWeight: tokens.typography.titleWeight,
-      },
-      titleStyle,
-    ]
+    const defaultTitleStyle = React.useMemo(
+      () => [
+        styles.title,
+        {
+          color: tokens.colors.title,
+          fontSize: tokens.typography.titleSize,
+          lineHeight: tokens.typography.titleLineHeight,
+          fontWeight: tokens.typography.titleWeight as any,
+        },
+        titleStyle,
+      ],
+      [tokens.colors.title, tokens.typography.titleSize, tokens.typography.titleLineHeight, tokens.typography.titleWeight, titleStyle]
+    )
 
-    const content = React.isValidElement(title)
-      ? React.cloneElement(title, {
-          ...(title.props ?? {}),
-          ...titleAccessibilityProps,
-        })
-      : (
-          <Text style={defaultTitleStyle} {...titleAccessibilityProps}>
-            {title}
-          </Text>
-        )
+    const hasMessageOrChildren = !!(message || children)
+    const titleWrapperStyle = React.useMemo(
+      () => [
+        styles.titleWrapper,
+        {
+          marginBottom: hasMessageOrChildren ? tokens.spacing.titleGap : 0,
+        },
+      ],
+      [hasMessageOrChildren, tokens.spacing.titleGap]
+    )
+
+    const content = React.isValidElement(title) ? (
+      title
+    ) : (
+      <Text style={defaultTitleStyle}>{title}</Text>
+    )
 
     return (
-      <View
-        style={[
-          styles.titleWrapper,
-          {
-            marginBottom: message || children ? tokens.spacing.titleGap : 0,
-          },
-        ]}
-      >
+      <View style={titleWrapperStyle}>
         {content}
       </View>
     )
-  }
+  }, [hasTitle, title, titleStyle, tokens, message, children])
 
-  const renderMessage = () => {
-    const hasChildren = !(children === null || children === undefined || children === false)
+  const messageTextStyle = React.useMemo(
+    () => [
+      styles.message,
+      {
+        color: tokens.colors.message,
+        fontSize: tokens.typography.messageSize,
+        lineHeight: tokens.typography.messageLineHeight,
+        textAlign: messageAlign,
+      },
+      messageStyle,
+    ],
+    [tokens.colors.message, tokens.typography.messageSize, tokens.typography.messageLineHeight, messageAlign, messageStyle]
+  )
+
+  const renderMessage = React.useCallback(() => {
     if (!hasMessage && !hasChildren) return null
     const hasCustom = hasChildren
-    const contentNode =
-      hasCustom
-        ? children
-        :
-      (React.isValidElement(message) ? (
-        message
-      ) : (
-        <Text
-          style={[
-            styles.message,
-            {
-              color: tokens.colors.message,
-              fontSize: tokens.typography.messageSize,
-              lineHeight: tokens.typography.messageLineHeight,
-              textAlign: messageAlign,
-            },
-            messageStyle,
-          ]}
-        >
-          {message}
-        </Text>
-      ))
 
-    const alignment =
-      hasCustom
-        ? null
-        : {
-            alignItems:
-              messageAlign === 'center'
-                ? 'center'
-                : messageAlign === 'left'
-                  ? 'flex-start'
-                  : 'flex-end',
-          }
+    const contentNode = React.useMemo(() => {
+      if (hasCustom) return children
+      if (React.isValidElement(message)) return message
+      return <Text style={messageTextStyle}>{message}</Text>
+    }, [hasCustom, children, message, messageTextStyle])
+
+    const alignment = hasCustom
+      ? null
+      : React.useMemo(
+        () => ({
+          alignItems:
+            messageAlign === 'center'
+              ? ('center' as const)
+              : messageAlign === 'left'
+                ? ('flex-start' as const)
+                : ('flex-end' as const),
+        }),
+        [messageAlign]
+      )
+
+    const contentStyleMemo = React.useMemo(
+      () => [
+        styles.content,
+        {
+          marginBottom: tokens.spacing.footerGap,
+        },
+        alignment,
+        contentStyle,
+      ],
+      [tokens.spacing.footerGap, alignment, contentStyle]
+    )
 
     return (
-      <View
-        style={[
-          styles.content,
-          {
-            marginBottom: tokens.spacing.footerGap,
-          },
-          alignment,
-          contentStyle,
-        ]}
-      >
+      <View style={contentStyleMemo}>
         {contentNode}
       </View>
     )
-  }
+  }, [hasMessage, hasChildren, children, message, tokens, messageAlign, messageStyle, contentStyle, messageTextStyle])
 
-  const renderDefaultFooter = () => {
+  const renderDefaultFooter = React.useCallback(() => {
     if (!showCancelButton && !showConfirmButton) return null
 
+    const footerStyle = React.useMemo(
+      () => [
+        styles.footer,
+        {
+          borderTopColor: tokens.colors.divider,
+          marginTop: tokens.spacing.footerGap,
+        },
+      ],
+      [tokens.colors.divider, tokens.spacing.footerGap]
+    )
+
     return (
-      <View
-        style={[
-          styles.footer,
-          {
-            borderTopColor: tokens.colors.divider,
-            marginTop: tokens.spacing.footerGap,
-          },
-        ]}
-      >
+      <View style={footerStyle}>
         {showCancelButton ? (
           <ActionButton
             tokens={tokens}
@@ -529,28 +449,58 @@ export const Dialog: React.FC<DialogProps> = props => {
         ) : null}
       </View>
     )
-  }
+  }, [
+    showCancelButton,
+    showConfirmButton,
+    tokens,
+    locale.cancel,
+    locale.confirm,
+    cancelButtonText,
+    cancelButtonColor,
+    cancelProps?.loading,
+    cancelProps?.disabled,
+    confirmButtonText,
+    confirmButtonColor,
+    confirmProps?.loading,
+    confirmProps?.disabled,
+    handleCancel,
+    handleConfirm,
+  ])
 
-  const renderRoundFooter = () => {
+  const renderRoundFooter = React.useCallback(() => {
     if (!showCancelButton && !showConfirmButton) return null
 
+    const roundFooterStyle = React.useMemo(
+      () => [
+        styles.roundFooter,
+        {
+          padding: tokens.spacing.roundFooterPadding,
+          marginTop: tokens.spacing.footerGap,
+        },
+      ],
+      [tokens.spacing.roundFooterPadding, tokens.spacing.footerGap]
+    )
+
+    const cancelWrapperStyle = React.useMemo(
+      () => [
+        styles.roundButtonWrapper,
+        { marginRight: showConfirmButton ? tokens.spacing.roundFooterGap : 0 },
+      ],
+      [showConfirmButton, tokens.spacing.roundFooterGap]
+    )
+
+    const confirmWrapperStyle = React.useMemo(
+      () => [
+        styles.roundButtonWrapper,
+        { marginLeft: showCancelButton ? tokens.spacing.roundFooterGap : 0 },
+      ],
+      [showCancelButton, tokens.spacing.roundFooterGap]
+    )
+
     return (
-      <View
-        style={[
-          styles.roundFooter,
-          {
-            padding: tokens.spacing.roundFooterPadding,
-            marginTop: tokens.spacing.footerGap,
-          },
-        ]}
-      >
+      <View style={roundFooterStyle}>
         {showCancelButton ? (
-          <View
-            style={[
-              styles.roundButtonWrapper,
-              { marginRight: showConfirmButton ? tokens.spacing.roundFooterGap : 0 },
-            ]}
-          >
+          <View style={cancelWrapperStyle}>
             <Button
               size="large"
               block
@@ -565,12 +515,7 @@ export const Dialog: React.FC<DialogProps> = props => {
           </View>
         ) : null}
         {showConfirmButton ? (
-          <View
-            style={[
-              styles.roundButtonWrapper,
-              { marginLeft: showCancelButton ? tokens.spacing.roundFooterGap : 0 },
-            ]}
-          >
+          <View style={confirmWrapperStyle}>
             <Button
               size="large"
               block
@@ -586,106 +531,82 @@ export const Dialog: React.FC<DialogProps> = props => {
         ) : null}
       </View>
     )
-  }
+  }, [
+    showCancelButton,
+    showConfirmButton,
+    tokens,
+    locale.cancel,
+    locale.confirm,
+    cancelButtonText,
+    cancelButtonColor,
+    cancelProps?.loading,
+    cancelProps?.disabled,
+    confirmButtonText,
+    confirmButtonColor,
+    confirmProps?.loading,
+    confirmProps?.disabled,
+    handleCancel,
+    handleConfirm,
+  ])
 
-  const renderFooter = () => {
+  const renderFooter = React.useCallback(() => {
     if (footer) return footer
     return theme === 'round-button' ? renderRoundFooter() : renderDefaultFooter()
-  }
+  }, [footer, theme, renderRoundFooter, renderDefaultFooter])
+
+  const mergedCloseOnOverlayPress = React.useMemo(
+    () => closeOnOverlayPress || closeOnClickOverlay,
+    [closeOnOverlayPress, closeOnClickOverlay]
+  )
 
   return (
-    <Portal>
-      <View
-        style={[styles.portalRoot, stackZIndex ? { zIndex: stackZIndex } : null]}
-        pointerEvents="box-none"
-      >
-        <View style={styles.backdrop} pointerEvents="box-none">
-          {overlay ? (
-            <AnimatedPressable
-              testID={overlayTestID}
-              style={[
-                styles.overlay,
-                { backgroundColor: tokens.colors.overlay, opacity },
-                overlayStyle,
-              ]}
-              pointerEvents={visible ? 'auto' : 'none'}
-              onPress={() => {
-                if (!isTopMost) return
-                onClickOverlay?.()
-                if (!mergedCloseOnOverlayPress) return
-                handleOverlayPress()
-              }}
-            />
-          ) : null}
-          <Animated.View style={[styles.center, { opacity, transform: [{ scale }] }]} pointerEvents="box-none">
-            <View
-              ref={dialogRef}
-              accessibilityViewIsModal
-              style={[
-                styles.dialog,
-                {
-                  backgroundColor: tokens.colors.background,
-                  borderRadius: tokens.sizes.borderRadius,
-                  paddingHorizontal: tokens.spacing.paddingHorizontal,
-                  paddingTop: tokens.spacing.paddingTop,
-                  paddingBottom: tokens.spacing.paddingBottom,
-                },
-                widthStyle,
-                style,
-              ]}
-              {...dialogAccessibilityProps}
-              {...rest}
-            >
-              {closeable ? (
-                <Pressable
-                  style={[
-                    styles.closeIcon,
-                    { top: tokens.spacing.paddingTop / 2, right: tokens.spacing.paddingHorizontal / 2 },
-                  ]}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  onPress={handleCloseIcon}
-                >
-                  {closeIcon ?? (
-                    <Close size={tokens.sizes.closeSize} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />
-                  )}
-                </Pressable>
-              ) : null}
-              {renderTitle()}
-              {renderMessage()}
-              {renderFooter()}
-            </View>
-          </Animated.View>
-        </View>
-      </View>
-    </Portal>
+    <Popup
+      visible={visible}
+      placement="center"
+      round
+      overlay={overlay}
+      overlayStyle={overlayStyle}
+      overlayTestID={overlayTestID}
+      closeOnClickOverlay={mergedCloseOnOverlayPress}
+      onClickOverlay={onClickOverlay}
+      beforeClose={handlePopupBeforeClose}
+      onClose={onClose}
+      onClosed={onClosed}
+      style={[
+        {
+          backgroundColor: tokens.colors.background,
+          borderRadius: tokens.sizes.borderRadius,
+          paddingHorizontal: tokens.spacing.paddingHorizontal,
+          paddingTop: tokens.spacing.paddingTop,
+          paddingBottom: tokens.spacing.paddingBottom,
+        },
+        widthStyle,
+        style,
+      ]}
+      {...rest}
+    >
+      {closeable ? (
+        <Pressable
+          style={[
+            styles.closeIcon,
+            { top: tokens.spacing.paddingTop / 2, right: tokens.spacing.paddingHorizontal / 2 },
+          ]}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          onPress={handleCloseIcon}
+        >
+          {closeIcon ?? (
+            <Close size={tokens.sizes.closeSize} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />
+          )}
+        </Pressable>
+      ) : null}
+      {renderTitle()}
+      {renderMessage()}
+      {renderFooter()}
+    </Popup>
   )
 }
 
 const styles = StyleSheet.create({
-  portalRoot: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backdrop: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-  },
-  dialog: {
-    width: '80%',
-    maxWidth: 360,
-  },
   titleWrapper: {
     alignItems: 'center',
   },
@@ -721,6 +642,7 @@ const styles = StyleSheet.create({
   closeIcon: {
     position: 'absolute',
     padding: 4,
+    zIndex: 1,
   },
 })
 

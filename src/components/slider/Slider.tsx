@@ -91,7 +91,7 @@ interface ThumbNodeProps {
   enhanceHandlers: (handlers: Record<string, any> | undefined, index: number) => Record<string, any> | undefined
 }
 
-const ThumbNode: React.FC<ThumbNodeProps> = ({
+const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
   index,
   orientation,
   ariaReverse,
@@ -117,31 +117,51 @@ const ThumbNode: React.FC<ThumbNodeProps> = ({
     ariaReverse
   )
 
-  const handlers = enhanceHandlers({ ...(thumbProps ?? {}) }, index) ?? {}
-  const axisKey = orientation === 'vertical' ? 'top' : 'left'
-  const crossAxisKey = orientation === 'vertical' ? 'left' : 'top'
+  const handlers = React.useMemo(
+    () => enhanceHandlers({ ...(thumbProps ?? {}) }, index) ?? {},
+    [enhanceHandlers, thumbProps, index]
+  )
 
-  const thumbStyle: ViewStyle = {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    borderColor: activeColor,
-    [axisKey]: `${visualPercent}%`,
-    [crossAxisKey]: '50%',
-    transform: [{ translateX: -size / 2 }, { translateY: -size / 2 }],
-  }
+  const axisKey = React.useMemo(
+    () => orientation === 'vertical' ? 'top' : 'left',
+    [orientation]
+  )
+  const crossAxisKey = React.useMemo(
+    () => orientation === 'vertical' ? 'left' : 'top',
+    [orientation]
+  )
+
+  const thumbStyle: ViewStyle = React.useMemo(
+    () => ({
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      borderColor: activeColor,
+      [axisKey]: `${visualPercent}%`,
+      [crossAxisKey]: '50%',
+      transform: [{ translateX: -size / 2 }, { translateY: -size / 2 }],
+    }),
+    [size, activeColor, axisKey, crossAxisKey, visualPercent]
+  )
+
+  const accessibilityProps = React.useMemo(
+    () => createAccessibilityProps(inputProps),
+    [inputProps]
+  )
 
   return (
     <View
       {...handlers}
-      {...createAccessibilityProps(inputProps)}
+      {...accessibilityProps}
       pointerEvents={isDisabled ? 'none' : 'auto'}
       style={[content ? styles.thumbWrapper : styles.thumb, thumbStyle]}
     >
       {content ?? <View style={styles.defaultThumb} />}
     </View>
   )
-}
+})
+
+ThumbNode.displayName = 'ThumbNode'
 
 export const Slider: React.FC<SliderProps> = props => {
   const {
@@ -314,7 +334,10 @@ export const Slider: React.FC<SliderProps> = props => {
   )
 
   const values = state.values as number[]
-  const reverseX = orientation === 'horizontal' ? reverse || isRTL() : reverse
+  const reverseX = React.useMemo(
+    () => orientation === 'horizontal' ? reverse || isRTL() : reverse,
+    [orientation, reverse]
+  )
 
   const percentFromValue = React.useCallback(
     (value: number) => ((value - resolvedMin) / scope) * 100,
@@ -356,8 +379,14 @@ export const Slider: React.FC<SliderProps> = props => {
       : { offset: first, size: 100 - first }
   }, [orientation, range, reverse, reverseX, thumbVisualPercents])
 
-  const positionKey = orientation === 'vertical' ? 'top' : 'left'
-  const sizeKey = orientation === 'vertical' ? 'height' : 'width'
+  const positionKey = React.useMemo(
+    () => orientation === 'vertical' ? 'top' : 'left',
+    [orientation]
+  )
+  const sizeKey = React.useMemo(
+    () => orientation === 'vertical' ? 'height' : 'width',
+    [orientation]
+  )
 
   const activeTrackStyle: ViewStyle = React.useMemo(
     () =>
@@ -370,19 +399,23 @@ export const Slider: React.FC<SliderProps> = props => {
     [activeRange.offset, activeRange.size, orientation, positionKey, resolvedActiveColor, sizeKey]
   )
 
-  const trackBaseStyle =
-    orientation === 'vertical'
-      ? [
-        styles.trackVertical,
-        { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' },
-      ]
-      : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }]
+  const trackBaseStyle = React.useMemo(
+    () =>
+      orientation === 'vertical'
+        ? [
+          styles.trackVertical,
+          { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' },
+        ]
+        : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }],
+    [orientation, resolvedTrackHeight, resolvedInactiveColor]
+  )
 
+  const isButtonFunction = typeof button === 'function'
   const thumbContentMap = React.useMemo(() => {
-    const currentValue = formatOutput(state.values)
+    const currentValue = isButtonFunction ? formatOutput(state.values) : undefined
     const shared =
-      typeof button === 'function'
-        ? button({ value: currentValue })
+      isButtonFunction
+        ? button({ value: currentValue! })
         : button ?? thumb
     const leftContent = leftButton ?? leftThumb ?? shared
     const rightContent = rightButton ?? rightThumb ?? shared
@@ -392,6 +425,7 @@ export const Slider: React.FC<SliderProps> = props => {
       right: rightContent,
     }
   }, [
+    isButtonFunction,
     button,
     thumb,
     leftButton,

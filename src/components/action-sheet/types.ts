@@ -7,7 +7,7 @@ export type ActionSheetCloseAction = 'action' | 'cancel' | 'close' | 'close-icon
 
 export interface ActionSheetAction {
   key?: React.Key
-  name: React.ReactNode
+  name?: React.ReactNode
   subname?: React.ReactNode
   color?: string
   disabled?: boolean

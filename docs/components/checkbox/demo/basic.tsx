@@ -8,10 +8,7 @@ export default () => {
     <Space direction="vertical" gap={12}>
       <Checkbox
         checked={checked}
-        onChange={(val) => {
-          setChecked(val)
-          console.log('checked', val)
-        }}
+        onChange={setChecked}
       >
         复选框
       </Checkbox>

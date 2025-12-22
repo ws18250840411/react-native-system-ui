@@ -1,26 +1,25 @@
 import React from 'react'
-import { Info, Star } from 'react-native-system-icon'
-import { ActionSheet, Button } from 'react-native-system-ui'
+import { View, Text, StyleSheet } from 'react-native'
+import { ActionSheet, Cell } from 'react-native-system-ui'
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
+  const onCancel = () => setVisible(false)
   return (
     <>
-      <Button text="自定义内容" onPress={() => setVisible(true)} />
-      <ActionSheet
-        visible={visible}
-        title="标题"
-        actions={[
-          { name: '复制链接', icon: <Info /> },
-          { name: '收藏', icon: <Star /> },
-          { name: '举报', color: '#fa5151' },
-        ]}
-        onSelect={() => setVisible(false)}
-        cancelText="关闭"
-        onClose={() => setVisible(false)}
-      >
-        <Button text="自定义区域" style={{ marginTop: 12 }} onPress={() => setVisible(false)} />
+      <Cell title="自定义面板" isLink onPress={() => setVisible(true)} />
+      <ActionSheet visible={visible} onCancel={onCancel}>
+        <View style={styles.content}>
+          <Text>内容</Text>
+        </View>
       </ActionSheet>
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  content: {
+    padding: 16,
+    paddingBottom: 160,
+  },
+})

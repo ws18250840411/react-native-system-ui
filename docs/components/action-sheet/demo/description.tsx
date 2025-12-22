@@ -1,13 +1,15 @@
 import React from 'react'
-import { ActionSheet, Button, Toast } from 'react-native-system-ui'
+import { ActionSheet, Cell, Toast } from 'react-native-system-ui'
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
+  const onCancel = () => setVisible(false)
   return (
     <>
-      <Button text="展示描述" onPress={() => setVisible(true)} />
+      <Cell title="展示描述" isLink onPress={() => setVisible(true)} />
       <ActionSheet
         visible={visible}
+        onCancel={onCancel}
         title="分享"
         description="描述信息"
         actions={[
@@ -15,11 +17,10 @@ export default () => {
           { name: '好友', subname: '单条消息' },
         ]}
         cancelText="取消"
-        onSelect={action => {
-          setVisible(false)
+        closeOnClickAction
+        onSelect={(action) => {
           Toast.info(String(action.name ?? ''))
         }}
-        onClose={() => setVisible(false)}
       />
     </>
   )

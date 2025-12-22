@@ -5,27 +5,37 @@ export default () => {
   return (
     <>
       <Cell
-        title="圆角按钮弹窗"
+        title="弹窗提示"
+        isLink
+        onPress={() =>
+          Dialog.confirm({
+            title: '标题',
+            message: '代码是写出来给人看的，附带能在机器上运行',
+            onCancel: () => console.log('cancel'),
+            onConfirm: () => console.log('confirm'),
+          })
+        }
+      />
+      <Cell
+        title="弹窗提示（无标题）"
         isLink
         onPress={() =>
           Dialog.alert({
-            title: '标题',
-            theme: 'round-button',
-            showCancelButton: true,
             message: '代码是写出来给人看的，附带能在机器上运行',
           })
         }
       />
       <Cell
-        title="圆角按钮弹窗（无标题）"
+        title="确认弹框"
         isLink
         onPress={() =>
-          Dialog.alert({
+          Dialog.confirm({
+            title: '标题',
             message: '代码是写出来给人看的，附带能在机器上运行',
-            theme: 'round-button',
           })
         }
       />
     </>
   )
 }
+

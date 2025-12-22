@@ -1,31 +1,36 @@
 import React from 'react'
 import { Cell, Dialog } from 'react-native-system-ui'
+import { Close } from 'react-native-system-icon'
 
 export default () => {
   return (
     <>
       <Cell
-        title="圆角按钮弹窗"
+        title="关闭按钮"
         isLink
         onPress={() =>
           Dialog.alert({
             title: '标题',
+            closeable: true,
             theme: 'round-button',
-            showCancelButton: true,
             message: '代码是写出来给人看的，附带能在机器上运行',
           })
         }
       />
       <Cell
-        title="圆角按钮弹窗（无标题）"
+        title="自定义关闭按钮"
         isLink
         onPress={() =>
           Dialog.alert({
-            message: '代码是写出来给人看的，附带能在机器上运行',
+            title: '标题',
+            closeable: true,
+            closeIcon: <Close />,
             theme: 'round-button',
+            message: '代码是写出来给人看的，附带能在机器上运行',
           })
         }
       />
     </>
   )
 }
+

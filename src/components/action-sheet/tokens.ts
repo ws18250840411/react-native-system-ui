@@ -43,8 +43,8 @@ const createTokens = (foundations: Foundations): ActionSheetTokens => {
     },
     spacing: {
       horizontal: spacing.md,
-      vertical: spacing.sm,
-      cancelGap: spacing.sm,
+      vertical: 14,
+      cancelGap: 8,
     },
     typography: {
       title: fontSize.lg,

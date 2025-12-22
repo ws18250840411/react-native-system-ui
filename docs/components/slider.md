@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: true
+  compact: false
 ---
 
 # Slider 滑块

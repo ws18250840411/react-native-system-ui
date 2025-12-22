@@ -744,10 +744,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
 })
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
+  container: {},
   items: {
     flexDirection: 'row',
     flexWrap: 'wrap',

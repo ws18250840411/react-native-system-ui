@@ -1,25 +1,29 @@
 import React from 'react'
+import { ActionSheet, Cell, Toast } from 'react-native-system-ui'
 
-import { ActionSheet, Button, Toast } from 'react-native-system-ui'
+const actions2 = [
+  { name: '选项一', color: '#ee0a24' },
+  { name: '选项二', disabled: true },
+  { loading: true },
+]
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
-
+  const onCancel = () => setVisible(false)
   return (
     <>
-      <Button text="选项状态" onPress={() => setVisible(true)} />
+      <Cell title="选项状态" isLink onPress={() => setVisible(true)} />
       <ActionSheet
         visible={visible}
-        actions={[
-          { name: '红色选项', color: '#ee0a24' },
-          { name: '禁用选项', disabled: true },
-          { name: '加载中', loading: true },
-        ]}
-        onSelect={action => {
-          setVisible(false)
-          Toast.info(String(action.name ?? ''))
+        onCancel={onCancel}
+        actions={actions2}
+        cancelText="取消"
+        closeOnClickAction
+        onSelect={(action) => {
+          if (action.name) {
+            Toast.info(String(action.name))
+          }
         }}
-        onClose={() => setVisible(false)}
       />
     </>
   )

@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: true
+  compact: false
 ---
 
 # Stepper 步进器
