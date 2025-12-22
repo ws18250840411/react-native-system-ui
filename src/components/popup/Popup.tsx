@@ -69,6 +69,8 @@ export interface PopupProps extends ViewProps {
   onOpen?: () => void
   onOpened?: () => void
   onClosed?: () => void
+  /** 自定义内容动画样式，用于覆盖默认动画（如 Dialog 的 scale 动画） */
+  contentAnimationStyle?: Animated.WithAnimatedObject<ViewStyle>
 }
 
 interface PopupTokens {
@@ -213,6 +215,7 @@ export const Popup: React.FC<PopupProps> = props => {
     onClosed,
     stopPropagation = true,
     style,
+    contentAnimationStyle,
     ...rest
   } = props
 
@@ -402,10 +405,26 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const overlayOpacity = progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] })
   const contentOpacity = placement === 'center' ? progress : 1
-  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = {
-    ...translateStyle,
-    opacity: contentOpacity,
-  }
+  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = React.useMemo(() => {
+    const baseStyle: Animated.WithAnimatedObject<ViewStyle> = {
+      ...translateStyle,
+      opacity: contentOpacity,
+    }
+    if (contentAnimationStyle) {
+      const customTransform = contentAnimationStyle.transform
+      const baseTransform = baseStyle.transform || []
+      const mergedTransform = customTransform && Array.isArray(customTransform)
+        ? [...(Array.isArray(baseTransform) ? baseTransform : []), ...customTransform]
+        : baseTransform
+      return {
+        ...baseStyle,
+        ...contentAnimationStyle,
+        transform: mergedTransform,
+        opacity: contentOpacity,
+      }
+    }
+    return baseStyle
+  }, [translateStyle, contentOpacity, contentAnimationStyle])
 
   const handleContentLayout = React.useCallback(
     (event: LayoutChangeEvent) => {

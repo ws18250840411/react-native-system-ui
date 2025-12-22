@@ -1,5 +1,5 @@
 import React from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
+import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
 
 import { useLocale } from '../config-provider/useLocale'
 import { useTheme } from '../../design-system'
@@ -297,14 +297,51 @@ export const Dialog: React.FC<DialogProps> = props => {
     [beforeClose, runBeforeClose]
   )
 
+  const scaleAnim = React.useRef(new Animated.Value(0.7)).current
+  const prevVisibleRef = React.useRef<boolean | undefined>(undefined)
+
+  React.useEffect(() => {
+    const prevVisible = prevVisibleRef.current
+    prevVisibleRef.current = visible
+
+    if (visible) {
+      if (prevVisible === undefined || !prevVisible) {
+        scaleAnim.setValue(0.7)
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }).start()
+      }
+    } else {
+      if (prevVisible === undefined || prevVisible) {
+        scaleAnim.setValue(1)
+        Animated.timing(scaleAnim, {
+          toValue: 0.9,
+          duration: 300,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }).start()
+      }
+    }
+  }, [visible, scaleAnim])
+
+  const animatedStyle = React.useMemo(
+    () => ({
+      transform: [{ scale: scaleAnim }],
+    }),
+    [scaleAnim]
+  )
+
   const widthStyle = React.useMemo<StyleProp<ViewStyle>>(
     () =>
       width
         ? typeof width === 'number'
           ? { width }
           : { width: String(width) as any }
-        : { minWidth: tokens.sizes.minWidth, maxWidth: tokens.sizes.maxWidth },
-    [width, tokens.sizes.minWidth, tokens.sizes.maxWidth]
+        : { width: '90%' as any, maxWidth: tokens.sizes.maxWidth },
+    [width, tokens.sizes.maxWidth]
   )
 
   const hasChildren = React.useMemo(
@@ -572,6 +609,7 @@ export const Dialog: React.FC<DialogProps> = props => {
       beforeClose={handlePopupBeforeClose}
       onClose={onClose}
       onClosed={onClosed}
+      contentAnimationStyle={animatedStyle}
       style={[
         {
           backgroundColor: tokens.colors.background,
