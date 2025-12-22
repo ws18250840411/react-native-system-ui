@@ -247,6 +247,9 @@ export const Popup: React.FC<PopupProps> = props => {
       if (show) {
         setMounted(true)
         setInteractionVisible(true)
+        progress.setValue(0)
+      } else {
+        progress.setValue(1)
       }
       // 对齐 react-vant：进入使用 ease-out，退出使用 ease-in（近似 CSS cubic-bezier 0.25,0.1,0.25,1 / 0.42,0,1,1）
       const easing = show ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic)
