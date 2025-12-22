@@ -1,13 +1,11 @@
 import React, { forwardRef, useImperativeHandle } from 'react'
-import { StyleSheet, View, type ViewStyle } from 'react-native'
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState } from '@react-stately/checkbox'
 
 import { useTheme } from '../../design-system'
 import type {
   CheckboxGroupProps,
-  CheckboxGroupDirection,
-  CheckboxIconRender,
   CheckboxValue,
 } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
@@ -32,7 +30,6 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     gap: gapProp,
     children,
     style,
-    name,
     accessibilityLabel,
     accessibilityHint,
     ...viewProps
@@ -57,7 +54,6 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
       onChange?.(mapKeysToValues(next))
     },
     isDisabled: disabled,
-    name,
   })
 
   const { groupProps } = useCheckboxGroup(
@@ -65,7 +61,6 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
       isDisabled: disabled,
       'aria-label': accessibilityLabel,
       'aria-describedby': accessibilityHint,
-      name,
     },
     state
   )
@@ -75,7 +70,6 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
       const { [' aria-disabled']: __ariaDisabledTypo, ...restGroupProps } = (groupProps ?? {}) as any
       return {
         ...restGroupProps,
-        // Workaround @react-native-aria/checkbox typo: ` aria-disabled`
         'aria-disabled': disabled,
       }
     },
@@ -92,13 +86,12 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
 
   const childrenArray = React.Children.toArray(children).filter(Boolean)
 
-  const itemStyleForIndex = (index: number): ViewStyle => {
+  const itemStyleForIndex = (index: number): StyleProp<ViewStyle> => {
     const isLast = index === childrenArray.length - 1
     if (direction === 'horizontal') {
       return [
         styles.item,
         !isLast && { marginRight: gap },
-        { marginBottom: gap },
       ]
     }
     return isLast ? styles.item : [styles.item, { marginBottom: gap }]
@@ -168,7 +161,10 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
         ]}
       >
         {childrenArray.map((child, index) => (
-          <View style={itemStyleForIndex(index)} key={(child as any)?.key ?? index}>
+          <View
+            style={itemStyleForIndex(index)}
+            key={(child as any)?.key ?? index}
+          >
             {child}
           </View>
         ))}

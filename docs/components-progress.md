@@ -7,6 +7,10 @@
 > 4. 调整示例视觉使其与参考实现相似，必要时抽离样式；若参考实现 demo 包含弹层入口、Cell 触发等组合交互，需同步实现并在文档展示。
 > 5. 核查完毕后在下列表中将状态改为 ✅，未开始/进行中用 ⏳ 并备注当前结论或阻塞。
 
+**组件审查要求**：每个组件需达到生产级别水平，详细要求见 [`docs/component-audit-requirements.md`](./component-audit-requirements.md)。核心要求：代码质量高稳定性好、精简易用、体积小、性能好、逻辑与官方一致、文档保持一致。
+
+**组件审查清单**：按照新审查要求逐个审查，详见 [`docs/component-audit-checklist.md`](./component-audit-checklist.md)。
+
 三审基准：官方文档以 React Vant 为准，RN 侧实现细节优先 RN Paper；审计清单见 `docs/audit-v3.md`。
 
 最近更新：2025-12-20 完成三审（多端一致性/基础设施 + 文档对齐）——统一将动画 `useNativeDriver` 在 Web 下关闭，避免 react-native-web 行为差异与警告；修正 DropdownMenu 遮罩/面板为 Portal 渲染并基于菜单栏 `measureInWindow` 定位（适配非顶端场景）；OverlayStack 对 `zIndex<base` 视为相对偏移，避免小值污染整个弹层栈；补齐 Calendar/DatetimePicker/Uploader 的文档差异；进度表全量复核并标记 ✅；相关测试已通过（`pnpm test`）。
@@ -109,11 +113,3 @@
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
 | Area 省市区 | ✅ | 三审通过：基于 Picker 的联动与弹层交互三端一致性复核通过；二次审计通过：基于 Picker 的省市区联动封装（`columnsNum`/受控/确认回调），demo 与单测已覆盖；数据结构兼容常见 AreaList（province_list/city_list/county_list） |
-
-待解决问题（更新：2025-12-21）：
-1. ✅ PullRefresh 下拉刷新：Web 端通过 PanResponder 模拟拖拽下拉，并修复 rndoc touch-emulator 事件冲突。
-2. ✅ ShareSheet 分享面板：demo 已按官方文档对齐，并补齐描述信息示例。
-3. ✅ ImagePreview 图片预览：demo 图片源与示例已按官方文档对齐。
-4. ✅ Popover 气泡卡片：基础用法 Web 端定位已修正（getBoundingClientRect）。
-5. ✅ Grid / IndexBar / NavBar / Sidebar：文档与 demo 已对齐官方默认值与展示。
-6. ✅ Checkbox 复选框：修复 rndoc touch-emulator 导致的点击无效（dataSet noTouchSimulate + Web `pointerEvents="box-only"`）。

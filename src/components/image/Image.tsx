@@ -133,28 +133,70 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     if (src) return { uri: src }
     return undefined
   }, [source, src])
-  const [status, setStatus] = React.useState<'idle' | 'loading' | 'loaded' | 'error'>(actualSource ? 'loading' : 'idle')
 
+  const MAX_CACHE_SIZE = 100
+  const loadedSourcesRef = React.useRef<Set<string>>(new Set())
+  const actualSourceRef = React.useRef(actualSource)
   React.useEffect(() => {
-    setStatus(actualSource ? 'loading' : 'idle')
+    actualSourceRef.current = actualSource
   }, [actualSource])
 
-  const handleLoad = (event: RNImageOnLoadEvent) => {
-    setStatus('loaded')
-    onLoad?.(event)
-  }
+  const getSourceKey = React.useCallback((source: typeof actualSource): string | null => {
+    if (!source) return null
+    if (typeof source === 'object' && 'uri' in source && source.uri) {
+      return source.uri
+    }
+    return null
+  }, [])
 
-  const handleError = (event: RNImageOnErrorEvent) => {
-    setStatus('error')
-    onError?.(event)
-  }
+  const [status, setStatus] = React.useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
+
+  React.useEffect(() => {
+    if (!actualSource) {
+      setStatus('idle')
+      return
+    }
+
+    const key = getSourceKey(actualSource)
+    if (key && loadedSourcesRef.current.has(key)) {
+      setStatus('loaded')
+    } else {
+      setStatus('loading')
+    }
+  }, [actualSource, getSourceKey])
+
+  const handleLoad = React.useCallback(
+    (event: RNImageOnLoadEvent) => {
+      const key = getSourceKey(actualSourceRef.current)
+      if (key) {
+        if (loadedSourcesRef.current.size >= MAX_CACHE_SIZE) {
+          const firstKey = loadedSourcesRef.current.values().next().value
+          if (firstKey) {
+            loadedSourcesRef.current.delete(firstKey)
+          }
+        }
+        loadedSourcesRef.current.add(key)
+      }
+      setStatus('loaded')
+      onLoad?.(event)
+    },
+    [getSourceKey, onLoad]
+  )
+
+  const handleError = React.useCallback(
+    (event: RNImageOnErrorEvent) => {
+      setStatus('error')
+      onError?.(event)
+    },
+    [onError]
+  )
 
   const styleBorderRadius =
     typeof flattenedImageStyle?.borderRadius === 'number' ? flattenedImageStyle.borderRadius : undefined
   const containerBorderRadius =
     typeof flattenedContainerStyle?.borderRadius === 'number' ? flattenedContainerStyle.borderRadius : undefined
 
-  const borderRadius = round ? 9999 : radius ?? containerBorderRadius ?? styleBorderRadius ?? tokens.radius.default
+  const borderRadius = round ? 9999 : radius ?? containerBorderRadius ?? styleBorderRadius ?? undefined
 
   return (
     <View
@@ -162,8 +204,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
         {
           width,
           height,
-          borderRadius,
-          overflow: 'hidden',
+          ...(borderRadius !== undefined ? { borderRadius, overflow: 'hidden' as const } : {}),
           backgroundColor: tokens.colors.background,
           alignItems: 'center',
           justifyContent: 'center',
@@ -177,8 +218,12 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
           ref={ref}
           {...rest}
           source={actualSource}
-          style={[StyleSheet.absoluteFill, { borderRadius }, imageStyleWithoutLayout]}
-          resizeMode={fitMap[fit] ?? 'cover'}
+          style={[
+            StyleSheet.absoluteFill,
+            ...(borderRadius !== undefined ? [{ borderRadius }] : []),
+            imageStyleWithoutLayout,
+          ]}
+          resizeMode={fitMap[fit] ?? fit}
           onLoad={handleLoad}
           onError={handleError}
         />

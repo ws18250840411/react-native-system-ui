@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -98,27 +97,78 @@ export const Radio: React.FC<RadioProps> = props => {
   const state = isGroup && group ? group.state : pseudoState
   const radioValue = isGroup ? serializedValue! : standaloneKey
 
+  const { onBlur, onFocus, ...compatibleRest } = rest as any
   const { inputProps } = useRadio(
     {
       value: radioValue,
       isDisabled: resolvedDisabled,
       'aria-label': resolvedAccessibilityLabel,
       accessibilityLabel: resolvedAccessibilityLabel,
-      ...rest,
+      ...compatibleRest,
     },
     state,
-    inputRef
+    inputRef as any
   )
 
   const isChecked =
     isGroup && group && serializedValue !== undefined
       ? group.state.selectedValue === serializedValue
-      : standaloneSelected
+      : props.checked !== undefined
+        ? props.checked
+        : standaloneSelected
 
-  const handlePress = (event: GestureResponderEvent) => {
-    onClick?.(event)
-    inputProps?.onPress?.(event)
-  }
+  const mergedInputProps = React.useMemo(() => {
+    if (!inputProps) return {}
+
+    if (isGroup && group) {
+      const { onPress: _onPress, ...restInputProps } = inputProps
+      return {
+        ...restInputProps,
+        onPress: (e: GestureResponderEvent) => {
+          props.onClick?.(e)
+          if (!isChecked && serializedValue !== undefined) {
+            group.state.setSelectedValue(serializedValue)
+          }
+        },
+      }
+    }
+
+    if (props.checked !== undefined && props.onChange) {
+      const { onPress: _onPress, ...restInputProps } = inputProps
+      return {
+        ...restInputProps,
+        onPress: (e: GestureResponderEvent) => {
+          props.onClick?.(e)
+          props.onChange?.(!props.checked)
+        },
+      }
+    }
+
+    const originalOnPress = inputProps.onPress
+    return {
+      ...inputProps,
+      onPress: (e: GestureResponderEvent) => {
+        props.onClick?.(e)
+        if (props.onChange) {
+          const currentChecked = standaloneSelected
+          setStandaloneSelected(!currentChecked)
+        } else {
+          originalOnPress?.(e)
+        }
+      },
+    }
+  }, [
+    inputProps,
+    isGroup,
+    isChecked,
+    group,
+    serializedValue,
+    props.onClick,
+    props.checked,
+    props.onChange,
+    standaloneSelected,
+    setStandaloneSelected,
+  ])
 
   const borderColor = resolvedDisabled
     ? tokens.colors.disabledBorder
@@ -127,92 +177,147 @@ export const Radio: React.FC<RadioProps> = props => {
       : tokens.colors.border
   const backgroundColor = resolvedDisabled ? tokens.colors.disabledBackground : tokens.colors.background
 
-  const spacingStyle = resolvedLabelPosition === 'left'
-    ? { marginRight: tokens.spacing.gap }
-    : { marginLeft: tokens.spacing.gap }
+  const spacingStyle = React.useMemo(
+    () =>
+      resolvedLabelPosition === 'left'
+        ? { marginRight: tokens.spacing.gap }
+        : { marginLeft: tokens.spacing.gap },
+    [resolvedLabelPosition, tokens.spacing.gap]
+  )
 
   const labelColor = resolvedDisabled ? tokens.colors.labelDisabled : tokens.colors.label
 
   const borderRadius =
     resolvedShape === 'square' ? tokens.shape.squareRadius : tokens.shape.roundRadius
 
-  const labelNode = children === null || children === undefined
-    ? null
-    : (
-      <View
-        key="radio-label"
-        style={[styles.labelWrapper, spacingStyle]}
-        pointerEvents="none"
-        accessible={false}
-      >
-        {typeof children === 'string' || typeof children === 'number' ? (
-          <Text
+  const labelNode = React.useMemo(
+    () =>
+      children === null || children === undefined || children === false
+        ? null
+        : (
+          <View
+            key="radio-label"
+            style={[styles.labelWrapper, spacingStyle]}
+            pointerEvents="none"
             accessible={false}
-            style={[
-              styles.label,
-              {
-                color: labelColor,
-                fontSize: tokens.typography.fontSize,
-                lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              labelStyle,
-            ]}
           >
-            {children}
-          </Text>
-        ) : (
-          children
-        )}
-      </View>
-    )
+            {typeof children === 'string' || typeof children === 'number' ? (
+              <Text
+                accessible={false}
+                style={[
+                  styles.label,
+                  {
+                    color: labelColor,
+                    fontSize: tokens.typography.fontSize,
+                    lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+                    fontFamily: tokens.typography.fontFamily,
+                    fontWeight: tokens.typography.fontWeight as any,
+                  },
+                  labelStyle,
+                ]}
+              >
+                {children}
+              </Text>
+            ) : (
+              children
+            )}
+          </View>
+        ),
+    [children, spacingStyle, labelColor, tokens.typography, labelStyle]
+  )
 
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
 
-  const iconVisual = resolvedIconRender ? (
-    resolvedIconRender({ checked: isChecked, disabled: resolvedDisabled }) ?? null
-  ) : (
-    <View
-      style={[
-        styles.icon,
-        {
-          width: resolvedIconSize,
-          height: resolvedIconSize,
-          borderRadius,
-          borderColor,
-          backgroundColor,
-        },
-      ]}
-    >
-      {isChecked ? (
+  const iconVisual = React.useMemo(() => {
+    if (!resolvedIconRender) {
+      return (
         <View
-          style={{
-            width: resolvedIconSize / 2,
-            height: resolvedIconSize / 2,
-            borderRadius,
-            backgroundColor: resolvedCheckedColor,
-          }}
-        />
-      ) : null}
-    </View>
+          style={[
+            styles.icon,
+            {
+              width: resolvedIconSize,
+              height: resolvedIconSize,
+              borderRadius,
+              borderColor,
+              backgroundColor,
+            },
+          ]}
+        >
+          {isChecked ? (
+            <View
+              style={{
+                width: resolvedIconSize / 2,
+                height: resolvedIconSize / 2,
+                borderRadius,
+                backgroundColor: resolvedCheckedColor,
+              }}
+            />
+          ) : null}
+        </View>
+      )
+    }
+
+    try {
+      const icon = resolvedIconRender({ checked: Boolean(isChecked), disabled: Boolean(resolvedDisabled) })
+      return icon ?? null
+    } catch (error) {
+      console.warn('Radio iconRender error:', error)
+      return (
+        <View
+          style={[
+            styles.icon,
+            {
+              width: resolvedIconSize,
+              height: resolvedIconSize,
+              borderRadius,
+              borderColor,
+              backgroundColor,
+            },
+          ]}
+        >
+          {isChecked ? (
+            <View
+              style={{
+                width: resolvedIconSize / 2,
+                height: resolvedIconSize / 2,
+                borderRadius,
+                backgroundColor: resolvedCheckedColor,
+              }}
+            />
+          ) : null}
+        </View>
+      )
+    }
+  }, [
+    resolvedIconRender,
+    isChecked,
+    resolvedDisabled,
+    resolvedIconSize,
+    borderRadius,
+    borderColor,
+    backgroundColor,
+    resolvedCheckedColor,
+  ])
+
+  const iconWrapperStyle = React.useMemo(
+    () => styles.iconWrapper,
+    []
   )
 
   const iconNode = interactive ? (
-    <View key="radio-icon" style={styles.iconWrapper}>
+    <View key="radio-icon" style={iconWrapperStyle}>
       {iconVisual}
     </View>
   ) : (
     <Pressable
-      {...(Platform.OS === 'web' ? ({ dataSet: { noTouchSimulate: true } } as any) : {})}
-      {...inputProps}
+      {...mergedInputProps}
       key="radio-icon"
       ref={inputRef}
       testID={serializedValue !== undefined ? `radio-icon-${serializedValue}` : undefined}
-      onPress={handlePress}
+      pointerEvents={undefined}
       accessibilityRole="radio"
       accessibilityState={{ selected: isChecked, disabled: resolvedDisabled }}
-      style={styles.iconWrapper}
+      style={iconWrapperStyle}
     >
       {iconVisual}
     </Pressable>
@@ -225,11 +330,10 @@ export const Radio: React.FC<RadioProps> = props => {
   if (interactive) {
     return (
       <Pressable
-        {...(Platform.OS === 'web' ? ({ dataSet: { noTouchSimulate: true } } as any) : {})}
-        {...inputProps}
+        {...mergedInputProps}
         ref={inputRef}
+        pointerEvents={undefined}
         testID={serializedValue !== undefined ? `radio-icon-${serializedValue}` : undefined}
-        onPress={handlePress}
         accessibilityRole="radio"
         accessibilityState={{ selected: isChecked, disabled: resolvedDisabled }}
         style={[styles.container, style]}

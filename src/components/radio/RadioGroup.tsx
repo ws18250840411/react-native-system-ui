@@ -80,7 +80,6 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
       return [
         styles.item,
         !isLast && { marginRight: gap },
-        { marginBottom: gap },
       ]
     }
     return isLast ? styles.item : [styles.item, { marginBottom: gap }]

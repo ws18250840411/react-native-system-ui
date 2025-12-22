@@ -373,13 +373,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       scrollEventThrottle={16}
     >
       <Animated.View
-        {...(panResponder
-          ? ({
-              ...panResponder.panHandlers,
-              // rndoc mobile simulator 使用 @vant/touch-emulator；为避免 mouse+touch 双事件干扰手势判断，这里跳过 touch 模拟，仅用原生事件流即可。
-              dataSet: { noTouchSimulate: true },
-            } as any)
-          : {})}
+        {...(panResponder ? panResponder.panHandlers : {})}
         style={isWeb ? { transform: [{ translateY }] } : undefined}
       >
         <View

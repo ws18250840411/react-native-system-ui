@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native'
+import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
 
@@ -71,42 +71,34 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   let isChecked = false
 
   if (isGroup && group) {
+    const { onBlur, onFocus, ...compatibleRest } = rest as any
     const { inputProps: groupInputProps } = useCheckboxGroupItem(
       {
         value: serializedValue!,
         isDisabled: resolvedDisabled,
         'aria-label': ariaLabel,
-        ...rest,
+        ...compatibleRest,
       },
       group.state,
-      inputRef
+      inputRef as any
     )
 
     inputProps = groupInputProps
     isChecked = group.state.isSelected(serializedValue!)
-
-    if (group.max && !isChecked) {
-      const originalOnPress = inputProps.onPress
-      inputProps.onPress = (...args: any[]) => {
-        if (group.state.value.length >= group.max!) {
-          return
-        }
-        originalOnPress?.(...args)
-      }
-    }
   } else {
+    const { onBlur, onFocus, ...compatibleRest } = rest as any
     const { inputProps: standaloneProps } = useCheckbox(
       {
-        ...rest,
+        ...compatibleRest,
         isDisabled: resolvedDisabled,
         value: serializedValue,
         'aria-label': ariaLabel,
       },
       standaloneState,
-      inputRef
+      inputRef as any
     )
     inputProps = standaloneProps
-    isChecked = standaloneState.isSelected
+    isChecked = props.checked !== undefined ? props.checked : standaloneState.isSelected
   }
 
   const borderRadius = resolvedShape === 'round' ? resolvedIconSize / 2 : tokens.radii.square
@@ -127,82 +119,177 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     ? tokens.colors.labelDisabled
     : tokens.colors.label
 
-  const spacingStyle = resolvedLabelPosition === 'left'
-    ? { marginRight: tokens.spacing.gap }
-    : { marginLeft: tokens.spacing.gap }
-
-  const handlePress = (e: GestureResponderEvent) => {
-    props.onClick?.(e)
-    inputProps?.onPress?.(e)
-  }
-
-  const labelNode =
-    children === null || children === undefined || children === false
-      ? null
-      : typeof children === 'string' || typeof children === 'number'
-        ? (
-          <Text
-            accessible={false}
-            style={[
-              styles.label,
-              {
-                color: labelColor,
-                fontSize: tokens.typography.fontSize,
-                lineHeight:
-                  tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              labelStyle,
-            ]}
-          >
-            {children}
-          </Text>
-        )
-        : (
-          <View
-            accessible={false}
-            style={labelStyle as any}
-          >
-            {children}
-          </View>
-        )
-
-  const iconVisual = resolvedIconRender ? (
-    resolvedIconRender({ checked: isChecked, disabled: resolvedDisabled }) ?? null
-  ) : (
-    <View
-      style={[
-        styles.icon,
-        {
-          width: resolvedIconSize,
-          height: resolvedIconSize,
-          borderRadius,
-          borderColor,
-          backgroundColor,
-        },
-      ]}
-    >
-      {isChecked ? (
-        <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
-      ) : null}
-    </View>
+  const spacingStyle = React.useMemo(
+    () =>
+      resolvedLabelPosition === 'left'
+        ? { marginRight: tokens.spacing.gap }
+        : { marginLeft: tokens.spacing.gap },
+    [resolvedLabelPosition, tokens.spacing.gap]
   )
+
+  const mergedInputProps = React.useMemo(() => {
+    if (!inputProps) return {}
+
+    if (isGroup && group) {
+      const { onPress: _onPress, ...restInputProps } = inputProps
+      return {
+        ...restInputProps,
+        onPress: (e: GestureResponderEvent) => {
+          props.onClick?.(e)
+          if (group.max && !isChecked && group.state.value.length >= group.max) {
+            return
+          }
+          if (isChecked) {
+            group.state.removeValue(serializedValue!)
+          } else {
+            group.state.addValue(serializedValue!)
+          }
+        },
+      }
+    }
+
+    if (props.checked !== undefined && props.onChange) {
+      const { onPress: _onPress, ...restInputProps } = inputProps
+      return {
+        ...restInputProps,
+        onPress: (e: GestureResponderEvent) => {
+          props.onClick?.(e)
+          props.onChange?.(!props.checked)
+        },
+      }
+    }
+
+    const originalOnPress = inputProps.onPress
+    return {
+      ...inputProps,
+      onPress: (e: GestureResponderEvent) => {
+        props.onClick?.(e)
+        if (props.onChange) {
+          const currentChecked = standaloneState.isSelected
+          standaloneState.setSelected(!currentChecked)
+        } else {
+          originalOnPress?.(e)
+        }
+      },
+    }
+  }, [
+    inputProps,
+    isGroup,
+    isChecked,
+    group,
+    serializedValue,
+    props.onClick,
+    props.checked,
+    props.onChange,
+    standaloneState,
+  ])
+
+  const labelNode = React.useMemo(
+    () =>
+      children === null || children === undefined || children === false
+        ? null
+        : typeof children === 'string' || typeof children === 'number'
+          ? (
+            <Text
+              accessible={false}
+              style={[
+                styles.label,
+                {
+                  color: labelColor,
+                  fontSize: tokens.typography.fontSize,
+                  lineHeight:
+                    tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+                  fontFamily: tokens.typography.fontFamily,
+                  fontWeight: tokens.typography.fontWeight as any,
+                },
+                labelStyle,
+              ]}
+            >
+              {children}
+            </Text>
+          )
+          : (
+            <View
+              accessible={false}
+              style={labelStyle as any}
+            >
+              {children}
+            </View>
+          ),
+    [children, labelColor, tokens.typography, labelStyle]
+  )
+
+  const iconVisual = React.useMemo(() => {
+    if (!resolvedIconRender) {
+      return (
+        <View
+          style={[
+            styles.icon,
+            {
+              width: resolvedIconSize,
+              height: resolvedIconSize,
+              borderRadius,
+              borderColor,
+              backgroundColor,
+            },
+          ]}
+        >
+          {isChecked ? (
+            <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
+          ) : null}
+        </View>
+      )
+    }
+
+    try {
+      const icon = resolvedIconRender({ checked: Boolean(isChecked), disabled: Boolean(resolvedDisabled) })
+      return icon ?? null
+    } catch (error) {
+      console.warn('Checkbox iconRender error:', error)
+      return (
+        <View
+          style={[
+            styles.icon,
+            {
+              width: resolvedIconSize,
+              height: resolvedIconSize,
+              borderRadius,
+              borderColor,
+              backgroundColor,
+            },
+          ]}
+        >
+          {isChecked ? (
+            <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
+          ) : null}
+        </View>
+      )
+    }
+  }, [
+    resolvedIconRender,
+    isChecked,
+    resolvedDisabled,
+    resolvedIconSize,
+    borderRadius,
+    borderColor,
+    backgroundColor,
+    tokens.colors.checkmark,
+  ])
 
   const renderContent = (iconWrapper: React.ReactNode, labelWrapper: React.ReactNode) =>
     resolvedLabelPosition === 'left'
       ? (
-          <>
-            {labelWrapper}
-            {iconWrapper}
-          </>
-        )
+        <>
+          {labelWrapper}
+          {iconWrapper}
+        </>
+      )
       : (
-          <>
-            {iconWrapper}
-            {labelWrapper}
-          </>
-        )
+        <>
+          {iconWrapper}
+          {labelWrapper}
+        </>
+      )
 
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
 
@@ -216,27 +303,23 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     </View>
   ) : null
 
-  const iconWrapperStyle = [
-    styles.iconWrapper,
-    resolvedLabelPosition === 'left'
-      ? { marginLeft: tokens.spacing.gap }
-      : { marginRight: tokens.spacing.gap },
-  ]
+  const iconWrapperStyle = React.useMemo(
+    () => [
+      styles.iconWrapper,
+      resolvedLabelPosition === 'left'
+        ? { marginLeft: tokens.spacing.gap }
+        : { marginRight: tokens.spacing.gap },
+    ],
+    [resolvedLabelPosition, tokens.spacing.gap]
+  )
 
-  // rndoc mobile simulator 使用 @vant/touch-emulator，在 RN Web 组件上会导致按压事件异常；
-  // 通过 data-no-touch-simulate 跳过 touch 模拟，仅保留 mouse/pointer 事件。
-  const noTouchSimulateProps = Platform.OS === 'web'
-    ? ({ dataSet: { noTouchSimulate: true } } as any)
-    : {}
 
   if (interactive) {
     return (
       <Pressable
-        {...noTouchSimulateProps}
-        {...inputProps}
+        {...mergedInputProps}
         ref={inputRef}
-        onPress={handlePress}
-        pointerEvents={Platform.OS === 'web' ? 'box-only' : undefined}
+        pointerEvents={undefined}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
         style={[styles.container, style]}
@@ -253,11 +336,9 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     <View style={[styles.container, style]}>
       {renderContent(
         <Pressable
-          {...noTouchSimulateProps}
-          {...inputProps}
+          {...mergedInputProps}
           ref={inputRef}
-          onPress={handlePress}
-          pointerEvents={Platform.OS === 'web' ? 'box-only' : undefined}
+          pointerEvents={undefined}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
           style={iconWrapperStyle}
