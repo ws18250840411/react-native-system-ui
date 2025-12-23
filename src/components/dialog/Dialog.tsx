@@ -1,5 +1,5 @@
 import React from 'react'
-import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
+import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
 
 import { useLocale } from '../config-provider/useLocale'
 import { useTheme } from '../../design-system'
@@ -28,6 +28,11 @@ interface DialogTokens {
     paddingHorizontal: number
     paddingTop: number
     paddingBottom: number
+    titlePaddingTop: number
+    titleIsolatedPadding: number
+    messagePadding: number
+    messagePaddingTop: number
+    messagePaddingHorizontal: number
     titleGap: number
     footerGap: number
     roundFooterPadding: number
@@ -39,6 +44,7 @@ interface DialogTokens {
     borderRadius: number
     closeSize: number
     actionHeight: number
+    roundButtonHeight: number
   }
   typography: {
     titleSize: number
@@ -68,6 +74,11 @@ const createDialogTokens = (foundations: Foundations): DialogTokens => {
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.lg,
       paddingBottom: spacing.md,
+      titlePaddingTop: 22,
+      titleIsolatedPadding: spacing.lg, // var(--rv-padding-lg)
+      messagePadding: 20,
+      messagePaddingTop: spacing.xs, // var(--rv-padding-xs)
+      messagePaddingHorizontal: spacing.lg, // var(--rv-padding-lg)
       titleGap: spacing.sm,
       footerGap: spacing.md,
       roundFooterPadding: spacing.md,
@@ -79,13 +90,14 @@ const createDialogTokens = (foundations: Foundations): DialogTokens => {
       borderRadius: radii.lg,
       closeSize: 20,
       actionHeight: 48,
+      roundButtonHeight: 40, // var(--rv-dialog-round-button-height)
     },
     typography: {
-      titleSize: fontSize.lg,
-      titleLineHeight: fontSize.lg * typography.lineHeightMultiplier,
+      titleSize: fontSize.md,
+      titleLineHeight: fontSize.md * typography.lineHeightMultiplier,
       titleWeight: typography.weight.semiBold,
-      messageSize: fontSize.md,
-      messageLineHeight: fontSize.md * typography.lineHeightMultiplier,
+      messageSize: fontSize.sm,
+      messageLineHeight: fontSize.sm * typography.lineHeightMultiplier,
     },
   }
 }
@@ -117,20 +129,43 @@ interface ActionButtonProps {
 const ActionButton: React.FC<ActionButtonProps> = React.memo(props => {
   const { text, color, tokens, dividerPosition = 'none', loading, disabled, onPress } = props
   const textColor = color ?? tokens.colors.confirm
+  const platform = Platform.OS
+  const borderWidth = platform === 'web' ? 1 : StyleSheet.hairlineWidth
 
   const buttonStyle = React.useCallback(
     ({ pressed }: { pressed: boolean }) => [
       styles.actionButton,
       {
         height: tokens.sizes.actionHeight,
-        borderColor: tokens.colors.divider,
-        borderLeftWidth: dividerPosition === 'left' ? StyleSheet.hairlineWidth : 0,
-        borderRightWidth: dividerPosition === 'right' ? StyleSheet.hairlineWidth : 0,
         opacity: pressed && !disabled && !loading ? 0.8 : 1,
+        position: 'relative' as const,
       },
     ],
-    [tokens.sizes.actionHeight, tokens.colors.divider, dividerPosition, disabled, loading]
+    [tokens.sizes.actionHeight, disabled, loading]
   )
+
+  const dividerStyle = React.useMemo(() => {
+    if (dividerPosition === 'none') return null
+    const isLeft = dividerPosition === 'left'
+    const baseStyle: ViewStyle = {
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      width: 0,
+      borderLeftWidth: isLeft ? borderWidth : 0,
+      borderRightWidth: !isLeft ? borderWidth : 0,
+      borderColor: tokens.colors.divider,
+    }
+    if (isLeft) {
+      baseStyle.left = 0
+    } else {
+      baseStyle.right = 0
+    }
+    if (platform === 'web') {
+      baseStyle.transform = [{ scaleX: 0.5 }]
+    }
+    return [styles.actionButtonDivider, baseStyle]
+  }, [dividerPosition, borderWidth, tokens.colors.divider, platform])
 
   const textStyle = React.useMemo(() => [styles.actionText, { color: textColor }], [textColor])
 
@@ -151,6 +186,7 @@ const ActionButton: React.FC<ActionButtonProps> = React.memo(props => {
       style={buttonStyle}
       onPress={disabled || loading ? undefined : onPress}
     >
+      {dividerStyle ? <View style={dividerStyle} pointerEvents="none" /> : null}
       {renderContent}
     </Pressable>
   )
@@ -366,14 +402,18 @@ export const Dialog: React.FC<DialogProps> = props => {
     )
 
     const hasMessageOrChildren = !!(message || children)
+    const isIsolated = !hasMessageOrChildren
     const titleWrapperStyle = React.useMemo(
       () => [
         styles.titleWrapper,
         {
+          paddingTop: isIsolated ? tokens.spacing.titleIsolatedPadding : tokens.spacing.titlePaddingTop,
+          paddingBottom: isIsolated ? tokens.spacing.titleIsolatedPadding : 0,
+          paddingHorizontal: isIsolated ? 0 : tokens.spacing.paddingHorizontal,
           marginBottom: hasMessageOrChildren ? tokens.spacing.titleGap : 0,
         },
       ],
-      [hasMessageOrChildren, tokens.spacing.titleGap]
+      [isIsolated, hasMessageOrChildren, tokens.spacing.titlePaddingTop, tokens.spacing.titleIsolatedPadding, tokens.spacing.paddingHorizontal, tokens.spacing.titleGap]
     )
 
     const content = React.isValidElement(title) ? (
@@ -393,19 +433,20 @@ export const Dialog: React.FC<DialogProps> = props => {
     () => [
       styles.message,
       {
-        color: tokens.colors.message,
+        color: theme === 'round-button' ? tokens.colors.title : tokens.colors.message,
         fontSize: tokens.typography.messageSize,
         lineHeight: tokens.typography.messageLineHeight,
         textAlign: messageAlign,
       },
       messageStyle,
     ],
-    [tokens.colors.message, tokens.typography.messageSize, tokens.typography.messageLineHeight, messageAlign, messageStyle]
+    [theme, tokens.colors.title, tokens.colors.message, tokens.typography.messageSize, tokens.typography.messageLineHeight, messageAlign, messageStyle]
   )
 
   const renderMessage = React.useCallback(() => {
     if (!hasMessage && !hasChildren) return null
     const hasCustom = hasChildren
+    const hasTitle = !!title
 
     const contentNode = React.useMemo(() => {
       if (hasCustom) return children
@@ -427,47 +468,74 @@ export const Dialog: React.FC<DialogProps> = props => {
         [messageAlign]
       )
 
+    const messageWrapperStyle = React.useMemo(
+      () => [
+        styles.messageWrapper,
+        {
+          paddingTop: hasTitle ? tokens.spacing.messagePaddingTop : tokens.spacing.messagePadding,
+          paddingBottom: theme === 'round-button' ? tokens.spacing.roundFooterPadding : tokens.spacing.messagePadding,
+          paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
+          fontSize: tokens.typography.messageSize,
+        },
+      ],
+      [hasTitle, theme, tokens.spacing.messagePaddingTop, tokens.spacing.messagePadding, tokens.spacing.roundFooterPadding, tokens.spacing.messagePaddingHorizontal, tokens.typography.messageSize]
+    )
+
     const contentStyleMemo = React.useMemo(
       () => [
         styles.content,
-        {
-          marginBottom: tokens.spacing.footerGap,
-        },
         alignment,
         contentStyle,
       ],
-      [tokens.spacing.footerGap, alignment, contentStyle]
+      [alignment, contentStyle]
     )
 
     return (
       <View style={contentStyleMemo}>
-        {contentNode}
+        {hasCustom ? (
+          contentNode
+        ) : (
+          <View style={messageWrapperStyle}>
+            {contentNode}
+          </View>
+        )}
       </View>
     )
-  }, [hasMessage, hasChildren, children, message, tokens, messageAlign, messageStyle, contentStyle, messageTextStyle])
+  }, [hasMessage, hasChildren, children, message, title, theme, tokens, messageAlign, messageStyle, contentStyle, messageTextStyle])
 
   const renderDefaultFooter = React.useCallback(() => {
     if (!showCancelButton && !showConfirmButton) return null
 
+    const platform = Platform.OS
+    const borderWidth = platform === 'web' ? 1 : StyleSheet.hairlineWidth
     const footerStyle = React.useMemo(
       () => [
         styles.footer,
+      ],
+      []
+    )
+
+    const borderTopStyle = React.useMemo(
+      () => [
+        styles.footerBorderTop,
         {
           borderTopColor: tokens.colors.divider,
-          marginTop: tokens.spacing.footerGap,
+          borderTopWidth: borderWidth,
+          ...(platform === 'web' ? { transform: [{ scaleY: 0.5 }] } : {}),
         },
       ],
-      [tokens.colors.divider, tokens.spacing.footerGap]
+      [tokens.colors.divider, borderWidth, platform]
     )
 
     return (
       <View style={footerStyle}>
+        <View style={borderTopStyle} pointerEvents="none" />
         {showCancelButton ? (
           <ActionButton
             tokens={tokens}
             text={cancelButtonText ?? locale.cancel}
             color={cancelButtonColor ?? tokens.colors.cancel}
-            dividerPosition={showConfirmButton ? 'right' : 'none'}
+            dividerPosition="none"
             loading={cancelProps?.loading}
             disabled={cancelProps?.disabled}
             onPress={handleCancel}
@@ -511,11 +579,12 @@ export const Dialog: React.FC<DialogProps> = props => {
       () => [
         styles.roundFooter,
         {
-          padding: tokens.spacing.roundFooterPadding,
-          marginTop: tokens.spacing.footerGap,
+          paddingTop: tokens.spacing.messagePaddingTop, // padding-xs
+          paddingHorizontal: tokens.spacing.messagePaddingHorizontal, // padding-lg
+          paddingBottom: tokens.spacing.roundFooterPadding, // padding-md
         },
       ],
-      [tokens.spacing.roundFooterPadding, tokens.spacing.footerGap]
+      [tokens.spacing.messagePaddingTop, tokens.spacing.messagePaddingHorizontal, tokens.spacing.roundFooterPadding]
     )
 
     const cancelWrapperStyle = React.useMemo(
@@ -539,7 +608,6 @@ export const Dialog: React.FC<DialogProps> = props => {
         {showCancelButton ? (
           <View style={cancelWrapperStyle}>
             <Button
-              size="large"
               block
               round
               type="warning"
@@ -548,13 +616,13 @@ export const Dialog: React.FC<DialogProps> = props => {
               loading={cancelProps?.loading}
               disabled={cancelProps?.disabled}
               onPress={handleCancel}
+              style={{ minHeight: tokens.sizes.roundButtonHeight }}
             />
           </View>
         ) : null}
         {showConfirmButton ? (
           <View style={confirmWrapperStyle}>
             <Button
-              size="large"
               block
               round
               type="danger"
@@ -563,6 +631,7 @@ export const Dialog: React.FC<DialogProps> = props => {
               loading={confirmProps?.loading}
               disabled={confirmProps?.disabled}
               onPress={handleConfirm}
+              style={{ minHeight: tokens.sizes.roundButtonHeight }}
             />
           </View>
         ) : null}
@@ -614,9 +683,7 @@ export const Dialog: React.FC<DialogProps> = props => {
         {
           backgroundColor: tokens.colors.background,
           borderRadius: tokens.sizes.borderRadius,
-          paddingHorizontal: tokens.spacing.paddingHorizontal,
-          paddingTop: tokens.spacing.paddingTop,
-          paddingBottom: tokens.spacing.paddingBottom,
+          padding: 0
         },
         widthStyle,
         style,
@@ -656,15 +723,30 @@ const styles = StyleSheet.create({
   },
   message: {
     textAlign: 'center',
+    fontSize: 14,
   },
   footer: {
     flexDirection: 'row',
-    borderTopWidth: StyleSheet.hairlineWidth,
+    position: 'relative',
+  },
+  footerBorderTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 0,
   },
   actionButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  actionButtonDivider: {
+    position: 'absolute',
+    pointerEvents: 'none',
+  },
+  messageWrapper: {
+    width: '100%',
   },
   actionText: {
     fontSize: 16,

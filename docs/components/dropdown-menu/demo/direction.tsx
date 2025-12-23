@@ -1,28 +1,19 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View } from 'react-native'
 
 import { DropdownMenu } from 'react-native-system-ui'
+import { option1, option2 } from './options'
 
-export default () => (
-  <View style={{ height: 220, justifyContent: 'flex-end' }}>
-    <DropdownMenu direction="up">
-      <DropdownMenu.Item
-        options={[
-          { text: '全部商品', value: 0 },
-          { text: '新款商品', value: 1 },
-          { text: '活动商品', value: 2 },
-        ]}
-        defaultValue={0}
-      />
-      <DropdownMenu.Item
-        options={[
-          { text: '默认排序', value: 'a' },
-          { text: '好评排序', value: 'b' },
-          { text: '销量排序', value: 'c' },
-        ]}
-        defaultValue="a"
-      />
-    </DropdownMenu>
-  </View>
-)
+export default () => {
+  const [value, setValue] = useState<Record<string, string | number>>({})
+
+  return (
+    <View style={{ justifyContent: 'flex-end' }}>
+      <DropdownMenu direction="up" value={value} onChange={v => setValue(v)}>
+        <DropdownMenu.Item name="value1" options={option1} />
+        <DropdownMenu.Item name="value2" options={option2} />
+      </DropdownMenu>
+    </View>
+  )
+}
 

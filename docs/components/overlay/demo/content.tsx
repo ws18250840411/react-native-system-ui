@@ -14,9 +14,8 @@ export default function OverlayContentDemo() {
         onPress={() => setVisible(false)}
         style={{ alignItems: 'center', justifyContent: 'center' }}
       >
-        <View style={{ alignItems: 'center' }}>
-          <Loading />
-          <Text style={{ marginTop: 12, color: '#fff' }}>加载中...</Text>
+        <View style={{ alignItems: 'center', padding: 24, borderRadius: 6, backgroundColor: '#ffffff' }}>
+          <Loading>加载中...</Loading>
         </View>
       </Overlay>
     </View>

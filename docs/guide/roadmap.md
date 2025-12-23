@@ -40,7 +40,7 @@
 | 数据选择 | Picker, DatetimePicker, Calendar, Cascader, Area | ⏳ 计划中 | P1 | useAriaListBox | 大部分依赖列滚动 |
 | 列表/刷新 | List, PullRefresh, SwipeCell, Swiper | ⏳ 计划中 | P1 | Gesture | SwipeCell 需左右滑手势 |
 | 媒体 | Image, ImagePreview, Uploader, Skeleton | ⏳ 计划中 | P1 | 基础动画 | Image 需占位/失败态 |
-| 业务组件 | SubmitBar, Sku, ProductCard, Coupon, CouponCell, CountDown, Pagination, FloatingBall, FloatingPanel, WaterMark | ⏳ 计划中 | P2 | 依赖输入 & 弹层 | 可与业务需求同步迭代 |
+| 业务组件 | SubmitBar, Sku, ProductCard, Coupon, CouponCell, CountDown, Pagination, FloatingPanel, WaterMark | ⏳ 计划中 | P2 | 依赖输入 & 弹层 | 可与业务需求同步迭代 |
 | 其他 | Hooks（useCountdown、useFloatingPanel 等） | ⏳ 计划中 | P2 | 组件完成度 | 与业务组件并行 |
 
 > 状态说明：✅ 已完成 / ⏳ 进行中或计划中。优先级：P0（阻塞性）、P1（高）、P2（中）。

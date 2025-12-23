@@ -162,6 +162,10 @@ export type {
   ImagePreviewOpenOptions,
   ImagePreviewDestroy,
 } from './image-preview'
+export { default as Swiper } from './swiper'
+export { SwiperItem } from './swiper'
+export { SwiperPagIndicator } from './swiper'
+export type { SwiperProps, SwiperInstance, SwiperItemProps } from './swiper'
 export { default as Uploader } from './uploader'
 export type {
   UploaderProps,
@@ -179,8 +183,6 @@ export type { SkeletonProps, SkeletonAvatarShape } from './skeleton'
 export { useSkeletonTokens } from './skeleton'
 export { default as CountDown } from './count-down'
 export type { CountDownProps, CountDownInstance } from './count-down'
-export { default as FloatingBall } from './floating-ball'
-export type { FloatingBallProps, FloatingBallPosition } from './floating-ball'
 export { default as WaterMark } from './water-mark'
 export type { WaterMarkProps } from './water-mark'
 export { default as Pagination } from './pagination'

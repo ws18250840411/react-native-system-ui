@@ -50,7 +50,7 @@
 | Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | Picker、DatetimePicker、Calendar、Cascader、Area 全部交付（多列/联动/时间/级联/省市区） | aria hooks | ✅ 完成 |
 | List/PullRefresh | 滚动与手势组件（List + PullRefresh 已交付） | 依赖 gesture kit | gesture kit | ⏳ 进行中（2025-12-01） |
 | Image/ImagePreview/Uploader/Skeleton | 媒体与加载态（Image、ImagePreview、Uploader、Skeleton ✅） | 依赖动画 + 占位策略 | infra | ✅ 完成（2025-12-01，Skeleton 首版交付） |
-| 业务组件 | CountDown、Pagination、FloatingBall、WaterMark 首版交付 | 根据业务优先级推进 | 前置组件 | ✅ 完成 |
+| 业务组件 | CountDown、Pagination、WaterMark 首版交付 | 根据业务优先级推进 | 前置组件 | ✅ 完成 |
 
 状态约定：✅ 完成 ｜ ⏳ 进行中 ｜ ⏳ 计划中（未开工）。
 

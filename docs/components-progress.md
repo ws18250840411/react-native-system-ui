@@ -85,7 +85,6 @@
 | Divider 分割线 | ✅ | 三审通过：hairline 与文本渲染三端一致性复核通过；二次审计通过：实现/文档复核通过；demo 文案统一为“文字”，标题命名与结构对齐并补齐单测验证 |
 | Empty 空状态 | ✅ | 三审通过：默认插画/自定义 image 节点三端一致性复核通过；二次审计通过：预置 `default/error/network/search` 使用官方插画 URL，`image` 支持图片 URL/ReactNode 且自定义图片应用 `imageSize/imageStyle`；描述支持非文本节点，demo 结构与文案统一并补齐单测 |
 | Field 输入项 | ✅ | 三审通过：修正文档默认值与对齐类型（`labelWidth=72`、`rows=2`、`controlAlign=left|center|right`）并复核三端输入/清除逻辑；二次审计通过：onBlur 格式化、可达性 aria-describedby/invalid、样式 useMemo，清除/对齐逻辑已对齐官方 |
-| FloatingBall 浮动球 | ✅ | 三审通过：拖拽/吸附/边界限制在三端一致性复核通过；二次审计通过：补齐 `menu/adsorb/boundary/offset` 与 ref `open/close`；demo 文案统一并补齐单测覆盖 |
 | ImagePreview 图片预览 | ✅ | 三审通过：Portal 承载/关闭链路/页码指示三端一致性复核通过；二次审计通过：支持受控与静态 API（`open/clear/Host`），补齐页码/指示器/关闭控制与 `beforeClose`；暂未实现缩放/拖拽等高级手势 |
 | List 列表 | ✅ | 三审通过：加载更多/错误重试/刷新组合在三端一致性复核通过；二次审计通过：默认 `offset=300`、内部防并发与错误重试（error 状态阻止自动加载，点击 `errorText` 重试），补齐错误/下拉刷新 demo 与单测；因基于 `ScrollView`，下拉刷新建议用 `refreshControl` 组合 |
 | SwipeCell 滑动单元格 | ✅ | 三审通过：PanResponder 手势（Web/Native）一致性复核通过；二次审计通过：PanResponder 绑定到 root 并启用 move capture，支持从操作区继续拖拽回中间/另一侧（修复“双侧滑动” demo 不能回到中间的问题），单测补齐 |

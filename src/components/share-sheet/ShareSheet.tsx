@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import Popup from '../popup'
@@ -48,16 +48,16 @@ const ShareSheetOptionItem: React.FC<{
     <Pressable
       style={[
         styles.option,
-        { width: `${100 / resolvedColumns}%`, paddingVertical: tokens.spacing.vertical },
+        { width: `${100 / resolvedColumns}%` },
       ]}
       {...press.interactionProps}
     >
-      <View style={[styles.icon, { width: tokens.sizing.icon, height: tokens.sizing.icon, marginBottom: tokens.spacing.vertical }]}>
+      <View style={[styles.icon, { width: tokens.sizing.icon, height: tokens.sizing.icon, marginHorizontal: 12 }]}>
         {option.icon}
       </View>
       {renderTextNode(
         option.name,
-        [styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]
+        [styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option, paddingHorizontal: 4 }]
       )}
       {isValidNode(option.description) ? (
         typeof option.description === 'string' || typeof option.description === 'number' ? (
@@ -68,13 +68,14 @@ const ShareSheetOptionItem: React.FC<{
                 color: tokens.colors.optionDesc,
                 marginTop: tokens.spacing.gap,
                 fontSize: tokens.typography.optionDesc,
+                paddingHorizontal: 16,
               },
             ]}
           >
             {option.description}
           </Text>
         ) : (
-          <View style={{ marginTop: tokens.spacing.gap, alignItems: 'center' }}>
+          <View style={{ marginTop: tokens.spacing.gap, alignItems: 'center', paddingHorizontal: 16 }}>
             {option.description}
           </View>
         )
@@ -94,13 +95,23 @@ const ShareSheetCancel: React.FC<{
   })
 
   return (
-    <Pressable style={styles.cancel} {...cancelPress.interactionProps}>
-      {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
-        <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
-      ) : (
-        cancelText
-      )}
-    </Pressable>
+    <View style={styles.cancelWrapper}>
+      <View
+        style={[
+          styles.cancelDivider,
+          {
+            height: 8,
+          },
+        ]}
+      />
+      <Pressable style={[styles.cancel, { backgroundColor: tokens.colors.background }]} {...cancelPress.interactionProps}>
+        {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
+          <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
+        ) : (
+          cancelText
+        )}
+      </Pressable>
+    </View>
   )
 }
 
@@ -159,26 +170,43 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   const renderGroups = () => {
     if (!groups.length && !children) return null
     let globalIndex = 0
-    return groups.map((group, groupIndex) => (
-      <View key={groupIndex} style={styles.group}>
-        <View style={styles.optionsRow}>
-          {group.map(option => {
-            const currentIndex = globalIndex
-            globalIndex += 1
-            return (
-              <ShareSheetOptionItem
-                key={option.key ?? currentIndex}
-                option={option}
-                index={currentIndex}
-                columns={resolvedColumns}
-                tokens={tokens}
-                onSelect={handleSelect}
-              />
-            )
-          })}
+    return groups.map((group, groupIndex) => {
+      const hasBorder = groupIndex !== 0
+      return (
+        <View key={groupIndex} style={styles.group}>
+          {hasBorder ? (
+            <View
+              style={[
+                styles.groupBorder,
+                {
+                  borderTopWidth: Platform.OS === 'web' ? 1 : StyleSheet.hairlineWidth,
+                  borderTopColor: tokens.colors.border ?? 'rgba(0,0,0,0.06)',
+                  left: tokens.spacing.horizontal,
+                  right: tokens.spacing.horizontal,
+                },
+                Platform.OS === 'web' ? { transform: [{ scaleY: 0.5 }] } : null,
+              ]}
+            />
+          ) : null}
+          <View style={[styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingTop: 12, paddingBottom: 12 }]}>
+            {group.map(option => {
+              const currentIndex = globalIndex
+              globalIndex += 1
+              return (
+                <ShareSheetOptionItem
+                  key={option.key ?? currentIndex}
+                  option={option}
+                  index={currentIndex}
+                  columns={resolvedColumns}
+                  tokens={tokens}
+                  onSelect={handleSelect}
+                />
+              )
+            })}
+          </View>
         </View>
-      </View>
-    ))
+      )
+    })
   }
 
   return (
@@ -190,44 +218,49 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
       overlay={overlay}
       lockScroll={lockScroll}
       onClose={() => close('cancel')}
+      style={[styles.popupOverride, popupProps.style]}
       {...popupProps}
     >
-      <View style={[styles.wrapper, { paddingHorizontal: tokens.spacing.horizontal, backgroundColor: tokens.colors.background }]}>
-        {hasTitle
-          ? typeof title === 'string' || typeof title === 'number'
-            ? (
-              <Text
-                style={[
-                  styles.title,
-                  { color: tokens.colors.title, fontSize: tokens.typography.title },
-                ]}
-              >
-                {title}
-              </Text>
-            )
-            : (
-              <View style={styles.titleNode}>{title}</View>
-            )
-          : null}
-        {hasDescription
-          ? typeof description === 'string' || typeof description === 'number'
-            ? (
-              <Text
-                style={[
-                  styles.description,
-                  {
-                    color: tokens.colors.description,
-                    fontSize: tokens.typography.description,
-                  },
-                ]}
-              >
-                {description}
-              </Text>
-            )
-            : (
-              <View style={styles.descriptionNode}>{description}</View>
-            )
-          : null}
+      <View style={[styles.wrapper, { backgroundColor: tokens.colors.background }]}>
+        {(hasTitle || hasDescription) ? (
+          <View style={styles.header}>
+            {hasTitle
+              ? typeof title === 'string' || typeof title === 'number'
+                ? (
+                  <Text
+                    style={[
+                      styles.title,
+                      { color: tokens.colors.title, fontSize: tokens.typography.title },
+                    ]}
+                  >
+                    {title}
+                  </Text>
+                )
+                : (
+                  <View style={styles.titleNode}>{title}</View>
+                )
+              : null}
+            {hasDescription
+              ? typeof description === 'string' || typeof description === 'number'
+                ? (
+                  <Text
+                    style={[
+                      styles.description,
+                      {
+                        color: tokens.colors.description,
+                        fontSize: tokens.typography.description,
+                      },
+                    ]}
+                  >
+                    {description}
+                  </Text>
+                )
+                : (
+                  <View style={styles.descriptionNode}>{description}</View>
+                )
+              : null}
+          </View>
+        ) : null}
         {renderGroups()}
         {children}
         {hasCancelText
@@ -245,29 +278,41 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
 }
 
 const styles = StyleSheet.create({
+  popupOverride: {
+    padding: 0,
+  },
   wrapper: {
     width: '100%',
-    paddingTop: 16,
+  },
+  header: {
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    alignItems: 'center',
   },
   title: {
-    fontWeight: '600',
+    fontWeight: 'normal',
     textAlign: 'center',
+    marginTop: 4,
   },
   description: {
     textAlign: 'center',
     marginTop: 4,
-    marginBottom: 12,
   },
   titleNode: {
     alignItems: 'center',
+    marginTop: 4,
   },
   descriptionNode: {
     alignItems: 'center',
     marginTop: 4,
-    marginBottom: 12,
   },
   group: {
-    marginBottom: 12,
+  },
+  groupBorder: {
+    position: 'absolute',
+    top: 0,
+    pointerEvents: 'none',
   },
   optionsRow: {
     flexDirection: 'row',
@@ -278,18 +323,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionText: {
     fontWeight: '500',
+    textAlign: 'center',
   },
   optionDesc: {
     fontSize: 12,
   },
+  cancelWrapper: {
+    backgroundColor: '#f7f8fa',
+  },
+  cancelDivider: {
+    width: '100%',
+  },
   cancel: {
-    marginTop: 8,
     paddingVertical: 14,
     alignItems: 'center',
   },

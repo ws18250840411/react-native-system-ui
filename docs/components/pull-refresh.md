@@ -23,6 +23,14 @@ import { PullRefresh } from 'react-native-system-ui'
 
 <code src="./pull-refresh/demo/basic.tsx" title="基础刷新"></code>
 
+### 成功提示
+
+通过 `successText` 可以设置刷新成功后的顶部提示文案。
+
+### 自定义内容
+
+通过插槽可以自定义下拉刷新过程中的提示内容。
+
 ## API
 
 | 属性 | 说明 | 类型 | 默认值 |

@@ -26,6 +26,12 @@ export interface DropdownMenuProps extends ViewProps {
   closeOnClickOverlay?: boolean
   closeOnClickOutside?: boolean
   swipeThreshold?: number | string
+  /** 当前选中项的值，格式为 { name: value } */
+  value?: Record<string, string | number>
+  /** 默认选中项的值 */
+  defaultValue?: Record<string, string | number>
+  /** 选项改变时触发 */
+  onChange?: (value: Record<string, string | number>) => void
   onOpen?: () => void
   onClose?: () => void
   onOpened?: () => void
@@ -33,19 +39,28 @@ export interface DropdownMenuProps extends ViewProps {
 }
 
 export interface DropdownItemProps extends ViewProps {
+  /** 选项数据 */
   options?: DropdownOption[]
+  /** 当前选中项的值（受控模式，如果 DropdownMenu 有 value，则从那里获取） */
   value?: DropdownOption['value']
+  /** 默认选中项的值（非受控模式） */
   defaultValue?: DropdownOption['value']
+  /** 占位符文本 */
   placeholder?: React.ReactNode
   /** 对齐 Vant：title */
   title?: React.ReactNode
   /** 兼容旧字段：label */
   label?: React.ReactNode
+  /** 选项标识符，用于在 DropdownMenu 的 value 中标识该项 */
+  name?: string
+  /** 是否禁用 */
   disabled?: boolean
+  /** 选择后是否关闭菜单 */
   closeOnSelect?: boolean
   textStyle?: StyleProp<TextStyle>
   panelStyle?: StyleProp<ViewStyle>
   children?: React.ReactNode
+  /** 选项改变时触发（如果 DropdownMenu 有 onChange，会同时调用） */
   onChange?: (value: DropdownOption['value'], option?: DropdownOption) => void
   onOpen?: () => void
   onClose?: () => void

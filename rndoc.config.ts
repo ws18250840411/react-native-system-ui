@@ -199,7 +199,6 @@ export default defineConfig({
           '/components/divider',
           '/components/empty',
           '/components/field',
-          '/components/floating-ball',
           '/components/image-preview',
           '/components/list',
           '/components/notice-bar',

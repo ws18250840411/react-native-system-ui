@@ -12,6 +12,10 @@ export interface DropdownMenuContextValue {
   activeIcon?: React.ReactNode
   direction: DropdownMenuDirection
   disabled?: boolean
+  /** DropdownMenu 层面的 value（通过 name 映射） */
+  menuValue?: Record<string, string | number>
+  /** DropdownMenu 层面的 onChange */
+  onMenuChange?: (value: Record<string, string | number>) => void
 }
 
 export const DropdownMenuContext = React.createContext<DropdownMenuContextValue | null>(null)

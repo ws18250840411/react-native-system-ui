@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: true
+  compact: false
 ---
 
 # Avatar 头像

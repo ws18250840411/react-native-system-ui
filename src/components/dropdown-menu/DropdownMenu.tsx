@@ -38,6 +38,9 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     closeOnClickOverlay = true,
     closeOnClickOutside = true,
     swipeThreshold,
+    value: valueProp,
+    defaultValue: defaultValueProp,
+    onChange: onChangeProp,
     onOpen,
     onClose,
     onOpened,
@@ -47,6 +50,26 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   } = props
 
   const tokens = useDropdownMenuTokens()
+
+  const [value, setValue] = React.useState<Record<string, string | number>>(() => {
+    if (valueProp !== undefined) return valueProp
+    if (defaultValueProp !== undefined) return defaultValueProp
+    return {}
+  })
+
+  React.useEffect(() => {
+    if (valueProp !== undefined) {
+      setValue(valueProp)
+    }
+  }, [valueProp])
+
+  const handleMenuChange = React.useCallback(
+    (newValue: Record<string, string | number>) => {
+      setValue(newValue)
+      onChangeProp?.(newValue)
+    },
+    [onChangeProp]
+  )
 
   const [activeIndex, setActiveIndex] = React.useState<number | null>(null)
   const activeIndexRef = React.useRef(activeIndex)
@@ -206,6 +229,8 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
       activeIcon,
       direction,
       disabled,
+      menuValue: value,
+      onMenuChange: handleMenuChange,
     }),
     [
       activeColor,
@@ -217,6 +242,8 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
       registerPanel,
       showItem,
       toggleItem,
+      value,
+      handleMenuChange,
     ],
   )
 
@@ -266,16 +293,28 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const resolvedZIndex = stackZIndex ?? zIndex
 
+  const barStyle = React.useMemo(
+    () => [
+      styles.barWrapper,
+      {
+        height: tokens.sizing.barHeight,
+        backgroundColor: tokens.colors.barBackground,
+        paddingHorizontal: tokens.spacing.horizontal,
+        borderBottomColor: tokens.colors.divider,
+        ...(mounted && zIndex ? { zIndex: resolvedZIndex + 1 } : {}),
+        ...tokens.shadow,
+      },
+    ],
+    [tokens.sizing.barHeight, tokens.colors.barBackground, tokens.spacing.horizontal, tokens.colors.divider, tokens.shadow, mounted, resolvedZIndex, zIndex]
+  )
+
   return (
     <DropdownMenuContext.Provider value={contextValue}>
       <View {...rest} style={[styles.container, style]}>
         <View
           ref={barRef}
           collapsable={false}
-          style={[
-            styles.barWrapper,
-            { paddingHorizontal: tokens.spacing.horizontal, borderBottomColor: tokens.colors.divider },
-          ]}
+          style={barStyle}
           onLayout={event => {
             setBarHeight(event.nativeEvent.layout.height)
             requestMeasure()
@@ -360,8 +399,10 @@ const styles = StyleSheet.create({
   barWrapper: {
     flexDirection: 'row',
     borderBottomWidth: StyleSheet.hairlineWidth,
+    position: 'relative',
   },
   bar: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },

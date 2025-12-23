@@ -1,11 +1,10 @@
 import React from 'react'
 import { Cell, ShareSheet } from 'react-native-system-ui'
-import { Photo, Qr, Share, ShareO, Wechat } from 'react-native-system-icon'
+import { Photo, Qr, Share, Wechat } from 'react-native-system-icon'
 
 const options = [
   { name: '微信', icon: <Wechat /> },
   { name: '微博', icon: <Share /> },
-  { name: '复制链接', icon: <ShareO /> },
   { name: '分享海报', icon: <Photo /> },
   { name: '二维码', icon: <Qr /> },
 ]

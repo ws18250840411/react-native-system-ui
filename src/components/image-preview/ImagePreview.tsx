@@ -203,12 +203,18 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
         <ScrollView
           ref={scrollRef}
           style={styles.scroll}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { width: images.length > 0 ? viewportWidth * images.length : viewportWidth },
+          ]}
           horizontal
           pagingEnabled
+          scrollEnabled={images.length > 1}
           bounces={false}
           showsHorizontalScrollIndicator={false}
           automaticallyAdjustContentInsets={false}
           onMomentumScrollEnd={handleMomentumEnd}
+          onScrollEndDrag={handleMomentumEnd}
           testID="rv-image-preview-scroll"
         >
           {images.length === 0 ? (
@@ -255,6 +261,9 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
+  },
+  scrollContent: {
+    flexDirection: 'row',
   },
   slide: {
     justifyContent: 'center',

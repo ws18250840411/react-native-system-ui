@@ -1,25 +1,19 @@
-import React from 'react'
-
+import React, { useState } from 'react'
 import { DropdownMenu, Toast } from 'react-native-system-ui'
-
-const options = [
-  { text: '全部商品', value: 0 },
-  { text: '新款商品', value: 1 },
-  { text: '活动商品', value: 2 },
-]
+import { option1 } from './options'
 
 export default () => {
-  const [value, setValue] = React.useState(0)
+  const [value, setValue] = useState<Record<string, string | number>>({})
+
   return (
-    <DropdownMenu>
-      <DropdownMenu.Item
-        options={options}
-        value={value}
-        onChange={(v, option) => {
-          setValue(v)
-          Toast.info(`值：${String(option?.text ?? option?.label ?? v)}`)
-        }}
-      />
+    <DropdownMenu
+      value={value}
+      onChange={v => {
+        setValue(v)
+        Toast.info(`当前值：${JSON.stringify(v)}`)
+      }}
+    >
+      <DropdownMenu.Item name="value1" options={option1} />
     </DropdownMenu>
   )
 }

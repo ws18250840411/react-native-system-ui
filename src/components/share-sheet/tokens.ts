@@ -12,6 +12,7 @@ export interface ShareSheetTokens {
     description: string
     option: string
     optionDesc: string
+    border?: string
   }
   spacing: {
     horizontal: number
@@ -48,10 +49,10 @@ const createTokens = (foundations: Foundations): ShareSheetTokens => {
       icon: 48,
     },
     typography: {
-      title: fontSize.lg,
-      description: fontSize.sm,
-      option: fontSize.sm,
-      optionDesc: fontSize.xs,
+      title: fontSize.md,
+      description: fontSize.xs,
+      option: fontSize.xs,
+      optionDesc: fontSize.xxs,
     },
   }
 }

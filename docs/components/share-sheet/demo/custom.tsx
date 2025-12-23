@@ -4,15 +4,15 @@ import { Cell, Image, ShareSheet } from 'react-native-system-ui'
 const options = [
   {
     name: '名称',
-    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-fire.png" width={48} height={48} />,
+    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-fire.png" width={48} height={48} containerStyle={{ backgroundColor: 'transparent' }} />,
   },
   {
     name: '名称',
-    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-light.png" width={48} height={48} />,
+    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-light.png" width={48} height={48} containerStyle={{ backgroundColor: 'transparent' }} />,
   },
   {
     name: '名称',
-    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-water.png" width={48} height={48} />,
+    icon: <Image src="https://img.yzcdn.cn/vant/custom-icon-water.png" width={48} height={48} containerStyle={{ backgroundColor: 'transparent' }} />,
   },
 ]
 

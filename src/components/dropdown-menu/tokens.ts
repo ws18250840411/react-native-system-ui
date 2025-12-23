@@ -14,34 +14,58 @@ export interface DropdownMenuTokens {
     panelBackground: string
     mask: string
     divider: string
+    barBackground: string
   }
   spacing: {
     horizontal: number
     vertical: number
+    titlePadding: number
   }
   sizing: {
+    barHeight: number
+    titleFontSize: number
+    titleLineHeight: number
     panelMaxHeight: number
+  }
+  shadow: {
+    shadowColor: string
+    shadowOffset: { width: number; height: number }
+    shadowOpacity: number
+    shadowRadius: number
+    elevation: number
   }
 }
 
 const createTokens = (foundations: Foundations): DropdownMenuTokens => {
-  const { palette, spacing } = foundations
+  const { palette, spacing, fontSize, typography } = foundations
   return {
     colors: {
       text: palette.default[900],
-      activeText: palette.primary[600],
+      activeText: palette.danger[500], // var(--rv-danger-color)
       placeholder: palette.default[500],
       disabledText: palette.default[400],
       panelBackground: '#ffffff',
       mask: 'rgba(0,0,0,0.45)',
       divider: palette.default[200],
+      barBackground: '#ffffff',
     },
     spacing: {
       horizontal: spacing.md,
       vertical: spacing.sm,
+      titlePadding: spacing.xs, // var(--rv-padding-xs)
     },
     sizing: {
-      panelMaxHeight: 320,
+      barHeight: 48, // 48 * @hd
+      titleFontSize: 15, // 15 * @hd
+      titleLineHeight: fontSize.lg * typography.lineHeightMultiplier, // var(--rv-line-height-lg)
+      panelMaxHeight: 320, // 80% of screen height
+    },
+    shadow: {
+      shadowColor: 'rgba(100, 101, 102, 0.12)',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 1,
+      shadowRadius: 12,
+      elevation: 3,
     },
   }
 }
