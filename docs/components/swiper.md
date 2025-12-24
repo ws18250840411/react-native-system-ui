@@ -29,6 +29,12 @@ import { Swiper } from 'react-native-system-ui'
 
 <code src="./swiper/demo/autoplay.tsx" title="自动播放"></code>
 
+### 图片轮播
+
+使用 `Image` 组件渲染图片内容。
+
+<code src="./swiper/demo/images.tsx" title="图片轮播"></code>
+
 ### 监听切换事件
 
 在每一页轮播结束后，会触发 `onChange` 事件。
@@ -41,6 +47,12 @@ import { Swiper } from 'react-native-system-ui'
 
 <code src="./swiper/demo/vertical.tsx" title="纵向滚动"></code>
 
+### 垂直滑块居中
+
+当 `slideSize < 100` 时，可以通过 `trackOffset = (100 - slideSize) / 2` 让滑块在容器内居中展示（对齐官方示例）。
+
+<code src="./swiper/demo/vertical-center.tsx" title="垂直滑块居中"></code>
+
 ### 自定义滑块大小
 
 滑块默认宽度为 `100%`，可以通过 `slideSize` 属性改变滑块宽度。
@@ -52,6 +64,18 @@ import { Swiper } from 'react-native-system-ui'
 通过 `indicator` 属性可以自定义指示器的样式。
 
 <code src="./swiper/demo/custom-indicator.tsx" title="自定义指示器"></code>
+
+### 关闭指示器
+
+将 `indicator` 设置为 `false` 可隐藏指示器。
+
+<code src="./swiper/demo/indicator-off.tsx" title="关闭指示器"></code>
+
+### 关闭循环
+
+将 `loop` 设置为 `false` 可关闭循环播放。
+
+<code src="./swiper/demo/loop.tsx" title="关闭循环"></code>
 
 ### 使用 ref 控制
 

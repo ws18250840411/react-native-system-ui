@@ -6,6 +6,7 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import { createHairlineView } from '../../utils/hairline'
 import { Close } from 'react-native-system-icon'
 import Button from '../button'
 import Popup from '../popup'
@@ -147,25 +148,15 @@ const ActionButton: React.FC<ActionButtonProps> = React.memo(props => {
   const dividerStyle = React.useMemo(() => {
     if (dividerPosition === 'none') return null
     const isLeft = dividerPosition === 'left'
-    const baseStyle: ViewStyle = {
-      position: 'absolute',
+    const hairlineStyle = createHairlineView({
+      position: isLeft ? 'left' : 'right',
+      color: tokens.colors.divider,
       top: 0,
       bottom: 0,
-      width: 0,
-      borderLeftWidth: isLeft ? borderWidth : 0,
-      borderRightWidth: !isLeft ? borderWidth : 0,
-      borderColor: tokens.colors.divider,
-    }
-    if (isLeft) {
-      baseStyle.left = 0
-    } else {
-      baseStyle.right = 0
-    }
-    if (platform === 'web') {
-      baseStyle.transform = [{ scaleX: 0.5 }]
-    }
-    return [styles.actionButtonDivider, baseStyle]
-  }, [dividerPosition, borderWidth, tokens.colors.divider, platform])
+      [isLeft ? 'left' : 'right']: 0,
+    })
+    return [styles.actionButtonDivider, { width: 0 }, hairlineStyle]
+  }, [dividerPosition, tokens.colors.divider])
 
   const textStyle = React.useMemo(() => [styles.actionText, { color: textColor }], [textColor])
 
@@ -518,13 +509,15 @@ export const Dialog: React.FC<DialogProps> = props => {
     const borderTopStyle = React.useMemo(
       () => [
         styles.footerBorderTop,
-        {
-          borderTopColor: tokens.colors.divider,
-          borderTopWidth: borderWidth,
-          ...(platform === 'web' ? { transform: [{ scaleY: 0.5 }] } : {}),
-        },
+        createHairlineView({
+          position: 'top',
+          color: tokens.colors.divider,
+          left: 0,
+          right: 0,
+          top: 0,
+        }),
       ],
-      [tokens.colors.divider, borderWidth, platform]
+      [tokens.colors.divider]
     )
 
     return (

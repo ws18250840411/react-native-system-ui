@@ -3,6 +3,7 @@ import { Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
+import { createHairlineBorderBottom } from '../../utils/hairline'
 import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
 
@@ -173,9 +174,8 @@ const NavBarBase: React.FC<NavBarProps> = props => {
         {
           backgroundColor: background,
           paddingHorizontal: tokens.layout.paddingHorizontal,
-          borderBottomWidth: border ? StyleSheet.hairlineWidth : 0,
-          borderBottomColor: tokens.colors.border,
         },
+        border ? createHairlineBorderBottom(tokens.colors.border) : null,
       ]}
       onLayout={event => setHeight(event.nativeEvent.layout.height)}
     >

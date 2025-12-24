@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View, type PressableStateCallbackType } fr
 import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
+import { createHairlineBorderBottom } from '../../utils/hairline'
 import Loading from '../loading'
 import Popup from '../popup'
 import type { ActionSheetAction, ActionSheetCloseAction, ActionSheetProps } from './types'
@@ -296,7 +297,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
           />
         ) : null}
         {hasDescription ? (
-          <View style={styles.descriptionContainer}>
+          <View style={[styles.descriptionContainer, createHairlineBorderBottom('#ebedf0')]}>
             {typeof description === 'string' || typeof description === 'number' ? (
               <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
                 {description}
@@ -364,8 +365,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 20,
     paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ebedf0',
   },
   description: {
     textAlign: 'center',

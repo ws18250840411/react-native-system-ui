@@ -329,7 +329,6 @@ export const Badge: React.FC<BadgeProps> = props => {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'relative',
-    alignSelf: 'flex-start',
   },
   badge: {
     position: 'absolute',

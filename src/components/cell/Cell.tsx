@@ -3,6 +3,7 @@ import type { StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Arrow } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
+import { createHairlineView } from '../../utils/hairline'
 
 import { CellGroupContext } from './CellContext'
 import type { CellArrowDirection, CellProps } from './types'
@@ -174,22 +175,19 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
 
   const hairline = React.useMemo(() => {
     if (!showBorder) return null
-    const baseHairlineWidth =
-      typeof tokens.border.width === 'number' ? tokens.border.width : StyleSheet.hairlineWidth
-    const hairlineStyle: ViewStyle = {
+    const borderWidth = typeof tokens.border.width === 'number' ? tokens.border.width : undefined
+    const hairlineStyle = createHairlineView({
+      position: 'bottom',
+      color: tokens.border.color,
       left: resolvedPadding.left,
       right: resolvedPadding.right,
-      borderBottomColor: tokens.border.color,
-      borderBottomWidth: platform === 'web' ? 1 : baseHairlineWidth,
-    }
+      enabled: borderWidth !== undefined ? borderWidth > 0 : true,
+      // 如果指定了自定义宽度，传递给 createHairlineView 统一处理
+      width: borderWidth,
+    })
 
-    if (platform === 'web') {
-      hairlineStyle.transform = [{ scaleY: 0.5 }]
-    }
-
-    return <View style={[styles.hairline, hairlineStyle, { pointerEvents: 'none' }]} />
+    return <View style={[styles.hairline, hairlineStyle]} />
   }, [
-    platform,
     resolvedPadding.left,
     resolvedPadding.right,
     showBorder,

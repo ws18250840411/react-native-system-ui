@@ -5,6 +5,7 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import { createHairlineBorderTop } from '../../utils/hairline'
 import { GridContext, type GridTokens } from './GridContext'
 import type { GridProps } from './types'
 
@@ -24,19 +25,19 @@ const createGridTokens = (foundations: Foundations): GridTokens => {
       iconSize: 28,
     },
     colors: {
-      border: palette.default[200],
-      text: palette.default[700],
+      border: '#ebedf0', // var(--rv-gray-3) var(--rv-border-color)
+      text: '#646566', // var(--rv-gray-7)
       background: '#ffffff',
       active: palette.default[100],
     },
     spacing: {
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.md,
+      paddingHorizontal: 8, // 8px (var(--rv-padding-xs))
+      paddingVertical: 16, // 16px (var(--rv-padding-md))
     },
     typography: {
-      fontSize: fontSize.sm,
+      fontSize: 12, // 12px (var(--rv-font-size-sm))
       fontFamily: typography.fontFamily,
-      lineHeight: fontSize.sm * typography.lineHeightMultiplier,
+      lineHeight: 18, // 18px (line-height: 1.5 * 12px)
       fontWeight: typography.weight.regular,
     },
   }
@@ -83,16 +84,11 @@ export const Grid: React.FC<GridProps> = props => {
     styles.container,
     gutter
       ? {
-          marginHorizontal: -gutter / 2,
-          marginVertical: -gutter / 2,
+          paddingLeft: gutter, // react-vant: paddingLeft: addUnit(props.gutter)
         }
       : null,
-    border
-      ? {
-          borderLeftWidth: StyleSheet.hairlineWidth,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderColor: tokens.colors.border,
-        }
+    border && !gutter
+      ? createHairlineBorderTop(tokens.colors.border)
       : null,
     style,
   ]

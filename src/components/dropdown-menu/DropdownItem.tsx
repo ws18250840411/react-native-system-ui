@@ -2,6 +2,7 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
+import { createHairlineBorderBottom } from '../../utils/hairline'
 import type { DropdownItemInstance, DropdownItemProps, DropdownOption } from './types'
 import { useDropdownMenuContext } from './DropdownMenuContext'
 import { useDropdownMenuTokens } from './tokens'
@@ -154,7 +155,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
           return (
             <Pressable
               key={String(option.value)}
-              style={styles.optionRow}
+              style={[styles.optionRow, createHairlineBorderBottom('rgba(0,0,0,0.06)')]}
               onPress={() => handleSelect(option)}
               disabled={option.disabled}
               testID={`rv-dropdown-option-${option.value}`}
@@ -329,8 +330,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   optionLeft: {
     flex: 1,

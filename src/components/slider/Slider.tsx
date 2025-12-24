@@ -133,13 +133,13 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
 
   const thumbStyle: ViewStyle = React.useMemo(
     () => ({
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-      borderColor: activeColor,
-      [axisKey]: `${visualPercent}%`,
-      [crossAxisKey]: '50%',
-      transform: [{ translateX: -size / 2 }, { translateY: -size / 2 }],
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    borderColor: activeColor,
+    [axisKey]: `${visualPercent}%`,
+    [crossAxisKey]: '50%',
+    transform: [{ translateX: -size / 2 }, { translateY: -size / 2 }],
     }),
     [size, activeColor, axisKey, crossAxisKey, visualPercent]
   )
@@ -401,11 +401,11 @@ export const Slider: React.FC<SliderProps> = props => {
 
   const trackBaseStyle = React.useMemo(
     () =>
-      orientation === 'vertical'
-        ? [
-          styles.trackVertical,
-          { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' },
-        ]
+    orientation === 'vertical'
+      ? [
+        styles.trackVertical,
+        { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' },
+      ]
         : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }],
     [orientation, resolvedTrackHeight, resolvedInactiveColor]
   )

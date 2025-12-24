@@ -1,10 +1,11 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import { createHairlineView } from '../../utils/hairline'
 import type { DividerProps } from './types'
 import type { DividerContentPosition, DividerType } from './types'
 
@@ -111,8 +112,7 @@ export const Divider: React.FC<DividerProps> = props => {
   } = props
 
   const resolvedColor = lineColor ?? tokens.colors.line
-  const lineThickness = hairline ? StyleSheet.hairlineWidth : tokens.line.thickness
-  const borderStyle = dashed ? 'dashed' : 'solid'
+  const borderStyle: ViewStyle['borderStyle'] = dashed ? 'dashed' : 'solid'
 
   const renderContent = () => {
     if (children === null || children === undefined || children === false) {
@@ -129,7 +129,7 @@ export const Divider: React.FC<DividerProps> = props => {
               fontSize: tokens.typography.fontSize,
               lineHeight: tokens.typography.lineHeight,
               fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.fontWeight,
+              fontWeight: tokens.typography.fontWeight as any,
             },
             textStyle,
           ]}
@@ -152,16 +152,31 @@ export const Divider: React.FC<DividerProps> = props => {
         ]}
         {...rest}
       >
-        <View
-          style={[
-            styles.verticalLine,
-            {
-              borderLeftColor: resolvedColor,
-              borderLeftWidth: lineThickness,
-              borderStyle,
-            },
-          ]}
-        />
+        <View style={styles.verticalLine}>
+          {hairline ? (
+            <View
+              style={createHairlineView({
+                position: 'left',
+                color: resolvedColor,
+                top: 0,
+                bottom: 0,
+                left: 0,
+              })}
+            />
+          ) : (
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                left: 0,
+                borderLeftWidth: tokens.line.thickness,
+                borderLeftColor: resolvedColor,
+                borderStyle,
+              }}
+            />
+          )}
+        </View>
       </View>
     )
   }
@@ -169,14 +184,33 @@ export const Divider: React.FC<DividerProps> = props => {
   const hasContent = children !== null && children !== undefined && children !== false
   const ratios = flexRatioMap[contentPosition]
 
-  const lineBaseStyle = [
-    styles.line,
-    {
-      borderBottomColor: resolvedColor,
-      borderBottomWidth: lineThickness,
-      borderStyle,
-    },
-  ]
+  const renderLine = () => (
+    <View style={styles.line}>
+      {hairline ? (
+        <View
+          style={createHairlineView({
+            position: 'bottom',
+            color: resolvedColor,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          })}
+        />
+      ) : (
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderBottomWidth: tokens.line.thickness,
+            borderBottomColor: resolvedColor,
+            borderStyle,
+          }}
+        />
+      )}
+    </View>
+  )
 
   return (
     <View
@@ -191,13 +225,14 @@ export const Divider: React.FC<DividerProps> = props => {
         <>
           <View
             style={[
-              ...lineBaseStyle,
               {
                 flexGrow: ratios.left,
                 flexShrink: 1,
               },
             ]}
-          />
+          >
+            {renderLine()}
+          </View>
           <View
             style={[
               styles.contentWrapper,
@@ -209,16 +244,17 @@ export const Divider: React.FC<DividerProps> = props => {
           </View>
           <View
             style={[
-              ...lineBaseStyle,
               {
                 flexGrow: ratios.right,
                 flexShrink: 1,
               },
             ]}
-          />
+          >
+            {renderLine()}
+          </View>
         </>
       ) : (
-        <View style={[...lineBaseStyle, { flexGrow: 1 }]} />
+        <View style={{ flexGrow: 1 }}>{renderLine()}</View>
       )}
     </View>
   )
@@ -233,7 +269,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   line: {
-    borderBottomWidth: 1,
+    position: 'relative',
+    height: 1,
   },
   contentWrapper: {
     justifyContent: 'center',
@@ -247,7 +284,8 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   verticalLine: {
-    borderLeftWidth: 1,
+    position: 'relative',
+    width: 1,
     alignSelf: 'stretch',
   },
 })

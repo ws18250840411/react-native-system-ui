@@ -17,6 +17,7 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import { createHairlineView } from '../../utils/hairline'
 
 export type CollapseValue = string | string[]
 
@@ -259,25 +260,14 @@ const Hairline: React.FC<{
   color: string
   inset?: number
 }> = ({ position, color, inset = 0 }) => {
-  const platform = Platform.OS
-  const baseHairlineWidth = StyleSheet.hairlineWidth
-  const borderWidth = platform === 'web' ? 1 : baseHairlineWidth
-  const lineStyle =
-    position === 'top'
-      ? { top: 0, borderTopWidth: borderWidth, borderTopColor: color }
-      : { bottom: 0, borderBottomWidth: borderWidth, borderBottomColor: color }
+  const hairlineStyle = createHairlineView({
+    position,
+    color,
+    left: inset,
+    right: inset,
+  })
 
-  return (
-    <View
-      pointerEvents="none"
-      style={[
-        styles.hairline,
-        { left: inset, right: inset },
-        lineStyle,
-        platform === 'web' ? { transform: [{ scaleY: 0.5 }] } : null,
-      ]}
-    />
-  )
+  return <View pointerEvents="none" style={[styles.hairline, hairlineStyle]} />
 }
 
 const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps>((props, ref) => {

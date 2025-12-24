@@ -3,6 +3,7 @@ import { Animated, Platform, Pressable, ScrollView, StyleSheet, View, useWindowD
 
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
+import { createHairlineBorderBottom } from '../../utils/hairline'
 import type { DropdownMenuInstance, DropdownMenuProps } from './types'
 import { DropdownMenuContext } from './DropdownMenuContext'
 import { useDropdownMenuTokens } from './tokens'
@@ -300,10 +301,10 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
         height: tokens.sizing.barHeight,
         backgroundColor: tokens.colors.barBackground,
         paddingHorizontal: tokens.spacing.horizontal,
-        borderBottomColor: tokens.colors.divider,
         ...(mounted && zIndex ? { zIndex: resolvedZIndex + 1 } : {}),
         ...tokens.shadow,
       },
+      createHairlineBorderBottom(tokens.colors.divider),
     ],
     [tokens.sizing.barHeight, tokens.colors.barBackground, tokens.spacing.horizontal, tokens.colors.divider, tokens.shadow, mounted, resolvedZIndex, zIndex]
   )
@@ -398,7 +399,6 @@ const styles = StyleSheet.create({
   },
   barWrapper: {
     flexDirection: 'row',
-    borderBottomWidth: StyleSheet.hairlineWidth,
     position: 'relative',
   },
   bar: {

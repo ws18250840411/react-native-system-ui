@@ -7,6 +7,7 @@ import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
+import { getHairlineWidth } from '../../utils/hairline'
 import type { TagProps, TagSize, TagType } from './types'
 
 const isRenderable = (value: React.ReactNode) => value !== null && value !== undefined
@@ -22,7 +23,7 @@ interface TagTokens {
   toneMap: Record<TagType, { background: string; text: string }>
   sizes: Record<
     TagSize,
-    { fontSize: number; paddingHorizontal: number; paddingVertical: number; borderRadius: number }
+    { fontSize: number; paddingHorizontal: number; paddingVertical: number; borderRadius: number; lineHeight: number }
   >
   radius: {
     round: number
@@ -71,28 +72,32 @@ const createTagTokens = (foundations: Foundations): TagTokens => {
     },
     sizes: {
       mini: {
-        fontSize: fontSize.xs,
-        paddingHorizontal: spacing.xs,
-        paddingVertical: spacing.none,
-        borderRadius: radii.xs,
+        fontSize: 10, // 10px (font-size-xs)
+        paddingHorizontal: 4, // 4px
+        paddingVertical: 0,
+        borderRadius: 2, // 2px
+        lineHeight: 16, // 16px
       },
       small: {
-        fontSize: fontSize.sm,
-        paddingHorizontal: spacing.sm,
-        paddingVertical: spacing.xxs,
-        borderRadius: radii.xs,
+        fontSize: 12, // 12px (var(--rv-font-size-sm))
+        paddingHorizontal: 4, // 4px (var(--rv-padding-base))
+        paddingVertical: 0, // 0
+        borderRadius: 2, // 2px (2 * @hd)
+        lineHeight: 16, // 16px (16 * @hd)
       },
       medium: {
-        fontSize: fontSize.sm,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.xs,
-        borderRadius: radii.sm,
+        fontSize: 12, // 12px (var(--rv-font-size-sm))
+        paddingHorizontal: 6, // 6px (6 * @hd)
+        paddingVertical: 2, // 2px (2 * @hd)
+        borderRadius: 4, // 4px (var(--rv-border-radius-md))
+        lineHeight: 16, // 16px
       },
       large: {
-        fontSize: fontSize.md,
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.sm,
-        borderRadius: radii.md,
+        fontSize: 14, // 14px (var(--rv-font-size-md))
+        paddingHorizontal: 8, // 8px (var(--rv-padding-xs))
+        paddingVertical: 4, // 4px (var(--rv-padding-base))
+        borderRadius: 4, // 4px (var(--rv-border-radius-md))
+        lineHeight: 16, // 16px
       },
     },
     radius: {
@@ -103,8 +108,8 @@ const createTagTokens = (foundations: Foundations): TagTokens => {
       plainBackground: '#ffffff',
     },
     close: {
-      size: fontSize.sm,
-      gap: spacing.xs,
+      size: 12, // 12px (var(--rv-font-size-sm))
+      gap: 2, // 2px (margin-left: 2px)
     },
     typography: {
       fontFamily: typography.fontFamily,
@@ -163,7 +168,7 @@ export const Tag: React.FC<TagProps> = props => {
       : tone.text
 
   const borderColor = plain ? color ?? tone.background : 'transparent'
-  const borderWidth = plain ? StyleSheet.hairlineWidth : 0
+  const borderWidth = plain ? getHairlineWidth() : 0
 
   const resolvedRadius = round ? tokens.radius.round : sizeTokens.borderRadius
 
@@ -180,8 +185,8 @@ export const Tag: React.FC<TagProps> = props => {
     mark && {
       borderTopLeftRadius: tokens.radius.markLeading,
       borderBottomLeftRadius: tokens.radius.markLeading,
-      borderTopRightRadius: resolvedRadius,
-      borderBottomRightRadius: resolvedRadius,
+      borderTopRightRadius: tokens.radius.round, // 右侧圆角 (var(--rv-border-radius-max))
+      borderBottomRightRadius: tokens.radius.round,
     },
     style,
   ]
@@ -191,7 +196,7 @@ export const Tag: React.FC<TagProps> = props => {
     {
       color: resolvedTextColor,
       fontSize: sizeTokens.fontSize,
-      lineHeight: sizeTokens.fontSize * tokens.typography.lineHeightMultiplier,
+      lineHeight: sizeTokens.lineHeight,
       fontFamily: tokens.typography.fontFamily,
       fontWeight: tokens.typography.fontWeight,
     },
@@ -265,10 +270,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   text: {
-    textAlign: 'center',
+    // 文本对齐由 flex 容器处理
   },
   close: {
-    marginLeft: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },

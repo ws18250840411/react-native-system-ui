@@ -2,6 +2,7 @@ import React from 'react'
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
+import { createHairlineBorderBottom } from '../../utils/hairline'
 import type { IndexAnchorProps, IndexBarInstance, IndexBarProps, IndexBarValue } from './types'
 import { useIndexBarTokens } from './tokens'
 
@@ -136,8 +137,8 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
         {
           backgroundColor: tokens.colors.stickyBackground,
           height: tokens.layout.stickyHeight,
-          borderBottomColor: tokens.colors.border,
         },
+        createHairlineBorderBottom(tokens.colors.border),
       ]}
     >
       <Text style={[styles.stickyText, { color: highlight }]}>{activeAnchor.title}</Text>
@@ -266,7 +267,6 @@ const styles = StyleSheet.create({
   sticky: {
     justifyContent: 'center',
     paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   stickyText: {
     fontSize: 16,

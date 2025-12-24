@@ -2,6 +2,7 @@ import React from 'react'
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
+import { createHairlineView } from '../../utils/hairline'
 import Popup from '../popup'
 import type { ShareSheetOption, ShareSheetOptions, ShareSheetProps } from './types'
 import { useShareSheetTokens, type ShareSheetTokens } from './tokens'
@@ -178,13 +179,12 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
             <View
               style={[
                 styles.groupBorder,
-                {
-                  borderTopWidth: Platform.OS === 'web' ? 1 : StyleSheet.hairlineWidth,
-                  borderTopColor: tokens.colors.border ?? 'rgba(0,0,0,0.06)',
+                createHairlineView({
+                  position: 'top',
+                  color: tokens.colors.border ?? 'rgba(0,0,0,0.06)',
                   left: tokens.spacing.horizontal,
                   right: tokens.spacing.horizontal,
-                },
-                Platform.OS === 'web' ? { transform: [{ scaleY: 0.5 }] } : null,
+                }),
               ]}
             />
           ) : null}

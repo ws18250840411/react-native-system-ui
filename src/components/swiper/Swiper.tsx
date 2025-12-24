@@ -10,9 +10,15 @@ import {
   FlatList,
   View,
   StyleSheet,
+  Platform,
+  PanResponder,
+  Animated,
+  Easing,
   useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type PanResponderGestureState,
+  type LayoutChangeEvent,
 } from 'react-native'
 import type { SwiperProps, SwiperInstance } from './types'
 import SwiperItem from './SwiperItem'
@@ -53,12 +59,17 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const viewportWidth = windowWidth || FALLBACK_WIDTH
   const viewportHeight = windowHeight || FALLBACK_HEIGHT
+  const [containerLayout, setContainerLayout] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  })
 
   const flatListRef = useRef<FlatList>(null)
-  const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const autoplayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isDraggingRef = useRef(false)
   const isScrollingRef = useRef(false)
   const prevIndexRef = useRef<number>(initialSwipe)
+  const isWeb = Platform.OS === 'web'
 
   // 处理子元素（children 模式）
   const validChildren = useMemo(() => {
@@ -120,14 +131,42 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   const displayData = shouldLoop ? loopData : itemsData
   const displayCount = displayData.length
 
-  // 计算滑动尺寸
+  const handleContainerLayout = useCallback((e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout
+    // 避免重复 setState（减少 re-render）
+    setContainerLayout((prev) => {
+      if (prev.width === width && prev.height === height) return prev
+      return { width, height }
+    })
+  }, [])
+
+  const containerWidth = containerLayout.width || viewportWidth
+  const containerHeight = containerLayout.height || viewportHeight
+
+  // 计算滑动尺寸（用容器真实尺寸而不是 window 尺寸，尤其是纵向场景）
   const getSlideSize = useCallback(() => {
-    const containerSize = vertical ? viewportHeight : viewportWidth
+    const containerSize = vertical ? containerHeight : containerWidth
     return containerSize * slideRatio
-  }, [vertical, viewportWidth, viewportHeight, slideRatio])
+  }, [vertical, containerHeight, containerWidth, slideRatio])
+
+  // 主轴尺寸：横向为 width，纵向为 height
+  // 注意：在容器尚未测量到尺寸（0）前，使用 viewport 只用于计算 slideSize；
+  // 但不要用 viewport 去“写死”交叉轴尺寸，否则会把布局撑到整屏，导致指示器看起来跑到很底下。
+  const crossAxisMeasured = vertical ? containerLayout.width : containerLayout.height
+  const crossAxisSize = crossAxisMeasured > 0 ? crossAxisMeasured : undefined
 
   const slideSizeValue = getSlideSize()
-  const containerSize = vertical ? viewportHeight : viewportWidth
+
+  // trackOffset（百分比）应基于“实际容器主轴尺寸”计算，避免初次渲染用 viewport 兜底导致整体大幅位移（看起来乱套）
+  const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
+  const trackOffsetPx = mainAxisMeasured > 0 ? mainAxisMeasured * offsetRatio : 0
+
+  // 对齐官方：trackOffset 应该作用在“轨道容器”上（track），而不是 contentContainerStyle。
+  // 这样能避免 web / RN 在 transform + scroll 的组合下出现布局/命中区域异常。
+  const trackOffsetStyle = useMemo(() => {
+    if (!trackOffsetPx) return undefined
+    return { transform: vertical ? [{ translateY: trackOffsetPx }] : [{ translateX: trackOffsetPx }] }
+  }, [trackOffsetPx, vertical])
 
   // 计算初始索引（循环模式下需要偏移）
   const getInitialIndex = useCallback(() => {
@@ -137,6 +176,45 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
   const [current, setCurrent] = useState(() => getInitialIndex())
   const [enabledState, setEnabledState] = useState(enabled)
+
+  // Web 端 PanResponder 相关状态
+  const webOffsetRef = useRef(0)
+  const startOffsetRef = useRef(0)
+  const startTimeRef = useRef(0)
+  const panLockRef = useRef(false)
+  const webTranslateXAnim = useRef(new Animated.Value(0)).current
+  const webTranslateYAnim = useRef(new Animated.Value(0)).current
+
+  // 让 PanResponder 只创建一次：用 ref 存储最新参数，避免频繁重建带来的抖动/卡顿
+  const panLatestRef = useRef({
+    enabledState,
+    touchable,
+    vertical,
+    count,
+    shouldLoop,
+    displayCount,
+    slideSizeValue,
+    duration,
+    onChange,
+  })
+  useEffect(() => {
+    panLatestRef.current = {
+      enabledState,
+      touchable,
+      vertical,
+      count,
+      shouldLoop,
+      displayCount,
+      slideSizeValue,
+      duration,
+      onChange,
+    }
+  }, [enabledState, touchable, vertical, count, shouldLoop, displayCount, slideSizeValue, duration, onChange])
+
+  // 同步 enabled prop 的变化
+  useEffect(() => {
+    setEnabledState(enabled)
+  }, [enabled])
 
   // 获取真实索引（用于显示和回调）
   const getDisplayIndex = useCallback(
@@ -150,20 +228,121 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   )
 
   // 滑动到指定索引
+  // 使用 ref 存储当前索引，避免依赖 current 导致频繁重建
+  const currentRef = useRef(current)
+  useEffect(() => {
+    currentRef.current = current
+  }, [current])
+
   const swipeTo = useCallback(
     (index: number, animated = true) => {
-      if (count === 0 || !flatListRef.current) return
+      if (count === 0) return
 
-      const targetIndex = shouldLoop
-        ? clamp(index, 0, count - 1) + 1 // 循环模式下需要偏移
-        : clamp(index, 0, count - 1)
+      const clampedIndex = clamp(index, 0, count - 1)
+      const currentIndex = currentRef.current
+      const displayIndex = getDisplayIndex(currentIndex)
 
-      flatListRef.current.scrollToIndex({
-        index: targetIndex,
-        animated,
-      })
+      let targetIndex: number
+      let needsJump = false
+      let jumpOffset: number | null = null
+      let jumpDisplayIndex: number | null = null
+
+      if (shouldLoop) {
+        // 循环模式：检查是否需要通过复制元素实现无缝切换
+        if (displayIndex === count - 1 && clampedIndex === 0) {
+          // 从最后一个切换到第一个：先动画到末尾的复制元素，然后跳转到开头的真实元素
+          targetIndex = displayCount - 1
+          needsJump = true
+          jumpOffset = -1 * slideSizeValue
+          jumpDisplayIndex = 1
+        } else if (displayIndex === 0 && clampedIndex === count - 1) {
+          // 从第一个切换到最后一个：先动画到开头的复制元素，然后跳转到末尾的真实元素
+          targetIndex = 0
+          needsJump = true
+          jumpOffset = -count * slideSizeValue
+          jumpDisplayIndex = count
+        } else {
+          // 正常切换：直接动画到目标位置
+          targetIndex = clampedIndex + 1 // 循环模式下需要偏移
+        }
+      } else {
+        targetIndex = clampedIndex
+      }
+
+      if (isWeb) {
+        const offset = -targetIndex * slideSizeValue
+        webOffsetRef.current = offset
+
+        if (needsJump) {
+          // 需要跳转的情况：先动画到复制元素，动画结束后跳转到真实元素
+          if (animated) {
+            const animValue = vertical ? webTranslateYAnim : webTranslateXAnim
+            Animated.timing(animValue, {
+              toValue: offset,
+              duration,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: false,
+            }).start((finished) => {
+              if (!finished || !shouldLoop || jumpOffset === null || jumpDisplayIndex === null) return
+
+              // 动画结束后，无动画跳转到对应位置以实现无缝衔接
+              webOffsetRef.current = jumpOffset
+              if (vertical) {
+                webTranslateYAnim.setValue(jumpOffset)
+              } else {
+                webTranslateXAnim.setValue(jumpOffset)
+              }
+              setCurrent(jumpDisplayIndex)
+            })
+            // 先更新到 targetIndex，动画结束后会更新到 jumpDisplayIndex
+            setCurrent(targetIndex)
+          } else {
+            // 无动画模式下，直接跳转到真实元素
+            if (vertical) {
+              webTranslateYAnim.setValue(jumpOffset!)
+            } else {
+              webTranslateXAnim.setValue(jumpOffset!)
+            }
+            webOffsetRef.current = jumpOffset!
+            setCurrent(jumpDisplayIndex!)
+          }
+        } else {
+          // 不需要跳转：直接动画到目标位置
+          const animValue = vertical ? webTranslateYAnim : webTranslateXAnim
+          if (animated) {
+            Animated.timing(animValue, {
+              toValue: offset,
+              duration,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: false,
+            }).start()
+          } else {
+            animValue.setValue(offset)
+          }
+          setCurrent(targetIndex)
+        }
+      } else if (flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index: targetIndex,
+          animated,
+        })
+        // Native 端在 handleScrollEnd 中处理跳转
+        if (needsJump && jumpDisplayIndex !== null) {
+          setTimeout(() => {
+            if (flatListRef.current) {
+              flatListRef.current.scrollToIndex({
+                index: jumpDisplayIndex!,
+                animated: false,
+              })
+              setCurrent(jumpDisplayIndex!)
+            }
+          }, animated ? 350 : 50)
+        } else {
+          setCurrent(targetIndex)
+        }
+      }
     },
-    [count, shouldLoop]
+    [count, shouldLoop, isWeb, slideSizeValue, vertical, webTranslateXAnim, getDisplayIndex, displayCount]
   )
 
   // 滑动到下一张
@@ -277,7 +456,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
   // 初始化滚动位置
   useEffect(() => {
-    if (count === 0 || !flatListRef.current) return
+    if (count === 0) return
 
     const initialIndex = getInitialIndex()
     // 延迟执行以确保布局完成
@@ -350,19 +529,23 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         const child = validChildren[item.index]
         if (!child) return null
 
-        return React.cloneElement(child, {
+        const sizeStyle: any = {
+          [vertical ? 'height' : 'width']: slideSizeValue,
+        }
+        if (crossAxisSize != null) {
+          sizeStyle[vertical ? 'width' : 'height'] = crossAxisSize
+        }
+
+        return React.cloneElement(child as React.ReactElement<any>, {
           style: [
-            child.props.style,
-            {
-              [vertical ? 'height' : 'width']: slideSizeValue,
-              [vertical ? 'width' : 'height']: containerSize,
-            },
+            (child as React.ReactElement<any>).props.style,
+            sizeStyle,
           ],
         })
       }
       return null
     },
-    [validChildren, vertical, slideSizeValue, containerSize]
+    [validChildren, vertical, slideSizeValue, crossAxisSize]
   )
 
   // 渲染项目（data 模式）
@@ -374,16 +557,19 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
       return (
         <View
-          style={{
-            [vertical ? 'height' : 'width']: slideSizeValue,
-            [vertical ? 'width' : 'height']: containerSize,
-          }}
+          style={(() => {
+            const sizeStyle: any = { [vertical ? 'height' : 'width']: slideSizeValue }
+            if (crossAxisSize != null) {
+              sizeStyle[vertical ? 'width' : 'height'] = crossAxisSize
+            }
+            return sizeStyle
+          })()}
         >
           {item}
         </View>
       )
     },
-    [renderItem, vertical, slideSizeValue, containerSize]
+    [renderItem, vertical, slideSizeValue, crossAxisSize]
   )
 
   // 获取 key
@@ -420,46 +606,286 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     return displayData.map((_, index) => slideSizeValue * index)
   }, [displayData, slideSizeValue, slideSize, trackOffset])
 
+  // Web 端 PanResponder 处理鼠标拖拽
+  const panResponder = useMemo(() => {
+    if (!isWeb) return null
+
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => {
+        const latest = panLatestRef.current
+        return !!latest.enabledState && !!latest.touchable && latest.count > 1
+      },
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        const latest = panLatestRef.current
+        if (!latest.enabledState || !latest.touchable || latest.count <= 1) return false
+        if (latest.vertical) {
+          return Math.abs(gestureState.dy) > Math.abs(gestureState.dx)
+        }
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
+      },
+      onPanResponderGrant: () => {
+        const latest = panLatestRef.current
+        if (!latest.enabledState || !latest.touchable || latest.count <= 1) return
+        panLockRef.current = true
+        startOffsetRef.current = webOffsetRef.current
+        startTimeRef.current = Date.now()
+        isDraggingRef.current = true
+        if (autoplayTimerRef.current) {
+          clearInterval(autoplayTimerRef.current)
+          autoplayTimerRef.current = null
+        }
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (!panLockRef.current) return
+        const latest = panLatestRef.current
+        // 对齐官方 `react-vant` 的“跟手”体验：
+        // 官方在 use-gesture 层 `transform: ([x, y]) => [-x, -y]` 先反转手势，
+        // 但渲染时又对 position 做了取反（例如非 loop: `x: -position%`），最终效果是：
+        // - 手指向右拖动（dx > 0）→ 轨道 translateX 增大（向右移动）
+        // - 手指向下拖动（dy > 0）→ 轨道 translateY 增大（向下移动）
+        //
+        // 我们的 web 端直接用 translateX/Y（单位 px），且内部 offset 约定为：offset = -index * slideSizeValue（<= 0）。
+        // 因此这里应让 offset “跟手”变化：dx/dy 为正时，offset 也应增大（变得不那么负），轨道向右/下移动。
+        const delta = latest.vertical ? gestureState.dy : gestureState.dx
+        // 计算偏移量范围：非循环模式下，偏移量范围是 [-(count-1)*slideSizeValue, 0]
+        // 循环模式下，允许超出范围以实现无缝循环
+        const maxOffset = latest.shouldLoop ? Infinity : Math.max(0, latest.count - 1) * latest.slideSizeValue
+        const minOffset = latest.shouldLoop ? -Infinity : 0
+        // 计算下一个偏移量
+        const next = clamp(startOffsetRef.current + delta, -maxOffset, -minOffset)
+        webOffsetRef.current = next
+        // 根据方向更新对应的动画值
+        if (latest.vertical) {
+          webTranslateYAnim.setValue(next)
+        } else {
+          webTranslateXAnim.setValue(next)
+        }
+      },
+      onPanResponderRelease: (_, gestureState: PanResponderGestureState) => {
+        const latest = panLatestRef.current
+        panLockRef.current = false
+        isDraggingRef.current = false
+        // 预留：如需根据按压时长调整惯性，可使用 elapsed
+        // const elapsed = Date.now() - startTimeRef.current
+        // 与 onPanResponderMove 保持一致（跟手）
+        const distance = latest.vertical ? gestureState.dy : gestureState.dx
+        const velocity = latest.vertical ? gestureState.vy : gestureState.vx
+
+        // 计算目标索引：对齐官方实现
+        // 官方：index = Math.round((offset + Math.min(velocity * 2000, slidePixels) * direction) / slidePixels)
+        // 其中 direction 也是反转后的值（-1 或 1）
+        const maxOffset = latest.shouldLoop ? Infinity : Math.max(0, latest.count - 1) * latest.slideSizeValue
+        const minOffset = latest.shouldLoop ? -Infinity : 0
+        // 松手后的“甩动”惯性：更贴近官方实现（velocity * 2000，并限制最多一页距离）
+        const dir = velocity !== 0 ? (velocity > 0 ? 1 : -1) : distance !== 0 ? (distance > 0 ? 1 : -1) : 0
+        const velocityOffset = Math.min(Math.abs(velocity) * 2000, latest.slideSizeValue) * dir
+        let targetOffset = startOffsetRef.current + distance + velocityOffset
+        // 在非循环模式下，限制目标偏移量在有效范围内
+        if (!latest.shouldLoop) {
+          targetOffset = clamp(targetOffset, -maxOffset, -minOffset)
+        }
+
+        // 对齐到最近的 slide
+        // 注意：循环模式下，displayData 的结构是 [末尾复制(index 0), 原始0(index 1), ..., 原始n-1(index count), 开头复制(index count+1)]
+        const targetIndex = Math.round(-targetOffset / latest.slideSizeValue)
+        let displayIndex: number
+        let finalOffset: number
+
+        if (latest.shouldLoop) {
+          // 循环模式：允许平滑拖动到复制元素，然后在动画结束后跳转
+          // 先允许动画到目标位置（包括复制元素）
+          displayIndex = clamp(targetIndex, 0, latest.displayCount - 1)
+          finalOffset = -displayIndex * latest.slideSizeValue
+        } else {
+          displayIndex = clamp(targetIndex, 0, latest.count - 1)
+          finalOffset = -displayIndex * latest.slideSizeValue
+        }
+
+        webOffsetRef.current = finalOffset
+
+        // 动画过渡到目标位置
+        const animValue = latest.vertical ? webTranslateYAnim : webTranslateXAnim
+        Animated.timing(animValue, {
+          toValue: finalOffset,
+          duration: latest.duration,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }).start((finished) => {
+          if (!finished || !latest.shouldLoop) return
+
+          // 动画结束后，检查是否需要无缝跳转
+          // 如果当前在边界复制元素上，无动画跳转到对应的真实元素
+          const currentOffset = webOffsetRef.current
+          const currentIndex = Math.round(-currentOffset / latest.slideSizeValue)
+
+          if (currentIndex === 0) {
+            // 在开头的复制元素上，跳转到末尾的真实元素
+            const jumpOffset = -latest.count * latest.slideSizeValue
+            webOffsetRef.current = jumpOffset
+            if (latest.vertical) {
+              webTranslateYAnim.setValue(jumpOffset)
+            } else {
+              webTranslateXAnim.setValue(jumpOffset)
+            }
+            setCurrent(latest.count)
+          } else if (currentIndex === latest.displayCount - 1) {
+            // 在末尾的复制元素上，跳转到开头的真实元素
+            const jumpOffset = -1 * latest.slideSizeValue
+            webOffsetRef.current = jumpOffset
+            if (latest.vertical) {
+              webTranslateYAnim.setValue(jumpOffset)
+            } else {
+              webTranslateXAnim.setValue(jumpOffset)
+            }
+            setCurrent(1)
+          }
+        })
+
+        const realIndex = latest.shouldLoop
+          ? displayIndex === 0 ? latest.count - 1 : displayIndex === latest.displayCount - 1 ? 0 : displayIndex - 1
+          : displayIndex
+
+        setCurrent(latest.shouldLoop ? realIndex + 1 : realIndex)
+        // 延迟调用 onChange，确保在正确的 React 上下文中执行（避免 Hooks 错误）
+        if (latest.onChange) {
+          setTimeout(() => {
+            latest.onChange?.(realIndex)
+          }, 0)
+        }
+      },
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderTerminate: () => {
+        panLockRef.current = false
+        isDraggingRef.current = false
+      },
+    })
+  }, [isWeb, webTranslateXAnim, webTranslateYAnim])
+
+  // 初始化 Web 端偏移
+  useEffect(() => {
+    if (!isWeb) return
+    const initialIndex = getInitialIndex()
+    const initialOffset = -initialIndex * slideSizeValue
+    webOffsetRef.current = initialOffset
+    if (vertical) {
+      webTranslateYAnim.setValue(initialOffset)
+    } else {
+      webTranslateXAnim.setValue(initialOffset)
+    }
+  }, [isWeb, getInitialIndex, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
+
+  // 容器尺寸或 slideSize 变化时，同步当前 index 的 offset（避免纵向容器高度 < windowHeight 时需要拖很远才换页）
+  useEffect(() => {
+    if (!isWeb) return
+    if (count === 0) return
+    const offset = -currentRef.current * slideSizeValue
+    webOffsetRef.current = offset
+    if (vertical) {
+      webTranslateYAnim.setValue(offset)
+    } else {
+      webTranslateXAnim.setValue(offset)
+    }
+  }, [isWeb, count, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
+
   if (count === 0) {
     return null
   }
 
   const currentIndex = getDisplayIndex(current)
 
+  // Web 端使用 PanResponder + Animated.View，原生端使用 FlatList
+  if (isWeb) {
+    return (
+      <View
+        style={[styles.container, webContainerStyle, style]}
+        testID={testID}
+        onLayout={handleContainerLayout}
+      >
+        <View style={[{ overflow: 'hidden', width: '100%', height: '100%' }, trackOffsetStyle]}>
+          <Animated.View
+            {...(panResponder?.panHandlers || {})}
+            style={[
+              {
+                flexDirection: vertical ? 'column' : 'row',
+                width: vertical ? '100%' : displayCount * slideSizeValue,
+                height: vertical ? displayCount * slideSizeValue : '100%',
+                transform: vertical
+                  ? [{ translateY: webTranslateYAnim }]
+                  : [{ translateX: webTranslateXAnim }],
+              },
+            ]}
+          >
+            {displayData.map((item, index) => {
+              const key = getItemKey(item, index)
+              const content = data ? renderDataItem({ item, index }) : renderChildItem({ item, index })
+              return (
+                <View
+                  key={key}
+                  style={{
+                    [vertical ? 'height' : 'width']: slideSizeValue,
+                    // 仅在测量到交叉轴尺寸后再写死，避免首次渲染把布局撑到整屏
+                    ...(crossAxisSize != null
+                      ? { [vertical ? 'width' : 'height']: crossAxisSize }
+                      : null),
+                    flexShrink: 0,
+                    flexGrow: 0,
+                  }}
+                >
+                  {content}
+                </View>
+              )
+            })}
+          </Animated.View>
+        </View>
+        <View pointerEvents="none" style={styles.indicatorOverlay}>
+          {renderIndicator()}
+        </View>
+      </View>
+    )
+  }
+
   return (
-    <View style={[styles.container, style]} testID={testID}>
-      <FlatList
-        ref={flatListRef}
-        data={displayData}
-        keyExtractor={getItemKey}
-        renderItem={data ? renderDataItem : renderChildItem}
-        getItemLayout={getItemLayout}
-        horizontal={!vertical}
-        snapToInterval={slideSize === 100 && trackOffset === 0 ? slideSizeValue : undefined}
-        snapToOffsets={snapToOffsets}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        scrollEnabled={enabledState && touchable && count > 1}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        bounces={rubberband && !shouldLoop}
-        scrollEventThrottle={16}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        onScrollEndDrag={handleScrollEndDrag}
-        onMomentumScrollEnd={handleScrollEnd}
-        initialScrollIndex={getInitialIndex()}
-        onScrollToIndexFailed={(info) => {
-          // 处理滚动失败的情况
-          const wait = new Promise((resolve) => setTimeout(resolve, 500))
-          wait.then(() => {
-            if (flatListRef.current) {
-              flatListRef.current.scrollToIndex({ index: info.index, animated: false })
-            }
-          })
-        }}
-        testID={`${testID}-flatlist`}
-      />
-      {renderIndicator()}
+    <View style={[styles.container, style]} testID={testID} onLayout={handleContainerLayout}>
+      <View style={[{ flex: 1 }, trackOffsetStyle]}>
+        <FlatList
+          ref={flatListRef}
+          data={displayData}
+          keyExtractor={getItemKey}
+          renderItem={data ? renderDataItem : renderChildItem}
+          getItemLayout={getItemLayout}
+          horizontal={!vertical}
+          snapToInterval={slideSize === 100 && trackOffset === 0 ? slideSizeValue : undefined}
+          snapToOffsets={snapToOffsets}
+          snapToAlignment="start"
+          decelerationRate="fast"
+          scrollEnabled={enabledState && touchable && count > 1}
+          pagingEnabled={false}
+          nestedScrollEnabled={true}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          bounces={rubberband && !shouldLoop}
+          scrollEventThrottle={16}
+          onScrollBeginDrag={handleScrollBeginDrag}
+          onScrollEndDrag={handleScrollEndDrag}
+          onMomentumScrollEnd={handleScrollEnd}
+          initialScrollIndex={getInitialIndex()}
+          onScrollToIndexFailed={(info) => {
+            // 处理滚动失败的情况
+            const wait = new Promise((resolve) => setTimeout(resolve, 500))
+            wait.then(() => {
+              if (flatListRef.current) {
+                flatListRef.current.scrollToIndex({ index: info.index, animated: false })
+              }
+            })
+          }}
+          style={Platform.OS === 'web' ? ({ cursor: 'grab' } as any) : undefined}
+          contentContainerStyle={Platform.OS === 'web' ? ({ userSelect: 'none' } as any) : undefined}
+          testID={`${testID}-flatlist`}
+        />
+      </View>
+      <View pointerEvents="none" style={styles.indicatorOverlay}>
+        {renderIndicator()}
+      </View>
     </View>
   )
 })
@@ -469,7 +895,26 @@ Swiper.displayName = 'Swiper'
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
+    overflow: 'hidden',
+  },
+  // 指示器覆盖层：避免在 web 下被 transform/列表内容压住（横向更容易出现）
+  indicatorOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    zIndex: 100,
+    elevation: 100,
   },
 })
+
+const webContainerStyle = Platform.OS === 'web'
+  ? ({
+    cursor: 'grab',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+  } as any)
+  : undefined
 
 export default Swiper

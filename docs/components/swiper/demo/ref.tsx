@@ -23,6 +23,7 @@ export default () => {
       </Swiper>
       <View style={styles.controls}>
         <Button
+          size="small"
           text="上一张"
           onPress={() => {
             swiperRef.current?.swipePrev()
@@ -30,6 +31,7 @@ export default () => {
         />
         <View style={styles.spacer} />
         <Button
+          size="small"
           text="下一张"
           onPress={() => {
             swiperRef.current?.swipeNext()
@@ -37,6 +39,7 @@ export default () => {
         />
         <View style={styles.spacer} />
         <Button
+          size="small"
           text="第一张"
           onPress={() => {
             swiperRef.current?.goToFirstIndex()
@@ -44,6 +47,7 @@ export default () => {
         />
         <View style={styles.spacer} />
         <Button
+          size="small"
           text="最后一张"
           onPress={() => {
             swiperRef.current?.goToLastIndex()

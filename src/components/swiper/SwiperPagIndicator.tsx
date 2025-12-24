@@ -52,6 +52,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+        // 确保指示器始终覆盖在滑动轨道之上（web 下 transform 会创建 stacking context）
+        zIndex: 10,
+        // RN Android 兼容（不影响 iOS/web）
+        elevation: 10,
     },
     containerHorizontal: {
         position: 'absolute',

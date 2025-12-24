@@ -2,6 +2,7 @@ import React from 'react'
 import { SafeAreaView, StyleSheet, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
+import { createHairlineBorderTop } from '../../utils/hairline'
 import { TabbarContext } from './TabbarContext'
 import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarProps, TabbarValue } from './types'
@@ -103,10 +104,9 @@ const TabbarBase: React.FC<TabbarProps> = props => {
         styles.bar,
         {
           backgroundColor: background,
-          borderTopWidth: border ? StyleSheet.hairlineWidth : 0,
-          borderTopColor: tokens.colors.border,
           paddingHorizontal: tokens.layout.paddingHorizontal,
         },
+        border ? createHairlineBorderTop(tokens.colors.border) : null,
         contentStyle,
       ]}
     >
