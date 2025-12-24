@@ -10,7 +10,13 @@ export default () => {
 
   return (
     <View style={styles.container}>
-      <Swiper vertical slideSize={slideSize} trackOffset={trackOffset} indicator>
+      <Swiper
+        vertical
+        slideSize={slideSize}
+        trackOffset={trackOffset}
+        indicator
+        style={styles.swiper}
+      >
         {colors.map((color, index) => (
           <Swiper.Item key={index}>
             <View style={[styles.slide, { backgroundColor: color }]}>
@@ -25,6 +31,9 @@ export default () => {
 
 const styles = StyleSheet.create({
   container: {
+    height: 220,
+  },
+  swiper: {
     height: 220,
   },
   slide: {

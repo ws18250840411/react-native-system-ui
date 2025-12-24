@@ -104,17 +104,6 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     return loop
   }, [count, loop, slideRatio])
 
-  // 计算实际索引（考虑循环）
-  const getRealIndex = useCallback(
-    (index: number): number => {
-      if (!shouldLoop) {
-        return clamp(index, 0, count - 1)
-      }
-      return ((index % count) + count) % count
-    },
-    [count, shouldLoop]
-  )
-
   // 构建循环数据（复制首尾）
   const loopData = useMemo(() => {
     if (!shouldLoop || count <= 1) {
@@ -210,6 +199,59 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       onChange,
     }
   }, [enabledState, touchable, vertical, count, shouldLoop, displayCount, slideSizeValue, duration, onChange])
+
+  // Web 拖拽极致性能：move 事件非常密集，用 rAF 将 Animated.setValue 节流到“每帧最多一次”
+  const rafIdRef = useRef<number | null>(null)
+  const rafPendingValueRef = useRef<number | null>(null)
+
+  const flushWebTranslate = useCallback(() => {
+    const pending = rafPendingValueRef.current
+    if (pending == null) return
+    rafPendingValueRef.current = null
+    const latest = panLatestRef.current
+    if (latest.vertical) {
+      webTranslateYAnim.setValue(pending)
+    } else {
+      webTranslateXAnim.setValue(pending)
+    }
+  }, [webTranslateXAnim, webTranslateYAnim])
+
+  const scheduleWebTranslate = useCallback(
+    (next: number) => {
+      rafPendingValueRef.current = next
+      if (rafIdRef.current != null) return
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null
+        flushWebTranslate()
+      })
+    },
+    [flushWebTranslate]
+  )
+
+  const cancelWebRaf = useCallback(() => {
+    if (rafIdRef.current != null) {
+      cancelAnimationFrame(rafIdRef.current)
+      rafIdRef.current = null
+    }
+    rafPendingValueRef.current = null
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      cancelWebRaf()
+    }
+  }, [cancelWebRaf])
+
+  const webTrackTransform = useMemo(() => {
+    if (vertical) {
+      return trackOffsetPx
+        ? [{ translateY: trackOffsetPx }, { translateY: webTranslateYAnim }]
+        : [{ translateY: webTranslateYAnim }]
+    }
+    return trackOffsetPx
+      ? [{ translateX: trackOffsetPx }, { translateX: webTranslateXAnim }]
+      : [{ translateX: webTranslateXAnim }]
+  }, [trackOffsetPx, vertical, webTranslateXAnim, webTranslateYAnim])
 
   // 同步 enabled prop 的变化
   useEffect(() => {
@@ -345,21 +387,21 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     [count, shouldLoop, isWeb, slideSizeValue, vertical, webTranslateXAnim, getDisplayIndex, displayCount]
   )
 
-  // 滑动到下一张
+  // 滑动到下一张/上一张
+  // 关键性能点：基于 currentRef，保持回调稳定，避免 autoplay interval 因依赖变动反复重建（会导致抖动）
   const swipeNext = useCallback(() => {
     if (count === 0) return
-    const displayIndex = getDisplayIndex(current)
+    const displayIndex = getDisplayIndex(currentRef.current)
     const nextIndex = displayIndex === count - 1 ? 0 : displayIndex + 1
     swipeTo(nextIndex)
-  }, [current, count, getDisplayIndex, swipeTo])
+  }, [count, getDisplayIndex, swipeTo])
 
-  // 滑动到上一张
   const swipePrev = useCallback(() => {
     if (count === 0) return
-    const displayIndex = getDisplayIndex(current)
+    const displayIndex = getDisplayIndex(currentRef.current)
     const prevIndex = displayIndex === 0 ? count - 1 : displayIndex - 1
     swipeTo(prevIndex)
-  }, [current, count, getDisplayIndex, swipeTo])
+  }, [count, getDisplayIndex, swipeTo])
 
   // 处理滑动结束
   const handleScrollEnd = useCallback(
@@ -630,6 +672,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         startOffsetRef.current = webOffsetRef.current
         startTimeRef.current = Date.now()
         isDraggingRef.current = true
+        cancelWebRaf()
         if (autoplayTimerRef.current) {
           clearInterval(autoplayTimerRef.current)
           autoplayTimerRef.current = null
@@ -654,17 +697,15 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         // 计算下一个偏移量
         const next = clamp(startOffsetRef.current + delta, -maxOffset, -minOffset)
         webOffsetRef.current = next
-        // 根据方向更新对应的动画值
-        if (latest.vertical) {
-          webTranslateYAnim.setValue(next)
-        } else {
-          webTranslateXAnim.setValue(next)
-        }
+        scheduleWebTranslate(next)
       },
       onPanResponderRelease: (_, gestureState: PanResponderGestureState) => {
         const latest = panLatestRef.current
         panLockRef.current = false
         isDraggingRef.current = false
+        // 确保动画从“最后一帧”位置起跳
+        cancelWebRaf()
+        flushWebTranslate()
         // 预留：如需根据按压时长调整惯性，可使用 elapsed
         // const elapsed = Date.now() - startTimeRef.current
         // 与 onPanResponderMove 保持一致（跟手）
@@ -757,6 +798,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       onPanResponderTerminate: () => {
         panLockRef.current = false
         isDraggingRef.current = false
+        cancelWebRaf()
       },
     })
   }, [isWeb, webTranslateXAnim, webTranslateYAnim])
@@ -791,8 +833,6 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     return null
   }
 
-  const currentIndex = getDisplayIndex(current)
-
   // Web 端使用 PanResponder + Animated.View，原生端使用 FlatList
   if (isWeb) {
     return (
@@ -801,7 +841,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         testID={testID}
         onLayout={handleContainerLayout}
       >
-        <View style={[{ overflow: 'hidden', width: '100%', height: '100%' }, trackOffsetStyle]}>
+        <View style={{ overflow: 'hidden', width: '100%', height: '100%' }}>
           <Animated.View
             {...(panResponder?.panHandlers || {})}
             style={[
@@ -809,9 +849,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
                 flexDirection: vertical ? 'column' : 'row',
                 width: vertical ? '100%' : displayCount * slideSizeValue,
                 height: vertical ? displayCount * slideSizeValue : '100%',
-                transform: vertical
-                  ? [{ translateY: webTranslateYAnim }]
-                  : [{ translateX: webTranslateXAnim }],
+                transform: webTrackTransform,
               },
             ]}
           >
@@ -846,43 +884,50 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
   return (
     <View style={[styles.container, style]} testID={testID} onLayout={handleContainerLayout}>
-      <View style={[{ flex: 1 }, trackOffsetStyle]}>
-        <FlatList
-          ref={flatListRef}
-          data={displayData}
-          keyExtractor={getItemKey}
-          renderItem={data ? renderDataItem : renderChildItem}
-          getItemLayout={getItemLayout}
-          horizontal={!vertical}
-          snapToInterval={slideSize === 100 && trackOffset === 0 ? slideSizeValue : undefined}
-          snapToOffsets={snapToOffsets}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          scrollEnabled={enabledState && touchable && count > 1}
-          pagingEnabled={false}
-          nestedScrollEnabled={true}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          bounces={rubberband && !shouldLoop}
-          scrollEventThrottle={16}
-          onScrollBeginDrag={handleScrollBeginDrag}
-          onScrollEndDrag={handleScrollEndDrag}
-          onMomentumScrollEnd={handleScrollEnd}
-          initialScrollIndex={getInitialIndex()}
-          onScrollToIndexFailed={(info) => {
-            // 处理滚动失败的情况
-            const wait = new Promise((resolve) => setTimeout(resolve, 500))
-            wait.then(() => {
-              if (flatListRef.current) {
-                flatListRef.current.scrollToIndex({ index: info.index, animated: false })
-              }
-            })
-          }}
-          style={Platform.OS === 'web' ? ({ cursor: 'grab' } as any) : undefined}
-          contentContainerStyle={Platform.OS === 'web' ? ({ userSelect: 'none' } as any) : undefined}
-          testID={`${testID}-flatlist`}
-        />
-      </View>
+      <FlatList
+        ref={flatListRef}
+        data={displayData}
+        keyExtractor={getItemKey}
+        renderItem={data ? renderDataItem : renderChildItem}
+        getItemLayout={getItemLayout}
+        horizontal={!vertical}
+        // 极致性能：更激进的虚拟化参数（对轮播场景通常是安全的）
+        removeClippedSubviews={Platform.OS !== 'web'}
+        initialNumToRender={Math.min(displayCount, 3)}
+        maxToRenderPerBatch={3}
+        windowSize={5}
+        updateCellsBatchingPeriod={16}
+        snapToInterval={slideSize === 100 && trackOffset === 0 ? slideSizeValue : undefined}
+        snapToOffsets={snapToOffsets}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        scrollEnabled={enabledState && touchable && count > 1}
+        pagingEnabled={false}
+        nestedScrollEnabled={true}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        bounces={rubberband && !shouldLoop}
+        scrollEventThrottle={16}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollEnd={handleScrollEnd}
+        initialScrollIndex={getInitialIndex()}
+        onScrollToIndexFailed={(info) => {
+          // 处理滚动失败的情况
+          const wait = new Promise((resolve) => setTimeout(resolve, 500))
+          wait.then(() => {
+            if (flatListRef.current) {
+              flatListRef.current.scrollToIndex({ index: info.index, animated: false })
+            }
+          })
+        }}
+        style={[
+          Platform.OS === 'web' ? ({ cursor: 'grab' } as any) : undefined,
+          trackOffsetStyle,
+        ]}
+        contentContainerStyle={Platform.OS === 'web' ? ({ userSelect: 'none' } as any) : undefined}
+        testID={`${testID}-flatlist`}
+      />
       <View pointerEvents="none" style={styles.indicatorOverlay}>
         {renderIndicator()}
       </View>
