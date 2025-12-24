@@ -65,11 +65,14 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   })
 
   const flatListRef = useRef<FlatList>(null)
-  const autoplayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isDraggingRef = useRef(false)
   const isScrollingRef = useRef(false)
   const prevIndexRef = useRef<number>(initialSwipe)
+  const currentDisplayIndexRef = useRef<number>(initialSwipe)
   const isWeb = Platform.OS === 'web'
+  // Native：滚动任务队列（避免 scrollToIndex 竞争导致掉帧/乱序）
+  const nativeQueuedScrollRef = useRef<{ index: number; animated: boolean } | null>(null)
 
   // 处理子元素（children 模式）
   const validChildren = useMemo(() => {
@@ -146,6 +149,14 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
   const slideSizeValue = getSlideSize()
 
+  const itemSizeStyle = useMemo(() => {
+    const style: any = { [vertical ? 'height' : 'width']: slideSizeValue }
+    if (crossAxisSize != null) {
+      style[vertical ? 'width' : 'height'] = crossAxisSize
+    }
+    return style
+  }, [vertical, slideSizeValue, crossAxisSize])
+
   // trackOffset（百分比）应基于“实际容器主轴尺寸”计算，避免初次渲染用 viewport 兜底导致整体大幅位移（看起来乱套）
   const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
   const trackOffsetPx = mainAxisMeasured > 0 ? mainAxisMeasured * offsetRatio : 0
@@ -164,6 +175,10 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   }, [initialSwipe, count, shouldLoop])
 
   const [current, setCurrent] = useState(() => getInitialIndex())
+  // 避免重复 setState 触发无效渲染
+  const setCurrentSafe = useCallback((next: number) => {
+    setCurrent((prev) => (prev === next ? prev : next))
+  }, [])
   const [enabledState, setEnabledState] = useState(enabled)
 
   // Web 端 PanResponder 相关状态
@@ -183,6 +198,8 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     shouldLoop,
     displayCount,
     slideSizeValue,
+    maxOffsetNonLoop: Math.max(0, count - 1) * slideSizeValue,
+    maxOffsetLoop: Math.max(0, displayCount - 1) * slideSizeValue,
     duration,
     onChange,
   })
@@ -195,6 +212,8 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       shouldLoop,
       displayCount,
       slideSizeValue,
+      maxOffsetNonLoop: Math.max(0, count - 1) * slideSizeValue,
+      maxOffsetLoop: Math.max(0, displayCount - 1) * slideSizeValue,
       duration,
       onChange,
     }
@@ -236,11 +255,25 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     rafPendingValueRef.current = null
   }, [])
 
+  // Web 端吸附动画统一管理：可中断，避免拖拽/多次 swipeTo 时与上一段动画竞争导致抖动
+  const webSnapAnimRef = useRef<Animated.CompositeAnimation | null>(null)
+  const stopWebSnapAnim = useCallback(() => {
+    const anim = webSnapAnimRef.current
+    if (anim) {
+      anim.stop()
+      webSnapAnimRef.current = null
+    }
+    // 同时停掉 Animated.Value 上可能在跑的动画（更稳）
+    webTranslateXAnim.stopAnimation()
+    webTranslateYAnim.stopAnimation()
+  }, [webTranslateXAnim, webTranslateYAnim])
+
   useEffect(() => {
     return () => {
       cancelWebRaf()
+      stopWebSnapAnim()
     }
-  }, [cancelWebRaf])
+  }, [cancelWebRaf, stopWebSnapAnim])
 
   const webTrackTransform = useMemo(() => {
     if (vertical) {
@@ -257,6 +290,20 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   useEffect(() => {
     setEnabledState(enabled)
   }, [enabled])
+
+  // 用 rAF 替代 setTimeout：用于边界跳转/失败重试等“下一帧再做”的场景
+  const runAfterFrames = useCallback((frames: number, fn: () => void) => {
+    let left = Math.max(1, frames)
+    const step = () => {
+      left -= 1
+      if (left <= 0) {
+        fn()
+        return
+      }
+      requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }, [])
 
   // 获取真实索引（用于显示和回调）
   const getDisplayIndex = useCallback(
@@ -312,6 +359,8 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       }
 
       if (isWeb) {
+        // 新的指令开始前，停掉上一段吸附动画，避免竞争抖动
+        stopWebSnapAnim()
         const offset = -targetIndex * slideSizeValue
         webOffsetRef.current = offset
 
@@ -319,12 +368,15 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
           // 需要跳转的情况：先动画到复制元素，动画结束后跳转到真实元素
           if (animated) {
             const animValue = vertical ? webTranslateYAnim : webTranslateXAnim
-            Animated.timing(animValue, {
+            const anim = Animated.timing(animValue, {
               toValue: offset,
               duration,
               easing: Easing.out(Easing.cubic),
               useNativeDriver: false,
-            }).start((finished) => {
+            })
+            webSnapAnimRef.current = anim
+            anim.start((finished) => {
+              webSnapAnimRef.current = null
               if (!finished || !shouldLoop || jumpOffset === null || jumpDisplayIndex === null) return
 
               // 动画结束后，无动画跳转到对应位置以实现无缝衔接
@@ -334,10 +386,10 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
               } else {
                 webTranslateXAnim.setValue(jumpOffset)
               }
-              setCurrent(jumpDisplayIndex)
+              setCurrentSafe(jumpDisplayIndex)
             })
             // 先更新到 targetIndex，动画结束后会更新到 jumpDisplayIndex
-            setCurrent(targetIndex)
+            setCurrentSafe(targetIndex)
           } else {
             // 无动画模式下，直接跳转到真实元素
             if (vertical) {
@@ -346,45 +398,64 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
               webTranslateXAnim.setValue(jumpOffset!)
             }
             webOffsetRef.current = jumpOffset!
-            setCurrent(jumpDisplayIndex!)
+            setCurrentSafe(jumpDisplayIndex!)
           }
         } else {
           // 不需要跳转：直接动画到目标位置
           const animValue = vertical ? webTranslateYAnim : webTranslateXAnim
           if (animated) {
-            Animated.timing(animValue, {
+            const anim = Animated.timing(animValue, {
               toValue: offset,
               duration,
               easing: Easing.out(Easing.cubic),
               useNativeDriver: false,
-            }).start()
+            })
+            webSnapAnimRef.current = anim
+            anim.start(() => {
+              webSnapAnimRef.current = null
+            })
           } else {
             animValue.setValue(offset)
           }
-          setCurrent(targetIndex)
+          setCurrentSafe(targetIndex)
         }
       } else if (flatListRef.current) {
+        // 若当前仍在滚动中，合并为“最后一次”目标，等滚动结束后执行（生产级稳定性）
+        if (isScrollingRef.current && animated) {
+          nativeQueuedScrollRef.current = { index: targetIndex, animated }
+          return
+        }
+        isScrollingRef.current = true
         flatListRef.current.scrollToIndex({
           index: targetIndex,
           animated,
         })
-        // Native 端在 handleScrollEnd 中处理跳转
-        if (needsJump && jumpDisplayIndex !== null) {
-          setTimeout(() => {
-            if (flatListRef.current) {
-              flatListRef.current.scrollToIndex({
-                index: jumpDisplayIndex!,
-                animated: false,
-              })
-              setCurrent(jumpDisplayIndex!)
+        // Native：animated=true 时交给 handleScrollEnd 处理“复制元素→真实元素”的无缝跳转；
+        // animated=false 时直接跳到真实元素（避免依赖定时器/事件是否触发）
+        if (needsJump && jumpDisplayIndex != null && !animated) {
+          runAfterFrames(2, () => {
+            flatListRef.current?.scrollToIndex({ index: jumpDisplayIndex!, animated: false })
+            setCurrentSafe(jumpDisplayIndex!)
+          })
+        } else if (!animated) {
+          // 非动画滚动不一定触发 onMomentumScrollEnd，直接更新 state
+          setCurrentSafe(targetIndex)
+        }
+
+        // 非动画的 programmatic scroll 不一定触发 momentum end：下一帧解除滚动锁
+        if (!animated) {
+          runAfterFrames(1, () => {
+            isScrollingRef.current = false
+            const queued = nativeQueuedScrollRef.current
+            if (queued && flatListRef.current) {
+              nativeQueuedScrollRef.current = null
+              swipeTo(getDisplayIndex(queued.index), queued.animated)
             }
-          }, animated ? 350 : 50)
-        } else {
-          setCurrent(targetIndex)
+          })
         }
       }
     },
-    [count, shouldLoop, isWeb, slideSizeValue, vertical, webTranslateXAnim, getDisplayIndex, displayCount]
+    [count, shouldLoop, isWeb, slideSizeValue, vertical, webTranslateXAnim, getDisplayIndex, displayCount, runAfterFrames, stopWebSnapAnim, setCurrentSafe]
   )
 
   // 滑动到下一张/上一张
@@ -422,25 +493,15 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         // 循环模式下的索引处理
         if (index === 0) {
           // 滑动到开头的复制元素，跳转到末尾的真实元素
-          setTimeout(() => {
-            if (flatListRef.current) {
-              flatListRef.current.scrollToIndex({
-                index: count,
-                animated: false,
-              })
-            }
-          }, 50)
+          runAfterFrames(2, () => {
+            flatListRef.current?.scrollToIndex({ index: count, animated: false })
+          })
           index = count
         } else if (index === displayCount - 1) {
           // 滑动到末尾的复制元素，跳转到开头的真实元素
-          setTimeout(() => {
-            if (flatListRef.current) {
-              flatListRef.current.scrollToIndex({
-                index: 1,
-                animated: false,
-              })
-            }
-          }, 50)
+          runAfterFrames(2, () => {
+            flatListRef.current?.scrollToIndex({ index: 1, animated: false })
+          })
           index = 1
         }
       } else {
@@ -448,11 +509,20 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       }
 
       const displayIndex = getDisplayIndex(index)
-      setCurrent(index)
-      prevIndexRef.current = displayIndex
-      onChange?.(displayIndex)
+      setCurrentSafe(index)
+
+      // 若滚动期间收到了新的 programmatic 目标，滚动结束后再执行（合并多次调用）
+      const queued = nativeQueuedScrollRef.current
+      if (queued && flatListRef.current) {
+        nativeQueuedScrollRef.current = null
+        // queued.index 是 displayData 的 index；转换回对外 index 再走 swipeTo（保持逻辑一致）
+        const nextDisplayIndex = getDisplayIndex(queued.index)
+        runAfterFrames(1, () => {
+          swipeTo(nextDisplayIndex, queued.animated)
+        })
+      }
     },
-    [count, shouldLoop, vertical, viewportWidth, viewportHeight, slideRatio, getDisplayIndex, onChange, displayCount]
+    [count, shouldLoop, vertical, viewportWidth, viewportHeight, slideRatio, getDisplayIndex, displayCount, runAfterFrames, swipeTo, setCurrentSafe]
   )
 
   // 处理滑动开始
@@ -461,7 +531,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     isScrollingRef.current = true
     // 停止自动播放
     if (autoplayTimerRef.current) {
-      clearInterval(autoplayTimerRef.current)
+      clearTimeout(autoplayTimerRef.current)
       autoplayTimerRef.current = null
     }
   }, [])
@@ -473,47 +543,31 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
   // 自动播放
   useEffect(() => {
-    if (!autoplay || count <= 1 || !enabledState || isDraggingRef.current || isScrollingRef.current) {
+    const stop = () => {
       if (autoplayTimerRef.current) {
-        clearInterval(autoplayTimerRef.current)
+        clearTimeout(autoplayTimerRef.current)
         autoplayTimerRef.current = null
       }
+    }
+
+    if (!autoplay || count <= 1 || !enabledState) {
+      stop()
       return
     }
 
     const interval = typeof autoplay === 'boolean' ? 5000 : autoplay
-    autoplayTimerRef.current = setInterval(() => {
+    const tick = () => {
+      // 交互中暂停（避免抢手势/滚动）
       if (!isDraggingRef.current && !isScrollingRef.current) {
         swipeNext()
       }
-    }, interval)
-
-    return () => {
-      if (autoplayTimerRef.current) {
-        clearInterval(autoplayTimerRef.current)
-        autoplayTimerRef.current = null
-      }
+      autoplayTimerRef.current = setTimeout(tick, interval)
     }
+
+    stop()
+    autoplayTimerRef.current = setTimeout(tick, interval)
+    return stop
   }, [autoplay, count, enabledState, swipeNext])
-
-  // 初始化滚动位置
-  useEffect(() => {
-    if (count === 0) return
-
-    const initialIndex = getInitialIndex()
-    // 延迟执行以确保布局完成
-    const timer = setTimeout(() => {
-      if (flatListRef.current) {
-        flatListRef.current.scrollToIndex({
-          index: initialIndex,
-          animated: false,
-        })
-        setCurrent(initialIndex)
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [count, getInitialIndex])
 
   // 暴露方法
   useImperativeHandle(
@@ -564,6 +618,17 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     )
   }
 
+  // 统一触发 onChange：避免在手势/滚动回调里调用用户逻辑（更稳定、也不需要 setTimeout(0)）
+  useEffect(() => {
+    if (!onChange || count <= 0) return
+    const nextDisplay = getDisplayIndex(current)
+    const prevDisplay = currentDisplayIndexRef.current
+    if (nextDisplay === prevDisplay) return
+    prevIndexRef.current = prevDisplay
+    currentDisplayIndexRef.current = nextDisplay
+    onChange(nextDisplay)
+  }, [current, onChange, count, getDisplayIndex])
+
   // 渲染项目（children 模式）
   const renderChildItem = useCallback(
     ({ item, index }: { item: any; index: number }) => {
@@ -571,23 +636,16 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         const child = validChildren[item.index]
         if (!child) return null
 
-        const sizeStyle: any = {
-          [vertical ? 'height' : 'width']: slideSizeValue,
-        }
-        if (crossAxisSize != null) {
-          sizeStyle[vertical ? 'width' : 'height'] = crossAxisSize
-        }
-
         return React.cloneElement(child as React.ReactElement<any>, {
           style: [
             (child as React.ReactElement<any>).props.style,
-            sizeStyle,
+            itemSizeStyle,
           ],
         })
       }
       return null
     },
-    [validChildren, vertical, slideSizeValue, crossAxisSize]
+    [validChildren, itemSizeStyle]
   )
 
   // 渲染项目（data 模式）
@@ -599,19 +657,13 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
       return (
         <View
-          style={(() => {
-            const sizeStyle: any = { [vertical ? 'height' : 'width']: slideSizeValue }
-            if (crossAxisSize != null) {
-              sizeStyle[vertical ? 'width' : 'height'] = crossAxisSize
-            }
-            return sizeStyle
-          })()}
+          style={itemSizeStyle}
         >
           {item}
         </View>
       )
     },
-    [renderItem, vertical, slideSizeValue, crossAxisSize]
+    [renderItem, itemSizeStyle]
   )
 
   // 获取 key
@@ -673,8 +725,9 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         startTimeRef.current = Date.now()
         isDraggingRef.current = true
         cancelWebRaf()
+        stopWebSnapAnim()
         if (autoplayTimerRef.current) {
-          clearInterval(autoplayTimerRef.current)
+          clearTimeout(autoplayTimerRef.current)
           autoplayTimerRef.current = null
         }
       },
@@ -690,12 +743,13 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         // 我们的 web 端直接用 translateX/Y（单位 px），且内部 offset 约定为：offset = -index * slideSizeValue（<= 0）。
         // 因此这里应让 offset “跟手”变化：dx/dy 为正时，offset 也应增大（变得不那么负），轨道向右/下移动。
         const delta = latest.vertical ? gestureState.dy : gestureState.dx
-        // 计算偏移量范围：非循环模式下，偏移量范围是 [-(count-1)*slideSizeValue, 0]
-        // 循环模式下，允许超出范围以实现无缝循环
-        const maxOffset = latest.shouldLoop ? Infinity : Math.max(0, latest.count - 1) * latest.slideSizeValue
-        const minOffset = latest.shouldLoop ? -Infinity : 0
-        // 计算下一个偏移量
-        const next = clamp(startOffsetRef.current + delta, -maxOffset, -minOffset)
+        // 生产级：即使 loop，也必须限制在“可渲染轨道范围”内，否则会出现空白/超长动画。
+        // loop: offset 范围 [-(displayCount-1)*slideSize, 0]（仅允许拖到两端复制项）
+        // non-loop: offset 范围 [-(count-1)*slideSize, 0]
+        const nextRaw = startOffsetRef.current + delta
+        const next = latest.shouldLoop
+          ? clamp(nextRaw, -latest.maxOffsetLoop, 0)
+          : clamp(nextRaw, -latest.maxOffsetNonLoop, 0)
         webOffsetRef.current = next
         scheduleWebTranslate(next)
       },
@@ -706,6 +760,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         // 确保动画从“最后一帧”位置起跳
         cancelWebRaf()
         flushWebTranslate()
+        stopWebSnapAnim()
         // 预留：如需根据按压时长调整惯性，可使用 elapsed
         // const elapsed = Date.now() - startTimeRef.current
         // 与 onPanResponderMove 保持一致（跟手）
@@ -715,16 +770,15 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         // 计算目标索引：对齐官方实现
         // 官方：index = Math.round((offset + Math.min(velocity * 2000, slidePixels) * direction) / slidePixels)
         // 其中 direction 也是反转后的值（-1 或 1）
-        const maxOffset = latest.shouldLoop ? Infinity : Math.max(0, latest.count - 1) * latest.slideSizeValue
-        const minOffset = latest.shouldLoop ? -Infinity : 0
         // 松手后的“甩动”惯性：更贴近官方实现（velocity * 2000，并限制最多一页距离）
         const dir = velocity !== 0 ? (velocity > 0 ? 1 : -1) : distance !== 0 ? (distance > 0 ? 1 : -1) : 0
         const velocityOffset = Math.min(Math.abs(velocity) * 2000, latest.slideSizeValue) * dir
         let targetOffset = startOffsetRef.current + distance + velocityOffset
-        // 在非循环模式下，限制目标偏移量在有效范围内
-        if (!latest.shouldLoop) {
-          targetOffset = clamp(targetOffset, -maxOffset, -minOffset)
-        }
+
+        // release 同样限制在可渲染轨道范围内
+        targetOffset = latest.shouldLoop
+          ? clamp(targetOffset, -latest.maxOffsetLoop, 0)
+          : clamp(targetOffset, -latest.maxOffsetNonLoop, 0)
 
         // 对齐到最近的 slide
         // 注意：循环模式下，displayData 的结构是 [末尾复制(index 0), 原始0(index 1), ..., 原始n-1(index count), 开头复制(index count+1)]
@@ -746,12 +800,15 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
         // 动画过渡到目标位置
         const animValue = latest.vertical ? webTranslateYAnim : webTranslateXAnim
-        Animated.timing(animValue, {
+        const anim = Animated.timing(animValue, {
           toValue: finalOffset,
           duration: latest.duration,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: false,
-        }).start((finished) => {
+        })
+        webSnapAnimRef.current = anim
+        anim.start((finished) => {
+          webSnapAnimRef.current = null
           if (!finished || !latest.shouldLoop) return
 
           // 动画结束后，检查是否需要无缝跳转
@@ -768,7 +825,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
             } else {
               webTranslateXAnim.setValue(jumpOffset)
             }
-            setCurrent(latest.count)
+            setCurrentSafe(latest.count)
           } else if (currentIndex === latest.displayCount - 1) {
             // 在末尾的复制元素上，跳转到开头的真实元素
             const jumpOffset = -1 * latest.slideSizeValue
@@ -778,7 +835,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
             } else {
               webTranslateXAnim.setValue(jumpOffset)
             }
-            setCurrent(1)
+            setCurrentSafe(1)
           }
         })
 
@@ -786,19 +843,14 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
           ? displayIndex === 0 ? latest.count - 1 : displayIndex === latest.displayCount - 1 ? 0 : displayIndex - 1
           : displayIndex
 
-        setCurrent(latest.shouldLoop ? realIndex + 1 : realIndex)
-        // 延迟调用 onChange，确保在正确的 React 上下文中执行（避免 Hooks 错误）
-        if (latest.onChange) {
-          setTimeout(() => {
-            latest.onChange?.(realIndex)
-          }, 0)
-        }
+        setCurrentSafe(latest.shouldLoop ? realIndex + 1 : realIndex)
       },
       onPanResponderTerminationRequest: () => false,
       onPanResponderTerminate: () => {
         panLockRef.current = false
         isDraggingRef.current = false
         cancelWebRaf()
+        stopWebSnapAnim()
       },
     })
   }, [isWeb, webTranslateXAnim, webTranslateYAnim])
@@ -859,15 +911,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
               return (
                 <View
                   key={key}
-                  style={{
-                    [vertical ? 'height' : 'width']: slideSizeValue,
-                    // 仅在测量到交叉轴尺寸后再写死，避免首次渲染把布局撑到整屏
-                    ...(crossAxisSize != null
-                      ? { [vertical ? 'width' : 'height']: crossAxisSize }
-                      : null),
-                    flexShrink: 0,
-                    flexGrow: 0,
-                  }}
+                  style={[itemSizeStyle, styles.webSlideWrapper]}
                 >
                   {content}
                 </View>
@@ -913,12 +957,9 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         onMomentumScrollEnd={handleScrollEnd}
         initialScrollIndex={getInitialIndex()}
         onScrollToIndexFailed={(info) => {
-          // 处理滚动失败的情况
-          const wait = new Promise((resolve) => setTimeout(resolve, 500))
-          wait.then(() => {
-            if (flatListRef.current) {
-              flatListRef.current.scrollToIndex({ index: info.index, animated: false })
-            }
+          // 处理滚动失败：用 rAF 等待布局/测量完成，尽量避免 setTimeout
+          runAfterFrames(2, () => {
+            flatListRef.current?.scrollToIndex({ index: info.index, animated: false })
           })
         }}
         style={[
@@ -941,6 +982,10 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
     overflow: 'hidden',
+  },
+  webSlideWrapper: {
+    flexShrink: 0,
+    flexGrow: 0,
   },
   // 指示器覆盖层：避免在 web 下被 transform/列表内容压住（横向更容易出现）
   indicatorOverlay: {

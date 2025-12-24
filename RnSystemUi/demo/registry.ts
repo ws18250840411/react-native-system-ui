@@ -78,10 +78,12 @@ import DatetimePickerDemoMonthDay from '../../docs/components/datetime-picker/de
 import DatetimePickerDemoPopup from '../../docs/components/datetime-picker/demo/popup'
 import DatetimePickerDemoTime from '../../docs/components/datetime-picker/demo/time'
 import DatetimePickerDemoYearMonth from '../../docs/components/datetime-picker/demo/year-month'
-import DialogDemoBasic from '../../docs/components/dialog/demo/basic'
-import DialogDemoBeforeClose from '../../docs/components/dialog/demo/before-close'
+import DialogDemoBase from '../../docs/components/dialog/demo/base'
+import DialogDemoClose from '../../docs/components/dialog/demo/close'
+import DialogDemoCloseIcon from '../../docs/components/dialog/demo/closeIcon'
+import DialogDemoComponent from '../../docs/components/dialog/demo/component'
 import DialogDemoCustom from '../../docs/components/dialog/demo/custom'
-import DialogDemoImperative from '../../docs/components/dialog/demo/imperative'
+import DialogDemoPromise from '../../docs/components/dialog/demo/promise'
 import DialogDemoTheme from '../../docs/components/dialog/demo/theme'
 import DividerDemoBasic from '../../docs/components/divider/demo/basic'
 import DividerDemoCustom from '../../docs/components/divider/demo/custom'
@@ -91,7 +93,6 @@ import DividerDemoText from '../../docs/components/divider/demo/text'
 import DividerDemoVertical from '../../docs/components/divider/demo/vertical'
 import DropdownMenuDemoBasic from '../../docs/components/dropdown-menu/demo/basic'
 import DropdownMenuDemoColor from '../../docs/components/dropdown-menu/demo/color'
-import DropdownMenuDemoControlled from '../../docs/components/dropdown-menu/demo/controlled'
 import DropdownMenuDemoCustom from '../../docs/components/dropdown-menu/demo/custom'
 import DropdownMenuDemoDirection from '../../docs/components/dropdown-menu/demo/direction'
 import DropdownMenuDemoDisabled from '../../docs/components/dropdown-menu/demo/disabled'
@@ -110,10 +111,6 @@ import FieldDemoTextarea from '../../docs/components/field/demo/textarea'
 import FlexDemoBase from '../../docs/components/flex/demo/base'
 import FlexDemoDirection from '../../docs/components/flex/demo/direction'
 import FlexDemoGutter from '../../docs/components/flex/demo/gutter'
-import FloatingBallDemoBasic from '../../docs/components/floating-ball/demo/basic'
-import FloatingBallDemoControlled from '../../docs/components/floating-ball/demo/controlled'
-import FloatingBallDemoDisabled from '../../docs/components/floating-ball/demo/disabled'
-import FloatingBallDemoMenu from '../../docs/components/floating-ball/demo/menu'
 import FormDemoBasic from '../../docs/components/form/demo/basic'
 import FormDemoCustom from '../../docs/components/form/demo/custom'
 import FormDemoList from '../../docs/components/form/demo/list'
@@ -200,6 +197,7 @@ import PopupDemoCloseable from '../../docs/components/popup/demo/closeable'
 import PopupDemoPlacement from '../../docs/components/popup/demo/placement'
 import PopupDemoRound from '../../docs/components/popup/demo/round'
 import PopupDemoSafeArea from '../../docs/components/popup/demo/safeArea'
+import PopupDemoTitle from '../../docs/components/popup/demo/title'
 import PortalDemoBasic from '../../docs/components/portal/demo/basic'
 import PortalDemoMultiple from '../../docs/components/portal/demo/multiple'
 import PortalDemoStatic from '../../docs/components/portal/demo/static'
@@ -238,8 +236,10 @@ import SelectorDemoDisabled from '../../docs/components/selector/demo/disabled'
 import SelectorDemoMultiple from '../../docs/components/selector/demo/multiple'
 import ShareSheetDemoBasic from '../../docs/components/share-sheet/demo/basic'
 import ShareSheetDemoCustom from '../../docs/components/share-sheet/demo/custom'
+import ShareSheetDemoDescription from '../../docs/components/share-sheet/demo/description'
 import ShareSheetDemoGroups from '../../docs/components/share-sheet/demo/groups'
 import SidebarDemoBasic from '../../docs/components/sidebar/demo/basic'
+import SidebarDemoContent from '../../docs/components/sidebar/demo/content'
 import SidebarDemoControlled from '../../docs/components/sidebar/demo/controlled'
 import SidebarDemoCustom from '../../docs/components/sidebar/demo/custom'
 import SkeletonDemoAvatar from '../../docs/components/skeleton/demo/avatar'
@@ -268,6 +268,18 @@ import StepperDemoRange from '../../docs/components/stepper/demo/range'
 import SwipeCellDemoBasic from '../../docs/components/swipe-cell/demo/basic'
 import SwipeCellDemoBoth from '../../docs/components/swipe-cell/demo/both'
 import SwipeCellDemoControl from '../../docs/components/swipe-cell/demo/control'
+import SwiperDemoAutoplay from '../../docs/components/swiper/demo/autoplay'
+import SwiperDemoBasic from '../../docs/components/swiper/demo/basic'
+import SwiperDemoCustomIndicator from '../../docs/components/swiper/demo/custom-indicator'
+import SwiperDemoDataMode from '../../docs/components/swiper/demo/data-mode'
+import SwiperDemoImages from '../../docs/components/swiper/demo/images'
+import SwiperDemoIndicatorOff from '../../docs/components/swiper/demo/indicator-off'
+import SwiperDemoLoop from '../../docs/components/swiper/demo/loop'
+import SwiperDemoOnChange from '../../docs/components/swiper/demo/onChange'
+import SwiperDemoRef from '../../docs/components/swiper/demo/ref'
+import SwiperDemoSlideSize from '../../docs/components/swiper/demo/slide-size'
+import SwiperDemoVertical from '../../docs/components/swiper/demo/vertical'
+import SwiperDemoVerticalCenter from '../../docs/components/swiper/demo/vertical-center'
 import SwitchDemoAsync from '../../docs/components/switch/demo/async'
 import SwitchDemoBasic from '../../docs/components/switch/demo/basic'
 import SwitchDemoCell from '../../docs/components/switch/demo/cell'
@@ -392,12 +404,12 @@ export const menuGroups: MenuGroup[] = [
       "divider",
       "empty",
       "field",
-      "floating-ball",
       "image-preview",
       "list",
       "notice-bar",
       "popover",
       "progress",
+      "swiper",
       "swipe-cell",
       "skeleton",
       "tag",
@@ -737,6 +749,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "round",
         title: "圆角",
         Component: PopupDemoRound,
+      },
+      {
+        id: "title",
+        title: "标题弹窗",
+        Component: PopupDemoTitle,
       },
       {
         id: "safeArea",
@@ -1451,12 +1468,22 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     ],
   },
   "dialog": {
-    title: "Dialog 对话框",
+    title: "Dialog 弹出框",
     demos: [
       {
-        id: "basic",
+        id: "base",
         title: "基础用法",
-        Component: DialogDemoBasic,
+        Component: DialogDemoBase,
+      },
+      {
+        id: "promise",
+        title: "Promise调用",
+        Component: DialogDemoPromise,
+      },
+      {
+        id: "theme",
+        title: "圆角按钮风格",
+        Component: DialogDemoTheme,
       },
       {
         id: "custom",
@@ -1464,19 +1491,19 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         Component: DialogDemoCustom,
       },
       {
-        id: "theme",
-        title: "圆角按钮",
-        Component: DialogDemoTheme,
+        id: "close",
+        title: "关闭弹出框",
+        Component: DialogDemoClose,
       },
       {
-        id: "before-close",
-        title: "异步关闭",
-        Component: DialogDemoBeforeClose,
+        id: "closeIcon",
+        title: "关闭按钮",
+        Component: DialogDemoCloseIcon,
       },
       {
-        id: "imperative",
-        title: "静态调用",
-        Component: DialogDemoImperative,
+        id: "component",
+        title: "组件调用",
+        Component: DialogDemoComponent,
       },
     ],
   },
@@ -1485,17 +1512,17 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     demos: [
       {
         id: "basic",
-        title: "基础筛选",
+        title: "基础用法",
         Component: DropdownMenuDemoBasic,
       },
       {
         id: "custom",
-        title: "自定义面板",
+        title: "自定义菜单内容",
         Component: DropdownMenuDemoCustom,
       },
       {
         id: "color",
-        title: "自定义高亮",
+        title: "自定义高亮颜色",
         Component: DropdownMenuDemoColor,
       },
       {
@@ -1507,11 +1534,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "disabled",
         title: "禁用菜单",
         Component: DropdownMenuDemoDisabled,
-      },
-      {
-        id: "controlled",
-        title: "受控选择",
-        Component: DropdownMenuDemoControlled,
       },
     ],
   },
@@ -1600,18 +1622,23 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     demos: [
       {
         id: "basic",
-        title: "基础示例",
+        title: "基础用法",
         Component: ShareSheetDemoBasic,
       },
       {
         id: "groups",
-        title: "分组展示",
+        title: "展示多行选项",
         Component: ShareSheetDemoGroups,
       },
       {
         id: "custom",
-        title: "自定义区域",
+        title: "自定义图标",
         Component: ShareSheetDemoCustom,
+      },
+      {
+        id: "description",
+        title: "展示描述信息",
+        Component: ShareSheetDemoDescription,
       },
     ],
   },
@@ -1840,31 +1867,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
       },
     ],
   },
-  "floating-ball": {
-    title: "FloatingBall 悬浮球",
-    demos: [
-      {
-        id: "basic",
-        title: "基础用法",
-        Component: FloatingBallDemoBasic,
-      },
-      {
-        id: "menu",
-        title: "带菜单",
-        Component: FloatingBallDemoMenu,
-      },
-      {
-        id: "controlled",
-        title: "受控位置",
-        Component: FloatingBallDemoControlled,
-      },
-      {
-        id: "disabled",
-        title: "禁用拖拽",
-        Component: FloatingBallDemoDisabled,
-      },
-    ],
-  },
   "image-preview": {
     title: "ImagePreview 图片预览",
     demos: [
@@ -1987,6 +1989,71 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "transition",
         title: "过渡效果",
         Component: ProgressDemoTransition,
+      },
+    ],
+  },
+  "swiper": {
+    title: "Swiper 轮播",
+    demos: [
+      {
+        id: "basic",
+        title: "基础",
+        Component: SwiperDemoBasic,
+      },
+      {
+        id: "autoplay",
+        title: "自动播放",
+        Component: SwiperDemoAutoplay,
+      },
+      {
+        id: "images",
+        title: "图片轮播",
+        Component: SwiperDemoImages,
+      },
+      {
+        id: "onChange",
+        title: "监听切换",
+        Component: SwiperDemoOnChange,
+      },
+      {
+        id: "vertical",
+        title: "纵向滚动",
+        Component: SwiperDemoVertical,
+      },
+      {
+        id: "vertical-center",
+        title: "垂直滑块居中",
+        Component: SwiperDemoVerticalCenter,
+      },
+      {
+        id: "slide-size",
+        title: "自定义滑块大小",
+        Component: SwiperDemoSlideSize,
+      },
+      {
+        id: "custom-indicator",
+        title: "自定义指示器",
+        Component: SwiperDemoCustomIndicator,
+      },
+      {
+        id: "indicator-off",
+        title: "关闭指示器",
+        Component: SwiperDemoIndicatorOff,
+      },
+      {
+        id: "loop",
+        title: "关闭循环",
+        Component: SwiperDemoLoop,
+      },
+      {
+        id: "ref",
+        title: "Ref 控制",
+        Component: SwiperDemoRef,
+      },
+      {
+        id: "data-mode",
+        title: "数据模式",
+        Component: SwiperDemoDataMode,
       },
     ],
   },
@@ -2115,18 +2182,18 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     demos: [
       {
         id: "basic",
-        title: "基础索引",
+        title: "基础用法",
         Component: IndexBarDemoBasic,
+      },
+      {
+        id: "custom",
+        title: "自定义索引列表",
+        Component: IndexBarDemoCustom,
       },
       {
         id: "controlled",
         title: "受控切换",
         Component: IndexBarDemoControlled,
-      },
-      {
-        id: "custom",
-        title: "主题自定义",
-        Component: IndexBarDemoCustom,
       },
     ],
   },
@@ -2187,6 +2254,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "controlled",
         title: "受控导航",
         Component: SidebarDemoControlled,
+      },
+      {
+        id: "content",
+        title: "自定义内容区",
+        Component: SidebarDemoContent,
       },
     ],
   },

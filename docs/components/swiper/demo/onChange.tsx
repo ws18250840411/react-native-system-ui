@@ -12,7 +12,7 @@ export default () => {
       <Swiper
         indicator
         onChange={(index) => {
-          Toast(`当前索引: ${index}`)
+          Toast.info(`当前索引: ${index}`)
         }}
       >
         {colors.map((color, index) => (
