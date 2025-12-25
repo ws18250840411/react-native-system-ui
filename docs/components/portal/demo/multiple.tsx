@@ -8,7 +8,7 @@ export default function PortalMultipleDemo() {
   const [confirmVisible, setConfirmVisible] = React.useState(false)
 
   return (
-    <>
+    <Cell.Group>
       <Cell title="显示提示层" isLink onPress={() => setTipVisible(true)} />
       <Cell title="显示确认层" isLink onPress={() => setConfirmVisible(true)} />
 
@@ -34,7 +34,7 @@ export default function PortalMultipleDemo() {
           </View>
         </Portal>
       )}
-    </>
+    </Cell.Group>
   )
 }
 

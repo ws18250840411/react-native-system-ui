@@ -16,7 +16,7 @@ export default () => {
   }
 
   return (
-    <>
+    <Cell.Group>
       <Cell title="异步关闭" isLink onPress={() => setVisible(true)} />
       <Popup
         visible={visible}
@@ -41,7 +41,7 @@ export default () => {
           </Space>
         </View>
       </Popup>
-    </>
+    </Cell.Group>
   )
 }
 

@@ -6,7 +6,7 @@ export default () => {
   const [visible, setVisible] = React.useState(false)
 
   return (
-    <>
+    <Cell.Group>
       <Cell title="圆角弹窗" isLink onPress={() => setVisible(true)} />
       <Popup
         visible={visible}
@@ -16,6 +16,6 @@ export default () => {
         onClose={() => setVisible(false)}
         style={{ height: '30%' }}
       />
-    </>
+    </Cell.Group>
   )
 }

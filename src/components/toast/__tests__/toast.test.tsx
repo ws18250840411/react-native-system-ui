@@ -202,4 +202,35 @@ describe('Toast', () => {
     )
     expect(tree.root.findByProps({ testID: 'toast-message' })).toBeDefined()
   })
+
+  it('sets duration to 0 for loading type by default', () => {
+    const host = render(
+      <PortalHost>
+        <></>
+      </PortalHost>
+    )
+
+    act(() => {
+      Toast.loading({ message: 'Loading...' })
+    })
+
+    // Advance timer by 5 seconds (default is 2s)
+    act(() => {
+      jest.advanceTimersByTime(5000)
+    })
+
+    const getMessages = () =>
+      host.root
+        .findAllByType(Text)
+        .map(node => node.props.children)
+        .flat()
+
+    // Should still be visible
+    expect(getMessages()).toContain('Loading...')
+
+    act(() => {
+      Toast.clear()
+      jest.runAllTimers()
+    })
+  })
 })

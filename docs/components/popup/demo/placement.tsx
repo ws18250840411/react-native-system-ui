@@ -8,7 +8,7 @@ export default () => {
   const close = () => setState('')
 
   return (
-    <>
+    <Cell.Group>
       <Cell title="顶部弹出" isLink onPress={() => setState('top')} />
       <Cell title="底部弹出" isLink onPress={() => setState('bottom')} />
       <Cell title="左侧弹出" isLink onPress={() => setState('left')} />
@@ -18,6 +18,6 @@ export default () => {
       <Popup visible={state === 'bottom'} style={{ height: '30%' }} placement="bottom" onClose={close} />
       <Popup visible={state === 'left'} style={{ width: '30%', height: '100%' }} placement="left" onClose={close} />
       <Popup visible={state === 'right'} style={{ width: '30%', height: '100%' }} placement="right" onClose={close} />
-    </>
+    </Cell.Group>
   )
 }

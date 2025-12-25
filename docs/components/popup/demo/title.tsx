@@ -6,7 +6,7 @@ export default () => {
   const [visible, setVisible] = React.useState(false)
 
   return (
-    <>
+    <Cell.Group>
       <Cell title="标题弹框" isLink onPress={() => setVisible(true)} />
       <Popup
         visible={visible}
@@ -18,7 +18,7 @@ export default () => {
         round
         onClose={() => setVisible(false)}
       />
-    </>
+    </Cell.Group>
   )
 }
 

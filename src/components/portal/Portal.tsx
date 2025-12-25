@@ -19,7 +19,12 @@ const PortalComponent: React.FC<PortalProps> = ({ children }) => {
   const keyRef = React.useRef<number | null>(null)
 
   React.useEffect(() => {
-    ensureGlobalPortalHost()
+    if (manager === globalManager && !portalStore.hasHosts()) {
+      console.warn('Portal: No PortalHost found. Please wrap your application with PortalHost or ConfigProvider.')
+      // Don't return, let it try to mount (maybe host will be added later or it's a test mock?)
+      // Actually if we return, it won't mount. But warning is enough.
+    }
+
     const key = manager.mount(children ?? null)
     keyRef.current = key
     return () => {

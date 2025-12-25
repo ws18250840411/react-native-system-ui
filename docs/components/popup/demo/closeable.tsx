@@ -9,7 +9,7 @@ export default () => {
   const [showCustomIconPosition, setShowCustomIconPosition] = React.useState(false)
 
   return (
-    <>
+    <Cell.Group>
       <Cell title="关闭图标" isLink onPress={() => setShowCloseIcon(true)} />
       <Cell title="自定义关闭图标" isLink onPress={() => setShowCustomCloseIcon(true)} />
       <Cell title="图标位置" isLink onPress={() => setShowCustomIconPosition(true)} />
@@ -37,6 +37,6 @@ export default () => {
         closeIconPosition="top-left"
         onClose={() => setShowCustomIconPosition(false)}
       />
-    </>
+    </Cell.Group>
   )
 }

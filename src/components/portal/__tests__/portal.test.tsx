@@ -72,6 +72,10 @@ describe('Portal', () => {
       tree.update(<PortalHost />)
     })
     expect(getTexts().length).toBe(0)
+
+    act(() => {
+      tree.unmount()
+    })
   })
 
   it('clears static portals through Portal.clear', () => {
@@ -114,5 +118,18 @@ describe('Portal', () => {
     })
 
     expect(document.querySelector('[data-rnsu-portal-host="true"]')).toBeNull()
+  })
+
+  it('warns when no PortalHost is present', () => {
+    const spy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    renderer.create(
+      <Portal>
+        <Text>Content</Text>
+      </Portal>
+    )
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('No PortalHost found')
+    )
+    spy.mockRestore()
   })
 })

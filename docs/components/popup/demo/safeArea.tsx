@@ -13,7 +13,7 @@ export default () => {
   const [visible, setVisible] = React.useState(false)
 
   return (
-    <>
+    <Cell.Group>
       <Cell title="底部安全区域" isLink onPress={() => setVisible(true)} />
       <Popup
         visible={visible}
@@ -23,6 +23,6 @@ export default () => {
       >
         <Placeholder />
       </Popup>
-    </>
+    </Cell.Group>
   )
 }

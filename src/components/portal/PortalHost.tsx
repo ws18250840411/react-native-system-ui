@@ -288,4 +288,5 @@ export const portalManager = globalManager
 export const portalStore = {
   clear: clearPortals,
   getSnapshot: () => getEntriesSnapshot(),
+  hasHosts: () => hostStack.length > 0,
 }

@@ -306,9 +306,11 @@ describe('Popup', () => {
   it('renders close icon when closeable is true', () => {
     const onClose = jest.fn()
     const tree = renderer.create(
-      <Popup visible closeable onClose={onClose}>
-        <Text>Content</Text>
-      </Popup>
+      <PortalHost>
+        <Popup visible closeable onClose={onClose}>
+          <Text>Content</Text>
+        </Popup>
+      </PortalHost>
     )
     // Find Pressable that is likely the close icon
     // It usually has hitSlop prop
@@ -316,6 +318,7 @@ describe('Popup', () => {
     // The close icon Pressable has hitSlop={8}
     const closeBtn = pressables.find(p => p.props.hitSlop === 8)
 
+    expect(closeBtn).toBeDefined()
     // In test environment, the close button might not be found if visible is false or not mounted
     // Ensure visible is true
     if (closeBtn) {
@@ -328,9 +331,11 @@ describe('Popup', () => {
 
   it('renders round corners', () => {
     const tree = renderer.create(
-      <Popup visible round placement="bottom">
-        <Text>Content</Text>
-      </Popup>
+      <PortalHost>
+        <Popup visible round placement="bottom">
+          <Text>Content</Text>
+        </Popup>
+      </PortalHost>
     )
     // The content wrapper should have border radius
     // We need to find the Animated.View that wraps content

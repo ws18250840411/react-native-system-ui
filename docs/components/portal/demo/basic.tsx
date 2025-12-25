@@ -7,7 +7,7 @@ export default function PortalBasicDemo() {
   const [visible, setVisible] = React.useState(false)
 
   return (
-    <>
+    <Cell.Group>
       <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
       {visible ? (
         <Portal>
@@ -22,7 +22,7 @@ export default function PortalBasicDemo() {
           </View>
         </Portal>
       ) : null}
-    </>
+    </Cell.Group>
   )
 }
 
