@@ -121,35 +121,41 @@ export const Space: React.FC<SpaceProps> = props => {
     }
   })
 
-  const containerBaseStyle: ViewStyle = {
-    flexDirection: isHorizontal ? 'row' : 'column',
-    flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
-    alignItems: alignMap[resolvedAlign],
-    justifyContent: justifyMap[justifyForStyle],
-    width: shouldBlock ? '100%' : undefined,
-  }
+  const containerBaseStyle = React.useMemo<ViewStyle>(() => {
+    const base: ViewStyle = {
+      flexDirection: isHorizontal ? 'row' : 'column',
+      flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
+      alignItems: alignMap[resolvedAlign],
+      justifyContent: justifyMap[justifyForStyle],
+      width: shouldBlock ? '100%' : undefined,
+    }
 
-  if (supportsGap) {
-    containerBaseStyle.columnGap = isHorizontal ? horizontalGap : undefined
-    containerBaseStyle.rowGap = verticalGap
-  } else {
-    containerBaseStyle.marginHorizontal =
-      isHorizontal && horizontalGap ? -horizontalGap / 2 : undefined
-    containerBaseStyle.marginVertical = verticalGap ? -verticalGap / 2 : undefined
-  }
+    if (supportsGap) {
+      base.columnGap = isHorizontal ? horizontalGap : undefined
+      base.rowGap = verticalGap
+    } else {
+      base.marginHorizontal =
+        isHorizontal && horizontalGap ? -horizontalGap / 2 : undefined
+      base.marginVertical = verticalGap ? -verticalGap / 2 : undefined
+    }
 
-  const spacingStyle: ViewStyle | undefined = supportsGap
-    ? undefined
-    : isHorizontal
-      ? {
-          paddingHorizontal: horizontalGap / 2,
-          paddingVertical: verticalGap / 2,
-        }
-      : {
-          paddingVertical: verticalGap / 2,
-        }
+    return base
+  }, [isHorizontal, wrap, resolvedAlign, justifyForStyle, shouldBlock, supportsGap, horizontalGap, verticalGap])
 
-  const renderItem = (item: (typeof composedChildren)[number]) => {
+  const spacingStyle = React.useMemo<ViewStyle | undefined>(() => {
+    if (supportsGap) return undefined
+    if (isHorizontal) {
+      return {
+        paddingHorizontal: horizontalGap / 2,
+        paddingVertical: verticalGap / 2,
+      }
+    }
+    return {
+      paddingVertical: verticalGap / 2,
+    }
+  }, [supportsGap, isHorizontal, horizontalGap, verticalGap])
+
+  const renderItem = React.useCallback((item: (typeof composedChildren)[number]) => {
     const fillStyle: ViewStyle | undefined = item.isDivider
       ? undefined
       : {
@@ -175,7 +181,7 @@ export const Space: React.FC<SpaceProps> = props => {
         {child}
       </View>
     )
-  }
+  }, [shouldFillMainAxis, isHorizontal, fill, shouldBlock, spacingStyle])
 
   const interactive = typeof onClick === 'function'
   const { interactionProps, states } = useAriaPress({

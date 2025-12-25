@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Image as RNImage, Text, View } from 'react-native'
+import { Image as RNImage, StyleSheet, Text, View } from 'react-native'
 
 import Image from '..'
 
@@ -71,5 +71,56 @@ describe('Image', () => {
     const json = tree.toJSON() as any
     expect(String(json.props.style.width)).toContain('100')
     expect(String(json.props.style.height)).toContain('80')
+  })
+
+  it('renders children', () => {
+    const tree = renderer.create(
+      <Image src="https://example.com/a.png" showLoading={false}>
+        <Text>Child</Text>
+      </Image>
+    )
+    const child = tree.root.findByType(Text)
+    expect(child.props.children).toBe('Child')
+  })
+
+  it('applies round style', () => {
+    const tree = renderer.create(<Image src="https://example.com/a.png" round />)
+    const view = tree.root.findByType(View)
+    const style = StyleSheet.flatten(view.props.style)
+    expect(style.borderRadius).toBe(9999)
+  })
+
+  it('applies custom radius', () => {
+    const tree = renderer.create(<Image src="https://example.com/a.png" radius={8} />)
+    const view = tree.root.findByType(View)
+    const style = StyleSheet.flatten(view.props.style)
+    expect(style.borderRadius).toBe(8)
+  })
+
+  it('maps fit prop to resizeMode', () => {
+    const tree = renderer.create(<Image src="https://example.com/a.png" fit="contain" />)
+    const rnImage = tree.root.findByType(RNImage)
+    expect(rnImage.props.resizeMode).toBe('contain')
+  })
+
+  it('prioritizes source prop over src', () => {
+    const source = { uri: 'https://example.com/source.png' }
+    const tree = renderer.create(
+      <Image src="https://example.com/src.png" source={source} />
+    )
+    const rnImage = tree.root.findByType(RNImage)
+    expect(rnImage.props.source).toBe(source)
+  })
+
+  it('calls onLoad callback', () => {
+    const onLoad = jest.fn()
+    const tree = renderer.create(
+      <Image src="https://example.com/a.png" onLoad={onLoad} />
+    )
+    const rnImage = tree.root.findByType(RNImage)
+    act(() => {
+      rnImage.props.onLoad?.({ nativeEvent: {} })
+    })
+    expect(onLoad).toHaveBeenCalled()
   })
 })

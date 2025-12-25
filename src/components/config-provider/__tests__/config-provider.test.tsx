@@ -48,4 +48,34 @@ describe('ConfigProvider', () => {
 
     expect(flattened.backgroundColor).toBe(defaultTokens.palette.success[500])
   })
+
+  it('inherits locale from parent provider if not specified', () => {
+    const CustomLocale = { ...zhCN, name: 'Custom' }
+    const tree = renderer.create(
+      <ConfigProvider locale={CustomLocale}>
+        <ConfigProvider>
+          <LocaleConsumer />
+        </ConfigProvider>
+      </ConfigProvider>
+    )
+
+    const localeNode = tree.root.findByType(LocaleConsumer)
+    expect(localeNode.children).toContain('Custom')
+  })
+
+  it('overrides parent locale when specified', () => {
+    const ParentLocale = { ...zhCN, name: 'Parent' }
+    const ChildLocale = { ...zhCN, name: 'Child' }
+    
+    const tree = renderer.create(
+      <ConfigProvider locale={ParentLocale}>
+        <ConfigProvider locale={ChildLocale}>
+          <LocaleConsumer />
+        </ConfigProvider>
+      </ConfigProvider>
+    )
+
+    const localeNode = tree.root.findByType(LocaleConsumer)
+    expect(localeNode.children).toContain('Child')
+  })
 })

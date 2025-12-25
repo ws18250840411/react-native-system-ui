@@ -1,6 +1,6 @@
 import React from 'react'
 import { Linking, Platform, Text, View } from 'react-native'
-import type { NativeSyntheticEvent, TextLayoutEventData, TextProps } from 'react-native'
+import type { NativeSyntheticEvent, StyleProp, TextLayoutEventData, TextProps, TextStyle, ViewStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -9,8 +9,11 @@ import { deepMerge } from '../../utils/deepMerge'
 import type {
   EllipsisConfig,
   TypographyLinkProps,
+  TypographySize,
   TypographyTextProps,
+  TypographyTitleLevel,
   TypographyTitleProps,
+  TypographyType,
 } from './types'
 
 interface TypographyTokens {
@@ -135,33 +138,56 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
 
   let resolvedColor = tokens.colors[type] ?? tokens.colors.default
   if (colorProp !== undefined && colorProp !== null) {
-    resolvedColor = tokens.colors[colorProp as any] ?? String(colorProp)
+    if (Object.keys(tokens.colors).includes(colorProp as string)) {
+      resolvedColor = tokens.colors[colorProp as TypographyType]
+    } else {
+      resolvedColor = String(colorProp)
+    }
   }
   const fontSize = level ? tokens.titles[level].fontSize : tokens.sizes[size]
   const lineHeight = level ? tokens.titles[level].lineHeight : fontSize * 1.3
 
-  const textDecoration: TextProps['style'] = {
-    textDecorationLine: [
-      underline ? 'underline' : null,
-      deleted ? 'line-through' : null,
+  const baseStyle = React.useMemo<StyleProp<TextStyle>>(() => {
+    const decorationLine = [
+      underline ? 'underline' : undefined,
+      deleted ? 'line-through' : undefined,
     ]
       .filter(Boolean)
-      .join(' '),
-  }
+      .join(' ')
 
-  const baseStyle = [
-    {
+    const textDecoration: TextStyle = decorationLine ? {
+      textDecorationLine: decorationLine as TextStyle['textDecorationLine']
+    } : {}
+
+    const computedStyle: TextStyle = {
       color: resolvedColor,
       fontSize,
       lineHeight,
       fontFamily: tokens.typography.fontFamily,
-      fontWeight: strong ? tokens.typography.weight.strong : tokens.typography.weight.regular,
+      fontWeight: (strong ? tokens.typography.weight.strong : tokens.typography.weight.regular) as TextStyle['fontWeight'],
       textAlign: center ? 'center' : undefined,
       opacity: disabled ? tokens.opacity.disabled : 1,
-    },
-    textDecoration.textDecorationLine ? textDecoration : null,
+    }
+
+    return [
+      computedStyle,
+      textDecoration,
+      style,
+    ]
+  }, [
+    resolvedColor,
+    fontSize,
+    lineHeight,
+    tokens.typography.fontFamily,
+    tokens.typography.weight,
+    tokens.opacity.disabled,
+    strong,
+    center,
+    disabled,
+    underline,
+    deleted,
     style,
-  ]
+  ])
 
   const hasActionText = !!ellipsisConfig && (ellipsisConfig.expandText || ellipsisConfig.collapseText)
   const shouldShowAction = hasActionText && (isTruncated || expanded || Platform.OS === 'web')
@@ -206,7 +232,7 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
         style={{
           color: tokens.colors.primary,
           fontSize: tokens.sizes.sm,
-          fontWeight: tokens.typography.weight.medium,
+          fontWeight: tokens.typography.weight.medium as TextStyle['fontWeight'],
           marginLeft: 4,
         }}
       >
@@ -230,7 +256,7 @@ TypographyTitle.displayName = 'TypographyTitle'
 const TypographyLink = React.forwardRef<Text, TypographyLinkProps>((props, ref) => {
   const { href, onPress, underline = true, type = 'primary', ...rest } = props
 
-  const handlePress: TextProps['onPress'] = async event => {
+  const handlePress: TextProps['onPress'] = React.useCallback(async (event: NativeSyntheticEvent<any>) => {
     if (onPress) {
       onPress(event)
       return
@@ -242,7 +268,7 @@ const TypographyLink = React.forwardRef<Text, TypographyLinkProps>((props, ref) 
         console.warn('Failed to open url', error)
       }
     }
-  }
+  }, [onPress, href])
 
   return (
     <TypographyTextBase

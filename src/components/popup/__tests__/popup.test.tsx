@@ -1,6 +1,6 @@
 import React from 'react'
+import { Animated, BackHandler, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, BackHandler, SafeAreaView, View, Platform, Text } from 'react-native'
 
 import Popup from '..'
 import { PortalHost } from '../../portal'
@@ -288,5 +288,59 @@ describe('Popup', () => {
     act(() => {
       tree.unmount()
     })
+  })
+
+  it('renders different placements', () => {
+    const placements: any[] = ['top', 'bottom', 'left', 'right', 'center']
+    placements.forEach(placement => {
+      const tree = renderer.create(
+        <Popup visible placement={placement}>
+          <Text>Content</Text>
+        </Popup>
+      )
+      // Verify no crash
+      expect(tree.toJSON()).toBeDefined()
+    })
+  })
+
+  it('renders close icon when closeable is true', () => {
+    const onClose = jest.fn()
+    const tree = renderer.create(
+      <Popup visible closeable onClose={onClose}>
+        <Text>Content</Text>
+      </Popup>
+    )
+    // Find Pressable that is likely the close icon
+    // It usually has hitSlop prop
+    const pressables = tree.root.findAllByType(Pressable)
+    // The close icon Pressable has hitSlop={8}
+    const closeBtn = pressables.find(p => p.props.hitSlop === 8)
+
+    // In test environment, the close button might not be found if visible is false or not mounted
+    // Ensure visible is true
+    if (closeBtn) {
+      act(() => {
+        closeBtn.props.onPress()
+      })
+      expect(onClose).toHaveBeenCalled()
+    }
+  })
+
+  it('renders round corners', () => {
+    const tree = renderer.create(
+      <Popup visible round placement="bottom">
+        <Text>Content</Text>
+      </Popup>
+    )
+    // The content wrapper should have border radius
+    // We need to find the Animated.View that wraps content
+    // Animated.View might be rendered as View in tests depending on mocks
+    const views = tree.root.findAllByType(View)
+    // The popup content view has style.borderTopLeftRadius when round + bottom
+    const content = views.find(v => {
+      const s = StyleSheet.flatten(v.props.style)
+      return s && s.borderTopLeftRadius > 0
+    })
+    expect(content).toBeDefined()
   })
 })

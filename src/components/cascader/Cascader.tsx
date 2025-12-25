@@ -152,7 +152,8 @@ const Cascader: React.FC<CascaderProps> = props => {
       }
       return nextIndex
     })
-  }, [activeTab, currentValue.length, displayTabs.length])
+    // 注意：不要把 activeTab 放进依赖，否则用户手动点击 tab 后会被该 effect 立刻“改回去”
+  }, [currentValue.length, displayTabs.length])
 
   React.useEffect(() => {
     if (!pendingPath) return
@@ -381,11 +382,10 @@ const Cascader: React.FC<CascaderProps> = props => {
           style={resolvedTabsWidth ? { width: resolvedTabsWidth } : undefined}
           active={activeTab}
           onChange={handleTabChange}
-          // 对齐官方 Cascader Tabs：标题均分并居中展示（同时提升指示器在 RN Web 下的定位稳定性）
           align="center"
           swipeable={swipeableEnabled}
           swipeThreshold={0}
-          scrollable={false}
+          scrollable
           animated
           duration={300}
           color={activeColor}

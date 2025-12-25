@@ -1,5 +1,5 @@
 import React from 'react'
-import { Linking, StyleSheet, Text } from 'react-native'
+import { Linking, StyleSheet, Text, View } from 'react-native'
 import renderer, { act } from 'react-test-renderer'
 
 import Typography from '..'
@@ -22,7 +22,7 @@ describe('Typography', () => {
       </Typography.Text>,
     )
     const text = tree.root.findByType(Text)
-    const style = [].concat(text.props.style).filter(Boolean).pop()
+    const style = StyleSheet.flatten(text.props.style)
     expect(style.color).toBeTruthy()
     expect(style.fontWeight).toBeTruthy()
   })
@@ -32,7 +32,7 @@ describe('Typography', () => {
       <Typography.Title level={2}>标题</Typography.Title>,
     )
     const text = tree.root.findByType(Text)
-    const style = [].concat(text.props.style).filter(Boolean).pop()
+    const style = StyleSheet.flatten(text.props.style)
     expect(style.fontSize).toBe(26)
   })
 
@@ -77,5 +77,50 @@ describe('Typography', () => {
     const text = tree.root.findByType(Text)
     const style = StyleSheet.flatten(text.props.style)
     expect(style.color).toBe('#ff0000')
+  })
+
+  it('renders different sizes', () => {
+    const tree = renderer.create(<Typography size="xl">Extra Large</Typography>)
+    const text = tree.root.findByType(Text)
+    const style = StyleSheet.flatten(text.props.style)
+    // xl size corresponds to fontSize.xl in tokens (usually 20 or similar, verify logic)
+    expect(style.fontSize).toBeDefined()
+  })
+
+  it('applies decoration styles', () => {
+    const tree = renderer.create(
+      <Typography underline delete>
+        Decorated
+      </Typography>
+    )
+    const text = tree.root.findByType(Text)
+    const style = StyleSheet.flatten(text.props.style)
+    expect(style.textDecorationLine).toContain('underline')
+    expect(style.textDecorationLine).toContain('line-through')
+  })
+
+  it('handles disabled state', () => {
+    const tree = renderer.create(<Typography disabled>Disabled</Typography>)
+    const text = tree.root.findByType(Text)
+    const style = StyleSheet.flatten(text.props.style)
+    expect(style.opacity).toBeLessThan(1)
+  })
+
+  it('centers text', () => {
+    const tree = renderer.create(<Typography center>Centered</Typography>)
+    // When center is true, it wraps in a View with alignItems: center
+    const view = tree.root.findByType(View)
+    const style = StyleSheet.flatten(view.props.style)
+    expect(style.alignItems).toBe('center')
+  })
+
+  it('handles onPress', () => {
+    const onPress = jest.fn()
+    const tree = renderer.create(
+      <Typography onPress={onPress}>Press Me</Typography>
+    )
+    const text = tree.root.findByType(Text)
+    text.props.onPress({} as any)
+    expect(onPress).toHaveBeenCalled()
   })
 })

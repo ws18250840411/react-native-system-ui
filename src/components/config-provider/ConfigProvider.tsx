@@ -18,7 +18,14 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({
   locale,
   children,
 }) => {
-  const localeValue = locale ?? zhCN
+  const parentLocale = React.useContext(LocaleContext)
+  
+  // 使用 useMemo 缓存 locale，如果传入了新的 locale 则使用新的，否则使用父级的或默认的
+  const localeValue = React.useMemo(() => {
+    if (locale) return locale
+    if (parentLocale && parentLocale !== zhCN) return parentLocale
+    return zhCN
+  }, [locale, parentLocale])
 
   return (
     <ThemeProvider value={theme}>

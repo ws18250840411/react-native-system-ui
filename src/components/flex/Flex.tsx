@@ -82,7 +82,7 @@ export const Flex: React.FC<FlexProps> = ({
     [horizontalGap, resolvedColumns, verticalGap]
   )
 
-  const containerStyle: StyleProp<ViewStyle> = [
+  const containerStyle = React.useMemo<StyleProp<ViewStyle>>(() => [
     styles.container,
     {
       flexDirection: resolvedDirection,
@@ -93,7 +93,15 @@ export const Flex: React.FC<FlexProps> = ({
       marginVertical: verticalGap ? -verticalGap / 2 : undefined,
     },
     style,
-  ]
+  ], [
+    resolvedDirection,
+    resolvedWrap,
+    resolvedAlign,
+    resolvedJustify,
+    horizontalGap,
+    verticalGap,
+    style
+  ])
 
   return (
     <FlexContext.Provider value={contextValue}>

@@ -30,14 +30,6 @@ const isRenderableNode = (node: React.ReactNode) => node !== null && node !== un
 const isTextLikeNode = (node: React.ReactNode): node is string | number =>
   typeof node === 'string' || typeof node === 'number'
 
-const devLog = (...args: any[]) => {
-  // eslint-disable-next-line no-undef
-  if (typeof __DEV__ !== 'undefined' && __DEV__) {
-    // eslint-disable-next-line no-console
-    console.log(...args)
-  }
-}
-
 interface ParsedPane extends TabPaneProps {
   key: React.Key
   name: TabsValue
@@ -287,6 +279,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     duration = tokens.defaults.duration,
     lazyRender = tokens.defaults.lazyRender,
     lazyRenderPlaceholder,
+    scrollable: scrollableProp,
     swipeable,
     color,
     background = tokens.tabList.background,
@@ -379,9 +372,20 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     return exists ? activeValue : firstPaneName
   }, [activeValue, firstPaneName, panes])
 
+  const nameIndexMap = React.useMemo(() => {
+    const map = new Map<TabsValue, number>()
+    panes.forEach(pane => {
+      map.set(pane.name, pane.index)
+    })
+    return map
+  }, [panes])
+
+  const paneSignature = React.useMemo(() => panes.map(pane => String(pane.name)).join('|'), [panes])
+
   const activeIndex = React.useMemo(() => {
-    return panes.findIndex(pane => pane.name === currentName)
-  }, [currentName, panes])
+    if (currentName === undefined || currentName === null) return -1
+    return nameIndexMap.get(currentName) ?? -1
+  }, [currentName, nameIndexMap])
 
   const visitedRef = React.useRef<Set<TabsValue>>(new Set())
   React.useEffect(() => {
@@ -389,9 +393,14 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     visitedRef.current.add(currentName)
   }, [currentName])
 
+  // 注意：children 可能每次 render 都是新对象（title 变化也会导致 panes 变新），
+  // 不能用 `panes` 做依赖去清空 layout 缓存，否则 RN Web 下 onLayout 不会再次触发，指示器会“彻底不动”。
+  // 仅在 pane 的 name 列表变化时清缓存。
   React.useEffect(() => {
     paneLayoutMap.current.clear()
-  }, [panes])
+    layoutMap.current.clear()
+    navContentWidthRef.current = 0
+  }, [paneSignature])
 
   const shouldTrackPaneLayouts = isSwipeable && swipeableConfig?.autoHeight
 
@@ -417,6 +426,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const indicatorX = React.useRef(new Animated.Value(0)).current
   const indicatorWidth = React.useRef(new Animated.Value(0)).current
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
+  // 仅用于兼容部分 Web 布局场景（不要依赖 x 的情况下临时计算），可按需启用
+  const tabWidthMapRef = React.useRef<Map<TabsValue, number>>(new Map())
   const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
   const navContentWidthRef = React.useRef(0)
@@ -430,11 +441,15 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
 
   const scrollable = React.useMemo(() => {
+    if (typeof scrollableProp === 'boolean') {
+      return scrollableProp
+    }
     return panes.length > resolvedSwipeThreshold || ellipsis === false
-  }, [ellipsis, panes.length, resolvedSwipeThreshold])
+  }, [ellipsis, panes.length, resolvedSwipeThreshold, scrollableProp])
 
   const indicatorColor = color ?? tokens.colors.indicator
   const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
+
   const animateIndicator = React.useCallback(
     (name?: TabsValue, immediate?: boolean) => {
       // 注意：name 可能为 0（比如 TabPane name=0），不能用 `!name` 判断
@@ -443,15 +458,15 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       // 对于非滚动且均分的 tabs（align != 'start'），直接用容器宽度与 index 计算指示器位置，避免依赖 onLayout。
       const shouldUseEqualWidth =
         !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
-      const index = panes.findIndex(pane => pane.name === name)
+      const index = nameIndexMap.get(name) ?? -1
       const equalTabWidth = shouldUseEqualWidth ? navContainerWidthRef.current / panes.length : 0
-      const layout = shouldUseEqualWidth
+      let layout = shouldUseEqualWidth
         ? { x: Math.max(index, 0) * equalTabWidth, width: equalTabWidth }
         : layoutMap.current.get(name)
-      if (!layout) {
-        devLog('[Tabs animateIndicator] missing layout for name:', name, 'layouts:', Array.from(layoutMap.current.entries()))
+      if (!layout || index < 0) {
         return false
       }
+      // 回退到“仅依赖真实 layout.x”计算指示器位置（与当时 align 调整那一步一致）
       const timing = (value: Animated.Value, toValue: number) =>
         Animated.timing(value, {
           toValue,
@@ -462,14 +477,13 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       const targetX = resolvedLineWidth
         ? layout.x + (layout.width - targetWidth) / 2
         : layout.x
-      devLog('[Tabs animateIndicator] name:', name, 'layout:', layout, 'targetX:', targetX, 'targetWidth:', targetWidth, 'immediate:', immediate)
       Animated.parallel([
         timing(indicatorX, targetX),
         timing(indicatorWidth, targetWidth),
       ]).start()
       return true
     },
-    [align, animated, indicatorWidth, indicatorX, panes, resolvedDuration, resolvedLineWidth, scrollable, type],
+    [align, animated, indicatorWidth, indicatorX, nameIndexMap, panes.length, resolvedDuration, resolvedLineWidth, scrollable, type],
   )
 
   const scrollIntoView = React.useCallback(
@@ -479,10 +493,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       const containerWidth = navContainerWidthRef.current
       if (!layout || !containerWidth) return
       const measuredContentWidth = navContentWidthRef.current
-      const computedContentWidth = Array.from(layoutMap.current.values()).reduce((max, item) => {
-        return Math.max(max, item.x + item.width)
-      }, 0)
-      const contentWidth = measuredContentWidth > 0 ? measuredContentWidth : computedContentWidth
+      const contentWidth = measuredContentWidth
       const targetX = layout.x - (containerWidth - layout.width) / 2
       const maxScroll = Math.max(contentWidth - containerWidth, 0)
       const clampedX = Math.max(0, Math.min(targetX, maxScroll))
@@ -527,7 +538,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     if (didAnimate && !indicatorInitializedRef.current) {
       indicatorInitializedRef.current = true
     }
-    devLog('[Tabs] currentName changed:', currentName, 'activeIndex:', activeIndex, 'didAnimate:', didAnimate)
   }, [animateIndicator, currentName])
 
   React.useEffect(
@@ -541,7 +551,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     (name: TabsValue, event: LayoutChangeEvent) => {
       const { x, width } = event.nativeEvent.layout
       layoutMap.current.set(name, { x, width })
-      devLog('[Tabs handleTabLayout] name:', name, 'x:', x, 'width:', width, 'currentName:', currentName)
+      // 不再维护 width 前缀和（回到 align 调整那一步的实现）
       // 如果激活项布局变化，立即重算指示线
       if (name === currentName) {
         const shouldAnimate = indicatorInitializedRef.current
@@ -551,13 +561,21 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         }
       }
     },
-    [animateIndicator, currentName],
+    [animateIndicator, currentName, panes],
   )
 
   const handleNavContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
     const { width } = event.nativeEvent.layout
     navContainerWidthRef.current = width
-  }, [])
+    // 均分模式下不依赖 TabItem 的 onLayout，因此容器宽度就绪后补一次指示器计算
+    if (!scrollable && align !== 'start' && type === 'line' && currentName !== undefined && currentName !== null) {
+      const shouldAnimate = indicatorInitializedRef.current
+      const didAnimate = animateIndicator(currentName, !shouldAnimate)
+      if (didAnimate && !indicatorInitializedRef.current) {
+        indicatorInitializedRef.current = true
+      }
+    }
+  }, [align, animateIndicator, currentName, scrollable, type])
 
   const handleContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
     setContainerWidth(event.nativeEvent.layout.width)

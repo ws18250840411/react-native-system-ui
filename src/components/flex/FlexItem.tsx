@@ -80,32 +80,38 @@ export const FlexItem: React.FC<FlexItemProps> = ({
 }) => {
   const { horizontalGap, verticalGap, columns } = React.useContext(FlexContext)
 
+  // Use useMemo to prevent style recalculation on every render
+  const itemStyle = React.useMemo<StyleProp<ViewStyle>>(() => {
+    if (typeof span === 'number' && span <= 0) {
+      return null
+    }
+
+    const widthStyle: ViewStyle = {}
+
+    if (typeof span === 'number') {
+      const resolvedColumns = columns > 0 ? columns : 1
+      const percent = Math.min(Math.max(span, 0), resolvedColumns) / resolvedColumns
+      widthStyle.width = `${percent * 100}%`
+      widthStyle.flexGrow = 0
+      widthStyle.flexShrink = 0
+    }
+
+    const flexStyle = parseFlex(flex)
+
+    return [
+      {
+        paddingHorizontal: horizontalGap / 2,
+        paddingVertical: verticalGap / 2,
+      },
+      widthStyle,
+      flexStyle,
+      style,
+    ]
+  }, [span, flex, columns, horizontalGap, verticalGap, style])
+
   if (typeof span === 'number' && span <= 0) {
     return null
   }
-
-  const widthStyle: ViewStyle = {}
-
-  if (typeof span === 'number') {
-    const resolvedColumns = columns > 0 ? columns : 1
-    const percent =
-      Math.min(Math.max(span, 0), resolvedColumns) / resolvedColumns
-    widthStyle.width = `${percent * 100}%`
-    widthStyle.flexGrow = 0
-    widthStyle.flexShrink = 0
-  }
-
-  const flexStyle = parseFlex(flex)
-
-  const itemStyle: StyleProp<ViewStyle> = [
-    {
-      paddingHorizontal: horizontalGap / 2,
-      paddingVertical: verticalGap / 2,
-    },
-    widthStyle,
-    flexStyle,
-    style,
-  ]
 
   return <View style={itemStyle}>{children}</View>
 }

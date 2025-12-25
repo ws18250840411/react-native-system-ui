@@ -47,7 +47,7 @@ const renderWithProvider = (
 
 const getStyleFromPressable = (
   pressable: renderer.ReactTestInstance,
-  state: Parameters<Pressable['props']['style']>[0] = { pressed: false }
+  state: any = { pressed: false }
 ) => {
   const styleProp = pressable.props.style
   const styleValue = typeof styleProp === 'function' ? styleProp(state) : styleProp
@@ -231,5 +231,22 @@ describe('Button', () => {
     const flattened = getStyleFromPressable(pressable)
     expect(flattened.backgroundColor).toBe('transparent')
     expect(flattened.borderWidth).toBe(1)
+  })
+
+  it('catches errors in custom icon render function', () => {
+    // @ts-ignore
+    global.__DEV__ = true
+    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const ThrowingIcon = () => {
+      throw new Error('Icon render failed')
+    }
+    
+    renderWithProvider(<Button text="Error Icon" icon={ThrowingIcon} />)
+    
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[Button] Failed to render icon:',
+      expect.any(Error)
+    )
+    consoleSpy.mockRestore()
   })
 })

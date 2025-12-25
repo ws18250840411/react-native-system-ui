@@ -49,7 +49,7 @@ import { Image } from 'react-native-system-ui'
 | `source` | ImageSourcePropType | `ImageSourcePropType` | - |
 | `width` | 宽度 | `number \| string` | - |
 | `height` | 高度 | `number \| string` | - |
-| `radius` | 圆角 | `number` | 主题默认 |
+| `radius` | 圆角 | `number` | - |
 | `round` | 是否显示为圆形 | `boolean` | `false` |
 | `fit` | 填充方式（cover/contain 等） | `'cover' \| 'contain' \| 'fill' \| 'none' \| 'scale-down'` | `'cover'` |
 | `showLoading` | 是否展示加载状态 | `boolean` | `true` |

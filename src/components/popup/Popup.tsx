@@ -258,7 +258,7 @@ export const Popup: React.FC<PopupProps> = props => {
         toValue: show ? 1 : 0,
         duration,
         easing,
-        useNativeDriver: Platform.OS !== 'web',
+        useNativeDriver: Platform.OS !== 'web', // Web 不支持 layout 属性的 native driver，但 transform/opacity 支持
       })
       animationRef.current = animation
 

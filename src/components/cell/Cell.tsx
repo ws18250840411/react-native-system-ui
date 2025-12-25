@@ -176,17 +176,24 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
   const hairline = React.useMemo(() => {
     if (!showBorder) return null
     const borderWidth = typeof tokens.border.width === 'number' ? tokens.border.width : undefined
-    const hairlineStyle = createHairlineView({
-      position: 'bottom',
-      color: tokens.border.color,
-      left: resolvedPadding.left,
-      right: resolvedPadding.right,
-      enabled: borderWidth !== undefined ? borderWidth > 0 : true,
-      // 如果指定了自定义宽度，传递给 createHairlineView 统一处理
-      width: borderWidth,
-    })
+    try {
+      const hairlineStyle = createHairlineView({
+        position: 'bottom',
+        color: tokens.border.color,
+        left: resolvedPadding.left,
+        right: resolvedPadding.right,
+        enabled: borderWidth !== undefined ? borderWidth > 0 : true,
+        // 如果指定了自定义宽度，传递给 createHairlineView 统一处理
+        width: borderWidth,
+      })
 
-    return <View style={[styles.hairline, hairlineStyle]} />
+      return <View style={[styles.hairline, hairlineStyle]} />
+    } catch (e) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.warn('[Cell] Failed to create hairline view:', e)
+      }
+      return null
+    }
   }, [
     resolvedPadding.left,
     resolvedPadding.right,

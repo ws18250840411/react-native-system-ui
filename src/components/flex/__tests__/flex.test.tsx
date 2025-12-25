@@ -71,4 +71,49 @@ describe('Flex', () => {
     expect(style.flexShrink).toBe(1)
     expect(style.flexBasis).toBe(120)
   })
+
+  it('renders nothing when span is 0 or negative', () => {
+    const tree = renderer.create(
+      <Flex>
+        <Flex.Item span={0}>
+          <Text>zero</Text>
+        </Flex.Item>
+        <Flex.Item span={-1}>
+          <Text>negative</Text>
+        </Flex.Item>
+        <Flex.Item>
+          <Text>visible</Text>
+        </Flex.Item>
+      </Flex>
+    )
+
+    const views = tree.root.findAllByType(View)
+    // The main container View plus one child View (for 'visible')
+    // 'zero' and 'negative' items should return null
+    // views[0] is container
+    // views[1] is Flex.Item wrapper
+    expect(views.length).toBe(2)
+    const textNodes = tree.root.findAllByType(Text)
+    expect(textNodes.length).toBe(1)
+    expect(textNodes[0].props.children).toBe('visible')
+  })
+
+  it('handles invalid flex strings gracefully', () => {
+    const tree = renderer.create(
+      <Flex>
+        <Flex.Item flex="invalid-flex-string">
+          <Text>invalid</Text>
+        </Flex.Item>
+      </Flex>
+    )
+
+    const views = tree.root.findAllByType(View)
+    const itemView = views[1]
+    const style = StyleSheet.flatten(itemView.props.style)
+    
+    // Should not have flex properties set
+    expect(style.flex).toBeUndefined()
+    expect(style.flexGrow).toBeUndefined()
+    expect(style.flexShrink).toBeUndefined()
+  })
 })

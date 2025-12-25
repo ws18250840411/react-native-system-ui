@@ -114,8 +114,8 @@ describe('Space advanced props', () => {
     expect(() =>
       renderer.create(
         <Space fill>
-          <span>Fill</span>
-          <span>Fill</span>
+          <Text>Fill</Text>
+          <Text>Fill</Text>
         </Space>
       )
     ).not.toThrow()

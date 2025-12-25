@@ -3,7 +3,7 @@ import React from 'react'
 import { Button, Space } from 'react-native-system-ui'
 
 export default () => (
-  <Space direction="vertical" fill gap={[0, 12]}>
+  <Space direction="vertical" fill gap={[6, 12]}>
     <Space fill>
       <Button type="primary" block>
         查看详情
@@ -12,7 +12,7 @@ export default () => (
         提交
       </Button>
     </Space>
-    <Space direction="vertical" fill gap={[0, 8]}>
+    <Space direction="vertical" fill gap={[6, 8]}>
       <Button color="#ef4444" plain block>
         红色按钮
       </Button>

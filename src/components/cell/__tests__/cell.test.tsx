@@ -51,4 +51,24 @@ describe('Cell', () => {
       )
     ).not.toThrow()
   })
+
+  it('renders required asterisk when required prop is set', () => {
+    const tree = renderer.create(
+      <Cell title="Required" required />
+    )
+    // Find text nodes, one for title and one for asterisk
+    const texts = tree.root.findAllByType(Text)
+    const asterisk = texts.find(t => t.props.children === '*')
+    expect(asterisk).toBeTruthy()
+  })
+
+  it('handles custom onPress handler', () => {
+    const onPress = jest.fn()
+    const tree = renderer.create(
+      <Cell title="Clickable" onPress={onPress} />
+    )
+    const pressable = tree.root.findByType(Pressable)
+    pressable.props.onPress()
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
 })
