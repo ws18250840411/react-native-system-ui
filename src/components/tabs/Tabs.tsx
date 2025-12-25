@@ -21,10 +21,22 @@ const requestFrame =
   typeof requestAnimationFrame === 'function'
     ? requestAnimationFrame
     : (cb: (time?: number) => void) => setTimeout(cb, 16)
+const cancelFrame =
+  typeof cancelAnimationFrame === 'function'
+    ? cancelAnimationFrame
+    : (id: any) => clearTimeout(id)
 
 const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
 const isTextLikeNode = (node: React.ReactNode): node is string | number =>
   typeof node === 'string' || typeof node === 'number'
+
+const devLog = (...args: any[]) => {
+  // eslint-disable-next-line no-undef
+  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(...args)
+  }
+}
 
 interface ParsedPane extends TabPaneProps {
   key: React.Key
@@ -49,7 +61,7 @@ interface TabItemProps {
   tabStyle?: TabsProps['tabStyle']
   titleStyle?: TabsProps['titleStyle']
   descriptionStyle?: TabsProps['descriptionStyle']
-  onSelect: (pane: ParsedPane) => void
+  onSelect: (pane: ParsedPane, event?: unknown) => void
   onLayout: (event: LayoutChangeEvent) => void
   isLast: boolean
 }
@@ -75,7 +87,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
   const isDisabled = !!pane.disabled
   const ariaPress = useAriaPress({
     disabled: isDisabled,
-    onPress: () => onSelect(pane),
+    onPress: event => onSelect(pane, event),
     extraProps: {
       accessibilityRole: 'tab',
       accessibilityState: { selected: isActive, disabled: isDisabled },
@@ -143,6 +155,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
   return (
     <Pressable
       {...ariaPress.interactionProps}
+      disabled={isDisabled}
       onLayout={onLayout}
       style={[
         styles.tabItem,
@@ -274,9 +287,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     duration = tokens.defaults.duration,
     lazyRender = tokens.defaults.lazyRender,
     lazyRenderPlaceholder,
-    // 标签栏滚动能力暂时下线，强制关闭
-    scrollable: _scrollableProp,
-    scrollspy,
     swipeable,
     color,
     background = tokens.tabList.background,
@@ -318,6 +328,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const fallbackLineWidth = lineWidth ?? tokens.indicator.width
   const resolvedLineWidth = resolveNumericValue(fallbackLineWidth)
   const resolvedLineHeight = resolveNumericValue(lineHeight) ?? tokens.indicator.height
+  const resolvedDuration = resolveNumericValue(duration) ?? tokens.defaults.duration
+  const resolvedSwipeThreshold = resolveNumericValue(swipeThreshold) ?? tokens.defaults.swipeThreshold
   const swipeableConfig = React.useMemo(() => {
     if (!swipeable) {
       return undefined
@@ -334,30 +346,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     }
   }, [swipeable])
   const isSwipeable = !!swipeableConfig
-  const isScrollspy = !!scrollspy && !isSwipeable
-  const scrollspyOptions = React.useMemo(() => {
-    if (!isScrollspy) {
-      return undefined
-    }
-    if (typeof scrollspy === 'object') {
-      return {
-        autoFocusLast: scrollspy.autoFocusLast ?? false,
-        reachBottomThreshold: scrollspy.reachBottomThreshold ?? 0,
-        scrollImmediate: scrollspy.scrollImmediate ?? true,
-      }
-    }
-    return {
-      autoFocusLast: false,
-      reachBottomThreshold: 0,
-      scrollImmediate: true,
-    }
-  }, [isScrollspy, scrollspy])
-
-  React.useEffect(() => {
-    if (scrollspy && isSwipeable) {
-      console.warn('[Tabs] swipeable 模式与 scrollspy 互斥，已忽略 scrollspy 配置。')
-    }
-  }, [scrollspy, isSwipeable])
 
   const panes = React.useMemo<ParsedPane[]>(() => {
     return React.Children.toArray(children)
@@ -405,7 +393,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     paneLayoutMap.current.clear()
   }, [panes])
 
-  const shouldTrackPaneLayouts = isScrollspy || (isSwipeable && swipeableConfig?.autoHeight)
+  const shouldTrackPaneLayouts = isSwipeable && swipeableConfig?.autoHeight
 
   React.useEffect(() => {
     if (!shouldTrackPaneLayouts) {
@@ -431,60 +419,105 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
   const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
+  const navContentWidthRef = React.useRef(0)
+  const navScrollX = React.useRef(new Animated.Value(0)).current
+  const navScrollAnimRef = React.useRef<Animated.CompositeAnimation | null>(null)
   const indicatorInitializedRef = React.useRef(false)
-  const paneLayoutMap = React.useRef<Map<TabsValue, { y: number; height: number }>>(new Map())
-  const scrollspyScrollRef = React.useRef<Animated.ScrollView | null>(null)
-  const scrollspyLockRef = React.useRef(false)
-  const scrollspyLockTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const scrollspyChangeByScrollRef = React.useRef(false)
+  const paneLayoutMap = React.useRef<Map<TabsValue, { height: number }>>(new Map())
   const swipeableScrollRef = React.useRef<Animated.ScrollView | null>(null)
   const swipeableChangeByScrollRef = React.useRef(false)
-  const navHeightRef = React.useRef(0)
   const [containerWidth, setContainerWidth] = React.useState(0)
   const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
 
-  // 标签栏滚动下线，固定不滚动
-  const scrollable = false
+  const scrollable = React.useMemo(() => {
+    return panes.length > resolvedSwipeThreshold || ellipsis === false
+  }, [ellipsis, panes.length, resolvedSwipeThreshold])
 
   const indicatorColor = color ?? tokens.colors.indicator
   const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
   const animateIndicator = React.useCallback(
     (name?: TabsValue, immediate?: boolean) => {
       if (!name || type !== 'line') return false
-      const layout = layoutMap.current.get(name)
-      if (!layout) return false
+      // RN Web 在 flex 均分场景下，onLayout 的 x/width 可能不稳定（常见表现：x 恒为 0），导致指示器不移动。
+      // 对于非滚动且均分的 tabs（align != 'start'），直接用容器宽度与 index 计算指示器位置，避免依赖 onLayout。
+      const shouldUseEqualWidth =
+        !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
+      const index = panes.findIndex(pane => pane.name === name)
+      const equalTabWidth = shouldUseEqualWidth ? navContainerWidthRef.current / panes.length : 0
+      const layout = shouldUseEqualWidth
+        ? { x: Math.max(index, 0) * equalTabWidth, width: equalTabWidth }
+        : layoutMap.current.get(name)
+      if (!layout) {
+        devLog('[Tabs animateIndicator] missing layout for name:', name, 'layouts:', Array.from(layoutMap.current.entries()))
+        return false
+      }
       const timing = (value: Animated.Value, toValue: number) =>
         Animated.timing(value, {
           toValue,
-          duration: immediate || !animated ? 0 : duration,
+          duration: immediate || !animated ? 0 : resolvedDuration,
           useNativeDriver: false,
         })
       const targetWidth = resolvedLineWidth ?? layout.width
       const targetX = resolvedLineWidth
         ? layout.x + (layout.width - targetWidth) / 2
         : layout.x
+      devLog('[Tabs animateIndicator] name:', name, 'layout:', layout, 'targetX:', targetX, 'targetWidth:', targetWidth, 'immediate:', immediate)
       Animated.parallel([
         timing(indicatorX, targetX),
         timing(indicatorWidth, targetWidth),
       ]).start()
       return true
     },
-    [animated, duration, indicatorWidth, indicatorX, resolvedLineWidth, type],
+    [align, animated, indicatorWidth, indicatorX, panes, resolvedDuration, resolvedLineWidth, scrollable, type],
   )
 
   const scrollIntoView = React.useCallback(
-    (name?: TabsValue, immediate?: boolean) => {
-      if (!scrollable || !name) return
-      const layout = layoutMap.current.get(name)
+    (immediate?: boolean) => {
+      if (!scrollable || currentName === undefined || currentName === null) return
+      const layout = layoutMap.current.get(currentName)
       const containerWidth = navContainerWidthRef.current
       if (!layout || !containerWidth) return
-      const animatedScroll = !immediate && +duration > 0
-      requestFrame(() => {
-        navScrollRef.current?.scrollTo({ x: 0, animated: animatedScroll })
+      const measuredContentWidth = navContentWidthRef.current
+      const computedContentWidth = Array.from(layoutMap.current.values()).reduce((max, item) => {
+        return Math.max(max, item.x + item.width)
+      }, 0)
+      const contentWidth = measuredContentWidth > 0 ? measuredContentWidth : computedContentWidth
+      const targetX = layout.x - (containerWidth - layout.width) / 2
+      const maxScroll = Math.max(contentWidth - containerWidth, 0)
+      const clampedX = Math.max(0, Math.min(targetX, maxScroll))
+      // 内容没溢出就无需滚动
+      if (maxScroll <= 0) {
+        return
+      }
+      // 取消上一次滚动动画
+      if (navScrollAnimRef.current) {
+        navScrollAnimRef.current.stop()
+        navScrollAnimRef.current = null
+      }
+      // 用 Animated.timing 驱动 value，监听器会在每帧调用 scrollTo 实现丝滑滚动
+      navScrollAnimRef.current = Animated.timing(navScrollX, {
+        toValue: clampedX,
+        duration: immediate ? 0 : resolvedDuration,
+        useNativeDriver: false,
+      })
+      navScrollAnimRef.current.start(({ finished }) => {
+        if (finished) {
+          navScrollAnimRef.current = null
+        }
       })
     },
-    [duration, scrollable],
+    [currentName, navScrollX, resolvedDuration, scrollable],
   )
+
+  // 监听 navScrollX 变化，驱动 ScrollView 实际滚动（RN 中 Animated.ScrollView contentOffset 不生效，需手动同步）
+  React.useEffect(() => {
+    const listenerId = navScrollX.addListener(({ value }) => {
+      navScrollRef.current?.scrollTo({ x: value, y: 0, animated: false })
+    })
+    return () => {
+      navScrollX.removeListener(listenerId)
+    }
+  }, [navScrollX])
 
   React.useEffect(() => {
     if (currentName === undefined || currentName === null) return
@@ -493,15 +526,12 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     if (didAnimate && !indicatorInitializedRef.current) {
       indicatorInitializedRef.current = true
     }
-    scrollIntoView(currentName)
-  }, [animateIndicator, currentName, scrollIntoView])
+    devLog('[Tabs] currentName changed:', currentName, 'activeIndex:', activeIndex, 'didAnimate:', didAnimate)
+  }, [animateIndicator, currentName])
 
   React.useEffect(
     () => () => {
-      if (scrollspyLockTimerRef.current) {
-        clearTimeout(scrollspyLockTimerRef.current)
-        scrollspyLockTimerRef.current = null
-      }
+      // no-op
     },
     [],
   )
@@ -510,112 +540,36 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     (name: TabsValue, event: LayoutChangeEvent) => {
       const { x, width } = event.nativeEvent.layout
       layoutMap.current.set(name, { x, width })
-      // 如果激活项布局变化，立即重算指示线并同步 nav 居中
+      devLog('[Tabs handleTabLayout] name:', name, 'x:', x, 'width:', width, 'currentName:', currentName)
+      // 如果激活项布局变化，立即重算指示线
       if (name === currentName) {
         const shouldAnimate = indicatorInitializedRef.current
         const didAnimate = animateIndicator(name, !shouldAnimate)
         if (didAnimate && !indicatorInitializedRef.current) {
           indicatorInitializedRef.current = true
         }
-        scrollIntoView(name, true)
       }
     },
-    [animateIndicator, currentName, scrollIntoView],
+    [animateIndicator, currentName],
   )
 
-  const handleNavLayout = (event: LayoutChangeEvent) => {
-    const { width, height } = event.nativeEvent.layout
+  const handleNavContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout
     navContainerWidthRef.current = width
-    if (isScrollspy) {
-      navHeightRef.current = height
-    }
-  }
+  }, [])
 
   const handleContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
     setContainerWidth(event.nativeEvent.layout.width)
   }, [])
 
-  const getScrollspyOffset = React.useCallback(() => {
-    if (!isScrollspy) {
-      return 0
-    }
-    return navHeightRef.current
-  }, [isScrollspy])
-
-  const releaseScrollspyLock = React.useCallback(() => {
-    if (scrollspyLockTimerRef.current) {
-      clearTimeout(scrollspyLockTimerRef.current)
-      scrollspyLockTimerRef.current = null
-    }
-    scrollspyLockRef.current = false
-  }, [])
-
-  React.useEffect(() => {
-    if (!isScrollspy) {
-      releaseScrollspyLock()
-    }
-  }, [isScrollspy, releaseScrollspyLock])
-
-  const engageScrollspyLock = React.useCallback(
-    (durationMs?: number) => {
-      if (!isScrollspy) {
-        return
-      }
-      if (scrollspyLockTimerRef.current) {
-        clearTimeout(scrollspyLockTimerRef.current)
-        scrollspyLockTimerRef.current = null
-      }
-      scrollspyLockRef.current = true
-      if (typeof durationMs === 'number' && durationMs > 0) {
-        const timeout = Math.max(durationMs, 0) + 32
-        scrollspyLockTimerRef.current = setTimeout(() => {
-          scrollspyLockRef.current = false
-          scrollspyLockTimerRef.current = null
-        }, timeout)
-      }
-    },
-    [isScrollspy],
-  )
-
-  const scrollToPane = React.useCallback(
-    (targetName?: TabsValue, immediateOverride?: boolean) => {
-      if (!isScrollspy || !targetName) {
-        return
-      }
-      const scrollView = scrollspyScrollRef.current
-      const layout = paneLayoutMap.current.get(targetName)
-      if (!scrollView || !layout) {
-        return
-      }
-      const node: any =
-        (scrollView as unknown as { scrollTo?: (options: { x?: number; y?: number; animated?: boolean }) => void }) ??
-        scrollView.getNode?.()
-      if (!node?.scrollTo) {
-        return
-      }
-      const offset = Math.max(layout.y - getScrollspyOffset(), 0)
-      const immediate = immediateOverride ?? scrollspyOptions?.scrollImmediate ?? true
-      const animatedScroll = !immediate
-      if (animatedScroll) {
-        engageScrollspyLock(duration)
-      } else {
-        engageScrollspyLock()
-      }
-      node.scrollTo({ x: 0, y: offset, animated: animatedScroll })
-      if (!animatedScroll || !duration) {
-        requestFrame(() => releaseScrollspyLock())
-      }
-    },
-    [duration, engageScrollspyLock, getScrollspyOffset, isScrollspy, releaseScrollspyLock, scrollspyOptions?.scrollImmediate],
-  )
 
   const runBeforeChange = React.useCallback(
-    (name: TabsValue, index: number) => {
+    (name: TabsValue) => {
       if (!beforeChange) {
         return Promise.resolve(true)
       }
       try {
-        const result = beforeChange(name, index)
+        const result = beforeChange(name)
         if (typeof result === 'boolean' || result === undefined) {
           return Promise.resolve(result !== false)
         }
@@ -633,76 +587,15 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const handlePaneLayout = React.useCallback(
     (name: TabsValue, event: LayoutChangeEvent) => {
-      const { y, height } = event.nativeEvent.layout
-      if (isScrollspy) {
-        paneLayoutMap.current.set(name, { y, height })
-        if (name === currentName) {
-          scrollToPane(name, true)
-        }
-        return
-      }
       if (isSwipeable && swipeableConfig?.autoHeight) {
-        paneLayoutMap.current.set(name, { y: 0, height })
+        const { height } = event.nativeEvent.layout
+        paneLayoutMap.current.set(name, { height })
         if (name === currentName) {
           setSwipeableHeight(height)
         }
       }
     },
-    [currentName, isScrollspy, isSwipeable, scrollToPane, swipeableConfig?.autoHeight],
-  )
-
-  const resolveScrollspyActiveName = React.useCallback(
-    (offsetY: number, event?: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (!isScrollspy || paneLayoutMap.current.size === 0) {
-        return undefined
-      }
-      const adjustedOffset = offsetY + getScrollspyOffset()
-      let matched: TabsValue | undefined
-      for (let idx = panes.length - 1; idx >= 0; idx -= 1) {
-        const pane = panes[idx]
-        const layout = paneLayoutMap.current.get(pane.name)
-        if (!layout) {
-          continue
-        }
-        if (adjustedOffset + 1 >= layout.y) {
-          matched = pane.name
-          break
-        }
-      }
-      if (
-        event &&
-        scrollspyOptions?.autoFocusLast &&
-        panes.length > 0
-      ) {
-        const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent
-        const distanceToBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height)
-        if (distanceToBottom <= (scrollspyOptions.reachBottomThreshold ?? 0)) {
-          matched = panes[panes.length - 1].name
-        }
-      }
-      return matched ?? panes[0]?.name
-    },
-    [getScrollspyOffset, isScrollspy, panes, scrollspyOptions?.autoFocusLast, scrollspyOptions?.reachBottomThreshold],
-  )
-
-  const handleScrollspyContentScroll = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const offsetY = event.nativeEvent.contentOffset.y
-      if (!isScrollspy || scrollspyLockRef.current) {
-        return
-      }
-      const nextName = resolveScrollspyActiveName(offsetY, event)
-      if (!nextName || nextName === currentName) {
-        return
-      }
-      const nextPane = panes.find(pane => pane.name === nextName)
-      if (!nextPane) {
-        return
-      }
-      scrollspyChangeByScrollRef.current = true
-      setActiveValue(nextName, nextPane.index)
-    },
-    [currentName, isScrollspy, panes, resolveScrollspyActiveName, setActiveValue],
+    [currentName, isSwipeable, swipeableConfig?.autoHeight],
   )
 
   const handleSwipeMomentumScrollEnd = React.useCallback(
@@ -743,24 +636,13 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     node.scrollTo({ x: containerWidth * activeIndex, y: 0, animated: true })
   }, [activeIndex, containerWidth, isSwipeable])
 
-  React.useEffect(() => {
-    if (!isScrollspy) {
-      return
-    }
-    if (scrollspyChangeByScrollRef.current) {
-      scrollspyChangeByScrollRef.current = false
-      return
-    }
-    scrollToPane(currentName)
-  }, [currentName, isScrollspy, scrollToPane])
-
-  const handleSelect = (pane: ParsedPane, index: number) => {
+  const handleSelect = (pane: ParsedPane, index: number, event?: unknown) => {
     if (pane.disabled || pane.name === currentName) {
       onClickTab?.({
         name: pane.name,
         index,
         disabled: !!pane.disabled,
-        title: pane.title,
+        event,
       })
       return
     }
@@ -768,13 +650,13 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       name: pane.name,
       index,
       disabled: !!pane.disabled,
-      title: pane.title,
+      event,
     })
     if (!beforeChange) {
       setActiveValue(pane.name, index)
       return
     }
-    runBeforeChange(pane.name, index).then(canChange => {
+    runBeforeChange(pane.name).then(canChange => {
       if (!canChange) {
         return
       }
@@ -789,17 +671,29 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         return
       }
       setActiveValue(target.name, target.index)
-      scrollIntoView(target.name, options?.immediate)
-      if (isScrollspy) {
-        scrollToPane(target.name, options?.immediate)
-      }
     },
-    [isScrollspy, panes, scrollIntoView, scrollToPane, setActiveValue],
+    [panes, setActiveValue],
   )
 
   React.useImperativeHandle(ref, () => ({
     scrollTo,
   }), [scrollTo])
+
+  // 首次渲染时立即定位（与官方对齐：首次 immediate）
+  const firstRenderRef = React.useRef(true)
+  React.useEffect(() => {
+    if (firstRenderRef.current) {
+      firstRenderRef.current = false
+      scrollIntoView(true)
+    }
+  }, [scrollIntoView])
+
+  // index/currentName 变化时执行滚动（带动画，与官方对齐）
+  React.useEffect(() => {
+    if (!firstRenderRef.current) {
+      scrollIntoView()
+    }
+  }, [currentName, scrollIntoView])
 
   const borderEnabled = border ?? false
   const showIndicator = type === 'line'
@@ -840,14 +734,29 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       tabStyle={tabStyle}
       titleStyle={titleStyle}
       descriptionStyle={descriptionStyle}
-      onSelect={currentPane => handleSelect(currentPane, currentPane.index)}
+      onSelect={(currentPane, event) => handleSelect(currentPane, currentPane.index, event)}
       onLayout={event => handleTabLayout(pane.name, event)}
       isLast={pane.index === panes.length - 1}
     />
   ))
 
   const navBody = scrollable ? (
-    <ScrollView horizontal ref={navScrollRef} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.navContent}>
+    <ScrollView
+      horizontal
+      ref={navScrollRef}
+      showsHorizontalScrollIndicator={false}
+      scrollEventThrottle={16}
+      onScroll={event => {
+        // 同步用户手动滚动到 Animated.Value（避免动画结束后再手滚，从旧位置跳跃）
+        navScrollX.setValue(event.nativeEvent.contentOffset.x)
+      }}
+      onContentSizeChange={(w: number) => {
+        navContentWidthRef.current = w
+        // 内容宽度就绪后补一次定位，避免首屏/某些端 layoutMap 不完整导致不滚动
+        scrollIntoView(true)
+      }}
+      contentContainerStyle={styles.navContent}
+    >
       {navItems}
       {showIndicator ? (
         <AnimatedIndicator
@@ -900,7 +809,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         },
         tabBarStyle,
       ]}
-      onLayout={handleNavLayout}
     >
       {navLeft ? <View style={styles.navSide}>{navLeft}</View> : null}
       <View
@@ -920,6 +828,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
             }
             : null,
         ]}
+        onLayout={handleNavContainerLayout}
       >
         {navBody}
       </View>
@@ -930,19 +839,19 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const paneNodes = panes.map(pane => {
     const isActive = pane.name === currentName
     const shouldRender =
-      isScrollspy || !lazyRender || isActive || visitedRef.current.has(pane.name)
+      !lazyRender || isActive || visitedRef.current.has(pane.name)
     if (!shouldRender && !isSwipeable) {
       return null
     }
     const layoutHandler =
-      isScrollspy || (isSwipeable && swipeableConfig?.autoHeight)
+      isSwipeable && swipeableConfig?.autoHeight
         ? (event: LayoutChangeEvent) => handlePaneLayout(pane.name, event)
         : undefined
     const paneStyles = [
       styles.pane,
       isSwipeable ? styles.swipeablePane : null,
       isSwipeable && containerWidth > 0 ? { width: containerWidth } : null,
-      !isSwipeable && !isScrollspy && !isActive ? styles.hiddenPane : null,
+      !isSwipeable && !isActive ? styles.hiddenPane : null,
     ]
     const paneContent = shouldRender ? pane.children : lazyRenderPlaceholder ?? null
     return (
@@ -964,17 +873,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     swipeableConfig?.autoHeight && swipeableHeight !== undefined ? { height: swipeableHeight } : null,
   ]
 
-  const contentNode = isScrollspy ? (
-    <AnimatedScrollView
-      ref={scrollspyScrollRef}
-      showsVerticalScrollIndicator={false}
-      scrollEventThrottle={16}
-      onScroll={handleScrollspyContentScroll}
-      contentContainerStyle={baseContentStyle}
-    >
-      {paneNodes}
-    </AnimatedScrollView>
-  ) : isSwipeable ? (
+  const contentNode = isSwipeable ? (
     <View style={swipeableContentStyle}>
       <AnimatedScrollView
         ref={swipeableScrollRef}
@@ -1008,7 +907,7 @@ const styles = StyleSheet.create({
   },
   wrap: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     position: 'relative',
   },
   nav: {

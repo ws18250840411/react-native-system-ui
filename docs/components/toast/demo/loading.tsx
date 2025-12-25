@@ -12,6 +12,8 @@ export default function ToastLoadingDemo() {
   }
 
   return (
-    <Cell title="加载并更新状态" isLink onPress={showLoading} />
+    <Cell.Group>
+      <Cell title="加载并更新状态" isLink onPress={showLoading} />
+    </Cell.Group>
   )
 }

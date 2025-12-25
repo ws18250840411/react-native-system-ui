@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-用于页面底部的全局导航，可自定义图标、徽标、固定吸底与安全区适配。
+底部导航栏，用于在不同页面之间进行切换。
 
 ## 引入
 
@@ -19,54 +19,63 @@ import { Tabbar } from 'react-native-system-ui'
 
 ### 基础用法
 
-通过 `defaultValue` 指定初始选中项，`Tabbar.Item` 接受函数以渲染激活/未激活的图标。
+点击 `Tabbar.Item` 即可切换选中的标签(非受控状态)。
 
-<code src="./tabbar/demo/basic.tsx" title="基础用法"></code>
+<code title="基础用法" src="./tabbar/demo/base.tsx" />
 
-### 自定义颜色与徽标
+### 受控组件
 
-可使用 `activeColor/inactiveColor` 统一颜色，也可给单个 `Tabbar.Item` 传入 `Badge` 组件。
+- `value` 默认绑定选中标签的索引值，通过修改 `value` 即可切换选中的标签。
+- 在标签指定 `name` 属性的情况下，`value` 的值为当前标签的 `name`。
 
-<code src="./tabbar/demo/badge.tsx" title="颜色与徽标"></code>
+<code title="受控组件" src="./tabbar/demo/control.tsx" />
 
-### 固定吸底
+### 徽标提示
 
-设置 `fixed` + `placeholder` 后，标签栏将固定在底部，同时保留原本高度占位；默认会自动处理底部 Safe Area。
+通过 `badge` 属性，可以设置图标相应的徽标内容。
 
-<code src="./tabbar/demo/fixed.tsx" title="固定吸底"></code>
+<code title="徽标提示" src="./tabbar/demo/badge.tsx" />
+
+### 自定义图标
+
+通过 `icon` 属性自定义图标。
+
+<code title="自定义图标" src="./tabbar/demo/custom-icon.tsx" />
+
+### 自定义颜色
+
+通过 `activeColor` 属性设置选中标签的颜色，通过 `inactiveColor` 属性设置未选中标签的颜色。
+
+<code title="自定义颜色" src="./tabbar/demo/custom-color.tsx" />
 
 ## API
 
 ### Tabbar Props
 
-| 属性 | 说明 | 类型 | 默认值 |
+| 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `value` | 当前选中项（受控） | `TabbarValue` | - |
-| `defaultValue` | 默认选中项 | `TabbarValue` | 第一项 |
-| `fixed` | 是否固定在底部 | `boolean` | `true` |
-| `border` | 是否展示顶部分隔线 | `boolean` | `true` |
-| `zIndex` | 固定模式下的 z-index | `number` | `99` |
-| `activeColor` | 选中项文案/图标颜色 | `string` | `theme.primary` |
-| `inactiveColor` | 未选中项文案/图标颜色 | `string` | `theme.default[500]` |
-| `background` | 背景色 | `string` | `theme.background.base` |
-| `placeholder` | 固定布局时是否渲染等高占位 | `boolean` | `true` |
-| `safeAreaInsetBottom` | 是否适配底部安全区（`fixed` 时默认开启） | `boolean` | `true` |
-| `contentStyle` | 内部容器样式 | `StyleProp<ViewStyle>` | - |
-| `style` | 外层容器样式 | `StyleProp<ViewStyle>` | - |
-| `onChange` | 切换时回调 | `(name: TabbarValue, index: number) => void` | - |
+| value | 当前选中标签的名称或索引值 | _number \| string_ | - |
+| defaultValue | 默认选中标签的名称或索引值 | _number \| string_ | `0` |
+| fixed | 是否固定在底部 | _boolean_ | `true` |
+| border | 是否显示外边框 | _boolean_ | `true` |
+| zIndex | 元素 z-index | _number_ | `1` |
+| activeColor | 选中标签的颜色 | _string_ | `theme.primary` |
+| inactiveColor | 未选中标签的颜色 | _string_ | `theme.default[500]` |
+| placeholder | 固定在底部时，是否在标签位置生成一个等高的占位元素 | _boolean_ | `false` |
+| safeAreaInsetBottom | 是否开启底部安全区适配，设置 fixed 时默认开启 | _boolean_ | `false` |
+
+### Tabbar Events
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| onChange | 切换标签时触发 | _active: number \| string, index: number_ |
 
 ### Tabbar.Item Props
 
-| 属性 | 说明 | 类型 | 默认值 |
+| 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `name` | 标签标识，匹配 `value` | `TabbarValue` | 索引 |
-| `icon` | 图标，可传组件或 `(active) => ReactNode` 回调 | `ReactNode \| (active: boolean) => ReactNode` | - |
-| `badge` | 徽标内容（数字/字符串会自动渲染 `Badge`） | `ReactNode` | - |
-| `dot` | 显示小红点 | `boolean` | `false` |
-| `children` | 标签文本，支持函数 `(active) => ReactNode` | `ReactNode \| (active: boolean) => ReactNode` | - |
-| `disabled` | 是否禁用 | `boolean` | `false` |
-| `onClick` | 点击回调（在切换前触发） | `() => void` | - |
-| `textStyle` | 文本样式 | `StyleProp<TextStyle>` | - |
-| `iconStyle` | 图标容器样式 | `StyleProp<ViewStyle>` | - |
+| name | 标签名称，作为匹配的标识符 | _number \| string_ | 当前标签的索引值 |
+| icon | 图标 | _ReactNode \| (active: boolean) => React.ReactNode_ | - |
+| badge | 图标右上角徽标的内容 | _BadgeProps \| number \| string_ | - |
 
-> 差异说明：暂未实现 `safeAreaInsetBottom=false` 时自动填充手势区域、`beforeChange`、`route` 等扩展能力，如有需要可在 `onChange` 中自定义拦截逻辑或结合导航容器实现。
+> 补充说明（RN 扩展）：额外支持 `background`、`contentStyle`、`style`、`iconSize`、`dot`、`disabled`、`textStyle`、`iconStyle`、`testID`、`onClick` 等属性。

@@ -1,5 +1,5 @@
 import React from "react"
-import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native"
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from "react-native"
 import { Checked, Close } from "react-native-system-icon"
 
 import { useControllableValue } from "../../hooks"
@@ -49,6 +49,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     onChange,
     onClose,
     onFinish,
+    onClickTab,
     onTabChange,
     swipeable = true,
     style,
@@ -71,7 +72,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const cascaderValue = React.useMemo(() => (Array.isArray(value) ? value : []), [value])
   const [panelValue, setPanelValue] = React.useState<CascaderValue[]>(cascaderValue)
-  const resolvedCloseable = closeable ?? poppable
+  const resolvedCloseable = closeable ?? true
 
   const popupVisibilityProps: Record<string, any> = {}
   if (Object.prototype.hasOwnProperty.call(props, "visible")) {
@@ -87,9 +88,10 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const currentValue = poppable ? panelValue : cascaderValue
   const { tabs, items, depth } = useCascaderExtend(options, keys, currentValue)
-  const [tabsWidth, setTabsWidth] = React.useState(0)
   const [pendingPath, setPendingPath] = React.useState<CascaderValue[] | null>(null)
   const selectedValuesRef = React.useRef<CascaderValue[]>([])
+  const window = useWindowDimensions()
+  const [measuredWidth, setMeasuredWidth] = React.useState(0)
 
   const resolvedPath = React.useMemo(() => {
     const rows = resolveSelectedRows(options, keys, currentValue)
@@ -119,6 +121,9 @@ const Cascader: React.FC<CascaderProps> = props => {
   const displayTabs = React.useMemo(() => {
     if (!pendingActive || !pendingPath) return tabs
     const loadingOption: CascaderOption = {
+      // 兼容类型：CascaderOption 约束 value 为必填，同时也支持 fieldNames 自定义 valueKey
+      value: PENDING_VALUE as unknown as CascaderValue,
+      text: loadingText,
       [keys.textKey]: loadingText,
       [keys.valueKey]: PENDING_VALUE,
       disabled: true,
@@ -126,17 +131,28 @@ const Cascader: React.FC<CascaderProps> = props => {
     return [...tabs, [loadingOption]]
   }, [keys.textKey, keys.valueKey, loadingText, pendingActive, pendingPath, tabs])
 
+  // 对齐官方：当选中值变化时，自动将 activeTab 设置为 value.length（即下一个待选列）
+  // 但如果用户刚手动点击了 tab，则不要自动覆盖
   React.useEffect(() => {
-    const totalTabs = pendingActive && pendingPath ? Math.max(displayTabs.length, pendingPath.length + 1) : displayTabs.length
-    const nextIndex = Math.min(resolvedPath.values.length, Math.max(totalTabs - 1, 0))
-    const userTriggered = tabChangeByUserRef.current
+    if (tabChangeByUserRef.current) {
+      // 用户刚点击了 tab，不要自动调整，但重置标记供下次使用
+      tabChangeByUserRef.current = false
+      return
+    }
+    // 根据当前选中值计算应该显示的 tab 索引
+    let nextIndex = currentValue.length
+    // 如果已经选满所有层级，停留在最后一列
+    if (nextIndex >= displayTabs.length) {
+      nextIndex = Math.max(displayTabs.length - 1, 0)
+    }
+    // 只在需要时更新，避免不必要的 setState 触发重渲染
     setActiveTab(prev => {
-      if (prev > nextIndex) return nextIndex
-      if (!userTriggered && prev < nextIndex) return nextIndex
-      return prev
+      if (prev === nextIndex) {
+        return prev
+      }
+      return nextIndex
     })
-    tabChangeByUserRef.current = false
-  }, [displayTabs.length, pendingActive, pendingPath, resolvedPath.values.length])
+  }, [activeTab, currentValue.length, displayTabs.length])
 
   React.useEffect(() => {
     if (!pendingPath) return
@@ -201,9 +217,16 @@ const Cascader: React.FC<CascaderProps> = props => {
       if (Number.isNaN(index)) return
       tabChangeByUserRef.current = true
       setActiveTab(index)
+      // onClickTab: tabIndex + title（尽可能提供可读 title）
+      const titleNode = items[index]?.[keys.textKey] as React.ReactNode
+      const titleText =
+        typeof titleNode === "string" || typeof titleNode === "number"
+          ? String(titleNode)
+          : placeholder
+      onClickTab?.(index, titleText)
       onTabChange?.(index)
     },
-    [onTabChange],
+    [currentValue, items, keys.textKey, onClickTab, onTabChange, placeholder],
   )
 
   const handleSelect = React.useCallback(
@@ -305,8 +328,8 @@ const Cascader: React.FC<CascaderProps> = props => {
         onPress={() => handleSelect(option, tabIndex)}
         disabled={disabled}
       >
-          <View style={styles.optionContent}>
-            <View style={styles.optionLabel}>{content}</View>
+        <View style={styles.optionContent}>
+          <View style={styles.optionLabel}>{content}</View>
           {selected ? (
             <Checked size={16} fill={activeColor} color={activeColor} />
           ) : null}
@@ -330,16 +353,12 @@ const Cascader: React.FC<CascaderProps> = props => {
     </ScrollView>
   )
 
-  const handleTabsLayout = React.useCallback((event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout
-    if (width && width !== tabsWidth) {
-      setTabsWidth(width)
-    }
-  }, [tabsWidth])
-
   const renderTabs = () => {
     if (!displayTabs.length) return renderOptionsList([], 0)
-    const swipeableEnabled = swipeable && tabsWidth > 0
+    // 交给 Tabs 自身根据容器宽度决定是否能滑动（宽度为 0 时 Tabs 内部会自动不执行 scrollTo）
+    const swipeableEnabled = !!swipeable
+    // 关键：给 Tabs 一个确定的宽度，避免在 Popup/文档容器中布局阶段 width=0 导致无法 scrollTo 切换
+    const resolvedTabsWidth = measuredWidth || window.width || undefined
     const tabBarStyle = [
       styles.tabsNav,
       {
@@ -351,11 +370,19 @@ const Cascader: React.FC<CascaderProps> = props => {
     ]
 
     return (
-      <View onLayout={handleTabsLayout} style={styles.tabsWrapper}>
+      <View
+        style={styles.tabsWrapper}
+        onLayout={(e: LayoutChangeEvent) => {
+          const w = e.nativeEvent.layout.width
+          if (w && w !== measuredWidth) setMeasuredWidth(w)
+        }}
+      >
         <Tabs
+          style={resolvedTabsWidth ? { width: resolvedTabsWidth } : undefined}
           active={activeTab}
           onChange={handleTabChange}
-          align="start"
+          // 对齐官方 Cascader Tabs：标题均分并居中展示（同时提升指示器在 RN Web 下的定位稳定性）
+          align="center"
           swipeable={swipeableEnabled}
           swipeThreshold={0}
           scrollable={false}
@@ -368,7 +395,6 @@ const Cascader: React.FC<CascaderProps> = props => {
           tabStyle={styles.tabsItem}
           titleStyle={styles.tabsTitle}
           contentStyle={!swipeableEnabled ? styles.tabsContentStatic : undefined}
-          contentContainerStyle={!swipeableEnabled ? styles.tabsContentStatic : undefined}
         >
           {displayTabs.map((optionList, index) => {
             const selectedOption = items[index]
@@ -378,15 +404,19 @@ const Cascader: React.FC<CascaderProps> = props => {
                 : selectedOption
                   ? selectedOption[keys.textKey]
                   : placeholder
-            const titleNode = (labelValue === undefined || labelValue === null || labelValue === "")
-              ? <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>
-              : typeof labelValue === "string" || typeof labelValue === "number"
-                ? (
-                  <Text style={!selectedOption ? { color: tokens.colors.placeholder } : undefined}>
-                    {labelValue}
-                  </Text>
-                )
-                : labelValue
+            // 关键：未选中的占位文案只在「非激活」时使用灰色，激活时让 Tabs 自己应用 activeColor，
+            // 否则会出现“已切到下一列但标题仍是灰色，看起来像下划线没移动”的错觉。
+            const titleNode =
+              (labelValue === undefined || labelValue === null || labelValue === "")
+                ? ((active: boolean) => (active ? placeholder : <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>))
+                : typeof labelValue === "string" || typeof labelValue === "number"
+                  ? ((active: boolean) => {
+                    if (!selectedOption && !active) {
+                      return <Text style={{ color: tokens.colors.placeholder }}>{String(labelValue)}</Text>
+                    }
+                    return String(labelValue)
+                  })
+                  : ((active: boolean) => (active ? placeholder : <Text style={{ color: tokens.colors.placeholder }}>{placeholder}</Text>))
 
             return (
               <Tabs.TabPane key={index} name={index} title={titleNode ?? placeholder}>
@@ -399,7 +429,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     )
   }
 
-  const inlineChildren = !poppable && !renderProp ? children : null
+  const inlineChildren = !poppable && typeof children !== "function" ? children : null
 
   const content = (
     <View
@@ -423,10 +453,16 @@ const Cascader: React.FC<CascaderProps> = props => {
           ) : (
             title
           )}
-          {resolvedCloseable && poppable ? (
+          {resolvedCloseable ? (
             <Pressable
               hitSlop={8}
-              onPress={() => closePopup(true)}
+              onPress={() => {
+                if (poppable) {
+                  closePopup(true)
+                } else {
+                  onClose?.()
+                }
+              }}
               style={styles.closeButton}
               accessibilityRole="button"
               accessibilityLabel="关闭"
@@ -471,7 +507,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const triggerNode = renderProp
     ? renderProp(cascaderValue, confirmedRows, cascaderActions)
-    : children ?? null
+    : (typeof children === "function" ? null : children ?? null)
 
   return (
     <>
@@ -527,7 +563,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   tabsItem: {
-    alignItems: "flex-start",
+    alignItems: "center",
   },
   tabsTitle: {
     fontSize: 15,

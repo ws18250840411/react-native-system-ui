@@ -7,7 +7,6 @@ export type {
   TabsValue,
   TabsType,
   TabsAlign,
-  TabsScrollspyConfig,
   TabsSwipeableConfig,
   TabsRef,
 } from './types'

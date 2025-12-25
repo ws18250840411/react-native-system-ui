@@ -31,7 +31,7 @@ export default function ImagePreviewImperativeDemo() {
   }
 
   return (
-    <Cell.Group title="静态调用" card>
+    <Cell.Group title="静态调用">
       <Cell title="打开预览" isLink onPress={() => open(0)} />
       <Cell title="从第二张开始" isLink onPress={() => open(1)} />
       <Cell title="关闭当前" isLink onPress={close} />

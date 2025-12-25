@@ -4,7 +4,7 @@ import { Cell, Toast } from 'react-native-system-ui'
 
 export default function ToastPositionDemo() {
   return (
-    <>
+    <Cell.Group>
       <Cell title="顶部弹出" isLink onPress={() => Toast.show({ position: 'top', message: '顶部提示' })} />
       <Cell
         title="中部弹出"
@@ -16,6 +16,6 @@ export default function ToastPositionDemo() {
         isLink
         onPress={() => Toast.show({ position: 'bottom', message: '底部提示' })}
       />
-    </>
+    </Cell.Group>
   )
 }

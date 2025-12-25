@@ -4,6 +4,7 @@ import { View } from "react-native"
 
 import Cascader from ".."
 import { PortalHost } from "../../portal"
+import Tabs from "../../tabs"
 import type { CascaderOption } from "../types"
 
 const options: CascaderOption[] = [
@@ -181,5 +182,28 @@ describe("Cascader", () => {
         />
       )
     ).not.toThrow()
+  })
+
+  it("notifies onClickTab with title", () => {
+    const handleClickTab = jest.fn()
+    const tree = renderer.create(<Cascader options={options} onClickTab={handleClickTab} />)
+
+    // 未选中时点击第 0 个 tab，title 应为 placeholder
+    const tabs = tree.root.findByType(Tabs)
+    act(() => {
+      tabs.props.onChange(0, 0)
+    })
+    expect(handleClickTab).toHaveBeenCalledWith(0, "请选择")
+
+    // 选中后再点击第 0 个 tab，title 应为已选中的文本
+    const firstOption = tree.root.findByProps({ testID: "cascader-option-0-zhejiang" })
+    act(() => {
+      firstOption.props.onPress()
+    })
+    const tabs2 = tree.root.findByType(Tabs)
+    act(() => {
+      tabs2.props.onChange(0, 0)
+    })
+    expect(handleClickTab).toHaveBeenLastCalledWith(0, "浙江")
   })
 })

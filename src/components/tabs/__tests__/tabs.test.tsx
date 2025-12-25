@@ -81,7 +81,7 @@ describe('Tabs', () => {
       await Promise.resolve()
     })
 
-    expect(beforeChange).toHaveBeenCalledWith('b', 1)
+    expect(beforeChange).toHaveBeenCalledWith('b')
     expect(onChange).not.toHaveBeenCalled()
   })
 
@@ -108,6 +108,40 @@ describe('Tabs', () => {
 
     expect(activeStyle?.color).toBe('#ff0000')
     expect(inactiveStyle?.color).toBe('#00ff00')
+  })
+
+  it('does not switch when tab is disabled', () => {
+    const onChange = jest.fn()
+    const onClickTab = jest.fn()
+    const tree = renderer.create(
+      <Tabs defaultActive="a" onChange={onChange} onClickTab={onClickTab}>
+        <TabPane title="A" name="a">
+          <Text>A</Text>
+        </TabPane>
+        <TabPane title="B" name="b" disabled>
+          <Text>B</Text>
+        </TabPane>
+      </Tabs>
+    )
+
+    const disabledTab = tree.root.findByProps({ testID: 'rv-tabs-item-b' })
+
+    act(() => {
+      disabledTab.props.onPress?.({})
+    })
+
+    expect(onChange).not.toHaveBeenCalled()
+    expect(onClickTab).toHaveBeenCalledWith({
+      name: 'b',
+      index: 1,
+      disabled: true,
+      event: {},
+    })
+
+    const aPane = tree.root.findByProps({ testID: 'rv-tabs-pane-a' })
+    const bPane = tree.root.findAllByProps({ testID: 'rv-tabs-pane-b' })
+    expect(StyleSheet.flatten(aPane.props.style)?.display).toBeUndefined()
+    expect(bPane).toHaveLength(0)
   })
 
   it('renders lazyRenderPlaceholder before content loads', () => {
@@ -141,20 +175,5 @@ describe('Tabs', () => {
     expect(texts).not.toContain('占位符')
   })
 
-  it('warns when scrollspy is combined with swipeable', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
-    renderer.create(
-      <Tabs swipeable scrollspy>
-        <TabPane title="A" name="a">
-          <Text>A</Text>
-        </TabPane>
-        <TabPane title="B" name="b">
-          <Text>B</Text>
-        </TabPane>
-      </Tabs>
-    )
-
-    expect(warnSpy).toHaveBeenCalledWith('[Tabs] swipeable 模式与 scrollspy 互斥，已忽略 scrollspy 配置。')
-    warnSpy.mockRestore()
-  })
+  // scrollspy 能力已按官方对齐移除
 })

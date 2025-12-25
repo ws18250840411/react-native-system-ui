@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, ImagePreview } from 'react-native-system-ui'
+import { Cell, ImagePreview } from 'react-native-system-ui'
 import { Text } from 'react-native'
 
 const images = [
@@ -8,21 +8,22 @@ const images = [
   'https://img.yzcdn.cn/vant/apple-3.jpg',
 ]
 
-export default () => {
-  const [visible, setVisible] = React.useState(false)
-
+export default function ImagePreviewCustomIndexDemo() {
   return (
-    <>
-      <Button text="自定义索引" onPress={() => setVisible(true)} />
-      <ImagePreview
-        visible={visible}
-        images={images}
-        showIndex
-        indexRender={({ index, len }) => (
-          <Text style={{ color: '#fff' }}>{`${index + 1} / ${len}`}</Text>
-        )}
-        onClose={() => setVisible(false)}
+    <Cell.Group>
+      <Cell
+        title="自定义页码"
+        isLink
+        onPress={() =>
+          ImagePreview.open({
+            images,
+            showIndex: true,
+            indexRender: ({ index, len }) => (
+              <Text style={{ color: '#fff' }}>{`${index + 1} / ${len}`}</Text>
+            ),
+          })
+        }
       />
-    </>
+    </Cell.Group>
   )
 }

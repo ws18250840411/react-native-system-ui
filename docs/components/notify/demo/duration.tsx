@@ -4,7 +4,7 @@ import { Cell, Notify } from 'react-native-system-ui'
 
 export default function NotifyDurationDemo() {
   return (
-    <>
+    <Cell.Group>
       <Cell
         title="持续展示（手动关闭）"
         isLink
@@ -21,7 +21,7 @@ export default function NotifyDurationDemo() {
         }}
       />
       <Cell title="关闭所有通知" isLink onPress={() => Notify.clear()} />
-    </>
+    </Cell.Group>
   )
 }
 

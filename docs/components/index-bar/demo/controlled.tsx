@@ -1,12 +1,12 @@
 import React from 'react'
 import { Text, View } from 'react-native'
 
-import { Button, IndexBar } from 'react-native-system-ui'
+import { Button, IndexBar, type IndexBarValue } from 'react-native-system-ui'
 
 const letters = ['A', 'B', 'C', 'D']
 
 export default () => {
-  const [active, setActive] = React.useState('A')
+  const [active, setActive] = React.useState<IndexBarValue>('A')
 
   return (
     <View style={{ height: 360 }}>

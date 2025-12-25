@@ -2,7 +2,7 @@ import React from 'react'
 import { IndexBar, Tabs, Cell } from 'react-vant'
 
 const indexList = []
-const customIndexList = [1, 2, 3, 4, 5, 6, 8, 9, 10]
+const customIndexList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const charCodeOfA = 'A'.charCodeAt(0)
 
 for (let i = 0; i < 26; i += 1) {

@@ -12,6 +12,9 @@ export interface IndexBarTokens {
     indicatorBackground: string
     indicatorText: string
     stickyBackground: string
+    stickyText: string
+    anchorBackground: string
+    anchorText: string
     border: string
   }
   layout: {
@@ -20,6 +23,7 @@ export interface IndexBarTokens {
     stickyHeight: number
     paddingVertical: number
     spacing: number
+    anchorHeight: number
   }
 }
 
@@ -31,7 +35,10 @@ const createTokens = (foundations: Foundations): IndexBarTokens => {
       activeText: palette.primary[600],
       indicatorBackground: 'rgba(0,0,0,0.6)',
       indicatorText: '#ffffff',
-      stickyBackground: palette.background?.base ?? '#ffffff',
+      stickyBackground: palette.default[50] ?? '#f7f8fa',
+      stickyText: palette.default[900] ?? '#323233',
+      anchorBackground: palette.default[50] ?? '#f7f8fa',
+      anchorText: palette.default[900] ?? '#323233',
       border: palette.default[200],
     },
     layout: {
@@ -40,6 +47,7 @@ const createTokens = (foundations: Foundations): IndexBarTokens => {
       stickyHeight: 32,
       paddingVertical: spacing.sm,
       spacing: 4,
+      anchorHeight: 32,
     },
   }
 }

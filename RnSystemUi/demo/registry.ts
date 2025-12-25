@@ -291,8 +291,9 @@ import TabbarDemoBadge from '../../docs/components/tabbar/demo/badge'
 import TabbarDemoBasic from '../../docs/components/tabbar/demo/basic'
 import TabbarDemoFixed from '../../docs/components/tabbar/demo/fixed'
 import TabsDemoBasic from '../../docs/components/tabs/demo/basic'
+import TabsDemoDisabled from '../../docs/components/tabs/demo/disabled'
 import TabsDemoNameMatch from '../../docs/components/tabs/demo/name-match'
-import TabsDemoScrollspy from '../../docs/components/tabs/demo/scrollspy'
+import TabsDemoScrollable from '../../docs/components/tabs/demo/scrollable'
 import TabsDemoSwipeable from '../../docs/components/tabs/demo/swipeable'
 import TagDemoBasic from '../../docs/components/tag/demo/basic'
 import TagDemoColor from '../../docs/components/tag/demo/color'
@@ -2281,9 +2282,14 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         Component: TabsDemoSwipeable,
       },
       {
-        id: "scrollspy",
-        title: "滚动导航",
-        Component: TabsDemoScrollspy,
+        id: "scrollable",
+        title: "标签栏滚动",
+        Component: TabsDemoScrollable,
+      },
+      {
+        id: "disabled",
+        title: "禁用标签",
+        Component: TabsDemoDisabled,
       },
     ],
   },

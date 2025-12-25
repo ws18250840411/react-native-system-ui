@@ -4,7 +4,7 @@ import { Cell, Toast } from 'react-native-system-ui'
 
 export default function ToastInteractionDemo() {
   return (
-    <>
+    <Cell.Group>
       <Cell
         title="禁止背景点击"
         isLink
@@ -38,6 +38,6 @@ export default function ToastInteractionDemo() {
           })
         }
       />
-    </>
+    </Cell.Group>
   )
 }

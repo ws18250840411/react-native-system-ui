@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { Cell, ImagePreview } from 'react-native-system-ui'
 
 const images = [
@@ -7,19 +8,19 @@ const images = [
   'https://img.yzcdn.cn/vant/apple-3.jpg',
 ]
 
-export default () => {
+export default function ImagePreviewAsyncCloseDemo() {
   return (
     <Cell.Group>
       <Cell
-        title="预览图片"
+        title="异步关闭（2 秒后自动关闭）"
         isLink
-        onPress={() =>
-          ImagePreview.open({
-            images,
-            onChange: index => console.log(`当前展示第${index + 1}张`),
-          })
-        }
+        onPress={() => {
+          const destroy = ImagePreview.open({ images })
+          setTimeout(() => destroy(), 2000)
+        }}
       />
     </Cell.Group>
   )
 }
+
+

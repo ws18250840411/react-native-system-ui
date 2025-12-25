@@ -3,7 +3,7 @@ import { Cell, Dialog, Toast } from 'react-native-system-ui'
 
 export default () => {
   return (
-    <>
+    <Cell.Group>
       <Cell
         title="完全关闭后的回调"
         isLink
@@ -42,7 +42,7 @@ export default () => {
           })
         }
       />
-    </>
+    </Cell.Group>
   )
 }
 

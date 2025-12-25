@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-顶部导航容器，提供返回、标题、副标题以及左右操作区域，支持固定吸顶与 Safe Area。
+为页面提供导航功能，常用于页面顶部。
 
 ## 引入
 
@@ -19,49 +19,35 @@ import { NavBar } from 'react-native-system-ui'
 
 ### 基础用法
 
-左右两侧可以放置返回文案和操作按钮，默认会显示返回箭头。
+左右两侧可以放置返回文案和操作按钮。
 
 <code src="./nav-bar/demo/basic.tsx" title="基础用法"></code>
 
-### 自定义居中内容
+### 自定义内容
 
-通过 `children` 替换中间区域，可在沉浸式场景中自定义渐变/多行内容，配合 `tintColor` 控制整体色彩。
+自定义导航栏两侧的内容。
 
-<code src="./nav-bar/demo/custom.tsx" title="自定义标题"></code>
-
-### 固定吸顶
-
-`fixed` + `placeholder` 可让 NavBar 吸附在顶部，同时保留原本高度占位，避免内容跳动。
-
-<code src="./nav-bar/demo/fixed.tsx" title="固定吸顶"></code>
+<code src="./nav-bar/demo/custom.tsx" title="自定义内容"></code>
 
 ## API
 
-### NavBar Props
+### Props
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `title` | 主标题 | `ReactNode` | - |
-| `description` | 副标题 | `ReactNode` | - |
-| `children` | 自定义中间内容，传入后会覆盖默认标题区域 | `ReactNode` | - |
-| `leftText` | 左侧文案 | `ReactNode` | - |
-| `rightText` | 右侧文案 | `ReactNode` | - |
-| `leftIcon` | 左侧自定义图标 | `ReactNode` | - |
-| `rightIcon` | 右侧自定义图标 | `ReactNode` | - |
-| `leftArrow` | 是否展示默认返回箭头或自定义箭头节点 | `boolean \| ReactNode` | `true` |
+| `title` | 标题 | `ReactNode` | `''` |
+| `leftText` | 左侧文案 | `ReactNode` | `''` |
+| `rightText` | 右侧文案 | `ReactNode` | `''` |
+| `leftArrow` | 自定义左侧箭头 | `boolean \| ReactNode` | `false` |
+| `border` | 是否显示下边框 | `boolean` | `true` |
 | `fixed` | 是否固定在顶部 | `boolean` | `false` |
-| `placeholder` | 固定时是否渲染占位元素 | `boolean` | `false` |
-| `zIndex` | 固定时的层级 | `number` | `1` |
-| `border` | 是否显示底部分隔线 | `boolean` | `true` |
-| `safeAreaInsetTop` | 是否适配顶部安全区 | `boolean` | `false` |
-| `background` | 背景色 | `string` | 主题背景 |
-| `tintColor` | 标题与按钮文字颜色 | `string` | 主题文本色 |
-| `titleStyle` | 标题样式 | `StyleProp<TextStyle>` | - |
-| `descriptionStyle` | 副标题样式 | `StyleProp<TextStyle>` | - |
-| `sideStyle` | 左右侧区域样式 | `StyleProp<ViewStyle>` | - |
-| `onPressLeft` | 左侧点击回调 | `() => void` | - |
-| `onPressRight` | 右侧点击回调 | `() => void` | - |
-| `onClickLeft` | 同 `onPressLeft`（与 react-vant/vant 命名对齐） | `() => void` | - |
-| `onClickRight` | 同 `onPressRight`（与 react-vant/vant 命名对齐） | `() => void` | - |
+| `zIndex` | 导航栏 z-index | `number` | `1` |
+| `placeholder` | 固定在顶部时，是否在标签位置生成一个等高的占位元素 | `boolean` | `false` |
+| `safeAreaInsetTop` | 是否开启顶部安全区适配 | `boolean` | `false` |
 
-> 差异说明：当前版本暂未提供 `left-align`、`loading`、多标签滚动联动等扩展能力；若需浸入式渐变或滚动透明度联动，可结合 `Animated` 自定义背景，并利用 `children` 覆盖中间区域。
+### Events
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `onClickLeft` | 点击左侧按钮时触发 | - |
+| `onClickRight` | 点击右侧按钮时触发 | - |

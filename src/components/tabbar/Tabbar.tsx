@@ -15,17 +15,21 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     defaultValue,
     fixed = tokens.defaults.fixed,
     border = tokens.defaults.border,
-    zIndex = 99,
+    zIndex = 1,
     activeColor,
     inactiveColor,
     background = tokens.colors.background,
     placeholder = tokens.defaults.placeholder,
-    safeAreaInsetBottom = fixed ? tokens.defaults.safeAreaInsetBottom : false,
+    safeAreaInsetBottom,
+    iconSize = tokens.icon.size,
     style,
     contentStyle,
     onChange,
     ...rest
   } = props
+
+  // 与 Vant 行为对齐：fixed 时默认开启 safe-area-inset-bottom
+  const enableSafeAreaInsetBottom = safeAreaInsetBottom ?? fixed
 
   const items = React.useMemo(() => {
     return React.Children.toArray(children)
@@ -94,9 +98,10 @@ const TabbarBase: React.FC<TabbarProps> = props => {
         key: item.element.key ?? item.name,
         name: item.name,
         index: item.index,
+        iconSize,
       })
     )
-  }, [items])
+  }, [iconSize, items])
 
   const navContent = (
     <View
@@ -105,20 +110,21 @@ const TabbarBase: React.FC<TabbarProps> = props => {
         {
           backgroundColor: background,
           paddingHorizontal: tokens.layout.paddingHorizontal,
+          minHeight: tokens.layout.height,
         },
         border ? createHairlineBorderTop(tokens.colors.border) : null,
         contentStyle,
       ]}
     >
       <TabbarContext.Provider value={contextValue}>
-        <View style={styles.row} accessibilityRole="tablist">
+        <View style={[styles.row, { minHeight: tokens.layout.height }]} accessibilityRole="tablist">
           {clonedChildren}
         </View>
       </TabbarContext.Provider>
     </View>
   )
 
-  const safeAreaWrapped = safeAreaInsetBottom ? (
+  const safeAreaWrapped = enableSafeAreaInsetBottom ? (
     <SafeAreaView style={{ backgroundColor: background }}>{navContent}</SafeAreaView>
   ) : (
     navContent

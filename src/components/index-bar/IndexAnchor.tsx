@@ -2,9 +2,11 @@ import React from 'react'
 import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import type { IndexAnchorProps } from './types'
+import { useIndexBarTokens } from './tokens'
 
 const IndexAnchor: React.FC<IndexAnchorProps> = props => {
   const { index, title, children, active, highlightColor, onLayoutCapture, style, onLayout, ...rest } = props
+  const tokens = useIndexBarTokens()
 
   const handleLayout = React.useCallback(
     (event: LayoutChangeEvent) => {
@@ -19,9 +21,21 @@ const IndexAnchor: React.FC<IndexAnchorProps> = props => {
     <View
       {...rest}
       onLayout={handleLayout}
-      style={[styles.container, active ? [styles.active, highlightColor ? { borderLeftColor: highlightColor } : null] : null, style]}
+      style={[styles.container, style]}
     >
-      <Text style={[styles.title, active && highlightColor ? { color: highlightColor } : null]}>{title ?? index}</Text>
+      <View
+        style={[
+          styles.header,
+          {
+            height: tokens.layout.anchorHeight,
+            backgroundColor: tokens.colors.anchorBackground,
+          },
+        ]}
+      >
+        <Text style={[styles.title, { color: active && highlightColor ? highlightColor : tokens.colors.anchorText }]}>
+          {title ?? index}
+        </Text>
+      </View>
       {children}
     </View>
   )
@@ -29,15 +43,14 @@ const IndexAnchor: React.FC<IndexAnchorProps> = props => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderLeftWidth: 0,
+    width: '100%',
   },
-  active: {
-    borderLeftWidth: 3,
+  header: {
+    justifyContent: 'center',
+    paddingHorizontal: 16,
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
 })

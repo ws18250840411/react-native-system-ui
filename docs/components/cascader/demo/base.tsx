@@ -9,11 +9,19 @@ const formatValue = (rows: CascaderOption[]) =>
     .filter(Boolean)
     .join(' / ')
 
-export default function CascaderBasicDemo() {
+export default function CascaderBaseDemo() {
   const [value, setValue] = React.useState<string[]>([])
 
   return (
-    <Cascader poppable popupRound title="请选择地区" options={options} value={value} onChange={setValue} onFinish={setValue}>
+    <Cascader
+      poppable
+      popupRound
+      title="请选择地区"
+      options={options}
+      value={value}
+      onChange={setValue}
+      onFinish={setValue}
+    >
       {(_, rows, actions) => (
         <Field
           label="地区"
@@ -27,3 +35,5 @@ export default function CascaderBasicDemo() {
     </Cascader>
   )
 }
+
+

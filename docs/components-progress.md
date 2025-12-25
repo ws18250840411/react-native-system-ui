@@ -104,7 +104,7 @@
 | NavBar 导航栏 | ✅ | 三审通过：安全区/返回/右侧操作区三端一致性复核通过；二次审计通过：demo 文案统一为“标题/描述信息/按钮/内容”，避免业务化描述干扰 |
 | Pagination 分页 | ✅ | 三审通过：受控越界 clamp 与渲染一致性复核通过；二次审计通过：支持 `multi/simple`、受控/非受控、ellipsis 跳转；修复受控页码越界未被 clamp 的问题，并允许 `prevText/nextText/pageDesc/pageRender` 传非文本节点（避免 Text 嵌套崩溃） |
 | Sidebar 侧边栏 | ✅ | 三审通过：点击/滚动/禁用与徽标显示三端一致性复核通过；二次审计通过：受控/非受控、禁用态与徽标提示；修复 `badge=0`/`title=0` 等渲染判定并支持非文本标题节点，移除未使用的 `SidebarProps.contentStyle` 干扰 |
-| Tabs 选项卡 | ✅ | 三审通过：滑动/滚动联动（scrollspy/swipeable）与指示器动画三端一致性复核通过；二次审计通过：demo 文案已统一为“标签名/内容/描述信息”，保留 scrollspy/swipeable 展示能力 |
+| Tabs 选项卡 | ✅ | 三审通过：滑动切换（swipeable）与指示器动画三端一致性复核通过；二次审计通过：demo 文案已统一为“标签名/内容/描述信息”，移除滚动导航/粘性布局并按官方 Tabs 文档对齐 |
 | Tabbar 标签栏 | ✅ | 三审通过：fixed/badge/安全区适配三端一致性复核通过；二次审计通过：demo 文案统一为“标签名* / 内容 / 描述信息”，保留 badge/fixed 展示能力 |
 
 ## 业务组件

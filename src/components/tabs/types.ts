@@ -5,12 +5,6 @@ export type TabsType = 'line' | 'card' | 'capsule' | 'jumbo'
 export type TabsAlign = 'start' | 'center'
 export type TabsValue = string | number
 
-export interface TabsScrollspyConfig {
-  autoFocusLast?: boolean
-  reachBottomThreshold?: number
-  scrollImmediate?: boolean
-}
-
 export interface TabsSwipeableConfig {
   autoHeight?: boolean
   preventScroll?: boolean
@@ -20,8 +14,7 @@ export interface TabsClickEvent {
   name: TabsValue
   index: number
   disabled: boolean
-  title?: React.ReactNode
-  event?: unknown
+  event: unknown
 }
 
 export interface TabPaneProps {
@@ -50,12 +43,12 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
   swipeThreshold?: number
   animated?: boolean
   duration?: number
-  beforeChange?: (name: TabsValue, index: number) => boolean | Promise<boolean>
+  beforeChange?: (name: TabsValue) => boolean | Promise<boolean>
   lazyRender?: boolean
   lazyRenderPlaceholder?: React.ReactNode
-  scrollable?: boolean
-  scrollspy?: boolean | TabsScrollspyConfig
   swipeable?: boolean | TabsSwipeableConfig
+  /** 是否强制开启/关闭标签栏滚动（不传则自动根据数量判断） */
+  scrollable?: boolean
   navLeft?: React.ReactNode
   navRight?: React.ReactNode
   navBottom?: React.ReactNode
@@ -69,6 +62,6 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
 }
 
 export interface TabsRef {
-  /** 滚动到指定标签（scrollspy 模式会同步滚动内容） */
+  /** 切换到指定标签，并将其滚动到可视区（当标签栏可横向滚动时） */
   scrollTo: (name: TabsValue, options?: { immediate?: boolean }) => void
 }

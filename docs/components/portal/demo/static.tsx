@@ -32,7 +32,9 @@ export default function PortalStaticDemo() {
   }, [])
 
   return (
-    <Cell title="Portal.add 显示提示" isLink onPress={showToast} />
+    <Cell.Group>
+      <Cell title="Portal.add 显示提示" isLink onPress={showToast} />
+    </Cell.Group>
   )
 }
 

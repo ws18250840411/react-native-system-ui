@@ -1,5 +1,16 @@
 import React from 'react'
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native'
+import {
+  PanResponder,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type GestureResponderEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import { createHairlineBorderBottom } from '../../utils/hairline'
@@ -35,7 +46,13 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
 
   const tokens = useIndexBarTokens()
   const scrollRef = React.useRef<ScrollView>(null)
+  const scrollYRef = React.useRef(0)
   const anchorLayouts = React.useRef<Map<IndexBarValue, number>>(new Map())
+  const indexListRef = React.useRef<View>(null)
+  const indexListLayout = React.useRef<{ pageY: number; height: number } | null>(null)
+  const pendingScrollToValueRef = React.useRef<IndexBarValue | null>(null)
+  const prevControlledValueRef = React.useRef<IndexBarValue | null>(null)
+  const [stickyVisible, setStickyVisible] = React.useState(false)
 
   const anchors = React.useMemo<ParsedAnchor[]>(() => {
     return React.Children.toArray(children)
@@ -73,30 +90,73 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     visible: false,
   })
 
-  const handleAnchorLayout = React.useCallback((index: IndexBarValue, layoutY: number) => {
-    anchorLayouts.current.set(index, layoutY)
-  }, [])
-
-  const scrollToIndex = React.useCallback(
-    (index: IndexBarValue) => {
-      const y = anchorLayouts.current.get(index)
-      if (y !== undefined) {
-        const offset = sticky ? tokens.layout.stickyHeight + stickyOffsetTop : 0
-        scrollRef.current?.scrollTo({ y: Math.max(0, y - offset), animated: true })
-      }
-      setActiveIndex(index)
+  const showIndicatorNow = React.useCallback(
+    (label?: string) => {
+      if (!showIndicator) return
+      setIndicator({ visible: true, label })
     },
-    [setActiveIndex, sticky, stickyOffsetTop, tokens.layout.stickyHeight]
+    [showIndicator]
   )
 
-  React.useImperativeHandle(ref, () => ({ scrollTo: scrollToIndex }), [scrollToIndex])
+  const hideIndicatorNow = React.useCallback(() => {
+    if (!showIndicator) return
+    setIndicator(prev => (prev.visible ? { visible: false } : prev))
+  }, [showIndicator])
+
+  const getScrollTargetY = React.useCallback(
+    (index: IndexBarValue) => {
+      const y = anchorLayouts.current.get(index)
+      if (y === undefined) return undefined
+      // 让锚点标题滚到顶部（官方行为），吸顶标题只在锚点标题滚出顶部后才显示
+      const offset = stickyOffsetTop
+      return Math.max(0, y - offset)
+    },
+    [stickyOffsetTop]
+  )
+
+  const handleAnchorLayout = React.useCallback(
+    (index: IndexBarValue, layoutY: number) => {
+      anchorLayouts.current.set(index, layoutY)
+      const pending = pendingScrollToValueRef.current
+      if (pending === null) return
+      const targetY = getScrollTargetY(pending)
+      if (targetY === undefined) return
+      pendingScrollToValueRef.current = null
+      scrollRef.current?.scrollTo({ y: targetY, animated: false })
+    },
+    [getScrollTargetY]
+  )
+
+  const scrollToAnchor = React.useCallback(
+    (index: IndexBarValue, animated: boolean) => {
+      const targetY = getScrollTargetY(index)
+      if (targetY !== undefined) {
+        scrollRef.current?.scrollTo({ y: targetY, animated })
+        return
+      }
+      pendingScrollToValueRef.current = index
+    },
+    [getScrollTargetY]
+  )
+
+  const scrollToIndex = React.useCallback(
+    (index: IndexBarValue, animated: boolean = true) => {
+      scrollToAnchor(index, animated)
+      setActiveIndex(index)
+    },
+    [scrollToAnchor, setActiveIndex]
+  )
+
+  React.useImperativeHandle(ref, () => ({ scrollTo: (index: IndexBarValue) => scrollToIndex(index, true) }), [scrollToIndex])
 
   const handleScroll = React.useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetY = event?.nativeEvent?.contentOffset?.y ?? 0
+      scrollYRef.current = offsetY
+
       const sorted = [...anchorLayouts.current.entries()].sort((a, b) => a[1] - b[1])
       let current = sorted[0]?.[0]
-      const threshold = sticky ? tokens.layout.stickyHeight + stickyOffsetTop : 0
+      const threshold = sticky ? stickyOffsetTop : 0
       for (const [index, layoutY] of sorted) {
         if (offsetY + threshold + 1 >= layoutY) {
           current = index
@@ -105,22 +165,41 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
       if (current !== undefined && current !== null && current !== currentIndex) {
         setActiveIndex(current)
       }
+
+      // 只在当前锚点标题滚出顶部后显示吸顶标题，避免“双标题”
+      if (sticky && current !== undefined && current !== null) {
+        const anchorY = anchorLayouts.current.get(current)
+        const nextStickyVisible = anchorY === undefined ? false : offsetY > Math.max(0, anchorY - stickyOffsetTop)
+        setStickyVisible(prev => (prev === nextStickyVisible ? prev : nextStickyVisible))
+      } else if (stickyVisible) {
+        setStickyVisible(false)
+      }
     },
-    [currentIndex, setActiveIndex, sticky, stickyOffsetTop, tokens.layout.stickyHeight]
+    [currentIndex, setActiveIndex, sticky, stickyOffsetTop, stickyVisible]
   )
 
-  const handlePressIn = (index: IndexBarValue) => {
-    if (showIndicator) {
-      setIndicator({ visible: true, label: String(index) })
+  React.useEffect(() => {
+    if (value === undefined || value === null) return
+    if (prevControlledValueRef.current === value) return
+    prevControlledValueRef.current = value
+
+    const targetY = getScrollTargetY(value)
+    if (targetY === undefined) {
+      pendingScrollToValueRef.current = value
+      return
     }
+    if (Math.abs(targetY - scrollYRef.current) < 1) return
+    scrollToAnchor(value, true)
+  }, [getScrollTargetY, scrollToAnchor, value])
+
+  const handlePressIn = (index: IndexBarValue) => {
+    showIndicatorNow(String(index))
     onSelect?.(index)
-    scrollToIndex(index)
+    scrollToIndex(index, true)
   }
 
   const handlePressOut = () => {
-    if (showIndicator) {
-      setIndicator(prev => (prev.visible ? { visible: false } : prev))
-    }
+    hideIndicatorNow()
   }
 
   if (anchors.length === 0) {
@@ -130,7 +209,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
   const highlight = highlightColor ?? tokens.colors.activeText
   const activeAnchor = anchors.find(anchor => anchor.index === currentIndex)
 
-  const stickyNode = sticky && activeAnchor ? (
+  const stickyNode = sticky && stickyVisible && activeAnchor ? (
     <View
       style={[
         styles.sticky,
@@ -138,7 +217,6 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
           backgroundColor: tokens.colors.stickyBackground,
           height: tokens.layout.stickyHeight,
         },
-        createHairlineBorderBottom(tokens.colors.border),
       ]}
     >
       <Text style={[styles.stickyText, { color: highlight }]}>{activeAnchor.title}</Text>
@@ -155,6 +233,10 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
           borderRadius: tokens.layout.indicatorSize / 2,
           backgroundColor: tokens.colors.indicatorBackground,
           zIndex,
+          transform: [
+            { translateX: -tokens.layout.indicatorSize / 2 },
+            { translateY: -tokens.layout.indicatorSize / 2 },
+          ],
         },
         indicatorStyle,
       ]}
@@ -163,6 +245,44 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     </View>
   ) : null
 
+  const pickIndexFromEvent = React.useCallback(
+    (evt: GestureResponderEvent): IndexBarValue | null => {
+      const layout = indexListLayout.current
+      if (!layout) return null
+      if (!navItems.length) return null
+      const pageY = evt.nativeEvent.pageY
+      const y = pageY - layout.pageY
+      const itemHeight = layout.height / navItems.length
+      if (itemHeight <= 0) return null
+      const rawIndex = Math.floor(y / itemHeight)
+      const idx = Math.min(navItems.length - 1, Math.max(0, rawIndex))
+      return navItems[idx] ?? null
+    },
+    [navItems]
+  )
+
+  const panResponder = React.useMemo(() => {
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: evt => {
+        const picked = pickIndexFromEvent(evt)
+        if (picked !== null) handlePressIn(picked)
+      },
+      onPanResponderMove: evt => {
+        const picked = pickIndexFromEvent(evt)
+        if (picked === null) return
+        showIndicatorNow(String(picked))
+        onSelect?.(picked)
+        if (picked !== currentIndex) {
+          scrollToIndex(picked, false)
+        }
+      },
+      onPanResponderRelease: () => hideIndicatorNow(),
+      onPanResponderTerminate: () => hideIndicatorNow(),
+    })
+  }, [currentIndex, handlePressIn, hideIndicatorNow, onSelect, pickIndexFromEvent, scrollToIndex, showIndicatorNow])
+
   return (
     <View {...rest} style={[styles.container, style]}>
       <ScrollView
@@ -170,7 +290,6 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
         onScroll={handleScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={sticky ? { paddingTop: tokens.layout.stickyHeight } : undefined}
       >
         {anchors.map(anchor =>
           React.cloneElement(anchor.element, {
@@ -181,7 +300,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
           })
         )}
       </ScrollView>
-      {sticky ? (
+      {sticky && stickyVisible ? (
         safeAreaInsetTop ? (
           <SafeAreaView style={[styles.stickyWrapper, { top: stickyOffsetTop, zIndex }]}>{stickyNode}</SafeAreaView>
         ) : (
@@ -192,10 +311,19 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
         style={[
           styles.indexList,
           {
+            width: tokens.layout.indexWidth,
             paddingVertical: tokens.layout.paddingVertical,
             zIndex,
           },
         ]}
+        ref={indexListRef}
+        onLayout={e => {
+          const { height } = e.nativeEvent.layout
+          indexListRef.current?.measureInWindow((_, pageY, __, measuredHeight) => {
+            indexListLayout.current = { pageY, height: measuredHeight || height }
+          })
+        }}
+        {...panResponder.panHandlers}
       >
         {navItems.map(item => {
           const isActive = item === currentIndex
@@ -239,20 +367,22 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
   },
   indexItem: {
-    paddingVertical: 2,
-    paddingHorizontal: 6,
+    paddingVertical: 1,
+    paddingHorizontal: 0,
   },
   indexText: {
     fontSize: 12,
   },
   indicator: {
     position: 'absolute',
-    right: 48,
+    left: '50%',
+    top: '50%',
     alignItems: 'center',
     justifyContent: 'center',
+    pointerEvents: 'none',
   },
   indicatorText: {
     fontSize: 18,
@@ -269,7 +399,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   stickyText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
 })

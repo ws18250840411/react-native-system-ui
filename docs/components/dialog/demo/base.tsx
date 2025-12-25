@@ -3,7 +3,7 @@ import { Cell, Dialog } from 'react-native-system-ui'
 
 export default () => {
   return (
-    <>
+    <Cell.Group>
       <Cell
         title="弹窗提示"
         isLink
@@ -35,7 +35,7 @@ export default () => {
           })
         }
       />
-    </>
+    </Cell.Group>
   )
 }
 

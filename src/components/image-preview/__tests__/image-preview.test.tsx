@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { ScrollView, Text } from 'react-native'
+import { Text } from 'react-native'
 
 import ImagePreview from '..'
 import { PortalHost } from '../../portal'
@@ -25,8 +25,8 @@ describe('ImagePreview', () => {
     const text = index.findByType(Text)
     expect(text.props.children).toBe('1 / 2')
 
-    const dots = tree.root.findAll(node => node.props.testID?.startsWith('rv-image-preview-indicator-'))
-    expect(dots.length).toBe(2)
+    const indicators = tree.root.findByProps({ testID: 'rv-image-preview-indicators' })
+    expect(indicators).toBeTruthy()
 
     act(() => {
       tree.unmount()
@@ -113,14 +113,9 @@ describe('ImagePreview', () => {
       )
     })
 
-    const [scroll] = tree.root.findAllByType(ScrollView)
     await act(async () => {
-      await scroll.props.onMomentumScrollEnd?.({
-        nativeEvent: {
-          contentOffset: { x: 375 },
-          layoutMeasurement: { width: 375 },
-        },
-      })
+      const swiper = tree.root.findByProps({ testID: 'rv-image-preview-swiper' })
+      swiper.props.onChange?.(1)
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(1)

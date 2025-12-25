@@ -38,26 +38,29 @@ const createTokens = (foundations: Foundations): TabbarTokens => {
     defaults: {
       fixed: true,
       border: true,
-      placeholder: true,
-      safeAreaInsetBottom: true,
+      // 与 Vant 默认一致：placeholder 默认关闭；safe-area 由 Tabbar 在 fixed 时默认开启
+      placeholder: false,
+      safeAreaInsetBottom: false,
     },
     colors: {
       background: palette.background?.base ?? '#ffffff',
-      border: palette.default[200],
-      active: palette.primary[600],
-      inactive: palette.default[500],
+      // 对齐 Vant 默认色值（更利于“看起来一致”）
+      border: '#ebedf0',
+      active: '#3f45ff',
+      inactive: '#7d7e80',
     },
     layout: {
-      height: 60,
-      paddingHorizontal: spacing.lg,
+      // 对齐官方默认观感（Vant Tabbar）：50 高度、无左右 padding
+      height: 50,
+      paddingHorizontal: 0,
       paddingVertical: spacing.xs,
     },
     icon: {
-      size: 24,
+      size: 22,
     },
     typography: {
       fontSize: fontSize.sm,
-      fontWeight: '500',
+      fontWeight: '400',
     },
   }
 }

@@ -3,7 +3,7 @@ import { Cell, Dialog } from 'react-native-system-ui'
 
 export default () => {
   return (
-    <>
+    <Cell.Group>
       <Cell
         title="Dialog.alert"
         isLink
@@ -30,7 +30,7 @@ export default () => {
           }
         }}
       />
-    </>
+    </Cell.Group>
   )
 }
 

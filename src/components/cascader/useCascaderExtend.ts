@@ -14,12 +14,15 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
   const depth = React.useMemo(() => {
     let maxDepth = 0
     const traverse = (opts: CascaderOption[] | undefined, level: number) => {
-      if (!opts || !opts.length) return
+      if (!opts) return
       if (level > maxDepth) maxDepth = level
       const next = level + 1
       opts.forEach(option => {
-        const children = option[keys.childrenKey] as CascaderOption[] | undefined
-        if (children && children.length) traverse(children, next)
+        // 与官方保持一致：只要存在 children 字段（即便为空数组），也认为还有下一层
+        if (Object.prototype.hasOwnProperty.call(option, keys.childrenKey)) {
+          const children = (option[keys.childrenKey] as CascaderOption[] | undefined) ?? []
+          traverse(children, next)
+        }
       })
     }
     traverse(normalizedOptions, 1)
@@ -34,8 +37,11 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
       if (!current || !current.length) return
       const match = current.find(option => option[keys.valueKey] === val)
       if (match) {
-        const children = (match[keys.childrenKey] as CascaderOption[]) ?? []
-        if (children.length) list.push(children)
+        // 与官方保持一致：只要存在 children 字段（即便为空数组），也推入下一列
+        if (Object.prototype.hasOwnProperty.call(match, keys.childrenKey)) {
+          const children = (match[keys.childrenKey] as CascaderOption[]) ?? []
+          list.push(children)
+        }
       }
     })
     return list

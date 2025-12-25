@@ -49,6 +49,14 @@ export interface CascaderProps extends ViewProps {
   onClose?: () => void
   onChange?: (value: CascaderValue[], selectedRows: CascaderOption[]) => void
   onFinish?: (value: CascaderValue[], selectedRows: CascaderOption[]) => void
+  /**
+   * 点击标签时触发（对齐官方命名）
+   * 第二个参数 title 为当前 Tab 展示标题（若非纯文本则为空字符串）
+   */
+  onClickTab?: (tabIndex: number, title: string) => void
+  /**
+   * @deprecated 请使用 onClickTab
+   */
   onTabChange?: (tabIndex: number) => void
   poppable?: boolean
   visible?: boolean

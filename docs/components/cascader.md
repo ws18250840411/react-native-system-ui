@@ -7,87 +7,102 @@ simulator:
 
 ## 介绍
 
-多列联动的地址/分类选择器，支持受控/非受控以及自定义渲染。
+级联选择框，用于多层级数据的选择，典型场景为省市区选择。
 
 ## 引入
 
 ```js
-import { Cascader } from 'react-native-system-ui'
+import { Cascader } from 'react-native-system-ui';
 ```
 
 ## 代码演示
 
 ### 基础用法
 
-<code title="基础用法" src="./cascader/demo/basic.tsx"></code>
+<code title="基础用法" src="./cascader/demo/base.tsx" />
 
-### 表单中使用
+### Form中使用
 
-<code title="表单中使用" src="./cascader/demo/form.tsx"></code>
+<code title="Form中使用" src="./cascader/demo/form.tsx" />
 
 ### 异步加载选项
 
-<code title="异步加载选项" src="./cascader/demo/async.tsx"></code>
+可以监听 `onChange` 事件并动态设置 `options`，实现异步加载选项。
+
+<code title="异步加载选项" src="./cascader/demo/async.tsx" />
 
 ### 自定义字段名
 
-<code title="自定义字段名" src="./cascader/demo/field-names.tsx"></code>
+通过 `fieldNames` 属性可以自定义 `options` 里的字段名称。
+
+<code title="自定义字段名" src="./cascader/demo/fieldNames.tsx" />
 
 ### 受控组件
 
-<code title="受控组件" src="./cascader/demo/value.tsx"></code>
+通过 `value` 属性可以 Cascader 成为受控组件。
+
+<code title="受控组件" src="./cascader/demo/value.tsx" />
 
 ## API
 
-| 属性 | 说明 | 类型 | 默认值 |
+### Props
+
+| 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `options` | 级联数据源 | `CascaderOption[]` | `[]` |
-| `value` | 受控值 | `(string \| number)[]` | - |
-| `defaultValue` | 非受控初始值 | `(string \| number)[]` | `[]` |
-| `title` | 顶部标题 | `ReactNode` | `请选择` |
-| `placeholder` | 选项/标签占位文案 | `string` | `请选择` |
-| `activeColor` | 选中高亮颜色 | `string` | 主题色 |
-| `swipeable` | 是否允许左右滑动切换标签页（包含切换动画）；开启时需保证容器有明确宽度，组件会在宽度为 0 时自动回退为非滑动模式 | `boolean` | `true` |
-| `fieldNames` | 自定义字段映射 | `{ text?: string; value?: string; children?: string }` | `{ text: 'text', value: 'value', children: 'children' }` |
-| `optionRender` | 自定义选项内容 | `({ option, selected }) => ReactNode` | - |
-| `showHeader` | 是否展示标题 | `boolean` | `true` |
-| `closeable` | `poppable` 模式下是否展示关闭图标 | `boolean` | `true` |
-| `closeIcon` | 自定义关闭图标 | `ReactNode` | - |
-| `onClose` | 关闭弹层时（遮罩或图标）触发 | `() => void` | - |
-| `onChange` | 选中路径变化时触发 | `(value: CascaderValue[], selectedRows: CascaderOption[]) => void` | - |
-| `onFinish` | 选择到叶子节点时触发 | `(value: CascaderValue[], selectedRows: CascaderOption[]) => void` | - |
-| `onTabChange` | 点击 Tab 时触发 | `(tabIndex: number) => void` | - |
-| `poppable` | 是否以内置 Popup 展示 | `boolean` | `false` |
-| `visible` | `poppable` 模式下的受控可见性 | `boolean` | - |
-| `defaultVisible` | `poppable` 模式下的默认可见性 | `boolean` | `false` |
-| `onVisibleChange` | 弹层可见性变化回调 | `(visible: boolean) => void` | - |
-| `closeOnClickOverlay` | 点击遮罩是否关闭弹层 | `boolean` | `true` |
-| `closeOnFinish` | 选到叶子节点后是否自动关闭弹层 | `boolean` | `true` |
-| `popupPlacement` | 弹层位置，同 Popup `placement` | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'bottom'` |
-| `popupRound` | 是否开启弹层圆角 | `boolean` | `true` |
-| `popupProps` | 透传 Popup 额外参数 | `Partial<PopupProps>` | - |
-| `loadingText` | 异步占位列的提示文案（仅在有 `children` 字段但子项为空时出现） | `string` | `加载中...` |
-| `children` | 可选的触发渲染；传入函数时可获得 `actions` | `ReactNode \| CascaderRenderProps` | - |
+| title | 顶部标题 | _ReactNode_ | - |
+| value | 当前选中的值 | _(string \| number)[]_ | - |
+| defaultValue | 默认选中的值 | _(string \| number)[]_ | - |
+| options | 可选项数据源 | _CascaderOption[]_ | `[]` |
+| optionRender | 自定义选项文字 | _({ option: CascaderOption, selected: boolean }) => ReactNode_ | - |
+| placeholder | 未选中时的提示文案 | _string_ | `请选择` |
+| activeColor | 选中状态的高亮颜色 | _string_ | - |
+| closeable | 是否显示关闭图标 | _boolean_ | `true` |
+| closeIcon | 关闭图标 | _ReactNode_ | - |
+| fieldNames | 自定义 `options` 结构中的字段 | _object_ | `{ text: 'text', value: 'value', children: 'children' }` |
+| swipeable | 是否开启手势左右滑动切换 | _boolean_ | `true` |
+| children | 渲染函数 | _(val: (string \| number)[], selectedRows: CascaderOption[], actions: CascaderActions) => ReactNode_ | - |
 
-### Render Props
+### Events
 
-当 `children` 为函数时，入参为 `(value, selectedRows, actions)`：
-
-| 参数 | 说明 |
-| --- | --- |
-| `value` | 当前选中值数组 |
-| `selectedRows` | 当前路径对应的选项列表 |
-| `actions` | `{ open, close, toggle }`，用于手动控制弹层 |
-
-### CascaderOption
-
-| 字段 | 说明 | 类型 |
+| 事件 | 说明 | 类型 |
 | --- | --- | --- |
-| `text` | 展示文案 | `ReactNode` |
-| `value` | 唯一值 | `string \| number` |
-| `disabled` | 是否禁用 | `boolean` |
-| `color` | 文案颜色覆盖 | `string` |
-| `loading` | 显示加载状态 | `boolean` |
-| `children` | 下一级选项 | `CascaderOption[]` |
+| onChange | 选中项变化时触发 | _(val: (string \| number)[], selectedRows: CascaderOption[]) => void_ |
+| onFinish | 全部选项选择完成后触发 | _(val: (string \| number)[], selectedRows: CascaderOption[]) => void_ |
+| onClose | 点击关闭图标时触发 | _() => void_ |
+| onClickTab | 点击标签时触发 | _(tabIndex: number, title: string) => void_ |
 
-其余属性同 `View`，支持传入 `style` 覆盖容器样式。异步场景下，如果某个选项包含 `children` 字段但暂未填充子项，组件会自动在下一列展示 `loadingText` 占位，待数据填充后恢复正常列表。
+### CascaderOption 数据结构
+
+`options` 属性是一个由对象构成的数组，数组中的每个对象配置一个可选项，对象可以包含以下值：
+
+| 键名      | 说明                     | 类型                        |
+| --------- | ------------------------ | --------------------------- |
+| text      | 选项文字（必填）         | _string_                    |
+| value     | 选项对应的值（必填）     | _string \| number_          |
+| color     | 选项文字颜色             | _string_                    |
+| children  | 子选项列表               | _CascaderOption[]_          |
+| disabled  | 是否禁用选项             | _boolean_                   |
+| className | 为对应列添加额外的 class | _string \| Array \| object_ |
+
+## 主题定制
+
+### 样式变量
+
+组件提供了下列 CSS 变量，可用于自定义样式，使用方法请参考 [ConfigProvider 组件](/components/config-provider)。
+
+| 名称                                  | 默认值                   | 描述 |
+| ------------------------------------- | ------------------------ | ---- |
+| --rv-cascader-header-height           | _48px_                   | -    |
+| --rv-cascader-header-padding          | _0 var(--rv-padding-md)_ | -    |
+| --rv-cascader-title-font-size         | _var(--rv-font-size-lg)_ | -    |
+| --rv-cascader-title-line-height       | _20px_                   | -    |
+| --rv-cascader-close-icon-size         | _22px_                   | -    |
+| --rv-cascader-close-icon-color        | _var(--rv-gray-5)_       | -    |
+| --rv-cascader-close-icon-active-color | _var(--rv-gray-6)_       | -    |
+| --rv-cascader-selected-icon-size      | _18px_                   | -    |
+| --rv-cascader-tabs-height             | _48px_                   | -    |
+| --rv-cascader-active-color            | _var(--rv-danger-color)_ | -    |
+| --rv-cascader-options-height          | _384px_                  | -    |
+| --rv-cascader-option-disabled-color   | _var(--rv-gray-5)_       | -    |
+| --rv-cascader-tab-color               | _var(--rv-text-color)_   | -    |
+| --rv-cascader-unselected-tab-color    | _var(--rv-gray-6)_       | -    |

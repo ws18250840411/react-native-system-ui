@@ -21,13 +21,21 @@ import { ImagePreview } from 'react-native-system-ui'
 
 <code src="./image-preview/demo/basic.tsx" title="基础"></code>
 
+### 配置项
+
+<code src="./image-preview/demo/controls.tsx" title="配置项"></code>
+
+### 异步关闭
+
+<code src="./image-preview/demo/async-close.tsx" title="异步关闭"></code>
+
+### 组件调用
+
+<code src="./image-preview/demo/component.tsx" title="组件调用"></code>
+
 ### 自定义页码
 
-<code src="./image-preview/demo/custom-index.tsx" title="自定义索引"></code>
-
-### 指示器与关闭控制
-
-<code src="./image-preview/demo/controls.tsx" title="指示器"></code>
+<code src="./image-preview/demo/custom-index.tsx" title="自定义页码"></code>
 
 ### 静态调用
 
@@ -40,6 +48,9 @@ import { ImagePreview } from 'react-native-system-ui'
 | `visible` | 是否展示 ImagePreview | `boolean` | `false` |
 | `images` | 图片数组，支持字符串 URL 或 `ImageSourcePropType` | `(string \| ImageSourcePropType)[]` | `[]` |
 | `startPosition` | 初始展示的图片下标 | `number` | `0` |
+| `swipeDuration` | 图片切换动画时长（ms） | `number` | `300` |
+| `lazyRender` | 按需渲染图片（仅渲染当前页附近图片以优化性能） | `boolean` | `false` |
+| `lazyRenderBuffer` | `lazyRender` 开启时额外渲染的前后页数量 | `number` | `1` |
 | `showIndex` | 是否展示顶部页码 | `boolean` | `true` |
 | `indexRender` | 自定义页码渲染内容 | `({ index, len }) => ReactNode` | `-` |
 | `showIndicators` | 是否展示底部指示器 | `boolean` | `false` |

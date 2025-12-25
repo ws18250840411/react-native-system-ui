@@ -4,6 +4,13 @@ process.env.JEST_ENV = 'true'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
+if (typeof globalThis.requestAnimationFrame !== 'function') {
+  globalThis.requestAnimationFrame = cb => setTimeout(() => cb(Date.now()), 16)
+}
+if (typeof globalThis.cancelAnimationFrame !== 'function') {
+  globalThis.cancelAnimationFrame = id => clearTimeout(id)
+}
+
 const originalConsoleError = console.error
 console.error = (...args) => {
   const asString = args

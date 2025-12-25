@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-分隔内容并允许在同一页面中完成切换，支持行内、卡片、胶囊、Jumbo 描述等多种样式，并内置 Scrollspy 滚动导航体验。
+分隔内容并允许在同一页面中完成切换，支持行内、卡片、胶囊、Jumbo 描述等多种样式。
 
 ## 引入
 
@@ -40,11 +40,17 @@ import { Tabs } from 'react-native-system-ui'
 
 <code src="./tabs/demo/swipeable.tsx" title="滑动切换"></code>
 
-### 滚动导航
+### 标签栏滚动
 
-开启 `scrollspy` 后，内容会在同一页平铺展示，并且会跟随滚动自动切换高亮标签，适合做页面内锚点体验。
+当标签数量超过 `swipeThreshold` 时，标签栏会自动开启横向滚动。
 
-<code src="./tabs/demo/scrollspy.tsx" title="滚动导航"></code>
+<code src="./tabs/demo/scrollable.tsx" title="标签栏滚动"></code>
+
+### 禁用标签
+
+在 `Tabs.TabPane` 上设置 `disabled` 可禁用对应标签，禁用项点击不会切换。
+
+<code src="./tabs/demo/disabled.tsx" title="禁用标签"></code>
 
 ## API
 
@@ -57,21 +63,19 @@ import { Tabs } from 'react-native-system-ui'
 | `type` | 外观类型，可选 `line` `card` `capsule` `jumbo` | `'line' \| 'card' \| 'capsule' \| 'jumbo'` | `line` |
 | `align` | 非滚动模式下的对齐方式 | `'start' \| 'center'` | `center` |
 | `color` | 指示器与激活文字颜色 | `string` | 主题色 |
-| `background` | 标签栏背景色 | `string` | 主题色 |
-| `border` | 是否显示底部分隔线（仅 line） | `boolean` | `true` |
+| `background` | 标签栏背景色 | `string` | `#fff` |
+| `border` | 是否显示底部分隔线（仅 line） | `boolean` | `false` |
 | `lineWidth` | 自定义指示条宽度 | `number \| string` | - |
 | `lineHeight` | 自定义指示条高度 | `number \| string` | - |
 | `titleActiveColor` | 激活标签文字颜色 | `string` | 主题色 |
 | `titleInactiveColor` | 默认标签文字颜色 | `string` | 设计稿默认色 |
 | `ellipsis` | 是否省略过长标题 | `boolean` | `true` |
-| `swipeThreshold` | 标签数量超过阈值后自动进入可滚动模式 | `number` | `5` |
-| `scrollable` | 强制设置是否可滚动 | `boolean` | 自动判断 |
+| `swipeThreshold` | 标签数量超过阈值后自动进入可滚动模式 | `number \| string` | `5` |
 | `animated` | 是否开启指示条动画 | `boolean` | `true` |
-| `duration` | 指示条动画时长（ms） | `number` | `160` |
-| `beforeChange` | 切换前的回调，返回 `false` 可阻止切换，支持 Promise | `(name: TabsValue, index: number) => boolean \| Promise<boolean>` | - |
+| `duration` | 指示条动画时长（ms） | `number \| string` | `300` |
+| `beforeChange` | 切换前的回调，返回 `false` 可阻止切换，支持 Promise | `(name: TabsValue) => boolean \| Promise<boolean>` | - |
 | `lazyRender` | 延迟渲染 Tab 内容 | `boolean` | `true` |
 | `lazyRenderPlaceholder` | `lazyRender` 模式下未激活时的占位内容 | `ReactNode` | - |
-| `scrollspy` | 滚动导航模式，可传对象配置 `autoFocusLast`、`reachBottomThreshold`、`scrollImmediate` | `boolean \\| TabsScrollspyConfig` | `false` |
 | `swipeable` | 开启手势滑动切换，可传对象配置 `autoHeight`、`preventScroll` | `boolean \\| TabsSwipeableConfig` | `false` |
 | `navLeft` | 标签栏左侧扩展区域 | `ReactNode` | - |
 | `navRight` | 标签栏右侧扩展区域 | `ReactNode` | - |
@@ -93,13 +97,6 @@ import { Tabs } from 'react-native-system-ui'
 | `description` | 副标题/描述 | `ReactNode` | - |
 | `badge` | 自定义徽标内容 | `ReactNode` | - |
 | `disabled` | 是否禁用 | `boolean` | `false` |
-### TabsScrollspyConfig
-
-| 属性 | 说明 | 类型 | 默认值 |
-| --- | --- | --- | --- |
-| `autoFocusLast` | 是否在滚动触底时强制聚焦到最后一个标签 | `boolean` | `false` |
-| `reachBottomThreshold` | 触发 `autoFocusLast` 的阈值（px） | `number` | `0` |
-| `scrollImmediate` | Tab 点击后是否立即跳转（`true` 为无动画） | `boolean` | `true` |
 
 ### TabsSwipeableConfig
 
@@ -107,5 +104,3 @@ import { Tabs } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `autoHeight` | 是否根据激活面板自适应高度 | `boolean` | `true` |
 | `preventScroll` | 是否锁定手势方向，避免垂直滚动误触切换 | `boolean` | `true` |
-
-> 注意：`swipeable` 与 `scrollspy` 互斥，若同时传入会优先启用 `swipeable` 并忽略 `scrollspy`。

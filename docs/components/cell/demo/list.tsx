@@ -3,7 +3,7 @@ import React from 'react'
 import { Cell, Image } from 'react-native-system-ui'
 
 export default () => (
-  <>
+  <Cell.Group>
     {Array.from({ length: 4 }).map((_, idx) => (
       <Cell
         key={idx}
@@ -21,5 +21,5 @@ export default () => (
         isLink
       />
     ))}
-  </>
+  </Cell.Group>
 )

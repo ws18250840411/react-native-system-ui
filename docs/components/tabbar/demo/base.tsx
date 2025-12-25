@@ -9,16 +9,12 @@ export default () => {
     <View>
       <Tabbar fixed={false}>
         <Tabbar.Item icon={<HomeO />}>标签</Tabbar.Item>
-        <Tabbar.Item badge={{ dot: true }} icon={<Search />}>
-          标签
-        </Tabbar.Item>
-        <Tabbar.Item badge={{ content: 5 }} icon={<FriendsO />}>
-          标签
-        </Tabbar.Item>
-        <Tabbar.Item badge={{ content: 20 }} icon={<SettingO />}>
-          标签
-        </Tabbar.Item>
+        <Tabbar.Item icon={<Search />}>标签</Tabbar.Item>
+        <Tabbar.Item icon={<FriendsO />}>标签</Tabbar.Item>
+        <Tabbar.Item icon={<SettingO />}>标签</Tabbar.Item>
       </Tabbar>
     </View>
   )
 }
+
+

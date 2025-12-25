@@ -2,6 +2,7 @@ import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import { Cell as CellBase } from './Cell'
 import { CellGroupContext } from './CellContext'
 import type { CellGroupProps } from './types'
 import { useCellTokens } from './tokens'
@@ -41,15 +42,8 @@ export const CellGroup: React.FC<CellGroupProps> = ({
     },
   ]
   const showInset = inset || card
-  const showOuterBorder = border && !showInset
   const bodyStyles = [
     styles.body,
-    showOuterBorder && {
-      borderTopColor: tokens.border.color,
-      borderBottomColor: tokens.border.color,
-      borderTopWidth: tokens.border.width,
-      borderBottomWidth: tokens.border.width,
-    },
     {
       backgroundColor: tokens.group.bodyBackground,
     },
@@ -64,6 +58,13 @@ export const CellGroup: React.FC<CellGroupProps> = ({
   ]
 
   const childArray = React.Children.toArray(children)
+  const lastCellIndex = (() => {
+    for (let i = childArray.length - 1; i >= 0; i--) {
+      const child = childArray[i]
+      if (React.isValidElement(child) && child.type === CellBase) return i
+    }
+    return -1
+  })()
 
   return (
     <View style={containerStyle}>
@@ -71,11 +72,12 @@ export const CellGroup: React.FC<CellGroupProps> = ({
       <View style={bodyStyles}>
         {childArray.map((child, index) => {
           const key = React.isValidElement(child) && child.key != null ? child.key : index
+          const isCell = React.isValidElement(child) && child.type === CellBase
 
           return (
             <CellGroupContext.Provider
               key={key}
-              value={{ border, inset: inset || card, isLast: index === childArray.length - 1 }}
+              value={{ border, inset: inset || card, isLast: isCell ? index === lastCellIndex : false }}
             >
               {child}
             </CellGroupContext.Provider>
