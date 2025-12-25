@@ -437,7 +437,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
   const animateIndicator = React.useCallback(
     (name?: TabsValue, immediate?: boolean) => {
-      if (!name || type !== 'line') return false
+      // 注意：name 可能为 0（比如 TabPane name=0），不能用 `!name` 判断
+      if (name === undefined || name === null || type !== 'line') return false
       // RN Web 在 flex 均分场景下，onLayout 的 x/width 可能不稳定（常见表现：x 恒为 0），导致指示器不移动。
       // 对于非滚动且均分的 tabs（align != 'start'），直接用容器宽度与 index 计算指示器位置，避免依赖 onLayout。
       const shouldUseEqualWidth =
