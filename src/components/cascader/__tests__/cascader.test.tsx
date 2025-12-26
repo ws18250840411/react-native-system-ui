@@ -21,7 +21,7 @@ describe('Cascader', () => {
     ]
 
     const tree = renderer.create(
-      <Cascader options={options as any} onChange={onChange} showHeader={false} />
+      <Cascader options={options as any} onChange={onChange} showHeader={false} swipeable={false} />
     )
 
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
@@ -92,5 +92,71 @@ describe('Cascader', () => {
     const texts = pane1.findAllByType(Text).map(node => node.props.children)
     expect(texts).toContain('加载中...')
   })
-})
 
+  it('supports custom fieldNames for text/value/children', () => {
+    const onFinish = jest.fn()
+    const options = [
+      {
+        label: '广东省',
+        id: 1,
+        nodes: [
+          { label: '深圳市', id: 11 },
+          { label: '广州市', id: 12 },
+        ],
+      },
+    ]
+
+    const tree = renderer.create(
+      <Cascader
+        options={options as any}
+        fieldNames={{ text: 'label', value: 'id', children: 'nodes' }}
+        onFinish={onFinish}
+        showHeader={false}
+      />,
+    )
+
+    const option0 = tree.root.findByProps({ testID: 'cascader-option-0-1' })
+    act(() => {
+      option0.props.onPress?.({} as any)
+    })
+
+    const option1 = tree.root.findByProps({ testID: 'cascader-option-1-11' })
+    act(() => {
+      option1.props.onPress?.({} as any)
+    })
+
+    expect(onFinish).toHaveBeenCalledWith([1, 11], [options[0], options[0].nodes[0]])
+  })
+
+  it('supports onClickTab title with custom fieldNames', () => {
+    const onClickTab = jest.fn()
+    const options = [
+      {
+        label: '广东省',
+        id: 1,
+        nodes: [{ label: '深圳市', id: 11 }],
+      },
+    ]
+
+    const tree = renderer.create(
+      <Cascader
+        options={options as any}
+        fieldNames={{ text: 'label', value: 'id', children: 'nodes' }}
+        onClickTab={onClickTab}
+        showHeader={false}
+      />,
+    )
+
+    const option0 = tree.root.findByProps({ testID: 'cascader-option-0-1' })
+    act(() => {
+      option0.props.onPress?.({} as any)
+    })
+
+    const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
+    act(() => {
+      tab0.props.onPress?.({} as any)
+    })
+
+    expect(onClickTab).toHaveBeenCalledWith(0, '广东省')
+  })
+})
