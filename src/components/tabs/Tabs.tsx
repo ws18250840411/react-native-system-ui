@@ -21,10 +21,6 @@ const requestFrame =
   typeof requestAnimationFrame === 'function'
     ? requestAnimationFrame
     : (cb: (time?: number) => void) => setTimeout(cb, 16)
-const cancelFrame =
-  typeof cancelAnimationFrame === 'function'
-    ? cancelAnimationFrame
-    : (id: any) => clearTimeout(id)
 
 const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
 const isTextLikeNode = (node: React.ReactNode): node is string | number =>
@@ -53,12 +49,12 @@ interface TabItemProps {
   tabStyle?: TabsProps['tabStyle']
   titleStyle?: TabsProps['titleStyle']
   descriptionStyle?: TabsProps['descriptionStyle']
-  onSelect: (pane: ParsedPane, event?: unknown) => void
-  onLayout: (event: LayoutChangeEvent) => void
+  onSelect: (pane: ParsedPane, index: number, event?: unknown) => void
+  onLayout: (name: TabsValue, event: LayoutChangeEvent) => void
   isLast: boolean
 }
 
-const TabBarItem: React.FC<TabItemProps> = ({
+const TabBarItemInner: React.FC<TabItemProps> = ({
   pane,
   isActive,
   align,
@@ -80,7 +76,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
   // We keep interaction enabled to support onClickTab even when disabled
   const ariaPress = useAriaPress({
     disabled: false,
-    onPress: event => onSelect(pane, event),
+    onPress: event => onSelect(pane, pane.index, event),
     extraProps: {
       accessibilityRole: 'tab',
       accessibilityState: { selected: isActive, disabled: isDisabled },
@@ -149,7 +145,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
     <Pressable
       {...ariaPress.interactionProps}
       disabled={false}
-      onLayout={onLayout}
+      onLayout={event => onLayout(pane.name, event)}
       style={[
         styles.tabItem,
         shouldFlex ? styles.flexItem : null,
@@ -268,6 +264,8 @@ const TabBarItem: React.FC<TabItemProps> = ({
   )
 }
 
+const TabBarItem = React.memo(TabBarItemInner)
+
 const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref) => {
   const tokens = useTabsTokens()
   const {
@@ -303,7 +301,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     style,
     ...rest
   } = props
-  // 防止 onChange 透传到原生 View，同时避免未使用警告
   void _onChange
 
   const resolveNumericValue = (val?: number | string): number | undefined => {
@@ -373,6 +370,11 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     return exists ? activeValue : firstPaneName
   }, [activeValue, firstPaneName, panes])
 
+  const currentNameRef = React.useRef<TabsValue | undefined | null>(currentName)
+  React.useEffect(() => {
+    currentNameRef.current = currentName
+  }, [currentName])
+
   const nameIndexMap = React.useMemo(() => {
     const map = new Map<TabsValue, number>()
     panes.forEach(pane => {
@@ -394,9 +396,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     visitedRef.current.add(currentName)
   }, [currentName])
 
-  // 注意：children 可能每次 render 都是新对象（title 变化也会导致 panes 变新），
-  // 不能用 `panes` 做依赖去清空 layout 缓存，否则 RN Web 下 onLayout 不会再次触发，指示器会“彻底不动”。
-  // 仅在 pane 的 name 列表变化时清缓存。
   React.useEffect(() => {
     paneLayoutMap.current.clear()
     layoutMap.current.clear()
@@ -427,13 +426,13 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const indicatorX = React.useRef(new Animated.Value(0)).current
   const indicatorWidth = React.useRef(new Animated.Value(0)).current
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
-  // 仅用于兼容部分 Web 布局场景（不要依赖 x 的情况下临时计算），可按需启用
-  const tabWidthMapRef = React.useRef<Map<TabsValue, number>>(new Map())
   const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
   const navContentWidthRef = React.useRef(0)
   const navScrollX = React.useRef(new Animated.Value(0)).current
   const navScrollAnimRef = React.useRef<Animated.CompositeAnimation | null>(null)
+  const navAutoScrollingRef = React.useRef(false)
+  const navLastScrollXRef = React.useRef(0)
   const indicatorInitializedRef = React.useRef(false)
   const paneLayoutMap = React.useRef<Map<TabsValue, { height: number }>>(new Map())
   const swipeableScrollRef = React.useRef<any>(null)
@@ -453,10 +452,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const animateIndicator = React.useCallback(
     (name?: TabsValue, immediate?: boolean) => {
-      // 注意：name 可能为 0（比如 TabPane name=0），不能用 `!name` 判断
       if (name === undefined || name === null || type !== 'line') return false
-      // RN Web 在 flex 均分场景下，onLayout 的 x/width 可能不稳定（常见表现：x 恒为 0），导致指示器不移动。
-      // 对于非滚动且均分的 tabs（align != 'start'），直接用容器宽度与 index 计算指示器位置，避免依赖 onLayout。
       const shouldUseEqualWidth =
         !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
       const index = nameIndexMap.get(name) ?? -1
@@ -467,7 +463,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       if (!layout || index < 0) {
         return false
       }
-      // 回退到“仅依赖真实 layout.x”计算指示器位置（与当时 align 调整那一步一致）
       const timing = (value: Animated.Value, toValue: number) =>
         Animated.timing(value, {
           toValue,
@@ -502,35 +497,66 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       if (maxScroll <= 0) {
         return
       }
+      if (Math.abs(clampedX - navLastScrollXRef.current) < 1) {
+        return
+      }
       // 取消上一次滚动动画
       if (navScrollAnimRef.current) {
         navScrollAnimRef.current.stop()
         navScrollAnimRef.current = null
       }
-      // 用 Animated.timing 驱动 value，监听器会在每帧调用 scrollTo 实现丝滑滚动
+      if (immediate || !animated) {
+        navAutoScrollingRef.current = true
+        navScrollX.setValue(clampedX)
+        requestFrame(() => {
+          navAutoScrollingRef.current = false
+        })
+        return
+      }
+      navScrollX.setValue(navLastScrollXRef.current)
+      navAutoScrollingRef.current = true
       navScrollAnimRef.current = Animated.timing(navScrollX, {
         toValue: clampedX,
-        duration: immediate ? 0 : resolvedDuration,
+        duration: resolvedDuration,
         useNativeDriver: false,
       })
       navScrollAnimRef.current.start(({ finished }) => {
-        if (finished) {
-          navScrollAnimRef.current = null
+        navScrollAnimRef.current = null
+        navAutoScrollingRef.current = false
+        if (!finished) {
+          return
         }
+        navLastScrollXRef.current = clampedX
       })
     },
-    [currentName, navScrollX, resolvedDuration, scrollable],
+    [animated, currentName, navScrollX, resolvedDuration, scrollable],
   )
 
-  // 监听 navScrollX 变化，驱动 ScrollView 实际滚动（RN 中 Animated.ScrollView contentOffset 不生效，需手动同步）
   React.useEffect(() => {
     const listenerId = navScrollX.addListener(({ value }) => {
+      navLastScrollXRef.current = value
       navScrollRef.current?.scrollTo({ x: value, y: 0, animated: false })
     })
     return () => {
       navScrollX.removeListener(listenerId)
     }
   }, [navScrollX])
+
+  const handleNavScrollBeginDrag = React.useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    navAutoScrollingRef.current = false
+    if (navScrollAnimRef.current) {
+      navScrollAnimRef.current.stop()
+      navScrollAnimRef.current = null
+    }
+    navLastScrollXRef.current = event.nativeEvent.contentOffset.x
+  }, [])
+
+  const handleNavScroll = React.useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (navAutoScrollingRef.current) {
+      return
+    }
+    navLastScrollXRef.current = event.nativeEvent.contentOffset.x
+  }, [])
 
   React.useEffect(() => {
     if (currentName === undefined || currentName === null) return
@@ -541,20 +567,11 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     }
   }, [animateIndicator, currentName])
 
-  React.useEffect(
-    () => () => {
-      // no-op
-    },
-    [],
-  )
-
   const handleTabLayout = React.useCallback(
     (name: TabsValue, event: LayoutChangeEvent) => {
       const { x, width } = event.nativeEvent.layout
       layoutMap.current.set(name, { x, width })
-      // 不再维护 width 前缀和（回到 align 调整那一步的实现）
-      // 如果激活项布局变化，立即重算指示线
-      if (name === currentName) {
+      if (name === currentNameRef.current) {
         const shouldAnimate = indicatorInitializedRef.current
         const didAnimate = animateIndicator(name, !shouldAnimate)
         if (didAnimate && !indicatorInitializedRef.current) {
@@ -562,7 +579,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         }
       }
     },
-    [animateIndicator, currentName, panes],
+    [animateIndicator],
   )
 
   const handleNavContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
@@ -579,7 +596,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   }, [align, animateIndicator, currentName, scrollable, type])
 
   const handleContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
-    setContainerWidth(event.nativeEvent.layout.width)
+    const nextWidth = event.nativeEvent.layout.width
+    setContainerWidth(prev => (prev === nextWidth ? prev : nextWidth))
   }, [])
 
 
@@ -653,36 +671,40 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     node.scrollTo({ x: containerWidth * activeIndex, y: 0, animated: true })
   }, [activeIndex, containerWidth, isSwipeable])
 
-  const handleSelect = (pane: ParsedPane, index: number, event?: unknown) => {
-    if (pane.disabled || pane.name === currentName) {
+  const handleSelect = React.useCallback(
+    (pane: ParsedPane, index: number, event?: unknown) => {
+      if (pane.disabled || pane.name === currentNameRef.current) {
+        onClickTab?.({
+          name: pane.name,
+          index,
+          disabled: !!pane.disabled,
+          event,
+        })
+        return
+      }
       onClickTab?.({
         name: pane.name,
         index,
         disabled: !!pane.disabled,
         event,
       })
-      return
-    }
-    onClickTab?.({
-      name: pane.name,
-      index,
-      disabled: !!pane.disabled,
-      event,
-    })
-    if (!beforeChange) {
-      setActiveValue(pane.name, index)
-      return
-    }
-    runBeforeChange(pane.name).then(canChange => {
-      if (!canChange) {
+      if (!beforeChange) {
+        setActiveValue(pane.name, index)
         return
       }
-      setActiveValue(pane.name, index)
-    })
-  }
+      runBeforeChange(pane.name).then(canChange => {
+        if (!canChange) {
+          return
+        }
+        setActiveValue(pane.name, index)
+      })
+    },
+    [beforeChange, onClickTab, runBeforeChange, setActiveValue],
+  )
 
   const scrollTo = React.useCallback(
-    (name: TabsValue, options?: { immediate?: boolean }) => {
+    (name: TabsValue, _options?: { immediate?: boolean }) => {
+      void _options
       const target = panes.find(pane => pane.name === name && !pane.disabled)
       if (!target) {
         return
@@ -705,7 +727,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     }
   }, [scrollIntoView])
 
-  // index/currentName 变化时执行滚动（带动画，与官方对齐）
   React.useEffect(() => {
     if (!firstRenderRef.current) {
       scrollIntoView()
@@ -751,8 +772,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       tabStyle={tabStyle}
       titleStyle={titleStyle}
       descriptionStyle={descriptionStyle}
-      onSelect={(currentPane, event) => handleSelect(currentPane, currentPane.index, event)}
-      onLayout={event => handleTabLayout(pane.name, event)}
+      onSelect={handleSelect}
+      onLayout={handleTabLayout}
       isLast={pane.index === panes.length - 1}
     />
   ))
@@ -763,14 +784,18 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       ref={navScrollRef}
       showsHorizontalScrollIndicator={false}
       scrollEventThrottle={16}
-      onScroll={event => {
-        // 同步用户手动滚动到 Animated.Value（避免动画结束后再手滚，从旧位置跳跃）
-        navScrollX.setValue(event.nativeEvent.contentOffset.x)
-      }}
+      onScrollBeginDrag={handleNavScrollBeginDrag}
+      onScroll={handleNavScroll}
       onContentSizeChange={(w: number) => {
+        const prev = navContentWidthRef.current
         navContentWidthRef.current = w
-        // 内容宽度就绪后补一次定位，避免首屏/某些端 layoutMap 不完整导致不滚动
-        scrollIntoView(true)
+        if (prev === 0 || firstRenderRef.current) {
+          scrollIntoView(true)
+          return
+        }
+        if (Math.abs(w - prev) > 1) {
+          scrollIntoView()
+        }
       }}
       contentContainerStyle={styles.navContent}
     >

@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { StyleSheet, Text } from 'react-native'
+import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import Tabs from '..'
 
@@ -184,7 +184,7 @@ describe('Tabs', () => {
         <TabPane title="2" name="2" />
       </Tabs>
     )
-    
+
     // Check border radius or specific styles for card
     const items = tree.root.findAll(node => node.props.testID?.startsWith('rv-tabs-item'))
     const uniqueItems = Array.from(new Set(items.map(i => i.props.testID)))
@@ -199,5 +199,69 @@ describe('Tabs', () => {
     )
     const item = tree.root.findByProps({ testID: 'rv-tabs-item-1' })
     expect(item).toBeDefined()
+  })
+
+  it('does not cancel tabbar scroll animation by onScroll updates', () => {
+    const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: any, _config: any) => {
+      const animation = {
+        start: jest.fn(),
+        stop: jest.fn(),
+        reset: jest.fn(),
+      }
+      return animation as any
+    }) as any)
+
+    const setValueSpy = jest.spyOn(Animated.Value.prototype as any, 'setValue')
+
+    const tree = renderer.create(
+      <Tabs defaultActive="a" scrollable>
+        <TabPane title="A" name="a" />
+        <TabPane title="B" name="b" />
+        <TabPane title="C" name="c" />
+      </Tabs>,
+    )
+
+    const tabA = tree.root.findByProps({ testID: 'rv-tabs-item-a' })
+    const tabB = tree.root.findByProps({ testID: 'rv-tabs-item-b' })
+    const tabC = tree.root.findByProps({ testID: 'rv-tabs-item-c' })
+
+    act(() => {
+      tabA.props.onLayout?.({ nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 40 } } })
+      tabB.props.onLayout?.({ nativeEvent: { layout: { x: 100, y: 0, width: 100, height: 40 } } })
+      tabC.props.onLayout?.({ nativeEvent: { layout: { x: 200, y: 0, width: 100, height: 40 } } })
+    })
+
+    const navContainer = tree.root
+      .findAllByType(View)
+      .find(node => typeof node.props.onLayout === 'function' && StyleSheet.flatten(node.props.style)?.flex === 1)
+
+    act(() => {
+      navContainer?.props.onLayout?.({ nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 40 } } })
+    })
+
+    const scrollView = tree.root.findByType(ScrollView)
+    act(() => {
+      scrollView.props.onContentSizeChange?.(1000, 40)
+    })
+
+    const before = setValueSpy.mock.calls.length
+
+    act(() => {
+      tabC.props.onPress?.({})
+    })
+
+    const afterChange = setValueSpy.mock.calls.length
+
+    act(() => {
+      scrollView.props.onScroll?.({ nativeEvent: { contentOffset: { x: 80, y: 0 } } })
+    })
+
+    const afterScroll = setValueSpy.mock.calls.length
+
+    expect(afterChange).toBeGreaterThan(before)
+    expect(afterScroll).toBe(afterChange)
+
+    timingSpy.mockRestore()
+    setValueSpy.mockRestore()
   })
 })
