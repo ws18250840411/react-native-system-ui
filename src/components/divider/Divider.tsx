@@ -58,7 +58,7 @@ const createDividerTokens = (foundations: Foundations): DividerTokens => {
       fontSize: fontSize.sm,
       lineHeight: fontSize.sm * typography.lineHeightMultiplier,
       fontFamily: typography.fontFamily,
-      fontWeight: typography.weight.medium,
+      fontWeight: String(typography.weight.medium),
     },
     spacing: {
       vertical: spacing.md,

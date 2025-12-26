@@ -5,12 +5,29 @@
     "moduleResolution": "node",
     "jsx": "react",
     "esModuleInterop": true,
-    "types": ["jest"],
+    "types": [
+      "jest",
+      "node"
+    ],
     "strict": true,
     "skipLibCheck": true,
     "declaration": true,
     "paths": {
-      "react-native-system-ui": ["./src/index.ts"]
+      "react-native-system-ui": [
+        "./src/index.ts"
+      ]
     }
-  }
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "RnSystemUi",
+    "react-vant",
+    "react-native-aria-main",
+    "react-native-wheely-master",
+    "react-native-xiaoshu-main"
+  ]
 }

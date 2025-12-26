@@ -329,7 +329,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
             >
               {React.Children.map(children, (child, index) => (
                 React.isValidElement(child)
-                  ? React.cloneElement(child, { index, barScrollable })
+                  ? React.cloneElement(child as React.ReactElement<any>, { index, barScrollable })
                   : child
               ))}
             </ScrollView>
@@ -337,7 +337,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
             <View style={styles.bar}>
               {React.Children.map(children, (child, index) => (
                 React.isValidElement(child)
-                  ? React.cloneElement(child, { index, barScrollable })
+                  ? React.cloneElement(child as React.ReactElement<any>, { index, barScrollable })
                   : child
               ))}
             </View>

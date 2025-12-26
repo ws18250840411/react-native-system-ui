@@ -96,7 +96,7 @@ const createDialogTokens = (foundations: Foundations): DialogTokens => {
     typography: {
       titleSize: fontSize.md,
       titleLineHeight: fontSize.md * typography.lineHeightMultiplier,
-      titleWeight: typography.weight.semiBold,
+      titleWeight: String(typography.weight.semiBold),
       messageSize: fontSize.sm,
       messageLineHeight: fontSize.sm * typography.lineHeightMultiplier,
     },

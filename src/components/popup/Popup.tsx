@@ -234,11 +234,20 @@ export const Popup: React.FC<PopupProps> = props => {
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
   const distanceRef = React.useRef(0)
   const pendingLayoutRef = React.useRef<{ width: number; height: number } | null>(null)
+  const pendingShowRef = React.useRef(false)
+  const openFallbackTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevVisible = React.useRef(visible)
 
   const isVertical = placement === 'top' || placement === 'bottom'
   const isHorizontal = placement === 'left' || placement === 'right'
   const direction = placement === 'top' || placement === 'left' ? -1 : 1
+
+  const clearOpenFallbackTimer = React.useCallback(() => {
+    if (openFallbackTimerRef.current) {
+      clearTimeout(openFallbackTimerRef.current)
+      openFallbackTimerRef.current = null
+    }
+  }, [])
 
   const runAnimation = React.useCallback(
     (show: boolean) => {
@@ -289,11 +298,26 @@ export const Popup: React.FC<PopupProps> = props => {
       setMounted(true)
       setInteractionVisible(true)
       progress.setValue(0)
+      clearOpenFallbackTimer()
+      const needWaitForLayout = shouldTranslate && distanceRef.current === 0
+      if (needWaitForLayout) {
+        pendingShowRef.current = true
+        openFallbackTimerRef.current = setTimeout(() => {
+          if (pendingShowRef.current && visible) {
+            pendingShowRef.current = false
+            runAnimation(true)
+          }
+        }, 50)
+        return
+      }
+      pendingShowRef.current = false
       runAnimation(true)
     } else {
+      pendingShowRef.current = false
+      clearOpenFallbackTimer()
       runAnimation(false)
     }
-  }, [progress, runAnimation, visible])
+  }, [clearOpenFallbackTimer, progress, runAnimation, shouldTranslate, visible])
 
   React.useEffect(() => {
     if (visible && !prevVisible.current) {
@@ -305,8 +329,9 @@ export const Popup: React.FC<PopupProps> = props => {
   React.useEffect(
     () => () => {
       animationRef.current?.stop()
+      clearOpenFallbackTimer()
     },
-    []
+    [clearOpenFallbackTimer]
   )
 
   const requestClose = React.useCallback(
@@ -438,8 +463,13 @@ export const Popup: React.FC<PopupProps> = props => {
         }
         return next
       })
+      if (pendingShowRef.current && visible) {
+        pendingShowRef.current = false
+        clearOpenFallbackTimer()
+        runAnimation(true)
+      }
     },
-    [isVertical, overlayOnLayout]
+    [clearOpenFallbackTimer, isVertical, overlayOnLayout, runAnimation, visible]
   )
 
   const shouldRender = mounted || visible

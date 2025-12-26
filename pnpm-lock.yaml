@@ -90,6 +90,9 @@ importers:
       react-native:
         specifier: 0.83.0
         version: 0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3)
+      react-native-svg:
+        specifier: ^15.15.1
+        version: 15.15.1(react-native@0.83.0(@babel/core@7.28.5)(@types/react@19.2.7)(react@19.2.3))(react@19.2.3)
       react-native-web:
         specifier: 0.21.2
         version: 0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

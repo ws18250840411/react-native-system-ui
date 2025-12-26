@@ -15,7 +15,7 @@ import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 
 const isDef = (val: any) => val !== undefined && val !== null
-const isRenderableNode = (val: React.ReactNode) => val !== undefined && val !== null && val !== false
+const isRenderableNode = (val: any) => val !== undefined && val !== null && val !== false
 const isTextLikeNode = (val: React.ReactNode): val is string | number =>
   typeof val === 'string' || typeof val === 'number'
 
@@ -65,7 +65,9 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
     borderWidth: 0,
-    outlineStyle: 'none',
+    outlineStyle: 'solid',
+    outlineWidth: 0,
+    outlineColor: 'transparent',
     backgroundColor: 'transparent',
   },
   textarea: {
@@ -73,7 +75,9 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
     borderWidth: 0,
-    outlineStyle: 'none',
+    outlineStyle: 'solid',
+    outlineWidth: 0,
+    outlineColor: 'transparent',
     backgroundColor: 'transparent',
     textAlignVertical: 'top',
   },
@@ -495,6 +499,12 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const renderClearIcon = () => {
     if (!showClear) return null
+    const webMouseDownProps = {
+      onMouseDown: (event: any) => {
+        event.preventDefault?.()
+        event.stopPropagation?.()
+      },
+    } as any
     return (
       <Pressable
         style={[
@@ -503,11 +513,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
             paddingHorizontal: tokens.spacing.rightIconGap,
           },
         ]}
-        onMouseDown={event => {
-          // 阻止鼠标按下让输入失焦（Web）
-          event.preventDefault?.()
-          event.stopPropagation?.()
-        }}
+        {...webMouseDownProps}
         onPressIn={() => setPressingClear(true)}
         onPressOut={() => setPressingClear(false)}
         onPress={handleClear}
@@ -579,7 +585,6 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         keyboardType={restInputProps.keyboardType ?? mapKeyboardType(type)}
         placeholderTextColor={resolvedPlaceholderColor}
         onContentSizeChange={isTextarea ? handleContentSizeChange : undefined}
-        accessibilityDescribedBy={describedBy}
         aria-describedby={describedBy?.join(' ')}
         clearButtonMode="never"
         {...restInputProps}
@@ -683,7 +688,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const contentWrapperStyle = React.useMemo(
     () => [
       {
-        width: '100%',
+        width: '100%' as const,
         justifyContent: alignMap[controlAlign],
       },
       contentStyle,
@@ -729,7 +734,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       titleStyle={mergedTitleStyle}
       style={style}
       contentStyle={contentWrapperStyle}
-      accessibilityState={error ? { invalid: true } : undefined}
+      accessibilityState={error ? ({ invalid: true } as any) : undefined}
       accessibilityLabel={isTextLikeNode(label) ? String(label) : undefined}
       onPress={onClick}
       android_ripple={androidRipple}

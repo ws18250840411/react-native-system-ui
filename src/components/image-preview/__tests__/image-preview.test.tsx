@@ -7,13 +7,13 @@ import type { ImagePreviewRef } from '../types'
 import { PortalHost } from '../../portal'
 
 beforeAll(() => {
-  ;(global as any).window = (global as any).window ?? {}
-  ;(global as any).window.Image = (global as any).window.Image ?? function () {}
+  ; (global as any).window = (global as any).window ?? {}
+    ; (global as any).window.Image = (global as any).window.Image ?? function () { }
 })
 
 describe('ImagePreview', () => {
   it('renders index text and indicators', () => {
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -36,7 +36,7 @@ describe('ImagePreview', () => {
 
   it('calls onClose when overlay pressed', async () => {
     const handleClose = jest.fn()
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -59,7 +59,7 @@ describe('ImagePreview', () => {
 
   it('does not close on overlay when closeOnlyClickCloseIcon is true', async () => {
     const handleClose = jest.fn()
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -82,7 +82,7 @@ describe('ImagePreview', () => {
 
   it('passes correct reason to beforeClose when overlay pressed', async () => {
     const beforeClose = jest.fn(() => true)
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -105,7 +105,7 @@ describe('ImagePreview', () => {
 
   it('updates active index on swipe and notifies onChange', async () => {
     const handleChange = jest.fn()
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -129,16 +129,16 @@ describe('ImagePreview', () => {
   it('supports imperative swipeTo', async () => {
     const ref = React.createRef<ImagePreviewRef>()
     const handleChange = jest.fn()
-    let tree: renderer.ReactTestRenderer
-    
+    let tree!: renderer.ReactTestRenderer
+
     act(() => {
       tree = renderer.create(
         <PortalHost>
-          <ImagePreview 
+          <ImagePreview
             ref={ref}
-            visible 
-            images={['1.png', '2.png', '3.png']} 
-            onChange={handleChange} 
+            visible
+            images={['1.png', '2.png', '3.png']}
+            onChange={handleChange}
           />
         </PortalHost>
       )
@@ -147,7 +147,7 @@ describe('ImagePreview', () => {
     act(() => {
       ref.current?.swipeTo(2, false)
     })
-    
+
     // Imperative swipeTo updates internal state but might not trigger onChange from Swiper unless Swiper callbacks run.
     // However, ImagePreview implementation calls setActive then swiperRef.swipeTo.
     // The onChange prop is called when Swiper triggers onChange.
@@ -159,13 +159,13 @@ describe('ImagePreview', () => {
     // Usually Swiper's swipeTo doesn't trigger onChange (to avoid loops), or it depends on implementation.
     // Let's assume it doesn't trigger onChange automatically in this mock environment, 
     // but we can check if the internal active index updated by checking the index text.
-    
+
     const index = tree.root.findByProps({ testID: 'rv-image-preview-index' })
     const text = index.findByType(Text)
     expect(text.props.children).toBe('3 / 3')
-    
+
     act(() => {
-        tree.unmount()
+      tree.unmount()
     })
   })
 })

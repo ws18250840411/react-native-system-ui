@@ -87,9 +87,9 @@ export const FormItem: React.FC<FormItemProps> = ({
     })
   }, [context.registerField, name, normalizedRules, dependencies, initialValue, validateTrigger, trigger])
 
-  const mergedValue = context.getFieldValue(name)
+  const mergedValue = name ? context.getFieldValue(name) : undefined
   const mergedShowMessage = showValidateMessage ?? context.showValidateMessage ?? true
-  const fieldErrors = context.getFieldError(name)
+  const fieldErrors = name ? context.getFieldError(name) : undefined
   const firstError = mergedShowMessage ? fieldErrors?.[0] : undefined
   const mergedRequired = required ?? normalizedRules.some(rule => rule.required)
   const mergedValidateTriggers = React.useMemo(() => {

@@ -114,7 +114,7 @@ const createTagTokens = (foundations: Foundations): TagTokens => {
     typography: {
       fontFamily: typography.fontFamily,
       lineHeightMultiplier: typography.lineHeightMultiplier,
-      fontWeight: typography.weight.medium,
+      fontWeight: String(typography.weight.medium),
     },
   }
 }

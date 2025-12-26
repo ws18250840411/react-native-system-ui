@@ -21,15 +21,15 @@ const Area: React.FC<AreaProps> = props => {
   const columns = React.useMemo(() => buildAreaColumns(areaList, columnsNum), [areaList, columnsNum])
 
   const handleChange = React.useCallback(
-    (values: (string | number)[], options: PickerOption[]) => {
-      onChange?.(values.map(String), options as AreaOption[])
+    (values: (string | number)[], options: (PickerOption | undefined)[]) => {
+      onChange?.(values.map(String), options as (AreaOption | undefined)[])
     },
     [onChange]
   )
 
   const handleConfirm = React.useCallback(
-    (values: (string | number)[], options: PickerOption[]) => {
-      onConfirm?.(values.map(String), options as AreaOption[])
+    (values: (string | number)[], options: (PickerOption | undefined)[]) => {
+      onConfirm?.(values.map(String), options as (AreaOption | undefined)[])
     },
     [onConfirm]
   )

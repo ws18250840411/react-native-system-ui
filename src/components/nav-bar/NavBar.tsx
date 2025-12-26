@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, SafeAreaView, StyleSheet, Text, View, type TextStyle } from 'react-native'
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
@@ -134,7 +134,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
                   {
                     color: resolvedColor,
                     fontSize: tokens.typography.titleSize,
-                    fontWeight: tokens.typography.titleWeight,
+                    fontWeight: tokens.typography.titleWeight as TextStyle['fontWeight'],
                   },
                   titleStyle,
                 ]}
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   fixed: {
-    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    position: (Platform.OS === 'web' ? 'fixed' : 'absolute') as any,
     top: 0,
     left: 0,
     right: 0,

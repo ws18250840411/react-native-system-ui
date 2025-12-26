@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { Text, View, type TextStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -55,7 +55,7 @@ const createEmptyTokens = (foundations: Foundations): EmptyTokens => {
       descriptionSize: foundations.fontSize.sm,
       descriptionLineHeight: 20,
       descriptionFontFamily: foundations.typography.fontFamily,
-      descriptionFontWeight: foundations.typography.weight.regular,
+      descriptionFontWeight: String(foundations.typography.weight.regular),
     },
   }
 }
@@ -152,7 +152,7 @@ export const Empty: React.FC<EmptyProps> = props => {
               fontSize: tokens.typography.descriptionSize,
               lineHeight: tokens.typography.descriptionLineHeight,
               fontFamily: tokens.typography.descriptionFontFamily,
-              fontWeight: tokens.typography.descriptionFontWeight,
+              fontWeight: tokens.typography.descriptionFontWeight as TextStyle['fontWeight'],
             },
             descriptionStyle,
           ]}

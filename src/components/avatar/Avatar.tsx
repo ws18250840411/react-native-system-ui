@@ -47,7 +47,7 @@ const useFallbackText = (text?: string) => {
   return text.trim().slice(0, 2).toUpperCase()
 }
 
-export const Avatar = React.forwardRef<Pressable, AvatarProps>(
+export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, AvatarProps>(
   (
     {
       src,

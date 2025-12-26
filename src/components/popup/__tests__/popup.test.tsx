@@ -20,6 +20,14 @@ const getStyleValue = (style: any, key: string): any => {
   return undefined
 }
 
+const getTranslateOutputRange = (style: any, key: 'translateX' | 'translateY') => {
+  const transform = getStyleValue(style, 'transform')
+  if (!Array.isArray(transform)) return undefined
+  const entry = transform.find(item => item && typeof item === 'object' && key in item)
+  const interpolation = entry?.[key]
+  return interpolation?._config?.outputRange
+}
+
 describe('Popup', () => {
   it('calls onClose when overlay is pressed', () => {
     const handleClose = jest.fn()
@@ -270,6 +278,46 @@ describe('Popup', () => {
       tree.unmount()
     })
     jest.useRealTimers()
+  })
+
+  it('updates translate distance before first enter animation (left placement)', () => {
+    let tree: renderer.ReactTestRenderer = renderer.create(<></>)
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <Popup visible placement="left">
+            <Text>Content</Text>
+          </Popup>
+        </PortalHost>,
+      )
+    })
+
+    const findPopupContent = () =>
+      tree.root.findAll(
+        node =>
+          Array.isArray(node.props.style) &&
+          node.props.style.some((s: any) => s?.padding === 16) &&
+          node.props.style.some((s: any) => s?.width === '80%') &&
+          node.props.style.some((s: any) => s?.height === '100%'),
+      )[0]
+
+    const popupContentBefore = findPopupContent()
+    const beforeRange = getTranslateOutputRange(popupContentBefore.props.style, 'translateX')
+    expect(beforeRange?.[0]).toBe(0)
+
+    act(() => {
+      popupContentBefore.props.onLayout?.({
+        nativeEvent: { layout: { width: 100, height: 200 } },
+      } as any)
+    })
+
+    const popupContentAfter = findPopupContent()
+    const afterRange = getTranslateOutputRange(popupContentAfter.props.style, 'translateX')
+    expect(afterRange?.[0]).toBe(-100)
+
+    act(() => {
+      tree.unmount()
+    })
   })
 
   it('renders title and description when provided', () => {

@@ -32,8 +32,8 @@ import CalendarDemoBasic from '../../docs/components/calendar/demo/basic'
 import CalendarDemoPopup from '../../docs/components/calendar/demo/popup'
 import CalendarDemoRange from '../../docs/components/calendar/demo/range'
 import CascaderDemoAsync from '../../docs/components/cascader/demo/async'
-import CascaderDemoBasic from '../../docs/components/cascader/demo/basic'
-import CascaderDemoFieldNames from '../../docs/components/cascader/demo/field-names'
+import CascaderDemoBase from '../../docs/components/cascader/demo/base'
+import CascaderDemoFieldNames from '../../docs/components/cascader/demo/fieldNames'
 import CascaderDemoForm from '../../docs/components/cascader/demo/form'
 import CascaderDemoValue from '../../docs/components/cascader/demo/value'
 import CellDemoArrow from '../../docs/components/cell/demo/arrow'
@@ -133,7 +133,9 @@ import IconDemoColor from '../../docs/components/icon/demo/color'
 import IconDemoCustom from '../../docs/components/icon/demo/custom'
 import IconDemoIndex from '../../docs/components/icon/demo/index'
 import IconDemoRotate from '../../docs/components/icon/demo/rotate'
+import ImagePreviewDemoAsyncClose from '../../docs/components/image-preview/demo/async-close'
 import ImagePreviewDemoBasic from '../../docs/components/image-preview/demo/basic'
+import ImagePreviewDemoComponent from '../../docs/components/image-preview/demo/component'
 import ImagePreviewDemoControls from '../../docs/components/image-preview/demo/controls'
 import ImagePreviewDemoCustomIndex from '../../docs/components/image-preview/demo/custom-index'
 import ImagePreviewDemoImperative from '../../docs/components/image-preview/demo/imperative'
@@ -141,9 +143,7 @@ import ImageDemoBasic from '../../docs/components/image/demo/basic'
 import ImageDemoFit from '../../docs/components/image/demo/fit'
 import ImageDemoLoading from '../../docs/components/image/demo/loading'
 import ImageDemoRound from '../../docs/components/image/demo/round'
-import IndexBarDemoBasic from '../../docs/components/index-bar/demo/basic'
-import IndexBarDemoControlled from '../../docs/components/index-bar/demo/controlled'
-import IndexBarDemoCustom from '../../docs/components/index-bar/demo/custom'
+import IndexBarDemoTabbed from '../../docs/components/index-bar/demo/tabbed'
 import InputDemoAlign from '../../docs/components/input/demo/align'
 import InputDemoBasic from '../../docs/components/input/demo/basic'
 import InputDemoClearable from '../../docs/components/input/demo/clearable'
@@ -161,7 +161,6 @@ import LoadingDemoType from '../../docs/components/loading/demo/type'
 import LoadingDemoVertical from '../../docs/components/loading/demo/vertical'
 import NavBarDemoBasic from '../../docs/components/nav-bar/demo/basic'
 import NavBarDemoCustom from '../../docs/components/nav-bar/demo/custom'
-import NavBarDemoFixed from '../../docs/components/nav-bar/demo/fixed'
 import NoticeBarDemoBase from '../../docs/components/notice-bar/demo/base'
 import NoticeBarDemoMode from '../../docs/components/notice-bar/demo/mode'
 import NoticeBarDemoScroll from '../../docs/components/notice-bar/demo/scroll'
@@ -288,8 +287,10 @@ import SwitchDemoDisabled from '../../docs/components/switch/demo/disabled'
 import SwitchDemoLoading from '../../docs/components/switch/demo/loading'
 import SwitchDemoSize from '../../docs/components/switch/demo/size'
 import TabbarDemoBadge from '../../docs/components/tabbar/demo/badge'
-import TabbarDemoBasic from '../../docs/components/tabbar/demo/basic'
-import TabbarDemoFixed from '../../docs/components/tabbar/demo/fixed'
+import TabbarDemoBase from '../../docs/components/tabbar/demo/base'
+import TabbarDemoControl from '../../docs/components/tabbar/demo/control'
+import TabbarDemoCustomColor from '../../docs/components/tabbar/demo/custom-color'
+import TabbarDemoCustomIcon from '../../docs/components/tabbar/demo/custom-icon'
 import TabsDemoBasic from '../../docs/components/tabs/demo/basic'
 import TabsDemoDisabled from '../../docs/components/tabs/demo/disabled'
 import TabsDemoNameMatch from '../../docs/components/tabs/demo/name-match'
@@ -847,13 +848,13 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     title: "Cascader 级联选择",
     demos: [
       {
-        id: "basic",
+        id: "base",
         title: "基础用法",
-        Component: CascaderDemoBasic,
+        Component: CascaderDemoBase,
       },
       {
         id: "form",
-        title: "表单中使用",
+        title: "Form中使用",
         Component: CascaderDemoForm,
       },
       {
@@ -862,7 +863,7 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         Component: CascaderDemoAsync,
       },
       {
-        id: "field-names",
+        id: "fieldNames",
         title: "自定义字段名",
         Component: CascaderDemoFieldNames,
       },
@@ -1877,14 +1878,24 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         Component: ImagePreviewDemoBasic,
       },
       {
-        id: "custom-index",
-        title: "自定义索引",
-        Component: ImagePreviewDemoCustomIndex,
+        id: "controls",
+        title: "配置项",
+        Component: ImagePreviewDemoControls,
       },
       {
-        id: "controls",
-        title: "指示器",
-        Component: ImagePreviewDemoControls,
+        id: "async-close",
+        title: "异步关闭",
+        Component: ImagePreviewDemoAsyncClose,
+      },
+      {
+        id: "component",
+        title: "组件调用",
+        Component: ImagePreviewDemoComponent,
+      },
+      {
+        id: "custom-index",
+        title: "自定义页码",
+        Component: ImagePreviewDemoCustomIndex,
       },
       {
         id: "imperative",
@@ -2182,19 +2193,9 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     title: "IndexBar 索引栏",
     demos: [
       {
-        id: "basic",
-        title: "基础用法",
-        Component: IndexBarDemoBasic,
-      },
-      {
-        id: "custom",
-        title: "自定义索引列表",
-        Component: IndexBarDemoCustom,
-      },
-      {
-        id: "controlled",
-        title: "受控切换",
-        Component: IndexBarDemoControlled,
+        id: "tabbed",
+        title: "tabbed",
+        Component: IndexBarDemoTabbed,
       },
     ],
   },
@@ -2208,13 +2209,8 @@ export const componentRegistry: Record<string, ComponentEntry> = {
       },
       {
         id: "custom",
-        title: "自定义标题",
+        title: "自定义内容",
         Component: NavBarDemoCustom,
-      },
-      {
-        id: "fixed",
-        title: "固定吸顶",
-        Component: NavBarDemoFixed,
       },
     ],
   },
@@ -2297,19 +2293,29 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     title: "Tabbar 标签栏",
     demos: [
       {
-        id: "basic",
+        id: "base",
         title: "基础用法",
-        Component: TabbarDemoBasic,
+        Component: TabbarDemoBase,
+      },
+      {
+        id: "control",
+        title: "受控组件",
+        Component: TabbarDemoControl,
       },
       {
         id: "badge",
-        title: "颜色与徽标",
+        title: "徽标提示",
         Component: TabbarDemoBadge,
       },
       {
-        id: "fixed",
-        title: "固定吸底",
-        Component: TabbarDemoFixed,
+        id: "custom-icon",
+        title: "自定义图标",
+        Component: TabbarDemoCustomIcon,
+      },
+      {
+        id: "custom-color",
+        title: "自定义颜色",
+        Component: TabbarDemoCustomColor,
       },
     ],
   },

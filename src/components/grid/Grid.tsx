@@ -38,7 +38,7 @@ const createGridTokens = (foundations: Foundations): GridTokens => {
       fontSize: 12, // 12px (var(--rv-font-size-sm))
       fontFamily: typography.fontFamily,
       lineHeight: 18, // 18px (line-height: 1.5 * 12px)
-      fontWeight: typography.weight.regular,
+      fontWeight: String(typography.weight.regular),
     },
   }
 }
@@ -77,15 +77,15 @@ export const Grid: React.FC<GridProps> = props => {
   } = props
 
   const childArray = React.Children.toArray(children).filter(
-    child => child !== null && child !== undefined && child !== false,
+    child => child !== null && child !== undefined,
   )
 
   const containerStyle = [
     styles.container,
     gutter
       ? {
-          paddingLeft: gutter, // react-vant: paddingLeft: addUnit(props.gutter)
-        }
+        paddingLeft: gutter, // react-vant: paddingLeft: addUnit(props.gutter)
+      }
       : null,
     border && !gutter
       ? createHairlineBorderTop(tokens.colors.border)

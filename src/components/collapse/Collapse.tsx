@@ -105,7 +105,7 @@ const createCollapseTokens = (foundations: Foundations): CollapseTokens => {
       titleSize: fontSize.md,
       descriptionSize: fontSize.sm,
       fontFamily: typography.fontFamily,
-      titleWeight: typography.weight.medium,
+      titleWeight: String(typography.weight.medium),
     },
     panel: {
       borderRadius: radii.sm,
@@ -241,7 +241,7 @@ export const Collapse = ((props: CollapseProps) => {
       return child
     }
     const name = (child.props as CollapsePanelProps).name ?? String(index)
-    return React.cloneElement(child, { name, index })
+    return React.cloneElement(child as React.ReactElement<any>, { name, index })
   })
 
   return (

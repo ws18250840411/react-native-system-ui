@@ -16,7 +16,10 @@ const ImagePreviewWithStatics = Object.assign(ImagePreviewBase, {
   Host: PortalHost,
   open: ImagePreviewImperative.open,
   clear: ImagePreviewImperative.clear,
-}) as React.FC<ImagePreviewProps> & ImagePreviewStatic
+}) as unknown as React.ForwardRefExoticComponent<
+  React.PropsWithoutRef<ImagePreviewProps> & React.RefAttributes<ImagePreviewRef>
+> &
+  ImagePreviewStatic
 
 const ImagePreview = ImagePreviewWithStatics
 

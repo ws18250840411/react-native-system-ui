@@ -50,7 +50,9 @@ describe('Form', () => {
     let formRef: any
     const tree = create(
       <Form
-        ref={ref => (formRef = ref)}
+        ref={ref => {
+          formRef = ref
+        }}
         onFinish={onFinish}
       >
         <FormItem name="username" rules={[{ required: true, message: 'Required' }]}>
@@ -114,14 +116,18 @@ describe('Form', () => {
   it('supports async validator and validateFields', async () => {
     let formRef: any
     const tree = create(
-      <Form ref={ref => (formRef = ref)}>
+      <Form
+        ref={ref => {
+          formRef = ref
+        }}
+      >
         <FormItem
           name="username"
           rules={[
             {
               validator: async (value) => {
                 if (value === 'taken') return 'Taken'
-                return null
+                return
               }
             }
           ]}
@@ -204,7 +210,7 @@ describe('Form', () => {
                 if (value && value !== values.password) {
                   return 'Mismatch'
                 }
-                return null
+                return
               }
             }
           ]}
@@ -239,7 +245,12 @@ describe('Form', () => {
   it('resets fields', () => {
     let formRef: any
     const tree = create(
-      <Form initialValues={{ name: 'init' }} ref={ref => (formRef = ref)}>
+      <Form
+        initialValues={{ name: 'init' }}
+        ref={ref => {
+          formRef = ref
+        }}
+      >
         <FormItem name="name">
           <Input />
         </FormItem>

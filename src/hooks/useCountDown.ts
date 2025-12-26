@@ -30,7 +30,7 @@ const useCountDown = (options: UseCountDownOptions) => {
   const { time, millisecond = false, onChange, onFinish } = options
   const remainRef = React.useRef(Math.max(0, time))
   const endTimeRef = React.useRef(Date.now() + remainRef.current)
-  const timerRef = React.useRef<NodeJS.Timeout | null>(null)
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const countingRef = React.useRef(false)
   const [current, setCurrent] = React.useState(() => parseTime(remainRef.current))
 
@@ -97,5 +97,4 @@ const useCountDown = (options: UseCountDownOptions) => {
 }
 
 export { parseTime }
-export type { CountDownCurrentTime }
 export default useCountDown

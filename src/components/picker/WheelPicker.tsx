@@ -33,7 +33,7 @@ export type WheelPickerProps<T> = {
   effects?: boolean
 }
 
-const WheelPicker = React.memo(<T,>({
+const WheelPickerInner = <T,>({
   data,
   selectedIndex,
   onChange,
@@ -180,10 +180,10 @@ const WheelPicker = React.memo(<T,>({
           style={webTransform}
           {...(isWeb
             ? {
-                transitionProperty: webTransition ? 'transform' : 'none',
-                transitionDuration: `${webTransition}ms`,
-                transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
-              }
+              transitionProperty: webTransition ? 'transform' : 'none',
+              transitionDuration: `${webTransition}ms`,
+              transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
+            }
             : null) as any}
         >
           <View style={{ height: spacerHeight }} />
@@ -261,14 +261,16 @@ const WheelPicker = React.memo(<T,>({
       />
     </View>
   )
-})
+}
+
+const WheelPicker = React.memo(WheelPickerInner) as <T>(props: WheelPickerProps<T>) => React.ReactElement | null
 
 const webOnlyStyles = StyleSheet.create({
-  grab: {
+  grab: ({
     cursor: 'pointer',
     userSelect: 'none',
     touchAction: 'none',
-  },
+  } as any),
 })
 
 export default WheelPicker

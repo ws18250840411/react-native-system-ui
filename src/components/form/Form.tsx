@@ -158,7 +158,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   const [values, setValues] = React.useState<Record<string, any>>(mergedInitialValues)
   const [errors, setErrors] = React.useState<Record<string, string[]>>({})
   const lastInitialValuesRef = React.useRef<Record<string, any>>(mergedInitialValues)
-  const fieldsRef = React.useRef<Record<string, RegisteredFieldOptions>>({})
+  const fieldsRef = React.useRef<Record<string, RegisteredFieldOptions & { name: NamePath }>>({})
   const valuesRef = React.useRef(values)
   const errorsRef = React.useRef(errors)
   const subscribersRef = React.useRef(new Set<(changed: Record<string, any>, all: Record<string, any>) => void>())
@@ -251,11 +251,11 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 
       const activeRules = trigger
         ? fieldRules.filter(rule => {
-            const ruleTrigger = rule.validateTrigger ?? fieldOptions.validateTrigger
-            if (!ruleTrigger) return true // 默认全通过？还是默认 onChange？通常如果 FormItem 没设，Rule 没设，就是 onChange
-            const triggers = normalizeTrigger(ruleTrigger)
-            return triggers.includes(trigger)
-          })
+          const ruleTrigger = rule.validateTrigger ?? fieldOptions.validateTrigger
+          if (!ruleTrigger) return true // 默认全通过？还是默认 onChange？通常如果 FormItem 没设，Rule 没设，就是 onChange
+          const triggers = normalizeTrigger(ruleTrigger)
+          return triggers.includes(trigger)
+        })
         : fieldRules
 
       if (!activeRules.length) {
@@ -374,7 +374,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   const getFieldValue = React.useCallback((name: NamePath) => getValueByName(values, name), [values])
 
   const contextValidateField = React.useCallback(
-    (name: string, trigger?: string) => runFieldValidation(name, trigger),
+    (name: NamePath, trigger?: string) => runFieldValidation(name, trigger),
     [runFieldValidation],
   )
 
@@ -447,7 +447,7 @@ export const useWatch = (
   React.useEffect(() => {
     if (!context?.subscribe) return undefined
     return context.subscribe((changed, all) => {
-      if (!names || names.some(key => key in changed)) {
+      if (!names || names.some(key => serializeNamePath(key) in changed)) {
         setValue(getSnapshot(all))
       }
     })

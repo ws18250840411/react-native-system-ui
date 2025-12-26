@@ -6,8 +6,8 @@ import { PortalHost } from '../../portal'
 import ImagePreview from '../../image-preview'
 
 beforeAll(() => {
-  ;(global as any).window = (global as any).window ?? {}
-  ;(global as any).window.Image = (global as any).window.Image ?? function () {}
+  ; (global as any).window = (global as any).window ?? {}
+    ; (global as any).window.Image = (global as any).window.Image ?? function () { }
 })
 
 describe('Uploader', () => {
@@ -15,7 +15,7 @@ describe('Uploader', () => {
     const handleChange = jest.fn()
     const onUpload = jest.fn().mockResolvedValue({ url: 'https://img.com/a.png' })
 
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -42,7 +42,7 @@ describe('Uploader', () => {
     const handleChange = jest.fn()
     const onDelete = jest.fn().mockResolvedValue(true)
 
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -72,7 +72,7 @@ describe('Uploader', () => {
     const handleChange = jest.fn()
     const onDelete = jest.fn().mockRejectedValue(new Error('cancel'))
 
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -102,7 +102,7 @@ describe('Uploader', () => {
     const handleClickUpload = jest.fn()
     const onUpload = jest.fn().mockResolvedValue({ url: 'https://img.com/a.png' })
 
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -134,7 +134,7 @@ describe('Uploader', () => {
     const handleClickUpload = jest.fn()
     const onUpload = jest.fn().mockResolvedValue({ url: 'https://img.com/a.png' })
 
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -165,7 +165,7 @@ describe('Uploader', () => {
   it('allows deleting when disabled (disabled only affects upload)', async () => {
     const handleChange = jest.fn()
 
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -296,8 +296,8 @@ describe('Uploader', () => {
       { url: '2.png' },
       { url: '3.png' },
     ])
-    
-    let tree: renderer.ReactTestRenderer
+
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -305,28 +305,28 @@ describe('Uploader', () => {
         </PortalHost>
       )
     })
-    
+
     const uploadButton = tree.root.findByProps({ testID: 'rv-uploader-upload' })
     await act(async () => {
       await uploadButton.props.onPress?.({})
     })
-    
+
     // Should only add 2 items
     expect(tree.root.findAllByProps({ testID: 'rv-uploader-item-0' }).length).toBe(1)
     expect(tree.root.findAllByProps({ testID: 'rv-uploader-item-1' }).length).toBe(1)
     // Item 2 should not exist (only 2 items, indices 0 and 1)
     expect(tree.root.findAllByProps({ testID: 'rv-uploader-item-2' }).length).toBe(0)
-    
+
     // Upload button should be hidden
     expect(tree.root.findAllByProps({ testID: 'rv-uploader-upload' }).length).toBe(0)
-    
+
     await act(() => {
       tree.unmount()
     })
   })
 
   it('hides delete button when deletable is false', async () => {
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -334,16 +334,16 @@ describe('Uploader', () => {
         </PortalHost>
       )
     })
-    
+
     expect(tree.root.findAllByProps({ testID: 'rv-uploader-delete-0' }).length).toBe(0)
-    
+
     await act(() => {
       tree.unmount()
     })
   })
 
   it('hides upload button when showUpload is false', async () => {
-    let tree: renderer.ReactTestRenderer
+    let tree!: renderer.ReactTestRenderer
     await act(async () => {
       tree = renderer.create(
         <PortalHost>
@@ -351,9 +351,9 @@ describe('Uploader', () => {
         </PortalHost>
       )
     })
-    
+
     expect(tree.root.findAllByProps({ testID: 'rv-uploader-upload' }).length).toBe(0)
-    
+
     await act(() => {
       tree.unmount()
     })

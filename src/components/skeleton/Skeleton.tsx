@@ -86,11 +86,11 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
 
   const animatedStyle = animate && loading
     ? {
-        opacity: animated.interpolate({
-          inputRange: [0, 1],
-          outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
-        }),
-      }
+      opacity: animated.interpolate({
+        inputRange: [0, 1],
+        outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
+      }),
+    }
     : null
 
   if (!loading) {
@@ -105,31 +105,35 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
     <View ref={ref} style={[styles.container, style]} {...rest}>
       {avatar ? (
         <Animated.View
-          style={[
+          style={
+            [
               styles.avatar,
               {
-              width: normalizeValue(avatarSize, 32) as any,
-              height: normalizeValue(avatarSize, 32) as any,
-              borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
-              backgroundColor: tokens.colors.block,
-            },
-            animatedStyle,
-          ]}
+                width: normalizeValue(avatarSize, 32),
+                height: normalizeValue(avatarSize, 32),
+                borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
+                backgroundColor: tokens.colors.block,
+              },
+              animatedStyle,
+            ] as any
+          }
         />
       ) : null}
       <View style={styles.content}>
         {title ? (
           <Animated.View
-            style={[
-              styles.title,
-              {
-                width: normalizeValue(titleWidth, '40%') as any,
-                height: titleHeight,
-                backgroundColor: tokens.colors.block,
-                borderRadius: round ? tokens.radius : 0,
-              },
-              animatedStyle,
-            ]}
+            style={
+              [
+                styles.title,
+                {
+                  width: normalizeValue(titleWidth, '40%'),
+                  height: titleHeight,
+                  backgroundColor: tokens.colors.block,
+                  borderRadius: round ? tokens.radius : 0,
+                },
+                animatedStyle,
+              ] as any
+            }
           />
         ) : null}
         {rows > 0 ? (
@@ -138,17 +142,19 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
               <Animated.View
                 key={index}
                 testID={`rv-skeleton-row-${index}`}
-                style={[
-                  styles.row,
-                  {
-                    width: width as any,
-                    height: rowHeights[index] as any,
-                    marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
-                    backgroundColor: tokens.colors.block,
-                    borderRadius: round ? tokens.radius : 0,
-                  },
-                  animatedStyle,
-                ]}
+                style={
+                  [
+                    styles.row,
+                    {
+                      width,
+                      height: rowHeights[index],
+                      marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
+                      backgroundColor: tokens.colors.block,
+                      borderRadius: round ? tokens.radius : 0,
+                    },
+                    animatedStyle,
+                  ] as any
+                }
               />
             ))}
           </View>

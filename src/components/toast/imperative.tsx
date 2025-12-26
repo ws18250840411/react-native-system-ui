@@ -52,7 +52,7 @@ const mergeOptions = (input: ToastShowOptions, fallbackType: ToastType): ToastSh
   }
 
   if (merged.duration === undefined || merged.duration === null) {
-    merged.duration = type === 'loading' ? 0 : base.duration ?? 2000
+    merged.duration = base.duration ?? 2000
   }
 
   return merged
@@ -128,7 +128,8 @@ const showToast = (input?: ToastInput, fallbackType: ToastType = 'info'): ToastR
     }
 
     if ('duration' in parsed && (parsed.duration === undefined || parsed.duration === null)) {
-      merged.duration = nextType === 'loading' ? 0 : baseOptions.duration ?? 2000
+      merged.duration =
+        typeDefaults.get(nextType)?.duration ?? currentOptions.duration ?? baseOptions.duration ?? 2000
     }
 
     toastOptions.set(key, merged)

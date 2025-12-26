@@ -1,4 +1,4 @@
-import { act } from 'react-test-renderer'
+import renderer, { act } from 'react-test-renderer'
 
 import { DialogImperative, __DIALOG_STORE__ } from '../imperative'
 import { Portal } from '../../portal/Portal'

@@ -203,7 +203,7 @@ describe('Toast', () => {
     expect(tree.root.findByProps({ testID: 'toast-message' })).toBeDefined()
   })
 
-  it('sets duration to 0 for loading type by default', () => {
+  it('auto closes loading toast by default', () => {
     const host = render(
       <PortalHost>
         <></>
@@ -214,7 +214,7 @@ describe('Toast', () => {
       Toast.loading({ message: 'Loading...' })
     })
 
-    // Advance timer by 5 seconds (default is 2s)
+    // Advance timer by 5 seconds (default is 2s + exit animation)
     act(() => {
       jest.advanceTimersByTime(5000)
     })
@@ -225,8 +225,7 @@ describe('Toast', () => {
         .map(node => node.props.children)
         .flat()
 
-    // Should still be visible
-    expect(getMessages()).toContain('Loading...')
+    expect(getMessages()).not.toContain('Loading...')
 
     act(() => {
       Toast.clear()

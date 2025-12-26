@@ -133,13 +133,13 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
 
   const thumbStyle: ViewStyle = React.useMemo(
     () => ({
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    borderColor: activeColor,
-    [axisKey]: `${visualPercent}%`,
-    [crossAxisKey]: '50%',
-    transform: [{ translateX: -size / 2 }, { translateY: -size / 2 }],
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      borderColor: activeColor,
+      [axisKey]: `${visualPercent}%`,
+      [crossAxisKey]: '50%',
+      transform: [{ translateX: -size / 2 }, { translateY: -size / 2 }],
     }),
     [size, activeColor, axisKey, crossAxisKey, visualPercent]
   )
@@ -229,12 +229,19 @@ export const Slider: React.FC<SliderProps> = props => {
     [range, resolvedMin]
   )
 
+  const numberFormatter = React.useMemo(() => {
+    if (typeof Intl !== 'undefined' && typeof Intl.NumberFormat === 'function') {
+      return new Intl.NumberFormat()
+    }
+    return { format: (val: number) => String(val) } as any
+  }, [])
+
   const state = useSliderState({
     minValue: resolvedMin,
     maxValue: resolvedMax,
     step: resolvedStep,
     isDisabled: ariaDisabled,
-    numberFormatter: { format: (val: number) => val.toString() },
+    numberFormatter,
     orientation,
     value: isControlled ? normalized : undefined,
     defaultValue: !isControlled ? normalized : undefined,
@@ -401,15 +408,15 @@ export const Slider: React.FC<SliderProps> = props => {
 
   const trackBaseStyle = React.useMemo(
     () =>
-    orientation === 'vertical'
-      ? [
-        styles.trackVertical,
-        {
-          width: resolvedTrackHeight,
-          backgroundColor: resolvedInactiveColor,
-          alignSelf: 'center' as const,
-        },
-      ]
+      orientation === 'vertical'
+        ? [
+          styles.trackVertical,
+          {
+            width: resolvedTrackHeight,
+            backgroundColor: resolvedInactiveColor,
+            alignSelf: 'center' as const,
+          },
+        ]
         : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }],
     [orientation, resolvedTrackHeight, resolvedInactiveColor]
   )

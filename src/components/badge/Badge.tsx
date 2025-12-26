@@ -2,6 +2,7 @@ import React from 'react'
 import type {
   LayoutChangeEvent,
   PressableStateCallbackType,
+  TextStyle,
   ViewStyle,
 } from 'react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
@@ -33,7 +34,7 @@ interface BadgeTokens {
   }
   typography: {
     fontSize: number
-    fontWeight: string
+    fontWeight: TextStyle['fontWeight']
     fontFamily: string
     lineHeight: number
   }
@@ -314,7 +315,7 @@ export const Badge: React.FC<BadgeProps> = props => {
 
   if (onPress) {
     const standaloneStyle = ({ pressed }: PressableStateCallbackType) => [
-      { alignSelf: 'flex-start', opacity: pressed ? 0.9 : 1 },
+      { alignSelf: 'flex-start' as const, opacity: pressed ? 0.9 : 1 },
     ]
     return (
       <Pressable style={standaloneStyle} onPress={onPress} {...rest}>

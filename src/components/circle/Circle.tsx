@@ -9,8 +9,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native'
-
-import { Circle as SvgCircle, Svg } from 'react-native-system-icon'
+import { Svg, SvgCircle } from 'react-native-system-icon'
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
@@ -264,13 +263,13 @@ export const Circle: React.FC<CircleProps> = props => {
               backgroundImage: gradient as any,
               ...(webMask
                 ? ({
-                    WebkitMaskImage: webMask,
-                    maskImage: webMask,
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskRepeat: 'no-repeat',
-                    WebkitMaskSize: '100% 100%',
-                    maskSize: '100% 100%',
-                  } as any)
+                  WebkitMaskImage: webMask,
+                  maskImage: webMask,
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskSize: '100% 100%',
+                  maskSize: '100% 100%',
+                } as any)
                 : null),
             },
           ]}

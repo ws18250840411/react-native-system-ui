@@ -109,7 +109,9 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
       if (React.isValidElement(activeIcon)) {
         const iconProps = (activeIcon.props ?? {}) as Record<string, unknown>
         const canSetColor = Object.prototype.hasOwnProperty.call(iconProps, 'fill') || Object.prototype.hasOwnProperty.call(iconProps, 'color')
-        return canSetColor ? React.cloneElement(activeIcon, { fill: color, color }) : activeIcon
+        return canSetColor
+          ? React.cloneElement(activeIcon as React.ReactElement<any>, { fill: color, color })
+          : activeIcon
       }
       if (typeof activeIcon === 'string' || typeof activeIcon === 'number') {
         return <Text style={[styles.activeIndicator, { color }]}>{activeIcon}</Text>

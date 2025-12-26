@@ -436,7 +436,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const navScrollAnimRef = React.useRef<Animated.CompositeAnimation | null>(null)
   const indicatorInitializedRef = React.useRef(false)
   const paneLayoutMap = React.useRef<Map<TabsValue, { height: number }>>(new Map())
-  const swipeableScrollRef = React.useRef<Animated.ScrollView | null>(null)
+  const swipeableScrollRef = React.useRef<any>(null)
   const swipeableChangeByScrollRef = React.useRef(false)
   const [containerWidth, setContainerWidth] = React.useState(0)
   const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
@@ -646,10 +646,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     if (activeIndex < 0) {
       return
     }
-    const node: any =
-      (swipeableScrollRef.current as unknown as {
-        scrollTo?: (options: { x?: number; y?: number; animated?: boolean }) => void
-      }) ?? swipeableScrollRef.current.getNode?.()
+    const node = swipeableScrollRef.current?.getNode?.() ?? swipeableScrollRef.current
     if (!node?.scrollTo) {
       return
     }

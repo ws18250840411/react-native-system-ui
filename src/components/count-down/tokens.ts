@@ -11,7 +11,7 @@ export interface CountDownTokens {
     fontSize: number
     lineHeight: number
     fontFamily: string
-    fontWeight: string
+    fontWeight: string | number
   }
 }
 
@@ -41,4 +41,3 @@ export const useCountDownTokens = (overrides?: DeepPartial<CountDownTokens>) => 
     return mergedOverrides ? deepMerge(base, mergedOverrides) : base
   }, [components, foundations, overrides])
 }
-

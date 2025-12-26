@@ -7,7 +7,7 @@ export type CascaderValue = string | number
 
 export interface CascaderOption {
   text?: React.ReactNode
-  value: CascaderValue
+  value?: CascaderValue
   disabled?: boolean
   color?: string
   children?: CascaderOption[]
@@ -33,7 +33,7 @@ export type CascaderRenderProps = (
   actions: CascaderActions,
 ) => React.ReactNode
 
-export interface CascaderProps extends ViewProps {
+export interface CascaderProps extends Omit<ViewProps, 'children'> {
   options?: CascaderOption[]
   value?: CascaderValue[]
   defaultValue?: CascaderValue[]

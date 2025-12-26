@@ -8,14 +8,14 @@ import PasswordInput from '../index'
 jest.mock('react-native', () => {
   const React = require('react')
   const Actual = jest.requireActual('react-native')
-  const MockTextInput = React.forwardRef((props: any, ref) => {
+  const MockTextInput = React.forwardRef((props: any, ref: any) => {
     React.useImperativeHandle(ref, () => ({
       focus: jest.fn(),
       blur: jest.fn(),
       isFocused: jest.fn(),
       clear: jest.fn(),
     }))
-    return <mock-text-input {...props} />
+    return React.createElement('mock-text-input', props)
   })
   return {
     ...Actual,

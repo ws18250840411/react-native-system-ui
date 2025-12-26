@@ -5,11 +5,11 @@ import type { OverlayStackMountOptions } from '../OverlayStackStore'
 import { overlayStackStore } from '../OverlayStackStore'
 import { useOverlayStack, type UseOverlayStackResult } from '../useOverlayStack'
 
-const mockAddEventListener = jest.fn(() => ({ remove: jest.fn() }))
+const mockAddEventListener = jest.fn((_event: any, _handler: any) => ({ remove: jest.fn() }))
 
 jest.mock('react-native', () => ({
   BackHandler: {
-    addEventListener: (...args: any[]) => mockAddEventListener(...args),
+    addEventListener: (event: string, handler: any) => mockAddEventListener(event, handler),
   },
   Platform: {
     OS: 'android',
@@ -21,7 +21,7 @@ const resetStore = () => {
   snapshot.forEach(entry => {
     overlayStackStore.unmount(entry.key)
   })
-  ;(overlayStackStore as any).keySeed = 0
+    ; (overlayStackStore as any).keySeed = 0
 }
 
 interface RecorderProps {

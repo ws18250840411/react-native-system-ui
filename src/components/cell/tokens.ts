@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, type TextStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -23,7 +23,7 @@ export interface CellTokens {
     titleSize: number
     lineHeight: number
     titleColor: string
-    titleWeight: string
+    titleWeight: TextStyle['fontWeight']
     largeTitleSize: number
     labelSize: number
     largeLabelSize: number

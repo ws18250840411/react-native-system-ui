@@ -73,7 +73,7 @@ const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
       fontSize: fontSize.md,
       descriptionSize: fontSize.sm,
       fontFamily: typography.fontFamily,
-      fontWeight: typography.weight.medium,
+      fontWeight: String(typography.weight.medium),
     },
   }
 }

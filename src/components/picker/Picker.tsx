@@ -91,10 +91,10 @@ const GradientMask: React.FC<{
         pointerEvents="none"
         style={[
           ...baseStyle,
-          {
+          ({
             backgroundColor: overlayColor,
             backgroundImage: `linear-gradient(${angle}, ${gradientStart}, ${gradientEnd})`,
-          },
+          } as any),
         ]}
       />
     )
@@ -166,7 +166,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
           debug={debug}
           swipeDuration={swipeDuration}
           effects={effects}
-          renderItem={item => {
+          renderItem={(item: PickerOption | null) => {
             if (!item) return null
             const active = item.value === value
             const disabled = !!item.disabled
@@ -199,7 +199,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
                         color: textColor,
                         fontSize: tokens.typography.optionSize,
                         fontFamily: tokens.typography.fontFamily,
-                        fontWeight: tokens.typography.optionWeight,
+                        fontWeight: tokens.typography.optionWeight as TextStyle['fontWeight'],
                       },
                     ]}
                   >

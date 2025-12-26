@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { Text, View, type TextStyle } from 'react-native'
 
 import { useCountDown } from '../../hooks'
 import type { CountDownInstance, CountDownProps } from './types'
@@ -59,12 +59,12 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     reset: resetTime,
   }), [pause, resetTime, start])
 
-  const defaultTextStyle = React.useMemo(() => ({
+  const defaultTextStyle = React.useMemo<TextStyle>(() => ({
     color: tokens.text.color,
     fontSize: tokens.text.fontSize,
     lineHeight: tokens.text.lineHeight,
     fontFamily: tokens.text.fontFamily,
-    fontWeight: tokens.text.fontWeight,
+    fontWeight: tokens.text.fontWeight as TextStyle['fontWeight'],
   }), [tokens.text.color, tokens.text.fontFamily, tokens.text.fontSize, tokens.text.fontWeight, tokens.text.lineHeight])
 
   const content = React.useMemo(() => {

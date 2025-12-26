@@ -69,7 +69,7 @@ export type DialogResetDefaultOptions = {
 }
 
 export interface DialogStatic {
-  Host: React.FC
+  Host: React.ComponentType<any>
   show: (options?: DialogShowOptions) => () => void
   alert: (options?: DialogAlertOptions) => Promise<void>
   confirm: (options?: DialogConfirmOptions) => Promise<boolean>

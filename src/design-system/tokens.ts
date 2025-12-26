@@ -1,5 +1,8 @@
+import type { TextStyle } from 'react-native'
 import type { DeepPartial } from '../types'
 import { deepMerge } from '../utils/deepMerge'
+
+export type FontWeight = Exclude<TextStyle['fontWeight'], undefined>
 
 export type PaletteRamp = {
   50: string
@@ -54,10 +57,10 @@ export interface Foundations {
   typography: {
     fontFamily: string
     weight: {
-      regular: string
-      medium: string
-      semiBold: string
-      bold: string
+      regular: FontWeight
+      medium: FontWeight
+      semiBold: FontWeight
+      bold: FontWeight
     }
     lineHeightMultiplier: number
   }
@@ -212,5 +215,3 @@ export const createTokens = (overrides?: DeepPartial<Foundations>): ThemeTokens 
 }
 
 export const defaultTokens = defaultFoundations
-
-export type { Foundations }

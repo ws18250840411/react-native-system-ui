@@ -1,5 +1,5 @@
 import React from "react"
-import { Pressable, StyleSheet, Text, View } from "react-native"
+import { Pressable, StyleSheet, Text, View, type TextStyle } from "react-native"
 
 import { useCalendarTokens } from "./tokens"
 import type { CalendarProps, CalendarType } from "./types"
@@ -306,7 +306,7 @@ const Calendar: React.FC<CalendarProps> = props => {
       timeValue > rangeBounds[0] &&
       timeValue < rangeBounds[1]
 
-    const dayStyle = [
+    const dayStyle: TextStyle[] = [
       styles.day,
       {
         borderRadius: tokens.radii.day,

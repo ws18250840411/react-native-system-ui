@@ -36,6 +36,9 @@ console.warn = (...args) => {
   if (typeof args[0] === 'string' && args[0].includes('"shadow*" style props are deprecated')) {
     return
   }
+  if (typeof args[0] === 'string' && args[0].includes('[Portal] 请在根节点挂载 <PortalHost> 或 <ConfigProvider> 以启用静态组件能力。')) {
+    return
+  }
   originalConsoleWarn(...args)
 }
 

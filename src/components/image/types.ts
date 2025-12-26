@@ -3,7 +3,7 @@ import type { ImageProps as RNImageProps, ImageSourcePropType, StyleProp, ViewSt
 
 export type ImageFit = 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
 
-export interface ImageProps extends Omit<RNImageProps, 'source'> {
+export interface ImageProps extends Omit<RNImageProps, 'source' | 'width' | 'height'> {
   src?: string
   source?: ImageSourcePropType
   width?: number | string

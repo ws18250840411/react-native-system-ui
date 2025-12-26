@@ -4,7 +4,7 @@ import type { PressableProps, StyleProp, TextStyle, ViewStyle } from 'react-nati
 export type CellArrowDirection = 'left' | 'right' | 'up' | 'down'
 export type CellSize = 'normal' | 'large'
 
-export interface CellProps extends Omit<PressableProps, 'style'> {
+export interface CellProps extends Omit<PressableProps, 'style' | 'children'> {
   title?: React.ReactNode
   value?: React.ReactNode
   label?: React.ReactNode
@@ -18,6 +18,7 @@ export interface CellProps extends Omit<PressableProps, 'style'> {
   center?: boolean
   size?: CellSize
   arrowDirection?: CellArrowDirection
+  children?: React.ReactNode
   titleStyle?: StyleProp<TextStyle>
   valueStyle?: StyleProp<TextStyle>
   labelStyle?: StyleProp<TextStyle>

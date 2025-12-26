@@ -12,7 +12,7 @@ const mockAddEventListener = jest.fn((event: string, handler: () => boolean) => 
 
 jest.mock('react-native', () => ({
   BackHandler: {
-    addEventListener: (...args: any[]) => mockAddEventListener(...args),
+    addEventListener: (...args: any[]) => (mockAddEventListener as any).apply(null, args),
   },
   Platform: {
     OS: 'android',

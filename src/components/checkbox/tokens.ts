@@ -1,4 +1,5 @@
 import * as React from 'react'
+import type { TextStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -25,7 +26,7 @@ export interface CheckboxTokens {
   typography: {
     fontSize: number
     fontFamily: string
-    fontWeight: string
+    fontWeight: TextStyle['fontWeight']
     lineHeightMultiplier: number
   }
   spacing: {
@@ -85,5 +86,3 @@ export const useCheckboxTokens = (
     return merged ? deepMerge(base, merged) : base
   }, [components, foundations, overrides])
 }
-
-export type { CheckboxTokens }

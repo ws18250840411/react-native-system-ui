@@ -238,7 +238,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
         case "minute":
           return padZero(currentDate.getMinutes())
         default:
-          return 
+          return column.values[0] ?? ''
       }
     })
   }, [currentDate, originColumns])
@@ -281,7 +281,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     [currentDate, formatValue, originColumns, type],
   )
 
-  const handleChange = (selectedValues: string[], options: PickerOption[]) => {
+  const handleChange = (selectedValues: string[], options: (PickerOption | undefined)[]) => {
     const nextDate = buildDateFromValues(selectedValues)
     setCurrentDate(nextDate)
     onChange?.(nextDate)

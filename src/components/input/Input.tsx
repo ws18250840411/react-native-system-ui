@@ -176,7 +176,7 @@ const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref
       ref={ref}
       {...rest}
       type="textarea"
-      autoSize={resolvedAutoSize ?? autoSize}
+      autoSize={resolvedAutoSize}
     />
   )
 })
@@ -187,8 +187,3 @@ const Input = Object.assign(InputComponent, { TextArea })
 
 export default Input
 export { TextArea }
-export type {
-  InputInstance,
-  InputTextAreaAutoSize,
-  InputTextAreaAutoSizeConfig,
-}

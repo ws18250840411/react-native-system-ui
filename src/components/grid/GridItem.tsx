@@ -7,14 +7,14 @@ import { createHairlineView } from '../../utils/hairline'
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
-interface GridItemInternalProps extends GridItemProps {
+type GridItemInternalProps = GridItemProps & {
   gridItemIndex?: number
 }
 
 const isRenderable = (value: React.ReactNode) =>
   value !== undefined && value !== null && value !== false
 
-export const GridItem: React.FC<GridItemInternalProps> = props => {
+export const GridItem: React.FC<GridItemProps> = props => {
   const context = React.useContext(GridContext)
   if (!context) {
     throw new Error('GridItem must be used within Grid')
@@ -33,7 +33,7 @@ export const GridItem: React.FC<GridItemInternalProps> = props => {
     style,
     onPress,
     ...rest
-  } = props
+  } = props as GridItemInternalProps
 
   const {
     columnNum,

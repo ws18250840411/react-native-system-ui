@@ -20,8 +20,8 @@ export interface AreaProps
   columnsNum?: 1 | 2 | 3
   value?: string[]
   defaultValue?: string[]
-  onChange?: (values: string[], options: AreaOption[]) => void
-  onConfirm?: (values: string[], options: AreaOption[]) => void
+  onChange?: (values: string[], options: (AreaOption | undefined)[]) => void
+  onConfirm?: (values: string[], options: (AreaOption | undefined)[]) => void
 }
 
 export type AreaColumnType = 'province' | 'city' | 'county'
