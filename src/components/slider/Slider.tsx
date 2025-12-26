@@ -198,6 +198,7 @@ export const Slider: React.FC<SliderProps> = props => {
 
   const tokens = useSliderTokens()
   const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
+  const trackRef = React.useRef<React.ElementRef<typeof Pressable> | null>(null)
 
   const resolvedMin = parseNumber(min, 0)
   const resolvedMax = parseNumber(max, 100)
@@ -249,8 +250,6 @@ export const Slider: React.FC<SliderProps> = props => {
     onChangeEnd: values => onChangeAfter?.(formatOutput(values)),
   })
 
-  const ariaReverse = reverse
-
   const [trackLayout, setTrackLayout] = React.useState({ width: 0, height: 0, x: 0, y: 0 })
 
   const handleTrackLayout = React.useCallback((event: LayoutChangeEvent) => {
@@ -258,12 +257,35 @@ export const Slider: React.FC<SliderProps> = props => {
     setTrackLayout({
       width: Math.max(layout.width, 1),
       height: Math.max(layout.height, 1),
-      x: 0,
-      y: 0,
+      x: layout.x ?? 0,
+      y: layout.y ?? 0,
+    })
+
+    requestAnimationFrame(() => {
+      const node = trackRef.current as any
+      if (!node || typeof node.measureInWindow !== 'function') return
+      node.measureInWindow((x: number, y: number, width: number, height: number) => {
+        setTrackLayout({
+          width: Math.max(width, 1),
+          height: Math.max(height, 1),
+          x,
+          y,
+        })
+      })
     })
   }, [])
 
   const accessibleLabel = ariaLabel ?? 'Slider'
+
+  const reverseX = React.useMemo(
+    () => orientation === 'horizontal' ? reverse || isRTL() : reverse,
+    [orientation, reverse]
+  )
+
+  const ariaReverse = React.useMemo(
+    () => orientation === 'horizontal' ? reverseX : reverse,
+    [orientation, reverse, reverseX]
+  )
 
   const { trackProps } = useSlider(
     {
@@ -341,10 +363,6 @@ export const Slider: React.FC<SliderProps> = props => {
   )
 
   const values = state.values as number[]
-  const reverseX = React.useMemo(
-    () => orientation === 'horizontal' ? reverse || isRTL() : reverse,
-    [orientation, reverse]
-  )
 
   const percentFromValue = React.useCallback(
     (value: number) => ((value - resolvedMin) / scope) * 100,
@@ -469,34 +487,39 @@ export const Slider: React.FC<SliderProps> = props => {
       {...rest}
     >
       <Pressable
+        ref={trackRef}
+        {...(trackProps as any)}
+        disabled={ariaDisabled}
+        onLayout={(event: LayoutChangeEvent) => {
+          handleTrackLayout(event)
+            ; (trackProps as any)?.onLayout?.(event)
+        }}
         style={[
           styles.trackWrapper,
           orientation === 'vertical' && styles.trackWrapperVertical,
+          (trackProps as any)?.style,
         ]}
-        disabled={ariaDisabled}
-        onLayout={handleTrackLayout}
-        {...trackProps}
       >
         <View style={[styles.trackBase, ...trackBaseStyle]}>
           <View style={[styles.active, activeTrackStyle]} />
         </View>
+        {values.map((_, index) => (
+          <ThumbNode
+            key={`thumb-${index}`}
+            index={index}
+            orientation={orientation}
+            ariaReverse={ariaReverse}
+            trackLayout={trackLayout}
+            isDisabled={ariaDisabled}
+            state={state}
+            size={resolvedThumbSize}
+            activeColor={resolvedActiveColor}
+            content={resolveThumbContent(index, values.length)}
+            visualPercent={thumbVisualPercents[index] ?? 0}
+            enhanceHandlers={enhanceHandlers}
+          />
+        ))}
       </Pressable>
-      {values.map((_, index) => (
-        <ThumbNode
-          key={`thumb-${index}`}
-          index={index}
-          orientation={orientation}
-          ariaReverse={ariaReverse}
-          trackLayout={trackLayout}
-          isDisabled={ariaDisabled}
-          state={state}
-          size={resolvedThumbSize}
-          activeColor={resolvedActiveColor}
-          content={resolveThumbContent(index, values.length)}
-          visualPercent={thumbVisualPercents[index] ?? 0}
-          enhanceHandlers={enhanceHandlers}
-        />
-      ))}
     </View>
   )
 }
@@ -518,6 +541,7 @@ const styles = StyleSheet.create({
   trackWrapper: {
     width: '100%',
     justifyContent: 'center',
+    position: 'relative',
   },
   trackWrapperVertical: {
     flex: 1,

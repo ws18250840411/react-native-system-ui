@@ -161,6 +161,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   const fieldsRef = React.useRef<Record<string, RegisteredFieldOptions & { name: NamePath }>>({})
   const valuesRef = React.useRef(values)
   const errorsRef = React.useRef(errors)
+  const validationSeqRef = React.useRef<Record<string, number>>({})
   const subscribersRef = React.useRef(new Set<(changed: Record<string, any>, all: Record<string, any>) => void>())
   const formApiRef = React.useRef<FormInstance | null>(null)
 
@@ -242,6 +243,8 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       valuesOverride?: Record<string, any>,
     ): Promise<boolean> => {
       const key = serializeNamePath(name)
+      const validationSeq = (validationSeqRef.current[key] ?? 0) + 1
+      validationSeqRef.current[key] = validationSeq
       const fieldOptions = fieldsRef.current[key]
       const fieldRules = fieldOptions?.rules ?? []
       if (!fieldRules.length) {
@@ -249,7 +252,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         return true
       }
 
-      const activeRules = trigger
+      let activeRules = trigger
         ? fieldRules.filter(rule => {
           const ruleTrigger = rule.validateTrigger ?? fieldOptions.validateTrigger
           if (!ruleTrigger) return true // 默认全通过？还是默认 onChange？通常如果 FormItem 没设，Rule 没设，就是 onChange
@@ -259,7 +262,11 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         : fieldRules
 
       if (!activeRules.length) {
-        return true
+        const existingErrors = errorsRef.current[key]
+        if (!existingErrors || !existingErrors.length) {
+          return true
+        }
+        activeRules = fieldRules
       }
 
       const currentValues = valuesOverride ?? valuesRef.current
@@ -268,12 +275,18 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       for (const rule of activeRules) {
         const result = runRuleValidation(rule, value, currentValues)
         const error = isPromise(result) ? await result : result
+        if (validationSeqRef.current[key] !== validationSeq) {
+          return true
+        }
         if (error) {
           setFieldErrors(name, [error])
           return false
         }
       }
 
+      if (validationSeqRef.current[key] !== validationSeq) {
+        return true
+      }
       setFieldErrors(name, [])
       return true
     },

@@ -113,6 +113,75 @@ describe('Form', () => {
     expect(input.props.errorMessage).toBe('Invalid email')
   })
 
+  it('clears existing error when value becomes valid on change', () => {
+    const tree = create(
+      <Form>
+        <FormItem
+          name="email"
+          validateTrigger="onBlur"
+          rules={[{ pattern: /@/, message: 'Invalid email' }]}
+        >
+          <Input />
+        </FormItem>
+      </Form>
+    )
+
+    const input = tree.root.findByType(TextInput)
+
+    act(() => {
+      input.props.onChangeText('invalid')
+      input.props.onBlur()
+    })
+    expect(tree.root.findByType(TextInput).props.errorMessage).toBe('Invalid email')
+
+    act(() => {
+      input.props.onChangeText('a@b')
+    })
+    expect(tree.root.findByType(TextInput).props.errorMessage).toBeUndefined()
+  })
+
+  it('keeps last async validation result and avoids stale errors', async () => {
+    jest.useFakeTimers()
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+    const tree = create(
+      <Form>
+        <FormItem
+          name="phone"
+          rules={[
+            {
+              validator: async (value) => {
+                const str = String(value ?? '')
+                const valid = /^1\d{10}$/.test(str)
+                await delay(valid ? 10 : 50)
+                return valid ? true : 'Invalid phone'
+              },
+            },
+          ]}
+        >
+          <Input />
+        </FormItem>
+      </Form>
+    )
+
+    const input = tree.root.findByType(TextInput)
+
+    act(() => {
+      input.props.onChangeText('bad')
+    })
+    act(() => {
+      input.props.onChangeText('13800138000')
+    })
+
+    await act(async () => {
+      jest.advanceTimersByTime(60)
+      await Promise.resolve()
+    })
+
+    expect(tree.root.findByType(TextInput).props.errorMessage).toBeUndefined()
+    jest.useRealTimers()
+  })
+
   it('supports async validator and validateFields', async () => {
     let formRef: any
     const tree = create(

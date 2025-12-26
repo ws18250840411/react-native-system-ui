@@ -35,7 +35,7 @@ export default () => {
         name="validator"
         label="函数校验"
         rules={[{
-          validator: value => (/^1\\d{10}$/.test(value ?? '') ? true : '请输入正确的手机号码'),
+          validator: value => (/^1\d{10}$/.test(value ?? '') ? true : '请输入正确的手机号码'),
         }]}
       >
         <Field placeholder="请输入手机号" clearable />
