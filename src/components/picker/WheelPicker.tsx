@@ -232,6 +232,7 @@ const WheelPickerInner = <T,>({
         decelerationRate={decelerationRate as any}
         snapToInterval={itemHeight}
         snapToAlignment="start"
+        nestedScrollEnabled={true}
         ListHeaderComponent={<View style={{ height: spacerHeight }} />}
         ListFooterComponent={<View style={{ height: spacerHeight }} />}
         onScrollBeginDrag={() => {

@@ -264,4 +264,52 @@ describe('Tabs', () => {
     timingSpy.mockRestore()
     setValueSpy.mockRestore()
   })
+
+  it('keeps indicator working when panes are appended', () => {
+    const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: any, _config: any) => {
+      const animation = {
+        start: jest.fn(),
+        stop: jest.fn(),
+        reset: jest.fn(),
+      }
+      return animation as any
+    }) as any)
+
+    let tree = renderer.create(
+      <Tabs defaultActive="b" scrollable>
+        <TabPane title="A" name="a" />
+        <TabPane title="B" name="b" />
+      </Tabs>,
+    )
+
+    const tabA = tree.root.findByProps({ testID: 'rv-tabs-item-a' })
+    const tabB = tree.root.findByProps({ testID: 'rv-tabs-item-b' })
+
+    act(() => {
+      tabA.props.onLayout?.({ nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 40 } } })
+      tabB.props.onLayout?.({ nativeEvent: { layout: { x: 100, y: 0, width: 100, height: 40 } } })
+    })
+
+    timingSpy.mockClear()
+
+    act(() => {
+      tree.update(
+        <Tabs defaultActive="b" scrollable>
+          <TabPane title="A" name="a" />
+          <TabPane title="B" name="b" />
+          <TabPane title="C" name="c" />
+        </Tabs>,
+      )
+    })
+
+    const tabAAfter = tree.root.findByProps({ testID: 'rv-tabs-item-a' })
+    act(() => {
+      tabAAfter.props.onPress?.({})
+    })
+
+    expect(timingSpy).toHaveBeenCalled()
+    act(() => {
+      tree.unmount()
+    })
+  })
 })

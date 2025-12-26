@@ -397,10 +397,14 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   }, [currentName])
 
   React.useEffect(() => {
-    paneLayoutMap.current.clear()
-    layoutMap.current.clear()
-    navContentWidthRef.current = 0
-  }, [paneSignature])
+    const validNames = new Set(panes.map(pane => pane.name))
+    Array.from(paneLayoutMap.current.keys()).forEach(name => {
+      if (!validNames.has(name)) paneLayoutMap.current.delete(name)
+    })
+    Array.from(layoutMap.current.keys()).forEach(name => {
+      if (!validNames.has(name)) layoutMap.current.delete(name)
+    })
+  }, [paneSignature, panes])
 
   const shouldTrackPaneLayouts = isSwipeable && swipeableConfig?.autoHeight
 

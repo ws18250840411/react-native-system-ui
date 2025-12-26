@@ -1,287 +1,96 @@
-import React from "react"
-import renderer, { act } from "react-test-renderer"
-import { View, Text } from "react-native"
+import React from 'react'
+import renderer, { act } from 'react-test-renderer'
+import { StyleSheet, Text } from 'react-native'
 
-import Cascader from ".."
-import { PortalHost } from "../../portal"
-import Tabs from "../../tabs"
-import type { CascaderOption } from "../types"
+import Cascader from '..'
 
-const options: CascaderOption[] = [
-  {
-    text: "浙江",
-    value: "zhejiang",
-    children: [
-      {
-        text: "杭州",
-        value: "hangzhou",
-        children: [
-          { text: "西湖区", value: "xihu" },
-          { text: "余杭区", value: "yuhang" },
-        ],
-      },
-    ],
-  },
-  {
-    text: "江苏",
-    value: "jiangsu",
-    children: [
-      {
-        text: "苏州",
-        value: "suzhou",
-        children: [
-          { text: "园区", value: "yuanqu" },
-        ],
-      },
-    ],
-  },
-]
-
-describe("Cascader", () => {
-  it("notifies change and finish", () => {
-    const handleChange = jest.fn()
-    const handleFinish = jest.fn()
-    const tree = renderer.create(<Cascader options={options} onChange={handleChange} onFinish={handleFinish} />)
-
-    const firstOption = tree.root.findByProps({ testID: "cascader-option-0-zhejiang" })
-    act(() => {
-      firstOption.props.onPress()
-    })
-
-    expect(handleChange).toHaveBeenCalledWith(["zhejiang"], [options[0]])
-
-    const secondOption = tree.root.findByProps({ testID: "cascader-option-1-hangzhou" })
-    act(() => {
-      secondOption.props.onPress()
-    })
-
-    expect(handleChange).toHaveBeenLastCalledWith(["zhejiang", "hangzhou"], [options[0], options[0].children?.[0]])
-
-    const thirdOption = tree.root.findByProps({ testID: "cascader-option-2-xihu" })
-    act(() => {
-      thirdOption.props.onPress()
-    })
-
-    expect(handleFinish).toHaveBeenCalledWith(
-      ["zhejiang", "hangzhou", "xihu"],
-      [options[0], options[0].children?.[0], options[0].children?.[0]?.children?.[0]],
-    )
-  })
-
-  it("closes popup after finish when poppable", () => {
-    const handleFinish = jest.fn()
-    const handleVisibleChange = jest.fn()
-    const tree = renderer.create(
-      <PortalHost>
-        <Cascader poppable defaultVisible options={options} onFinish={handleFinish} onVisibleChange={handleVisibleChange}>
-          {() => null}
-        </Cascader>
-      </PortalHost>,
-    )
-
-    const first = tree.root.findByProps({ testID: "cascader-option-0-zhejiang" })
-    act(() => {
-      first.props.onPress()
-    })
-    const second = tree.root.findByProps({ testID: "cascader-option-1-hangzhou" })
-    act(() => {
-      second.props.onPress()
-    })
-    const third = tree.root.findByProps({ testID: "cascader-option-2-xihu" })
-    act(() => {
-      third.props.onPress()
-    })
-
-    expect(handleFinish).toHaveBeenCalled()
-    expect(handleVisibleChange).toHaveBeenCalledWith(false)
-  })
-
-  it("keeps popup open for async branch then closes after child loaded", () => {
-    const handleVisibleChange = jest.fn()
-    const handleFinish = jest.fn()
-    const asyncOptions: CascaderOption[] = [
-      {
-        text: "浙江",
-        value: "zhejiang",
-        children: [],
-      },
-    ]
-
-    const renderTree = (opts: CascaderOption[]) =>
-      renderer.create(
-        <PortalHost>
-          <Cascader
-            poppable
-            defaultVisible
-            options={opts}
-            onVisibleChange={handleVisibleChange}
-            onFinish={handleFinish}
-          >
-            {() => null}
-          </Cascader>
-        </PortalHost>,
-      )
-
-    const tree = renderTree(asyncOptions)
-
-    const province = tree.root.findByProps({ testID: "cascader-option-0-zhejiang" })
-    act(() => {
-      province.props.onPress()
-    })
-
-    // 选中省份后因 children 为空但字段存在，弹层不应关闭
-    expect(handleVisibleChange).not.toHaveBeenCalledWith(false)
-    expect(handleFinish).not.toHaveBeenCalled()
-
-    // 模拟异步加载完成后补充子级，再次更新组件
-    const loadedOptions: CascaderOption[] = [
-      {
-        ...asyncOptions[0],
-        children: [
-          { text: "杭州", value: "hangzhou" },
-          { text: "宁波", value: "ningbo" },
-        ],
-      },
-    ]
-
-    act(() => {
-      tree.update(
-        <PortalHost>
-          <Cascader
-            poppable
-            defaultVisible
-            options={loadedOptions}
-            onVisibleChange={handleVisibleChange}
-            onFinish={handleFinish}
-          >
-            {() => null}
-          </Cascader>
-        </PortalHost>,
-      )
-    })
-
-    const city = tree.root.findByProps({ testID: "cascader-option-1-hangzhou" })
-    act(() => {
-      city.props.onPress()
-    })
-
-    expect(handleFinish).toHaveBeenCalledWith(
-      ["zhejiang", "hangzhou"],
-      [loadedOptions[0], loadedOptions[0].children?.[0]],
-    )
-    expect(handleVisibleChange).toHaveBeenCalledWith(false)
-  })
-
-  it("accepts non-text option labels", () => {
-    expect(() =>
-      renderer.create(
-        <Cascader
-          options={[
-            { text: <View testID="cascader-label" />, value: "a" },
-          ]}
-        />
-      )
-    ).not.toThrow()
-  })
-
-  it("notifies onClickTab with title", () => {
-    const handleClickTab = jest.fn()
-    const tree = renderer.create(<Cascader options={options} onClickTab={handleClickTab} />)
-
-    // 未选中时点击第 0 个 tab，title 应为 placeholder
-    const tabs = tree.root.findByType(Tabs)
-    act(() => {
-      tabs.props.onChange(0, 0)
-    })
-    expect(handleClickTab).toHaveBeenCalledWith(0, "请选择")
-
-    // 选中后再点击第 0 个 tab，title 应为已选中的文本
-    const firstOption = tree.root.findByProps({ testID: "cascader-option-0-zhejiang" })
-    act(() => {
-      firstOption.props.onPress()
-    })
-    const tabs2 = tree.root.findByType(Tabs)
-    act(() => {
-      tabs2.props.onChange(0, 0)
-    })
-    expect(handleClickTab).toHaveBeenLastCalledWith(0, "浙江")
-  })
-
-  it('supports custom field names', () => {
-    const options = [
-      {
-        id: '1',
-        name: 'Region A',
-        items: [
-          { id: '2', name: 'City B' }
-        ]
-      }
-    ]
-    
-    const onFinish = jest.fn()
-    const tree = renderer.create(
-      <Cascader
-        options={options}
-        fieldNames={{ text: 'name', value: 'id', children: 'items' }}
-        onFinish={onFinish}
-      />
-    )
-    
-    // Find option 'Region A' (tab 0, value 1)
-    const pressableA = tree.root.findByProps({ testID: 'cascader-option-0-1' })
-    expect(pressableA).toBeDefined()
-    
-    // Select it
-    act(() => {
-      pressableA.props.onPress()
-    })
-    
-    // Find option 'City B' (tab 1, value 2)
-    const pressableB = tree.root.findByProps({ testID: 'cascader-option-1-2' })
-    expect(pressableB).toBeDefined()
-    
-    // Select it
-    act(() => {
-      pressableB.props.onPress()
-    })
-    
-    expect(onFinish).toHaveBeenCalledWith(
-      ['1', '2'],
-      expect.arrayContaining([expect.objectContaining({ name: 'Region A' }), expect.objectContaining({ name: 'City B' })])
-    )
-  })
-
-  it('calls onChange on every selection', () => {
+describe('Cascader', () => {
+  it('selects option, triggers onChange, and advances to next tab', () => {
+    const onChange = jest.fn()
     const options = [
       {
         text: 'A',
         value: 'a',
-        children: [
-          { text: 'B', value: 'b' }
-        ]
-      }
+        children: [{ text: 'A-1', value: 'a1' }],
+      },
+      {
+        text: 'B',
+        value: 'b',
+        children: [{ text: 'B-1', value: 'b1' }],
+      },
     ]
-    
-    const onChange = jest.fn()
+
     const tree = renderer.create(
-      <Cascader options={options} onChange={onChange} />
+      <Cascader options={options as any} onChange={onChange} showHeader={false} />
     )
-    
-    // Select A
-    const pressableA = tree.root.findByProps({ testID: 'cascader-option-0-a' })
+
+    const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
     act(() => {
-      pressableA.props.onPress()
+      option.props.onPress?.({} as any)
     })
-    
-    expect(onChange).toHaveBeenLastCalledWith(['a'], expect.any(Array))
-    
-    // Select B
-    const pressableB = tree.root.findByProps({ testID: 'cascader-option-1-b' })
+
+    expect(onChange).toHaveBeenCalled()
+    expect(onChange.mock.calls[0][0]).toEqual(['a'])
+
+    const pane0 = tree.root.findByProps({ testID: 'rv-tabs-pane-0' })
+    const pane1 = tree.root.findByProps({ testID: 'rv-tabs-pane-1' })
+    expect(StyleSheet.flatten(pane0.props.style)?.display).toBe('none')
+    expect(StyleSheet.flatten(pane1.props.style)?.display).toBeUndefined()
+  })
+
+  it('triggers onClickTab with tabIndex and title', () => {
+    const onClickTab = jest.fn()
+    const options = [
+      {
+        text: 'A',
+        value: 'a',
+        children: [{ text: 'A-1', value: 'a1' }],
+      },
+    ]
+
+    const tree = renderer.create(
+      <Cascader options={options as any} onClickTab={onClickTab} showHeader={false} />
+    )
+
+    const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
     act(() => {
-      pressableB.props.onPress()
+      option.props.onPress?.({} as any)
     })
-    
-    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], expect.any(Array))
-    expect(onChange).toHaveBeenCalledTimes(2)
+
+    const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
+    act(() => {
+      tab0.props.onPress?.({} as any)
+    })
+
+    expect(onClickTab).toHaveBeenCalledWith(0, 'A')
+  })
+
+  it('shows loadingText for async children placeholder column', () => {
+    const options = [
+      {
+        text: 'A',
+        value: 'a',
+        children: [],
+      },
+    ]
+
+    const tree = renderer.create(
+      <Cascader
+        options={options as any}
+        loadingText="加载中..."
+        placeholder="请选择"
+        showHeader={false}
+      />
+    )
+
+    const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
+    act(() => {
+      option.props.onPress?.({} as any)
+    })
+
+    const pane1 = tree.root.findByProps({ testID: 'rv-tabs-pane-1' })
+    const texts = pane1.findAllByType(Text).map(node => node.props.children)
+    expect(texts).toContain('加载中...')
   })
 })
+

@@ -18,11 +18,8 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
       if (level > maxDepth) maxDepth = level
       const next = level + 1
       opts.forEach(option => {
-        // 与官方保持一致：只要存在 children 字段（即便为空数组），也认为还有下一层
-        if (Object.prototype.hasOwnProperty.call(option, keys.childrenKey)) {
-          const children = (option[keys.childrenKey] as CascaderOption[] | undefined) ?? []
-          traverse(children, next)
-        }
+        const children = option[keys.childrenKey] as CascaderOption[] | undefined
+        if (children) traverse(children, next)
       })
     }
     traverse(normalizedOptions, 1)
@@ -30,21 +27,19 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
   }, [keys.childrenKey, normalizedOptions])
 
   const tabs = React.useMemo(() => {
-    const list: CascaderOption[][] = [normalizedOptions]
-    if (!value || !value.length) return list
-    value.forEach((val, index) => {
-      const current = list[index]
-      if (!current || !current.length) return
-      const match = current.find(option => option[keys.valueKey] === val)
-      if (match) {
-        // 与官方保持一致：只要存在 children 字段（即便为空数组），也推入下一列
-        if (Object.prototype.hasOwnProperty.call(match, keys.childrenKey)) {
-          const children = (match[keys.childrenKey] as CascaderOption[]) ?? []
-          list.push(children)
-        }
-      }
-    })
-    return list
+    if (!value || !value.length) return [normalizedOptions]
+    return value.reduce<CascaderOption[][]>(
+      (acc, val, index) => {
+        if (val === undefined || val === null) return acc
+        const current = acc[index]
+        if (!current) return acc
+        const next = current.find(option => option[keys.valueKey] === value[index])
+        const children = (next?.[keys.childrenKey] as CascaderOption[] | undefined) ?? undefined
+        if (children) acc.push(children)
+        return acc
+      },
+      [normalizedOptions],
+    )
   }, [keys.childrenKey, keys.valueKey, normalizedOptions, value])
 
   const items = React.useMemo(() => {

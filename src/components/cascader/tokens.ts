@@ -10,6 +10,9 @@ export interface CascaderTokens {
     background: string
     headerText: string
     placeholder: string
+    closeIcon: string
+    closeIconActive: string
+    tabText: string
     tabActive: string
     tabInactive: string
     optionText: string
@@ -19,16 +22,22 @@ export interface CascaderTokens {
     divider: string
   }
   spacing: {
-    padding: number
-    tabGap: number
+    headerPaddingHorizontal: number
+    tabNavPaddingHorizontal: number
+    tabNavPaddingVertical: number
+    tabPaddingHorizontal: number
     optionPaddingVertical: number
     optionPaddingHorizontal: number
     optionListPaddingTop: number
+    optionListPaddingBottom: number
   }
   sizing: {
     indicatorHeight: number
     optionMinHeight: number
     optionListHeight: number
+    headerHeight: number
+    closeIconSize: number
+    selectedIconSize: number
   }
   radii: {
     option: number
@@ -40,27 +49,36 @@ const createTokens = (foundations: Foundations): CascaderTokens => {
   return {
     colors: {
       background: "#ffffff",
-      headerText: palette.default[900],
-      placeholder: palette.default[500],
-      tabActive: palette.primary[600],
-      tabInactive: palette.default[700],
-      optionText: palette.default[900],
-      optionDisabled: palette.default[400],
-      optionActiveBackground: palette.primary[50],
-      optionActiveText: palette.primary[600],
-      divider: palette.default[100],
+      headerText: "#323232",
+      placeholder: "#969799",
+      closeIcon: "#c8c9cc",
+      closeIconActive: "#969799",
+      tabText: "#323232",
+      tabActive: palette.primary[500],
+      tabInactive: "#969799",
+      optionText: "#323232",
+      optionDisabled: "#c8c9cc",
+      optionActiveBackground: "#f2f3f5",
+      optionActiveText: palette.primary[500],
+      divider: "#ebedf0",
     },
     spacing: {
-      padding: spacing.md,
-      tabGap: spacing.xs,
-      optionPaddingVertical: spacing.sm,
-      optionPaddingHorizontal: spacing.md,
-      optionListPaddingTop: spacing.xs,
+      headerPaddingHorizontal: spacing.lg,
+      tabNavPaddingHorizontal: 6,
+      tabNavPaddingVertical: 2,
+      tabPaddingHorizontal: 10,
+      optionPaddingVertical: 10,
+      optionPaddingHorizontal: spacing.lg,
+      optionListPaddingTop: 6,
+      optionListPaddingBottom: 0,
     },
     sizing: {
-      indicatorHeight: 2,
-      optionMinHeight: 44,
+      indicatorHeight: 3,
+      optionMinHeight: 40,
       optionListHeight: 384,
+      headerHeight: 48,
+      closeIconSize: 22,
+      selectedIconSize: 18,
     },
     radii: {
       option: radii.sm,
