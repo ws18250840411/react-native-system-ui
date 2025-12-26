@@ -176,4 +176,28 @@ describe('Tabs', () => {
   })
 
   // scrollspy 能力已按官方对齐移除
+
+  it('renders card type tabs', () => {
+    const tree = renderer.create(
+      <Tabs type="card" defaultActive="1">
+        <TabPane title="1" name="1" />
+        <TabPane title="2" name="2" />
+      </Tabs>
+    )
+    
+    // Check border radius or specific styles for card
+    const items = tree.root.findAll(node => node.props.testID?.startsWith('rv-tabs-item'))
+    const uniqueItems = Array.from(new Set(items.map(i => i.props.testID)))
+    expect(uniqueItems).toHaveLength(2)
+  })
+
+  it('renders capsule type tabs', () => {
+    const tree = renderer.create(
+      <Tabs type="capsule" defaultActive="1">
+        <TabPane title="1" name="1" />
+      </Tabs>
+    )
+    const item = tree.root.findByProps({ testID: 'rv-tabs-item-1' })
+    expect(item).toBeDefined()
+  })
 })

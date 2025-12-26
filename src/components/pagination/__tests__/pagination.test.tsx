@@ -1,5 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
+import { Text } from 'react-native'
 import Pagination from '..'
 
 describe('Pagination', () => {
@@ -40,5 +41,29 @@ describe('Pagination', () => {
     )
     const desc = tree.root.findByProps({ testID: 'rv-pagination-desc' })
     expect(desc.props.children).toBe('2/5')
+  })
+
+  it('customizes prev/next text', () => {
+    const tree = renderer.create(
+      <Pagination value={1} pageCount={5} prevText="Back" nextText="Forward" />
+    )
+    const prev = tree.root.findByProps({ testID: 'rv-pagination-prev' })
+    const next = tree.root.findByProps({ testID: 'rv-pagination-next' })
+    // Text component is inside Pressable
+    expect(prev.props.children.props.children).toBe('Back')
+    expect(next.props.children.props.children).toBe('Forward')
+  })
+
+  it('supports custom page render', () => {
+    const pageRender = jest.fn(({ number, active }) => (
+      <Text testID={`custom-text-${number}`}>{active ? `[${number}]` : number}</Text>
+    ))
+    const tree = renderer.create(
+      <Pagination value={1} pageCount={3} pageRender={pageRender} />
+    )
+
+    expect(pageRender).toHaveBeenCalled()
+    const customText = tree.root.findByProps({ testID: 'custom-text-1' })
+    expect(customText.props.children).toBe('[1]')
   })
 })

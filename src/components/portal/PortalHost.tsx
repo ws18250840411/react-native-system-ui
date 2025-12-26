@@ -93,6 +93,7 @@ let nextPortalKey = 1
 let warnedNative = false
 let autoHostActive = false
 let autoHostTeardownScheduled = false
+let autoHostRedundantTeardownScheduled = false
 
 const getEntriesSnapshot = (): PortalEntry[] =>
   Array.from(portalEntries.entries()).map(([key, children]) => ({
@@ -110,6 +111,7 @@ const notifyCurrentHost = () => {
 const registerHost = (host: PortalLayer) => {
   hostStack.push(host)
   host.setEntries(getEntriesSnapshot())
+  scheduleTeardownIfRedundant()
 }
 
 const unregisterHost = (host: PortalLayer) => {
@@ -154,6 +156,7 @@ const teardownAutoHost = () => {
   autoHostContainer = null
   autoHostActive = false
   autoHostTeardownScheduled = false
+  autoHostRedundantTeardownScheduled = false
 }
 
 const scheduleTeardownIfIdle = () => {
@@ -167,6 +170,20 @@ const scheduleTeardownIfIdle = () => {
       teardownAutoHost()
     } else {
       autoHostTeardownScheduled = false
+    }
+  })
+}
+
+const scheduleTeardownIfRedundant = () => {
+  if (!autoHostActive) return
+  if (autoHostRedundantTeardownScheduled) return
+  if (hostStack.length <= 1) return
+  autoHostRedundantTeardownScheduled = true
+  Promise.resolve().then(() => {
+    if (autoHostActive && hostStack.length > 1) {
+      teardownAutoHost()
+    } else {
+      autoHostRedundantTeardownScheduled = false
     }
   })
 }
@@ -216,18 +233,23 @@ export class PortalHost extends React.Component<PortalHostProps> {
 
     return (
       <PortalContext.Provider value={globalManager}>
-        <View style={styles.root} collapsable={false} pointerEvents="box-none">
-          {children}
+        <View style={styles.host} collapsable={false}>
+          <View style={styles.root} collapsable={false} pointerEvents="box-none">
+            {children}
+          </View>
+          <PortalLayer ref={this.setLayerRef} fixed={fixed} />
         </View>
-        <PortalLayer ref={this.setLayerRef} fixed={fixed} />
       </PortalContext.Provider>
     )
   }
 }
 
 const styles = StyleSheet.create({
-  root: {
+  host: {
     position: 'relative',
+    flex: 1,
+  },
+  root: {
     flex: 1,
   },
   portalLayer: {
@@ -263,18 +285,25 @@ export const ensureGlobalPortalHost = () => {
   if (autoHostRoot) return Promise.resolve()
   if (hostPromise) return hostPromise
 
-  const doc = document
-  hostPromise = import('react-dom/client')
-    .then(({ createRoot }) => {
-      if (autoHostRoot) return
+  hostPromise = Promise.resolve()
+    .then(async () => {
+      if (hostStack.length > 0 || autoHostRoot) return
+
+      const doc = document
+      const { createRoot } = await import('react-dom/client')
+
+      if (hostStack.length > 0 || autoHostRoot) return
+
       autoHostContainer = doc.createElement('div')
       autoHostContainer.setAttribute('data-rnsu-portal-host', 'true')
       doc.body.appendChild(autoHostContainer)
       autoHostRoot = createRoot(autoHostContainer)
       autoHostActive = true
       autoHostRoot.render(<PortalHost fixed />)
+      scheduleTeardownIfIdle()
     })
     .catch(error => {
+      teardownAutoHost()
       console.warn('[Portal] 无法自动挂载 PortalHost:', error)
     })
     .finally(() => {

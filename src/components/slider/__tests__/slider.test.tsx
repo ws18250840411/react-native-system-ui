@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { View } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 
 import Slider from '..'
 
@@ -8,7 +8,7 @@ jest.mock('@react-native-aria/utils', () => ({
   isRTL: jest.fn(() => false),
 }))
 
-const getStyleValue = (style: any, key: string) => {
+const getStyleValue = (style: any, key: string): any => {
   if (!style) return undefined
   if (Array.isArray(style)) {
     for (const item of style) {
@@ -88,5 +88,35 @@ describe('Slider', () => {
     })
 
     expect(tree!.toJSON()).toBeTruthy()
+  })
+
+  it('renders custom thumb', () => {
+    const CustomThumb = <Text>Thumb</Text>
+    const tree = renderer.create(
+      <Slider value={50} thumb={CustomThumb} />
+    )
+    
+    const text = tree.root.findByType(Text)
+    expect(text.props.children).toBe('Thumb')
+  })
+
+  it('respects disabled state', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <Slider value={50} onChange={onChange} disabled />
+    )
+    
+    const thumbWrapper = tree.root.findAllByType(View).find(v => v.props.pointerEvents === 'none')
+    expect(thumbWrapper).toBeDefined()
+    
+    const trackWrapper = tree.root.findByType(Pressable)
+    expect(trackWrapper.props.disabled).toBe(true)
+  })
+
+  it('respects step', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <Slider value={1.5} step={1} onChange={onChange} />
+    )
   })
 })

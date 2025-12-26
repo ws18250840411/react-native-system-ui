@@ -55,17 +55,44 @@ describe('Tag', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('honors round size styles when interactive', () => {
+  it('renders mark style', () => {
+    const tree = renderer.create(<Tag mark>Mark</Tag>)
+    const container = tree.root.findByType(View)
+    const style = StyleSheet.flatten(container.props.style)
+    
+    // Mark style sets borderTopLeftRadius and borderBottomLeftRadius to 0 (none)
+    // And right radius to round (max)
+    expect(style.borderTopLeftRadius).toBe(0)
+    expect(style.borderBottomLeftRadius).toBe(0)
+    expect(style.borderTopRightRadius).toBeGreaterThan(10)
+  })
+
+  it('renders different sizes', () => {
+    const tree = renderer.create(<Tag size="large">Large</Tag>)
+    const text = tree.root.findByType(Text)
+    const style = StyleSheet.flatten(text.props.style)
+    // Large font size is 14
+    expect(style.fontSize).toBe(14)
+  })
+
+  it('supports custom close icon', () => {
     const tree = renderer.create(
-      <Tag round size="large" onPress={() => {}}>
-        Round
+      <Tag closeable closeIcon={<View testID="custom-close" />}>
+        Tag
       </Tag>
     )
+    expect(tree.root.findByProps({ testID: 'custom-close' })).toBeDefined()
+  })
 
-    const pressable = tree.root.findByType(Pressable)
-    const style = pressable.props.style({ pressed: false })
-    const flattened = StyleSheet.flatten(style)
-
-    expect(flattened.borderRadius).toBeGreaterThan(10)
+  it('supports custom close icon render function', () => {
+    const tree = renderer.create(
+      <Tag 
+        closeable 
+        closeIcon={(color, size) => <View testID="func-close" style={{ width: size }} />} 
+      >
+        Tag
+      </Tag>
+    )
+    expect(tree.root.findByProps({ testID: 'func-close' })).toBeDefined()
   })
 })

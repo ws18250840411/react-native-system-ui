@@ -1,151 +1,288 @@
 import React from 'react'
-import renderer, { act } from 'react-test-renderer'
-import { TextInput } from 'react-native'
-
-import { Form, FormItem } from '..'
-import Field from '../../field'
+import { act, create } from 'react-test-renderer'
+import { TextInput, Button, Text } from 'react-native'
+import Form, { useWatch } from '..'
+import { FormItem } from '../FormItem'
 
 const globalAny: any = global
 if (!globalAny.document) {
   globalAny.document = {
     createElement: () => ({ style: {} }),
-    body: { appendChild: () => {} },
+    body: { appendChild: () => { } },
   }
 }
 
+// Mock Input component
+const Input = (props: any) => (
+  <TextInput
+    {...props}
+    onChangeText={props.onChangeText} // FormItem injects onChangeText by default
+    testID={props.testID || 'input'}
+  />
+)
+
 describe('Form', () => {
-  it('binds field value and trigger onValuesChange', async () => {
+  it('binds field value and trigger onValuesChange', () => {
+    // ... (keep existing tests)
     const onValuesChange = jest.fn()
-    const onFinish = jest.fn()
-    const formRef = React.createRef<any>()
-    const tree = renderer.create(
-      <Form
-        ref={formRef}
-        initialValues={{ username: 'Jack' }}
-        onValuesChange={onValuesChange}
-        onFinish={onFinish}
-      >
+    const tree = create(
+      <Form onValuesChange={onValuesChange}>
         <FormItem name="username">
-          <Field placeholder="请输入用户名" />
+          <Input />
         </FormItem>
-      </Form>,
+      </Form>
     )
 
     const input = tree.root.findByType(TextInput)
     act(() => {
-      input.props.onChangeText('Lucy')
+      input.props.onChangeText('test')
     })
-    expect(onValuesChange).toHaveBeenCalledWith({ username: 'Lucy' }, 'username', 'Lucy')
 
-    await act(async () => {
-      await formRef.current?.submit()
-    })
-    expect(onFinish).toHaveBeenCalledWith({ username: 'Lucy' })
+    expect(onValuesChange).toHaveBeenCalledWith(
+      expect.objectContaining({ username: 'test' }),
+      'username',
+      'test'
+    )
   })
 
   it('prevents submit when required rule fails until the value is corrected', async () => {
     const onFinish = jest.fn()
-    const formRef = React.createRef<any>()
-    const tree = renderer.create(
-      <Form ref={formRef} onFinish={onFinish}>
-        <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
-          <Field label="用户名" placeholder="请输入用户名" />
-        </Form.Item>
+    let formRef: any
+    const tree = create(
+      <Form
+        ref={ref => (formRef = ref)}
+        onFinish={onFinish}
+      >
+        <FormItem name="username" rules={[{ required: true, message: 'Required' }]}>
+          <Input />
+        </FormItem>
       </Form>
     )
 
+    // Submit with empty value
+    let result
     await act(async () => {
-      await formRef.current?.submit()
+      result = await formRef.submit()
     })
-
-    const field = tree.root.findByType(Field)
-    expect(field.props.errorMessage).toBe('请输入用户名')
     expect(onFinish).not.toHaveBeenCalled()
 
+    // Check error message injection
     const input = tree.root.findByType(TextInput)
+    expect(input.props.error).toBe(true)
+    expect(input.props.errorMessage).toBe('Required')
+
+    // Fix value
     act(() => {
-      input.props.onChangeText('Lucy')
+      input.props.onChangeText('valid')
     })
 
     await act(async () => {
-      await formRef.current?.submit()
+      result = await formRef.submit()
     })
-
-    expect(onFinish).toHaveBeenCalledWith({ username: 'Lucy' })
+    expect(onFinish).toHaveBeenCalledWith({ username: 'valid' })
   })
 
   it('validates pattern on blur trigger', () => {
-    const tree = renderer.create(
+    const tree = create(
       <Form>
-        <Form.Item
-          name="phone"
+        <FormItem
+          name="email"
           validateTrigger="onBlur"
-          rules={[{ pattern: /^1\d{10}$/, message: '手机号格式错误', validateTrigger: 'onBlur' }]}
+          rules={[{ pattern: /@/, message: 'Invalid email' }]}
         >
-          <Field label="手机号" placeholder="请输入手机号" />
-        </Form.Item>
+          <Input />
+        </FormItem>
       </Form>
     )
 
     const input = tree.root.findByType(TextInput)
+
+    // Change text (should not validate yet)
     act(() => {
-      input.props.onChangeText('123456')
+      input.props.onChangeText('invalid')
     })
+    expect(input.props.error).toBeUndefined()
 
-    let field = tree.root.findByType(Field)
-    expect(field.props.errorMessage).toBeUndefined()
-
+    // Blur (should validate)
     act(() => {
-      input.props.onBlur?.({} as any)
+      input.props.onBlur()
     })
-
-    field = tree.root.findByType(Field)
-    expect(field.props.errorMessage).toBe('手机号格式错误')
+    expect(input.props.error).toBe(true)
+    expect(input.props.errorMessage).toBe('Invalid email')
   })
 
   it('supports async validator and validateFields', async () => {
-    const asyncValidator = jest.fn(async (value: string) => {
-      if (value !== 'ok') {
-        return '值需要为 ok'
-      }
-      return undefined
-    })
-    const formRef = React.createRef<any>()
-    const tree = renderer.create(
-      <Form ref={formRef}>
-        <Form.Item
-          name="code"
-          rules={[{ validator: asyncValidator, message: '校验失败' }]}
+    let formRef: any
+    const tree = create(
+      <Form ref={ref => (formRef = ref)}>
+        <FormItem
+          name="username"
+          rules={[
+            {
+              validator: async (value) => {
+                if (value === 'taken') return 'Taken'
+                return null
+              }
+            }
+          ]}
         >
-          <Field label="验证码" placeholder="请输入验证码" />
-        </Form.Item>
+          <Input />
+        </FormItem>
       </Form>
     )
 
     const input = tree.root.findByType(TextInput)
-    await act(async () => {
-      input.props.onChangeText('bad')
-      await Promise.resolve()
-    })
 
-    let field = tree.root.findByType(Field)
-    expect(field.props.errorMessage).toBe('值需要为 ok')
-
-    await act(async () => {
-      await expect(formRef.current?.validateFields()).rejects.toBeTruthy()
+    // Set invalid value
+    act(() => {
+      input.props.onChangeText('taken')
     })
 
     await act(async () => {
-      input.props.onChangeText('ok')
-      await Promise.resolve()
+      try {
+        await formRef.validateFields()
+      } catch (e) {
+        // ignore
+      }
     })
 
-    field = tree.root.findByType(Field)
-    expect(field.props.errorMessage).toBeUndefined()
+    expect(input.props.errorMessage).toBe('Taken')
+  })
 
-    await act(async () => {
-      const values = await formRef.current?.validateFields()
-      expect(values).toEqual({ code: 'ok' })
+  it('supports nested fields', () => {
+    const onValuesChange = jest.fn()
+    const tree = create(
+      <Form onValuesChange={onValuesChange} initialValues={{ user: { name: 'initial' } }}>
+        <FormItem name={['user', 'name']}>
+          <Input testID="name-input" />
+        </FormItem>
+        <FormItem name="user.age">
+          <Input testID="age-input" />
+        </FormItem>
+      </Form>
+    )
+
+    const nameInput = tree.root.findByProps({ testID: 'name-input' })
+    const ageInput = tree.root.findByProps({ testID: 'age-input' })
+
+    // Check initial value
+    expect(nameInput.props.value).toBe('initial')
+
+    // Change nested value via array path
+    act(() => {
+      nameInput.props.onChangeText('updated')
     })
+    expect(onValuesChange).toHaveBeenCalledWith(
+      expect.objectContaining({ user: { name: 'updated' } }),
+      'user.name',
+      'updated'
+    )
+
+    // Change nested value via string path
+    act(() => {
+      ageInput.props.onChangeText('20')
+    })
+    expect(onValuesChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ user: { name: 'updated', age: '20' } }),
+      'user.age',
+      '20'
+    )
+  })
+
+  it('supports dependencies', () => {
+    const tree = create(
+      <Form>
+        <FormItem name="password">
+          <Input testID="password" />
+        </FormItem>
+        <FormItem
+          name="confirm"
+          dependencies={['password']}
+          rules={[
+            {
+              validator: (value, values) => {
+                if (value && value !== values.password) {
+                  return 'Mismatch'
+                }
+                return null
+              }
+            }
+          ]}
+        >
+          <Input testID="confirm" />
+        </FormItem>
+      </Form>
+    )
+
+    const password = tree.root.findByProps({ testID: 'password' })
+    const confirm = tree.root.findByProps({ testID: 'confirm' })
+
+    // Set confirm first
+    act(() => {
+      confirm.props.onChangeText('123')
+    })
+    // Set password to something else
+    act(() => {
+      password.props.onChangeText('456')
+    })
+
+    // Confirm field should be re-validated and show error
+    expect(confirm.props.errorMessage).toBe('Mismatch')
+
+    // Fix password
+    act(() => {
+      password.props.onChangeText('123')
+    })
+    expect(confirm.props.errorMessage).toBeUndefined()
+  })
+
+  it('resets fields', () => {
+    let formRef: any
+    const tree = create(
+      <Form initialValues={{ name: 'init' }} ref={ref => (formRef = ref)}>
+        <FormItem name="name">
+          <Input />
+        </FormItem>
+      </Form>
+    )
+
+    const input = tree.root.findByType(TextInput)
+
+    // Change value
+    act(() => {
+      input.props.onChangeText('changed')
+    })
+    expect(input.props.value).toBe('changed')
+
+    // Reset
+    act(() => {
+      formRef.resetFields()
+    })
+    expect(input.props.value).toBe('init')
+  })
+
+  it('useWatch updates correctly', () => {
+    const Watcher = () => {
+      const value = useWatch('name')
+      return <Text testID="watcher">{value}</Text>
+    }
+
+    const tree = create(
+      <Form>
+        <FormItem name="name">
+          <Input />
+        </FormItem>
+        <Watcher />
+      </Form>
+    )
+
+    const input = tree.root.findByType(TextInput)
+    const watcher = tree.root.findByProps({ testID: 'watcher' })
+
+    act(() => {
+      input.props.onChangeText('hello')
+    })
+
+    expect(watcher.props.children).toBe('hello')
   })
 })

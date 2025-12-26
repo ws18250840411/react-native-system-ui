@@ -146,4 +146,39 @@ describe('CheckboxGroup', () => {
 
     expect(onChange).toHaveBeenCalledTimes(0)
   })
+
+  it('respects max limit in group', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <CheckboxGroup max={2} onChange={onChange}>
+        <Checkbox name="a">A</Checkbox>
+        <Checkbox name="b">B</Checkbox>
+        <Checkbox name="c">C</Checkbox>
+      </CheckboxGroup>
+    )
+
+    const checkboxes = tree.root.findAllByType(Pressable)
+    expect(checkboxes.length).toBe(3)
+
+    // Select A
+    act(() => {
+      checkboxes[0].props.onPress()
+    })
+    expect(onChange).toHaveBeenLastCalledWith(['a'])
+
+    // Select B
+    act(() => {
+      checkboxes[1].props.onPress()
+    })
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'])
+
+    // Select C (should be ignored)
+    act(() => {
+      checkboxes[2].props.onPress()
+    })
+    // Should still be a, b
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'])
+    // Expect 2 calls (A, B). C should not trigger change.
+    expect(onChange).toHaveBeenCalledTimes(2)
+  })
 })

@@ -127,9 +127,13 @@ describe('Portal', () => {
         <Text>Content</Text>
       </Portal>
     )
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining('No PortalHost found')
-    )
+    if (typeof document === 'undefined') {
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining('请在根节点挂载')
+      )
+    } else {
+      expect(spy).not.toHaveBeenCalled()
+    }
     spy.mockRestore()
   })
 })

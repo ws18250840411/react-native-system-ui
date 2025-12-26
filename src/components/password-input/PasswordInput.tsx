@@ -59,16 +59,15 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       : 1
     const { foundations } = useTheme()
     const colors = React.useMemo(() => {
-      const palette = foundations.palette ?? {}
       const border = '#f5f6f7'
       return {
         border,
-        text: palette.default?.[900] ?? '#323233',
-        muted: palette.default?.[500] ?? '#969799',
-        error: palette.error?.[500] ?? '#ff4d4f',
+        text: foundations.palette.default[900],
+        muted: foundations.palette.default[500],
+        error: foundations.palette.danger[500],
         cursor: '#323232',
-        mask: palette.default?.[900] ?? '#323233',
-        background: palette.background?.base ?? '#ffffff',
+        mask: foundations.palette.default[900],
+        background: '#ffffff',
       }
     }, [foundations.palette])
 

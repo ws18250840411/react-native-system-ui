@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native'
 
 import type { SelectorProps, SelectorValue } from './types'
 import { useSelectorTokens } from './tokens'
@@ -30,7 +30,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
   })
 
   const resolvedColumns = Math.max(1, Math.floor(columnsProp))
-  const basis = `${100 / resolvedColumns}%`
+  const basis = `${100 / resolvedColumns}%` as `${number}%`
   const itemMargin = tokens.spacing.gap / 2
   const selectedSet = React.useMemo(() => new Set(value), [value])
 
@@ -71,7 +71,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
         { marginHorizontal: -itemMargin, marginVertical: -itemMargin },
         style,
       ]}
-      accessibilityRole={multiple ? 'group' : 'radiogroup'}
+      accessibilityRole={multiple ? undefined : 'radiogroup'}
     >
       {options.map(option => {
         const active = selectedSet.has(option.value)
@@ -115,7 +115,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                     fontSize: tokens.typography.fontSize,
                     lineHeight: tokens.typography.fontSize * 1.4,
                     fontFamily: tokens.typography.fontFamily,
-                    fontWeight: tokens.typography.fontWeight,
+                    fontWeight: tokens.typography.fontWeight as TextStyle['fontWeight'],
                   },
                   labelStyle,
                 ]}
@@ -200,9 +200,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  pressable: {
-    outlineStyle: 'none',
-  },
+  pressable: Platform.OS === 'web'
+    ? { outlineStyle: 'solid', outlineWidth: 0 }
+    : {},
   item: {
     borderWidth: 0,
     justifyContent: 'center',

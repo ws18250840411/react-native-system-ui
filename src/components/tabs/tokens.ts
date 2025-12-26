@@ -138,7 +138,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       paddingHorizontal: spacing.lg,
       paddingVertical: 0,
       paddingBottom: spacing.md,
-      background: palette.background?.base ?? '#ffffff',
+      background: '#ffffff',
     },
     typography: {
       // 对齐 React Vant：常规 14px，描述 12px，巨幕标题 16px

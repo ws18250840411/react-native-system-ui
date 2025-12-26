@@ -289,4 +289,73 @@ describe('Uploader', () => {
       tree.unmount()
     })
   })
+
+  it('respects maxCount', async () => {
+    const onUpload = jest.fn().mockResolvedValue([
+      { url: '1.png' },
+      { url: '2.png' },
+      { url: '3.png' },
+    ])
+    
+    let tree: renderer.ReactTestRenderer
+    await act(async () => {
+      tree = renderer.create(
+        <PortalHost>
+          <Uploader maxCount={2} onUpload={onUpload} />
+        </PortalHost>
+      )
+    })
+    
+    const uploadButton = tree.root.findByProps({ testID: 'rv-uploader-upload' })
+    await act(async () => {
+      await uploadButton.props.onPress?.({})
+    })
+    
+    // Should only add 2 items
+    expect(tree.root.findAllByProps({ testID: 'rv-uploader-item-0' }).length).toBe(1)
+    expect(tree.root.findAllByProps({ testID: 'rv-uploader-item-1' }).length).toBe(1)
+    // Item 2 should not exist (only 2 items, indices 0 and 1)
+    expect(tree.root.findAllByProps({ testID: 'rv-uploader-item-2' }).length).toBe(0)
+    
+    // Upload button should be hidden
+    expect(tree.root.findAllByProps({ testID: 'rv-uploader-upload' }).length).toBe(0)
+    
+    await act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('hides delete button when deletable is false', async () => {
+    let tree: renderer.ReactTestRenderer
+    await act(async () => {
+      tree = renderer.create(
+        <PortalHost>
+          <Uploader defaultValue={[{ url: '1.png' }]} deletable={false} />
+        </PortalHost>
+      )
+    })
+    
+    expect(tree.root.findAllByProps({ testID: 'rv-uploader-delete-0' }).length).toBe(0)
+    
+    await act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('hides upload button when showUpload is false', async () => {
+    let tree: renderer.ReactTestRenderer
+    await act(async () => {
+      tree = renderer.create(
+        <PortalHost>
+          <Uploader showUpload={false} />
+        </PortalHost>
+      )
+    })
+    
+    expect(tree.root.findAllByProps({ testID: 'rv-uploader-upload' }).length).toBe(0)
+    
+    await act(() => {
+      tree.unmount()
+    })
+  })
 })

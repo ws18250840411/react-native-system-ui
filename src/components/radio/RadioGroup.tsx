@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useRadioGroup } from '@react-native-aria/radio'
 import { useRadioGroupState } from '@react-stately/radio'
 
@@ -72,7 +72,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
 
   const supportsGap = Platform.OS === 'web'
   const childrenArray = React.Children.toArray(children).filter(Boolean)
-  const itemStyleForIndex = (index: number): ViewStyle => {
+  const itemStyleForIndex = (index: number): StyleProp<ViewStyle> => {
     if (supportsGap) return styles.item
 
     const isLast = index === childrenArray.length - 1

@@ -1,4 +1,5 @@
 import React from "react"
+import { Text } from "react-native"
 import renderer, { act } from "react-test-renderer"
 
 import Calendar from ".."
@@ -238,5 +239,40 @@ describe("Calendar", () => {
 
     const febDays = tree.root.findAllByProps({ testID: "calendar-day-2024-02-01" })
     expect(febDays.length).toBeGreaterThan(0)
+  })
+
+  it('respects weekStartsOn', () => {
+    // 2023-01-01 is Sunday
+    const date = new Date(2023, 0, 1)
+    const tree = renderer.create(
+      <Calendar
+        value={date}
+        minDate={new Date(2023, 0, 1)}
+        maxDate={new Date(2023, 0, 31)}
+        weekStartsOn={1} // Monday
+      />
+    )
+    
+    // Check week labels
+    const weekLabels = tree.root.findAllByType(Text)
+      .filter(n => ['一', '二', '三', '四', '五', '六', '日'].includes(n.props.children))
+    
+    expect(weekLabels[0].props.children).toBe('一')
+    expect(weekLabels[6].props.children).toBe('日')
+  })
+
+  it('formats month title', () => {
+    const date = new Date(2023, 0, 1)
+    const tree = renderer.create(
+      <Calendar
+        value={date}
+        formatMonthTitle={d => `Title ${d.getMonth() + 1}`}
+      />
+    )
+    
+    // Header subtitle
+    const texts = tree.root.findAllByType(Text)
+    const title = texts.find(n => n.props.children === 'Title 1')
+    expect(title).toBeDefined()
   })
 })

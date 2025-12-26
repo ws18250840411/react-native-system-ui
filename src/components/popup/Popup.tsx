@@ -232,7 +232,6 @@ export const Popup: React.FC<PopupProps> = props => {
   const progress = React.useRef(new Animated.Value(visible ? 1 : 0)).current
   const animatingRef = React.useRef(false)
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
-  const pendingShowRef = React.useRef(false)
   const distanceRef = React.useRef(0)
   const pendingLayoutRef = React.useRef<{ width: number; height: number } | null>(null)
   const prevVisible = React.useRef(visible)
@@ -286,22 +285,15 @@ export const Popup: React.FC<PopupProps> = props => {
   )
 
   React.useEffect(() => {
-    const needsMeasure = shouldTranslate && distanceRef.current === 0
     if (visible) {
-      if (needsMeasure) {
-        pendingShowRef.current = true
-        progress.setValue(0)
-        setMounted(true)
-        setInteractionVisible(true)
-        return
-      }
-      pendingShowRef.current = false
+      setMounted(true)
+      setInteractionVisible(true)
+      progress.setValue(0)
       runAnimation(true)
     } else {
-      pendingShowRef.current = false
       runAnimation(false)
     }
-  }, [progress, runAnimation, shouldTranslate, visible])
+  }, [progress, runAnimation, visible])
 
   React.useEffect(() => {
     if (visible && !prevVisible.current) {
@@ -383,8 +375,8 @@ export const Popup: React.FC<PopupProps> = props => {
   const distance =
     distanceRef.current ||
     (config.axis === 'x'
-      ? contentSize.width || windowWidth
-      : contentSize.height || windowHeight)
+      ? contentSize.width
+      : contentSize.height)
 
   const translateStyle: Animated.WithAnimatedObject<ViewStyle> = shouldTranslate
     ? {
@@ -407,7 +399,7 @@ export const Popup: React.FC<PopupProps> = props => {
     : { transform: [] }
 
   const overlayOpacity = progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] })
-  const contentOpacity = placement === 'center' ? progress : 1
+  const contentOpacity = progress
   const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = React.useMemo(() => {
     const baseStyle: Animated.WithAnimatedObject<ViewStyle> = {
       ...translateStyle,
@@ -446,19 +438,15 @@ export const Popup: React.FC<PopupProps> = props => {
         }
         return next
       })
-      if (pendingShowRef.current) {
-        pendingShowRef.current = false
-        runAnimation(true)
-      }
     },
-    [isVertical, overlayOnLayout, runAnimation]
+    [isVertical, overlayOnLayout]
   )
 
   const shouldRender = mounted || visible
 
   if (!shouldRender) return null
 
-  const hidden = (!visible && !interactionVisible) || pendingShowRef.current
+  const hidden = (!visible && !interactionVisible)
 
   const hasCustomCloseIcon = closeIcon != null
 

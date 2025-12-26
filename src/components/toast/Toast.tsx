@@ -108,8 +108,6 @@ const useToastTokens = (overrides?: DeepPartial<ToastTokens>) => {
   }, [foundations, components, overrides])
 }
 
-const AnimatedPressableToast = Animated.createAnimatedComponent(Pressable)
-
 export const Toast: React.FC<ToastProps> = props => {
   const {
     visible,
@@ -253,48 +251,53 @@ export const Toast: React.FC<ToastProps> = props => {
             onMoveShouldSetResponder={() => true}
           />
         ) : null}
-        <AnimatedPressableToast
-          disabled={!closeOnClick}
-          {...toastPress.interactionProps}
-          style={[
-            styles.toast,
-            {
-              borderRadius: tokens.radius,
-              opacity: animated,
-              backgroundColor: tokens.colors.variants[type],
-              maxWidth: tokens.maxWidth,
-              ...(isTextToast
-                ? ({
+        <Pressable disabled={!closeOnClick} {...toastPress.interactionProps}>
+          <Animated.View
+            style={[
+              styles.toast,
+              ({
+                borderRadius: tokens.radius,
+                opacity: closeOnClick && toastPress.states.pressed ? 0.85 : animated,
+                backgroundColor: tokens.colors.variants[type],
+                maxWidth: tokens.maxWidth,
+                ...(isTextToast
+                  ? ({
                     minWidth: tokens.textMinWidth,
                     minHeight: 0,
                     paddingVertical: tokens.textPaddingVertical,
                     paddingHorizontal: tokens.textPaddingHorizontal,
                   } as ViewStyle)
-                : ({
+                  : ({
                     minWidth: tokens.defaultWidth,
                     minHeight: tokens.defaultMinHeight,
                     padding: tokens.defaultPadding,
                   } as ViewStyle)),
-            },
-            closeOnClick && toastPress.states.pressed ? { opacity: 0.85 } : null,
-            style,
-          ]}
-        >
-          {iconNode ? (
-            <View style={{ marginBottom: tokens.gap }}>{iconNode}</View>
-          ) : null}
-          {hasMessage
-            ? typeof message === 'string' || typeof message === 'number'
-              ? (
-                <Text style={[styles.message, { color: tokens.colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight }, textStyle]}>
-                  {message}
-                </Text>
-              )
-              : (
-                <View style={{ alignItems: 'center' }}>{message}</View>
-              )
-            : null}
-        </AnimatedPressableToast>
+              } as Animated.WithAnimatedValue<ViewStyle>),
+              style,
+            ]}
+          >
+            {iconNode ? (
+              <View style={{ marginBottom: tokens.gap }}>{iconNode}</View>
+            ) : null}
+            {hasMessage
+              ? typeof message === 'string' || typeof message === 'number'
+                ? (
+                  <Text
+                    style={[
+                      styles.message,
+                      { color: tokens.colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight },
+                      textStyle,
+                    ]}
+                  >
+                    {message}
+                  </Text>
+                )
+                : (
+                  <View style={{ alignItems: 'center' }}>{message}</View>
+                )
+              : null}
+          </Animated.View>
+        </Pressable>
       </View>
     </Portal>
   )

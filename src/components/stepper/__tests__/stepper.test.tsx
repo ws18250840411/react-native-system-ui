@@ -8,7 +8,7 @@ const globalAny: any = global
 if (!globalAny.document) {
   globalAny.document = {
     createElement: () => ({ style: {} }),
-    body: { appendChild: () => {} },
+    body: { appendChild: () => { } },
   }
 }
 
@@ -17,8 +17,8 @@ describe('Stepper', () => {
     const handleChange = jest.fn()
     const tree = renderer.create(<Stepper defaultValue={1} onChange={handleChange} />)
 
-    const plus = tree.root.findByProps({ testID: 'stepper-plus' }) as React.ReactElement<any>
-    const minus = tree.root.findByProps({ testID: 'stepper-minus' }) as React.ReactElement<any>
+    const plus = tree.root.findByProps({ testID: 'stepper-plus' })
+    const minus = tree.root.findByProps({ testID: 'stepper-minus' })
 
     act(() => {
       plus.props.onPress({})
@@ -31,12 +31,70 @@ describe('Stepper', () => {
     expect(handleChange).toHaveBeenLastCalledWith(1, { name: undefined })
   })
 
+  it('formats value with decimalLength', () => {
+    const tree = renderer.create(
+      <Stepper value={1.5} decimalLength={2} />
+    )
+
+    const input = tree.root.findByType(TextInput)
+    expect(input.props.value).toBe('1.50')
+  })
+
+  it('enforces integer prop', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <Stepper value={1} integer step={0.5} onChange={onChange} />
+    )
+
+    let plus = tree.root.findByProps({ testID: 'stepper-plus' })
+    act(() => {
+      plus.props.onPress({})
+    })
+
+    // 1 + 0.5 = 1.5 -> trunc -> 1. No change.
+    expect(onChange).not.toHaveBeenCalled()
+
+    // 1 + 1.5 = 2.5 -> trunc -> 2.
+    act(() => {
+      tree.update(<Stepper value={1} integer step={1.5} onChange={onChange} />)
+    })
+
+    plus = tree.root.findByProps({ testID: 'stepper-plus' })
+    act(() => {
+      plus.props.onPress({})
+    })
+    expect(onChange).toHaveBeenCalledWith(2, { name: undefined })
+  })
+
+  it('allows empty input if allowEmpty is true', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <Stepper value={1} allowEmpty onChange={onChange} />
+    )
+
+    const input = tree.root.findByType(TextInput)
+    act(() => {
+      input.props.onChangeText('')
+    })
+
+    expect(onChange).toHaveBeenCalledWith(null, { name: undefined })
+  })
+
+  it('disables input editing', () => {
+    const tree = renderer.create(
+      <Stepper value={1} disableInput />
+    )
+
+    const input = tree.root.findByType(TextInput)
+    expect(input.props.editable).toBe(false)
+  })
+
   it('respects min/max limits', () => {
     const onOverlimit = jest.fn()
     const tree = renderer.create(
-      <Stepper value={1} min={1} max={2} onOverlimit={onOverlimit} />, 
+      <Stepper value={1} min={1} max={2} onOverlimit={onOverlimit} />,
     )
-    const minus = tree.root.findByProps({ testID: 'stepper-minus' }) as React.ReactElement<any>
+    const minus = tree.root.findByProps({ testID: 'stepper-minus' })
     act(() => {
       minus.props.onPress({})
     })
@@ -60,7 +118,7 @@ describe('Stepper', () => {
     const tree = renderer.create(
       <Stepper defaultValue={0.2} step={0.1} onChange={handleChange} />,
     )
-    const plus = tree.root.findByProps({ testID: 'stepper-plus' }) as React.ReactElement<any>
+    const plus = tree.root.findByProps({ testID: 'stepper-plus' })
 
     act(() => {
       plus.props.onPress({})
@@ -73,7 +131,7 @@ describe('Stepper', () => {
     jest.useFakeTimers()
     const handleChange = jest.fn()
     const tree = renderer.create(<Stepper defaultValue={0} onChange={handleChange} />)
-    const plus = tree.root.findByProps({ testID: 'stepper-plus' }) as React.ReactElement<any>
+    const plus = tree.root.findByProps({ testID: 'stepper-plus' })
 
     act(() => {
       plus.props.onPressIn?.()
@@ -96,7 +154,7 @@ describe('Stepper', () => {
     const tree = renderer.create(
       <Stepper defaultValue={1} onChange={handleChange} beforeChange={beforeChange} />,
     )
-    const plus = tree.root.findByProps({ testID: 'stepper-plus' }) as React.ReactElement<any>
+    const plus = tree.root.findByProps({ testID: 'stepper-plus' })
 
     act(() => {
       plus.props.onPress({})
@@ -111,7 +169,7 @@ describe('Stepper', () => {
     const tree = renderer.create(
       <Stepper defaultValue={1} onChange={handleChange} beforeChange={() => Promise.resolve(true)} />,
     )
-    const plus = tree.root.findByProps({ testID: 'stepper-plus' }) as React.ReactElement<any>
+    const plus = tree.root.findByProps({ testID: 'stepper-plus' })
 
     await act(async () => {
       plus.props.onPress({})

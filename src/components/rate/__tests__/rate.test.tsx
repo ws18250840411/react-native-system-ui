@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import Rate from '..'
 
@@ -97,5 +97,36 @@ describe('Rate', () => {
     const items = tree.root.findAllByType(Pressable)
     expect(items.length).toBe(0)
     expect(handleChange).not.toHaveBeenCalled()
+  })
+
+  it('supports custom character', () => {
+    const tree = renderer.create(<Rate count={1} character="A" value={1} />)
+    const text = tree.root.findByType(Text)
+    expect(text.props.children).toBe('A')
+  })
+
+  it('respects readOnly prop', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <Rate count={5} value={3} readOnly onChange={onChange} />
+    )
+    
+    // Should render as View (not interactive)
+    const items = tree.root.findAllByProps({ accessibilityRole: 'image' })
+    expect(items.length).toBe(5)
+    
+    // Should not have any Pressable with role="button"
+    const buttons = tree.root.findAllByProps({ accessibilityRole: 'button' })
+    expect(buttons.length).toBe(0)
+  })
+
+  it('renders custom icons', () => {
+    const CustomIcon = (props: any) => <Text {...props}>Icon</Text>
+    const tree = renderer.create(
+      <Rate count={1} icon={<CustomIcon />} value={1} />
+    )
+    
+    const icon = tree.root.findByType(CustomIcon)
+    expect(icon).toBeDefined()
   })
 })

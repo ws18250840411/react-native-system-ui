@@ -1,12 +1,12 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { StyleSheet, Text, TextInput } from 'react-native'
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
 const globalAny: any = global
 if (!globalAny.document) {
   globalAny.document = {
     createElement: () => ({ style: {} }),
-    body: { appendChild: () => {} },
+    body: { appendChild: () => { } },
   }
 }
 
@@ -23,6 +23,56 @@ describe('Search', () => {
 
     const actionNode = tree.root.find(node => node.props.children === '取消')
     expect(actionNode).toBeTruthy()
+  })
+
+  it('exposes focus/blur/clear methods via ref', () => {
+    let searchRef: any
+    const tree = renderer.create(<Search defaultValue="test" ref={ref => { searchRef = ref }} />)
+
+    const onChangeText = jest.fn()
+    // Need to act for update
+    renderer.act(() => {
+      tree.update(<Search defaultValue="test" ref={ref => { searchRef = ref }} onChangeText={onChangeText} />)
+    })
+
+    renderer.act(() => {
+      searchRef.clear()
+    })
+
+    expect(onChangeText).toHaveBeenCalledWith('')
+  })
+
+  it('renders custom action component', () => {
+    const CustomAction = <Text>My Action</Text>
+    const tree = renderer.create(<Search action={CustomAction} />)
+
+    const action = tree.root.findByType(Text)
+    expect(action.props.children).toBe('My Action')
+  })
+
+  it('controls action visibility with showAction', () => {
+    const tree = renderer.create(<Search />)
+    // Should not render action (find Pressable with testID)
+    const actions = tree.root.findAllByType(Pressable).filter(p => p.props.testID === 'rnsu-search-action')
+    expect(actions.length).toBe(0)// showAction = true
+    renderer.act(() => {
+      tree.update(<Search showAction />)
+    })
+    const actions2 = tree.root.findAllByType(Pressable).filter(p => p.props.testID === 'rnsu-search-action')
+    expect(actions2.length).toBe(1)
+  })
+  it('applies shape style', () => {
+    const tree = renderer.create(<Search shape="round" />)
+    const views = tree.root.findAllByType(View)
+    const contentView = views.find(v => {
+      const style = v.props.style
+      if (Array.isArray(style)) {
+        return style.some((s: any) => s && typeof s.borderRadius === 'number')
+      }
+      return style && typeof style.borderRadius === 'number'
+    })
+
+    expect(contentView).toBeDefined()
   })
 
   it('triggers onSearch when submitting', () => {

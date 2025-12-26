@@ -50,4 +50,28 @@ describe('Area', () => {
       ]),
     )
   })
+
+  it('passes value and defaultValue to Picker', () => {
+      const tree = renderer.create(
+          <Area areaList={areaList} value="110101" defaultValue="110101" />
+      )
+      const picker = tree.root.findByType(Picker)
+      expect(picker.props.value).toBe('110101')
+      expect(picker.props.defaultValue).toBe('110101')
+  })
+
+  it('generates 2 columns when columnsNum is 2', () => {
+      const tree = renderer.create(<Area areaList={areaList} columnsNum={2} />)
+      const picker = tree.root.findByType(Picker)
+      expect(picker.props.columns).toHaveLength(2)
+  })
+
+  it('handles confirm event', () => {
+      const onConfirm = jest.fn()
+      const tree = renderer.create(<Area areaList={areaList} onConfirm={onConfirm} />)
+      const picker = tree.root.findByType(Picker)
+      
+      picker.props.onConfirm?.(['110000'], [{ label: 'Beijing', value: '110000' }])
+      expect(onConfirm).toHaveBeenCalled()
+  })
 })

@@ -53,7 +53,7 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
       maskType: 'gradient',
     },
     colors: {
-      background: palette.background?.base ?? '#ffffff',
+      background: '#ffffff',
       indicator: '#ebedf0',
       text: '#000000',
       textMuted: '#000000',

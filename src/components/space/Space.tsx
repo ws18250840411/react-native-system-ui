@@ -104,7 +104,7 @@ export const Space: React.FC<SpaceProps> = props => {
   const shouldFillMainAxis = isHorizontal && ((fill ?? false) || shouldStretchJustify)
 
   const childArray = React.Children.toArray(children).filter(
-    child => child !== null && child !== undefined && child !== false
+    child => child !== null && child !== undefined
   )
 
   const composedChildren: Array<{
@@ -159,15 +159,15 @@ export const Space: React.FC<SpaceProps> = props => {
     const fillStyle: ViewStyle | undefined = item.isDivider
       ? undefined
       : {
-          ...(shouldFillMainAxis
-            ? {
-                flexGrow: 1,
-                flexBasis: 0,
-                minWidth: 0,
-              }
-            : {}),
-          ...(!isHorizontal && (fill || shouldBlock) ? { width: '100%' } : {}),
-        }
+        ...(shouldFillMainAxis
+          ? {
+            flexGrow: 1,
+            flexBasis: 0,
+            minWidth: 0,
+          }
+          : {}),
+        ...(!isHorizontal && (fill || shouldBlock) ? { width: '100%' } : {}),
+      }
 
     const child =
       typeof item.node === 'string' || typeof item.node === 'number' ? (

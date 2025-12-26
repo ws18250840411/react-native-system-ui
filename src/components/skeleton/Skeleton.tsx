@@ -106,10 +106,10 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
       {avatar ? (
         <Animated.View
           style={[
-            styles.avatar,
-            {
-              width: normalizeValue(avatarSize, 32),
-              height: normalizeValue(avatarSize, 32),
+              styles.avatar,
+              {
+              width: normalizeValue(avatarSize, 32) as any,
+              height: normalizeValue(avatarSize, 32) as any,
               borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
               backgroundColor: tokens.colors.block,
             },
@@ -123,7 +123,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
             style={[
               styles.title,
               {
-                width: normalizeValue(titleWidth, '40%'),
+                width: normalizeValue(titleWidth, '40%') as any,
                 height: titleHeight,
                 backgroundColor: tokens.colors.block,
                 borderRadius: round ? tokens.radius : 0,
@@ -141,8 +141,8 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
                 style={[
                   styles.row,
                   {
-                    width,
-                    height: rowHeights[index],
+                    width: width as any,
+                    height: rowHeights[index] as any,
                     marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
                     backgroundColor: tokens.colors.block,
                     borderRadius: round ? tokens.radius : 0,

@@ -40,7 +40,7 @@ const createTokens = (foundations: Foundations): NavBarTokens => {
       safeAreaInsetTop: false,
     },
     colors: {
-      background: palette.background?.base ?? '#ffffff',
+      background: '#ffffff',
       text: palette.default[900],
       description: palette.default[500],
       border: palette.default[200],

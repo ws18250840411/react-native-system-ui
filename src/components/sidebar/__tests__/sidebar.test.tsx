@@ -46,4 +46,38 @@ describe('Sidebar', () => {
 
     expect(onChange).not.toHaveBeenCalled()
   })
+
+  it('works in controlled mode', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <Sidebar value={1} onChange={onChange}>
+        <Item title="A" />
+        <Item title="B" />
+      </Sidebar>
+    )
+    
+    // Check initial active
+    const itemB = tree.root.findByProps({ testID: 'rv-sidebar-item-1' })
+    // Active item has different background color (white)
+    // We can check style or props if we had access to context consumer directly, 
+    // but here we can check styles of Pressable
+    // However, SidebarItem implementation details might vary.
+    // Let's just try to switch to A
+    
+    const itemA = tree.root.findByProps({ testID: 'rv-sidebar-item-0' })
+    act(() => {
+        itemA.props.onPress?.({})
+    })
+    
+    expect(onChange).toHaveBeenCalledWith(0)
+    
+    // Rerender with new value
+    tree.update(
+      <Sidebar value={0} onChange={onChange}>
+        <Item title="A" />
+        <Item title="B" />
+      </Sidebar>
+    )
+    // Should update visually
+  })
 })

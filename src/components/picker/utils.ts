@@ -83,7 +83,8 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
     const current = rawValue[depth]
     const startIndex = currentOptions.findIndex(item => item.value === current)
     const targetIndex = findEnabledIndex(currentOptions, startIndex >= 0 ? startIndex : 0)
-    const target = targetIndex >= 0 ? currentOptions[targetIndex] : undefined
+    const target: PickerOption | undefined =
+      targetIndex >= 0 ? currentOptions[targetIndex] : undefined
     values[depth] = (target?.value ?? current) as PickerValue
     options[depth] = target
     indexes[depth] = targetIndex

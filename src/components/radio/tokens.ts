@@ -85,5 +85,3 @@ export const useRadioTokens = (
     return merged ? deepMerge(base, merged) : base
   }, [components, foundations, overrides])
 }
-
-export type { RadioTokens }

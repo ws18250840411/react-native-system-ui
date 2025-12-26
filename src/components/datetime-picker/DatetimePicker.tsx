@@ -100,9 +100,22 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     (dateValue?: Date) => {
       const fallback = isValidDate(dateValue) ? dateValue! : new Date()
       const time = clamp(fallback.getTime(), minDate.getTime(), maxDate.getTime())
-      return new Date(time)
+      const date = new Date(time)
+
+      if (type === 'year-month') {
+        date.setDate(1)
+        date.setHours(0, 0, 0, 0)
+      } else if (type === 'date') {
+        date.setHours(0, 0, 0, 0)
+      } else if (type === 'datehour') {
+        date.setMinutes(0, 0, 0)
+      } else if (type === 'month-day') {
+        date.setHours(0, 0, 0, 0)
+      }
+
+      return date
     },
-    [maxDate, minDate],
+    [maxDate, minDate, type],
   )
 
   const [currentDate, setCurrentDate] = React.useState<Date>(() => formatValue(value ?? defaultValue))

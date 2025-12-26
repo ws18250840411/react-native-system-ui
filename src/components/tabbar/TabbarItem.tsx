@@ -4,11 +4,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import Badge from '../badge'
 import { useTabbarTokens } from './tokens'
-import { TabbarContext, useTabbarContext } from './TabbarContext'
+import { useTabbarContext } from './TabbarContext'
 import type { BadgeProps } from '../badge/types'
 import type { TabbarItemProps, TabbarValue } from './types'
 
-const isRenderable = (value: React.ReactNode) =>
+const isRenderable = (value: unknown) =>
   value !== undefined && value !== null && value !== false
 
 const isBadgePropsLike = (value: unknown): value is BadgeProps => {
@@ -62,9 +62,11 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
   const applyIconTheme = (node: React.ReactNode) => {
     if (!React.isValidElement(node)) return node
 
+    const element = node as React.ReactElement<any>
+
     // 兼容 react-native-system-icon（SvgProps + size/fill/color），尽量不覆盖用户显式传入
-    const nextProps: Record<string, unknown> = {}
-    const p: any = node.props ?? {}
+    const nextProps: any = {}
+    const p: any = element.props ?? {}
 
     if (p.size == null) nextProps.size = resolvedIconSize
     if (p.fill == null) nextProps.fill = color
@@ -75,7 +77,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
       nextProps.style = [p.style, { color }]
     }
 
-    return React.cloneElement(node, nextProps)
+    return React.cloneElement(element, nextProps)
   }
 
   const renderIcon = () => {
@@ -104,6 +106,21 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     },
   })
 
+  const shouldRenderBadge = dot || isRenderable(badge)
+
+  const renderBadge = () => {
+    if (isRenderable(badge)) {
+      if (typeof badge === 'string' || typeof badge === 'number') {
+        return <Badge content={badge} />
+      }
+      if (isBadgePropsLike(badge)) {
+        return <Badge {...badge} dot={dot || badge.dot} />
+      }
+      return badge as React.ReactNode
+    }
+    return <Badge dot />
+  }
+
   return (
     <Pressable
       {...rest}
@@ -120,15 +137,9 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     >
       <View style={[styles.iconWrapper, iconStyle]}>
         {renderIcon()}
-        {isRenderable(badge) || dot ? (
+        {shouldRenderBadge ? (
           <View style={styles.badge}>
-            {isRenderable(badge)
-              ? typeof badge === 'string' || typeof badge === 'number'
-                ? <Badge content={badge} />
-                : isBadgePropsLike(badge)
-                  ? <Badge {...badge} dot={dot || badge.dot} />
-                  : badge
-              : <Badge dot />}
+            {renderBadge()}
           </View>
         ) : null}
       </View>

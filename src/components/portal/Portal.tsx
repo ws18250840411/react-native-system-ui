@@ -17,16 +17,16 @@ const usePortalManager = () => React.useContext(PortalContext) ?? globalManager
 const PortalComponent: React.FC<PortalProps> = ({ children }) => {
   const manager = usePortalManager()
   const keyRef = React.useRef<number | null>(null)
+  const skipUpdateRef = React.useRef(true)
 
-  React.useEffect(() => {
-    if (manager === globalManager && !portalStore.hasHosts()) {
-      console.warn('Portal: No PortalHost found. Please wrap your application with PortalHost or ConfigProvider.')
-      // Don't return, let it try to mount (maybe host will be added later or it's a test mock?)
-      // Actually if we return, it won't mount. But warning is enough.
+  React.useLayoutEffect(() => {
+    if (manager === globalManager) {
+      void ensureGlobalPortalHost()
     }
 
     const key = manager.mount(children ?? null)
     keyRef.current = key
+    skipUpdateRef.current = true
     return () => {
       if (keyRef.current !== null) {
         manager.unmount(keyRef.current)
@@ -34,7 +34,11 @@ const PortalComponent: React.FC<PortalProps> = ({ children }) => {
     }
   }, [manager])
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
+    if (skipUpdateRef.current) {
+      skipUpdateRef.current = false
+      return
+    }
     if (keyRef.current !== null) {
       manager.update(keyRef.current, children ?? null)
     }

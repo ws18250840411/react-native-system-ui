@@ -249,12 +249,10 @@ const Cascader: React.FC<CascaderProps> = props => {
 
       if (poppable) {
         setPanelValue(nextValue)
+        onChange?.(nextValue, rows)
       } else {
         setValue(nextValue, rows)
       }
-
-      // 与 React Vant 对齐：每次选择都触发 onChange
-      onChange?.(nextValue, rows)
 
       if (asyncBranch) {
         setPendingPath(nextValue)
@@ -289,56 +287,6 @@ const Cascader: React.FC<CascaderProps> = props => {
     ],
   )
 
-  const renderOption = (option: CascaderOption, tabIndex: number, isLast: boolean) => {
-    const optionValue = option[keys.valueKey]
-    const label = option[keys.textKey]
-    const selected = selectedValuesRef.current[tabIndex] === optionValue
-    const disabled = !!option.disabled
-    const baseColor = option.color ?? tokens.colors.optionText
-    const textColor = disabled
-      ? tokens.colors.optionDisabled
-      : selected
-        ? option.color ?? tokens.colors.optionActiveText
-        : baseColor
-
-    const content = optionRender
-      ? optionRender({ option, selected })
-      : isTextLike(label)
-        ? (
-          <Text style={[styles.optionText, selected && styles.optionTextActive, { color: textColor }]}>
-            {label}
-          </Text>
-        )
-        : label ?? null
-
-    return (
-      <Pressable
-        key={String(optionValue)}
-        testID={`cascader-option-${tabIndex}-${String(optionValue)}`}
-        style={({ pressed }) => [
-          styles.option,
-          {
-            minHeight: tokens.sizing.optionMinHeight,
-            paddingVertical: tokens.spacing.optionPaddingVertical,
-            paddingHorizontal: tokens.spacing.optionPaddingHorizontal,
-            borderColor: tokens.colors.divider,
-            borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-          },
-          pressed && !disabled ? { backgroundColor: tokens.colors.optionActiveBackground } : null,
-        ]}
-        onPress={() => handleSelect(option, tabIndex)}
-        disabled={disabled}
-      >
-        <View style={styles.optionContent}>
-          <View style={styles.optionLabel}>{content}</View>
-          {selected ? (
-            <Checked size={16} fill={activeColor} color={activeColor} />
-          ) : null}
-        </View>
-      </Pressable>
-    )
-  }
-
   const renderOptionsList = (optionList: CascaderOption[], tabIndex: number) => (
     <ScrollView
       style={[styles.optionList, { height: tokens.sizing.optionListHeight }]}
@@ -349,7 +297,20 @@ const Cascader: React.FC<CascaderProps> = props => {
       showsVerticalScrollIndicator={false}
     >
       {optionList.length
-        ? optionList.map((item, idx) => renderOption(item, tabIndex, idx === optionList.length - 1))
+        ? optionList.map((item, idx) => (
+          <CascaderOptionItem
+            key={String(item[keys.valueKey])}
+            option={item}
+            tabIndex={tabIndex}
+            isLast={idx === optionList.length - 1}
+            selected={selectedValuesRef.current[tabIndex] === item[keys.valueKey]}
+            activeColor={activeColor}
+            keys={keys}
+            optionRender={optionRender}
+            onSelect={handleSelect}
+            tokens={tokens}
+          />
+        ))
         : <Text style={[styles.empty, { color: tokens.colors.placeholder }]}>{placeholder}</Text>}
     </ScrollView>
   )
@@ -532,6 +493,76 @@ const Cascader: React.FC<CascaderProps> = props => {
     </>
   )
 }
+
+const CascaderOptionItem = React.memo(
+  ({
+    option,
+    tabIndex,
+    isLast,
+    selected,
+    activeColor,
+    keys,
+    optionRender,
+    onSelect,
+    tokens,
+  }: {
+    option: CascaderOption
+    tabIndex: number
+    isLast: boolean
+    selected: boolean
+    activeColor: string
+    keys: { textKey: string; valueKey: string; childrenKey: string }
+    optionRender?: CascaderProps['optionRender']
+    onSelect: (option: CascaderOption, tabIndex: number) => void
+    tokens: any
+  }) => {
+    const optionValue = option[keys.valueKey]
+    const label = option[keys.textKey]
+    const disabled = !!option.disabled
+    const baseColor = option.color ?? tokens.colors.optionText
+    const textColor = disabled
+      ? tokens.colors.optionDisabled
+      : selected
+        ? option.color ?? tokens.colors.optionActiveText
+        : baseColor
+
+    const content = optionRender
+      ? optionRender({ option, selected })
+      : isTextLike(label)
+        ? (
+          <Text style={[styles.optionText, selected && styles.optionTextActive, { color: textColor }]}>
+            {label}
+          </Text>
+        )
+        : label ?? null
+
+    return (
+      <Pressable
+        testID={`cascader-option-${tabIndex}-${String(optionValue)}`}
+        style={({ pressed }) => [
+          styles.option,
+          {
+            minHeight: tokens.sizing.optionMinHeight,
+            paddingVertical: tokens.spacing.optionPaddingVertical,
+            paddingHorizontal: tokens.spacing.optionPaddingHorizontal,
+            borderColor: tokens.colors.divider,
+            borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
+          },
+          pressed && !disabled ? { backgroundColor: tokens.colors.optionActiveBackground } : null,
+        ]}
+        onPress={() => onSelect(option, tabIndex)}
+        disabled={disabled}
+      >
+        <View style={styles.optionContent}>
+          <View style={styles.optionLabel}>{content}</View>
+          {selected ? (
+            <Checked size={16} fill={activeColor} color={activeColor} />
+          ) : null}
+        </View>
+      </Pressable>
+    )
+  }
+)
 
 const styles = StyleSheet.create({
   container: {

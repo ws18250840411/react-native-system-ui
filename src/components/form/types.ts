@@ -23,4 +23,5 @@ export interface RegisteredFieldOptions {
   rules?: FormItemRule[]
   dependencies?: NamePath[]
   initialValue?: any
+  validateTrigger?: FormRuleValidateTrigger
 }

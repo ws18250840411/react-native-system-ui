@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, View, Platform } from 'react-native'
+import { Pressable, Text, type TextStyle, View, Platform } from 'react-native'
 
 import Loading from '../loading'
 import { usePickerTokens } from './tokens'
@@ -306,7 +306,7 @@ const Picker: React.FC<PickerProps> = props => {
                 color: options.color,
                 fontSize: tokens.typography.toolbarSize,
                 fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.toolbarWeight,
+                fontWeight: tokens.typography.toolbarWeight as TextStyle['fontWeight'],
               },
             ]}
           >
@@ -339,7 +339,7 @@ const Picker: React.FC<PickerProps> = props => {
               fontSize: tokens.typography.toolbarSize,
               fontFamily: tokens.typography.fontFamily,
               color: tokens.colors.text,
-              fontWeight: tokens.typography.toolbarWeight,
+              fontWeight: tokens.typography.toolbarWeight as TextStyle['fontWeight'],
             },
           ]}
           numberOfLines={1}

@@ -29,4 +29,22 @@ describe('Circle', () => {
 
     expect(innerStyle?.backgroundColor).toBe('#ffffff')
   })
+
+  it('adjusts size and strokeWidth', () => {
+    const tree = renderer.create(<Circle size={120} strokeWidth={10} />)
+    const root = tree.root.findByType(View)
+    const style = StyleSheet.flatten(root.props.style)
+    
+    expect(style.width).toBe(120)
+    expect(style.height).toBe(120)
+  })
+
+  it('renders children node', () => {
+    const tree = renderer.create(
+      <Circle>
+        <View testID="child" />
+      </Circle>
+    )
+    expect(tree.root.findByProps({ testID: 'child' })).toBeTruthy()
+  })
 })

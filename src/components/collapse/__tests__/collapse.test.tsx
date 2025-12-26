@@ -50,4 +50,60 @@ describe('Collapse', () => {
 
     expect(handleChange).toHaveBeenCalledWith(['a'])
   })
+
+  it('toggles multiple panels in non-accordion mode', async () => {
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Collapse onChange={handleChange}>
+        <Collapse.Item name="a" title="A" />
+        <Collapse.Item name="b" title="B" />
+      </Collapse>
+    )
+
+    const pressables = tree.root.findAllByType(Pressable)
+    
+    // Open A
+    await act(async () => {
+      pressables[0].props.onPress()
+    })
+    expect(handleChange).toHaveBeenLastCalledWith(['a'])
+
+    // Open B (A should stay open)
+    await act(async () => {
+      pressables[1].props.onPress()
+    })
+    expect(handleChange).toHaveBeenLastCalledWith(['a', 'b'])
+  })
+
+  it('respects disabled prop', async () => {
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Collapse disabled onChange={handleChange}>
+        <Collapse.Item name="a" title="A" />
+      </Collapse>
+    )
+    
+    const pressable = tree.root.findByType(Pressable)
+    await act(async () => {
+      pressable.props.onPress()
+    })
+    
+    expect(handleChange).not.toHaveBeenCalled()
+  })
+
+  it('respects item disabled prop', async () => {
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Collapse onChange={handleChange}>
+        <Collapse.Item name="a" title="A" disabled />
+      </Collapse>
+    )
+    
+    const pressable = tree.root.findByType(Pressable)
+    await act(async () => {
+      pressable.props.onPress()
+    })
+    
+    expect(handleChange).not.toHaveBeenCalled()
+  })
 })

@@ -5,11 +5,11 @@ import renderer, { act } from 'react-test-renderer'
 import Popup from '..'
 import { PortalHost } from '../../portal'
 
-const getStyleValue = (style: any, key: string) => {
+const getStyleValue = (style: any, key: string): any => {
   if (!style) return undefined
   if (Array.isArray(style)) {
     for (let i = style.length - 1; i >= 0; i -= 1) {
-      const value = getStyleValue(style[i], key)
+      const value: any = getStyleValue(style[i], key)
       if (typeof value !== 'undefined') return value
     }
     return undefined
@@ -23,7 +23,7 @@ const getStyleValue = (style: any, key: string) => {
 describe('Popup', () => {
   it('calls onClose when overlay is pressed', () => {
     const handleClose = jest.fn()
-    let tree: renderer.ReactTestRenderer
+    let tree: renderer.ReactTestRenderer = renderer.create(<></>)
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -51,7 +51,7 @@ describe('Popup', () => {
     const handleClose = jest.fn()
     const beforeClose = jest.fn(() => false)
 
-    let tree: renderer.ReactTestRenderer
+    let tree: renderer.ReactTestRenderer = renderer.create(<></>)
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -95,7 +95,7 @@ describe('Popup', () => {
         })
     )
 
-    let tree: renderer.ReactTestRenderer
+    let tree: renderer.ReactTestRenderer = renderer.create(<></>)
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -145,7 +145,7 @@ describe('Popup', () => {
     const addSpy = jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({ remove } as any)
     const handleClose = jest.fn()
 
-    let tree: renderer.ReactTestRenderer
+    let tree: renderer.ReactTestRenderer = renderer.create(<></>)
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -175,7 +175,7 @@ describe('Popup', () => {
       return
     }
     const handleClose = jest.fn()
-    let tree: renderer.ReactTestRenderer
+    let tree: renderer.ReactTestRenderer = renderer.create(<></>)
     act(() => {
       tree = renderer.create(
         <PortalHost>
@@ -197,7 +197,7 @@ describe('Popup', () => {
   })
 
   it('only renders bottom safe area when explicitly enabled', () => {
-    let treeWithoutInset: renderer.ReactTestRenderer
+    let treeWithoutInset: renderer.ReactTestRenderer = renderer.create(<></>)
     act(() => {
       treeWithoutInset = renderer.create(
         <PortalHost>
@@ -213,7 +213,7 @@ describe('Popup', () => {
       treeWithoutInset.unmount()
     })
 
-    let treeWithInset: renderer.ReactTestRenderer
+    let treeWithInset: renderer.ReactTestRenderer = renderer.create(<></>)
     act(() => {
       treeWithInset = renderer.create(
         <PortalHost>
@@ -233,7 +233,7 @@ describe('Popup', () => {
   it('does not leave offscreen shadow after closing (web)', () => {
     jest.useFakeTimers()
 
-    let tree: renderer.ReactTestRenderer
+    let tree: renderer.ReactTestRenderer = renderer.create(<></>)
     act(() => {
       tree = renderer.create(
         <PortalHost>

@@ -116,9 +116,6 @@ const WheelPicker = React.memo(<T,>({
 
   const webTransform: ViewStyle = {
     transform: [{ translateY: webOffset }],
-    transitionProperty: webTransition ? 'transform' : 'none',
-    transitionDuration: `${webTransition}ms`,
-    transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
   }
 
   const panResponder = React.useMemo(
@@ -179,7 +176,16 @@ const WheelPicker = React.memo(<T,>({
           ]}
           pointerEvents="none"
         />
-        <View style={webTransform}>
+        <View
+          style={webTransform}
+          {...(isWeb
+            ? {
+                transitionProperty: webTransition ? 'transform' : 'none',
+                transitionDuration: `${webTransition}ms`,
+                transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
+              }
+            : null) as any}
+        >
           <View style={{ height: spacerHeight }} />
           {data.map((item, index) => {
             const content = renderItem(item, index)
@@ -259,7 +265,7 @@ const WheelPicker = React.memo(<T,>({
 
 const webOnlyStyles = StyleSheet.create({
   grab: {
-    cursor: 'grab',
+    cursor: 'pointer',
     userSelect: 'none',
     touchAction: 'none',
   },

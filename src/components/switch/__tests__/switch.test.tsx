@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable } from 'react-native'
+import { Pressable, StyleSheet } from 'react-native'
 
 import Switch from '..'
 
@@ -22,6 +22,18 @@ describe('Switch', () => {
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(true)
+  })
+
+  it('works in controlled mode', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(<Switch checked={true} onChange={onChange} />)
+    const pressable = tree.root.findByType(Pressable)
+
+    act(() => {
+      pressable.props.onPress?.({} as any)
+    })
+
+    expect(onChange).toHaveBeenLastCalledWith(false)
   })
 
   it('calls onClick but does not toggle when loading', () => {
@@ -76,5 +88,16 @@ describe('Switch', () => {
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(0)
+  })
+
+  it('adjusts size based on prop', () => {
+    const tree = renderer.create(<Switch size={30} />)
+    const json = tree.toJSON() as any
+    const trackStyle = json.children[0].props.style
+
+    // In test environment (likely web preset), styles are strings with 'px'
+    expect(trackStyle.width).toBe('60px')
+    expect(trackStyle.height).toBe('30px')
+    expect(trackStyle.borderTopLeftRadius).toBe('15px')
   })
 })

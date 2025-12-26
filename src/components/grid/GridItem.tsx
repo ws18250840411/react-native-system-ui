@@ -64,8 +64,7 @@ export const GridItem: React.FC<GridItemInternalProps> = props => {
 
   // react-vant square 处理：当 square 为 true 时，使用 paddingTop 撑开高度实现正方形
   if (square) {
-    baseItemStyle.height = 0
-    baseItemStyle.paddingTop = widthPercent as any // 使用 paddingTop 撑开高度，实现正方形
+    baseItemStyle.aspectRatio = 1
   }
 
   // react-vant gutter 处理逻辑

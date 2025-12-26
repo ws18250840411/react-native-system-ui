@@ -52,12 +52,22 @@ describe('Radio', () => {
     )
     expect(tree.root.findByProps({ testID: 'custom-label' })).toBeTruthy()
   })
+  it('supports custom iconRender', () => {
+    const iconRender = jest.fn(({ checked }) => <View testID="custom-icon" />)
+    const tree = renderer.create(
+      <Radio checked={true} iconRender={iconRender} />
+    )
+
+    expect(iconRender).toHaveBeenCalledWith(expect.objectContaining({ checked: true }))
+    const icon = tree.root.findByProps({ testID: 'custom-icon' })
+    expect(icon).toBeTruthy()
+  })
 })
 
 describe('RadioGroup', () => {
   it('renders radiogroup accessibility props', () => {
     const tree = renderer.create(
-      <RadioGroup accessibilityLabel="选择项" value="a" onChange={() => {}}>
+      <RadioGroup accessibilityLabel="选择项" value="a" onChange={() => { }}>
         <Radio name="a">A</Radio>
         <Radio name="b">B</Radio>
       </RadioGroup>
@@ -69,7 +79,7 @@ describe('RadioGroup', () => {
 
   it('maps accessibilityHint to aria-describedby', () => {
     const tree = renderer.create(
-      <RadioGroup accessibilityLabel="选择项" accessibilityHint="提示信息" value="a" onChange={() => {}}>
+      <RadioGroup accessibilityLabel="选择项" accessibilityHint="提示信息" value="a" onChange={() => { }}>
         <Radio name="a">A</Radio>
         <Radio name="b">B</Radio>
       </RadioGroup>
@@ -81,7 +91,7 @@ describe('RadioGroup', () => {
 
   it('respects defaultValue selection', () => {
     const tree = renderer.create(
-      <RadioGroup defaultValue="a" onChange={() => {}}>
+      <RadioGroup defaultValue="a" onChange={() => { }}>
         <Radio name="a">A</Radio>
         <Radio name="b">B</Radio>
       </RadioGroup>
@@ -93,7 +103,7 @@ describe('RadioGroup', () => {
 
   it('returns raw number value from onChange', () => {
     const onChange = jest.fn()
-    let tree: ReactTestRenderer
+    let tree: ReactTestRenderer = null as any
 
     act(() => {
       tree = renderer.create(
@@ -114,7 +124,7 @@ describe('RadioGroup', () => {
 
   it('passes disabled state to group and items', () => {
     const tree = renderer.create(
-      <RadioGroup disabled value="a" onChange={() => {}} accessibilityLabel="选择项">
+      <RadioGroup disabled value="a" onChange={() => { }} accessibilityLabel="选择项">
         <Radio name="a">A</Radio>
         <Radio name="b">B</Radio>
       </RadioGroup>
@@ -142,5 +152,59 @@ describe('RadioGroup', () => {
     })
 
     expect(onChange).toHaveBeenCalledWith('b')
+  })
+
+  it('renders horizontal container style', () => {
+    const tree = renderer.create(
+      <RadioGroup direction="horizontal">
+        <Radio name="1">Option 1</Radio>
+        <Radio name="2">Option 2</Radio>
+      </RadioGroup>
+    )
+    // Verify first item style (no margin)
+    // Verify last item style (no margin)
+    // This is hard to test style calculation precisely without brittle snapshot
+    // But we can check if styles.horizontal is applied
+    const groupView = tree.root.findByType(View)
+    expect(groupView.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ flexDirection: 'row' })])
+    )
+  })
+
+  it('propagates context props (iconSize, checkedColor)', () => {
+    const tree = renderer.create(
+      <RadioGroup iconSize={30} checkedColor="red">
+        <Radio value="1" />
+      </RadioGroup>
+    )
+
+    // We need to check if Radio received these.
+    // Radio renders a View for icon.
+    // Finding it might be tricky.
+    // Let's use a mock iconRender to inspect props? No, iconRender receives checked/disabled.
+    // We can check the style of the icon View.
+    // The icon View is inside the Pressable -> View(iconWrapper) -> View(icon)
+    // Or we can just trust the code if we cover it via style checks.
+
+    // Let's find the inner icon view.
+    // It has width/height = iconSize
+    // And if checked, the inner dot has backgroundColor = checkedColor
+
+    // But the radio is not checked by default.
+    // Let's check iconSize on the outer circle.
+
+    // The structure: Radio -> Pressable -> [IconNode, LabelNode]
+    // IconNode -> View(wrapper) -> View(icon)
+
+    // We can look for a View with width: 30
+    const views = tree.root.findAllByType(View)
+    const iconView = views.find(v => {
+      const style = v.props.style
+      if (Array.isArray(style)) {
+        return style.some((s: any) => s && s.width === 30)
+      }
+      return style && style.width === 30
+    })
+    expect(iconView).toBeDefined()
   })
 })

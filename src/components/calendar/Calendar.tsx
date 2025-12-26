@@ -244,7 +244,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     [type, allowSameDay, maxRange, onOverRange]
   )
 
-  const handleSelectDay = (day: Date) => {
+  const handleSelectDay = React.useCallback((day: Date) => {
     const dayTime = startOfDay(day).getTime()
     if (dayTime < minDay || dayTime > maxDay) {
       return
@@ -286,14 +286,14 @@ const Calendar: React.FC<CalendarProps> = props => {
     if (!showConfirm) {
       maybeAutoConfirm(normalizedNext)
     }
-  }
+  }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelected, showConfirm, maybeAutoConfirm])
 
   const selectedMap = value.map(item => startOfDay(item).getTime())
   const rangeBounds = type === "range" && value.length === 2
     ? [startOfDay(value[0]).getTime(), startOfDay(value[1]).getTime()]
     : null
 
-  const renderDay = (day: Date | null, index: number) => {
+  const renderDay = React.useCallback((day: Date | null, index: number) => {
     if (!day) {
       return <View key={`placeholder-${index}`} style={styles.dayPlaceholder} />
     }
@@ -333,7 +333,7 @@ const Calendar: React.FC<CalendarProps> = props => {
         <Text style={dayStyle}>{day.getDate()}</Text>
       </Pressable>
     )
-  }
+  }, [selectedMap, type, rangeBounds, minDay, maxDay, tokens, color, handleSelectDay])
 
   const content = (
     <View style={[styles.container, { backgroundColor: tokens.colors.background }, style]} {...rest}>

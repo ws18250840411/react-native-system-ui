@@ -65,4 +65,49 @@ describe('Badge', () => {
       { translateY: -8 },
     ])
   })
+
+  it('applies offset in standalone mode', () => {
+    const tree = renderer.create(<Badge content={5} offset={[10, 20]} />)
+    const view = tree.root.findByType(View)
+    const style = StyleSheet.flatten(view.props.style)
+    
+    // Standalone offset uses marginLeft/marginTop
+    expect(style.marginLeft).toBe(10)
+    expect(style.marginTop).toBe(20)
+  })
+
+  it('supports custom content node', () => {
+    const tree = renderer.create(
+      <Badge content={<View testID="custom" />}>
+        <View />
+      </Badge>
+    )
+    expect(tree.root.findByProps({ testID: 'custom' })).toBeTruthy()
+  })
+
+  it('handles onPress', () => {
+    const onPress = jest.fn()
+    // Standalone
+    const tree = renderer.create(<Badge content={1} onPress={onPress} />)
+    const pressable = tree.root.findByType(View).parent // Pressable wraps View
+    // Badge returns cloneElement if no children and no onPress?
+    // If onPress, it returns Pressable -> View
+    // Let's check implementation
+    
+    // Code:
+    // if (!visible && !dot) return null
+    // const badgeNode = renderBadgeNode(true)
+    // if (onPress) return <Pressable>{badgeNode}</Pressable>
+    
+    // badgeNode is a View
+    
+    // In test renderer, Pressable might be mocked or we look for onPress prop
+    
+    // Let's just find element with onPress
+    const node = tree.root.findByProps({ onPress })
+    act(() => {
+        node.props.onPress()
+    })
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
 })

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import type { TextStyle } from 'react-native'
 
 import type { TabbarValue } from './types'
 
@@ -7,7 +8,7 @@ export interface TabbarContextValue {
   activeColor: string
   inactiveColor: string
   fontSize: number
-  fontWeight: string | number
+  fontWeight: TextStyle['fontWeight']
   onSelect: (name: TabbarValue, index: number) => void
 }
 

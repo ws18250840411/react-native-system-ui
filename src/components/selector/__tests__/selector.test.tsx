@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, View } from 'react-native'
+import { Pressable, View, StyleSheet, Text } from 'react-native'
 
 import Selector from '..'
 
@@ -71,5 +71,71 @@ describe('Selector', () => {
 
     expect(tree.root.findByProps({ testID: 'custom-label' })).toBeTruthy()
     expect(tree.root.findByProps({ testID: 'custom-description' })).toBeTruthy()
+  })
+
+  it('supports disabled options', () => {
+    const onChange = jest.fn()
+    const options = [
+      { label: 'A', value: 'a' },
+      { label: 'B', value: 'b', disabled: true }
+    ]
+    const tree = renderer.create(
+      <Selector options={options} onChange={onChange} />
+    )
+
+    const items = tree.root.findAllByType(Pressable)
+    renderer.act(() => {
+      items[1].props.onPress()
+    })
+    expect(onChange).not.toHaveBeenCalled()
+
+    renderer.act(() => {
+      items[0].props.onPress()
+    })
+    expect(onChange).toHaveBeenCalledWith(['a'], expect.anything())
+  })
+
+  it('respects global disabled prop', () => {
+    const onChange = jest.fn()
+    const options = [{ label: 'A', value: 'a' }]
+    const tree = renderer.create(
+      <Selector options={options} onChange={onChange} disabled />
+    )
+
+    const item = tree.root.findByType(Pressable)
+    renderer.act(() => {
+      item.props.onPress()
+    })
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('calculates item width based on columns', () => {
+    const options = [{ label: 'A', value: 'a' }]
+    const tree = renderer.create(<Selector options={options} columns={3} />)
+
+    const item = tree.root.findByType(Pressable)
+    const style = StyleSheet.flatten(item.props.style)
+    expect(style.width).toBe('33.333333333333336%')
+  })
+
+  it('toggles check mark visibility', () => {
+    const options = [{ label: 'A', value: 'a' }]
+    const tree = renderer.create(
+      <Selector options={options} value={['a']} showCheckMark={true} />
+    )
+
+    const texts = tree.root.findAllByType(Text)
+    const checkMark = texts.find(t => t.props.children === '✓')
+    expect(checkMark).toBeDefined()
+
+    renderer.act(() => {
+      tree.update(
+        <Selector options={options} value={['a']} showCheckMark={false} />
+      )
+    })
+
+    const textsAfter = tree.root.findAllByType(Text)
+    const checkMarkAfter = textsAfter.find(t => t.props.children === '✓')
+    expect(checkMarkAfter).toBeUndefined()
   })
 })

@@ -23,7 +23,7 @@ Form.Subscribe = FormSubscribe
 Form.useWatch = useWatch
 
 export default Form
-export { Form, FormItem }
+export { Form, FormItem, FormList, FormSubscribe, useWatch }
 export type { FormProps, FormInstance, FormSubscribeProps } from './Form'
 export type { FormItemRule } from './FormItem'
 export type { FormListProps, FormListField, FormListOperation } from './FormList'

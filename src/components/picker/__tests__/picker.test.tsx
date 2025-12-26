@@ -1,8 +1,9 @@
 import React from 'react'
-import renderer from 'react-test-renderer'
-import { Text, View } from 'react-native'
+import renderer, { act } from 'react-test-renderer'
+import { Pressable, Text, View } from 'react-native'
 
 import Picker, { type PickerOption } from '..'
+import Loading from '../../loading'
 
 jest.mock('../WheelPicker', () => {
   const React = require('react')
@@ -66,14 +67,64 @@ describe('Picker', () => {
   })
 
   it('renders numeric title', () => {
-    const columns: PickerOption[] = [{ label: 'A', value: 'a' }]
+    const tree = renderer.create(<Picker title={123} />)
+    const text = tree.root.findAllByType(Text).find(t => t.props.children === 123)
+    expect(text).toBeDefined()
+  })
 
+  it('handles single column selection', () => {
+    const onConfirm = jest.fn()
+    const columns = [
+      [{ label: 'A', value: 'a' }, { label: 'B', value: 'b' }]
+    ]
     const tree = renderer.create(
-      <Picker columns={columns} defaultValue="a" title={0} />,
+      <Picker columns={columns} onConfirm={onConfirm} />
     )
 
-    const titleNode = tree.root.findAllByType(Text).find(node => node.props.children === 0)
-    expect(titleNode).toBeTruthy()
+    // Find confirm button
+    const confirmBtn = tree.root.findAllByType(Pressable).find(p => {
+      // confirmButtonText default is '确定'
+      // But we can't easily check children text inside Pressable without deeper dive.
+      // However, toolbar structure: Cancel, Title, Confirm.
+      // Confirm is the last Pressable in toolbar.
+      return true // we'll use index
+    })
+
+    // There are 2 Pressables in Toolbar (Cancel, Confirm).
+    // And WheelPicker options are rendered inside WheelPicker.
+    // Let's find confirm button by text content if possible, or position.
+    // The Toolbar has 2 Pressables.
+    const toolbar = tree.root.findAllByType(View).find(v => {
+      const style = v.props.style
+      if (Array.isArray(style)) {
+        return style.some((s: any) => s && s.height === 42)
+      }
+      return style && style.height === 42
+    }) // toolbarHeight default 42
+
+    // Actually, easier to use onConfirm prop directly if we can simulate selection?
+    // But WheelPicker uses FlatList or Web logic.
+    // Simulating scroll in test-renderer is hard.
+    // But we can verify initial value and confirm.
+
+    // Default value should be first option 'a'.
+    const confirmButton = tree.root.findAllByType(Pressable)[1] // 0 is Cancel, 1 is Confirm
+
+    act(() => {
+      confirmButton.props.onPress()
+    })
+
+    expect(onConfirm).toHaveBeenCalledWith(['a'], expect.anything())
+  })
+
+  it('renders loading state', () => {
+    const tree = renderer.create(<Picker loading />)
+    const loading = tree.root.findByType(Loading)
+    expect(loading).toBeDefined()
+
+    // Columns should have pointerEvents="none"
+    const columns = tree.root.findAllByType(View).find(v => v.props.pointerEvents === 'none')
+    expect(columns).toBeDefined()
   })
 })
 

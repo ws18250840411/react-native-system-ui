@@ -31,4 +31,15 @@ describe('Loading', () => {
     )
     expect(lines.length).toBeGreaterThanOrEqual(12)
   })
+
+  it('supports vertical prop', () => {
+    const tree = renderer.create(<Loading vertical>Vertical</Loading>)
+    const root = tree.root.findByType(View)
+    const style = root.props.style
+    const flexDirection = Array.isArray(style) 
+      ? style.find(s => s?.flexDirection)?.flexDirection 
+      : style?.flexDirection
+    
+    expect(flexDirection).toBe('column')
+  })
 })

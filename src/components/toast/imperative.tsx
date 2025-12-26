@@ -20,7 +20,6 @@ let allowMultiple = false
 const baseOptions: ToastShowOptions = {
   type: 'info',
   position: 'middle',
-  duration: 2000,
   forbidClick: false,
   overlay: false,
 }

@@ -86,4 +86,27 @@ describe('DropdownMenu', () => {
       tree.unmount()
     })
   })
+
+  it('supports controlled value', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <PortalHost>
+        <DropdownMenu value={{ item1: 'a' }} onChange={onChange}>
+          <Item name="item1" options={[{ label: 'A', value: 'a' }, { label: 'B', value: 'b' }]} />
+        </DropdownMenu>
+      </PortalHost>
+    )
+
+    const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
+    act(() => {
+      trigger.props.onPress?.({} as any)
+    })
+
+    const optionB = tree.root.findByProps({ testID: 'rv-dropdown-option-b' })
+    act(() => {
+      optionB.props.onPress?.({} as any)
+    })
+
+    expect(onChange).toHaveBeenCalledWith({ item1: 'b' })
+  })
 })

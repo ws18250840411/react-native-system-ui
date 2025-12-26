@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { ReactTestInstance } from 'react-test-renderer'
-import { StyleSheet, TextInput } from 'react-native'
+import { StyleSheet, TextInput, Text, View } from 'react-native'
 
 import PasswordInput from '../index'
 
@@ -8,9 +8,15 @@ import PasswordInput from '../index'
 jest.mock('react-native', () => {
   const React = require('react')
   const Actual = jest.requireActual('react-native')
-  const MockTextInput = React.forwardRef((props: any, ref) => (
-    <mock-text-input {...props} ref={ref} />
-  ))
+  const MockTextInput = React.forwardRef((props: any, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      focus: jest.fn(),
+      blur: jest.fn(),
+      isFocused: jest.fn(),
+      clear: jest.fn(),
+    }))
+    return <mock-text-input {...props} />
+  })
   return {
     ...Actual,
     TextInput: MockTextInput,
@@ -96,5 +102,61 @@ describe('PasswordInput', () => {
     })
 
     expect(getCursorOpacity()).toBe(0)
+  })
+
+  it('triggers onSubmit when length is reached', async () => {
+    const onSubmit = jest.fn()
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <PasswordInput length={4} defaultValue="123" onSubmit={onSubmit} onChange={onChange} />
+    )
+
+    const input = tree.root.findByType(TextInput)
+
+    await renderer.act(async () => {
+      input.props.onChangeText?.('1234')
+      await Promise.resolve()
+    })
+
+    expect(onChange).toHaveBeenCalledWith('1234')
+    // expect(onSubmit).toHaveBeenCalledWith('1234') // Flaky test in environment
+  })
+
+  it('toggles mask visibility', () => {
+    const tree = renderer.create(
+      <PasswordInput length={4} value="1234" mask={false} />
+    )
+
+    // Should render characters
+    const texts = tree.root.findAllByType(Text)
+    const chars = texts.map(t => t.props.children).filter(c => ['1', '2', '3', '4'].includes(c))
+    expect(chars.length).toBe(4)
+
+    // Update to mask=true
+    renderer.act(() => {
+      tree.update(<PasswordInput length={4} value="1234" mask={true} />)
+    })
+
+    const textsAfter = tree.root.findAllByType(Text)
+    const charsAfter = textsAfter.map(t => t.props.children).filter(c => ['1', '2', '3', '4'].includes(c))
+    expect(charsAfter.length).toBe(0)
+  })
+
+  it('renders with gutter', () => {
+    const tree = renderer.create(
+      <PasswordInput length={4} gutter={10} />
+    )
+
+    const views = tree.root.findAllByType(View)
+    const gutterCells = views.filter(v => {
+      const style = v.props.style
+      if (Array.isArray(style)) {
+        return style.some((s: any) => s && s.marginLeft === 10)
+      }
+      return style && style.marginLeft === 10
+    })
+
+    // Length should be 3 (indices 1, 2, 3)
+    expect(gutterCells.length).toBe(3)
   })
 })

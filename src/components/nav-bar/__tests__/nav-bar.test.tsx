@@ -45,8 +45,13 @@ describe('NavBar', () => {
     expect(tree.root.findAllByProps({ testID: 'rv-navbar-placeholder' }).length).toBe(1)
   })
 
-  it('applies SafeAreaView when safeAreaInsetTop is true', () => {
-    const tree = renderer.create(<NavBar fixed safeAreaInsetTop />)
-    expect(tree.root.findAllByType(SafeAreaView).length).toBe(1)
+  it('applies tint color', () => {
+    const tree = renderer.create(<NavBar title="Title" leftArrow tintColor="red" />)
+    const title = tree.root.findAllByType(Text).find(node => node.props.children === 'Title')
+    expect(title).toBeDefined()
+    const titleStyle = title!.props.style
+    // style is array
+    const flatStyle = Object.assign({}, ...[].concat(titleStyle))
+    expect(flatStyle.color).toBe('red')
   })
 })

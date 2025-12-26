@@ -234,7 +234,7 @@ export const Slider: React.FC<SliderProps> = props => {
     maxValue: resolvedMax,
     step: resolvedStep,
     isDisabled: ariaDisabled,
-    numberFormatter: { format: (val: number) => val },
+    numberFormatter: { format: (val: number) => val.toString() },
     orientation,
     value: isControlled ? normalized : undefined,
     defaultValue: !isControlled ? normalized : undefined,
@@ -404,7 +404,11 @@ export const Slider: React.FC<SliderProps> = props => {
     orientation === 'vertical'
       ? [
         styles.trackVertical,
-        { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' },
+        {
+          width: resolvedTrackHeight,
+          backgroundColor: resolvedInactiveColor,
+          alignSelf: 'center' as const,
+        },
       ]
         : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }],
     [orientation, resolvedTrackHeight, resolvedInactiveColor]

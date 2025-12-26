@@ -105,4 +105,51 @@ describe('ActionSheet', () => {
     expect(tree?.root.findByProps({ testID: 'as-action-name' })).toBeTruthy()
     expect(tree?.root.findByProps({ testID: 'as-action-subname' })).toBeTruthy()
   })
+
+  it('does not trigger onSelect when action is disabled or loading', () => {
+    const onSelect = jest.fn()
+    const tree = renderInHost(
+      <ActionSheet
+        visible
+        actions={[
+          { name: 'Disabled', disabled: true },
+          { name: 'Loading', loading: true },
+        ]}
+        onSelect={onSelect}
+      />
+    )
+
+    const disabledAction = tree.root.findByProps({ testID: 'rv-action-sheet-item-0' })
+    const loadingAction = tree.root.findByProps({ testID: 'rv-action-sheet-item-1' })
+
+    act(() => {
+      disabledAction.props.onPress?.({})
+      loadingAction.props.onPress?.({})
+    })
+
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it('supports beforeClose returning false to prevent close', async () => {
+    const onClose = jest.fn()
+    const beforeClose = jest.fn().mockReturnValue(false)
+
+    const tree = renderInHost(
+      <ActionSheet
+        visible
+        cancelText="Cancel"
+        onClose={onClose}
+        beforeClose={beforeClose}
+      />
+    )
+
+    const cancel = tree.root.findByProps({ testID: 'rv-action-sheet-cancel' })
+    
+    await act(async () => {
+      cancel.props.onPress?.({})
+    })
+
+    expect(beforeClose).toHaveBeenCalledWith('cancel')
+    expect(onClose).not.toHaveBeenCalled()
+  })
 })

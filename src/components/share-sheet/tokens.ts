@@ -34,7 +34,7 @@ const createTokens = (foundations: Foundations): ShareSheetTokens => {
   const { palette, spacing, fontSize } = foundations
   return {
     colors: {
-      background: palette.background?.base ?? '#ffffff',
+      background: palette.default[50],
       title: palette.default[900],
       description: palette.default[500],
       option: palette.default[900],

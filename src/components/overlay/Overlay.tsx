@@ -148,7 +148,7 @@ export const Overlay: React.FC<OverlayProps> = props => {
 
   return (
     <Portal>
-      <Animated.View
+      <View
         pointerEvents="box-none"
         style={[
           styles.portal,
@@ -175,7 +175,7 @@ export const Overlay: React.FC<OverlayProps> = props => {
           onPress={handlePress}
         />
         {children}
-      </Animated.View>
+      </View>
     </Portal>
   )
 }

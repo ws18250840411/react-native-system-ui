@@ -77,8 +77,9 @@ const TabBarItem: React.FC<TabItemProps> = ({
   isLast,
 }) => {
   const isDisabled = !!pane.disabled
+  // We keep interaction enabled to support onClickTab even when disabled
   const ariaPress = useAriaPress({
-    disabled: isDisabled,
+    disabled: false,
     onPress: event => onSelect(pane, event),
     extraProps: {
       accessibilityRole: 'tab',
@@ -116,7 +117,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
   const shouldFlex = !scrollable && (align !== 'start' || isCard)
   const horizontalPadding = isCard || isJumbo ? 0 : isCapsule ? 0 : tokens.tabList.paddingHorizontal
   const verticalPadding = isCard || isJumbo ? 0 : isCapsule ? 0 : tokens.tabList.paddingVertical
-  const labelWrapperStyles = [styles.labelWrapper]
+  const labelWrapperStyles: any[] = [styles.labelWrapper]
   if (isJumbo) {
     labelWrapperStyles.push(styles.labelWrapperJumbo)
   }
@@ -147,7 +148,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
   return (
     <Pressable
       {...ariaPress.interactionProps}
-      disabled={isDisabled}
+      disabled={false}
       onLayout={onLayout}
       style={[
         styles.tabItem,
@@ -177,7 +178,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
                   : tokens.colors.capsuleBackground,
                 color: textColor,
                 fontSize: tokens.typography.titleSize,
-                fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+                fontWeight: (isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight) as any,
                 textAlign: 'center',
                 width: '100%',
                 height: '100%',
@@ -186,7 +187,7 @@ const TabBarItem: React.FC<TabItemProps> = ({
               : {
                 color: textColor,
                 fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
-                fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+                fontWeight: (isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight) as any,
                 lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
                 textAlign: 'center',
               },
@@ -200,58 +201,58 @@ const TabBarItem: React.FC<TabItemProps> = ({
         {isRenderableNode(renderDescription)
           ? isTextLikeNode(renderDescription)
             ? (
-                <Text
-                  style={[
-                    styles.description,
-                    isJumbo
-                      ? {
-                          color: descriptionColor,
-                          fontSize: tokens.typography.descriptionSize,
-                          marginTop: 8,
-                          textAlign: 'center',
-                          backgroundColor: isActive
-                            ? tokens.colors.jumboDescriptionActiveBackground
-                            : tokens.colors.jumboDescriptionBackground,
-                          paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-                          paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-                          borderRadius: tokens.jumbo.descriptionRadius,
-                        }
-                      : {
-                          color: descriptionColor,
-                          fontSize: tokens.typography.descriptionSize,
-                          marginTop: 2,
-                          textAlign: 'center',
-                        },
-                    descriptionStyle,
-                  ]}
-                >
-                  {renderDescription}
-                </Text>
-              )
+              <Text
+                style={[
+                  styles.description,
+                  isJumbo
+                    ? {
+                      color: descriptionColor,
+                      fontSize: tokens.typography.descriptionSize,
+                      marginTop: 8,
+                      textAlign: 'center',
+                      backgroundColor: isActive
+                        ? tokens.colors.jumboDescriptionActiveBackground
+                        : tokens.colors.jumboDescriptionBackground,
+                      paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+                      paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+                      borderRadius: tokens.jumbo.descriptionRadius,
+                    }
+                    : {
+                      color: descriptionColor,
+                      fontSize: tokens.typography.descriptionSize,
+                      marginTop: 2,
+                      textAlign: 'center',
+                    },
+                  descriptionStyle,
+                ]}
+              >
+                {renderDescription}
+              </Text>
+            )
             : (
-                <View
-                  style={[
-                    styles.description,
-                    isJumbo
-                      ? {
-                          marginTop: 8,
-                          alignItems: 'center',
-                          backgroundColor: isActive
-                            ? tokens.colors.jumboDescriptionActiveBackground
-                            : tokens.colors.jumboDescriptionBackground,
-                          paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-                          paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-                          borderRadius: tokens.jumbo.descriptionRadius,
-                        }
-                      : {
-                          marginTop: 2,
-                          alignItems: 'center',
-                        },
-                  ]}
-                >
-                  {renderDescription}
-                </View>
-              )
+              <View
+                style={[
+                  styles.description,
+                  isJumbo
+                    ? {
+                      marginTop: 8,
+                      alignItems: 'center',
+                      backgroundColor: isActive
+                        ? tokens.colors.jumboDescriptionActiveBackground
+                        : tokens.colors.jumboDescriptionBackground,
+                      paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+                      paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+                      borderRadius: tokens.jumbo.descriptionRadius,
+                    }
+                    : {
+                      marginTop: 2,
+                      alignItems: 'center',
+                    },
+                ]}
+              >
+                {renderDescription}
+              </View>
+            )
           : null}
         {isRenderableNode(pane.badge) ? (
           <View style={styles.badge}>

@@ -79,8 +79,13 @@ export const FormItem: React.FC<FormItemProps> = ({
 
   React.useEffect(() => {
     if (!name) return undefined
-    return context.registerField(name, { rules: normalizedRules, dependencies, initialValue })
-  }, [context.registerField, name, normalizedRules, dependencies, initialValue])
+    return context.registerField(name, {
+      rules: normalizedRules,
+      dependencies,
+      initialValue,
+      validateTrigger: validateTrigger ?? trigger, // 传递 validateTrigger
+    })
+  }, [context.registerField, name, normalizedRules, dependencies, initialValue, validateTrigger, trigger])
 
   const mergedValue = context.getFieldValue(name)
   const mergedShowMessage = showValidateMessage ?? context.showValidateMessage ?? true

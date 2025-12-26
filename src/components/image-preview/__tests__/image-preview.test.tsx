@@ -1,8 +1,9 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Text } from 'react-native'
+import { Text, Image } from 'react-native'
 
 import ImagePreview from '..'
+import type { ImagePreviewRef } from '../types'
 import { PortalHost } from '../../portal'
 
 beforeAll(() => {
@@ -122,6 +123,49 @@ describe('ImagePreview', () => {
 
     act(() => {
       tree.unmount()
+    })
+  })
+
+  it('supports imperative swipeTo', async () => {
+    const ref = React.createRef<ImagePreviewRef>()
+    const handleChange = jest.fn()
+    let tree: renderer.ReactTestRenderer
+    
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <ImagePreview 
+            ref={ref}
+            visible 
+            images={['1.png', '2.png', '3.png']} 
+            onChange={handleChange} 
+          />
+        </PortalHost>
+      )
+    })
+
+    act(() => {
+      ref.current?.swipeTo(2, false)
+    })
+    
+    // Imperative swipeTo updates internal state but might not trigger onChange from Swiper unless Swiper callbacks run.
+    // However, ImagePreview implementation calls setActive then swiperRef.swipeTo.
+    // The onChange prop is called when Swiper triggers onChange.
+    // If we mock Swiper or if Swiper is real, we need to know if imperative swipeTo triggers onChange in Swiper.
+    // In ImagePreview.tsx:
+    // swipeTo: (index) => { setActive(next); swipeToIndex(next); }
+    // It does NOT call onChange directly. onChange is called in handleSwiperChange.
+    // And handleSwiperChange is passed to Swiper.
+    // Usually Swiper's swipeTo doesn't trigger onChange (to avoid loops), or it depends on implementation.
+    // Let's assume it doesn't trigger onChange automatically in this mock environment, 
+    // but we can check if the internal active index updated by checking the index text.
+    
+    const index = tree.root.findByProps({ testID: 'rv-image-preview-index' })
+    const text = index.findByType(Text)
+    expect(text.props.children).toBe('3 / 3')
+    
+    act(() => {
+        tree.unmount()
     })
   })
 })

@@ -6,7 +6,7 @@ const globalAny: any = global
 if (!globalAny.document) {
   globalAny.document = {
     createElement: () => ({ style: {} }),
-    body: { appendChild: () => {} },
+    body: { appendChild: () => { } },
   }
 }
 
@@ -24,6 +24,60 @@ describe('Input', () => {
     })
 
     expect(handleChange).toHaveBeenCalledWith('Jack')
+  })
+
+  it('handles password type', () => {
+    const tree = renderer.create(<Input type="password" />)
+    const textInput = tree.root.findByType(TextInput)
+    expect(textInput.props.secureTextEntry).toBe(true)
+  })
+
+  it('handles disabled and readOnly', () => {
+    const treeDisabled = renderer.create(<Input disabled />)
+    const inputDisabled = treeDisabled.root.findByType(TextInput)
+    expect(inputDisabled.props.editable).toBe(false)
+    expect(inputDisabled.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ color: expect.any(String) })])
+    )
+
+    const treeReadOnly = renderer.create(<Input readOnly />)
+    const inputReadOnly = treeReadOnly.root.findByType(TextInput)
+    expect(inputReadOnly.props.editable).toBe(false)
+  })
+
+  it('triggers onFocus and onBlur', () => {
+    const onFocus = jest.fn()
+    const onBlur = jest.fn()
+    const tree = renderer.create(<Input onFocus={onFocus} onBlur={onBlur} />)
+    const textInput = tree.root.findByType(TextInput)
+
+    act(() => {
+      textInput.props.onFocus({ nativeEvent: {} })
+    })
+    expect(onFocus).toHaveBeenCalled()
+
+    act(() => {
+      textInput.props.onBlur({ nativeEvent: {} })
+    })
+    expect(onBlur).toHaveBeenCalled()
+  })
+
+  it('supports rightIcon and click events', () => {
+    const onClickRightIcon = jest.fn()
+    const tree = renderer.create(
+      <Input
+        rightIcon={<Text>Icon</Text>}
+        onClickRightIcon={onClickRightIcon}
+      />
+    )
+
+    // Find the Pressable by the onPress handler directly
+    const rightBtn = tree.root.findByProps({ onPress: onClickRightIcon })
+
+    act(() => {
+      rightBtn.props.onPress()
+    })
+    expect(onClickRightIcon).toHaveBeenCalled()
   })
 
   it('clears value when clear icon is pressed', () => {
@@ -59,7 +113,7 @@ describe('Input', () => {
     const tree = renderer.create(
       <Input
         value=''
-        onChangeText={() => {}}
+        onChangeText={() => { }}
         prefix={<Text testID='prefix'>+86</Text>}
         suffix={<Text testID='suffix'>发送</Text>}
       />
@@ -102,7 +156,7 @@ describe('Input.TextArea', () => {
 
   it('autoSize converts px config into Field rows', () => {
     const tree = renderer.create(
-      <Input.TextArea autoSize={{ minHeight: 80, maxHeight: 160 }} value='' onChangeText={() => {}} />
+      <Input.TextArea autoSize={{ minHeight: 80, maxHeight: 160 }} value='' onChangeText={() => { }} />
     )
 
     const field = tree.root.findByType(Field)

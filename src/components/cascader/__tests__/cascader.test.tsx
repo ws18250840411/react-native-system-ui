@@ -1,6 +1,6 @@
 import React from "react"
 import renderer, { act } from "react-test-renderer"
-import { View } from "react-native"
+import { View, Text } from "react-native"
 
 import Cascader from ".."
 import { PortalHost } from "../../portal"
@@ -205,5 +205,83 @@ describe("Cascader", () => {
       tabs2.props.onChange(0, 0)
     })
     expect(handleClickTab).toHaveBeenLastCalledWith(0, "浙江")
+  })
+
+  it('supports custom field names', () => {
+    const options = [
+      {
+        id: '1',
+        name: 'Region A',
+        items: [
+          { id: '2', name: 'City B' }
+        ]
+      }
+    ]
+    
+    const onFinish = jest.fn()
+    const tree = renderer.create(
+      <Cascader
+        options={options}
+        fieldNames={{ text: 'name', value: 'id', children: 'items' }}
+        onFinish={onFinish}
+      />
+    )
+    
+    // Find option 'Region A' (tab 0, value 1)
+    const pressableA = tree.root.findByProps({ testID: 'cascader-option-0-1' })
+    expect(pressableA).toBeDefined()
+    
+    // Select it
+    act(() => {
+      pressableA.props.onPress()
+    })
+    
+    // Find option 'City B' (tab 1, value 2)
+    const pressableB = tree.root.findByProps({ testID: 'cascader-option-1-2' })
+    expect(pressableB).toBeDefined()
+    
+    // Select it
+    act(() => {
+      pressableB.props.onPress()
+    })
+    
+    expect(onFinish).toHaveBeenCalledWith(
+      ['1', '2'],
+      expect.arrayContaining([expect.objectContaining({ name: 'Region A' }), expect.objectContaining({ name: 'City B' })])
+    )
+  })
+
+  it('calls onChange on every selection', () => {
+    const options = [
+      {
+        text: 'A',
+        value: 'a',
+        children: [
+          { text: 'B', value: 'b' }
+        ]
+      }
+    ]
+    
+    const onChange = jest.fn()
+    const tree = renderer.create(
+      <Cascader options={options} onChange={onChange} />
+    )
+    
+    // Select A
+    const pressableA = tree.root.findByProps({ testID: 'cascader-option-0-a' })
+    act(() => {
+      pressableA.props.onPress()
+    })
+    
+    expect(onChange).toHaveBeenLastCalledWith(['a'], expect.any(Array))
+    
+    // Select B
+    const pressableB = tree.root.findByProps({ testID: 'cascader-option-1-b' })
+    act(() => {
+      pressableB.props.onPress()
+    })
+    
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], expect.any(Array))
+    expect(onChange).toHaveBeenCalledTimes(2)
   })
 })

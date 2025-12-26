@@ -1,6 +1,6 @@
 import React from 'react'
-import renderer from 'react-test-renderer'
-import { StyleSheet, Text } from 'react-native'
+import renderer, { act } from 'react-test-renderer'
+import { StyleSheet, Text, Pressable } from 'react-native'
 
 import Grid from '..'
 import Badge from '../../badge'
@@ -51,5 +51,30 @@ describe('Grid', () => {
 
     const badge = tree.root.find(node => node.type === Badge)
     expect(badge.props.content).toBe(5)
+  })
+
+  it('handles item press events', () => {
+    const onPress = jest.fn()
+    const tree = renderer.create(
+      <Grid>
+        <Grid.Item text="Press" onPress={onPress} />
+      </Grid>
+    )
+    
+    const item = tree.root.findByType(Pressable)
+    act(() => {
+        item.props.onPress()
+    })
+    expect(onPress).toHaveBeenCalled()
+  })
+
+  it('renders clickable grid', () => {
+      const tree = renderer.create(
+        <Grid clickable>
+            <Grid.Item text="Clickable" />
+        </Grid>
+      )
+      const pressable = tree.root.findByType(Pressable)
+      expect(pressable).toBeDefined()
   })
 })

@@ -246,9 +246,10 @@ export const Rate: React.FC<RateProps> = props => {
 
   const renderIconNode = (renderValue: React.ReactNode, tintColor: string) => {
     if (React.isValidElement(renderValue)) {
-      return React.cloneElement(renderValue, {
+      const element = renderValue as React.ReactElement<any>
+      return React.cloneElement(element, {
         style: StyleSheet.flatten([
-          (renderValue.props as any)?.style,
+          (element.props as any)?.style,
           iconStyle,
           {
             color: tintColor,

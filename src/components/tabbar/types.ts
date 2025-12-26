@@ -23,7 +23,7 @@ export interface TabbarProps<T = TabbarValue> extends Omit<ViewProps, 'children'
   onChange?: (name: T, index: number) => void
 }
 
-export interface TabbarItemProps<T = TabbarValue> extends ViewProps {
+export interface TabbarItemProps<T = TabbarValue> extends Omit<ViewProps, 'children'> {
   name?: T
   icon?: React.ReactNode | ((active: boolean) => React.ReactNode)
   /**

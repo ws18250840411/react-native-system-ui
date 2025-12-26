@@ -26,7 +26,7 @@ const createTokens = (foundations: Foundations): PopoverTokens => {
   const { palette, radii } = foundations
   return {
     colors: {
-      background: palette.background?.base ?? '#ffffff',
+      background: '#ffffff',
       text: palette.default[900],
       shadow: '#000000',
       overlay: 'rgba(0,0,0,0.2)',

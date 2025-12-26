@@ -139,4 +139,27 @@ describe('List', () => {
     const finishedNode = tree.root.findByProps({ testID: 'rv-list-finished' })
     expect(finishedNode.props.children).toBe(0)
   })
+
+  it('renders custom loading text', () => {
+    const tree = renderer.create(<List loading loadingText="加载中..." />)
+    const loadingNode = tree.root.findByProps({ testID: 'rv-list-loading' })
+    // If loadingText is string, it's inside Loading component children
+    expect(loadingNode.props.children).toBe('加载中...')
+  })
+
+  it('does not check immediately when immediateCheck is false', async () => {
+    const onLoad = jest.fn()
+    renderer.create(
+      <List onLoad={onLoad} immediateCheck={false}>
+        <></>
+      </List>
+    )
+    
+    // Wait for effect
+    await act(async () => {
+        await Promise.resolve()
+    })
+    
+    expect(onLoad).not.toHaveBeenCalled()
+  })
 })

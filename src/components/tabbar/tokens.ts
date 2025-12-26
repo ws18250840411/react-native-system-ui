@@ -1,4 +1,5 @@
 import * as React from 'react'
+import type { TextStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -28,7 +29,7 @@ export interface TabbarTokens {
   }
   typography: {
     fontSize: number
-    fontWeight: string | number
+    fontWeight: TextStyle['fontWeight']
   }
 }
 
@@ -43,7 +44,7 @@ const createTokens = (foundations: Foundations): TabbarTokens => {
       safeAreaInsetBottom: false,
     },
     colors: {
-      background: palette.background?.base ?? '#ffffff',
+      background: palette.default[50] ?? '#ffffff',
       // 对齐 Vant 默认色值（更利于“看起来一致”）
       border: '#ebedf0',
       active: '#3f45ff',

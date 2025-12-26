@@ -251,8 +251,9 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 
       const activeRules = trigger
         ? fieldRules.filter(rule => {
-            if (!rule.validateTrigger) return true
-            const triggers = normalizeTrigger(rule.validateTrigger)
+            const ruleTrigger = rule.validateTrigger ?? fieldOptions.validateTrigger
+            if (!ruleTrigger) return true // 默认全通过？还是默认 onChange？通常如果 FormItem 没设，Rule 没设，就是 onChange
+            const triggers = normalizeTrigger(ruleTrigger)
             return triggers.includes(trigger)
           })
         : fieldRules

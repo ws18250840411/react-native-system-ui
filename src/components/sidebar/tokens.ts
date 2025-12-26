@@ -29,7 +29,7 @@ const createTokens = (foundations: Foundations): SidebarTokens => {
   const { palette, fontSize } = foundations
   return {
     colors: {
-      background: palette.background?.base ?? '#ffffff',
+      background: '#ffffff',
       border: palette.default[200],
       title: palette.default[800],
       titleActive: palette.primary[600],

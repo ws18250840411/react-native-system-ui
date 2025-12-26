@@ -93,4 +93,36 @@ describe('ShareSheet', () => {
     expect(onClose).toHaveBeenCalled()
     expect(onCancel).toHaveBeenCalled()
   })
+
+  it('renders description', () => {
+    const tree = render(
+      <PortalHost>
+        <ShareSheet visible description="desc" />
+      </PortalHost>
+    )
+    const texts = tree.root.findAllByType(Text)
+    expect(texts.some(t => t.props.children === 'desc')).toBe(true)
+  })
+
+  it('renders multi-row options', () => {
+    const tree = render(
+      <PortalHost>
+        <ShareSheet
+          visible
+          options={[
+            [{ name: 'A', icon: <></> }],
+            [{ name: 'B', icon: <></> }],
+          ]}
+        />
+      </PortalHost>
+    )
+    // Should have 2 options
+    // Note: In some environments, previous tests might leak into Portal if not strictly isolated.
+    // We just check existence here.
+    const item0 = tree.root.findAllByProps({ testID: 'rv-share-sheet-item-0' })
+    const item1 = tree.root.findAllByProps({ testID: 'rv-share-sheet-item-1' })
+    
+    expect(item0.length).toBeGreaterThan(0)
+    expect(item1.length).toBeGreaterThan(0)
+  })
 })

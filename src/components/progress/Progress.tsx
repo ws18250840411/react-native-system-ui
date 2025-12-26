@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, LayoutChangeEvent, Platform, StyleSheet, Text, View } from 'react-native'
+import { Animated, LayoutChangeEvent, Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
 import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'
@@ -114,7 +114,7 @@ export const Progress: React.FC<ProgressProps> = props => {
     () =>
       StyleSheet.flatten([
         {
-          position: 'absolute',
+          position: 'absolute' as const,
           left: 0,
           top: 0,
           height: resolvedStrokeWidth,
@@ -127,7 +127,7 @@ export const Progress: React.FC<ProgressProps> = props => {
             }
           : null,
         indicatorStyle,
-      ]),
+      ]) as ViewStyle,
     [color, indicatorStyle, resolvedIndicatorColor, resolvedStrokeWidth, useGradient],
   )
 
