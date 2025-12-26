@@ -65,6 +65,28 @@ describe('Cascader', () => {
     expect(onClickTab).toHaveBeenCalledWith(0, 'A')
   })
 
+  it('triggers onClickTab even when clicking active tab', () => {
+    const onClickTab = jest.fn()
+    const options = [
+      {
+        text: 'A',
+        value: 'a',
+        children: [{ text: 'A-1', value: 'a1' }],
+      },
+    ]
+
+    const tree = renderer.create(
+      <Cascader options={options as any} onClickTab={onClickTab} showHeader={false} />
+    )
+
+    const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
+    act(() => {
+      tab0.props.onPress?.({} as any)
+    })
+
+    expect(onClickTab).toHaveBeenCalledWith(0, '请选择')
+  })
+
   it('shows loadingText for async children placeholder column', () => {
     const options = [
       {

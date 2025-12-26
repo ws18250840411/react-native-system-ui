@@ -927,7 +927,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   }
 
   return (
-    <View style={[styles.container, style]} testID={testID} onLayout={handleContainerLayout}>
+    <View style={[styles.container, style]} testID={testID} onLayout={handleContainerLayout} collapsable={false}>
       <FlatList
         ref={flatListRef}
         data={displayData}
@@ -948,6 +948,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         scrollEnabled={enabledState && touchable && count > 1}
         pagingEnabled={false}
         nestedScrollEnabled={true}
+        collapsable={false}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         bounces={rubberband && !shouldLoop}

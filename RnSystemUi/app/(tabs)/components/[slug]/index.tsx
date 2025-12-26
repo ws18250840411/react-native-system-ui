@@ -29,7 +29,7 @@ export default function ComponentDemosScreen() {
   return (
     <View style={styles.root}>
       <Stack.Screen options={{ title }} />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled={true}>
         {!entry ? (
           <View style={styles.pagePadding}>
             <Typography.Text type="secondary">未找到该组件：{resolvedSlug}</Typography.Text>

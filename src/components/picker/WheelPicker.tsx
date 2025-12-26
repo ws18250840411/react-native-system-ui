@@ -202,7 +202,7 @@ const WheelPickerInner = <T,>({
   }
 
   return (
-    <View style={[styles.column, { height: containerHeight }]}>
+    <View style={[styles.column, { height: containerHeight }]} collapsable={false}>
       <View
         style={[
           styles.indicator,
@@ -233,6 +233,8 @@ const WheelPickerInner = <T,>({
         snapToInterval={itemHeight}
         snapToAlignment="start"
         nestedScrollEnabled={true}
+        removeClippedSubviews={Platform.OS !== 'web'}
+        collapsable={false}
         ListHeaderComponent={<View style={{ height: spacerHeight }} />}
         ListFooterComponent={<View style={{ height: spacerHeight }} />}
         onScrollBeginDrag={() => {

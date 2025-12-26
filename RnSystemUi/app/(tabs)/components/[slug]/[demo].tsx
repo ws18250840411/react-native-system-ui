@@ -46,7 +46,7 @@ export default function ComponentDemoRunnerScreen() {
   }
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.root} contentContainerStyle={styles.content} nestedScrollEnabled={true}>
       <Stack.Screen options={{ title }} />
       <DemoComponent />
     </ScrollView>

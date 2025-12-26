@@ -15,6 +15,7 @@ import { useControllableValue } from "../../hooks"
 import Popup from "../popup"
 import Tabs from "../tabs"
 import type { TabsValue } from "../tabs"
+import type { TabsClickEvent } from "../tabs/types"
 import { useCascaderTokens } from "./tokens"
 import type {
   CascaderFieldNames,
@@ -154,20 +155,28 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const renderProp = React.useMemo(() => (typeof children === "function" ? (children as CascaderRenderProps) : null), [children])
 
-  const handleTabChange = React.useCallback(
-    (tabValue: TabsValue, indexFromEvent?: number) => {
-      const index = typeof indexFromEvent === "number" ? indexFromEvent : Number(tabValue)
+  const handleClickTab = React.useCallback(
+    (event: TabsClickEvent) => {
+      const index = typeof event.index === "number" ? event.index : Number(event.name)
       if (Number.isNaN(index)) return
-      setActiveTab(index)
       const titleNode = items[index]?.[keys.textKey] as React.ReactNode
       const titleText =
         typeof titleNode === "string" || typeof titleNode === "number"
           ? String(titleNode)
           : placeholder
       onClickTab?.(index, titleText)
+    },
+    [items, keys.textKey, onClickTab, placeholder],
+  )
+
+  const handleTabChange = React.useCallback(
+    (tabValue: TabsValue, indexFromEvent?: number) => {
+      const index = typeof indexFromEvent === "number" ? indexFromEvent : Number(tabValue)
+      if (Number.isNaN(index)) return
+      setActiveTab(index)
       onTabChange?.(index)
     },
-    [items, keys.textKey, onClickTab, onTabChange, placeholder],
+    [onTabChange],
   )
 
   const handleSelect = React.useCallback(
@@ -284,6 +293,7 @@ const Cascader: React.FC<CascaderProps> = props => {
           style={resolvedTabsWidth ? { width: resolvedTabsWidth } : undefined}
           active={activeTab}
           onChange={handleTabChange}
+          onClickTab={handleClickTab}
           align="center"
           swipeable={swipeableEnabled}
           swipeThreshold={0}

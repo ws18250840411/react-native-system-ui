@@ -21,9 +21,11 @@ const regions: Region[] = [
   },
 ]
 
+const fieldNames = { text: 'label', value: 'code', children: 'items' } as const
+
 const formatValue = (rows: CascaderOption[]) =>
-  rows
-    .map(row => row?.text)
+  (rows as unknown as Region[])
+    .map(row => row?.[fieldNames.text])
     .filter(Boolean)
     .join(' / ')
 
@@ -32,11 +34,15 @@ export default function CascaderFieldNamesDemo() {
     <Cascader
       poppable
       popupRound
-      fieldNames={{ text: 'label', value: 'code', children: 'items' }}
+      fieldNames={fieldNames}
       title="请选择地区"
       options={regions as unknown as CascaderOption[]}
     >
-      {(_, rows, actions) => (
+      {(
+        _value: unknown,
+        rows: CascaderOption[],
+        actions: { open: () => void },
+      ) => (
         <Field
           label="地区"
           isLink
@@ -49,5 +55,3 @@ export default function CascaderFieldNamesDemo() {
     </Cascader>
   )
 }
-
-
