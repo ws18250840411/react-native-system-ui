@@ -1,12 +1,12 @@
 import React from 'react'
 
 import type { DeepPartial } from '../types'
-import { ThemeContext } from './ThemeContext'
+import { ThemeContext, type ThemeComponents } from './ThemeContext'
 import { createTokens, type ThemeTokens } from './tokens'
 
 export interface ThemeConfig {
   foundations?: DeepPartial<ThemeTokens>
-  components?: Record<string, unknown>
+  components?: ThemeComponents
 }
 
 export type ThemeProviderValue = ThemeTokens | ThemeConfig

@@ -8,7 +8,7 @@ import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import type { AvatarProps, AvatarShape, AvatarSize } from './types'
 
-interface AvatarTokens {
+export interface AvatarTokens {
   defaults: {
     size: AvatarSize
     shape: AvatarShape
@@ -62,7 +62,7 @@ const useAvatarTokens = (overrides?: DeepPartial<AvatarTokens>): AvatarTokens =>
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createAvatarTokens(foundations)
-    const componentOverrides = components?.avatar as DeepPartial<AvatarTokens> | undefined
+    const componentOverrides = components?.avatar
     const merged = componentOverrides
       ? overrides
         ? deepMerge(componentOverrides, overrides)

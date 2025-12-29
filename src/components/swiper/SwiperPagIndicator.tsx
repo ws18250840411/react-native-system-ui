@@ -58,9 +58,7 @@ const useSwiperPagIndicatorTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createSwiperPagIndicatorTokens(foundations)
-    const componentOverrides = components?.swiperPagIndicator as
-      | DeepPartial<SwiperPagIndicatorTokens>
-      | undefined
+    const componentOverrides = components?.swiperPagIndicator
     const merged =
       componentOverrides && overrides
         ? deepMerge(componentOverrides, overrides)

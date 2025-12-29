@@ -43,6 +43,7 @@ export interface CheckboxTokens {
 
 const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
   return {
     defaults: {
       shape: 'round',
@@ -51,11 +52,11 @@ const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
     },
     colors: {
       border: palette.default[400],
-      background: '#ffffff',
+      background: surface,
       checkedBackground: palette.primary[500],
       disabledBorder: palette.default[300],
       disabledBackground: palette.default[100],
-      checkmark: '#ffffff',
+      checkmark: palette.primary.foreground ?? '#ffffff',
       label: palette.default.foreground ?? '#111827',
       labelDisabled: palette.default[400],
     },
@@ -84,9 +85,7 @@ export const useCheckboxTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createCheckboxTokens(foundations)
-    const componentOverrides = components?.checkbox as
-      | DeepPartial<CheckboxTokens>
-      | undefined
+    const componentOverrides = components?.checkbox
     const merged =
       componentOverrides && overrides
         ? deepMerge(componentOverrides, overrides)

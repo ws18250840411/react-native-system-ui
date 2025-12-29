@@ -13,7 +13,7 @@ import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import type { BadgeProps } from './types'
 
-interface BadgeTokens {
+export interface BadgeTokens {
   defaults: {
     showZero: boolean
   }
@@ -76,7 +76,7 @@ const useBadgeTokens = (overrides?: DeepPartial<BadgeTokens>) => {
 
   return React.useMemo(() => {
     const base = createBadgeTokens(foundations)
-    const globalOverrides = components?.badge as DeepPartial<BadgeTokens> | undefined
+    const globalOverrides = components?.badge
     const mergedOverrides = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

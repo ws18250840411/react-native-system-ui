@@ -2,7 +2,7 @@ import * as React from 'react'
 import type { TextStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
+import { resolveSemanticColors, type Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import type { SearchShape } from './types'
@@ -45,43 +45,47 @@ export interface SearchTokens {
   }
 }
 
-const createSearchTokens = (foundations: Foundations): SearchTokens => ({
-  defaults: {
-    shape: 'square',
-    clearTrigger: 'focus',
-  },
-  colors: {
-    background: foundations.palette.default[50],
-    contentBackground: '#ffffff',
-    label: foundations.palette.default[600],
-    action: foundations.palette.primary[500],
-    icon: foundations.palette.default[400],
-  },
-  spacing: {
-    paddingHorizontal: foundations.spacing.md,
-    paddingVertical: foundations.spacing.sm,
-    labelGap: foundations.spacing.sm,
-    actionGap: foundations.spacing.sm,
-    contentPaddingHorizontal: foundations.spacing.sm,
-    contentPaddingVertical: foundations.spacing.xs,
-  },
-  radius: {
-    square: foundations.radii.md,
-    round: foundations.radii.pill,
-  },
-  typography: {
-    label: foundations.fontSize.sm,
-    labelWeight: '500',
-    action: foundations.fontSize.sm,
-    actionWeight: '500',
-  },
-  opacity: {
-    actionPressed: 0.6,
-  },
-  icon: {
-    size: foundations.fontSize.md,
-  },
-})
+const createSearchTokens = (foundations: Foundations): SearchTokens => {
+  const { palette, spacing, radii, fontSize } = foundations
+  const { surface } = resolveSemanticColors(palette)
+  return {
+    defaults: {
+      shape: 'square',
+      clearTrigger: 'focus',
+    },
+    colors: {
+      background: surface,
+      contentBackground: surface,
+      label: palette.default[600],
+      action: palette.primary[500],
+      icon: palette.default[400],
+    },
+    spacing: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      labelGap: spacing.sm,
+      actionGap: spacing.sm,
+      contentPaddingHorizontal: spacing.sm,
+      contentPaddingVertical: spacing.xs,
+    },
+    radius: {
+      square: radii.md,
+      round: radii.pill,
+    },
+    typography: {
+      label: fontSize.sm,
+      labelWeight: '500',
+      action: fontSize.sm,
+      actionWeight: '500',
+    },
+    opacity: {
+      actionPressed: 0.6,
+    },
+    icon: {
+      size: fontSize.md,
+    },
+  }
+}
 
 export const useSearchTokens = (
   overrides?: DeepPartial<SearchTokens>,
@@ -89,9 +93,7 @@ export const useSearchTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createSearchTokens(foundations)
-    const componentOverrides = components?.search as
-      | DeepPartial<SearchTokens>
-      | undefined
+    const componentOverrides = components?.search
     const merged =
       componentOverrides && overrides
         ? deepMerge(componentOverrides, overrides)

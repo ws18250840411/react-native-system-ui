@@ -100,7 +100,7 @@ export const usePopupTokens = (overrides?: DeepPartial<PopupTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createPopupTokens(foundations)
-    const globalOverrides = components?.popup as DeepPartial<PopupTokens> | undefined
+    const globalOverrides = components?.popup
     const merged = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

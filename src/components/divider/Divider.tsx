@@ -9,7 +9,7 @@ import { createHairlineView } from '../../utils/hairline'
 import type { DividerProps } from './types'
 import type { DividerContentPosition, DividerType } from './types'
 
-interface DividerTokens {
+export interface DividerTokens {
   defaults: {
     type: DividerType
     dashed: boolean
@@ -80,7 +80,7 @@ const useDividerTokens = (overrides?: DeepPartial<DividerTokens>) => {
 
   return React.useMemo(() => {
     const base = createDividerTokens(foundations)
-    const globalOverrides = components?.divider as DeepPartial<DividerTokens> | undefined
+    const globalOverrides = components?.divider
     const mergedOverrides = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

@@ -73,7 +73,7 @@ export interface CircleProps {
   children?: React.ReactNode
 }
 
-interface CircleTokens {
+export interface CircleTokens {
   colors: {
     color: string
     layerColor: string
@@ -103,7 +103,7 @@ const useCircleTokens = (overrides?: DeepPartial<CircleTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createCircleTokens(foundations)
-    const globalOverrides = components?.circle as DeepPartial<CircleTokens> | undefined
+    const globalOverrides = components?.circle
     const merged = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

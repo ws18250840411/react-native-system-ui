@@ -36,7 +36,7 @@ export const useImageTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.image as DeepPartial<ImageTokens> | undefined
+    const componentOverrides = components?.image
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

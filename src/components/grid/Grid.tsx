@@ -48,7 +48,7 @@ const useGridTokens = (overrides?: DeepPartial<GridTokens>) => {
 
   return React.useMemo(() => {
     const base = createGridTokens(foundations)
-    const globalOverrides = components?.grid as DeepPartial<GridTokens> | undefined
+    const globalOverrides = components?.grid
     const mergedOverrides = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

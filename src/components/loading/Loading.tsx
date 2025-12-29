@@ -16,7 +16,7 @@ import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import type { LoadingProps } from './types'
 
-interface LoadingTokens {
+export interface LoadingTokens {
   defaults: {
     type: 'circular' | 'spinner'
     size: number
@@ -67,7 +67,7 @@ const useLoadingTokens = (overrides?: DeepPartial<LoadingTokens>) => {
 
   return React.useMemo(() => {
     const base = createLoadingTokens(foundations)
-    const globalOverrides = components?.loading as DeepPartial<LoadingTokens> | undefined
+    const globalOverrides = components?.loading
     const mergedOverrides = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

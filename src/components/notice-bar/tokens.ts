@@ -54,7 +54,7 @@ export const useNoticeBarTokens = (overrides?: DeepPartial<NoticeBarTokens>) => 
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createNoticeBarTokens(foundations)
-    const globalOverrides = components?.noticeBar as DeepPartial<NoticeBarTokens> | undefined
+    const globalOverrides = components?.noticeBar
     const merged =
       globalOverrides && overrides
         ? deepMerge(globalOverrides, overrides)

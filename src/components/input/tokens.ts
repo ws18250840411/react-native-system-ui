@@ -42,9 +42,7 @@ export const useInputTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createInputTokens(foundations)
-    const componentOverrides = components?.input as
-      | DeepPartial<InputTokens>
-      | undefined
+    const componentOverrides = components?.input
     const merged =
       componentOverrides && overrides
         ? deepMerge(componentOverrides, overrides)

@@ -46,8 +46,8 @@ const createSliderTokens = (foundations: Foundations): SliderTokens => ({
   colors: {
     active: foundations.palette.primary[500],
     inactive: foundations.palette.default[300],
-    thumbBackground: '#ffffff',
-    thumbIndicator: '#ffffff',
+    thumbBackground: foundations.palette.default[50] ?? '#ffffff',
+    thumbIndicator: foundations.palette.default[50] ?? '#ffffff',
   },
   spacing: {
     containerPaddingVertical: foundations.spacing.md,
@@ -67,9 +67,7 @@ export const useSliderTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createSliderTokens(foundations)
-    const componentOverrides = components?.slider as
-      | DeepPartial<SliderTokens>
-      | undefined
+    const componentOverrides = components?.slider
     const merged =
       componentOverrides && overrides
         ? deepMerge(componentOverrides, overrides)

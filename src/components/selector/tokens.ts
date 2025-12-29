@@ -84,7 +84,7 @@ export const useSelectorTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createSelectorTokens(foundations)
-    const componentOverrides = components?.selector as DeepPartial<SelectorTokens> | undefined
+    const componentOverrides = components?.selector
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

@@ -44,7 +44,7 @@ export const useRateTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createRateTokens(foundations)
-    const componentOverrides = components?.rate as DeepPartial<RateTokens> | undefined
+    const componentOverrides = components?.rate
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

@@ -44,7 +44,7 @@ export const usePaginationTokens = (overrides?: DeepPartial<PaginationTokens>) =
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.pagination as DeepPartial<PaginationTokens> | undefined
+    const componentOverrides = components?.pagination
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

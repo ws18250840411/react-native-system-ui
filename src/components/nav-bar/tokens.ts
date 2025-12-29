@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
+import { resolveSemanticColors, type Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 
@@ -32,6 +32,7 @@ export interface NavBarTokens {
 
 const createTokens = (foundations: Foundations): NavBarTokens => {
   const { palette, spacing, fontSize } = foundations
+  const { surface } = resolveSemanticColors(palette)
   return {
     defaults: {
       fixed: false,
@@ -40,7 +41,7 @@ const createTokens = (foundations: Foundations): NavBarTokens => {
       safeAreaInsetTop: false,
     },
     colors: {
-      background: '#ffffff',
+      background: surface,
       text: palette.default[900],
       description: palette.default[500],
       border: palette.default[200],
@@ -64,7 +65,7 @@ export const useNavBarTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.navBar as DeepPartial<NavBarTokens> | undefined
+    const componentOverrides = components?.navBar
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

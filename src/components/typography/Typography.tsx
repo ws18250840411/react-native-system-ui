@@ -16,7 +16,7 @@ import type {
   TypographyType,
 } from './types'
 
-interface TypographyTokens {
+export interface TypographyTokens {
   colors: Record<TypographyType, string>
   sizes: Record<TypographySize, number>
   titles: Record<TypographyTitleLevel, { fontSize: number; lineHeight: number }>
@@ -81,7 +81,7 @@ const useTypographyTokens = (overrides?: DeepPartial<TypographyTokens>) => {
 
   return React.useMemo(() => {
     const base = createTypographyTokens(foundations)
-    const globalOverrides = components?.typography as DeepPartial<TypographyTokens> | undefined
+    const globalOverrides = components?.typography
     const mergedOverrides = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

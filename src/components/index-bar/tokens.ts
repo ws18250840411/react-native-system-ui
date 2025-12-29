@@ -34,7 +34,7 @@ const createTokens = (foundations: Foundations): IndexBarTokens => {
       text: palette.default[600],
       activeText: palette.primary[600],
       indicatorBackground: 'rgba(0,0,0,0.6)',
-      indicatorText: '#ffffff',
+      indicatorText: palette.primary.foreground ?? '#ffffff',
       stickyBackground: palette.default[50] ?? '#f7f8fa',
       stickyText: palette.default[900] ?? '#323233',
       anchorBackground: palette.default[50] ?? '#f7f8fa',
@@ -58,7 +58,7 @@ export const useIndexBarTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.indexBar as DeepPartial<IndexBarTokens> | undefined
+    const componentOverrides = components?.indexBar
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

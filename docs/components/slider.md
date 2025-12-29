@@ -21,6 +21,32 @@ import { Slider } from 'react-native-system-ui'
 
 <code title="基础用法" src="./slider/demo/basic.tsx"></code>
 
+### 双滑块
+
+添加 `range` 属性就可以开启双滑块模式，确保 `value` 的值是一个数组。
+
+<code title="双滑块" src="./slider/demo/range.tsx"></code>
+
+### 指定选择范围
+
+<code title="指定选择范围" src="./slider/demo/range-limit.tsx"></code>
+
+### 禁用
+
+<code title="禁用" src="./slider/demo/disabled.tsx"></code>
+
+### 指定步长
+
+<code title="指定步长" src="./slider/demo/step.tsx"></code>
+
+### 自定义样式
+
+<code title="自定义样式" src="./slider/demo/style.tsx"></code>
+
+### 自定义按钮
+
+<code title="自定义按钮" src="./slider/demo/button.tsx"></code>
+
 ### 垂直方向
 
 设置 `vertical` 属性后，滑块会垂直展示，且高度为 100% 父元素高度。

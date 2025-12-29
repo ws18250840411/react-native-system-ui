@@ -39,6 +39,7 @@ export interface DropdownMenuTokens {
 
 const createTokens = (foundations: Foundations): DropdownMenuTokens => {
   const { palette, spacing, fontSize, typography } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
   return {
     colors: {
       text: palette.default[900],
@@ -46,10 +47,10 @@ const createTokens = (foundations: Foundations): DropdownMenuTokens => {
       placeholder: palette.default[500],
       disabledText: palette.default[400],
       arrow: palette.default[500],
-      panelBackground: '#ffffff',
+      panelBackground: surface,
       mask: 'rgba(0,0,0,0.45)',
       divider: palette.default[200],
-      barBackground: '#ffffff',
+      barBackground: surface,
     },
     spacing: {
       horizontal: spacing.md,
@@ -78,7 +79,7 @@ export const useDropdownMenuTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.dropdownMenu as DeepPartial<DropdownMenuTokens> | undefined
+    const componentOverrides = components?.dropdownMenu
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

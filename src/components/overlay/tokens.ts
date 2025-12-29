@@ -23,7 +23,7 @@ export const useOverlayTokens = (overrides?: DeepPartial<OverlayTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createOverlayTokens(foundations)
-    const globalOverrides = components?.overlay as DeepPartial<OverlayTokens> | undefined
+    const globalOverrides = components?.overlay
     const merged = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

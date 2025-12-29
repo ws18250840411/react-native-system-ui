@@ -23,7 +23,7 @@ const createProgressTokens = (foundations: Foundations): ProgressTokens => ({
   colors: {
     track: foundations.palette.default[100],
     indicator: foundations.palette.primary[500],
-    pivotText: '#ffffff',
+    pivotText: foundations.palette.primary.foreground ?? '#ffffff',
   },
   sizes: {
     height: 4,
@@ -36,7 +36,7 @@ const createProgressTokens = (foundations: Foundations): ProgressTokens => ({
 export const useProgressTokens = (overrides?: DeepPartial<ProgressTokens>): ProgressTokens => {
   const { foundations, components } = useTheme()
   const base = React.useMemo(() => createProgressTokens(foundations), [foundations])
-  const componentOverrides = components?.progress as DeepPartial<ProgressTokens> | undefined
+  const componentOverrides = components?.progress
   const merged = componentOverrides
     ? overrides
       ? deepMerge(componentOverrides, overrides)

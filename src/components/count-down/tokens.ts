@@ -35,7 +35,7 @@ export const useCountDownTokens = (overrides?: DeepPartial<CountDownTokens>) => 
 
   return React.useMemo(() => {
     const base = createCountDownTokens(foundations)
-    const componentOverrides = components?.countDown as DeepPartial<CountDownTokens> | undefined
+    const componentOverrides = components?.countDown
     const mergedOverrides =
       componentOverrides && overrides ? deepMerge(componentOverrides, overrides) : componentOverrides ?? overrides
     return mergedOverrides ? deepMerge(base, mergedOverrides) : base

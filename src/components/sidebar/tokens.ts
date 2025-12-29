@@ -27,9 +27,10 @@ export interface SidebarTokens {
 
 const createTokens = (foundations: Foundations): SidebarTokens => {
   const { palette, fontSize } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
   return {
     colors: {
-      background: '#ffffff',
+      background: surface,
       border: palette.default[200],
       title: palette.default[800],
       titleActive: palette.primary[600],
@@ -54,7 +55,7 @@ export const useSidebarTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.sidebar as DeepPartial<SidebarTokens> | undefined
+    const componentOverrides = components?.sidebar
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

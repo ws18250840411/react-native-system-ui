@@ -76,6 +76,14 @@ const paletteFactory = (ramp: PaletteRamp): PaletteRamp => ({
   foreground: ramp.foreground ?? '#ffffff',
 })
 
+export const resolveSemanticColors = (palette: Foundations['palette']) => {
+  const surface = palette.default[50] ?? '#ffffff'
+  const surfaceMuted = palette.default[100] ?? surface
+  const onSurface = palette.default[900] ?? palette.default.foreground ?? '#111827'
+  const onPrimary = palette.primary.foreground ?? '#ffffff'
+  return { surface, surfaceMuted, onSurface, onPrimary }
+}
+
 export const defaultFoundations: Foundations = {
   palette: {
     default: paletteFactory({

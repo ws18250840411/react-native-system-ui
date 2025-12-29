@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
+import { resolveSemanticColors, type Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import type { StepperTheme } from './types'
@@ -48,6 +48,7 @@ export interface StepperTokens {
 
 const createStepperTokens = (foundations: Foundations): StepperTokens => {
   const { palette, radii, fontSize, opacity, typography } = foundations
+  const { surface, onPrimary } = resolveSemanticColors(palette)
   return {
     defaults: {
       theme: 'default',
@@ -59,14 +60,14 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
       buttonSize: 28,
     },
     colors: {
-      active: '#e8e8e8',
+      active: palette.default[200],
       background: palette.default[100],
       buttonIcon: palette.default[900],
-      buttonDisabledBackground: '#ffffff',
+      buttonDisabledBackground: surface,
       buttonDisabledIcon: palette.default[400],
       roundTheme: palette.primary[500],
-      roundThemeText: '#ffffff',
-      roundThemeBackground: '#ffffff',
+      roundThemeText: onPrimary,
+      roundThemeBackground: surface,
       inputText: palette.default[900],
       inputDisabledText: palette.default[400],
       inputDisabledBackground: palette.default[100],
@@ -95,7 +96,7 @@ export const useStepperTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createStepperTokens(foundations)
-    const componentOverrides = components?.stepper as DeepPartial<StepperTokens> | undefined
+    const componentOverrides = components?.stepper
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

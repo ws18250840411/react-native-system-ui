@@ -92,7 +92,7 @@ export const useCalendarTokens = (overrides?: DeepPartial<CalendarTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createCalendarTokens(foundations)
-    const componentOverrides = components?.calendar as DeepPartial<CalendarTokens> | undefined
+    const componentOverrides = components?.calendar
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

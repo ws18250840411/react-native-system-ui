@@ -30,7 +30,7 @@ export const useWaterMarkTokens = (overrides?: DeepPartial<WaterMarkTokens>) => 
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.waterMark as DeepPartial<WaterMarkTokens> | undefined
+    const componentOverrides = components?.waterMark
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

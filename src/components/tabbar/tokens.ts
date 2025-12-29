@@ -72,7 +72,7 @@ export const useTabbarTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.tabbar as DeepPartial<TabbarTokens> | undefined
+    const componentOverrides = components?.tabbar
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

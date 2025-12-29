@@ -46,7 +46,7 @@ export interface NotifyProps {
   onClosed?: () => void
 }
 
-interface NotifyTokens {
+export interface NotifyTokens {
   colors: {
     variants: Record<NotifyType, { background: string; text: string }>
   }
@@ -93,7 +93,7 @@ const useNotifyTokens = (overrides?: DeepPartial<NotifyTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createNotifyTokens(foundations)
-    const globalOverrides = components?.notify as DeepPartial<NotifyTokens> | undefined
+    const globalOverrides = components?.notify
     const merged = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)
@@ -209,13 +209,13 @@ export const Notify: React.FC<NotifyProps> = props => {
   const translateY =
     position === 'bottom'
       ? animated.interpolate({
-          inputRange: [0, 1],
-          outputRange: [translateDistance, 0],
-        })
+        inputRange: [0, 1],
+        outputRange: [translateDistance, 0],
+      })
       : animated.interpolate({
-          inputRange: [0, 1],
-          outputRange: [-translateDistance, 0],
-        })
+        inputRange: [0, 1],
+        outputRange: [-translateDistance, 0],
+      })
 
   const hasMessage =
     message !== undefined &&

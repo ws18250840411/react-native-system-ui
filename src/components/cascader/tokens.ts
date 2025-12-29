@@ -90,7 +90,7 @@ export const useCascaderTokens = (overrides?: DeepPartial<CascaderTokens>): Casc
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.cascader as DeepPartial<CascaderTokens> | undefined
+    const componentOverrides = components?.cascader
     const merged = componentOverrides && overrides ? deepMerge(componentOverrides, overrides) : componentOverrides ?? overrides
     return merged ? deepMerge(base, merged) : base
   }, [components, foundations, overrides])

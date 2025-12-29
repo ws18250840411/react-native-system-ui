@@ -57,7 +57,7 @@ export type CollapsePanelInstance = {
   toggle: (expand?: boolean) => void
 }
 
-interface CollapseTokens {
+export interface CollapseTokens {
   colors: {
     border: string
     title: string
@@ -145,7 +145,7 @@ const useCollapseTokens = (overrides?: DeepPartial<CollapseTokens>) => {
 
   return React.useMemo(() => {
     const base = createCollapseTokens(foundations)
-    const globalOverrides = components?.collapse as DeepPartial<CollapseTokens> | undefined
+    const globalOverrides = components?.collapse
     const merged = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

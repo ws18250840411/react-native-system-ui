@@ -62,7 +62,7 @@ export const useSkeletonTokens = (overrides?: DeepPartial<SkeletonTokens>): Skel
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.skeleton as DeepPartial<SkeletonTokens> | undefined
+    const componentOverrides = components?.skeleton
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

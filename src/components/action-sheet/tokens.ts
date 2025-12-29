@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
+import { resolveSemanticColors, type Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 
@@ -34,9 +34,10 @@ export interface ActionSheetTokens {
 
 const createTokens = (foundations: Foundations): ActionSheetTokens => {
   const { palette, spacing, fontSize } = foundations
+  const { surface } = resolveSemanticColors(palette)
   return {
     colors: {
-      background: '#ffffff',
+      background: surface,
       title: palette.default[900],
       description: palette.default[500],
       item: palette.default[900],
@@ -44,10 +45,10 @@ const createTokens = (foundations: Foundations): ActionSheetTokens => {
       cancel: palette.default[900],
       disabled: palette.default[400],
       border: palette.default[200],
-      itemBackground: '#ffffff',
-      itemPressedBackground: '#f2f3f5',
-      cancelBackground: '#ffffff',
-      cancelGapBackground: '#f7f8fa',
+      itemBackground: surface,
+      itemPressedBackground: palette.default[100],
+      cancelBackground: surface,
+      cancelGapBackground: palette.default[100] ?? '#f1f2f5',
     },
     spacing: {
       horizontal: spacing.md,
@@ -68,7 +69,7 @@ export const useActionSheetTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.actionSheet as DeepPartial<ActionSheetTokens> | undefined
+    const componentOverrides = components?.actionSheet
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

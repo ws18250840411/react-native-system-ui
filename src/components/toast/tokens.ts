@@ -63,7 +63,7 @@ export const useToastTokens = (overrides?: DeepPartial<ToastTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createToastTokens(foundations)
-    const globalOverrides = components?.toast as DeepPartial<ToastTokens> | undefined
+    const globalOverrides = components?.toast
     const merged = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

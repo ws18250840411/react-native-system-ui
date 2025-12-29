@@ -52,12 +52,14 @@ export interface PopoverTokens {
 
 const createTokens = (foundations: Foundations): PopoverTokens => {
   const { palette, radii, spacing } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
+  const onDarkText = palette.primary.foreground ?? '#ffffff'
   return {
     colors: {
-      background: '#ffffff',
+      background: surface,
       text: palette.default[900],
       backgroundDark: '#4a4a4a',
-      textDark: '#ffffff',
+      textDark: onDarkText,
       shadow: '#000000',
       overlay: 'rgba(0,0,0,0.2)',
     },
@@ -104,7 +106,7 @@ export const usePopoverTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.popover as DeepPartial<PopoverTokens> | undefined
+    const componentOverrides = components?.popover
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

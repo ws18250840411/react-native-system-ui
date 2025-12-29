@@ -42,6 +42,7 @@ export interface RadioTokens {
 
 const createRadioTokens = (foundations: Foundations): RadioTokens => {
   const { palette, spacing, fontSize, typography } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
   return {
     defaults: {
       iconSize: 20,
@@ -49,11 +50,11 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
     },
     colors: {
       border: palette.default[400],
-      background: '#ffffff',
+      background: surface,
       checkedBackground: palette.primary[500],
       disabledBorder: palette.default[300],
       disabledBackground: palette.default[100],
-      checkmark: '#ffffff',
+      checkmark: palette.primary.foreground ?? '#ffffff',
       label: palette.default.foreground ?? '#111827',
       labelDisabled: palette.default[400],
     },
@@ -83,9 +84,7 @@ export const useRadioTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createRadioTokens(foundations)
-    const componentOverrides = components?.radio as
-      | DeepPartial<RadioTokens>
-      | undefined
+    const componentOverrides = components?.radio
     const merged =
       componentOverrides && overrides
         ? deepMerge(componentOverrides, overrides)

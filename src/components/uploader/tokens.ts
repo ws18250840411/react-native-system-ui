@@ -30,13 +30,13 @@ const createTokens = (foundations: Foundations): UploaderTokens => {
     radius: radii.md,
     colors: {
       background: palette.default[100],
-      border: 'rgba(0,0,0,0.08)',
+      border: palette.default[200],
       text: palette.default[500],
       icon: palette.default[500],
       deleteBackground: 'rgba(0,0,0,0.65)',
-      deleteIcon: '#fff',
+      deleteIcon: palette.primary.foreground ?? '#fff',
       maskBackground: 'rgba(0,0,0,0.45)',
-      maskText: '#fff',
+      maskText: palette.primary.foreground ?? '#fff',
       failed: palette.danger[500],
     },
   }
@@ -46,7 +46,7 @@ export const useUploaderTokens = (overrides?: DeepPartial<UploaderTokens>): Uplo
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.uploader as DeepPartial<UploaderTokens> | undefined
+    const componentOverrides = components?.uploader
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

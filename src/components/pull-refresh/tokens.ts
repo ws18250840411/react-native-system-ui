@@ -34,7 +34,7 @@ export const usePullRefreshTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.pullRefresh as DeepPartial<PullRefreshTokens> | undefined
+    const componentOverrides = components?.pullRefresh
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

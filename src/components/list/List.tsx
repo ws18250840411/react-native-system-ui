@@ -19,7 +19,7 @@ import type { ListProps, ListRef } from './types'
 
 const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
 
-interface ListTokens {
+export interface ListTokens {
   colors: {
     errorText: string
     finishedText: string
@@ -47,7 +47,7 @@ const useListTokens = (overrides?: DeepPartial<ListTokens>): ListTokens => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createListTokens(foundations)
-    const componentOverrides = components?.list as DeepPartial<ListTokens> | undefined
+    const componentOverrides = components?.list
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

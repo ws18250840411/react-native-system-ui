@@ -42,16 +42,17 @@ export interface NumberKeyboardTokens {
 
 const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
   const { palette, spacing, radii, fontSize } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
   return {
     colors: {
-      background: '#f2f3f5',
+      background: palette.default[100],
       title: palette.default[700],
-      keyBackground: '#ffffff',
+      keyBackground: surface,
       keyActiveBackground: palette.default[100],
       keyText: palette.default[900],
       keyTextActive: palette.primary[600],
       closeBackground: palette.primary[600],
-      closeText: '#ffffff',
+      closeText: palette.primary.foreground ?? '#ffffff',
       border: palette.default[200],
     },
     spacing: {
@@ -84,7 +85,7 @@ export const useNumberKeyboardTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.numberKeyboard as DeepPartial<NumberKeyboardTokens> | undefined
+    const componentOverrides = components?.numberKeyboard
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

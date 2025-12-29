@@ -93,6 +93,8 @@ export interface TabsTokens {
 
 const createTokens = (foundations: Foundations): TabsTokens => {
   const { palette, spacing, fontSize } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
+  const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
       type: 'line',
@@ -110,31 +112,29 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       textDisabled: palette.default[400],
       description: palette.default[500],
       descriptionActive: palette.default[600],
-      descriptionBackground: '#f2f3f5',
+      descriptionBackground: palette.default[100],
       descriptionActiveBackground: palette.primary[600],
       border: palette.default[200],
       indicator: palette.primary[600],
-      cardBackground: '#ffffff',
+      cardBackground: surface,
       cardActiveBackground: palette.primary[600],
       cardBorder: palette.primary[600],
       cardActiveBorder: palette.primary[600],
-      cardActiveText: palette.primary.foreground ?? '#ffffff',
+      cardActiveText: onPrimary,
       capsuleBackground: 'transparent',
       capsuleActiveBackground: palette.primary[600],
       capsuleBorder: 'transparent',
       capsuleActiveBorder: 'transparent',
       capsuleText: palette.default[700],
-      // 激活胶囊文字强制白色，贴合 React Vant
-      capsuleActiveText: '#ffffff',
-      badgeText: palette.primary.foreground ?? '#ffffff',
-      jumboBackground: '#f5f6f8',
-      jumboActiveBackground: '#ffffff',
+      capsuleActiveText: onPrimary,
+      badgeText: palette.default[500],
+      jumboBackground: palette.default[50],
+      jumboActiveBackground: surface,
       jumboBorder: 'transparent',
       jumboActiveBorder: palette.primary[400],
       jumboDescription: palette.default[500],
-      // 选中描述文字设为白色以保证对比
-      jumboDescriptionActive: '#ffffff',
-      jumboDescriptionBackground: '#f2f3f5',
+      jumboDescriptionActive: onPrimary,
+      jumboDescriptionBackground: palette.default[100],
       jumboDescriptionActiveBackground: palette.primary[500],
     },
     tabList: {
@@ -142,7 +142,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       paddingHorizontal: spacing.lg,
       paddingVertical: 0,
       paddingBottom: spacing.md,
-      background: '#ffffff',
+      background: surface,
     },
     typography: {
       // 对齐 React Vant：常规 14px，描述 12px，巨幕标题 16px
@@ -189,7 +189,7 @@ export const useTabsTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.tabs as DeepPartial<TabsTokens> | undefined
+    const componentOverrides = components?.tabs
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

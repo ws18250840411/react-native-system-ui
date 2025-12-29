@@ -72,6 +72,7 @@ export interface CellTokens {
 
 export const createCellTokens = (foundations: Foundations): CellTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
   return {
     defaults: {
       groupBorder: true,
@@ -79,12 +80,12 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       groupCard: false,
     },
     container: {
-      background: '#ffffff',
+      background: surface,
       paddingVertical: 10,
       paddingHorizontal: 16,
       largePaddingVertical: 14,
       activeOpacity: 0.6, // foundations.opacity.pressed is 0.85, maybe use that? 0.6 is specific to cell? Using 0.6 for now to match existing behavior.
-      rippleColor: '#f2f3f5', // match existing
+      rippleColor: palette.default[100], // match existing
     },
     spacing: {
       iconGap: spacing.sm,
@@ -123,7 +124,7 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       titleSize: fontSize.sm,
       titlePaddingHorizontal: spacing.lg,
       titlePaddingVertical: spacing.sm,
-      bodyBackground: '#ffffff',
+      bodyBackground: surface,
       insetRadius: radii.lg,
       insetMarginHorizontal: spacing.lg,
       cardShadow: {
@@ -141,7 +142,7 @@ export const useCellTokens = (overrides?: DeepPartial<CellTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createCellTokens(foundations)
-    const globalOverrides = components?.cell as DeepPartial<CellTokens> | undefined
+    const globalOverrides = components?.cell
     const mergedOverrides =
       globalOverrides && overrides ? deepMerge(globalOverrides, overrides) : globalOverrides ?? overrides
     return mergedOverrides ? deepMerge(base, mergedOverrides) : base

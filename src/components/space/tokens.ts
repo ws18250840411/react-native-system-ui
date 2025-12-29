@@ -38,9 +38,7 @@ export const useSpaceTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createSpaceTokens(foundations)
-    const componentOverrides = components?.space as
-      | DeepPartial<SpaceTokens>
-      | undefined
+    const componentOverrides = components?.space
     const merged =
       componentOverrides && overrides
         ? deepMerge(componentOverrides, overrides)

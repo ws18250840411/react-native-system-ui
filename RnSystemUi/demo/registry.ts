@@ -245,6 +245,12 @@ import SkeletonDemoAvatar from '../../docs/components/skeleton/demo/avatar'
 import SkeletonDemoBasic from '../../docs/components/skeleton/demo/basic'
 import SkeletonDemoCustom from '../../docs/components/skeleton/demo/custom'
 import SliderDemoBasic from '../../docs/components/slider/demo/basic'
+import SliderDemoButton from '../../docs/components/slider/demo/button'
+import SliderDemoDisabled from '../../docs/components/slider/demo/disabled'
+import SliderDemoRange from '../../docs/components/slider/demo/range'
+import SliderDemoRangeLimit from '../../docs/components/slider/demo/range-limit'
+import SliderDemoStep from '../../docs/components/slider/demo/step'
+import SliderDemoStyle from '../../docs/components/slider/demo/style'
 import SliderDemoVertical from '../../docs/components/slider/demo/vertical'
 import SpaceDemoAlign from '../../docs/components/space/demo/align'
 import SpaceDemoBase from '../../docs/components/space/demo/base'
@@ -1295,6 +1301,36 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "basic",
         title: "基础用法",
         Component: SliderDemoBasic,
+      },
+      {
+        id: "range",
+        title: "双滑块",
+        Component: SliderDemoRange,
+      },
+      {
+        id: "range-limit",
+        title: "指定选择范围",
+        Component: SliderDemoRangeLimit,
+      },
+      {
+        id: "disabled",
+        title: "禁用",
+        Component: SliderDemoDisabled,
+      },
+      {
+        id: "step",
+        title: "指定步长",
+        Component: SliderDemoStep,
+      },
+      {
+        id: "style",
+        title: "自定义样式",
+        Component: SliderDemoStyle,
+      },
+      {
+        id: "button",
+        title: "自定义按钮",
+        Component: SliderDemoButton,
       },
       {
         id: "vertical",

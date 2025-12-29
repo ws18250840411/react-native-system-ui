@@ -34,7 +34,7 @@ export const useImagePreviewTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.imagePreview as DeepPartial<ImagePreviewTokens> | undefined
+    const componentOverrides = components?.imagePreview
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

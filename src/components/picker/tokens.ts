@@ -43,6 +43,7 @@ export interface PickerTokens {
 
 const createPickerTokens = (foundations: Foundations): PickerTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
+  const surface = palette.default[50] ?? '#ffffff'
   return {
     defaults: {
       itemHeight: 44,
@@ -53,14 +54,14 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
       maskType: 'gradient',
     },
     colors: {
-      background: '#ffffff',
-      indicator: '#ebedf0',
-      text: '#000000',
-      textMuted: '#000000',
+      background: surface,
+      indicator: palette.default[200] ?? '#ebedf0',
+      text: palette.default[900],
+      textMuted: palette.default[900],
       textDisabled: palette.default[400],
       confirm: palette.primary[600],
       cancel: palette.default[600],
-      mask: '#ffffff',
+      mask: surface,
     },
     spacing: {
       toolbarHeight: 44,
@@ -83,7 +84,7 @@ export const usePickerTokens = (overrides?: DeepPartial<PickerTokens>): PickerTo
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createPickerTokens(foundations)
-    const globalOverrides = components?.picker as DeepPartial<PickerTokens> | undefined
+    const globalOverrides = components?.picker
     const merged = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

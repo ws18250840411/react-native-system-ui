@@ -63,7 +63,7 @@ export const useShareSheetTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTokens(foundations)
-    const componentOverrides = components?.shareSheet as DeepPartial<ShareSheetTokens> | undefined
+    const componentOverrides = components?.shareSheet
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

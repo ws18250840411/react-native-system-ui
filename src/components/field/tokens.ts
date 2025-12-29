@@ -76,7 +76,7 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
       label: palette.default[700],
       input: palette.default[800],
       // 对齐 React Vant placeholder 变量 @gray-5 (#c8c9cc)
-      placeholder: '#c8c9cc',
+      placeholder: palette.default[300] ?? '#c8c9cc',
       error: palette.danger[500],
       disabled: palette.default[500],
       intro: palette.default[600],
@@ -84,7 +84,7 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
       clear: palette.default[500],
       rightIcon: palette.default[500],
       // React Vant 字数统计文案约为 #646566
-      wordLimit: '#646566',
+      wordLimit: palette.default[600] ?? '#646566',
     },
     spacing: {
       // labelGap 设为 0，确保总宽度即为 labelWidth
@@ -120,7 +120,7 @@ export const useFieldTokens = (overrides?: DeepPartial<FieldTokens>): FieldToken
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createFieldTokens(foundations)
-    const componentOverrides = components?.field as DeepPartial<FieldTokens> | undefined
+    const componentOverrides = components?.field
     const merged = componentOverrides && overrides
       ? deepMerge(componentOverrides, overrides)
       : componentOverrides ?? overrides

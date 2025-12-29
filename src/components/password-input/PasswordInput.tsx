@@ -27,7 +27,7 @@ const HIDDEN_INPUT_PROPS: TextInputProps = {
 
 const sanitizeNumber = (value: string) => value.replace(/[^0-9]/g, '')
 
-interface PasswordInputTokens {
+export interface PasswordInputTokens {
   colors: {
     border: string
     text: string
@@ -101,7 +101,7 @@ const usePasswordInputTokens = (overrides?: DeepPartial<PasswordInputTokens>) =>
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createPasswordInputTokens(foundations)
-    const globalOverrides = components?.passwordInput as DeepPartial<PasswordInputTokens> | undefined
+    const globalOverrides = components?.passwordInput
     const mergedOverrides = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

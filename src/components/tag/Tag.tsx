@@ -12,7 +12,7 @@ import type { TagProps, TagSize, TagType } from './types'
 
 const isRenderable = (value: React.ReactNode) => value !== null && value !== undefined
 
-interface TagTokens {
+export interface TagTokens {
   defaults: {
     type: TagType
     size: TagSize
@@ -123,7 +123,7 @@ const useTagTokens = (overrides?: DeepPartial<TagTokens>): TagTokens => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createTagTokens(foundations)
-    const componentOverrides = components?.tag as DeepPartial<TagTokens> | undefined
+    const componentOverrides = components?.tag
     const merged = componentOverrides
       ? overrides
         ? deepMerge(componentOverrides, overrides)

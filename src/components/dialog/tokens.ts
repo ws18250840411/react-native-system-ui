@@ -101,7 +101,7 @@ export const useDialogTokens = (overrides?: DeepPartial<DialogTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createDialogTokens(foundations)
-    const globalOverrides = components?.dialog as DeepPartial<DialogTokens> | undefined
+    const globalOverrides = components?.dialog
     const mergedOverrides = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

@@ -8,7 +8,7 @@ import { deepMerge } from '../../utils/deepMerge'
 import Image from '../image'
 import type { EmptyImage, EmptyProps } from './types'
 
-interface EmptyTokens {
+export interface EmptyTokens {
   spacing: {
     paddingVertical: number
     paddingHorizontal: number
@@ -65,7 +65,7 @@ const useEmptyTokens = (overrides?: DeepPartial<EmptyTokens>) => {
 
   return React.useMemo(() => {
     const base = createEmptyTokens(foundations)
-    const globalOverrides = components?.empty as DeepPartial<EmptyTokens> | undefined
+    const globalOverrides = components?.empty
     const mergedOverrides = globalOverrides
       ? overrides
         ? deepMerge(globalOverrides, overrides)

@@ -33,7 +33,7 @@ export const useFlexTokens = (overrides?: DeepPartial<FlexTokens>) => {
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createFlexTokens(foundations)
-    const globalOverrides = components?.flex as DeepPartial<FlexTokens> | undefined
+    const globalOverrides = components?.flex
     const merged =
       globalOverrides && overrides
         ? deepMerge(globalOverrides, overrides)

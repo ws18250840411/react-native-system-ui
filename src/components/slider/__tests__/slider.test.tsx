@@ -92,7 +92,7 @@ describe('Slider', () => {
     const tree = renderer.create(
       <Slider value={50} thumb={CustomThumb} />
     )
-    
+
     const text = tree.root.findByType(Text)
     expect(text.props.children).toBe('Thumb')
   })
@@ -102,10 +102,10 @@ describe('Slider', () => {
     const tree = renderer.create(
       <Slider value={50} onChange={onChange} disabled />
     )
-    
+
     const thumbWrapper = tree.root.findAllByType(View).find(v => v.props.pointerEvents === 'none')
     expect(thumbWrapper).toBeDefined()
-    
+
     const trackWrapper = tree.root.findByType(Pressable)
     expect(trackWrapper.props.disabled).toBe(true)
   })
@@ -115,5 +115,35 @@ describe('Slider', () => {
     const tree = renderer.create(
       <Slider value={1.5} step={1} onChange={onChange} />
     )
+  })
+
+  it('falls back when min is NaN', () => {
+    const tree = renderer.create(
+      <Slider
+        value={50}
+        min={Number.NaN as any}
+        max={100}
+        button={({ value }) => (
+          <Text testID="slider-value">{Array.isArray(value) ? value.join(',') : String(value)}</Text>
+        )}
+      />
+    )
+    const text = tree.root.findByProps({ testID: 'slider-value' })
+    expect(String(text.props.children)).not.toContain('NaN')
+  })
+
+  it('falls back when max is NaN', () => {
+    const tree = renderer.create(
+      <Slider
+        value={50}
+        min={0}
+        max={Number.NaN as any}
+        button={({ value }) => (
+          <Text testID="slider-value">{Array.isArray(value) ? value.join(',') : String(value)}</Text>
+        )}
+      />
+    )
+    const text = tree.root.findByProps({ testID: 'slider-value' })
+    expect(String(text.props.children)).not.toContain('NaN')
   })
 })

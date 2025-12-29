@@ -12,7 +12,7 @@ import type {
   ButtonType,
 } from './types'
 
-interface ButtonTokens {
+export interface ButtonTokens {
   defaults: {
     type: ButtonType
     size: ButtonSize
@@ -259,9 +259,7 @@ export const useButtonTokens = (
   const { foundations, components } = useTheme()
   return React.useMemo(() => {
     const base = createButtonTokens(foundations)
-    const componentOverrides = components?.button as
-      | DeepPartial<ButtonTokens>
-      | undefined
+    const componentOverrides = components?.button
     const merged =
       componentOverrides && overrides
         ? deepMerge(componentOverrides, overrides)
@@ -269,5 +267,3 @@ export const useButtonTokens = (
     return merged ? deepMerge(base, merged) : base
   }, [components, foundations, overrides])
 }
-
-export type { ButtonTokens }

@@ -20,7 +20,7 @@ const clampValue = (value: number | undefined, min: number, max: number) => {
 }
 
 const parseNumber = (value: number | string | undefined, fallback: number) => {
-  if (typeof value === 'number') return value
+  if (typeof value === 'number') return Number.isFinite(value) ? value : fallback
   if (typeof value === 'string') {
     const parsed = Number.parseFloat(value)
     return Number.isFinite(parsed) ? parsed : fallback
@@ -275,7 +275,8 @@ export const Slider: React.FC<SliderProps> = props => {
   const ariaDisabled = disabled || readOnly || (isControlled && !onChange && !onChangeAfter)
   const resolvedActiveColor = activeColor ?? tokens.colors.active
   const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
-  const scope = Math.max(resolvedMax - resolvedMin, 0.00001)
+  const rawScope = resolvedMax - resolvedMin
+  const scope = Number.isFinite(rawScope) && rawScope > 0 ? rawScope : 0.00001
 
   const normalized = React.useMemo(
     () => normalizeValue(valueProp, range, resolvedMin, resolvedMax),
@@ -546,17 +547,21 @@ export const Slider: React.FC<SliderProps> = props => {
     const currentLayout = trackWindowRef.current
     const native: any = event.nativeEvent
     const absX =
-      typeof native.pageX === 'number'
-        ? native.pageX
-        : Number.isFinite(gestureState?.moveX)
-          ? gestureState.moveX
-          : undefined
+      typeof native.clientX === 'number'
+        ? native.clientX
+        : typeof native.pageX === 'number'
+          ? native.pageX
+          : Number.isFinite(gestureState?.moveX)
+            ? gestureState.moveX
+            : undefined
     const absY =
-      typeof native.pageY === 'number'
-        ? native.pageY
-        : Number.isFinite(gestureState?.moveY)
-          ? gestureState.moveY
-          : undefined
+      typeof native.clientY === 'number'
+        ? native.clientY
+        : typeof native.pageY === 'number'
+          ? native.pageY
+          : Number.isFinite(gestureState?.moveY)
+            ? gestureState.moveY
+            : undefined
 
     if (orientation === 'vertical') {
       if (typeof absY !== 'number') return null
@@ -645,8 +650,20 @@ export const Slider: React.FC<SliderProps> = props => {
     const native: any = event.nativeEvent
     const absAxis =
       orientation === 'vertical'
-        ? (Number.isFinite(gestureState?.y0) ? gestureState.y0 : native?.pageY)
-        : (Number.isFinite(gestureState?.x0) ? gestureState.x0 : native?.pageX)
+        ? (
+          typeof native?.clientY === 'number'
+            ? native.clientY
+            : Number.isFinite(gestureState?.y0)
+              ? gestureState.y0
+              : native?.pageY
+        )
+        : (
+          typeof native?.clientX === 'number'
+            ? native.clientX
+            : Number.isFinite(gestureState?.x0)
+              ? gestureState.x0
+              : native?.pageX
+        )
     const originAxis =
       orientation === 'vertical' ? trackWindowRef.current.y : trackWindowRef.current.x
 
