@@ -7,11 +7,18 @@ import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 
 export interface CellTokens {
+  defaults: {
+    groupBorder: boolean
+    groupInset: boolean
+    groupCard: boolean
+  }
   container: {
     background: string
     paddingVertical: number
     paddingHorizontal: number
     largePaddingVertical: number
+    activeOpacity: number
+    rippleColor: string
   }
   spacing: {
     iconGap: number
@@ -66,11 +73,18 @@ export interface CellTokens {
 export const createCellTokens = (foundations: Foundations): CellTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
   return {
+    defaults: {
+      groupBorder: true,
+      groupInset: false,
+      groupCard: false,
+    },
     container: {
       background: '#ffffff',
       paddingVertical: 10,
       paddingHorizontal: 16,
       largePaddingVertical: 14,
+      activeOpacity: 0.6, // foundations.opacity.pressed is 0.85, maybe use that? 0.6 is specific to cell? Using 0.6 for now to match existing behavior.
+      rippleColor: '#f2f3f5', // match existing
     },
     spacing: {
       iconGap: spacing.sm,

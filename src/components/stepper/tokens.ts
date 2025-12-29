@@ -23,6 +23,8 @@ export interface StepperTokens {
     buttonDisabledBackground: string
     buttonDisabledIcon: string
     roundTheme: string
+    roundThemeText: string
+    roundThemeBackground: string
     inputText: string
     inputDisabledText: string
     inputDisabledBackground: string
@@ -32,6 +34,7 @@ export interface StepperTokens {
   }
   typography: {
     fontSize: number
+    fontWeight: string
   }
   opacity: {
     disabled: number
@@ -44,7 +47,7 @@ export interface StepperTokens {
 }
 
 const createStepperTokens = (foundations: Foundations): StepperTokens => {
-  const { palette, radii, fontSize, opacity } = foundations
+  const { palette, radii, fontSize, opacity, typography } = foundations
   return {
     defaults: {
       theme: 'default',
@@ -62,6 +65,8 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
       buttonDisabledBackground: '#ffffff',
       buttonDisabledIcon: palette.default[400],
       roundTheme: palette.primary[500],
+      roundThemeText: '#ffffff',
+      roundThemeBackground: '#ffffff',
       inputText: palette.default[900],
       inputDisabledText: palette.default[400],
       inputDisabledBackground: palette.default[100],
@@ -71,6 +76,7 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
     },
     typography: {
       fontSize: fontSize.md,
+      fontWeight: String(typography.weight.semiBold),
     },
     opacity: {
       disabled: opacity.disabled,

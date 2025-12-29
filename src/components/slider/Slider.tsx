@@ -2,11 +2,13 @@ import { useSlider, useSliderThumb } from '@react-native-aria/slider'
 import { isRTL } from '@react-native-aria/utils'
 import { useSliderState } from '@react-stately/slider'
 import React from 'react'
-import type { GestureResponderEvent, LayoutChangeEvent, ViewStyle } from 'react-native'
-import { Pressable, StyleSheet, View } from 'react-native'
+import type { GestureResponderEvent, LayoutChangeEvent, PanResponderGestureState, ViewStyle } from 'react-native'
+import { Animated, PanResponder, Pressable, StyleSheet, View } from 'react-native'
 
 import type { SliderProps, SliderValue } from './types'
 import { useSliderTokens } from './tokens'
+
+const INITIAL_TRACK_LAYOUT = { width: 1, height: 1, x: 0, y: 0 }
 
 const clampValue = (value: number | undefined, min: number, max: number) => {
   if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -86,9 +88,16 @@ interface ThumbNodeProps {
   state: ReturnType<typeof useSliderState>
   size: number
   activeColor: string
+  thumbBackgroundColor: string
+  thumbElevation: number
+  indicatorSize: number
+  indicatorColor: string
   content: React.ReactNode
   visualPercent: number
-  enhanceHandlers: (handlers: Record<string, any> | undefined, index: number) => Record<string, any> | undefined
+  animatedPercent: Animated.Value
+  onPanMove: (index: number, event: GestureResponderEvent, gestureState: PanResponderGestureState) => void
+  onPanGrant: (index: number, event: GestureResponderEvent, gestureState: PanResponderGestureState) => void
+  onPanEnd: (index: number, event: GestureResponderEvent, gestureState: PanResponderGestureState) => void
 }
 
 const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
@@ -100,12 +109,19 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
   state,
   size,
   activeColor,
+  thumbBackgroundColor,
+  thumbElevation,
+  indicatorSize,
+  indicatorColor,
   content,
   visualPercent,
-  enhanceHandlers,
+  animatedPercent,
+  onPanGrant,
+  onPanMove,
+  onPanEnd,
 }) => {
   const inputRef = React.useRef(null)
-  const { thumbProps, inputProps } = useSliderThumb(
+  const { inputProps } = useSliderThumb(
     {
       index,
       trackLayout,
@@ -117,9 +133,18 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
     ariaReverse
   )
 
-  const handlers = React.useMemo(
-    () => enhanceHandlers({ ...(thumbProps ?? {}) }, index) ?? {},
-    [enhanceHandlers, thumbProps, index]
+  const panResponder = React.useMemo(
+    () => PanResponder.create({
+      onStartShouldSetPanResponder: () => !isDisabled,
+      onMoveShouldSetPanResponder: () => !isDisabled,
+      onPanResponderGrant: (event, gestureState) => onPanGrant(index, event, gestureState),
+      onPanResponderMove: (event, gestureState) => onPanMove(index, event, gestureState),
+      onPanResponderRelease: (event, gestureState) => onPanEnd(index, event, gestureState),
+      onPanResponderTerminate: (event, gestureState) => onPanEnd(index, event, gestureState),
+      onPanResponderTerminationRequest: () => false,
+      onShouldBlockNativeResponder: () => true,
+    }),
+    [index, isDisabled, onPanEnd, onPanGrant, onPanMove]
   )
 
   const axisKey = React.useMemo(
@@ -131,17 +156,32 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
     [orientation]
   )
 
+  const axisLength = React.useMemo(
+    () => orientation === 'vertical' ? trackLayout.height : trackLayout.width,
+    [orientation, trackLayout.height, trackLayout.width]
+  )
+
+  const mainAxisTranslate = React.useMemo(
+    () => Animated.add(Animated.multiply(animatedPercent, axisLength), -size / 2),
+    [animatedPercent, axisLength, size]
+  )
+
   const thumbStyle: ViewStyle = React.useMemo(
     () => ({
       width: size,
       height: size,
       borderRadius: size / 2,
       borderColor: activeColor,
-      [axisKey]: `${visualPercent}%`,
+      [axisKey]: axisLength > 1 ? 0 : `${visualPercent}%`,
       [crossAxisKey]: '50%',
-      transform: [{ translateX: -size / 2 }, { translateY: -size / 2 }],
+      transform:
+        axisLength > 1
+          ? orientation === 'vertical'
+            ? [{ translateX: -size / 2 }, { translateY: mainAxisTranslate }]
+            : [{ translateX: mainAxisTranslate }, { translateY: -size / 2 }]
+          : [{ translateX: -size / 2 }, { translateY: -size / 2 }],
     }),
-    [size, activeColor, axisKey, crossAxisKey, visualPercent]
+    [size, activeColor, axisKey, axisLength, crossAxisKey, mainAxisTranslate, orientation, visualPercent]
   )
 
   const accessibilityProps = React.useMemo(
@@ -150,14 +190,29 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
   )
 
   return (
-    <View
-      {...handlers}
+    <Animated.View
+      {...panResponder.panHandlers}
       {...accessibilityProps}
       pointerEvents={isDisabled ? 'none' : 'auto'}
-      style={[content ? styles.thumbWrapper : styles.thumb, thumbStyle]}
+      style={[
+        content ? styles.thumbWrapper : styles.thumb,
+        !content
+          ? { backgroundColor: thumbBackgroundColor, elevation: thumbElevation }
+          : null,
+        thumbStyle,
+      ]}
     >
-      {content ?? <View style={styles.defaultThumb} />}
-    </View>
+      {content ?? (
+        <View
+          style={{
+            width: indicatorSize,
+            height: indicatorSize,
+            borderRadius: indicatorSize / 2,
+            backgroundColor: indicatorColor,
+          }}
+        />
+      )}
+    </Animated.View>
   )
 })
 
@@ -199,6 +254,7 @@ export const Slider: React.FC<SliderProps> = props => {
   const tokens = useSliderTokens()
   const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
   const trackRef = React.useRef<React.ElementRef<typeof Pressable> | null>(null)
+  const trackWindowRef = React.useRef(INITIAL_TRACK_LAYOUT)
 
   const resolvedMin = parseNumber(min, 0)
   const resolvedMax = parseNumber(max, 100)
@@ -214,7 +270,8 @@ export const Slider: React.FC<SliderProps> = props => {
     parseNumber(buttonSize ?? thumbSize, tokens.thumb.size)
   )
 
-  const ariaDisabled = disabled || readOnly
+  const isControlled = valueProp !== undefined
+  const ariaDisabled = disabled || readOnly || (isControlled && !onChange && !onChangeAfter)
   const resolvedActiveColor = activeColor ?? tokens.colors.active
   const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
   const scope = Math.max(resolvedMax - resolvedMin, 0.00001)
@@ -223,7 +280,8 @@ export const Slider: React.FC<SliderProps> = props => {
     () => normalizeValue(valueProp, range, resolvedMin, resolvedMax),
     [valueProp, range, resolvedMin, resolvedMax]
   )
-  const isControlled = valueProp !== undefined
+  const shouldKeepFullyControlled =
+    isControlled && !onChange && !onChangeAfter && !onDragStart && !onDragEnd
 
   const formatOutput = React.useCallback(
     (values: readonly number[]) => toSliderValue(values, range, resolvedMin),
@@ -237,6 +295,13 @@ export const Slider: React.FC<SliderProps> = props => {
     return { format: (val: number) => String(val) } as any
   }, [])
 
+  const isSyncingFromPropRef = React.useRef(false)
+  const hasPendingUserChangeRef = React.useRef(false)
+  const isInteractingRef = React.useRef(false)
+  const lastExternalKeyRef = React.useRef<string | null>(
+    isControlled && !shouldKeepFullyControlled ? normalized.join('|') : null
+  )
+
   const state = useSliderState({
     minValue: resolvedMin,
     maxValue: resolvedMax,
@@ -244,33 +309,83 @@ export const Slider: React.FC<SliderProps> = props => {
     isDisabled: ariaDisabled,
     numberFormatter,
     orientation,
-    value: isControlled ? normalized : undefined,
-    defaultValue: !isControlled ? normalized : undefined,
-    onChange: values => onChange?.(formatOutput(values)),
-    onChangeEnd: values => onChangeAfter?.(formatOutput(values)),
+    value: shouldKeepFullyControlled ? normalized : undefined,
+    defaultValue: shouldKeepFullyControlled ? undefined : normalized,
+    onChange: values => {
+      if (isSyncingFromPropRef.current) return
+      hasPendingUserChangeRef.current = true
+      onChange?.(formatOutput(values))
+    },
+    onChangeEnd: values => {
+      if (isSyncingFromPropRef.current) return
+      onChangeAfter?.(formatOutput(values))
+    },
   })
 
-  const [trackLayout, setTrackLayout] = React.useState({ width: 0, height: 0, x: 0, y: 0 })
+  React.useEffect(() => {
+    if (!isControlled || shouldKeepFullyControlled) return
+    if (isInteractingRef.current) return
+
+    const externalKey = normalized.join('|')
+    const lastExternalKey = lastExternalKeyRef.current
+    lastExternalKeyRef.current = externalKey
+
+    if (externalKey === lastExternalKey && hasPendingUserChangeRef.current) {
+      return
+    }
+
+    const setThumbValue = (state as any)?.setThumbValue as
+      | ((index: number, value: number) => void)
+      | undefined
+    if (typeof setThumbValue !== 'function') {
+      hasPendingUserChangeRef.current = false
+      return
+    }
+
+    const nextValues = normalized
+    const currentValues = state.values as number[]
+    const needsSync =
+      nextValues.length !== currentValues.length ||
+      nextValues.some((v, i) => v !== currentValues[i])
+    if (!needsSync) {
+      hasPendingUserChangeRef.current = false
+      return
+    }
+
+    isSyncingFromPropRef.current = true
+    for (let i = 0; i < nextValues.length; i += 1) {
+      setThumbValue(i, nextValues[i]!)
+    }
+    Promise.resolve().then(() => {
+      isSyncingFromPropRef.current = false
+      hasPendingUserChangeRef.current = false
+    })
+  }, [isControlled, normalized, shouldKeepFullyControlled, state])
+
+  const [trackLayout, setTrackLayout] = React.useState(INITIAL_TRACK_LAYOUT)
 
   const handleTrackLayout = React.useCallback((event: LayoutChangeEvent) => {
     const { layout } = event.nativeEvent
-    setTrackLayout({
-      width: Math.max(layout.width, 1),
-      height: Math.max(layout.height, 1),
-      x: layout.x ?? 0,
-      y: layout.y ?? 0,
-    })
+    const width = Math.max(layout.width, 1)
+    const height = Math.max(layout.height, 1)
+    if (!isInteractingRef.current) {
+      setTrackLayout(prev => ({ ...prev, width, height }))
+    }
 
     requestAnimationFrame(() => {
       const node = trackRef.current as any
       if (!node || typeof node.measureInWindow !== 'function') return
       node.measureInWindow((x: number, y: number, width: number, height: number) => {
-        setTrackLayout({
+        const measured = {
           width: Math.max(width, 1),
           height: Math.max(height, 1),
           x,
           y,
-        })
+        }
+        trackWindowRef.current = measured
+        if (!isInteractingRef.current) {
+          setTrackLayout(measured)
+        }
       })
     })
   }, [])
@@ -298,69 +413,20 @@ export const Slider: React.FC<SliderProps> = props => {
     ariaReverse
   )
 
-  const getCurrentValue = React.useCallback(() => formatOutput(state.values), [state.values, formatOutput])
   const dragStartedRef = React.useRef<Record<number, boolean>>({})
   const dragStartValueRef = React.useRef<Record<number, SliderValue>>({})
+  const dragPointerOffsetPxRef = React.useRef<Record<number, number>>({})
+  const dragValuesRef = React.useRef<number[]>([])
+  const rafOnChangeIdRef = React.useRef<number | null>(null)
+  const pendingOnChangeValuesRef = React.useRef<number[] | null>(null)
 
-  const enhanceHandlers = React.useCallback(
-    (handlers: Record<string, any> | undefined, index: number) => {
-      if (!handlers) return handlers
-      if (!onDragStart && !onDragEnd) {
-        return handlers
-      }
-      const wrapped = { ...handlers }
-
-      const wrapAfter = (
-        key: string,
-        callback: ((event: GestureResponderEvent) => void) | undefined
-      ) => {
-        if (!callback) return
-        const original = wrapped[key]
-        wrapped[key] = (...args: any[]) => {
-          original?.(...args)
-          callback(args[0])
-        }
-      }
-
-      const wrapBefore = (
-        key: string,
-        callback: ((event: GestureResponderEvent) => void) | undefined
-      ) => {
-        if (!callback) return
-        const original = wrapped[key]
-        wrapped[key] = (...args: any[]) => {
-          callback(args[0])
-          original?.(...args)
-        }
-      }
-
-      wrapAfter('onPanResponderGrant', () => {
-        dragStartedRef.current[index] = false
-        dragStartValueRef.current[index] = getCurrentValue()
-      })
-
-      wrapBefore('onPanResponderMove', event => {
-        if (!dragStartedRef.current[index]) {
-          dragStartedRef.current[index] = true
-          onDragStart?.(event, dragStartValueRef.current[index] ?? getCurrentValue())
-        }
-      })
-
-      const emitEnd = (event: GestureResponderEvent) => {
-        if (dragStartedRef.current[index]) {
-          dragStartedRef.current[index] = false
-          delete dragStartValueRef.current[index]
-          onDragEnd?.(event, getCurrentValue())
-        }
-      }
-
-      wrapAfter('onPanResponderRelease', emitEnd)
-      wrapAfter('onPanResponderTerminate', emitEnd)
-
-      return wrapped
-    },
-    [getCurrentValue, onDragStart, onDragEnd]
-  )
+  React.useEffect(() => () => {
+    if (rafOnChangeIdRef.current != null) {
+      cancelAnimationFrame(rafOnChangeIdRef.current)
+      rafOnChangeIdRef.current = null
+      pendingOnChangeValuesRef.current = null
+    }
+  }, [])
 
   const values = state.values as number[]
 
@@ -388,11 +454,16 @@ export const Slider: React.FC<SliderProps> = props => {
     [thumbPercents, orientation, reverse, reverseX]
   )
 
-  const activeRange = React.useMemo(() => {
-    const first = thumbVisualPercents[0] ?? 0
-    const second = thumbVisualPercents[1] ?? first
+  const visualPercentsRef = React.useRef<number[]>([])
+  const animatedPercentsRef = React.useRef<Animated.Value[]>([])
+  const activeOffsetAnimRef = React.useRef(new Animated.Value(0))
+  const activeSizeAnimRef = React.useRef(new Animated.Value(0))
 
-    if (range && thumbVisualPercents.length > 1) {
+  const computeActiveRangeFromVisualPercents = React.useCallback((percents: number[]) => {
+    const first = percents[0] ?? 0
+    const second = percents[1] ?? first
+
+    if (range && percents.length > 1) {
       const start = Math.min(first, second)
       const end = Math.max(first, second)
       return { offset: start, size: end - start }
@@ -402,7 +473,274 @@ export const Slider: React.FC<SliderProps> = props => {
     return minAtStart
       ? { offset: 0, size: first }
       : { offset: first, size: 100 - first }
-  }, [orientation, range, reverse, reverseX, thumbVisualPercents])
+  }, [orientation, range, reverse, reverseX])
+
+  const activeRange = React.useMemo(
+    () => computeActiveRangeFromVisualPercents(thumbVisualPercents),
+    [computeActiveRangeFromVisualPercents, thumbVisualPercents]
+  )
+
+  if (animatedPercentsRef.current.length !== values.length) {
+    const next = animatedPercentsRef.current.slice(0, values.length)
+    for (let i = next.length; i < values.length; i += 1) {
+      next[i] = new Animated.Value((thumbVisualPercents[i] ?? 0) / 100)
+    }
+    animatedPercentsRef.current = next
+  }
+
+  const syncVisualsFromState = React.useCallback(() => {
+    if (isInteractingRef.current) return
+    const nextVisualPercents = thumbVisualPercents.slice()
+    visualPercentsRef.current = nextVisualPercents
+    for (let i = 0; i < nextVisualPercents.length; i += 1) {
+      animatedPercentsRef.current[i]?.setValue((nextVisualPercents[i] ?? 0) / 100)
+    }
+    const nextActive = computeActiveRangeFromVisualPercents(nextVisualPercents)
+    activeOffsetAnimRef.current.setValue(nextActive.offset / 100)
+    activeSizeAnimRef.current.setValue(nextActive.size / 100)
+  }, [computeActiveRangeFromVisualPercents, thumbVisualPercents])
+
+  React.useEffect(() => {
+    syncVisualsFromState()
+  }, [syncVisualsFromState])
+
+  const updateActiveAnimated = React.useCallback(() => {
+    const nextActive = computeActiveRangeFromVisualPercents(visualPercentsRef.current)
+    activeOffsetAnimRef.current.setValue(nextActive.offset / 100)
+    activeSizeAnimRef.current.setValue(nextActive.size / 100)
+  }, [computeActiveRangeFromVisualPercents])
+
+  const getVisualPercentFromValue = React.useCallback((value: number) => {
+    const percent = percentFromValue(value)
+    return orientation === 'vertical'
+      ? reverse
+        ? percent
+        : 100 - percent
+      : reverseX
+        ? 100 - percent
+        : percent
+  }, [orientation, percentFromValue, reverse, reverseX])
+
+  const getValueFromVisualPercent = React.useCallback((visualPercent: number) => {
+    const valuePercent =
+      orientation === 'vertical'
+        ? reverse
+          ? visualPercent
+          : 100 - visualPercent
+        : reverseX
+          ? 100 - visualPercent
+          : visualPercent
+
+    const raw = resolvedMin + (valuePercent / 100) * scope
+    const stepped = resolvedMin + Math.round((raw - resolvedMin) / resolvedStep) * resolvedStep
+    return clampValue(stepped, resolvedMin, resolvedMax)
+  }, [orientation, resolvedMax, resolvedMin, resolvedStep, reverse, reverseX, scope])
+
+  const getFingerPositionPx = React.useCallback((
+    event: GestureResponderEvent,
+    gestureState: PanResponderGestureState
+  ) => {
+    const currentLayout = trackWindowRef.current
+    const native: any = event.nativeEvent
+    const absX =
+      typeof native.pageX === 'number'
+        ? native.pageX
+        : Number.isFinite(gestureState?.moveX)
+          ? gestureState.moveX
+          : undefined
+    const absY =
+      typeof native.pageY === 'number'
+        ? native.pageY
+        : Number.isFinite(gestureState?.moveY)
+          ? gestureState.moveY
+          : undefined
+
+    if (orientation === 'vertical') {
+      if (typeof absY !== 'number') return null
+      return absY - currentLayout.y
+    }
+
+    if (typeof absX !== 'number') return null
+    return absX - currentLayout.x
+  }, [orientation])
+
+  const getVisualPercentFromGesture = React.useCallback((
+    index: number,
+    event: GestureResponderEvent,
+    gestureState: PanResponderGestureState
+  ) => {
+    const currentLayout = trackWindowRef.current
+    const axisLength = orientation === 'vertical' ? currentLayout.height : currentLayout.width
+    const fingerPx = getFingerPositionPx(event, gestureState)
+    if (fingerPx == null) return 0
+
+    const offset = dragPointerOffsetPxRef.current[index] ?? 0
+    const desiredCenterPx = fingerPx - offset
+    const percent = (desiredCenterPx / Math.max(axisLength, 1)) * 100
+    return Math.max(0, Math.min(100, percent))
+  }, [getFingerPositionPx, orientation])
+
+  const refreshTrackWindowLayout = React.useCallback(() => {
+    const node = trackRef.current as any
+    if (!node || typeof node.measureInWindow !== 'function') return
+    node.measureInWindow((x: number, y: number, width: number, height: number) => {
+      trackWindowRef.current = {
+        width: Math.max(width, 1),
+        height: Math.max(height, 1),
+        x,
+        y,
+      }
+    })
+  }, [])
+
+  const scheduleOnChange = React.useCallback((nextValues: number[]) => {
+    if (!onChange) return
+    pendingOnChangeValuesRef.current = nextValues
+    if (rafOnChangeIdRef.current != null) return
+    rafOnChangeIdRef.current = requestAnimationFrame(() => {
+      rafOnChangeIdRef.current = null
+      const pending = pendingOnChangeValuesRef.current
+      pendingOnChangeValuesRef.current = null
+      if (!pending) return
+      onChange(formatOutput(pending))
+    })
+  }, [formatOutput, onChange])
+
+  const handlePanGrant = React.useCallback((
+    index: number,
+    event: GestureResponderEvent,
+    gestureState: PanResponderGestureState
+  ) => {
+    if (ariaDisabled) return
+    refreshTrackWindowLayout()
+    isInteractingRef.current = true
+    dragStartedRef.current[index] = false
+
+    const startValues = (state.values as number[]).slice()
+    dragValuesRef.current = startValues
+    visualPercentsRef.current = startValues.map(v => getVisualPercentFromValue(v ?? resolvedMin))
+    dragStartValueRef.current[index] = formatOutput(startValues)
+
+    const native: any = event.nativeEvent
+    const locationAxis =
+      orientation === 'vertical'
+        ? typeof native.locationY === 'number' ? native.locationY : undefined
+        : typeof native.locationX === 'number' ? native.locationX : undefined
+    dragPointerOffsetPxRef.current[index] =
+      typeof locationAxis === 'number'
+        ? locationAxis - resolvedThumbSize / 2
+        : 0
+
+    updateActiveAnimated()
+  }, [
+    ariaDisabled,
+    formatOutput,
+    getVisualPercentFromValue,
+    orientation,
+    refreshTrackWindowLayout,
+    resolvedMin,
+    resolvedThumbSize,
+    state.values,
+    updateActiveAnimated,
+  ])
+
+  const handlePanMove = React.useCallback((
+    index: number,
+    event: GestureResponderEvent,
+    gestureState: PanResponderGestureState
+  ) => {
+    if (ariaDisabled) return
+    if (!dragValuesRef.current.length) {
+      dragValuesRef.current = (state.values as number[]).slice()
+    }
+
+    if (!dragStartedRef.current[index]) {
+      dragStartedRef.current[index] = true
+      onDragStart?.(
+        event,
+        dragStartValueRef.current[index] ?? formatOutput(dragValuesRef.current)
+      )
+    }
+
+    const nextVisualPercent = getVisualPercentFromGesture(index, event, gestureState)
+    let nextValue = getValueFromVisualPercent(nextVisualPercent)
+
+    if (range && dragValuesRef.current.length > 1) {
+      const otherIndex = index === 0 ? 1 : 0
+      const otherValue = dragValuesRef.current[otherIndex] ?? resolvedMin
+      nextValue =
+        index === 0
+          ? clampValue(nextValue, resolvedMin, otherValue)
+          : clampValue(nextValue, otherValue, resolvedMax)
+    }
+
+    dragValuesRef.current[index] = nextValue
+
+    const nextVisual = getVisualPercentFromValue(nextValue)
+    visualPercentsRef.current[index] = nextVisual
+    animatedPercentsRef.current[index]?.setValue(nextVisual / 100)
+    updateActiveAnimated()
+
+    scheduleOnChange(dragValuesRef.current.slice())
+  }, [
+    animatedPercentsRef,
+    ariaDisabled,
+    getValueFromVisualPercent,
+    getVisualPercentFromGesture,
+    getVisualPercentFromValue,
+    range,
+    resolvedMax,
+    resolvedMin,
+    scheduleOnChange,
+    state.values,
+    updateActiveAnimated,
+  ])
+
+  const handlePanEnd = React.useCallback((
+    index: number,
+    event: GestureResponderEvent,
+    _gestureState: PanResponderGestureState
+  ) => {
+    if (ariaDisabled) return
+    isInteractingRef.current = false
+
+    if (rafOnChangeIdRef.current != null) {
+      cancelAnimationFrame(rafOnChangeIdRef.current)
+      rafOnChangeIdRef.current = null
+      pendingOnChangeValuesRef.current = null
+    }
+
+    const finalValues =
+      dragValuesRef.current.length
+        ? dragValuesRef.current.slice()
+        : (state.values as number[]).slice()
+
+    if (dragStartedRef.current[index]) {
+      dragStartedRef.current[index] = false
+      delete dragStartValueRef.current[index]
+      onDragEnd?.(event, formatOutput(finalValues))
+    }
+
+    onChange?.(formatOutput(finalValues))
+
+    const setThumbValue = (state as any)?.setThumbValue as
+      | ((i: number, value: number) => void)
+      | undefined
+    if (typeof setThumbValue === 'function') {
+      isSyncingFromPropRef.current = true
+      for (let i = 0; i < finalValues.length; i += 1) {
+        setThumbValue(i, finalValues[i]!)
+      }
+      Promise.resolve().then(() => {
+        isSyncingFromPropRef.current = false
+      })
+    }
+
+    onChangeAfter?.(formatOutput(finalValues))
+
+    dragValuesRef.current = []
+    delete dragPointerOffsetPxRef.current[index]
+  }, [ariaDisabled, formatOutput, onChange, onChangeAfter, onDragEnd, state])
 
   const positionKey = React.useMemo(
     () => orientation === 'vertical' ? 'top' : 'left',
@@ -423,6 +761,35 @@ export const Slider: React.FC<SliderProps> = props => {
       }) as ViewStyle,
     [activeRange.offset, activeRange.size, orientation, positionKey, resolvedActiveColor, sizeKey]
   )
+
+  const axisLengthPx = orientation === 'vertical' ? trackLayout.height : trackLayout.width
+  const canUseAnimatedLayout = axisLengthPx > 1
+
+  const animatedActiveStyle = React.useMemo(() => {
+    if (!canUseAnimatedLayout) return undefined
+    const activeOffset = activeOffsetAnimRef.current
+    const activeSize = activeSizeAnimRef.current
+
+    const translateForCenterScale = Animated.multiply(
+      Animated.add(activeSize, -1),
+      axisLengthPx / 2
+    )
+    const translate = Animated.add(
+      Animated.multiply(activeOffset, axisLengthPx),
+      translateForCenterScale
+    )
+
+    return {
+      ...(orientation === 'vertical'
+        ? { left: 0, width: '100%', top: 0, height: axisLengthPx }
+        : { top: 0, height: '100%', left: 0, width: axisLengthPx }),
+      backgroundColor: resolvedActiveColor,
+      transform:
+        orientation === 'vertical'
+          ? [{ translateY: translate }, { scaleY: activeSize }]
+          : [{ translateX: translate }, { scaleX: activeSize }],
+    } as any
+  }, [axisLengthPx, canUseAnimatedLayout, orientation, resolvedActiveColor])
 
   const trackBaseStyle = React.useMemo(
     () =>
@@ -479,7 +846,12 @@ export const Slider: React.FC<SliderProps> = props => {
     <View
       style={[
         styles.container,
+        { paddingVertical: tokens.spacing.containerPaddingVertical },
         orientation === 'vertical' && styles.verticalContainer,
+        orientation === 'vertical' && {
+          minHeight: tokens.layout.verticalMinHeight,
+          width: tokens.layout.verticalWidth,
+        },
         disabled && { opacity: tokens.states.disabledOpacity },
         style,
       ]}
@@ -500,8 +872,10 @@ export const Slider: React.FC<SliderProps> = props => {
           (trackProps as any)?.style,
         ]}
       >
-        <View style={[styles.trackBase, ...trackBaseStyle]}>
-          <View style={[styles.active, activeTrackStyle]} />
+        <View style={[styles.trackBase, { borderRadius: tokens.track.radius }, ...trackBaseStyle]}>
+          {canUseAnimatedLayout
+            ? <Animated.View style={[styles.active, { borderRadius: tokens.track.radius }, animatedActiveStyle]} />
+            : <View style={[styles.active, { borderRadius: tokens.track.radius }, activeTrackStyle]} />}
         </View>
         {values.map((_, index) => (
           <ThumbNode
@@ -514,9 +888,16 @@ export const Slider: React.FC<SliderProps> = props => {
             state={state}
             size={resolvedThumbSize}
             activeColor={resolvedActiveColor}
+            thumbBackgroundColor={tokens.colors.thumbBackground}
+            thumbElevation={tokens.thumb.elevation}
+            indicatorSize={tokens.thumb.indicatorSize}
+            indicatorColor={tokens.colors.thumbIndicator}
             content={resolveThumbContent(index, values.length)}
             visualPercent={thumbVisualPercents[index] ?? 0}
-            enhanceHandlers={enhanceHandlers}
+            animatedPercent={animatedPercentsRef.current[index]!}
+            onPanGrant={handlePanGrant}
+            onPanMove={handlePanMove}
+            onPanEnd={handlePanEnd}
           />
         ))}
       </Pressable>
@@ -529,12 +910,9 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
     width: '100%',
-    paddingVertical: 12,
   },
   verticalContainer: {
     height: '100%',
-    minHeight: 150,
-    width: 40,
     alignItems: 'center',
     paddingVertical: 0,
   },
@@ -550,7 +928,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   trackBase: {
-    borderRadius: 999,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -562,26 +939,17 @@ const styles = StyleSheet.create({
   },
   active: {
     position: 'absolute',
-    borderRadius: 999,
   },
   thumb: {
     position: 'absolute',
     borderWidth: StyleSheet.hairlineWidth,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 1,
   },
   thumbWrapper: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  defaultThumb: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#fff',
   },
 })
 

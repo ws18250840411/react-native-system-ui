@@ -52,6 +52,7 @@ export interface FieldTokens {
     icon: number
     clearIcon: number
     textareaMinHeight: number
+    controlMinHeight: number
   }
 }
 
@@ -110,6 +111,7 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
       icon: 16,
       clearIcon: 16,
       textareaMinHeight: 60,
+      controlMinHeight: 24,
     },
   }
 }

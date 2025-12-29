@@ -36,6 +36,13 @@ interface ButtonTokens {
   spacing: {
     iconGap: number
   }
+  colors: {
+    ripple: string
+    backgroundTransparent: string
+    backgroundPlain: string
+    textDark: string
+    textLight: string
+  }
   states: {
     disabledOpacity: number
     loadingOpacity: number
@@ -186,6 +193,13 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
     },
     spacing: {
       iconGap: spacing.sm,
+    },
+    colors: {
+      ripple: 'rgba(255,255,255,0.35)',
+      backgroundTransparent: 'transparent',
+      backgroundPlain: '#ffffff',
+      textDark: '#ffffff',
+      textLight: '#111111',
     },
     states: {
       disabledOpacity: opacity.disabled,

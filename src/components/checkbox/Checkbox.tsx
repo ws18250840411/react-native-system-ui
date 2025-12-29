@@ -235,7 +235,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
           ]}
         >
           {isChecked ? (
-            <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
+            <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * tokens.icon.scale }]}>✓</Text>
           ) : null}
         </View>
       )
@@ -260,7 +260,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
           ]}
         >
           {isChecked ? (
-            <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * 0.65 }]}>✓</Text>
+            <Text style={[styles.checkmark, { color: tokens.colors.checkmark, fontSize: resolvedIconSize * tokens.icon.scale }]}>✓</Text>
           ) : null}
         </View>
       )
@@ -274,6 +274,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     borderColor,
     backgroundColor,
     tokens.colors.checkmark,
+    tokens.icon.scale,
   ])
 
   const renderContent = (iconWrapper: React.ReactNode, labelWrapper: React.ReactNode) =>
@@ -376,3 +377,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
 })
+
+Checkbox.displayName = 'Checkbox'
+
+export default Checkbox

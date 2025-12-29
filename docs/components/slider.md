@@ -21,20 +21,6 @@ import { Slider } from 'react-native-system-ui'
 
 <code title="基础用法" src="./slider/demo/basic.tsx"></code>
 
-### 双滑块
-
-添加 `range` 属性就可以开启双滑块模式，确保 `value` 的值是一个数组。
-
-<code title="双滑块" src="./slider/demo/range.tsx"></code>
-
-### 指定选择范围
-
-<code title="指定选择范围" src="./slider/demo/range-limit.tsx"></code>
-
-### 禁用
-
-<code title="禁用" src="./slider/demo/disabled.tsx"></code>
-
 ### 指定步长
 
 <code title="指定步长" src="./slider/demo/step.tsx"></code>

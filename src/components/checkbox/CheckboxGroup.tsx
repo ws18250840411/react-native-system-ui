@@ -9,6 +9,7 @@ import type {
   CheckboxValue,
 } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
+import { useCheckboxTokens } from './tokens'
 
 const serialize = (value: CheckboxValue) => String(value)
 
@@ -35,8 +36,8 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     ...viewProps
   } = props
 
-  const { foundations } = useTheme()
-  const gap = gapProp ?? foundations.spacing.md
+  const tokens = useCheckboxTokens()
+  const gap = gapProp ?? tokens.spacing.groupGap
 
   const registryRef = React.useRef(new Map<string, RegistryItem>())
 

@@ -22,6 +22,25 @@ export interface SwitchTokens {
   animation: {
     duration: number
   }
+  shadow: {
+    outer: {
+      color: string
+      opacity: number
+      radius: number
+      offsetY: number
+      elevation: number
+    }
+    inner: {
+      color: string
+      opacity: number
+      radius: number
+      offsetY: number
+      elevation: number
+    }
+  }
+  loader: {
+    size: number
+  }
 }
 
 const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
@@ -42,6 +61,25 @@ const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
     },
     animation: {
       duration: 200,
+    },
+    shadow: {
+      outer: {
+        color: '#000000',
+        opacity: 0.06,
+        radius: 3,
+        offsetY: 3,
+        elevation: 3,
+      },
+      inner: {
+        color: '#000000',
+        opacity: 0.12,
+        radius: 2,
+        offsetY: 2,
+        elevation: 2, // Approximate for Web boxShadow logic
+      },
+    },
+    loader: {
+      size: 13,
     },
   }
 }

@@ -40,7 +40,6 @@ describe('Slider', () => {
     const tree = renderer.create(<Slider range value={[20, 60]} />)
     const thumbViews = tree.root.findAll(
       node =>
-        node.type === View &&
         Array.isArray(node.props.style) &&
         node.props.style.some((style: any) => style?.position === 'absolute' && style?.borderWidth !== undefined),
     )
@@ -53,7 +52,6 @@ describe('Slider', () => {
     const tree = renderer.create(<Slider value={0} min={0} max={100} />)
     const thumb = tree.root.findAll(
       node =>
-        node.type === View &&
         Array.isArray(node.props.style) &&
         node.props.style.some((style: any) => style?.position === 'absolute' && style?.borderWidth !== undefined),
     )[0]
@@ -66,7 +64,6 @@ describe('Slider', () => {
     const tree = renderer.create(<Slider vertical value={50} min={0} max={100} />)
     const thumb = tree.root.findAll(
       node =>
-        node.type === View &&
         Array.isArray(node.props.style) &&
         node.props.style.some((style: any) => style?.position === 'absolute' && style?.borderWidth !== undefined),
     )[0]

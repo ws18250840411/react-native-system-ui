@@ -31,9 +31,13 @@ export interface CheckboxTokens {
   }
   spacing: {
     gap: number
+    groupGap: number
   }
   radii: {
     square: number
+  }
+  icon: {
+    scale: number
   }
 }
 
@@ -63,9 +67,13 @@ const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
     },
     spacing: {
       gap: spacing.sm,
+      groupGap: spacing.md,
     },
     radii: {
       square: radii.xs,
+    },
+    icon: {
+      scale: 0.65,
     },
   }
 }

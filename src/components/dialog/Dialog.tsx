@@ -2,120 +2,15 @@ import React from 'react'
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
 
 import { useLocale } from '../config-provider/useLocale'
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import { createHairlineView } from '../../utils/hairline'
 import { Close } from 'react-native-system-icon'
 import Button from '../button'
 import Popup from '../popup'
 import type { DialogProps } from './types'
+import { useDialogTokens, type DialogTokens } from './tokens'
 
 const isPromiseLike = (value: unknown): value is Promise<unknown> =>
   !!value && typeof value === 'object' && typeof (value as any).then === 'function'
-
-interface DialogTokens {
-  colors: {
-    background: string
-    title: string
-    message: string
-    divider: string
-    cancel: string
-    confirm: string
-    closeIcon: string
-  }
-  spacing: {
-    paddingHorizontal: number
-    paddingTop: number
-    paddingBottom: number
-    titlePaddingTop: number
-    titleIsolatedPadding: number
-    messagePadding: number
-    messagePaddingTop: number
-    messagePaddingHorizontal: number
-    titleGap: number
-    footerGap: number
-    roundFooterPadding: number
-    roundFooterGap: number
-  }
-  sizes: {
-    minWidth: number
-    maxWidth: number
-    borderRadius: number
-    closeSize: number
-    actionHeight: number
-    roundButtonHeight: number
-  }
-  typography: {
-    titleSize: number
-    titleLineHeight: number
-    titleWeight: string
-    messageSize: number
-    messageLineHeight: number
-  }
-}
-
-const createDialogTokens = (foundations: Foundations): DialogTokens => {
-  const { palette, spacing, radii, fontSize, typography } = foundations
-  const foreground = palette.default.foreground ?? '#111827'
-  const secondary = palette.default[600]
-
-  return {
-    colors: {
-      background: '#ffffff',
-      title: foreground,
-      message: secondary,
-      divider: 'rgba(0,0,0,0.08)',
-      cancel: palette.default[700],
-      confirm: palette.danger[500],
-      closeIcon: palette.default[500],
-    },
-    spacing: {
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
-      paddingBottom: spacing.md,
-      titlePaddingTop: 22,
-      titleIsolatedPadding: spacing.lg, // var(--rv-padding-lg)
-      messagePadding: 20,
-      messagePaddingTop: spacing.xs, // var(--rv-padding-xs)
-      messagePaddingHorizontal: spacing.lg, // var(--rv-padding-lg)
-      titleGap: spacing.sm,
-      footerGap: spacing.md,
-      roundFooterPadding: spacing.md,
-      roundFooterGap: spacing.sm,
-    },
-    sizes: {
-      minWidth: 280,
-      maxWidth: 360,
-      borderRadius: radii.lg,
-      closeSize: 20,
-      actionHeight: 48,
-      roundButtonHeight: 40, // var(--rv-dialog-round-button-height)
-    },
-    typography: {
-      titleSize: fontSize.md,
-      titleLineHeight: fontSize.md * typography.lineHeightMultiplier,
-      titleWeight: String(typography.weight.semiBold),
-      messageSize: fontSize.sm,
-      messageLineHeight: fontSize.sm * typography.lineHeightMultiplier,
-    },
-  }
-}
-
-const useDialogTokens = (overrides?: DeepPartial<DialogTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createDialogTokens(foundations)
-    const globalOverrides = components?.dialog as DeepPartial<DialogTokens> | undefined
-    const mergedOverrides = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
-  }, [foundations, components, overrides])
-}
 
 interface ActionButtonProps {
   text: React.ReactNode
@@ -158,7 +53,14 @@ const ActionButton: React.FC<ActionButtonProps> = React.memo(props => {
     return [styles.actionButtonDivider, { width: 0 }, hairlineStyle]
   }, [dividerPosition, tokens.colors.divider])
 
-  const textStyle = React.useMemo(() => [styles.actionText, { color: textColor }], [textColor])
+  const textStyle = React.useMemo(() => [
+    styles.actionText,
+    {
+      color: textColor,
+      fontSize: tokens.typography.actionSize,
+      fontWeight: tokens.typography.actionWeight as any,
+    }
+  ], [textColor, tokens.typography.actionSize, tokens.typography.actionWeight])
 
   const renderContent = React.useMemo(() => {
     if (loading) {
@@ -466,10 +368,9 @@ export const Dialog: React.FC<DialogProps> = props => {
           paddingTop: hasTitle ? tokens.spacing.messagePaddingTop : tokens.spacing.messagePadding,
           paddingBottom: theme === 'round-button' ? tokens.spacing.roundFooterPadding : tokens.spacing.messagePadding,
           paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
-          fontSize: tokens.typography.messageSize,
         },
       ],
-      [hasTitle, theme, tokens.spacing.messagePaddingTop, tokens.spacing.messagePadding, tokens.spacing.roundFooterPadding, tokens.spacing.messagePaddingHorizontal, tokens.typography.messageSize]
+      [hasTitle, theme, tokens.spacing.messagePaddingTop, tokens.spacing.messagePadding, tokens.spacing.roundFooterPadding, tokens.spacing.messagePaddingHorizontal]
     )
 
     const contentStyleMemo = React.useMemo(
@@ -497,8 +398,6 @@ export const Dialog: React.FC<DialogProps> = props => {
   const renderDefaultFooter = React.useCallback(() => {
     if (!showCancelButton && !showConfirmButton) return null
 
-    const platform = Platform.OS
-    const borderWidth = platform === 'web' ? 1 : StyleSheet.hairlineWidth
     const footerStyle = React.useMemo(
       () => [
         styles.footer,
@@ -716,7 +615,6 @@ const styles = StyleSheet.create({
   },
   message: {
     textAlign: 'center',
-    fontSize: 14,
   },
   footer: {
     flexDirection: 'row',
@@ -742,8 +640,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   actionText: {
-    fontSize: 16,
-    fontWeight: '500',
   },
   roundFooter: {
     width: '100%',

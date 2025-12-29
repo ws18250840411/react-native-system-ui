@@ -9,14 +9,55 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native'
 
+import { useTheme } from '../../design-system'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
+import { deepMerge } from '../../utils/deepMerge'
 import { useLocale } from '../config-provider/useLocale'
 import Loading from '../loading'
 import type { ListProps, ListRef } from './types'
 
 const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
 
+interface ListTokens {
+  colors: {
+    errorText: string
+    finishedText: string
+  }
+  spacing: {
+    footerPaddingVertical: number
+    inlineGap: number
+  }
+}
+
+const createListTokens = (foundations: Foundations): ListTokens => {
+  return {
+    colors: {
+      errorText: '#ff5b05',
+      finishedText: '#999999',
+    },
+    spacing: {
+      footerPaddingVertical: foundations.spacing.lg,
+      inlineGap: foundations.spacing.sm,
+    },
+  }
+}
+
+const useListTokens = (overrides?: DeepPartial<ListTokens>): ListTokens => {
+  const { foundations, components } = useTheme()
+  return React.useMemo(() => {
+    const base = createListTokens(foundations)
+    const componentOverrides = components?.list as DeepPartial<ListTokens> | undefined
+    const merged = componentOverrides && overrides
+      ? deepMerge(componentOverrides, overrides)
+      : componentOverrides ?? overrides
+    return merged ? deepMerge(base, merged) : base
+  }, [components, foundations, overrides])
+}
+
 const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const locale = useLocale()
+  const tokens = useListTokens()
 
   const {
     onLoad,
@@ -133,7 +174,10 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
       onLayout={handleLayout}
     >
       {children}
-      <View style={{ paddingVertical: 16, alignItems: 'center' }} testID="rv-list-footer">
+      <View
+        style={{ paddingVertical: tokens.spacing.footerPaddingVertical, alignItems: 'center' }}
+        testID="rv-list-footer"
+      >
         {mergedLoading ? (
           typeof loadingText === 'string' || typeof loadingText === 'number'
             ? (
@@ -147,7 +191,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
                 testID="rv-list-loading"
               >
                 <Loading size={16} />
-                {loadingText ? <View style={{ marginLeft: 8 }}>{loadingText}</View> : null}
+                {loadingText ? <View style={{ marginLeft: tokens.spacing.inlineGap }}>{loadingText}</View> : null}
               </View>
             )
         ) : null}
@@ -156,7 +200,11 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
             errorText(retry)
           ) : isRenderableNode(errorText) ? (
             typeof errorText === 'string' || typeof errorText === 'number' ? (
-              <Text testID="rv-list-error" onPress={retry} style={{ color: '#ff5b05' }}>
+              <Text
+                testID="rv-list-error"
+                onPress={retry}
+                style={{ color: tokens.colors.errorText }}
+              >
                 {errorText}
               </Text>
             ) : (
@@ -168,7 +216,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
         ) : null}
         {finished && !mergedLoading && !mergedError && isRenderableNode(finishedText) ? (
           typeof finishedText === 'string' || typeof finishedText === 'number' ? (
-            <Text testID="rv-list-finished" style={{ color: '#999999' }}>
+            <Text testID="rv-list-finished" style={{ color: tokens.colors.finishedText }}>
               {finishedText}
             </Text>
           ) : (

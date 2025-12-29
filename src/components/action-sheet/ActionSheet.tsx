@@ -140,11 +140,17 @@ const ActionSheetCancel: React.FC<{
     <>
       <View style={[styles.cancelGap, { height: tokens.spacing.cancelGap }]} />
       <Pressable
-        style={styles.cancel}
+        style={[
+          styles.cancel,
+          {
+            paddingVertical: tokens.spacing.vertical,
+            paddingHorizontal: tokens.spacing.horizontal,
+          },
+        ]}
         {...cancelPress.interactionProps}
       >
         {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
-          <Text style={[styles.cancelText, { color: tokens.colors.cancel }]}>{cancelText}</Text>
+          <Text style={[styles.cancelText, { color: tokens.colors.cancel, fontSize: tokens.typography.item }]}>{cancelText}</Text>
         ) : (
           cancelText
         )}
@@ -297,7 +303,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
           />
         ) : null}
         {hasDescription ? (
-          <View style={[styles.descriptionContainer, createHairlineBorderBottom('#ebedf0')]}>
+          <View style={[styles.descriptionContainer, createHairlineBorderBottom(tokens.colors.border)]}>
             {typeof description === 'string' || typeof description === 'number' ? (
               <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
                 {description}
@@ -381,7 +387,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    fontSize: 16,
   },
   itemWithIcon: {
     flexDirection: 'row',
@@ -411,14 +416,11 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   cancel: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ffffff',
   },
   cancelText: {
-    fontSize: 16,
     lineHeight: 24,
   },
 })

@@ -19,17 +19,20 @@ const styles = StyleSheet.create({
 export const CellGroup: React.FC<CellGroupProps> = ({
   children,
   title,
-  border = true,
-  inset = false,
-  card = false,
+  border,
+  inset,
+  card,
   style,
   bodyStyle,
 }) => {
   const tokens = useCellTokens()
+  const resolvedBorder = border ?? tokens.defaults.groupBorder
+  const resolvedInset = inset ?? tokens.defaults.groupInset
+  const resolvedCard = card ?? tokens.defaults.groupCard
 
   const containerStyle = [
     styles.container,
-    { marginBottom: card ? 0 : tokens.group.marginBottom },
+    { marginBottom: resolvedCard ? 0 : tokens.group.marginBottom },
     style,
   ]
   const titleStyle = [
@@ -41,7 +44,7 @@ export const CellGroup: React.FC<CellGroupProps> = ({
       paddingVertical: tokens.group.titlePaddingVertical,
     },
   ]
-  const showInset = inset || card
+  const showInset = resolvedInset || resolvedCard
   const bodyStyles = [
     styles.body,
     {
@@ -53,7 +56,7 @@ export const CellGroup: React.FC<CellGroupProps> = ({
       marginHorizontal: tokens.group.insetMarginHorizontal,
       backgroundColor: tokens.container.background,
     },
-    card ? createPlatformShadow(tokens.group.cardShadow) : null,
+    resolvedCard ? createPlatformShadow(tokens.group.cardShadow) : null,
     bodyStyle,
   ]
 
@@ -77,7 +80,11 @@ export const CellGroup: React.FC<CellGroupProps> = ({
           return (
             <CellGroupContext.Provider
               key={key}
-              value={{ border, inset: inset || card, isLast: isCell ? index === lastCellIndex : false }}
+              value={{
+                border: resolvedBorder,
+                inset: resolvedInset || resolvedCard,
+                isLast: isCell ? index === lastCellIndex : false,
+              }}
             >
               {child}
             </CellGroupContext.Provider>

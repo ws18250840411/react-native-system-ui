@@ -9,7 +9,10 @@ import {
 } from 'react-native'
 
 import { useTheme } from '../../design-system'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
 import { useControllableValue } from '../../hooks'
+import { deepMerge } from '../../utils/deepMerge'
 
 import type { PasswordInputProps, PasswordInputRef } from './types'
 
@@ -23,6 +26,90 @@ const HIDDEN_INPUT_PROPS: TextInputProps = {
 }
 
 const sanitizeNumber = (value: string) => value.replace(/[^0-9]/g, '')
+
+interface PasswordInputTokens {
+  colors: {
+    border: string
+    text: string
+    muted: string
+    error: string
+    cursor: string
+    background: string
+  }
+  radii: {
+    wrapper: number
+  }
+  sizing: {
+    cellHeight: number
+    cellTextSize: number
+    maskSize: number
+    cursorWidth: number
+    cursorHeightRatio: number
+    cursorTopRatio: number
+  }
+  typography: {
+    fontFamily: string
+    cellTextWeight: string
+    infoSize: number
+    infoLineHeight: number
+    infoWeight: string
+  }
+  opacity: {
+    disabled: number
+  }
+  spacing: {
+    infoMarginTop: number
+  }
+}
+
+const createPasswordInputTokens = (foundations: Foundations): PasswordInputTokens => ({
+  colors: {
+    border: foundations.palette.default[100],
+    text: foundations.palette.default[900],
+    muted: foundations.palette.default[500],
+    error: foundations.palette.danger[500],
+    cursor: foundations.palette.default[800],
+    background: '#ffffff',
+  },
+  radii: {
+    wrapper: foundations.radii.sm,
+  },
+  sizing: {
+    cellHeight: 50,
+    cellTextSize: foundations.fontSize.xl,
+    maskSize: 10,
+    cursorWidth: StyleSheet.hairlineWidth || 1,
+    cursorHeightRatio: 0.4,
+    cursorTopRatio: 0.3,
+  },
+  typography: {
+    fontFamily: foundations.typography.fontFamily,
+    cellTextWeight: String(foundations.typography.weight.semiBold),
+    infoSize: foundations.fontSize.sm,
+    infoLineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
+    infoWeight: String(foundations.typography.weight.regular),
+  },
+  opacity: {
+    disabled: 0.6,
+  },
+  spacing: {
+    infoMarginTop: foundations.spacing.sm,
+  },
+})
+
+const usePasswordInputTokens = (overrides?: DeepPartial<PasswordInputTokens>) => {
+  const { foundations, components } = useTheme()
+  return React.useMemo(() => {
+    const base = createPasswordInputTokens(foundations)
+    const globalOverrides = components?.passwordInput as DeepPartial<PasswordInputTokens> | undefined
+    const mergedOverrides = globalOverrides
+      ? overrides
+        ? deepMerge(globalOverrides, overrides)
+        : globalOverrides
+      : overrides
+    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
+  }, [components, foundations, overrides])
+}
 
 const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
   (props, ref) => {
@@ -57,19 +144,8 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const lengthSafe = Number.isFinite(length)
       ? Math.max(1, Math.floor(length))
       : 1
-    const { foundations } = useTheme()
-    const colors = React.useMemo(() => {
-      const border = '#f5f6f7'
-      return {
-        border,
-        text: foundations.palette.default[900],
-        muted: foundations.palette.default[500],
-        error: foundations.palette.danger[500],
-        cursor: '#323232',
-        mask: foundations.palette.default[900],
-        background: '#ffffff',
-      }
-    }, [foundations.palette])
+    const tokens = usePasswordInputTokens()
+    const colors = tokens.colors
 
     const inputRef = React.useRef<TextInput>(null)
     const [cursorVisible, setCursorVisible] = React.useState(true)
@@ -245,12 +321,12 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
             styles.wrapper,
             {
               backgroundColor: wrapperBackground,
-              opacity: disabled ? 0.6 : 1,
+              borderRadius: tokens.radii.wrapper,
+              opacity: disabled ? tokens.opacity.disabled : 1,
             },
             !hasGutter && {
               borderWidth: StyleSheet.hairlineWidth,
               borderColor: colors.border,
-              borderRadius: 6,
             },
           ]}
           onPress={focusInput}
@@ -262,7 +338,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
             style={[
               styles.security,
               {
-                borderRadius: hasGutter ? 0 : 6,
+                borderRadius: hasGutter ? 0 : tokens.radii.wrapper,
                 backgroundColor: securityBackground,
               },
             ]}
@@ -270,12 +346,31 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
             {cells.map((item, index) => {
               const filledTextStyle =
                 !mask && item.isFilled
-                  ? [styles.cellText, { color: colors.text }, cellTextStyle, highlightTextStyle]
-                  : [styles.cellText, { color: colors.text }, cellTextStyle]
+                  ? [
+                    styles.cellText,
+                    {
+                      color: colors.text,
+                      fontSize: tokens.sizing.cellTextSize,
+                      fontWeight: tokens.typography.cellTextWeight as any,
+                      fontFamily: tokens.typography.fontFamily,
+                    },
+                    cellTextStyle,
+                    highlightTextStyle,
+                  ]
+                  : [
+                    styles.cellText,
+                    {
+                      color: colors.text,
+                      fontSize: tokens.sizing.cellTextSize,
+                      fontWeight: tokens.typography.cellTextWeight as any,
+                      fontFamily: tokens.typography.fontFamily,
+                    },
+                    cellTextStyle,
+                  ]
 
               const baseCell = [
                 styles.cell,
-                { backgroundColor: colors.background },
+                { backgroundColor: colors.background, height: tokens.sizing.cellHeight },
                 cellStyle,
                 item.isFilled && cellFilledStyle,
               ]
@@ -300,6 +395,9 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
                       style={[
                         styles.mask,
                         {
+                          width: tokens.sizing.maskSize,
+                          height: tokens.sizing.maskSize,
+                          borderRadius: tokens.sizing.maskSize / 2,
                           backgroundColor: colors.text,
                           opacity: item.isFilled ? 1 : 0,
                         },
@@ -317,6 +415,11 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
                       style={[
                         styles.cursor,
                         {
+                          width: tokens.sizing.cursorWidth,
+                          height: `${tokens.sizing.cursorHeightRatio * 100}%`,
+                          borderRadius: tokens.sizing.cursorWidth / 2,
+                          top: `${tokens.sizing.cursorTopRatio * 100}%`,
+                          marginLeft: -tokens.sizing.cursorWidth / 2,
                           backgroundColor: colors.cursor,
                           opacity: cursorVisible ? 1 : 0,
                         },
@@ -364,19 +467,16 @@ export default PasswordInput
 const styles = StyleSheet.create({
   wrapper: {
     alignSelf: 'stretch',
-    borderRadius: 6,
     paddingHorizontal: 0,
   },
   security: {
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
-    borderRadius: 6,
     overflow: 'hidden',
   },
   cell: {
     flex: 1,
-    height: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -385,34 +485,21 @@ const styles = StyleSheet.create({
     borderRadius: 0,
   },
   cellText: {
-    fontSize: 20,
-    fontWeight: '600',
   },
   mask: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
   },
   cursor: {
     position: 'absolute',
-    width: StyleSheet.hairlineWidth || 1,
-    height: '40%',
-    borderRadius: 0.5,
-    top: '30%',
     left: '50%',
-    marginLeft: -0.5,
   },
   hiddenInput: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0,
   },
   infoWrapper: {
-    marginTop: 8,
     alignItems: 'center',
   },
   infoText: {
-    fontSize: 14,
-    color: '#969799',
     textAlign: 'center',
   },
 })

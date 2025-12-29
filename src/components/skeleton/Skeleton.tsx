@@ -102,12 +102,11 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   }
 
   return (
-    <View ref={ref} style={[styles.container, style]} {...rest}>
+    <View ref={ref} style={[styles.container, { gap: tokens.spacing.containerGap }, style]} {...rest}>
       {avatar ? (
         <Animated.View
           style={
             [
-              styles.avatar,
               {
                 width: normalizeValue(avatarSize, 32),
                 height: normalizeValue(avatarSize, 32),
@@ -168,10 +167,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
-  },
-  avatar: {
-    backgroundColor: '#eee',
   },
   content: {
     flex: 1,

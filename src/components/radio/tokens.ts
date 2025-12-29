@@ -29,10 +29,14 @@ export interface RadioTokens {
   }
   spacing: {
     gap: number
+    groupGap: number
   }
   shape: {
     roundRadius: number
     squareRadius: number
+  }
+  icon: {
+    dotScale: number
   }
 }
 
@@ -61,10 +65,14 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
     },
     spacing: {
       gap: spacing.sm,
+      groupGap: spacing.sm,
     },
     shape: {
       roundRadius: 999,
       squareRadius: 2,
+    },
+    icon: {
+      dotScale: 0.5,
     },
   }
 }

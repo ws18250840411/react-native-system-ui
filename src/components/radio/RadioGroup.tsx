@@ -6,6 +6,7 @@ import { useRadioGroupState } from '@react-stately/radio'
 import { useTheme } from '../../design-system'
 import type { RadioGroupProps, RadioValue } from './types'
 import { RadioGroupContext } from './RadioContext'
+import { useRadioTokens } from './tokens'
 
 const serialize = (value: RadioValue | undefined) => {
   if (value === undefined || value === null) return undefined
@@ -31,8 +32,8 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     ...viewProps
   } = props
 
-  const { foundations } = useTheme()
-  const gap = gapProp ?? foundations.spacing.sm
+  const tokens = useRadioTokens()
+  const gap = gapProp ?? tokens.spacing.groupGap
 
   const registryRef = React.useRef(new Map<string, RadioValue>())
   const registerValue = React.useCallback((key: string, raw: RadioValue) => {

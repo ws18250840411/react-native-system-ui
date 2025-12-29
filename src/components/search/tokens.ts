@@ -1,4 +1,5 @@
 import * as React from 'react'
+import type { TextStyle } from 'react-native'
 
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -32,7 +33,12 @@ export interface SearchTokens {
   }
   typography: {
     label: number
+    labelWeight: NonNullable<TextStyle['fontWeight']>
     action: number
+    actionWeight: NonNullable<TextStyle['fontWeight']>
+  }
+  opacity: {
+    actionPressed: number
   }
   icon: {
     size: number
@@ -65,7 +71,12 @@ const createSearchTokens = (foundations: Foundations): SearchTokens => ({
   },
   typography: {
     label: foundations.fontSize.sm,
+    labelWeight: '500',
     action: foundations.fontSize.sm,
+    actionWeight: '500',
+  },
+  opacity: {
+    actionPressed: 0.6,
   },
   icon: {
     size: foundations.fontSize.md,

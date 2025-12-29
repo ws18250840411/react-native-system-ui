@@ -24,9 +24,6 @@ interface AnchorRect {
   height: number
 }
 
-const VIEWPORT_MARGIN = 8
-const ARROW_SIZE = 6
-
 const getPlacementParts = (placement: PopoverPlacement) => {
   const [side, align] = placement.split('-') as [
     'top' | 'bottom' | 'left' | 'right',
@@ -37,14 +34,14 @@ const getPlacementParts = (placement: PopoverPlacement) => {
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max))
 
-const renderActionText = (action: PopoverAction, fallbackColor: string) => {
+const renderActionText = (action: PopoverAction, fallbackColor: string, fontSize: number) => {
   const text = action.text
   return (
     <Text
       style={{
         flex: 1,
         color: action.color ?? fallbackColor,
-        fontSize: 14,
+        fontSize,
       }}
       numberOfLines={1}
     >
@@ -84,6 +81,20 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
   } = props
 
   const tokens = usePopoverTokens()
+  const viewportMargin = tokens.layout?.viewportMargin ?? 8
+  const arrowSize = tokens.layout?.arrowSize ?? 6
+  const actionPanelMinWidth = tokens.layout?.actionPanelMinWidth ?? 128
+  const customPanelMinWidth = tokens.layout?.customPanelMinWidth ?? 160
+  const customPanelPadding = tokens.spacing?.customPanelPadding ?? 12
+  const actionPanelPaddingVertical = tokens.spacing?.actionPanelPaddingVertical ?? 4
+  const actionPaddingHorizontal = tokens.spacing?.actionPaddingHorizontal ?? 12
+  const actionGap = tokens.spacing?.actionGap ?? 8
+  const actionHeight = tokens.sizing?.actionHeight ?? 44
+  const actionIconWidth = tokens.sizing?.actionIconWidth ?? 20
+  const actionFontSize = tokens.typography?.actionFontSize ?? 14
+  const actionPressedOpacity = tokens.opacity?.actionPressed ?? 0.85
+  const actionDisabledOpacity = tokens.opacity?.actionDisabled ?? 0.5
+  const hiddenScale = tokens.motion?.hiddenScale ?? 0.96
   const wrapperRef = React.useRef<View | null>(null)
   const layoutRef = React.useRef<AnchorRect | null>(null)
   const [anchor, setAnchor] = React.useState<AnchorRect | null>(null)
@@ -104,7 +115,7 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
 
   const [mounted, setMounted] = React.useState(internalVisible)
   const opacity = React.useRef(new Animated.Value(internalVisible ? 1 : 0)).current
-  const scale = React.useRef(new Animated.Value(internalVisible ? 1 : 0.96)).current
+  const scale = React.useRef(new Animated.Value(internalVisible ? 1 : hiddenScale)).current
 
   const requestMeasure = React.useCallback(() => {
     const node = wrapperRef.current as any
@@ -187,7 +198,7 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
     }
     const { side, align } = getPlacementParts(placement)
     const [skid, distance] = offset
-    const width = panelSize.width || (isActionMode ? 128 : 160)
+    const width = panelSize.width || (isActionMode ? actionPanelMinWidth : customPanelMinWidth)
     const height = panelSize.height || 0
 
     let left = 0
@@ -219,32 +230,47 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
         : anchor.x - width - distance
     }
 
-    left = clamp(left, VIEWPORT_MARGIN, windowWidth - width - VIEWPORT_MARGIN)
-    top = clamp(top, VIEWPORT_MARGIN, windowHeight - height - VIEWPORT_MARGIN)
+    left = clamp(left, viewportMargin, windowWidth - width - viewportMargin)
+    top = clamp(top, viewportMargin, windowHeight - height - viewportMargin)
 
     return { top, left, width, height, side }
-  }, [anchor, isActionMode, offset, panelSize.height, panelSize.width, placement, windowHeight, windowWidth])
+  }, [
+    actionPanelMinWidth,
+    anchor,
+    customPanelMinWidth,
+    isActionMode,
+    offset,
+    panelSize.height,
+    panelSize.width,
+    placement,
+    viewportMargin,
+    windowHeight,
+    windowWidth,
+  ])
 
   const arrowStyle = React.useMemo(() => {
     if (!anchor || !position || !showArrow) return null
     const centerX = anchor.x + anchor.width / 2
     const centerY = anchor.y + anchor.height / 2
+    const background = theme === 'dark'
+      ? (tokens.colors.backgroundDark ?? '#4a4a4a')
+      : tokens.colors.background
 
-    const arrowX = clamp(centerX - position.left - ARROW_SIZE, ARROW_SIZE, position.width - ARROW_SIZE * 3)
-    const arrowY = clamp(centerY - position.top - ARROW_SIZE, ARROW_SIZE, position.height - ARROW_SIZE * 3)
+    const arrowX = clamp(centerX - position.left - arrowSize, arrowSize, position.width - arrowSize * 3)
+    const arrowY = clamp(centerY - position.top - arrowSize, arrowSize, position.height - arrowSize * 3)
 
     if (position.side === 'bottom') {
       return {
         width: 0,
         height: 0,
-        borderLeftWidth: ARROW_SIZE,
-        borderRightWidth: ARROW_SIZE,
-        borderBottomWidth: ARROW_SIZE,
+        borderLeftWidth: arrowSize,
+        borderRightWidth: arrowSize,
+        borderBottomWidth: arrowSize,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
-        borderBottomColor: theme === 'dark' ? '#4a4a4a' : tokens.colors.background,
+        borderBottomColor: background,
         position: 'absolute' as const,
-        top: -ARROW_SIZE,
+        top: -arrowSize,
         left: arrowX,
       }
     }
@@ -253,12 +279,12 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
       return {
         width: 0,
         height: 0,
-        borderLeftWidth: ARROW_SIZE,
-        borderRightWidth: ARROW_SIZE,
-        borderTopWidth: ARROW_SIZE,
+        borderLeftWidth: arrowSize,
+        borderRightWidth: arrowSize,
+        borderTopWidth: arrowSize,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
-        borderTopColor: theme === 'dark' ? '#4a4a4a' : tokens.colors.background,
+        borderTopColor: background,
         position: 'absolute' as const,
         top: position.height,
         left: arrowX,
@@ -269,12 +295,12 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
       return {
         width: 0,
         height: 0,
-        borderTopWidth: ARROW_SIZE,
-        borderBottomWidth: ARROW_SIZE,
-        borderLeftWidth: ARROW_SIZE,
+        borderTopWidth: arrowSize,
+        borderBottomWidth: arrowSize,
+        borderLeftWidth: arrowSize,
         borderTopColor: 'transparent',
         borderBottomColor: 'transparent',
-        borderLeftColor: theme === 'dark' ? '#4a4a4a' : tokens.colors.background,
+        borderLeftColor: background,
         position: 'absolute' as const,
         left: position.width,
         top: arrowY,
@@ -284,17 +310,17 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
     return {
       width: 0,
       height: 0,
-      borderTopWidth: ARROW_SIZE,
-      borderBottomWidth: ARROW_SIZE,
-      borderRightWidth: ARROW_SIZE,
+      borderTopWidth: arrowSize,
+      borderBottomWidth: arrowSize,
+      borderRightWidth: arrowSize,
       borderTopColor: 'transparent',
       borderBottomColor: 'transparent',
-      borderRightColor: theme === 'dark' ? '#4a4a4a' : tokens.colors.background,
+      borderRightColor: background,
       position: 'absolute' as const,
-      left: -ARROW_SIZE,
+      left: -arrowSize,
       top: arrowY,
     }
-  }, [anchor, position, showArrow, theme, tokens.colors.background])
+  }, [anchor, arrowSize, position, showArrow, theme, tokens.colors.background, tokens.colors.backgroundDark])
 
   const { zIndex: stackZIndex, isTopMost } = useOverlayStack({
     visible: internalVisible,
@@ -345,14 +371,14 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
     } else if (mounted) {
       Animated.parallel([
         Animated.timing(opacity, { toValue: 0, duration, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }),
-        Animated.timing(scale, { toValue: 0.96, duration, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }),
+        Animated.timing(scale, { toValue: hiddenScale, duration, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }),
       ]).start(() => {
         mountedRef.current = false
         setMounted(false)
         onClosed?.()
       })
     }
-  }, [duration, internalVisible, mounted, onClosed, onOpened, opacity, requestMeasure, scale])
+  }, [duration, hiddenScale, internalVisible, mounted, onClosed, onOpened, opacity, requestMeasure, scale])
 
   const prevVisibleRef = React.useRef(internalVisible)
   React.useEffect(() => {
@@ -371,8 +397,12 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
     requestMeasure()
   }, [mounted, requestMeasure, windowHeight, windowWidth])
 
-  const panelBackground = theme === 'dark' ? '#4a4a4a' : tokens.colors.background
-  const panelText = theme === 'dark' ? '#ffffff' : tokens.colors.text
+  const panelBackground = theme === 'dark'
+    ? (tokens.colors.backgroundDark ?? '#4a4a4a')
+    : tokens.colors.background
+  const panelText = theme === 'dark'
+    ? (tokens.colors.textDark ?? '#ffffff')
+    : tokens.colors.text
 
   return (
     <>
@@ -408,6 +438,7 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
                   {
                     top: position.top,
                     left: position.left,
+                    minWidth: isActionMode ? actionPanelMinWidth : customPanelMinWidth,
                     backgroundColor: panelBackground,
                     borderRadius: tokens.radii.panel,
                     shadowColor: tokens.colors.shadow,
@@ -420,7 +451,9 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
                       offsetY: tokens.shadow.offsetY,
                     }),
                   },
-                  isActionMode ? styles.actionPanel : styles.customPanel,
+                  isActionMode
+                    ? [styles.actionPanel, { paddingVertical: actionPanelPaddingVertical, minWidth: actionPanelMinWidth }]
+                    : [styles.customPanel, { padding: customPanelPadding, minWidth: customPanelMinWidth }],
                   contentStyle,
                 ]}
                 onLayout={event => {
@@ -434,28 +467,35 @@ const Popover = React.forwardRef<PopoverInstance, PopoverProps>((props, ref) => 
                     ? children
                     : actions?.length
                       ? (
-                          <View style={styles.actions}>
-                            {actions.map((action, index) => {
-                              const disabled = !!action.disabled
-                              return (
-                                <Pressable
-                                  key={`${action.text}-${index}`}
-                                  testID={`rv-popover-action-${index}`}
-                                  disabled={disabled}
-                                  style={({ pressed }) => [
-                                    styles.action,
-                                    pressed && !disabled ? styles.actionPressed : null,
-                                    disabled ? styles.actionDisabled : null,
-                                  ]}
-                                  onPress={() => handleActionPress(action, index)}
-                                >
-                                  {action.icon ? <View style={styles.actionIcon}>{action.icon}</View> : null}
-                                  {renderActionText(action, panelText)}
-                                </Pressable>
-                              )
-                            })}
-                          </View>
-                        )
+                        <View style={[styles.actions, { minWidth: actionPanelMinWidth }]}>
+                          {actions.map((action, index) => {
+                            const disabled = !!action.disabled
+                            return (
+                              <Pressable
+                                key={`${action.text}-${index}`}
+                                testID={`rv-popover-action-${index}`}
+                                disabled={disabled}
+                                style={({ pressed }) => [
+                                  styles.action,
+                                  {
+                                    paddingHorizontal: actionPaddingHorizontal,
+                                    height: actionHeight,
+                                    gap: actionGap,
+                                  },
+                                  pressed && !disabled ? { opacity: actionPressedOpacity } : null,
+                                  disabled ? { opacity: actionDisabledOpacity } : null,
+                                ]}
+                                onPress={() => handleActionPress(action, index)}
+                              >
+                                {action.icon
+                                  ? <View style={[styles.actionIcon, { width: actionIconWidth }]}>{action.icon}</View>
+                                  : null}
+                                {renderActionText(action, panelText, actionFontSize)}
+                              </Pressable>
+                            )
+                          })}
+                        </View>
+                      )
                       : null}
                 </View>
               </Animated.View>
@@ -476,36 +516,17 @@ const styles = StyleSheet.create({
   },
   content: {
     position: 'absolute',
-    minWidth: 128,
   },
-  customPanel: {
-    padding: 12,
-    minWidth: 160,
-  },
-  actionPanel: {
-    paddingVertical: 4,
-    minWidth: 128,
-  },
-  actions: {
-    minWidth: 128,
-  },
+  customPanel: {},
+  actionPanel: {},
+  actions: {},
   action: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    height: 44,
-    gap: 8,
   },
   actionIcon: {
-    width: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  actionPressed: {
-    opacity: 0.85,
-  },
-  actionDisabled: {
-    opacity: 0.5,
   },
 })
 

@@ -246,8 +246,8 @@ export const Radio: React.FC<RadioProps> = props => {
           {isChecked ? (
             <View
               style={{
-                width: resolvedIconSize / 2,
-                height: resolvedIconSize / 2,
+                width: resolvedIconSize * tokens.icon.dotScale,
+                height: resolvedIconSize * tokens.icon.dotScale,
                 borderRadius,
                 backgroundColor: resolvedCheckedColor,
               }}
@@ -278,8 +278,8 @@ export const Radio: React.FC<RadioProps> = props => {
           {isChecked ? (
             <View
               style={{
-                width: resolvedIconSize / 2,
-                height: resolvedIconSize / 2,
+                width: resolvedIconSize * tokens.icon.dotScale,
+                height: resolvedIconSize * tokens.icon.dotScale,
                 borderRadius,
                 backgroundColor: resolvedCheckedColor,
               }}
@@ -297,6 +297,7 @@ export const Radio: React.FC<RadioProps> = props => {
     borderColor,
     backgroundColor,
     resolvedCheckedColor,
+    tokens.icon.dotScale,
   ])
 
   const iconWrapperStyle = React.useMemo(

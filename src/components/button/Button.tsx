@@ -16,9 +16,6 @@ import { useAriaPress } from '../../hooks'
 import type {
   ButtonProps,
   ButtonShadowLevel,
-  ButtonSize,
-  ButtonType,
-  ButtonIconPosition,
 } from './types'
 import { ButtonGroupContext } from './ButtonContext'
 import { useButtonTokens } from './tokens'
@@ -155,7 +152,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
             ? tone.tonalBackground
             : derivedMode === 'elevated'
               ? tone.background
-              : 'transparent')
+              : buttonTokens.colors.backgroundTransparent)
 
       let border =
         derivedMode === 'outlined'
@@ -164,7 +161,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
             ? tone.tonalBorder
             : derivedMode === 'contained' || derivedMode === 'elevated'
               ? normalizedColor ?? tone.border
-              : 'transparent'
+              : buttonTokens.colors.backgroundTransparent
 
       let text = textColor
         ? textColor
@@ -175,18 +172,18 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
             : normalizedColor ?? (type === 'default' ? tone.text : tone.border)
 
       if (dark === true) {
-        text = '#ffffff'
+        text = buttonTokens.colors.textDark
       } else if (dark === false) {
-        text = '#111111'
+        text = buttonTokens.colors.textLight
       }
 
       if (derivedMode === 'text') {
-        bg = 'transparent'
-        border = 'transparent'
+        bg = buttonTokens.colors.backgroundTransparent
+        border = buttonTokens.colors.backgroundTransparent
       }
 
       if (legacyPlain) {
-        bg = '#ffffff'
+        bg = buttonTokens.colors.backgroundPlain
         border = normalizedColor ?? tone.border
         const fallbackTextColor =
           type === 'default' && !normalizedColor ? tone.text : normalizedColor ?? tone.border
@@ -194,7 +191,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       }
 
       if (gradientFillEnabled && supportsGradientFill) {
-        bg = 'transparent'
+        bg = buttonTokens.colors.backgroundTransparent
       }
 
       const shouldRenderBorder =
@@ -229,7 +226,11 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       dark,
       hairline,
       buttonTokens.border.hairlineWidth,
-      buttonTokens.border.width
+      buttonTokens.border.width,
+      buttonTokens.colors.backgroundTransparent,
+      buttonTokens.colors.backgroundPlain,
+      buttonTokens.colors.textDark,
+      buttonTokens.colors.textLight
     ])
 
     const borderRadius = React.useMemo(() => {
@@ -463,7 +464,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       rippleColorProp ??
       (derivedMode === 'text' || derivedMode === 'outlined' || legacyPlain
         ? resolvedTextColor
-        : 'rgba(255,255,255,0.35)')
+        : buttonTokens.colors.ripple)
     const resolvedAndroidRipple =
       Platform.OS === 'android'
         ? androidRippleProp ?? { color: defaultRippleColor, borderless: false }

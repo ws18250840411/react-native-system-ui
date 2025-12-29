@@ -112,7 +112,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
     const tokens = useCellTokens()
     const group = React.useContext(CellGroupContext)
     const platform = Platform.OS
-    const lineHeight = tokens.typography.lineHeight ?? 24
+    const lineHeight = tokens.typography.lineHeight
 
     const hasTitle = title !== undefined && title !== null && title !== false
     const hasValue = value !== undefined && value !== null && value !== false
@@ -406,8 +406,8 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
     return (
       <Pressable
         ref={ref}
-        style={[containerStyles, { opacity: states.pressed ? 0.6 : 1 }]}
-        android_ripple={android_ripple ?? { color: '#f2f3f5' }}
+        style={[containerStyles, { opacity: states.pressed ? tokens.container.activeOpacity : 1 }]}
+        android_ripple={android_ripple ?? { color: tokens.container.rippleColor }}
         accessibilityRole="button"
         {...interactionProps}
         {...viewProps}

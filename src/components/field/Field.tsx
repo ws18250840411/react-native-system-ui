@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 0,
     overflow: 'hidden',
-    minHeight: 24,
   },
   input: {
     flex: 1,
@@ -82,7 +81,6 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   children: {
-    minHeight: 24,
     justifyContent: 'center',
   },
   leftIcon: {
@@ -122,12 +120,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  message: {
-    marginTop: 0,
-  },
-  wordLimit: {
-    marginTop: 0,
-  },
+  message: {},
+  wordLimit: {},
 })
 
 const alignMap: Record<'left' | 'center' | 'right', 'flex-start' | 'center' | 'flex-end'> = {
@@ -528,7 +522,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const renderControl = () => {
     if (isDef(children)) {
-      return <View style={styles.children}>{children}</View>
+      return <View style={[styles.children, { minHeight: tokens.sizes.controlMinHeight }]}>{children}</View>
     }
 
     const inputStyles = React.useMemo(() => {
@@ -585,7 +579,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         keyboardType={restInputProps.keyboardType ?? mapKeyboardType(type)}
         placeholderTextColor={resolvedPlaceholderColor}
         onContentSizeChange={isTextarea ? handleContentSizeChange : undefined}
-        aria-describedby={describedBy?.join(' ')}
+        // @ts-ignore
+        accessibilityDescribedBy={describedBy}
         clearButtonMode="never"
         {...restInputProps}
       />
@@ -615,6 +610,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
               // React Vant 默认字数统计靠右展示，这里保持一致
               textAlign: 'right',
               alignSelf: 'flex-end',
+              marginTop: tokens.spacing.wordLimitMarginTop,
             },
           ]}
         >
@@ -638,6 +634,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
               color: tokens.colors.error,
               fontSize: tokens.typography.messageSize,
               textAlign: errorMessageAlign,
+              marginTop: tokens.spacing.messageMarginTop,
             },
             errorMessageStyle,
           ]}
@@ -650,7 +647,13 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     return (
       <View
         nativeID={errorId}
-        style={[styles.message, { alignSelf: alignMap[errorMessageAlign] }]}
+        style={[
+          styles.message,
+          {
+            alignSelf: alignMap[errorMessageAlign],
+            marginTop: tokens.spacing.messageMarginTop,
+          },
+        ]}
         accessibilityLiveRegion="polite"
       >
         {errorMessage}
@@ -670,6 +673,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
               color: tokens.colors.intro,
               fontSize: tokens.typography.introSize,
               textAlign: controlAlign,
+              marginTop: tokens.spacing.introMarginTop,
             },
             introStyle,
           ]}
@@ -679,7 +683,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       )
     }
     return (
-      <View nativeID={introId}>
+      <View nativeID={introId} style={{ marginTop: tokens.spacing.introMarginTop }}>
         {resolvedDescription}
       </View>
     )
@@ -745,7 +749,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
             {renderAffix(prefix)}
           </View>
         ) : null}
-        <View style={styles.controlWrapper}>
+        <View style={[styles.controlWrapper, { minHeight: tokens.sizes.controlMinHeight }]}>
           {renderControl()}
           {renderClearIcon()}
         </View>

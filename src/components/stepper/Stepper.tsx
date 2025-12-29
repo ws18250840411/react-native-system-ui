@@ -440,7 +440,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         return [
           ...base,
           {
-            backgroundColor: '#ffffff',
+            backgroundColor: tokens.colors.roundThemeBackground,
             borderWidth: StyleSheet.hairlineWidth,
             borderColor: tokens.colors.roundTheme,
             ...(state.pressed && !disabledState ? { opacity: tokens.opacity.pressed } : null),
@@ -486,6 +486,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       tokens.colors.background,
       tokens.colors.buttonDisabledBackground,
       tokens.colors.roundTheme,
+      tokens.colors.roundThemeBackground,
       tokens.opacity.pressed,
       tokens.opacity.roundDisabled,
     ],
@@ -500,12 +501,20 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         if (isPlus) {
           return [
             styles.buttonText,
-            { color: '#ffffff', fontSize: tokens.typography.fontSize },
+            {
+              color: tokens.colors.roundThemeText,
+              fontSize: tokens.typography.fontSize,
+              fontWeight: tokens.typography.fontWeight,
+            },
           ]
         }
         return [
           styles.buttonText,
-          { color: tokens.colors.roundTheme, fontSize: tokens.typography.fontSize },
+          {
+            color: tokens.colors.roundTheme,
+            fontSize: tokens.typography.fontSize,
+            fontWeight: tokens.typography.fontWeight,
+          },
         ]
       }
 
@@ -514,6 +523,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         {
           color: disabledState ? tokens.colors.buttonDisabledIcon : tokens.colors.buttonIcon,
           fontSize: tokens.typography.fontSize,
+          fontWeight: tokens.typography.fontWeight,
         },
       ]
     },
@@ -524,7 +534,9 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       tokens.colors.buttonDisabledIcon,
       tokens.colors.buttonIcon,
       tokens.colors.roundTheme,
+      tokens.colors.roundThemeText,
       tokens.typography.fontSize,
+      tokens.typography.fontWeight,
     ],
   )
 
@@ -689,7 +701,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    fontWeight: '600',
+    // fontWeight is now dynamic via token
   },
   input: {
     textAlign: 'center',

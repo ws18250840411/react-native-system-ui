@@ -1,14 +1,75 @@
 import React from 'react'
-import type { StyleProp, ViewStyle } from 'react-native'
+import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useTheme } from '../../design-system'
+import type { Foundations } from '../../design-system/tokens'
+import type { DeepPartial } from '../../types'
+import { deepMerge } from '../../utils/deepMerge'
 import type { AvatarProps, AvatarShape, AvatarSize } from './types'
 
-const sizeMap: Record<AvatarSize, number> = {
-  small: 24,
-  medium: 32,
-  large: 40,
+interface AvatarTokens {
+  defaults: {
+    size: AvatarSize
+    shape: AvatarShape
+  }
+  sizing: {
+    sizes: Record<AvatarSize, number>
+    iconMaxSize: number
+  }
+  colors: {
+    background: string
+    text: string
+  }
+  typography: {
+    fontWeight: TextStyle['fontWeight']
+    fallbackTextScale: number
+  }
+  radii: {
+    squareMin: number
+    squareDivisor: number
+  }
+}
+
+const createAvatarTokens = (foundations: Foundations): AvatarTokens => ({
+  defaults: {
+    size: 'medium',
+    shape: 'circle',
+  },
+  sizing: {
+    sizes: {
+      small: 24,
+      medium: 32,
+      large: 40,
+    },
+    iconMaxSize: 32,
+  },
+  colors: {
+    background: foundations.palette.default[100],
+    text: foundations.palette.default[800],
+  },
+  typography: {
+    fontWeight: '600',
+    fallbackTextScale: 0.5,
+  },
+  radii: {
+    squareMin: 6,
+    squareDivisor: 6,
+  },
+})
+
+const useAvatarTokens = (overrides?: DeepPartial<AvatarTokens>): AvatarTokens => {
+  const { foundations, components } = useTheme()
+  return React.useMemo(() => {
+    const base = createAvatarTokens(foundations)
+    const componentOverrides = components?.avatar as DeepPartial<AvatarTokens> | undefined
+    const merged = componentOverrides
+      ? overrides
+        ? deepMerge(componentOverrides, overrides)
+        : componentOverrides
+      : overrides
+    return merged ? deepMerge(base, merged) : base
+  }, [components, foundations, overrides])
 }
 
 const styles = StyleSheet.create({
@@ -18,7 +79,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   text: {
-    fontWeight: '600',
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
@@ -32,15 +92,22 @@ const styles = StyleSheet.create({
   },
 })
 
-const getDimension = (size?: AvatarSize | number) => {
+const getDimension = (size: AvatarSize | number | undefined, sizeMap: Record<AvatarSize, number>) => {
   if (typeof size === 'number') {
     return size
   }
   return sizeMap[size ?? 'medium']
 }
 
-const getRadius = (shape: AvatarShape, width: number, height: number) =>
-  shape === 'circle' ? Math.min(width, height) / 2 : Math.max(6, Math.min(width, height) / 6)
+const getRadius = (
+  shape: AvatarShape,
+  width: number,
+  height: number,
+  options: { squareMin: number; squareDivisor: number }
+) =>
+  shape === 'circle'
+    ? Math.min(width, height) / 2
+    : Math.max(options.squareMin, Math.min(width, height) / options.squareDivisor)
 
 const useFallbackText = (text?: string) => {
   if (!text) return undefined
@@ -53,10 +120,10 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       src,
       icon,
       text,
-      size = 'medium',
+      size,
       width,
       height,
-      shape = 'circle',
+      shape,
       color,
       backgroundColor,
       style,
@@ -66,11 +133,13 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
     },
     ref
   ) => {
-    const { foundations } = useTheme()
-    const baseSize = getDimension(size)
+    const tokens = useAvatarTokens()
+    const resolvedSize = size ?? tokens.defaults.size
+    const resolvedShape = shape ?? tokens.defaults.shape
+    const baseSize = getDimension(resolvedSize, tokens.sizing.sizes)
     const avatarWidth = width ?? baseSize
     const avatarHeight = height ?? baseSize
-    const borderRadius = getRadius(shape, avatarWidth, avatarHeight)
+    const borderRadius = getRadius(resolvedShape, avatarWidth, avatarHeight, tokens.radii)
     const fallbackText = useFallbackText(text)
 
     const containerStyle: StyleProp<ViewStyle> = [
@@ -79,7 +148,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
         width: avatarWidth,
         height: avatarHeight,
         borderRadius,
-        backgroundColor: backgroundColor ?? foundations.palette.default[100],
+        backgroundColor: backgroundColor ?? tokens.colors.background,
       },
       style,
     ]
@@ -101,8 +170,8 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
             style={[
               styles.iconWrapper,
               {
-                width: Math.min(avatarWidth, sizeMap.medium),
-                height: Math.min(avatarHeight, sizeMap.medium),
+                width: Math.min(avatarWidth, tokens.sizing.iconMaxSize),
+                height: Math.min(avatarHeight, tokens.sizing.iconMaxSize),
               },
               contentStyle,
             ]}
@@ -117,8 +186,9 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
             style={[
               styles.text,
               {
-                color: color ?? foundations.palette.default[800],
-                fontSize: Math.min(avatarWidth, avatarHeight) / 2,
+                color: color ?? tokens.colors.text,
+                fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
+                fontWeight: tokens.typography.fontWeight,
               },
               textStyle,
             ]}

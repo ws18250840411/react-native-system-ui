@@ -8,13 +8,11 @@ import {
   type ViewStyle,
 } from 'react-native'
 
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
 import { deepMerge } from '../../utils/deepMerge'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from './useOverlayStack'
+import { useOverlayTokens } from './tokens'
 
 export interface OverlayProps {
   visible?: boolean
@@ -61,34 +59,6 @@ export interface OverlayProps {
    */
   zIndex?: number | string
   children?: React.ReactNode
-}
-
-interface OverlayTokens {
-  colors: {
-    backdrop: string
-  }
-  animationDuration: number
-}
-
-const createOverlayTokens = (_foundations: Foundations): OverlayTokens => ({
-  colors: {
-    backdrop: 'rgba(0, 0, 0, 0.7)',
-  },
-  animationDuration: 300,
-})
-
-const useOverlayTokens = (overrides?: DeepPartial<OverlayTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createOverlayTokens(foundations)
-    const globalOverrides = components?.overlay as DeepPartial<OverlayTokens> | undefined
-    const merged = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)

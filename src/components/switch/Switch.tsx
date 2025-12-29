@@ -11,6 +11,7 @@ import {
   type GestureResponderEvent,
 } from 'react-native'
 
+import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { useControllableValue } from '../../hooks'
 import type { SwitchProps } from './types'
 import { useSwitchTokens } from './tokens'
@@ -137,6 +138,9 @@ export const Switch: React.FC<SwitchProps> = props => {
     ],
   )
 
+  const shadowOuter = React.useMemo(() => createPlatformShadow(tokens.shadow.outer), [tokens.shadow.outer])
+  const shadowInner = React.useMemo(() => createPlatformShadow(tokens.shadow.inner), [tokens.shadow.inner])
+
   return (
     <Pressable
       {...rest}
@@ -163,6 +167,7 @@ export const Switch: React.FC<SwitchProps> = props => {
         <AnimatedHandle
           style={[
             styles.handleOuter,
+            shadowOuter,
             {
               width: handleSize,
               height: handleSize,
@@ -177,6 +182,7 @@ export const Switch: React.FC<SwitchProps> = props => {
           <View
             style={[
               styles.handleInner,
+              shadowInner,
               {
                 borderRadius: handleSize / 2,
                 backgroundColor: tokens.colors.handle,
@@ -184,7 +190,7 @@ export const Switch: React.FC<SwitchProps> = props => {
             ]}
           >
             {loading ? (
-              <ActivityIndicator size={13} color={trackColor} />
+              <ActivityIndicator size={tokens.loader.size} color={trackColor} />
             ) : null}
           </View>
         </AnimatedHandle>
@@ -203,32 +209,11 @@ const styles = StyleSheet.create({
   },
   handleOuter: {
     position: 'absolute',
-    ...(Platform.OS === 'web'
-      ? {
-        boxShadow: '0px 3px 3px rgba(0, 0, 0, 0.06)',
-      }
-      : {
-        elevation: 3,
-        shadowColor: '#000000',
-        shadowOpacity: 0.06,
-        shadowRadius: 3,
-        shadowOffset: { width: 0, height: 3 },
-      }),
   },
   handleInner: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    ...(Platform.OS === 'web'
-      ? {
-        boxShadow: '0px 2px 2px rgba(0, 0, 0, 0.12)',
-      }
-      : {
-        shadowColor: '#000000',
-        shadowOpacity: 0.12,
-        shadowRadius: 2,
-        shadowOffset: { width: 0, height: 2 },
-      }),
   },
 })
 

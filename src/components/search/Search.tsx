@@ -3,6 +3,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  type TextStyle,
   View,
 } from 'react-native'
 import { Search as SearchIcon } from 'react-native-system-icon'
@@ -139,11 +140,11 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
       return (
         <Text
           style={[
-            styles.labelText,
             {
               marginRight: tokens.spacing.labelGap,
               color: tokens.colors.label,
               fontSize: tokens.typography.label,
+              fontWeight: tokens.typography.labelWeight as TextStyle['fontWeight'],
             },
           ]}
         >
@@ -182,17 +183,17 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
           styles.actionWrapper,
           {
             marginLeft: tokens.spacing.actionGap,
-            opacity: cancelActionPress.states.pressed ? 0.6 : 1,
+            opacity: cancelActionPress.states.pressed ? tokens.opacity.actionPressed : 1,
           },
         ]}
         {...cancelActionPress.interactionProps}
       >
         <Text
           style={[
-            styles.actionText,
             {
               color: tokens.colors.action,
               fontSize: tokens.typography.action,
+              fontWeight: tokens.typography.actionWeight as TextStyle['fontWeight'],
             },
           ]}
         >
@@ -248,9 +249,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  labelText: {
-    fontWeight: '500',
-  },
   fieldWrapper: {
     flex: 1,
   },
@@ -266,9 +264,6 @@ const styles = StyleSheet.create({
   },
   actionWrapper: {
     justifyContent: 'center',
-  },
-  actionText: {
-    fontWeight: '500',
   },
 })
 

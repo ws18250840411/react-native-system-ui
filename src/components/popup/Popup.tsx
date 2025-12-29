@@ -17,14 +17,12 @@ import {
 } from 'react-native'
 
 import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
 import { useAriaOverlay } from '../../hooks'
+import { usePopupTokens } from './tokens'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -73,40 +71,6 @@ export interface PopupProps extends ViewProps {
   contentAnimationStyle?: Animated.WithAnimatedObject<ViewStyle>
 }
 
-interface PopupTokens {
-  colors: {
-    overlay: string
-    background: string
-  }
-  radius: {
-    round: number
-  }
-}
-
-const createPopupTokens = (foundations: Foundations): PopupTokens => ({
-  colors: {
-    overlay: 'rgba(0,0,0,0.5)',
-    background: '#fff',
-  },
-  radius: {
-    round: foundations.radii.lg,
-  },
-})
-
-const usePopupTokens = (overrides?: DeepPartial<PopupTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createPopupTokens(foundations)
-    const globalOverrides = components?.popup as DeepPartial<PopupTokens> | undefined
-    const merged = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [foundations, components, overrides])
-}
-
 const placementConfig: Record<
   PopupPlacement,
   { container: ViewStyle; axis: 'x' | 'y'; scale?: boolean }
@@ -151,7 +115,7 @@ const isRenderable = (node: React.ReactNode) =>
 
 const renderHeaderNode = (
   node: React.ReactNode,
-  options: { textStyle: TextStyle; wrapperStyle: ViewStyle },
+  options: { textStyle: StyleProp<TextStyle>; wrapperStyle: StyleProp<ViewStyle> },
 ) => {
   if (!isRenderable(node)) return null
   if (typeof node === 'string' || typeof node === 'number') {
@@ -178,6 +142,17 @@ const renderWithSafeArea = (
       {opts.safeAreaInsetBottom ? <SafeAreaView style={styles.safeInsetBottom} /> : null}
     </>
   )
+}
+
+// Define plain object for hidden style to ensure tests can read it (StyleSheet IDs are opaque in tests)
+const hiddenContentStyle: ViewStyle = {
+  opacity: 0,
+  // 避免关闭后仍保留离屏阴影（Web 的 boxShadow / Native 的 elevation）
+  // @ts-ignore
+  boxShadow: 'none',
+  shadowOpacity: 0,
+  shadowRadius: 0,
+  elevation: 0,
 }
 
 export const Popup: React.FC<PopupProps> = props => {
@@ -226,6 +201,61 @@ export const Popup: React.FC<PopupProps> = props => {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
 
   const tokens = usePopupTokens()
+  
+  // Dynamic styles derived from tokens
+  const dynamicStyles = React.useMemo(() => {
+    const shadow = createPlatformShadow({
+      color: tokens.shadow.color,
+      opacity: tokens.shadow.opacity,
+      radius: tokens.shadow.radius,
+      offsetY: tokens.shadow.offsetY,
+      elevation: tokens.shadow.elevation,
+    })
+
+    return {
+      popup: {
+        backgroundColor: tokens.colors.background,
+        padding: tokens.spacing.padding,
+        ...shadow,
+      },
+      title: {
+        color: tokens.colors.title,
+        fontSize: tokens.typography.titleSize,
+        fontWeight: tokens.typography.titleWeight,
+      },
+      titleWrapper: {
+        marginTop: tokens.spacing.titleTop,
+        marginBottom: tokens.spacing.titleBottom,
+      },
+      description: {
+        color: tokens.colors.description,
+        fontSize: tokens.typography.descriptionSize,
+        lineHeight: tokens.typography.descriptionLineHeight,
+      },
+      descriptionWrapper: {
+        marginHorizontal: tokens.spacing.descriptionHorizontal,
+        marginBottom: tokens.spacing.descriptionBottom,
+      },
+      closeIconBase: {
+        minWidth: tokens.spacing.closeIconSize,
+        minHeight: tokens.spacing.closeIconSize,
+        padding: 6, // keep fixed or add token if needed, usually fixed for hitSlop area
+      },
+      closeIconDefault: {
+        width: tokens.spacing.closeIconSize,
+        height: tokens.spacing.closeIconSize,
+      },
+      popupSide: {
+        width: tokens.layout.sideWidth,
+        maxWidth: tokens.layout.maxWidth,
+      },
+      popupCenter: {
+        minWidth: tokens.layout.minWidth,
+        maxWidth: tokens.layout.centerMaxWidth,
+      },
+    }
+  }, [tokens])
+
   const [mounted, setMounted] = React.useState(visible)
   const [interactionVisible, setInteractionVisible] = React.useState(visible)
   const [contentSize, setContentSize] = React.useState({ width: 0, height: 0 })
@@ -491,12 +521,12 @@ export const Popup: React.FC<PopupProps> = props => {
   const headerNode = hasHeader ? (
     <View style={[styles.header, headerPaddingStyle]}>
       {renderHeaderNode(title, {
-        textStyle: styles.title,
-        wrapperStyle: styles.titleWrapper,
+        textStyle: [styles.title, dynamicStyles.title],
+        wrapperStyle: [styles.titleWrapper, dynamicStyles.titleWrapper],
       })}
       {renderHeaderNode(description, {
-        textStyle: styles.description,
-        wrapperStyle: styles.descriptionWrapper,
+        textStyle: [styles.description, dynamicStyles.description],
+        wrapperStyle: [styles.descriptionWrapper, dynamicStyles.descriptionWrapper],
       })}
     </View>
   ) : null
@@ -516,17 +546,17 @@ export const Popup: React.FC<PopupProps> = props => {
       {...contentInteractionProps}
       onLayout={handleContentLayout}
       style={[
-        styles.popup,
-        placement === 'center' ? styles.popupCenter : null,
+        dynamicStyles.popup, // Replaces styles.popup for token-dependent props
+        placement === 'center' ? dynamicStyles.popupCenter : null,
         isVertical ? styles.popupVertical : null,
-        isHorizontal ? styles.popupSide : null,
+        isHorizontal ? dynamicStyles.popupSide : null,
         {
-          backgroundColor: tokens.colors.background,
+          // backgroundColor: tokens.colors.background, // Moved to dynamicStyles.popup
           ...buildRadius(round, placement, tokens.radius.round),
         },
         animatedContentStyle,
         style,
-        hidden ? styles.hiddenContent : null,
+        hidden ? hiddenContentStyle : null,
       ]}
       {...rest}
     >
@@ -534,19 +564,20 @@ export const Popup: React.FC<PopupProps> = props => {
         <Pressable
           style={[
             styles.closeIconBase,
+            dynamicStyles.closeIconBase,
             closeIconPosition === 'top-left'
-              ? { top: 12, left: 12 }
+              ? { top: tokens.spacing.closeIconTop, left: tokens.spacing.closeIconRight }
               : closeIconPosition === 'bottom-left'
-                ? { bottom: 12, left: 12 }
+                ? { bottom: tokens.spacing.closeIconTop, left: tokens.spacing.closeIconRight }
                 : closeIconPosition === 'bottom-right'
-                  ? { bottom: 12, right: 12 }
-                  : { top: 12, right: 12 },
-            !hasCustomCloseIcon ? styles.closeIconDefault : null,
+                  ? { bottom: tokens.spacing.closeIconTop, right: tokens.spacing.closeIconRight }
+                  : { top: tokens.spacing.closeIconTop, right: tokens.spacing.closeIconRight },
+            !hasCustomCloseIcon ? dynamicStyles.closeIconDefault : null,
           ]}
           hitSlop={8}
           onPress={() => requestClose('close-icon')}
         >
-          {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill="#c8c9cc" color="#c8c9cc" />}
+          {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}
         </Pressable>
       ) : null}
       {renderWithSafeArea(contentBody, { safeArea, safeAreaInsetTop, safeAreaInsetBottom })}
@@ -605,14 +636,6 @@ export const Popup: React.FC<PopupProps> = props => {
   )
 }
 
-const popupShadow = createPlatformShadow({
-  color: 'rgba(0,0,0,0.25)',
-  opacity: 0.35,
-  radius: 18,
-  offsetY: 8,
-  elevation: 24,
-})
-
 const styles = StyleSheet.create({
   portalRoot: {
     ...StyleSheet.absoluteFillObject,
@@ -625,67 +648,35 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     opacity: 0,
   },
-  popup: {
-    padding: 16,
-    ...popupShadow,
-  },
   header: {
     width: '100%',
   },
   titleWrapper: {
-    marginTop: 20,
-    marginBottom: 12,
+    // Moved to dynamicStyles
     marginHorizontal: 12,
     alignItems: 'center',
   },
   title: {
-    marginTop: 20,
-    marginBottom: 12,
+    // Moved to dynamicStyles
     marginHorizontal: 12,
-    fontWeight: '500',
-    color: '#323233',
-    fontSize: 16,
-    lineHeight: 16,
     textAlign: 'center',
     includeFontPadding: false,
   },
   descriptionWrapper: {
-    marginHorizontal: 20,
-    marginBottom: 12,
+    // Moved to dynamicStyles
   },
   description: {
-    marginHorizontal: 20,
-    marginBottom: 12,
-    color: '#969799',
-    fontSize: 14,
-    lineHeight: 20,
+    // Moved to dynamicStyles
     includeFontPadding: false,
   },
   popupVertical: {
     alignSelf: 'stretch',
   },
-  popupSide: {
-    width: '80%',
-    maxWidth: 420,
-    height: '100%',
-  },
-  popupCenter: {
-    alignSelf: 'center',
-    minWidth: 260,
-    maxWidth: 360,
-  },
   closeIconBase: {
     position: 'absolute',
     zIndex: 1,
-    minWidth: 36,
-    minHeight: 36,
-    padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  closeIconDefault: {
-    width: 36,
-    height: 36,
   },
   lockLayer: {
     ...StyleSheet.absoluteFillObject,
