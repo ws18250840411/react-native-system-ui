@@ -93,3 +93,35 @@ import { Slider } from 'react-native-system-ui'
 > 轨道点击也会直接更新数值，并触发 `onChangeAfter`；在双滑块模式下，会自动跟随离点击位置更近的一侧。
 
 > 通过主题的 `components.slider` 可以批量覆盖默认高度、尺寸与颜色等 tokens。
+
+## 主题定制（Tokens）
+
+可通过 `ConfigProvider` 统一覆盖 `Slider` 的默认 tokens：
+
+```tsx
+import { ConfigProvider } from 'react-native-system-ui'
+
+<ConfigProvider
+  theme={{
+    components: {
+      slider: {
+        track: {
+          height: 4,
+        },
+        thumb: {
+          size: 28,
+          indicatorSize: 10,
+        },
+        colors: {
+          active: '#4770ff',
+          inactive: '#e3e5eb',
+          thumbBackground: '#ffffff',
+          thumbIndicator: '#ffffff',
+        },
+      },
+    },
+  }}
+/>
+```
+
+`components.slider` 支持覆盖的结构与默认值一致，详见 [tokens.ts](file:///Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/components/slider/tokens.ts#L8-L62)。
