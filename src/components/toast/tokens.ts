@@ -28,31 +28,36 @@ export interface ToastTokens {
   animationDuration: number
 }
 
-export const createToastTokens = (foundations: Foundations): ToastTokens => ({
-  colors: {
-    text: '#ffffff',
-    backdrop: 'rgba(0,0,0,0.7)',
-    variants: {
-      info: 'rgba(0,0,0,0.7)',
-      success: 'rgba(0,0,0,0.7)',
-      fail: 'rgba(0,0,0,0.7)',
-      loading: 'rgba(0,0,0,0.7)',
+export const createToastTokens = (foundations: Foundations): ToastTokens => {
+  const onDarkText = foundations.palette.primary.foreground ?? '#ffffff'
+  const backdrop = 'rgba(0,0,0,0.7)'
+
+  return {
+    colors: {
+      text: onDarkText,
+      backdrop,
+      variants: {
+        info: backdrop,
+        success: backdrop,
+        fail: backdrop,
+        loading: backdrop,
+      },
     },
-  },
-  fontSize: foundations.fontSize.sm,
-  lineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
-  radius: foundations.radii.md,
-  gap: foundations.spacing.sm,
-  iconSize: 36,
-  maxWidth: '70%',
-  textMinWidth: 96,
-  textPaddingVertical: foundations.spacing.sm,
-  textPaddingHorizontal: foundations.spacing.md,
-  defaultPadding: foundations.spacing.lg,
-  defaultWidth: 88,
-  defaultMinHeight: 88,
-  animationDuration: 160,
-})
+    fontSize: foundations.fontSize.sm,
+    lineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
+    radius: foundations.radii.md,
+    gap: foundations.spacing.sm,
+    iconSize: 36,
+    maxWidth: '70%',
+    textMinWidth: 96,
+    textPaddingVertical: foundations.spacing.sm,
+    textPaddingHorizontal: foundations.spacing.md,
+    defaultPadding: foundations.spacing.lg,
+    defaultWidth: 88,
+    defaultMinHeight: 88,
+    animationDuration: 160,
+  }
+}
 
 export const useToastTokens = (overrides?: DeepPartial<ToastTokens>) => {
   const { foundations, components } = useTheme()

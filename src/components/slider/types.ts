@@ -14,6 +14,7 @@ export interface SliderProps extends ViewProps {
   disabled?: boolean
   readOnly?: boolean
   reverse?: boolean
+  debug?: boolean
   activeColor?: string
   inactiveColor?: string
   barHeight?: SliderNumberish

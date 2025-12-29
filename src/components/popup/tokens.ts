@@ -49,48 +49,52 @@ export interface PopupTokens {
   }
 }
 
-export const createPopupTokens = (foundations: Foundations): PopupTokens => ({
-  colors: {
-    overlay: 'rgba(0,0,0,0.5)',
-    background: '#ffffff',
-    title: '#323233',
-    description: '#969799',
-    closeIcon: '#c8c9cc',
-  },
-  radius: {
-    round: foundations.radii.lg,
-    shadow: 18,
-  },
-  spacing: {
-    padding: 16,
-    titleTop: 20,
-    titleBottom: 12,
-    descriptionHorizontal: 20,
-    descriptionBottom: 12,
-    closeIconTop: 12,
-    closeIconRight: 12,
-    closeIconSize: 36,
-  },
-  typography: {
-    titleSize: 16,
-    titleWeight: '500',
-    descriptionSize: 14,
-    descriptionLineHeight: 20,
-  },
-  shadow: {
-    color: 'rgba(0,0,0,0.25)',
-    opacity: 0.35,
-    radius: 18,
-    offsetY: 8,
-    elevation: 24,
-  },
-  layout: {
-    maxWidth: 420,
-    minWidth: 260,
-    centerMaxWidth: 360,
-    sideWidth: '80%',
-  },
-})
+export const createPopupTokens = (foundations: Foundations): PopupTokens => {
+  const { palette, spacing, radii, fontSize, typography } = foundations
+
+  return {
+    colors: {
+      overlay: 'rgba(0,0,0,0.5)',
+      background: '#ffffff',
+      title: palette.default[900] ?? '#323233',
+      description: palette.default[500] ?? '#969799',
+      closeIcon: palette.default[300] ?? '#c8c9cc',
+    },
+    radius: {
+      round: radii.lg,
+      shadow: 18,
+    },
+    spacing: {
+      padding: spacing.lg,
+      titleTop: spacing.xl,
+      titleBottom: spacing.md,
+      descriptionHorizontal: spacing.xl,
+      descriptionBottom: spacing.md,
+      closeIconTop: spacing.md,
+      closeIconRight: spacing.md,
+      closeIconSize: 36,
+    },
+    typography: {
+      titleSize: fontSize.md,
+      titleWeight: typography.weight.medium,
+      descriptionSize: fontSize.sm,
+      descriptionLineHeight: 20,
+    },
+    shadow: {
+      color: 'rgba(0,0,0,0.25)',
+      opacity: 0.35,
+      radius: 18,
+      offsetY: 8,
+      elevation: 24,
+    },
+    layout: {
+      maxWidth: 420,
+      minWidth: 260,
+      centerMaxWidth: 360,
+      sideWidth: '80%',
+    },
+  }
+}
 
 export const usePopupTokens = (overrides?: DeepPartial<PopupTokens>) => {
   const { foundations, components } = useTheme()

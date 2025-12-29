@@ -250,7 +250,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   pivotText: {
-    color: '#ffffff',
     textAlign: 'center',
   },
 })

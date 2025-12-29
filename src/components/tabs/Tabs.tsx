@@ -96,7 +96,7 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
     [isActive, pane.description],
   )
 
-  const activeTitleColor = titleActiveColor ?? (isCard ? '#ffffff' : isCapsule ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive)
+  const activeTitleColor = titleActiveColor ?? (isCard ? tokens.colors.cardActiveText : isCapsule ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive)
   const inactiveTitleColor = titleInactiveColor ?? (isCard ? color ?? tokens.colors.cardBorder : isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
   const textColor = pane.disabled ? tokens.colors.textDisabled : isActive ? activeTitleColor : inactiveTitleColor
 
@@ -129,8 +129,8 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   }
   if (isCapsule) {
     labelWrapperStyles.push({
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      paddingHorizontal: tokens.capsule.paddingHorizontal,
+      paddingVertical: tokens.capsule.paddingVertical,
     })
   }
   if (isJumbo) {
@@ -253,7 +253,7 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
         {isRenderableNode(pane.badge) ? (
           <View style={styles.badge}>
             {typeof pane.badge === 'string' || typeof pane.badge === 'number' ? (
-              <Text style={styles.badgeText}>{pane.badge}</Text>
+              <Text style={[styles.badgeText, { color: tokens.colors.badgeText }]}>{pane.badge}</Text>
             ) : (
               pane.badge
             )}
@@ -1017,7 +1017,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    color: '#fff',
   },
   indicator: {
     position: 'absolute',

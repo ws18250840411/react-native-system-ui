@@ -79,11 +79,22 @@ const ActionSheetItem: React.FC<{
       {
         paddingVertical: tokens.spacing.vertical,
         paddingHorizontal: tokens.spacing.horizontal,
-        backgroundColor: pressed && !disabled && !loading ? '#f2f3f5' : '#ffffff',
+        backgroundColor: pressed && !disabled && !loading
+          ? tokens.colors.itemPressedBackground
+          : tokens.colors.itemBackground,
       },
       action.style,
     ],
-    [hasIcon, tokens.spacing.vertical, tokens.spacing.horizontal, disabled, loading, action.style]
+    [
+      hasIcon,
+      tokens.spacing.vertical,
+      tokens.spacing.horizontal,
+      disabled,
+      loading,
+      tokens.colors.itemBackground,
+      tokens.colors.itemPressedBackground,
+      action.style,
+    ]
   )
 
   return (
@@ -138,13 +149,14 @@ const ActionSheetCancel: React.FC<{
 
   return (
     <>
-      <View style={[styles.cancelGap, { height: tokens.spacing.cancelGap }]} />
+      <View style={[styles.cancelGap, { height: tokens.spacing.cancelGap, backgroundColor: tokens.colors.cancelGapBackground }]} />
       <Pressable
         style={[
           styles.cancel,
           {
             paddingVertical: tokens.spacing.vertical,
             paddingHorizontal: tokens.spacing.horizontal,
+            backgroundColor: tokens.colors.cancelBackground,
           },
         ]}
         {...cancelPress.interactionProps}
@@ -412,13 +424,11 @@ const styles = StyleSheet.create({
   },
   cancelGap: {
     width: '100%',
-    backgroundColor: '#f7f8fa',
     marginBottom: 0,
   },
   cancel: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ffffff',
   },
   cancelText: {
     lineHeight: 24,

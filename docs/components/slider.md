@@ -21,18 +21,6 @@ import { Slider } from 'react-native-system-ui'
 
 <code title="基础用法" src="./slider/demo/basic.tsx"></code>
 
-### 指定步长
-
-<code title="指定步长" src="./slider/demo/step.tsx"></code>
-
-### 自定义样式
-
-<code title="自定义样式" src="./slider/demo/style.tsx"></code>
-
-### 自定义按钮
-
-<code title="自定义按钮" src="./slider/demo/button.tsx"></code>
-
 ### 垂直方向
 
 设置 `vertical` 属性后，滑块会垂直展示，且高度为 100% 父元素高度。

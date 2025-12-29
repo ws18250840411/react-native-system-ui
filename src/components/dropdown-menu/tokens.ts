@@ -11,6 +11,7 @@ export interface DropdownMenuTokens {
     activeText: string
     placeholder: string
     disabledText: string
+    arrow: string
     panelBackground: string
     mask: string
     divider: string
@@ -44,6 +45,7 @@ const createTokens = (foundations: Foundations): DropdownMenuTokens => {
       activeText: palette.danger[500], // var(--rv-danger-color)
       placeholder: palette.default[500],
       disabledText: palette.default[400],
+      arrow: palette.default[500],
       panelBackground: '#ffffff',
       mask: 'rgba(0,0,0,0.45)',
       divider: palette.default[200],

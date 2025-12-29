@@ -30,12 +30,14 @@ export interface TabsTokens {
     cardActiveBackground: string
     cardBorder: string
     cardActiveBorder: string
+    cardActiveText: string
     capsuleBackground: string
     capsuleActiveBackground: string
     capsuleBorder: string
     capsuleActiveBorder: string
     capsuleText: string
     capsuleActiveText: string
+    badgeText: string
     jumboBackground: string
     jumboActiveBackground: string
     jumboBorder: string
@@ -116,6 +118,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       cardActiveBackground: palette.primary[600],
       cardBorder: palette.primary[600],
       cardActiveBorder: palette.primary[600],
+      cardActiveText: palette.primary.foreground ?? '#ffffff',
       capsuleBackground: 'transparent',
       capsuleActiveBackground: palette.primary[600],
       capsuleBorder: 'transparent',
@@ -123,6 +126,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       capsuleText: palette.default[700],
       // 激活胶囊文字强制白色，贴合 React Vant
       capsuleActiveText: '#ffffff',
+      badgeText: palette.primary.foreground ?? '#ffffff',
       jumboBackground: '#f5f6f8',
       jumboActiveBackground: '#ffffff',
       jumboBorder: 'transparent',

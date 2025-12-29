@@ -58,7 +58,7 @@ export const createDialogTokens = (foundations: Foundations): DialogTokens => {
       background: '#ffffff',
       title: foreground,
       message: secondary,
-      divider: 'rgba(0,0,0,0.08)',
+      divider: palette.default[200],
       cancel: palette.default[700],
       confirm: palette.danger[500],
       closeIcon: palette.default[500],

@@ -15,6 +15,10 @@ export interface ActionSheetTokens {
     cancel: string
     disabled: string
     border: string
+    itemBackground: string
+    itemPressedBackground: string
+    cancelBackground: string
+    cancelGapBackground: string
   }
   spacing: {
     horizontal: number
@@ -40,6 +44,10 @@ const createTokens = (foundations: Foundations): ActionSheetTokens => {
       cancel: palette.default[900],
       disabled: palette.default[400],
       border: palette.default[200],
+      itemBackground: '#ffffff',
+      itemPressedBackground: '#f2f3f5',
+      cancelBackground: '#ffffff',
+      cancelGapBackground: '#f7f8fa',
     },
     spacing: {
       horizontal: spacing.md,

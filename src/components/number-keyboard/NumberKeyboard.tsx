@@ -170,13 +170,19 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
   const wrapperShadow = React.useMemo(
     () =>
       createPlatformShadow({
-        color: '#000000',
-        opacity: 0.08,
-        radius: 6,
-        offsetY: 0,
-        elevation: 6,
+        color: tokens.shadow.color,
+        opacity: tokens.shadow.opacity,
+        radius: tokens.shadow.radius,
+        offsetY: tokens.shadow.offsetY,
+        elevation: tokens.shadow.elevation,
       }),
-    []
+    [
+      tokens.shadow.color,
+      tokens.shadow.elevation,
+      tokens.shadow.offsetY,
+      tokens.shadow.opacity,
+      tokens.shadow.radius,
+    ]
   )
 
   const getKeyContent = React.useCallback((key: KeyboardKey) => {

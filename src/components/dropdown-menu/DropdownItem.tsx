@@ -250,7 +250,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
   )
 
   const arrowStyle = React.useMemo(() => {
-    const baseStyle: any = [styles.arrow]
+    const baseStyle: any = [styles.arrow, { borderTopColor: tokens.colors.arrow }]
     if (isActive) {
       baseStyle.push(styles.arrowActive)
       baseStyle.push({
@@ -258,7 +258,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
       })
     }
     return baseStyle
-  }, [isActive, activeColor, tokens.colors.activeText])
+  }, [isActive, activeColor, tokens.colors.activeText, tokens.colors.arrow])
 
   return (
     <Pressable
@@ -313,7 +313,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 4,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: '#969799',
     opacity: 0.8,
   },
   arrowActive: {

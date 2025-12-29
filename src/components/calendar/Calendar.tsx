@@ -295,7 +295,12 @@ const Calendar: React.FC<CalendarProps> = props => {
 
   const renderDay = React.useCallback((day: Date | null, index: number) => {
     if (!day) {
-      return <View key={`placeholder-${index}`} style={styles.dayPlaceholder} />
+      return (
+        <View
+          key={`placeholder-${index}`}
+          style={[styles.dayPlaceholder, { paddingVertical: tokens.spacing.dayPaddingVertical }]}
+        />
+      )
     }
     const timeValue = startOfDay(day).getTime()
     const isDisabled = timeValue < minDay || timeValue > maxDay
@@ -311,6 +316,7 @@ const Calendar: React.FC<CalendarProps> = props => {
       {
         borderRadius: tokens.radii.day,
         color: tokens.colors.text,
+        minWidth: tokens.sizing.dayMinWidth,
       },
     ]
 
@@ -325,7 +331,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     return (
       <Pressable
         key={day.toISOString()}
-        style={styles.dayButton}
+        style={[styles.dayButton, { paddingVertical: tokens.spacing.dayPaddingVertical }]}
         disabled={isDisabled}
         onPress={() => handleSelectDay(day)}
         testID={getCalendarDayTestId(day)}
@@ -336,25 +342,72 @@ const Calendar: React.FC<CalendarProps> = props => {
   }, [selectedMap, type, rangeBounds, minDay, maxDay, tokens, color, handleSelectDay])
 
   const content = (
-    <View style={[styles.container, { backgroundColor: tokens.colors.background }, style]} {...rest}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: tokens.colors.background,
+          padding: tokens.spacing.containerPadding,
+          borderRadius: tokens.radii.container,
+        },
+        style,
+      ]}
+      {...rest}
+    >
       {showHeader ? (
-        <View style={styles.header}>
+        <View style={[styles.header, { marginBottom: tokens.spacing.headerMarginBottom }]}>
           <Pressable
             testID="calendar-nav-prev"
             onPress={() => canGoPrev && goToMonth(-1)}
             disabled={!canGoPrev}
           >
-            <Text style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}>{"<"}</Text>
+            <Text
+              style={[
+                styles.navButton,
+                {
+                  fontSize: tokens.sizing.navButtonSize,
+                  paddingHorizontal: tokens.spacing.navPaddingHorizontal,
+                },
+                !canGoPrev && styles.navButtonDisabled,
+              ]}
+            >
+              {"<"}
+            </Text>
           </Pressable>
           <View style={styles.headerCenter}>
             {title !== undefined && title !== null && title !== false
               ? isTextLike(title)
-                ? <Text style={styles.headerTitle}>{title}</Text>
+                ? (
+                  <Text
+                    style={[
+                      styles.headerTitle,
+                      {
+                        color: tokens.colors.text,
+                        fontSize: tokens.typography.headerTitleSize,
+                        fontWeight: tokens.typography.headerTitleWeight as any,
+                      },
+                    ]}
+                  >
+                    {title}
+                  </Text>
+                )
                 : title
               : null}
             {showSubtitle ? (
               isTextLike(monthLabel)
-                ? <Text style={styles.headerSubtitle}>{monthLabel}</Text>
+                ? (
+                  <Text
+                    style={[
+                      styles.headerSubtitle,
+                      {
+                        color: tokens.colors.headerSubtitle,
+                        fontSize: tokens.typography.headerSubtitleSize,
+                      },
+                    ]}
+                  >
+                    {monthLabel}
+                  </Text>
+                )
                 : monthLabel
             ) : null}
           </View>
@@ -363,11 +416,22 @@ const Calendar: React.FC<CalendarProps> = props => {
             onPress={() => canGoNext && goToMonth(1)}
             disabled={!canGoNext}
           >
-            <Text style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}>{">"}</Text>
+            <Text
+              style={[
+                styles.navButton,
+                {
+                  fontSize: tokens.sizing.navButtonSize,
+                  paddingHorizontal: tokens.spacing.navPaddingHorizontal,
+                },
+                !canGoNext && styles.navButtonDisabled,
+              ]}
+            >
+              {">"}
+            </Text>
           </Pressable>
         </View>
       ) : null}
-      <View style={styles.weekRow}>
+      <View style={[styles.weekRow, { marginBottom: tokens.spacing.weekRowMarginBottom }]}>
         {weekLabels.map((label, index) => (
           <View key={`weekday-${index}`} style={styles.weekLabelItem}>
             {isTextLike(label)
@@ -390,13 +454,28 @@ const Calendar: React.FC<CalendarProps> = props => {
             {
               backgroundColor: color ?? tokens.colors.selectedBackground,
               opacity: confirmDisabled ? 0.5 : 1,
+              marginTop: tokens.spacing.confirmMarginTop,
+              paddingVertical: tokens.spacing.confirmPaddingVertical,
+              borderRadius: tokens.radii.confirmButton,
             },
           ]}
           onPress={handleConfirm}
           disabled={confirmDisabled}
         >
           {isTextLike(confirmText)
-            ? <Text style={styles.confirmText}>{confirmText}</Text>
+            ? (
+              <Text
+                style={[
+                  styles.confirmText,
+                  {
+                    color: tokens.colors.confirmText,
+                    fontWeight: tokens.typography.confirmTextWeight as any,
+                  },
+                ]}
+              >
+                {confirmText}
+              </Text>
+            )
             : confirmText}
         </Pressable>
       ) : null}
@@ -499,32 +578,23 @@ function isSameMonth(a: Date, b: Date) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    borderRadius: 12,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
   },
   headerCenter: {
     alignItems: "center",
     flex: 1,
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: "600",
     textAlign: "center",
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: "#666",
     textAlign: "center",
   },
   navButton: {
-    fontSize: 16,
-    paddingHorizontal: 8,
   },
   navButtonDisabled: {
     opacity: 0.3,
@@ -532,7 +602,6 @@ const styles = StyleSheet.create({
   weekRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 8,
   },
   weekLabelItem: {
     width: `${100 / 7}%`,
@@ -547,26 +616,18 @@ const styles = StyleSheet.create({
   },
   dayButton: {
     width: `${100 / 7}%`,
-    paddingVertical: 6,
     alignItems: "center",
   },
   day: {
     textAlign: "center",
-    minWidth: 32,
   },
   dayPlaceholder: {
     width: `${100 / 7}%`,
-    paddingVertical: 6,
   },
   confirmButton: {
-    marginTop: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
     alignItems: "center",
   },
   confirmText: {
-    color: "#fff",
-    fontWeight: "600",
   },
 })
 

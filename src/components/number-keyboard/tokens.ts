@@ -31,6 +31,13 @@ export interface NumberKeyboardTokens {
   radii: {
     key: number
   }
+  shadow: {
+    color: string
+    opacity: number
+    radius: number
+    offsetY: number
+    elevation: number
+  }
 }
 
 const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
@@ -60,6 +67,13 @@ const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
     },
     radii: {
       key: radii.xs,
+    },
+    shadow: {
+      color: '#000000',
+      opacity: 0.08,
+      radius: 6,
+      offsetY: 0,
+      elevation: 6,
     },
   }
 }

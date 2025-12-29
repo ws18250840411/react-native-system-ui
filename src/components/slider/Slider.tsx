@@ -229,6 +229,7 @@ export const Slider: React.FC<SliderProps> = props => {
     reverse = false,
     disabled = false,
     readOnly = false,
+    debug = true,
     activeColor,
     inactiveColor,
     barHeight,
@@ -368,23 +369,21 @@ export const Slider: React.FC<SliderProps> = props => {
     const { layout } = event.nativeEvent
     const width = Math.max(layout.width, 1)
     const height = Math.max(layout.height, 1)
+    const x = Number.isFinite(layout.x) ? layout.x : 0
+    const y = Number.isFinite(layout.y) ? layout.y : 0
     if (!isInteractingRef.current) {
-      setTrackLayout(prev => ({ ...prev, width, height }))
+      setTrackLayout({ width, height, x, y })
     }
 
     requestAnimationFrame(() => {
       const node = trackRef.current as any
       if (!node || typeof node.measureInWindow !== 'function') return
       node.measureInWindow((x: number, y: number, width: number, height: number) => {
-        const measured = {
+        trackWindowRef.current = {
           width: Math.max(width, 1),
           height: Math.max(height, 1),
           x,
           y,
-        }
-        trackWindowRef.current = measured
-        if (!isInteractingRef.current) {
-          setTrackLayout(measured)
         }
       })
     })
@@ -416,7 +415,11 @@ export const Slider: React.FC<SliderProps> = props => {
   const dragStartedRef = React.useRef<Record<number, boolean>>({})
   const dragStartValueRef = React.useRef<Record<number, SliderValue>>({})
   const dragPointerOffsetPxRef = React.useRef<Record<number, number>>({})
+  const dragStartFingerPxRef = React.useRef<Record<number, number>>({})
+  const dragAxisLengthPxRef = React.useRef<Record<number, number>>({})
   const dragValuesRef = React.useRef<number[]>([])
+  const debugLastLogAtMsRef = React.useRef<Record<number, number>>({})
+  const debugLastVisualPercentRef = React.useRef<Record<number, number>>({})
   const rafOnChangeIdRef = React.useRef<number | null>(null)
   const pendingOnChangeValuesRef = React.useRef<number[] | null>(null)
 
@@ -569,16 +572,27 @@ export const Slider: React.FC<SliderProps> = props => {
     event: GestureResponderEvent,
     gestureState: PanResponderGestureState
   ) => {
-    const currentLayout = trackWindowRef.current
-    const axisLength = orientation === 'vertical' ? currentLayout.height : currentLayout.width
-    const fingerPx = getFingerPositionPx(event, gestureState)
+    const axisLengthCandidate =
+      dragAxisLengthPxRef.current[index] ??
+      (orientation === 'vertical' ? trackLayout.height : trackLayout.width)
+    const axisLength = Number.isFinite(axisLengthCandidate) ? axisLengthCandidate : 1
+
+    const fingerFromAbs = getFingerPositionPx(event, gestureState)
+    const startFingerPx = dragStartFingerPxRef.current[index]
+    const deltaPx = orientation === 'vertical' ? gestureState.dy : gestureState.dx
+    const fingerPx =
+      typeof fingerFromAbs === 'number'
+        ? fingerFromAbs
+        : (Number.isFinite(startFingerPx) && Number.isFinite(deltaPx))
+          ? (startFingerPx as number) + (deltaPx as number)
+          : null
     if (fingerPx == null) return 0
 
     const offset = dragPointerOffsetPxRef.current[index] ?? 0
     const desiredCenterPx = fingerPx - offset
     const percent = (desiredCenterPx / Math.max(axisLength, 1)) * 100
     return Math.max(0, Math.min(100, percent))
-  }, [getFingerPositionPx, orientation])
+  }, [getFingerPositionPx, orientation, trackLayout.height, trackLayout.width])
 
   const refreshTrackWindowLayout = React.useCallback(() => {
     const node = trackRef.current as any
@@ -621,7 +635,36 @@ export const Slider: React.FC<SliderProps> = props => {
     visualPercentsRef.current = startValues.map(v => getVisualPercentFromValue(v ?? resolvedMin))
     dragStartValueRef.current[index] = formatOutput(startValues)
 
+    const axisLength =
+      (orientation === 'vertical' ? trackLayout.height : trackLayout.width) > 1
+        ? (orientation === 'vertical' ? trackLayout.height : trackLayout.width)
+        : (orientation === 'vertical'
+          ? trackWindowRef.current.height
+          : trackWindowRef.current.width)
+
     const native: any = event.nativeEvent
+    const absAxis =
+      orientation === 'vertical'
+        ? (Number.isFinite(gestureState?.y0) ? gestureState.y0 : native?.pageY)
+        : (Number.isFinite(gestureState?.x0) ? gestureState.x0 : native?.pageX)
+    const originAxis =
+      orientation === 'vertical' ? trackWindowRef.current.y : trackWindowRef.current.x
+
+    const startFingerPx =
+      typeof absAxis === 'number'
+        ? absAxis - originAxis
+        : null
+    const startVisualPercent = visualPercentsRef.current[index] ?? 0
+    const startCenterPx = (startVisualPercent / 100) * Math.max(axisLength, 1)
+
+    if (startFingerPx != null && Number.isFinite(startFingerPx) && Number.isFinite(axisLength)) {
+      dragAxisLengthPxRef.current[index] = axisLength
+      dragStartFingerPxRef.current[index] = startFingerPx
+      dragPointerOffsetPxRef.current[index] = startFingerPx - startCenterPx
+      updateActiveAnimated()
+      return
+    }
+
     const locationAxis =
       orientation === 'vertical'
         ? typeof native.locationY === 'number' ? native.locationY : undefined
@@ -641,6 +684,8 @@ export const Slider: React.FC<SliderProps> = props => {
     resolvedMin,
     resolvedThumbSize,
     state.values,
+    trackLayout.height,
+    trackLayout.width,
     updateActiveAnimated,
   ])
 
@@ -662,8 +707,8 @@ export const Slider: React.FC<SliderProps> = props => {
       )
     }
 
-    const nextVisualPercent = getVisualPercentFromGesture(index, event, gestureState)
-    let nextValue = getValueFromVisualPercent(nextVisualPercent)
+    const nextVisualPercentFromFinger = getVisualPercentFromGesture(index, event, gestureState)
+    let nextValue = getValueFromVisualPercent(nextVisualPercentFromFinger)
 
     if (range && dragValuesRef.current.length > 1) {
       const otherIndex = index === 0 ? 1 : 0
@@ -676,23 +721,82 @@ export const Slider: React.FC<SliderProps> = props => {
 
     dragValuesRef.current[index] = nextValue
 
-    const nextVisual = getVisualPercentFromValue(nextValue)
+    const nextVisual =
+      range && dragValuesRef.current.length > 1
+        ? getVisualPercentFromValue(nextValue)
+        : nextVisualPercentFromFinger
     visualPercentsRef.current[index] = nextVisual
     animatedPercentsRef.current[index]?.setValue(nextVisual / 100)
     updateActiveAnimated()
+
+    if (debug && orientation === 'vertical') {
+      const now = Date.now()
+      const lastAt = debugLastLogAtMsRef.current[index] ?? 0
+      const lastVisual = debugLastVisualPercentRef.current[index]
+      const visualDelta = typeof lastVisual === 'number' ? Math.abs(nextVisual - lastVisual) : Infinity
+      if (now - lastAt > 120 || visualDelta > 0.6) {
+        debugLastLogAtMsRef.current[index] = now
+        debugLastVisualPercentRef.current[index] = nextVisual
+
+        const axisLengthCandidate =
+          dragAxisLengthPxRef.current[index] ??
+          trackLayout.height
+        const axisLength = Number.isFinite(axisLengthCandidate) ? axisLengthCandidate : trackLayout.height
+
+        const fingerFromAbs = getFingerPositionPx(event, gestureState)
+        const startFingerPx = dragStartFingerPxRef.current[index]
+        const deltaPx = gestureState.dy
+        const fingerPx =
+          typeof fingerFromAbs === 'number'
+            ? fingerFromAbs
+            : (Number.isFinite(startFingerPx) && Number.isFinite(deltaPx))
+              ? (startFingerPx as number) + (deltaPx as number)
+              : null
+
+        const offset = dragPointerOffsetPxRef.current[index] ?? 0
+        const desiredCenterPx = typeof fingerPx === 'number' ? fingerPx - offset : null
+        const percentFromPx =
+          typeof desiredCenterPx === 'number' && axisLength > 0
+            ? (desiredCenterPx / axisLength) * 100
+            : null
+
+        console.log('[Slider][debug]', {
+          orientation,
+          index,
+          trackLayout,
+          trackWindow: trackWindowRef.current,
+          axisLength,
+          dy: gestureState.dy,
+          fingerFromAbs,
+          startFingerPx,
+          fingerPx,
+          offset,
+          desiredCenterPx,
+          percentFromPx,
+          nextVisualPercentFromFinger,
+          nextVisual,
+          nextValue,
+          values: (state.values as number[]).slice(),
+        })
+      }
+    }
 
     scheduleOnChange(dragValuesRef.current.slice())
   }, [
     animatedPercentsRef,
     ariaDisabled,
+    debug,
+    getFingerPositionPx,
     getValueFromVisualPercent,
     getVisualPercentFromGesture,
     getVisualPercentFromValue,
+    orientation,
     range,
     resolvedMax,
     resolvedMin,
     scheduleOnChange,
     state.values,
+    trackLayout,
     updateActiveAnimated,
   ])
 
@@ -740,6 +844,8 @@ export const Slider: React.FC<SliderProps> = props => {
 
     dragValuesRef.current = []
     delete dragPointerOffsetPxRef.current[index]
+    delete dragStartFingerPxRef.current[index]
+    delete dragAxisLengthPxRef.current[index]
   }, [ariaDisabled, formatOutput, onChange, onChangeAfter, onDragEnd, state])
 
   const positionKey = React.useMemo(
