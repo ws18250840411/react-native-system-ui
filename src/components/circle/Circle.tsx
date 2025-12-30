@@ -9,7 +9,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native'
-import { Svg, SvgCircle } from 'react-native-system-icon'
+import Svg, { Circle as SvgCircle } from 'react-native-svg'
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
@@ -221,6 +221,21 @@ export const Circle: React.FC<CircleProps> = props => {
           ]}
         >
           {children}
+        </Text>
+      )
+    }
+    const childArray = React.Children.toArray(children)
+    if (childArray.length > 0 && childArray.every(item => typeof item === 'string' || typeof item === 'number')) {
+      const text = childArray.map(item => String(item)).join('')
+      return (
+        <Text
+          style={[
+            styles.text,
+            { color: tokens.colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight },
+            textStyle,
+          ]}
+        >
+          {text}
         </Text>
       )
     }

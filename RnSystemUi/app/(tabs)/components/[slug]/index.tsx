@@ -94,9 +94,12 @@ export default function ComponentDemosScreen() {
           </View>
         ) : (
           <>
-            {entry.demos.map((demo, index) => {
+            {(resolvedSlug === 'swiper'
+              ? entry.demos.filter(demo => demo.id !== 'vertical' && demo.id !== 'vertical-center')
+              : entry.demos
+            ).map((demo, index, list) => {
               const DemoComponent = demo.Component
-              const isLast = index === entry.demos.length - 1
+              const isLast = index === list.length - 1
               return (
                 <View key={demo.id} style={[styles.item, isLast ? styles.itemLast : null]}>
                   <Typography.Text style={styles.sectionTitle}>{demo.title}</Typography.Text>
@@ -106,6 +109,27 @@ export default function ComponentDemosScreen() {
                 </View>
               )
             })}
+            {resolvedSlug === 'swiper' ? (
+              <View style={styles.moreDemos}>
+                <Cell.Group title="更多演示">
+                  {entry.demos
+                    .filter(demo => demo.id === 'vertical' || demo.id === 'vertical-center')
+                    .map(demo => (
+                      <Cell
+                        key={demo.id}
+                        title={demo.title}
+                        isLink
+                        onPress={() =>
+                          router.push({
+                            pathname: '/components/[slug]/[demo]',
+                            params: { slug: resolvedSlug, demo: demo.id },
+                          })
+                        }
+                      />
+                    ))}
+                </Cell.Group>
+              </View>
+            ) : null}
           </>
         )}
       </ScrollView>

@@ -123,6 +123,16 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   const displayData = shouldLoop ? loopData : itemsData
   const displayCount = displayData.length
 
+  const getDisplayIndex = useCallback(
+    (index: number): number => {
+      if (!shouldLoop) return index
+      if (index === 0) return count - 1
+      if (index === displayCount - 1) return 0
+      return index - 1
+    },
+    [shouldLoop, count, displayCount]
+  )
+
   const handleContainerLayout = useCallback((e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout
     // 避免重复 setState（减少 re-render）
@@ -151,21 +161,20 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
   const itemSizeStyle = useMemo(() => {
     const style: any = { [vertical ? 'height' : 'width']: slideSizeValue }
-    if (crossAxisSize != null) {
+    if (crossAxisSize != null && !(autoHeight && !vertical)) {
       style[vertical ? 'width' : 'height'] = crossAxisSize
     }
     return style
-  }, [vertical, slideSizeValue, crossAxisSize])
+  }, [vertical, slideSizeValue, crossAxisSize, autoHeight])
 
   // trackOffset（百分比）应基于“实际容器主轴尺寸”计算，避免初次渲染用 viewport 兜底导致整体大幅位移（看起来乱套）
   const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
   const trackOffsetPx = mainAxisMeasured > 0 ? mainAxisMeasured * offsetRatio : 0
 
-  // 对齐官方：trackOffset 应该作用在“轨道容器”上（track），而不是 contentContainerStyle。
-  // 这样能避免 web / RN 在 transform + scroll 的组合下出现布局/命中区域异常。
-  const trackOffsetStyle = useMemo(() => {
+  const nativeTrackContentPaddingStyle = useMemo(() => {
     if (!trackOffsetPx) return undefined
-    return { transform: vertical ? [{ translateY: trackOffsetPx }] : [{ translateX: trackOffsetPx }] }
+    if (vertical) return { paddingTop: trackOffsetPx, paddingBottom: trackOffsetPx }
+    return { paddingLeft: trackOffsetPx, paddingRight: trackOffsetPx }
   }, [trackOffsetPx, vertical])
 
   // 计算初始索引（循环模式下需要偏移）
@@ -175,11 +184,15 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   }, [initialSwipe, count, shouldLoop])
 
   const [current, setCurrent] = useState(() => getInitialIndex())
+  const [indicatorIndex, setIndicatorIndex] = useState(() => getDisplayIndex(getInitialIndex()))
   // 避免重复 setState 触发无效渲染
   const setCurrentSafe = useCallback((next: number) => {
     setCurrent((prev) => (prev === next ? prev : next))
   }, [])
   const [enabledState, setEnabledState] = useState(enabled)
+  const autoHeightEnabled = autoHeight && !vertical
+  const [autoHeightValue, setAutoHeightValue] = useState<number | undefined>(undefined)
+  const measuredHeightsRef = useRef<Record<number, number>>({})
 
   // Web 端 PanResponder 相关状态
   const webOffsetRef = useRef(0)
@@ -305,23 +318,73 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     requestAnimationFrame(step)
   }, [])
 
-  // 获取真实索引（用于显示和回调）
-  const getDisplayIndex = useCallback(
-    (index: number): number => {
-      if (!shouldLoop) return index
-      if (index === 0) return count - 1 // 第一个是复制的末尾
-      if (index === displayCount - 1) return 0 // 最后一个是复制的开头
-      return index - 1 // 中间的是原始数据
-    },
-    [shouldLoop, count, displayCount]
-  )
-
   // 滑动到指定索引
   // 使用 ref 存储当前索引，避免依赖 current 导致频繁重建
   const currentRef = useRef(current)
   useEffect(() => {
     currentRef.current = current
   }, [current])
+
+  const handleItemLayout = useCallback(
+    (displayIndex: number, e: LayoutChangeEvent) => {
+      if (!autoHeightEnabled) return
+      const height = e.nativeEvent.layout.height
+      if (!height) return
+
+      const realIndex = getDisplayIndex(displayIndex)
+      const prevHeight = measuredHeightsRef.current[realIndex]
+      if (prevHeight != null && Math.abs(prevHeight - height) < 0.5) return
+
+      measuredHeightsRef.current[realIndex] = height
+      const activeRealIndex = getDisplayIndex(currentRef.current)
+      if (realIndex === activeRealIndex) {
+        setAutoHeightValue(height)
+      }
+    },
+    [autoHeightEnabled, getDisplayIndex]
+  )
+
+  useEffect(() => {
+    if (!autoHeightEnabled) return
+    measuredHeightsRef.current = {}
+    setAutoHeightValue(undefined)
+  }, [autoHeightEnabled, slideSizeValue, count])
+
+  useEffect(() => {
+    if (!autoHeightEnabled) return
+    const activeRealIndex = getDisplayIndex(current)
+    const height = measuredHeightsRef.current[activeRealIndex]
+    if (height == null) return
+    setAutoHeightValue(height)
+  }, [autoHeightEnabled, current, getDisplayIndex])
+
+  const containerAutoHeightStyle = useMemo(() => {
+    if (!autoHeightEnabled || autoHeightValue == null) return undefined
+    return { height: autoHeightValue }
+  }, [autoHeightEnabled, autoHeightValue])
+
+  const nativeLastAlignedMainAxisRef = useRef(0)
+  useEffect(() => {
+    if (isWeb) return
+    if (count === 0) return
+    if (!flatListRef.current) return
+    if (isDraggingRef.current || isScrollingRef.current) return
+
+    const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
+    if (mainAxisMeasured <= 0) return
+
+    const lastAligned = nativeLastAlignedMainAxisRef.current
+    if (lastAligned > 0 && Math.abs(mainAxisMeasured - lastAligned) < 0.5) return
+
+    nativeLastAlignedMainAxisRef.current = mainAxisMeasured
+    runAfterFrames(2, () => {
+      try {
+        flatListRef.current?.scrollToIndex({ index: currentRef.current, animated: false })
+      } catch {
+        // ignore
+      }
+    })
+  }, [isWeb, count, vertical, containerLayout.height, containerLayout.width, runAfterFrames])
 
   const swipeTo = useCallback(
     (index: number, animated = true) => {
@@ -541,6 +604,77 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     isDraggingRef.current = false
   }, [])
 
+  const indicatorRafIdRef = useRef<number | null>(null)
+  const indicatorPendingRef = useRef<number | null>(null)
+
+  const flushIndicator = useCallback(() => {
+    const next = indicatorPendingRef.current
+    if (next == null) return
+    indicatorPendingRef.current = null
+    setIndicatorIndex((prev) => (prev === next ? prev : next))
+  }, [])
+
+  const scheduleIndicator = useCallback(
+    (next: number) => {
+      indicatorPendingRef.current = next
+      if (indicatorRafIdRef.current != null) return
+      indicatorRafIdRef.current = requestAnimationFrame(() => {
+        indicatorRafIdRef.current = null
+        flushIndicator()
+      })
+    },
+    [flushIndicator],
+  )
+
+  useEffect(() => {
+    setIndicatorIndex((prev) => {
+      const next = getDisplayIndex(current)
+      return prev === next ? prev : next
+    })
+  }, [current, getDisplayIndex])
+
+  useEffect(() => {
+    return () => {
+      if (indicatorRafIdRef.current != null) {
+        cancelAnimationFrame(indicatorRafIdRef.current)
+        indicatorRafIdRef.current = null
+      }
+      indicatorPendingRef.current = null
+    }
+  }, [])
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (isWeb) return
+      if (count <= 1) return
+      const { contentOffset, layoutMeasurement } = event.nativeEvent
+      const containerSizeValue = vertical
+        ? layoutMeasurement.height || viewportHeight
+        : layoutMeasurement.width || viewportWidth
+      if (!containerSizeValue) return
+      const nextSlideSize = containerSizeValue * slideRatio
+      if (!nextSlideSize) return
+      const offset = vertical ? contentOffset.y : contentOffset.x
+      let displayIndex = Math.round(offset / nextSlideSize)
+      displayIndex = shouldLoop
+        ? clamp(displayIndex, 0, displayCount - 1)
+        : clamp(displayIndex, 0, count - 1)
+      scheduleIndicator(getDisplayIndex(displayIndex))
+    },
+    [
+      count,
+      displayCount,
+      getDisplayIndex,
+      isWeb,
+      scheduleIndicator,
+      shouldLoop,
+      slideRatio,
+      vertical,
+      viewportHeight,
+      viewportWidth,
+    ],
+  )
+
   // 自动播放
   useEffect(() => {
     const stop = () => {
@@ -601,7 +735,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   const renderIndicator = () => {
     if (indicator === false || count <= 1) return null
 
-    const currentIndex = getDisplayIndex(current)
+    const currentIndex = indicatorIndex
 
     if (typeof indicator === 'function') {
       return indicator(count, currentIndex)
@@ -636,16 +770,31 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         const child = validChildren[item.index]
         if (!child) return null
 
-        return React.cloneElement(child as React.ReactElement<any>, {
+        if (!autoHeightEnabled) {
+          return React.cloneElement(child as React.ReactElement<any>, {
+            style: [
+              (child as React.ReactElement<any>).props.style,
+              itemSizeStyle,
+            ],
+          })
+        }
+
+        const nextChild = React.cloneElement(child as React.ReactElement<any>, {
           style: [
             (child as React.ReactElement<any>).props.style,
-            itemSizeStyle,
+            styles.autoHeightChild,
           ],
         })
+
+        return (
+          <View style={itemSizeStyle} onLayout={(e) => handleItemLayout(index, e)} collapsable={false}>
+            {nextChild}
+          </View>
+        )
       }
       return null
     },
-    [validChildren, itemSizeStyle]
+    [validChildren, itemSizeStyle, autoHeightEnabled, handleItemLayout]
   )
 
   // 渲染项目（data 模式）
@@ -658,12 +807,14 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       return (
         <View
           style={itemSizeStyle}
+          onLayout={autoHeightEnabled ? (e) => handleItemLayout(info.index, e) : undefined}
+          collapsable={false}
         >
           {item}
         </View>
       )
     },
-    [renderItem, itemSizeStyle]
+    [renderItem, itemSizeStyle, autoHeightEnabled, handleItemLayout]
   )
 
   // 获取 key
@@ -889,7 +1040,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   if (isWeb) {
     return (
       <View
-        style={[styles.container, webContainerStyle, style]}
+        style={[styles.container, webContainerStyle, containerAutoHeightStyle, style]}
         testID={testID}
         onLayout={handleContainerLayout}
       >
@@ -927,7 +1078,12 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   }
 
   return (
-    <View style={[styles.container, style]} testID={testID} onLayout={handleContainerLayout} collapsable={false}>
+    <View
+      style={[styles.container, containerAutoHeightStyle, style]}
+      testID={testID}
+      onLayout={handleContainerLayout}
+      collapsable={false}
+    >
       <FlatList
         ref={flatListRef}
         data={displayData}
@@ -956,6 +1112,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         onScrollBeginDrag={handleScrollBeginDrag}
         onScrollEndDrag={handleScrollEndDrag}
         onMomentumScrollEnd={handleScrollEnd}
+        onScroll={handleScroll}
         initialScrollIndex={getInitialIndex()}
         onScrollToIndexFailed={(info) => {
           // 处理滚动失败：用 rAF 等待布局/测量完成，尽量避免 setTimeout
@@ -963,11 +1120,11 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
             flatListRef.current?.scrollToIndex({ index: info.index, animated: false })
           })
         }}
-        style={[
-          Platform.OS === 'web' ? ({ cursor: 'grab' } as any) : undefined,
-          trackOffsetStyle,
+        style={Platform.OS === 'web' ? ({ cursor: 'grab' } as any) : undefined}
+        contentContainerStyle={[
+          Platform.OS === 'web' ? ({ userSelect: 'none' } as any) : undefined,
+          Platform.OS !== 'web' ? nativeTrackContentPaddingStyle : undefined,
         ]}
-        contentContainerStyle={Platform.OS === 'web' ? ({ userSelect: 'none' } as any) : undefined}
         testID={`${testID}-flatlist`}
       />
       <View pointerEvents="none" style={styles.indicatorOverlay}>
@@ -983,6 +1140,10 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
     overflow: 'hidden',
+  },
+  autoHeightChild: {
+    flex: 0,
+    width: '100%',
   },
   webSlideWrapper: {
     flexShrink: 0,

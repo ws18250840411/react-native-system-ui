@@ -32,7 +32,9 @@ export default function ComponentDemoRunnerScreen() {
   }
 
   const DemoComponent = demoEntry.Component
-  const shouldDisableScrollWrapper = NO_SCROLL_WRAPPER.has(resolvedSlug)
+  const shouldDisableScrollWrapper =
+    NO_SCROLL_WRAPPER.has(resolvedSlug) ||
+    (resolvedSlug === 'swiper' && (resolvedDemo === 'vertical' || resolvedDemo === 'vertical-center'))
 
   if (shouldDisableScrollWrapper) {
     return (
