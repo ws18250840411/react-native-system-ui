@@ -377,6 +377,8 @@ export const Slider: React.FC<SliderProps> = props => {
   const getCurrentValue = React.useCallback(() => formatOutput(state.values), [state.values, formatOutput])
   const dragStartedRef = React.useRef<Record<number, boolean>>({})
   const dragStartValueRef = React.useRef<Record<number, SliderValue>>({})
+  const moveRafIdRef = React.useRef<Record<number, number | null>>({})
+  const movePendingArgsRef = React.useRef<Record<number, any[] | null>>({})
 
   const enhanceHandlers = React.useCallback(
     (handlers: Record<string, any> | undefined, index: number) => {
@@ -401,6 +403,22 @@ export const Slider: React.FC<SliderProps> = props => {
       if (!hasAny) return handlers
 
       const wrapped = { ...handlers }
+
+      for (const key of moveKeys) {
+        const original = wrapped[key]
+        if (typeof original !== 'function') continue
+        wrapped[key] = (...args: any[]) => {
+          movePendingArgsRef.current[index] = args
+          if (moveRafIdRef.current[index] != null) return
+          moveRafIdRef.current[index] = requestAnimationFrame(() => {
+            moveRafIdRef.current[index] = null
+            const pending = movePendingArgsRef.current[index]
+            if (!pending) return
+            movePendingArgsRef.current[index] = null
+            original(...pending)
+          })
+        }
+      }
 
       const wrapAfter = (
         key: string,
@@ -448,6 +466,12 @@ export const Slider: React.FC<SliderProps> = props => {
           delete dragStartValueRef.current[index]
           onDragEnd?.(event, getCurrentValue())
         }
+        const rafId = moveRafIdRef.current[index]
+        if (rafId != null) {
+          cancelAnimationFrame(rafId)
+          moveRafIdRef.current[index] = null
+        }
+        movePendingArgsRef.current[index] = null
       }
 
       for (const key of endKeys) {
