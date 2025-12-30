@@ -5,7 +5,7 @@ export default function RadioCellDemo() {
   const [value, setValue] = React.useState('1')
 
   return (
-    <Radio.Group value={value} onChange={setValue}>
+    <Radio.Group value={value} onChange={val => setValue(String(val))}>
       <Cell.Group inset style={{ marginBottom: 0 }} bodyStyle={{ marginHorizontal: 0 }}>
         <Cell
           clickable

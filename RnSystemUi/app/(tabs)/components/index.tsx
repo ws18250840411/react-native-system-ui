@@ -67,17 +67,17 @@ export default function ComponentsMenuScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#f6f8fc',
+    backgroundColor: '#f7f8fa',
   },
   search: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
-    backgroundColor: '#f6f8fc',
+    backgroundColor: '#f7f8fa',
   },
   content: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   group: {
     marginBottom: 16,

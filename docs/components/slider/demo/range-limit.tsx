@@ -8,7 +8,7 @@ export default function SliderRangeLimitDemo() {
       min={-50}
       max={50}
       value={value}
-      onChange={setValue}
+      onChange={val => setValue(val as number)}
       onChangeAfter={v => Toast.info(`值：${Array.isArray(v) ? v.join(' ~ ') : v}`)}
     />
   )

@@ -71,7 +71,7 @@ const MobileInput: React.FC<MobileInputProps> = ({ value = { prefix: '86', value
 export default function FormCustomDemo() {
   const formRef = Form.useForm()
 
-  const checkMobile = (_: any, val?: MobileValue) => {
+  const checkMobile = (val?: MobileValue) => {
     if (val?.prefix && val?.value) return true
     return '请输入区号和手机号'
   }

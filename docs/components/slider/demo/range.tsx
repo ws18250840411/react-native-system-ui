@@ -7,7 +7,7 @@ export default function SliderRangeDemo() {
     <Slider
       range
       value={value}
-      onChange={setValue}
+      onChange={val => setValue(val as [number, number])}
       onChangeAfter={v => Toast.info(`值：${Array.isArray(v) ? v.join(' ~ ') : v}`)}
     />
   )

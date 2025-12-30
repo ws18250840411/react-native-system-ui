@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Cascader, Field, type CascaderOption } from 'react-native-system-ui'
+import { Button, Cascader, Field, type CascaderOption, type CascaderValue } from 'react-native-system-ui'
 
 import options from './options'
 
@@ -10,11 +10,18 @@ const formatValue = (rows: CascaderOption[]) =>
     .join(' / ')
 
 export default function CascaderValueDemo() {
-  const [value, setValue] = React.useState<string[]>([])
+  const [value, setValue] = React.useState<CascaderValue[]>([])
 
   return (
     <>
-      <Cascader poppable popupRound title="请选择地区" options={options} value={value} onFinish={setValue}>
+      <Cascader
+        poppable
+        popupRound
+        title="请选择地区"
+        options={options}
+        value={value}
+        onFinish={val => setValue(val)}
+      >
         {(_, rows, actions) => (
           <Field
             label="地区"

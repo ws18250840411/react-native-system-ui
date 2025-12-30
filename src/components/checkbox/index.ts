@@ -8,4 +8,4 @@ const Checkbox = CheckboxBase as typeof CheckboxBase & {
 Checkbox.Group = CheckboxGroup
 
 export { Checkbox, CheckboxGroup }
-export type { CheckboxProps, CheckboxGroupProps } from './types'
+export type { CheckboxProps, CheckboxGroupProps, CheckboxValue } from './types'

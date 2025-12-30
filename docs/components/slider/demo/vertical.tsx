@@ -16,7 +16,7 @@ export default function SliderVerticalDemo() {
         vertical
         style={{ marginRight: 40, height: 150 }}
         value={value1}
-        onChange={setValue1}
+        onChange={val => setValue1(val as number)}
         onChangeAfter={onChangeAfter}
       />
       <Slider
@@ -24,7 +24,7 @@ export default function SliderVerticalDemo() {
         vertical
         style={{ height: 150 }}
         value={value2}
-        onChange={setValue2}
+        onChange={val => setValue2(val as [number, number])}
         onChangeAfter={onChangeAfter}
       />
     </View>

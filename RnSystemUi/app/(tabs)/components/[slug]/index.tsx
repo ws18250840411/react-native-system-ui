@@ -140,17 +140,17 @@ export default function ComponentDemosScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#f6f8fc',
+    backgroundColor: '#f7f8fa',
   },
   content: {
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   pagePadding: {
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 12,
   },
   indexBarWrapper: {
-    paddingTop: 10,
+    paddingTop: 12,
   },
   indexBarTabBar: {
     backgroundColor: '#ffffff',
@@ -158,12 +158,12 @@ const styles = StyleSheet.create({
   },
   indexBarDemoContent: {
     paddingHorizontal: 0,
-    paddingBottom: 10,
+    paddingBottom: 12,
     backgroundColor: '#ffffff',
   },
   moreDemos: {
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 12,
   },
   item: {
     marginBottom: 20,
@@ -172,14 +172,16 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   sectionTitle: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 14,
     fontWeight: '700',
     color: '#323233',
   },
   sectionContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 10,
+    marginHorizontal: 16,
+    padding: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
   },
 })

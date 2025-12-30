@@ -1,5 +1,5 @@
 import React from 'react'
-import { Cascader, Field, type CascaderOption } from 'react-native-system-ui'
+import { Cascader, Field, type CascaderOption, type CascaderValue } from 'react-native-system-ui'
 
 import options from './options'
 
@@ -10,7 +10,7 @@ const formatValue = (rows: CascaderOption[]) =>
     .join(' / ')
 
 export default function CascaderBaseDemo() {
-  const [value, setValue] = React.useState<string[]>([])
+  const [value, setValue] = React.useState<CascaderValue[]>([])
 
   return (
     <Cascader
@@ -19,8 +19,8 @@ export default function CascaderBaseDemo() {
       title="请选择地区"
       options={options}
       value={value}
-      onChange={setValue}
-      onFinish={setValue}
+      onChange={val => setValue(val)}
+      onFinish={val => setValue(val)}
     >
       {(_, rows, actions) => (
         <Field
@@ -35,5 +35,4 @@ export default function CascaderBaseDemo() {
     </Cascader>
   )
 }
-
 

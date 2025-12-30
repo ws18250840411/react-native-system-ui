@@ -40,7 +40,7 @@ export default function ComponentDemoRunnerScreen() {
     return (
       <View style={styles.root}>
         <Stack.Screen options={{ title }} />
-        <View style={[styles.content, styles.fill]}>
+        <View style={styles.fill}>
           <DemoComponent />
         </View>
       </View>
@@ -58,12 +58,12 @@ export default function ComponentDemoRunnerScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#f6f8fc',
+    backgroundColor: '#f7f8fa',
   },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingTop: 12,
+    paddingBottom: 24,
   },
   fill: {
     flex: 1,

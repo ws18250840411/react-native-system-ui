@@ -7,7 +7,7 @@ export default function SliderStepDemo() {
     <Slider
       step={10}
       value={value}
-      onChange={setValue}
+      onChange={val => setValue(val as number)}
       onChangeAfter={v => Toast.info(`值：${Array.isArray(v) ? v.join(' ~ ') : v}`)}
     />
   )

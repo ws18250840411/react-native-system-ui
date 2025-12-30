@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { FormContext } from './FormContext'
+import type { FormInstance } from './Form'
 import type { FormItemRule, NamePath } from './types'
 
 export type { FormItemRule } from './types'
@@ -26,7 +27,13 @@ export interface FormItemProps {
   noStyle?: boolean
   shouldUpdate?: (prev: Record<string, any>, next: Record<string, any>) => boolean
   initialValue?: any
-  children: React.ReactNode
+  children:
+    | React.ReactNode
+    | ((payload: {
+        getFieldValue: (name: NamePath) => any
+        getFieldsValue: () => Record<string, any>
+        form: FormInstance | null
+      }) => React.ReactNode)
 }
 
 export const FormItem: React.FC<FormItemProps> = ({

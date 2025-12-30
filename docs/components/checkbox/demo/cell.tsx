@@ -1,10 +1,10 @@
 import React from 'react'
-import { Checkbox, Cell } from 'react-native-system-ui'
+import { Checkbox, Cell, type CheckboxValue } from 'react-native-system-ui'
 
 export default function CheckboxCellDemo() {
-  const [value, setValue] = React.useState<string[]>([])
+  const [value, setValue] = React.useState<CheckboxValue[]>([])
 
-  const toggle = (name: string) => {
+  const toggle = (name: CheckboxValue) => {
     setValue(list =>
       list.includes(name) ? list.filter(item => item !== name) : [...list, name]
     )

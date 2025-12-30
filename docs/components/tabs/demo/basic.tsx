@@ -15,7 +15,7 @@ const DemoBlock: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <View style={styles.block}>{children}</View>
 )
 
-const fullTabStyle = { flexBasis: `${100 / baseTabs.length}%`, flexGrow: 0 }
+const fullTabStyle = { flexGrow: 1, flexShrink: 1, flexBasis: 0 }
 
 const Pane: React.FC<{ children: React.ReactNode; tone?: 'default' | 'plain' }> = ({
   children,

@@ -34,7 +34,7 @@ export default function ToastMultipleDemo() {
 
   return (
     <>
-      <Cell title="允许多个 Toast" value={<Switch value={multiple} onValueChange={setMultiple} />} />
+      <Cell title="允许多个 Toast" value={<Switch checked={multiple} onChange={val => setMultiple(val)} />} />
       <Cell title="显示第一个 Toast" isLink onPress={showFirst} />
       <Cell title="显示第二个 Toast" isLink onPress={showSecond} />
       <Cell title="清除第一个" isLink onPress={() => firstRef.current?.clear()} />

@@ -6,7 +6,7 @@ export default function SliderBasicDemo() {
   return (
     <Slider
       value={value}
-      onChange={setValue}
+      onChange={val => setValue(val as number)}
       onChangeAfter={v => Toast.info(`值：${Array.isArray(v) ? v.join(' ~ ') : v}`)}
     />
   )

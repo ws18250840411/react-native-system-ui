@@ -8,7 +8,7 @@ export default () => {
         title="圆角按钮弹窗"
         isLink
         onPress={() =>
-          Dialog.alert({
+          Dialog.confirm({
             title: '标题',
             theme: 'round-button',
             showCancelButton: true,
