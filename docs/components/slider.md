@@ -98,7 +98,7 @@ import { Slider } from 'react-native-system-ui'
 
 可通过 `ConfigProvider` 统一覆盖 `Slider` 的默认 tokens：
 
-```tsx
+```tsx | pure
 import { ConfigProvider } from 'react-native-system-ui'
 
 <ConfigProvider

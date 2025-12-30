@@ -1,0 +1,14 @@
+
+> RnDocs@0.0.1 dev
+> webpack serve --mode development
+
+[1G[0K[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+<i> [1m[32m[webpack-dev-server] Project is running at:[39m[22m
+<i> [1m[32m[webpack-dev-server] Loopback: [36mhttp://localhost:3000/[39m, [36mhttp://[::1]:3000/[39m[39m[22m
+<i> [1m[32m[webpack-dev-server] On Your Network (IPv4): [36mhttp://10.0.113.233:3000/[39m[39m[22m
+<i> [1m[32m[webpack-dev-server] Content not from webpack is served from '[36m/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/docs/public[39m' directory[39m[22m
+<i> [1m[32m[webpack-dev-server] 404s will fallback to '[36m/index.html[39m'[39m[22m
+webpack compiled [1m[32msuccessfully[39m[22m
+webpack compiled [1m[32msuccessfully[39m[22m
+<i> [1m[32m[webpack-dev-server] Gracefully shutting down. To force exit, press ^C again. Please wait...[39m[22m
+[1G[0K

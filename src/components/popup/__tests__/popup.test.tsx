@@ -329,6 +329,9 @@ describe('Popup', () => {
       )
       // Verify no crash
       expect(tree.toJSON()).toBeDefined()
+      act(() => {
+        tree.unmount()
+      })
     })
   })
 
@@ -356,6 +359,9 @@ describe('Popup', () => {
       })
       expect(onClose).toHaveBeenCalled()
     }
+    act(() => {
+      tree.unmount()
+    })
   })
 
   it('renders round corners', () => {
@@ -376,5 +382,8 @@ describe('Popup', () => {
       return s && s.borderTopLeftRadius > 0
     })
     expect(content).toBeDefined()
+    act(() => {
+      tree.unmount()
+    })
   })
 })

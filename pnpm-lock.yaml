@@ -100,8 +100,8 @@ importers:
         specifier: ^19.2.3
         version: 19.2.3(react@19.2.3)
       rndoc-cli:
-        specifier: ^2.0.1
-        version: 2.0.1(@algolia/client-search@5.46.1)(@types/node@24.10.4)(@types/react@19.2.7)(postcss@8.5.6)(search-insights@2.17.3)(stylus@0.64.0)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.2)
+        specifier: ^2.0.2
+        version: 2.0.2(@algolia/client-search@5.46.1)(@types/node@24.10.4)(@types/react@19.2.7)(postcss@8.5.6)(search-insights@2.17.3)(stylus@0.64.0)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.2)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -4933,18 +4933,18 @@ packages:
     deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
-  rndoc-cli@2.0.1:
-    resolution: {integrity: sha512-UZHEscXmHA79NDBgQ5qAck358N1QMUIN7S4SoSsSU0ASZMjTnu/94ZVVKptioIIStpnd9VYg652qRhscKlA+oA==}
+  rndoc-cli@2.0.2:
+    resolution: {integrity: sha512-VgGU9vIh/3aYzEXNonY/OKuLvCyr6aobq8YQFLs3MwmClD4k/2kTQ5PcgXroDbcRlF6gR/PgBshMRuJk1YgW4g==}
     hasBin: true
 
-  rndoc-theme-default@2.0.1:
-    resolution: {integrity: sha512-Ym9ufZkW9tfLg7hIDz0/wpLk5bqK4rK755553em0CrzSaDkjFp0BsTBX2Oc9WvcRVTUUNVOX6w82W3Xf2aikeA==}
+  rndoc-theme-default@2.0.2:
+    resolution: {integrity: sha512-cEMunnH7Sq0YySvIYOpIgcB3vF1etiPEHObJUTMddB6Y0tORLnpSLbCxqpZYOSeB8eyIzuFpmnJVo4JrVih6CA==}
     peerDependencies:
       react: '>=16.14.0'
       react-dom: '>=16.14.0'
 
-  rndoc-theme@2.0.1:
-    resolution: {integrity: sha512-jZB59Uqola31tHzyqdDtz1VysGJ6XhPVmwJRPAJX1e2IelzBQMDft9+YnPZm0pTAwWvZmOtJKUPX+EctkspgLQ==}
+  rndoc-theme@2.0.2:
+    resolution: {integrity: sha512-uG4SfL4sW6BdE9DXeWMnTeZepe7RLfF/pCYZjIjYcOqHnIweoBfB2YnLLsj5Y795RoSIni/i2yYNv3H1KUkZUg==}
     peerDependencies:
       react: '>=16.14.0'
       react-dom: '>=16.14.0'
@@ -11519,7 +11519,7 @@ snapshots:
     dependencies:
       glob: 7.2.3
 
-  rndoc-cli@2.0.1(@algolia/client-search@5.46.1)(@types/node@24.10.4)(@types/react@19.2.7)(postcss@8.5.6)(search-insights@2.17.3)(stylus@0.64.0)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.2):
+  rndoc-cli@2.0.2(@algolia/client-search@5.46.1)(@types/node@24.10.4)(@types/react@19.2.7)(postcss@8.5.6)(search-insights@2.17.3)(stylus@0.64.0)(terser@5.44.1)(typescript@5.9.3)(yaml@2.8.2):
     dependencies:
       '@babel/core': 7.28.5
       '@babel/plugin-transform-modules-commonjs': 7.27.1(@babel/core@7.28.5)
@@ -11579,8 +11579,8 @@ snapshots:
       remark-parse: 11.0.0
       remark-rehype: 11.1.2
       resolve: 1.22.11
-      rndoc-theme: 2.0.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      rndoc-theme-default: 2.0.1(@algolia/client-search@5.46.1)(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(search-insights@2.17.3)
+      rndoc-theme: 2.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      rndoc-theme-default: 2.0.2(@algolia/client-search@5.46.1)(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(search-insights@2.17.3)
       rollup: 4.53.5
       rollup-plugin-postcss: 4.0.2(postcss@8.5.6)
       sass: 1.97.0
@@ -11617,7 +11617,7 @@ snapshots:
       - typescript
       - yaml
 
-  rndoc-theme-default@2.0.1(@algolia/client-search@5.46.1)(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(search-insights@2.17.3):
+  rndoc-theme-default@2.0.2(@algolia/client-search@5.46.1)(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(search-insights@2.17.3):
     dependencies:
       '@docsearch/css': 4.3.2
       '@docsearch/react': 4.3.2(@algolia/client-search@5.46.1)(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(search-insights@2.17.3)
@@ -11628,13 +11628,13 @@ snapshots:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       react-router-dom: 7.9.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      rndoc-theme: 2.0.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      rndoc-theme: 2.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     transitivePeerDependencies:
       - '@algolia/client-search'
       - '@types/react'
       - search-insights
 
-  rndoc-theme@2.0.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  rndoc-theme@2.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       clsx: 2.1.1
       copy-text-to-clipboard: 3.2.2

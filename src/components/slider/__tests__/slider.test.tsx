@@ -110,6 +110,50 @@ describe('Slider', () => {
     expect(trackWrapper.props.disabled).toBe(true)
   })
 
+  it('jumps to clicked position on horizontal track', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(<Slider value={0} min={0} max={100} onChange={onChange} />)
+    const track = tree.root.findByType(Pressable)
+
+    act(() => {
+      track.props.onLayout?.({
+        nativeEvent: { layout: { width: 100, height: 10, x: 0, y: 0 } },
+      })
+    })
+
+    act(() => {
+      track.props.onPress?.({
+        nativeEvent: { locationX: 50, locationY: 0, pageX: 50, pageY: 0 },
+        preventDefault: jest.fn(),
+      })
+    })
+
+    expect(onChange).toHaveBeenCalled()
+    expect(onChange.mock.calls[0][0]).toBe(50)
+  })
+
+  it('jumps to clicked position on vertical track', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(<Slider vertical value={0} min={0} max={100} onChange={onChange} />)
+    const track = tree.root.findByType(Pressable)
+
+    act(() => {
+      track.props.onLayout?.({
+        nativeEvent: { layout: { width: 10, height: 200, x: 0, y: 0 } },
+      })
+    })
+
+    act(() => {
+      track.props.onPress?.({
+        nativeEvent: { locationX: 0, locationY: 150, pageX: 0, pageY: 150 },
+        preventDefault: jest.fn(),
+      })
+    })
+
+    expect(onChange).toHaveBeenCalled()
+    expect(onChange.mock.calls[0][0]).toBe(25)
+  })
+
   it('respects step', () => {
     const onChange = jest.fn()
     const tree = renderer.create(
