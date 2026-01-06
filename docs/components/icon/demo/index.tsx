@@ -21,6 +21,36 @@ const BASIC_ICON_NAMES = [
 
 const BASIC_ICON_SET = new Set<string>(BASIC_ICON_NAMES)
 
+// react-native-system-icon 会额外导出 react-native-svg 的基础组件与 IconBase（用于自定义图标）
+// 这些不是“图标”，直接渲染到 Grid 里会是空白，因此需要从列表中过滤掉
+const NON_ICON_EXPORTS = new Set<string>([
+  'Svg',
+  'Path',
+  'G',
+  'SvgCircle',
+  'Use',
+  'Rect',
+  'Line',
+  'Polygon',
+  'Polyline',
+  'Ellipse',
+  'Text',
+  'TSpan',
+  'TextPath',
+  'Defs',
+  'LinearGradient',
+  'RadialGradient',
+  'SvgStop',
+  'ClipPath',
+  'Pattern',
+  'Mask',
+  'Marker',
+  'Symbol',
+  'Image',
+  'ForeignObject',
+  'IconBase',
+])
+
 const toKebabCase = (value: string) =>
   value
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
@@ -79,7 +109,10 @@ export default function IconListDemo() {
   const [keyword, setKeyword] = React.useState('')
   const deferredKeyword = React.useDeferredValue(keyword)
 
-  const allIconNames = React.useMemo(() => Object.keys(Icons).sort(), [])
+  const allIconNames = React.useMemo(
+    () => Object.keys(Icons).filter(name => !NON_ICON_EXPORTS.has(name)).sort(),
+    [],
+  )
 
   const baseNames = React.useMemo(
     () => allIconNames.filter(name => BASIC_ICON_SET.has(name)),

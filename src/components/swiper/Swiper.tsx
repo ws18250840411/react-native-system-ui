@@ -75,6 +75,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isDraggingRef = useRef(false)
   const isScrollingRef = useRef(false)
+  const nativeMomentumRef = useRef(false)
   const prevIndexRef = useRef<number>(initialSwipe)
   const currentDisplayIndexRef = useRef<number>(initialSwipe)
   const isWeb = Platform.OS === 'web'
@@ -429,10 +430,16 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
           return
         }
         isScrollingRef.current = true
-        flatListRef.current.scrollToIndex({
-          index: targetIndex,
-          animated,
-        })
+        try {
+          flatListRef.current.scrollToIndex({
+            index: targetIndex,
+            animated,
+          })
+        } catch {
+          isScrollingRef.current = false
+          nativeQueuedScrollRef.current = { index: targetIndex, animated }
+          return
+        }
         if (needsJump && jumpDisplayIndex != null && !animated) {
           runAfterFrames(2, () => {
             flatListRef.current?.scrollToIndex({ index: jumpDisplayIndex!, animated: false })
@@ -476,17 +483,14 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     swipeTo(prevIndex)
   }, [count, getDisplayIndex, swipeTo])
 
-  const handleScrollEnd = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleNativeScrollEndByOffset = useCallback(
+    (offset: number) => {
       if (count === 0) return
 
       isScrollingRef.current = false
-      const { contentOffset, layoutMeasurement } = event.nativeEvent
-      const containerSizeValue = vertical
-        ? layoutMeasurement.height || viewportHeight
-        : layoutMeasurement.width || viewportWidth
-      const offset = vertical ? contentOffset.y : contentOffset.x
-      const slideSizeValue = containerSizeValue * slideRatio
+      nativeMomentumRef.current = false
+
+      if (!slideSizeValue) return
 
       let index = Math.round(offset / slideSizeValue)
 
@@ -506,7 +510,6 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         index = clamp(index, 0, count - 1)
       }
 
-      const displayIndex = getDisplayIndex(index)
       setCurrentSafe(index)
 
       const queued = nativeQueuedScrollRef.current
@@ -518,7 +521,18 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         })
       }
     },
-    [count, shouldLoop, vertical, viewportWidth, viewportHeight, slideRatio, getDisplayIndex, displayCount, swipeTo, setCurrentSafe]
+    [count, displayCount, getDisplayIndex, setCurrentSafe, shouldLoop, slideSizeValue, swipeTo]
+  )
+
+  const handleScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (count === 0) return
+
+      const { contentOffset } = event.nativeEvent
+      const offset = vertical ? contentOffset.y : contentOffset.x
+      handleNativeScrollEndByOffset(offset)
+    },
+    [count, handleNativeScrollEndByOffset, vertical]
   )
 
   const handleScrollBeginDrag = () => {
@@ -526,8 +540,19 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     isScrollingRef.current = true
   }
 
-  const handleScrollEndDrag = () => {
+  const handleScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     isDraggingRef.current = false
+    const { contentOffset } = event.nativeEvent
+    const offset = vertical ? contentOffset.y : contentOffset.x
+    runAfterFrames(1, () => {
+      if (nativeMomentumRef.current) return
+      handleNativeScrollEndByOffset(offset)
+    })
+  }
+
+  const handleMomentumScrollBegin = () => {
+    nativeMomentumRef.current = true
+    isScrollingRef.current = true
   }
 
   const indicatorRafIdRef = useRef<number | null>(null)
@@ -570,15 +595,10 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       if (isWeb) return
       if (count <= 1) return
-      const { contentOffset, layoutMeasurement } = event.nativeEvent
-      const containerSizeValue = vertical
-        ? layoutMeasurement.height || viewportHeight
-        : layoutMeasurement.width || viewportWidth
-      if (!containerSizeValue) return
-      const nextSlideSize = containerSizeValue * slideRatio
-      if (!nextSlideSize) return
+      if (!slideSizeValue) return
+      const { contentOffset } = event.nativeEvent
       const offset = vertical ? contentOffset.y : contentOffset.x
-      let displayIndex = Math.round(offset / nextSlideSize)
+      let displayIndex = Math.round(offset / slideSizeValue)
       displayIndex = shouldLoop
         ? clamp(displayIndex, 0, displayCount - 1)
         : clamp(displayIndex, 0, count - 1)
@@ -591,10 +611,8 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       isWeb,
       scheduleIndicator,
       shouldLoop,
-      slideRatio,
+      slideSizeValue,
       vertical,
-      viewportHeight,
-      viewportWidth,
     ],
   )
 
@@ -942,12 +960,29 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         scrollEventThrottle={16}
         onScrollBeginDrag={handleScrollBeginDrag}
         onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
         onMomentumScrollEnd={handleScrollEnd}
         onScroll={handleScroll}
         initialScrollIndex={getInitialIndex()}
         onScrollToIndexFailed={(info) => {
+          nativeMomentumRef.current = false
+          isScrollingRef.current = false
           runAfterFrames(2, () => {
-            flatListRef.current?.scrollToIndex({ index: info.index, animated: false })
+            try {
+              isScrollingRef.current = true
+              flatListRef.current?.scrollToIndex({ index: info.index, animated: false })
+              setCurrentSafe(info.index)
+            } finally {
+              isScrollingRef.current = false
+              const queued = nativeQueuedScrollRef.current
+              if (queued && flatListRef.current) {
+                nativeQueuedScrollRef.current = null
+                const nextDisplayIndex = getDisplayIndex(queued.index)
+                runAfterFrames(1, () => {
+                  swipeTo(nextDisplayIndex, queued.animated)
+                })
+              }
+            }
           })
         }}
         style={isWeb ? ({ cursor: 'grab' } as any) : undefined}
