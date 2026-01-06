@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface DropdownMenuTokens {
   colors: {
@@ -39,11 +35,11 @@ export interface DropdownMenuTokens {
 
 const createTokens = (foundations: Foundations): DropdownMenuTokens => {
   const { palette, spacing, fontSize, typography } = foundations
-  const surface = palette.default[50] ?? '#ffffff'
+  const surface = palette.default[50]
   return {
     colors: {
       text: palette.default[900],
-      activeText: palette.danger[500], // var(--rv-danger-color)
+      activeText: palette.danger[500],
       placeholder: palette.default[500],
       disabledText: palette.default[400],
       arrow: palette.default[500],
@@ -55,13 +51,13 @@ const createTokens = (foundations: Foundations): DropdownMenuTokens => {
     spacing: {
       horizontal: spacing.md,
       vertical: spacing.sm,
-      titlePadding: spacing.xs, // var(--rv-padding-xs)
+      titlePadding: spacing.xs,
     },
     sizing: {
-      barHeight: 48, // 48 * @hd
-      titleFontSize: 15, // 15 * @hd
-      titleLineHeight: fontSize.lg * typography.lineHeightMultiplier, // var(--rv-line-height-lg)
-      panelMaxHeight: 320, // 80% of screen height
+      barHeight: 48,
+      titleFontSize: 15,
+      titleLineHeight: fontSize.lg * typography.lineHeightMultiplier,
+      panelMaxHeight: 320,
     },
     shadow: {
       shadowColor: 'rgba(100, 101, 102, 0.12)',
@@ -73,16 +69,7 @@ const createTokens = (foundations: Foundations): DropdownMenuTokens => {
   }
 }
 
-export const useDropdownMenuTokens = (
-  overrides?: DeepPartial<DropdownMenuTokens>,
-): DropdownMenuTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.dropdownMenu
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useDropdownMenuTokens = createComponentTokensHook(
+  'dropdownMenu',
+  createTokens
+)

@@ -1,5 +1,4 @@
 import React from 'react'
-import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import {
   ActivityIndicator,
   Platform,
@@ -61,7 +60,6 @@ const resolveSpinnerSize = (
 export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
   (props, forwardedRef) => {
     const { foundations } = useTheme()
-    const buttonTokens = useButtonTokens()
     const group = React.useContext(ButtonGroupContext)
 
     const {
@@ -95,10 +93,12 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       rippleColor: rippleColorProp,
       contentStyle,
       textStyle,
+      tokensOverride,
       style,
       ...pressableProps
     } = props
 
+    const buttonTokens = useButtonTokens(tokensOverride)
     const type = typeProp ?? group?.type ?? buttonTokens.defaults.type
     const size = sizeProp ?? group?.size ?? buttonTokens.defaults.size
     const plain = plainProp ?? group?.plain ?? buttonTokens.defaults.plain
@@ -124,161 +124,122 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const tone = buttonTokens.toneMap[type] ?? buttonTokens.toneMap.default
     const sizeTokens = buttonTokens.sizes[size]
 
-    const {
-      backgroundColor,
-      borderColor,
-      resolvedTextColor,
-      resolvedBorderWidth,
-      gradientString,
-      gradientFillEnabled,
-      supportsGradientFill
-    } = React.useMemo(() => {
-      const gradientString = typeof buttonColorOverride === 'string' ? buttonColorOverride : undefined
-      const hasGradientSyntax =
-        gradientString?.toLowerCase().includes('gradient') ?? false
-      const normalizedColor = hasGradientSyntax
-        ? extractFirstColorToken(gradientString) ?? undefined
-        : buttonColorOverride
-      const allowsGradientFill =
-        derivedMode === 'contained' || derivedMode === 'contained-tonal' || derivedMode === 'elevated'
-      const gradientFillEnabled = hasGradientSyntax && !legacyPlain && allowsGradientFill
-      const supportsGradientFill = Platform.OS === 'web'
+    const gradientString =
+      typeof buttonColorOverride === 'string' ? buttonColorOverride : undefined
+    const hasGradientSyntax =
+      gradientString?.toLowerCase().includes('gradient') ?? false
+    const normalizedColor = hasGradientSyntax
+      ? extractFirstColorToken(gradientString) ?? undefined
+      : buttonColorOverride
+    const allowsGradientFill =
+      derivedMode === 'contained' ||
+      derivedMode === 'contained-tonal' ||
+      derivedMode === 'elevated'
+    const gradientFillEnabled = hasGradientSyntax && !legacyPlain && allowsGradientFill
+    const supportsGradientFill = Platform.OS === 'web'
 
-      let bg =
-        normalizedColor ??
-        (derivedMode === 'contained'
-          ? tone.background
-          : derivedMode === 'contained-tonal'
-            ? tone.tonalBackground
-            : derivedMode === 'elevated'
-              ? tone.background
-              : buttonTokens.colors.backgroundTransparent)
-
-      let border =
-        derivedMode === 'outlined'
-          ? normalizedColor ?? tone.border
-          : derivedMode === 'contained-tonal'
-            ? tone.tonalBorder
-            : derivedMode === 'contained' || derivedMode === 'elevated'
-              ? normalizedColor ?? tone.border
-              : buttonTokens.colors.backgroundTransparent
-
-      let text = textColor
-        ? textColor
+    let backgroundColor =
+      normalizedColor ??
+      (derivedMode === 'contained'
+        ? tone.background
         : derivedMode === 'contained-tonal'
-          ? tone.tonalText
+          ? tone.tonalBackground
+          : derivedMode === 'elevated'
+            ? tone.background
+            : buttonTokens.colors.backgroundTransparent)
+
+    let borderColor =
+      derivedMode === 'outlined'
+        ? normalizedColor ?? tone.border
+        : derivedMode === 'contained-tonal'
+          ? tone.tonalBorder
           : derivedMode === 'contained' || derivedMode === 'elevated'
-            ? tone.text
-            : normalizedColor ?? (type === 'default' ? tone.text : tone.border)
+            ? normalizedColor ?? tone.border
+            : buttonTokens.colors.backgroundTransparent
 
-      if (dark === true) {
-        text = buttonTokens.colors.textDark
-      } else if (dark === false) {
-        text = buttonTokens.colors.textLight
-      }
+    let resolvedTextColor = textColor
+      ? textColor
+      : derivedMode === 'contained-tonal'
+        ? tone.tonalText
+        : derivedMode === 'contained' || derivedMode === 'elevated'
+          ? tone.text
+          : normalizedColor ?? (type === 'default' ? tone.text : tone.border)
 
-      if (derivedMode === 'text') {
-        bg = buttonTokens.colors.backgroundTransparent
-        border = buttonTokens.colors.backgroundTransparent
-      }
+    if (dark === true) {
+      resolvedTextColor = buttonTokens.colors.textDark
+    } else if (dark === false) {
+      resolvedTextColor = buttonTokens.colors.textLight
+    }
 
-      if (legacyPlain) {
-        bg = buttonTokens.colors.backgroundPlain
-        border = normalizedColor ?? tone.border
-        const fallbackTextColor =
-          type === 'default' && !normalizedColor ? tone.text : normalizedColor ?? tone.border
-        text = textColor ?? fallbackTextColor
-      }
+    if (derivedMode === 'text') {
+      backgroundColor = buttonTokens.colors.backgroundTransparent
+      borderColor = buttonTokens.colors.backgroundTransparent
+    }
 
-      if (gradientFillEnabled && supportsGradientFill) {
-        bg = buttonTokens.colors.backgroundTransparent
-      }
+    if (legacyPlain) {
+      backgroundColor = buttonTokens.colors.backgroundPlain
+      borderColor = normalizedColor ?? tone.border
+      const fallbackTextColor =
+        type === 'default' && !normalizedColor ? tone.text : normalizedColor ?? tone.border
+      resolvedTextColor = textColor ?? fallbackTextColor
+    }
 
-      const shouldRenderBorder =
-        derivedMode === 'outlined' ||
-        legacyPlain ||
-        (derivedMode === 'contained' && type === 'default')
-      const resolvedBorderWidth =
-        gradientFillEnabled && !legacyPlain
-          ? 0
-          : shouldRenderBorder
-            ? hairline
-              ? buttonTokens.border.hairlineWidth
-              : buttonTokens.border.width
-            : 0
+    if (gradientFillEnabled && supportsGradientFill) {
+      backgroundColor = buttonTokens.colors.backgroundTransparent
+    }
 
-      return {
-        backgroundColor: bg,
-        borderColor: border,
-        resolvedTextColor: text,
-        resolvedBorderWidth,
-        gradientString,
-        gradientFillEnabled,
-        supportsGradientFill
-      }
-    }, [
-      buttonColorOverride,
-      derivedMode,
-      legacyPlain,
-      tone,
-      type,
-      textColor,
-      dark,
-      hairline,
-      buttonTokens.border.hairlineWidth,
-      buttonTokens.border.width,
-      buttonTokens.colors.backgroundTransparent,
-      buttonTokens.colors.backgroundPlain,
-      buttonTokens.colors.textDark,
-      buttonTokens.colors.textLight
-    ])
+    const shouldRenderBorder =
+      derivedMode === 'outlined' ||
+      legacyPlain ||
+      (derivedMode === 'contained' && type === 'default')
+    const resolvedBorderWidth =
+      gradientFillEnabled && !legacyPlain
+        ? 0
+        : shouldRenderBorder
+          ? hairline
+            ? buttonTokens.border.hairlineWidth
+            : buttonTokens.border.width
+          : 0
 
-    const borderRadius = React.useMemo(() => {
-      if (square) return 0
-      if (round) return sizeTokens.height / 2
-      return sizeTokens.radius
-    }, [square, round, sizeTokens.height, sizeTokens.radius])
+    const borderRadius = square ? 0 : round ? sizeTokens.height / 2 : sizeTokens.radius
 
     const isDisabled = disabled || loading
 
-    const shadowStyle = React.useMemo(() => {
-      let resolvedShadowLevel: ButtonShadowLevel | undefined
-      if (typeof shadowValue === 'number') {
-        resolvedShadowLevel = clampShadowLevel(shadowValue)
-      } else if (shadowValue === true) {
-        resolvedShadowLevel = clampShadowLevel(2)
-      } else if (!hasShadowOverride && derivedMode === 'elevated') {
-        resolvedShadowLevel = clampShadowLevel(2)
-      }
-      const shouldShowShadow =
-        !!resolvedShadowLevel &&
-        !gradientFillEnabled &&
-        derivedMode !== 'text' &&
-        derivedMode !== 'outlined' &&
-        !legacyPlain
-      const shadowTokens = resolvedShadowLevel ? buttonTokens.shadow[resolvedShadowLevel] : undefined
-
-      return shouldShowShadow && shadowTokens
+    let resolvedShadowLevel: ButtonShadowLevel | undefined
+    if (typeof shadowValue === 'number') {
+      resolvedShadowLevel = clampShadowLevel(shadowValue)
+    } else if (shadowValue === true) {
+      resolvedShadowLevel = clampShadowLevel(2)
+    } else if (!hasShadowOverride && derivedMode === 'elevated') {
+      resolvedShadowLevel = clampShadowLevel(2)
+    }
+    const shouldShowShadow =
+      !!resolvedShadowLevel &&
+      !gradientFillEnabled &&
+      derivedMode !== 'text' &&
+      derivedMode !== 'outlined' &&
+      !legacyPlain
+    const shadowTokens = resolvedShadowLevel ? buttonTokens.shadow[resolvedShadowLevel] : undefined
+    const shadowStyle =
+      shouldShowShadow && shadowTokens
         ? createPlatformShadow({
-          color: shadowTokens.color,
-          opacity: shadowTokens.opacity,
-          radius: shadowTokens.radius,
-          offsetY: shadowTokens.offsetY,
-          elevation: shadowTokens.elevation,
-        })
+            color: shadowTokens.color,
+            opacity: shadowTokens.opacity,
+            radius: shadowTokens.radius,
+            offsetY: shadowTokens.offsetY,
+            elevation: shadowTokens.elevation,
+          })
         : undefined
-    }, [shadowValue, hasShadowOverride, derivedMode, gradientFillEnabled, legacyPlain, buttonTokens.shadow])
 
-    const gradientWebStyle = React.useMemo(() =>
+    const gradientWebStyle =
       gradientFillEnabled && supportsGradientFill && gradientString
-        ? ({ backgroundImage: gradientString } as ViewStyle)
+        ? ({ backgroundImage: gradientString } as any)
         : undefined
-      , [gradientFillEnabled, supportsGradientFill, gradientString])
 
-    const buildIconWrapperStyle = React.useCallback((position: 'left' | 'right') => ({
-      marginRight: position === 'left' ? buttonTokens.spacing.iconGap : 0,
-      marginLeft: position === 'right' ? buttonTokens.spacing.iconGap : 0,
-    }), [buttonTokens.spacing.iconGap])
+    const iconWrapperStyle =
+      iconPosition === 'left'
+        ? { marginRight: buttonTokens.spacing.iconGap }
+        : { marginLeft: buttonTokens.spacing.iconGap }
 
     const renderIcon = () => {
       if (!icon) return null
@@ -288,7 +249,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           : icon
 
         return (
-          <View style={[buttonStyles.iconWrapper, buildIconWrapperStyle(iconPosition)]}>
+          <View style={[buttonStyles.iconWrapper, iconWrapperStyle]}>
             {iconElement}
           </View>
         )
@@ -318,23 +279,18 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         )
 
       return (
-        <View style={[buttonStyles.iconWrapper, buildIconWrapperStyle('left')]}>
+        <View style={[buttonStyles.iconWrapper, { marginRight: buttonTokens.spacing.iconGap }]}>
           {loadingIndicator ?? defaultIndicator}
         </View>
       )
     }
 
-    const resolveLabel = (): React.ReactNode => {
-      if (loading && loadingText !== undefined) {
-        return loadingText
-      }
-      if (text !== undefined) {
-        return text
-      }
-      return children
-    }
-
-    const label = resolveLabel()
+    const label =
+      loading && loadingText !== undefined
+        ? loadingText
+        : text !== undefined
+          ? text
+          : children
 
     const renderText = () => {
       if (label === undefined || label === null) {
@@ -398,12 +354,8 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       ...viewProps
     } = pressableProps
 
-    const defaultAccessibilityLabel =
-      typeof label === 'string' ? label : undefined
     const resolvedAccessibilityLabel =
-      accessibilityLabel ?? defaultAccessibilityLabel
-    const resolvedAccessibilityHint = accessibilityHint
-    const resolvedAccessibilityRole = accessibilityRole ?? 'button'
+      accessibilityLabel ?? (typeof label === 'string' ? label : undefined)
 
     const { interactionProps, states } = useAriaPress({
       disabled: isDisabled,
@@ -420,40 +372,22 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           ? buttonTokens.states.pressedOpacity
           : 1
 
-    const baseContainerStyle = React.useMemo<Array<StyleProp<ViewStyle>>>(() => {
-      const styles: Array<StyleProp<ViewStyle>> = [
-        buttonStyles.base,
-        {
-          minHeight: sizeTokens.height,
-          paddingHorizontal: sizeTokens.paddingHorizontal,
-          borderRadius,
-          backgroundColor,
-          borderColor,
-          borderWidth: resolvedBorderWidth,
-          opacity: resolvedOpacity,
-        },
-        block && buttonStyles.block,
-        shadowStyle,
-      ]
-
-      if (gradientWebStyle) {
-        styles.push(gradientWebStyle)
-      }
-      styles.push(style)
-      return styles
-    }, [
-      sizeTokens.height,
-      sizeTokens.paddingHorizontal,
-      borderRadius,
-      backgroundColor,
-      borderColor,
-      resolvedBorderWidth,
-      resolvedOpacity,
-      block,
+    const baseContainerStyle = [
+      buttonStyles.base,
+      {
+        minHeight: sizeTokens.height,
+        paddingHorizontal: sizeTokens.paddingHorizontal,
+        borderRadius,
+        backgroundColor,
+        borderColor,
+        borderWidth: resolvedBorderWidth,
+        opacity: resolvedOpacity,
+      },
+      block && buttonStyles.block,
       shadowStyle,
       gradientWebStyle,
-      style
-    ])
+      style,
+    ]
 
     const mergedAccessibilityState = {
       disabled: isDisabled,
@@ -478,9 +412,9 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         android_ripple={resolvedAndroidRipple}
         {...interactionProps}
         accessibilityState={mergedAccessibilityState}
-        accessibilityRole={resolvedAccessibilityRole}
+        accessibilityRole={accessibilityRole ?? 'button'}
         accessibilityLabel={resolvedAccessibilityLabel}
-        accessibilityHint={resolvedAccessibilityHint}
+        accessibilityHint={accessibilityHint}
         {...viewProps}
       >
         {content}

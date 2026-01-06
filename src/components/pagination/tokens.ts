@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface PaginationTokens {
   colors: {
@@ -23,11 +19,12 @@ export interface PaginationTokens {
 
 const createTokens = (foundations: Foundations): PaginationTokens => {
   const { palette, spacing, radii } = foundations
+  const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     colors: {
       text: palette.default[600],
       disabled: palette.default[300],
-      activeText: palette.primary.foreground ?? '#fff',
+      activeText: onPrimary,
       activeBackground: palette.primary[500],
       border: palette.default[200],
     },
@@ -40,14 +37,7 @@ const createTokens = (foundations: Foundations): PaginationTokens => {
   }
 }
 
-export const usePaginationTokens = (overrides?: DeepPartial<PaginationTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.pagination
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const usePaginationTokens = createComponentTokensHook(
+  'pagination',
+  createTokens
+)

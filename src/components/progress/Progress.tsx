@@ -66,7 +66,7 @@ const useAnimatedWidth = (
 }
 
 export const Progress: React.FC<ProgressProps> = props => {
-  const tokens = useProgressTokens()
+  const tokens = useProgressTokens(props.tokensOverride)
   const {
     percentage: percentageProp = 0,
     strokeWidth,

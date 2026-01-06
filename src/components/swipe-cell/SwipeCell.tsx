@@ -2,7 +2,6 @@ import React from 'react'
 import {
   Animated,
   PanResponder,
-  Platform,
   StyleSheet,
   View,
   type LayoutChangeEvent,
@@ -10,6 +9,9 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
+
+import { nativeDriverEnabled } from '../../platform'
+import { clamp } from '../../utils/number'
 
 export type SwipeCellSide = 'left' | 'right'
 export type SwipeCellPosition = SwipeCellSide | 'closed'
@@ -52,12 +54,6 @@ export interface SwipeCellProps {
   rightStyle?: StyleProp<ViewStyle>
   contentStyle?: StyleProp<ViewStyle>
   children?: React.ReactNode
-}
-
-const clamp = (value: number, min: number, max: number) => {
-  if (value < min) return min
-  if (value > max) return max
-  return value
 }
 
 const isHorizontalSwipe = (gesture: PanResponderGestureState) => {
@@ -112,7 +108,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
       Animated.timing(translateX, {
         toValue: target,
         duration: Math.max(0, duration),
-        useNativeDriver: Platform.OS !== 'web',
+        useNativeDriver: nativeDriverEnabled,
       }).start(({ finished }) => {
         if (!finished) return
         if (nextPosition !== prevPosition) {

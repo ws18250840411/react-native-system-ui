@@ -1,38 +1,33 @@
 import React from 'react'
-import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 
 import type { IndexAnchorProps } from './types'
 import { useIndexBarTokens } from './tokens'
 
 const IndexAnchor: React.FC<IndexAnchorProps> = props => {
-  const { index, title, children, active, highlightColor, onLayoutCapture, style, onLayout, ...rest } = props
-  const tokens = useIndexBarTokens()
-
-  const handleLayout = React.useCallback(
-    (event: LayoutChangeEvent) => {
-      const layoutY = event?.nativeEvent?.layout?.y ?? 0
-      onLayoutCapture?.(index, layoutY)
-      onLayout?.(event)
-    },
-    [index, onLayout, onLayoutCapture]
-  )
+  const { index, title, children, active, highlightColor, onLayoutCapture, style, onLayout, tokensOverride, ...rest } = props
+  const { colors, layout } = useIndexBarTokens(tokensOverride)
+  const textColor = active && highlightColor ? highlightColor : colors.anchorText
 
   return (
     <View
       {...rest}
-      onLayout={handleLayout}
+      onLayout={event => {
+        onLayoutCapture?.(index, event?.nativeEvent?.layout?.y ?? 0)
+        onLayout?.(event)
+      }}
       style={[styles.container, style]}
     >
       <View
         style={[
           styles.header,
           {
-            height: tokens.layout.anchorHeight,
-            backgroundColor: tokens.colors.anchorBackground,
+            height: layout.anchorHeight,
+            backgroundColor: colors.anchorBackground,
           },
         ]}
       >
-        <Text style={[styles.title, { color: active && highlightColor ? highlightColor : tokens.colors.anchorText }]}>
+        <Text style={[styles.title, { color: textColor }]}>
           {title ?? index}
         </Text>
       </View>

@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import type { FieldClearTrigger, FieldControlAlign, FieldFormatTrigger, FieldInputAlign } from './types'
 
 export interface FieldTokens {
@@ -116,14 +112,4 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
   }
 }
 
-export const useFieldTokens = (overrides?: DeepPartial<FieldTokens>): FieldTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createFieldTokens(foundations)
-    const componentOverrides = components?.field
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useFieldTokens = createComponentTokensHook('field', createFieldTokens)

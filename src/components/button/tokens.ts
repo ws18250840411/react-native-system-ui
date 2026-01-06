@@ -1,9 +1,6 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { hexToRgb } from '../../utils/color'
 import type {
   ButtonIconPosition,
   ButtonMode,
@@ -75,72 +72,24 @@ export interface ButtonTokens {
   >
 }
 
-const hexRegex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i
-
-const hexToRgb = (input: string): [number, number, number] | null => {
-  if (!hexRegex.test(input)) return null
-  const normalized =
-    input.length === 4
-      ? `#${input[1]}${input[1]}${input[2]}${input[2]}${input[3]}${input[3]}`
-      : input
-  const intVal = parseInt(normalized.slice(1), 16)
-  const r = (intVal >> 16) & 255
-  const g = (intVal >> 8) & 255
-  const b = intVal & 255
-  return [r, g, b]
-}
-
-const rgbToHex = (r: number, g: number, b: number) =>
-  `#${[r, g, b]
-    .map(value => {
-      const clamped = Math.max(0, Math.min(255, Math.round(value)))
-      const hex = clamped.toString(16)
-      return hex.length === 1 ? `0${hex}` : hex
-    })
-    .join('')}`
-
-const mixColor = (colorA: string, colorB: string, ratio: number) => {
-  const rgbA = hexToRgb(colorA)
-  const rgbB = hexToRgb(colorB)
-  if (!rgbA || !rgbB) return colorA
-  const mix = rgbA.map((val, index) => val * (1 - ratio) + rgbB[index] * ratio) as [
-    number,
-    number,
-    number,
-  ]
-  return rgbToHex(mix[0], mix[1], mix[2])
-}
-
-const lighten = (color: string, amount = 0.85) => mixColor(color, '#ffffff', amount)
-
-const relativeLuminance = (color: string) => {
-  const rgb = hexToRgb(color)
-  if (!rgb) return null
-  const [r, g, b] = rgb.map(channel => channel / 255).map(channel => {
-    if (channel <= 0.03928) return channel / 12.92
-    return Math.pow((channel + 0.055) / 1.055, 2.4)
-  }) as [number, number, number]
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
 const isDarkThemeBackground = (color: string) => {
-  const luminance = relativeLuminance(color)
-  return luminance !== null && luminance < 0.35
+  const rgb = hexToRgb(color)
+  return !!rgb && (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000 < 140
 }
 
 const createButtonTokens = (foundations: Foundations): ButtonTokens => {
   const { palette, spacing, radii, fontSize, opacity } = foundations
 
   const buildTone = (tone: keyof typeof palette, text?: string) => {
-    const baseBackground = palette[tone][500]
-    const tonalBg = palette[tone][100] ?? lighten(baseBackground, 0.85)
+    const ramp = palette[tone]
+    const baseBackground = ramp[500]
     return {
       background: baseBackground,
-      border: palette[tone][500],
-      text: text ?? palette[tone].foreground ?? '#ffffff',
-      tonalBackground: tonalBg,
-      tonalBorder: palette[tone][200] ?? tonalBg,
-      tonalText: palette[tone][700] ?? palette[tone][800] ?? '#111111',
+      border: baseBackground,
+      text: text ?? ramp.foreground ?? '#ffffff',
+      tonalBackground: ramp[100],
+      tonalBorder: ramp[200],
+      tonalText: ramp[700] ?? ramp[800] ?? '#111111',
     }
   }
 
@@ -197,7 +146,7 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
     colors: {
       ripple: 'rgba(255,255,255,0.35)',
       backgroundTransparent: 'transparent',
-      backgroundPlain: '#ffffff',
+      backgroundPlain: defaultBackground,
       textDark: '#ffffff',
       textLight: '#111111',
     },
@@ -216,8 +165,7 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
         border: defaultBorder,
         text: defaultText,
         tonalBackground:
-          (darkTheme ? palette.default[200] : palette.default[100]) ??
-          lighten(defaultBorder, 0.85),
+          darkTheme ? palette.default[200] : palette.default[100],
         tonalBorder: defaultBorder,
         tonalText: defaultText,
       },
@@ -253,17 +201,7 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
   }
 }
 
-export const useButtonTokens = (
-  overrides?: DeepPartial<ButtonTokens>
-): ButtonTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createButtonTokens(foundations)
-    const componentOverrides = components?.button
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useButtonTokens = createComponentTokensHook(
+  'button',
+  createButtonTokens
+)

@@ -1,9 +1,8 @@
-import React, { forwardRef, useImperativeHandle } from 'react'
+import React, { useImperativeHandle } from 'react'
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState } from '@react-stately/checkbox'
 
-import { useTheme } from '../../design-system'
 import type {
   CheckboxGroupProps,
   CheckboxValue,
@@ -31,28 +30,22 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     gap: gapProp,
     children,
     style,
+    tokensOverride,
     accessibilityLabel,
     accessibilityHint,
     ...viewProps
   } = props
 
-  const tokens = useCheckboxTokens()
+  const tokens = useCheckboxTokens(tokensOverride)
   const gap = gapProp ?? tokens.spacing.groupGap
 
   const registryRef = React.useRef(new Map<string, RegistryItem>())
-
-  const mapKeysToValues = React.useCallback(
-    (keys: readonly string[]) => {
-      return keys.map(key => registryRef.current.get(key)?.value ?? key)
-    },
-    []
-  )
 
   const state = useCheckboxGroupState({
     value: value?.map(serialize),
     defaultValue: defaultValue?.map(serialize),
     onChange: next => {
-      onChange?.(mapKeysToValues(next))
+      onChange?.(next.map(key => registryRef.current.get(key)?.value ?? key))
     },
     isDisabled: disabled,
   })
@@ -66,16 +59,11 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     state
   )
 
-  const resolvedGroupProps = React.useMemo(
-    () => {
-      const { [' aria-disabled']: __ariaDisabledTypo, ...restGroupProps } = (groupProps ?? {}) as any
-      return {
-        ...restGroupProps,
-        'aria-disabled': disabled,
-      }
-    },
-    [disabled, groupProps]
-  )
+  const { [' aria-disabled']: __ariaDisabledTypo, ...restGroupProps } = (groupProps ?? {}) as any
+  const resolvedGroupProps = {
+    ...restGroupProps,
+    'aria-disabled': disabled,
+  }
 
   const registerValue = React.useCallback((key: string, raw: CheckboxValue, itemDisabled?: boolean) => {
     registryRef.current.set(key, { value: raw, disabled: itemDisabled })
@@ -144,7 +132,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
       registerValue,
       unregisterValue,
     }),
-    [state, direction, shape, iconSize, iconRender, checkedColor, labelDisabled, max, registerValue, unregisterValue]
+    [state, direction, shape, iconSize, iconRender, checkedColor, labelDisabled, max]
   )
 
   return (

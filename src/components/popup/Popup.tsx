@@ -2,13 +2,11 @@ import React from 'react'
 import {
   Animated,
   Easing,
-  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
   type LayoutChangeEvent,
   type StyleProp,
   type TextStyle,
@@ -16,12 +14,14 @@ import {
   type ViewProps,
 } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import type { DeepPartial } from '../../types'
+import { addPopStateListener, nativeDriverEnabled } from '../../platform'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
 import { useAriaOverlay } from '../../hooks'
+import type { PopupTokens } from './tokens'
 import { usePopupTokens } from './tokens'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
@@ -40,6 +40,7 @@ export interface PopupProps extends ViewProps {
   placement?: PopupPlacement
   title?: React.ReactNode
   description?: React.ReactNode
+  tokensOverride?: DeepPartial<PopupTokens>
   overlay?: boolean
   overlayStyle?: StyleProp<ViewStyle>
   overlayAccessibilityLabel?: string
@@ -110,8 +111,7 @@ const buildRadius = (round: boolean | undefined, placement: PopupPlacement, radi
   }
 }
 
-const isRenderable = (node: React.ReactNode) =>
-  node !== undefined && node !== null && node !== false
+const isRenderable = (node: React.ReactNode) => node != null && node !== false
 
 const renderHeaderNode = (
   node: React.ReactNode,
@@ -144,10 +144,8 @@ const renderWithSafeArea = (
   )
 }
 
-// Define plain object for hidden style to ensure tests can read it (StyleSheet IDs are opaque in tests)
 const hiddenContentStyle: ViewStyle = {
   opacity: 0,
-  // 避免关闭后仍保留离屏阴影（Web 的 boxShadow / Native 的 elevation）
   // @ts-ignore
   boxShadow: 'none',
   shadowOpacity: 0,
@@ -162,6 +160,7 @@ export const Popup: React.FC<PopupProps> = props => {
     position,
     title,
     description,
+    tokensOverride,
     overlay = true,
     overlayStyle,
     overlayAccessibilityLabel = '关闭弹层',
@@ -198,9 +197,8 @@ export const Popup: React.FC<PopupProps> = props => {
   const shouldCloseOnOverlay = closeOnClickOverlay ?? closeOnOverlayPress ?? true
   const shouldTranslate = placement !== 'center'
   const safeAreaInsetBottom = safeAreaInsetBottomProp ?? false
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions()
 
-  const tokens = usePopupTokens()
+  const tokens = usePopupTokens(tokensOverride)
   
   // Dynamic styles derived from tokens
   const dynamicStyles = React.useMemo(() => {
@@ -258,12 +256,12 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const [mounted, setMounted] = React.useState(visible)
   const [interactionVisible, setInteractionVisible] = React.useState(visible)
-  const [contentSize, setContentSize] = React.useState({ width: 0, height: 0 })
+  const [contentDistance, setContentDistance] = React.useState(0)
   const progress = React.useRef(new Animated.Value(visible ? 1 : 0)).current
   const animatingRef = React.useRef(false)
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
   const distanceRef = React.useRef(0)
-  const pendingLayoutRef = React.useRef<{ width: number; height: number } | null>(null)
+  const pendingDistanceRef = React.useRef<number | null>(null)
   const pendingShowRef = React.useRef(false)
   const openFallbackTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevVisible = React.useRef(visible)
@@ -296,18 +294,18 @@ export const Popup: React.FC<PopupProps> = props => {
         toValue: show ? 1 : 0,
         duration,
         easing,
-        useNativeDriver: Platform.OS !== 'web', // Web 不支持 layout 属性的 native driver，但 transform/opacity 支持
+        useNativeDriver: nativeDriverEnabled,
       })
       animationRef.current = animation
 
       animation.start(({ finished }) => {
         if (!finished) return
         animatingRef.current = false
-        const pending = pendingLayoutRef.current
-        if (pending) {
-          pendingLayoutRef.current = null
-          distanceRef.current = isVertical ? pending.height : pending.width
-          setContentSize(pending)
+        const pendingDistance = pendingDistanceRef.current
+        if (pendingDistance != null) {
+          pendingDistanceRef.current = null
+          distanceRef.current = pendingDistance
+          setContentDistance(pendingDistance)
         }
         if (show) {
           onOpened?.()
@@ -378,17 +376,14 @@ export const Popup: React.FC<PopupProps> = props => {
   )
 
   React.useEffect(() => {
-    if (!closeOnPopstate || typeof window === 'undefined') {
+    if (!closeOnPopstate) {
       return
     }
     const handler = () => {
       if (!visible) return
       requestClose('close')
     }
-    window.addEventListener('popstate', handler)
-    return () => {
-      window.removeEventListener('popstate', handler)
-    }
+    return addPopStateListener(handler)
   }, [closeOnPopstate, requestClose, visible])
 
   const handleStackClose = React.useCallback(() => {
@@ -427,11 +422,7 @@ export const Popup: React.FC<PopupProps> = props => {
   }, [overlayRestProps, stopPropagation])
 
   const config = placementConfig[placement]
-  const distance =
-    distanceRef.current ||
-    (config.axis === 'x'
-      ? contentSize.width
-      : contentSize.height)
+  const distance = distanceRef.current || contentDistance
 
   const translateStyle: Animated.WithAnimatedObject<ViewStyle> = shouldTranslate
     ? {
@@ -454,45 +445,29 @@ export const Popup: React.FC<PopupProps> = props => {
     : { transform: [] }
 
   const overlayOpacity = progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] })
-  const contentOpacity = progress
   const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = React.useMemo(() => {
-    const baseStyle: Animated.WithAnimatedObject<ViewStyle> = {
+    const transform = contentAnimationStyle?.transform
+    const baseTransform = Array.isArray(translateStyle.transform) ? translateStyle.transform : []
+    const mergedTransform = transform && Array.isArray(transform) ? [...baseTransform, ...transform] : baseTransform
+    return {
       ...translateStyle,
-      opacity: contentOpacity,
+      ...contentAnimationStyle,
+      transform: mergedTransform,
+      opacity: progress,
     }
-    if (contentAnimationStyle) {
-      const customTransform = contentAnimationStyle.transform
-      const baseTransform = baseStyle.transform || []
-      const mergedTransform = customTransform && Array.isArray(customTransform)
-        ? [...(Array.isArray(baseTransform) ? baseTransform : []), ...customTransform]
-        : baseTransform
-      return {
-        ...baseStyle,
-        ...contentAnimationStyle,
-        transform: mergedTransform,
-        opacity: contentOpacity,
-      }
-    }
-    return baseStyle
-  }, [translateStyle, contentOpacity, contentAnimationStyle])
+  }, [translateStyle, progress, contentAnimationStyle])
 
   const handleContentLayout = React.useCallback(
     (event: LayoutChangeEvent) => {
       overlayOnLayout?.(event)
       const { width, height } = event.nativeEvent.layout
-      const next = { width, height }
       const nextDistance = isVertical ? height : width
       if (animatingRef.current) {
-        pendingLayoutRef.current = next
+        pendingDistanceRef.current = nextDistance
         return
       }
       distanceRef.current = nextDistance
-      setContentSize(prev => {
-        if (Math.abs(prev.width - width) < 0.5 && Math.abs(prev.height - height) < 0.5) {
-          return prev
-        }
-        return next
-      })
+      setContentDistance(prev => (Math.abs(prev - nextDistance) < 0.5 ? prev : nextDistance))
       if (pendingShowRef.current && visible) {
         pendingShowRef.current = false
         clearOpenFallbackTimer()
@@ -517,6 +492,13 @@ export const Popup: React.FC<PopupProps> = props => {
         ? { paddingRight: 44 }
         : { paddingLeft: 44 }
       : undefined
+
+  const closeIconVerticalStyle = closeIconPosition.includes('bottom')
+    ? { bottom: tokens.spacing.closeIconTop }
+    : { top: tokens.spacing.closeIconTop }
+  const closeIconHorizontalStyle = closeIconPosition.endsWith('left')
+    ? { left: tokens.spacing.closeIconRight }
+    : { right: tokens.spacing.closeIconRight }
 
   const headerNode = hasHeader ? (
     <View style={[styles.header, headerPaddingStyle]}>
@@ -546,14 +528,11 @@ export const Popup: React.FC<PopupProps> = props => {
       {...contentInteractionProps}
       onLayout={handleContentLayout}
       style={[
-        dynamicStyles.popup, // Replaces styles.popup for token-dependent props
+        dynamicStyles.popup,
         placement === 'center' ? dynamicStyles.popupCenter : null,
         isVertical ? styles.popupVertical : null,
         isHorizontal ? dynamicStyles.popupSide : null,
-        {
-          // backgroundColor: tokens.colors.background, // Moved to dynamicStyles.popup
-          ...buildRadius(round, placement, tokens.radius.round),
-        },
+        buildRadius(round, placement, tokens.radius.round),
         animatedContentStyle,
         style,
         hidden ? hiddenContentStyle : null,
@@ -565,13 +544,8 @@ export const Popup: React.FC<PopupProps> = props => {
           style={[
             styles.closeIconBase,
             dynamicStyles.closeIconBase,
-            closeIconPosition === 'top-left'
-              ? { top: tokens.spacing.closeIconTop, left: tokens.spacing.closeIconRight }
-              : closeIconPosition === 'bottom-left'
-                ? { bottom: tokens.spacing.closeIconTop, left: tokens.spacing.closeIconRight }
-                : closeIconPosition === 'bottom-right'
-                  ? { bottom: tokens.spacing.closeIconTop, right: tokens.spacing.closeIconRight }
-                  : { top: tokens.spacing.closeIconTop, right: tokens.spacing.closeIconRight },
+            closeIconVerticalStyle,
+            closeIconHorizontalStyle,
             !hasCustomCloseIcon ? dynamicStyles.closeIconDefault : null,
           ]}
           hitSlop={8}
@@ -680,15 +654,6 @@ const styles = StyleSheet.create({
   },
   lockLayer: {
     ...StyleSheet.absoluteFillObject,
-  },
-  hiddenContent: {
-    pointerEvents: 'none',
-    opacity: 0,
-    // 避免关闭后仍保留离屏阴影（Web 的 boxShadow / Native 的 elevation）
-    boxShadow: 'none',
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
   },
   safeAreaView: {
     width: '100%',

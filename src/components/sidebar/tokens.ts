@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface SidebarTokens {
   colors: {
@@ -27,7 +23,7 @@ export interface SidebarTokens {
 
 const createTokens = (foundations: Foundations): SidebarTokens => {
   const { palette, fontSize } = foundations
-  const surface = palette.default[50] ?? '#ffffff'
+  const surface = palette.default[50]
   return {
     colors: {
       background: surface,
@@ -49,16 +45,4 @@ const createTokens = (foundations: Foundations): SidebarTokens => {
   }
 }
 
-export const useSidebarTokens = (
-  overrides?: DeepPartial<SidebarTokens>,
-): SidebarTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.sidebar
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useSidebarTokens = createComponentTokensHook('sidebar', createTokens)

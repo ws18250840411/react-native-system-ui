@@ -1,10 +1,8 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import { createHairlineBorderTop } from '../../utils/hairline'
 import { GridContext, type GridTokens } from './GridContext'
 import type { GridProps } from './types'
@@ -25,42 +23,30 @@ const createGridTokens = (foundations: Foundations): GridTokens => {
       iconSize: 28,
     },
     colors: {
-      border: '#ebedf0', // var(--rv-gray-3) var(--rv-border-color)
-      text: '#646566', // var(--rv-gray-7)
-      background: '#ffffff',
+      border: palette.default[200],
+      text: palette.default[600],
+      background: palette.default[50] ?? '#ffffff',
       active: palette.default[100],
     },
     spacing: {
-      paddingHorizontal: 8, // 8px (var(--rv-padding-xs))
-      paddingVertical: 16, // 16px (var(--rv-padding-md))
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.md,
     },
     typography: {
-      fontSize: 12, // 12px (var(--rv-font-size-sm))
+      fontSize: fontSize.sm,
       fontFamily: typography.fontFamily,
-      lineHeight: 18, // 18px (line-height: 1.5 * 12px)
+      lineHeight: Math.round(fontSize.sm * typography.lineHeightMultiplier),
       fontWeight: String(typography.weight.regular),
     },
   }
 }
 
-const useGridTokens = (overrides?: DeepPartial<GridTokens>) => {
-  const { foundations, components } = useTheme()
-
-  return React.useMemo(() => {
-    const base = createGridTokens(foundations)
-    const globalOverrides = components?.grid
-    const mergedOverrides = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
-  }, [foundations, components, overrides])
-}
+const useGridTokens = createComponentTokensHook('grid', createGridTokens)
 
 export const Grid: React.FC<GridProps> = props => {
-  const tokens = useGridTokens()
+  const tokens = useGridTokens(props.tokensOverride)
   const {
+    tokensOverride: _tokensOverride,
     children,
     columnNum = tokens.defaults.columnNum,
     gutter = tokens.defaults.gutter,
@@ -84,7 +70,7 @@ export const Grid: React.FC<GridProps> = props => {
     styles.container,
     gutter
       ? {
-        paddingLeft: gutter, // react-vant: paddingLeft: addUnit(props.gutter)
+        paddingLeft: gutter,
       }
       : null,
     border && !gutter
@@ -93,36 +79,20 @@ export const Grid: React.FC<GridProps> = props => {
     style,
   ]
 
-  const contextValue = React.useMemo(
-    () => ({
-      columnNum,
-      gutter,
-      border,
-      center,
-      square,
-      direction,
-      reverse,
-      clickable,
-      iconSize,
-      iconColor,
-      count: childArray.length,
-      tokens,
-    }),
-    [
-      columnNum,
-      gutter,
-      border,
-      center,
-      square,
-      direction,
-      reverse,
-      clickable,
-      iconSize,
-      iconColor,
-      childArray.length,
-      tokens,
-    ],
-  )
+  const contextValue = {
+    columnNum,
+    gutter,
+    border,
+    center,
+    square,
+    direction,
+    reverse,
+    clickable,
+    iconSize,
+    iconColor,
+    count: childArray.length,
+    tokens,
+  }
 
   return (
     <GridContext.Provider value={contextValue}>

@@ -193,6 +193,7 @@ const clearPortals = () => {
     portalEntries.clear()
     notifyCurrentHost()
   }
+  warnedNative = false
   scheduleTeardownIfIdle()
 }
 

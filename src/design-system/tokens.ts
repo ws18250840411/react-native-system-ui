@@ -71,22 +71,9 @@ export interface Foundations {
   }
 }
 
-const paletteFactory = (ramp: PaletteRamp): PaletteRamp => ({
-  ...ramp,
-  foreground: ramp.foreground ?? '#ffffff',
-})
-
-export const resolveSemanticColors = (palette: Foundations['palette']) => {
-  const surface = palette.default[50] ?? '#ffffff'
-  const surfaceMuted = palette.default[100] ?? surface
-  const onSurface = palette.default[900] ?? palette.default.foreground ?? '#111827'
-  const onPrimary = palette.primary.foreground ?? '#ffffff'
-  return { surface, surfaceMuted, onSurface, onPrimary }
-}
-
 export const defaultFoundations: Foundations = {
   palette: {
-    default: paletteFactory({
+    default: {
       50: '#f7f8fa',
       100: '#f1f2f5',
       200: '#e3e5eb',
@@ -98,8 +85,8 @@ export const defaultFoundations: Foundations = {
       800: '#353840',
       900: '#191a1f',
       foreground: '#222222',
-    }),
-    primary: paletteFactory({
+    },
+    primary: {
       50: '#f5f8ff',
       100: '#e1e9ff',
       200: '#c2d4ff',
@@ -111,8 +98,8 @@ export const defaultFoundations: Foundations = {
       800: '#1a2d82',
       900: '#111d55',
       foreground: '#ffffff',
-    }),
-    info: paletteFactory({
+    },
+    info: {
       50: '#f0f8ff',
       100: '#d9ecff',
       200: '#b9dcff',
@@ -124,8 +111,8 @@ export const defaultFoundations: Foundations = {
       800: '#113a75',
       900: '#0a2143',
       foreground: '#ffffff',
-    }),
-    success: paletteFactory({
+    },
+    success: {
       50: '#f2fbf6',
       100: '#dcf5e7',
       200: '#b8e9cf',
@@ -137,8 +124,8 @@ export const defaultFoundations: Foundations = {
       800: '#0a5c32',
       900: '#043719',
       foreground: '#ffffff',
-    }),
-    warning: paletteFactory({
+    },
+    warning: {
       50: '#fff8ec',
       100: '#ffecc7',
       200: '#ffd595',
@@ -150,8 +137,8 @@ export const defaultFoundations: Foundations = {
       800: '#7f3101',
       900: '#4d1c00',
       foreground: '#261400',
-    }),
-    danger: paletteFactory({
+    },
+    danger: {
       50: '#fff1f2',
       100: '#ffd8dd',
       200: '#ffadb7',
@@ -163,7 +150,7 @@ export const defaultFoundations: Foundations = {
       800: '#770819',
       900: '#47040b',
       foreground: '#ffffff',
-    }),
+    },
   },
   spacing: {
     none: 0,

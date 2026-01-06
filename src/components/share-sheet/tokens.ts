@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface ShareSheetTokens {
   colors: {
@@ -32,9 +28,10 @@ export interface ShareSheetTokens {
 
 const createTokens = (foundations: Foundations): ShareSheetTokens => {
   const { palette, spacing, fontSize } = foundations
+  const surface = palette.default[50]
   return {
     colors: {
-      background: palette.default[50],
+      background: surface,
       title: palette.default[900],
       description: palette.default[500],
       option: palette.default[900],
@@ -57,16 +54,7 @@ const createTokens = (foundations: Foundations): ShareSheetTokens => {
   }
 }
 
-export const useShareSheetTokens = (
-  overrides?: DeepPartial<ShareSheetTokens>,
-): ShareSheetTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.shareSheet
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useShareSheetTokens = createComponentTokensHook(
+  'shareSheet',
+  createTokens
+)

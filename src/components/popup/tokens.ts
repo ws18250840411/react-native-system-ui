@@ -1,10 +1,7 @@
-import React from 'react'
 import type { ViewStyle, TextStyle } from 'react-native'
 
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface PopupTokens {
   colors: {
@@ -51,14 +48,15 @@ export interface PopupTokens {
 
 export const createPopupTokens = (foundations: Foundations): PopupTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
+  const surface = palette.default[50]
 
   return {
     colors: {
       overlay: 'rgba(0,0,0,0.5)',
-      background: '#ffffff',
-      title: palette.default[900] ?? '#323233',
-      description: palette.default[500] ?? '#969799',
-      closeIcon: palette.default[300] ?? '#c8c9cc',
+      background: surface,
+      title: palette.default[900],
+      description: palette.default[500],
+      closeIcon: palette.default[300],
     },
     radius: {
       round: radii.lg,
@@ -96,16 +94,4 @@ export const createPopupTokens = (foundations: Foundations): PopupTokens => {
   }
 }
 
-export const usePopupTokens = (overrides?: DeepPartial<PopupTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createPopupTokens(foundations)
-    const globalOverrides = components?.popup
-    const merged = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [foundations, components, overrides])
-}
+export const usePopupTokens = createComponentTokensHook('popup', createPopupTokens)

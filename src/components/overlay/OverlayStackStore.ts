@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { BackHandler, Platform } from 'react-native'
 
+import { setBodyScrollLocked } from '../../platform'
+
 export interface OverlayStackEntry {
   key: number
   zIndex: number
@@ -118,8 +120,6 @@ export class OverlayStackStore {
 export const overlayStackStore = new OverlayStackStore()
 
 let backHandlerSubscription: ReturnType<typeof BackHandler.addEventListener> | null = null
-let locked = false
-let previousOverflow = ''
 
 const syncBackHandler = () => {
   if (Platform.OS === 'web') return
@@ -146,16 +146,8 @@ const syncBackHandler = () => {
 }
 
 const syncScrollLock = () => {
-  if (typeof document === 'undefined') return
   const shouldLock = overlayStackStore.getSnapshot().some(entry => entry.lockScroll)
-  if (shouldLock && !locked) {
-    previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    locked = true
-  } else if (!shouldLock && locked) {
-    document.body.style.overflow = previousOverflow
-    locked = false
-  }
+  setBodyScrollLocked(shouldLock)
 }
 
 const handleStoreChange = () => {

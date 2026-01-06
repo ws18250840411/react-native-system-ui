@@ -2,7 +2,6 @@ import React from 'react'
 import {
   Animated,
   Easing,
-  Platform,
   StyleSheet,
   Text,
   View,
@@ -13,10 +12,9 @@ import {
 import { Arrow } from 'react-native-system-icon'
 
 import { Cell } from '../cell'
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import { createHairlineView } from '../../utils/hairline'
 
 export type CollapseValue = string | string[]
@@ -31,6 +29,7 @@ export interface CollapseProps extends ViewProps {
   iconPosition?: 'left' | 'right'
   expandIcon?: React.ReactNode | ((active: boolean) => React.ReactNode)
   disabled?: boolean
+  tokensOverride?: DeepPartial<CollapseTokens>
 }
 
 export interface CollapsePanelProps extends ViewProps {
@@ -113,6 +112,9 @@ const createCollapseTokens = (foundations: Foundations): CollapseTokens => {
   }
 }
 
+const useCollapseTokens = createComponentTokensHook('collapse', createCollapseTokens)
+const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
+
 interface CollapseContextValue {
   activeKeys: string[]
   toggle: (name: string, expand?: boolean) => void
@@ -140,21 +142,6 @@ const buildOutputValue = (keys: string[], accordion: boolean): CollapseValue => 
   return keys
 }
 
-const useCollapseTokens = (overrides?: DeepPartial<CollapseTokens>) => {
-  const { foundations, components } = useTheme()
-
-  return React.useMemo(() => {
-    const base = createCollapseTokens(foundations)
-    const globalOverrides = components?.collapse
-    const merged = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [foundations, components, overrides])
-}
-
 type CollapseComponent = React.FC<CollapseProps> & {
   Panel: React.ForwardRefExoticComponent<CollapsePanelProps & React.RefAttributes<CollapsePanelInstance>>
   Item: React.ForwardRefExoticComponent<CollapsePanelProps & React.RefAttributes<CollapsePanelInstance>>
@@ -163,6 +150,7 @@ type CollapseComponent = React.FC<CollapseProps> & {
 export const Collapse = ((props: CollapseProps) => {
   const {
     children,
+    tokensOverride,
     accordion = false,
     value,
     defaultValue,
@@ -175,7 +163,8 @@ export const Collapse = ((props: CollapseProps) => {
     ...rest
   } = props
 
-  const tokens = useCollapseTokens()
+  const tokens = useCollapseTokens(tokensOverride)
+  const { colors } = tokens
 
   const controlled = value !== undefined
   const normalizedValue = normalizeValue(value)
@@ -222,7 +211,7 @@ export const Collapse = ((props: CollapseProps) => {
     [accordion, activeKeys, controlled, disabled, onChange],
   )
 
-  const contextValue = React.useMemo<CollapseContextValue>(() => ({
+  const contextValue: CollapseContextValue = {
     activeKeys,
     toggle,
     accordion,
@@ -231,7 +220,7 @@ export const Collapse = ((props: CollapseProps) => {
     border,
     disabled,
     tokens,
-  }), [activeKeys, accordion, border, disabled, expandIcon, iconPosition, toggle, tokens])
+  }
 
   const items = React.Children.toArray(children)
 
@@ -246,9 +235,9 @@ export const Collapse = ((props: CollapseProps) => {
 
   return (
     <CollapseContext.Provider value={contextValue}>
-      <View style={[styles.container, border && { backgroundColor: tokens.colors.background }, style]} {...rest}>
-        {border ? <Hairline position="top" color={tokens.colors.border} /> : null}
-        {border ? <Hairline position="bottom" color={tokens.colors.border} /> : null}
+      <View style={[styles.container, border && { backgroundColor: colors.background }, style]} {...rest}>
+        {border ? <Hairline position="top" color={colors.border} /> : null}
+        {border ? <Hairline position="bottom" color={colors.border} /> : null}
         {renderedChildren}
       </View>
     </CollapseContext.Provider>
@@ -310,6 +299,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
 
   const isActive = activeKeys.includes(String(name))
   const mergedDisabled = collapseDisabled || disabled
+  const { colors, spacing, typography } = tokens
 
   const [contentHeight, setContentHeight] = React.useState(0)
   const animation = React.useRef(new Animated.Value(isActive ? 1 : 0)).current
@@ -326,10 +316,10 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const resolvedLabel = description ?? label
   const resolvedValue = extra ?? value
 
-  const handleToggle = React.useCallback(() => {
+  const handleToggle = () => {
     if (mergedDisabled || readOnly) return
     toggle(String(name))
-  }, [mergedDisabled, name, readOnly, toggle])
+  }
 
   React.useImperativeHandle(
     ref,
@@ -342,15 +332,12 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     [mergedDisabled, name, readOnly, toggle],
   )
 
-  const handleContentLayout = React.useCallback(
-    (event: LayoutChangeEvent) => {
-      const nextHeight = event.nativeEvent.layout.height
-      if (typeof nextHeight === 'number' && Number.isFinite(nextHeight) && nextHeight !== contentHeight) {
-        setContentHeight(nextHeight)
-      }
-    },
-    [contentHeight],
-  )
+  const handleContentLayout = (event: LayoutChangeEvent) => {
+    const nextHeight = event.nativeEvent.layout.height
+    if (typeof nextHeight === 'number' && Number.isFinite(nextHeight) && nextHeight !== contentHeight) {
+      setContentHeight(nextHeight)
+    }
+  }
 
   const animatedStyle = {
     height: animation.interpolate({
@@ -376,7 +363,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
           ],
         }}
       >
-        <Arrow size={16} fill={mergedDisabled ? tokens.colors.disabled : tokens.colors.arrow} />
+        <Arrow size={16} fill={mergedDisabled ? colors.disabled : colors.arrow} />
       </Animated.View>
     )
   }
@@ -386,9 +373,9 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
       return (
         <Text
           style={{
-            color: tokens.colors.description,
-            fontSize: tokens.typography.descriptionSize,
-            lineHeight: Math.round(tokens.typography.descriptionSize * 1.5),
+            color: colors.description,
+            fontSize: typography.descriptionSize,
+            lineHeight: Math.round(typography.descriptionSize * 1.5),
           }}
         >
           {children}
@@ -405,7 +392,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
 
   const headerIcon =
     iconPosition === 'left'
-      ? showExpandIcon || (icon !== undefined && icon !== null && icon !== false)
+      ? showExpandIcon || isRenderableNode(icon)
         ? (
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             {showExpandIcon ? <View style={{ marginRight: icon ? 8 : 0 }}>{renderExpandIcon()}</View> : null}
@@ -422,13 +409,13 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
       style={[
         styles.panel,
         {
-          backgroundColor: tokens.colors.background,
+          backgroundColor: colors.background,
         },
         style,
       ]}
       {...rest}
     >
-      {showTopBorder ? <Hairline position="top" color={tokens.colors.border} inset={tokens.spacing.paddingHorizontal} /> : null}
+      {showTopBorder ? <Hairline position="top" color={colors.border} inset={spacing.paddingHorizontal} /> : null}
       <View style={styles.headerWrapper}>
         <Cell
           title={title}
@@ -445,7 +432,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
           rightIcon={headerRightIcon}
         />
         {showHeaderBottomBorder ? (
-          <Hairline position="bottom" color={tokens.colors.border} inset={tokens.spacing.paddingHorizontal} />
+          <Hairline position="bottom" color={colors.border} inset={spacing.paddingHorizontal} />
         ) : null}
       </View>
       <Animated.View style={[styles.bodyWrapper, animatedStyle]}>
@@ -456,9 +443,9 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
             top: 0,
             left: 0,
             right: 0,
-            paddingVertical: tokens.spacing.paddingVertical,
-            paddingHorizontal: tokens.spacing.paddingHorizontal,
-            backgroundColor: tokens.colors.background,
+            paddingVertical: spacing.paddingVertical,
+            paddingHorizontal: spacing.paddingHorizontal,
+            backgroundColor: colors.background,
           }}
         >
           {renderChildren()}

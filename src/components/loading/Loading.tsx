@@ -3,13 +3,12 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  Platform,
   StyleSheet,
   Text,
   View,
 } from 'react-native'
-import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 
+import { nativeDriverEnabled } from '../../platform'
 import { useTheme } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
@@ -38,51 +37,45 @@ export interface LoadingTokens {
   }
 }
 
-const createLoadingTokens = (foundations: Foundations): LoadingTokens => {
-  return {
-    defaults: {
-      type: 'circular',
-      size: 30,
-      textSize: foundations.fontSize.sm,
-      vertical: false,
-    },
-    colors: {
-      indicator: foundations.palette.default[400],
-      text: foundations.palette.default[500],
-    },
-    spinner: {
-      lineWidth: 2,
-      lineLength: 8,
-      itemCount: 12,
-      innerGapRatio: 0.25,
-    },
-    spacing: {
-      gap: foundations.spacing.sm,
-    },
-  }
-}
+const createLoadingTokens = (foundations: Foundations): LoadingTokens => ({
+  defaults: {
+    type: 'circular',
+    size: 30,
+    textSize: foundations.fontSize.sm,
+    vertical: false,
+  },
+  colors: {
+    indicator: foundations.palette.default[400],
+    text: foundations.palette.default[500],
+  },
+  spinner: {
+    lineWidth: 2,
+    lineLength: 8,
+    itemCount: 12,
+    innerGapRatio: 0.25,
+  },
+  spacing: {
+    gap: foundations.spacing.sm,
+  },
+})
 
 const useLoadingTokens = (overrides?: DeepPartial<LoadingTokens>) => {
   const { foundations, components } = useTheme()
 
   return React.useMemo(() => {
     const base = createLoadingTokens(foundations)
-    const globalOverrides = components?.loading
-    const mergedOverrides = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
+    const componentOverrides = components?.loading
+    const merged =
+      componentOverrides && overrides
+        ? deepMerge(componentOverrides, overrides)
+        : componentOverrides ?? overrides
+    return merged ? deepMerge(base, merged) : base
   }, [foundations, components, overrides])
 }
 
-const AnimatedView = Animated.createAnimatedComponent(View)
-
-const spinnerArray = (count: number) => Array.from({ length: count }, (_, index) => index)
-
 export const Loading: React.FC<LoadingProps> = props => {
-  const tokens = useLoadingTokens()
+  const { tokensOverride } = props
+  const tokens = useLoadingTokens(tokensOverride)
   const {
     color = tokens.colors.indicator,
     size = tokens.defaults.size,
@@ -97,10 +90,6 @@ export const Loading: React.FC<LoadingProps> = props => {
     ...rest
   } = props
 
-  const renderCircular = () => (
-    <ActivityIndicator size={size} color={color} />
-  )
-
   const spinValue = React.useRef(new Animated.Value(0)).current
 
   React.useEffect(() => {
@@ -110,17 +99,16 @@ export const Loading: React.FC<LoadingProps> = props => {
           toValue: 1,
           duration: 1000,
           easing: Easing.linear,
-          useNativeDriver: Platform.OS !== 'web',
+          useNativeDriver: nativeDriverEnabled,
         }),
       )
       animation.start()
       return () => animation.stop()
     }
     return undefined
-  }, [spinValue, type])
+  }, [type])
 
   const renderSpinner = () => {
-    const lines = spinnerArray(tokens.spinner.itemCount)
     const innerGap = Math.min(
       size / 2 - 1,
       Math.max(0, tokens.spinner.innerGapRatio * size)
@@ -134,7 +122,7 @@ export const Loading: React.FC<LoadingProps> = props => {
     )
 
     return (
-      <AnimatedView
+      <Animated.View
         style={{
           width: size,
           height: size,
@@ -148,7 +136,7 @@ export const Loading: React.FC<LoadingProps> = props => {
           ],
         }}
       >
-        {lines.map(index => {
+        {Array.from({ length: tokens.spinner.itemCount }, (_, index) => index).map(index => {
           const angle = (index * 360) / tokens.spinner.itemCount
           const opacity = 0.2 + (index / tokens.spinner.itemCount) * 0.8
           return (
@@ -164,7 +152,6 @@ export const Loading: React.FC<LoadingProps> = props => {
             >
               <View
                 style={[
-                  styles.spinnerLine,
                   {
                     width: tokens.spinner.lineWidth,
                     height: lineLength,
@@ -178,11 +165,12 @@ export const Loading: React.FC<LoadingProps> = props => {
             </View>
           )
         })}
-      </AnimatedView>
+      </Animated.View>
     )
   }
 
-  const indicator = type === 'spinner' ? renderSpinner() : renderCircular()
+  const indicator =
+    type === 'spinner' ? renderSpinner() : <ActivityIndicator size={size} color={color} />
 
   const hasChildren = children !== undefined && children !== null && children !== false
   const textSpacingStyle = {
@@ -198,7 +186,7 @@ export const Loading: React.FC<LoadingProps> = props => {
             fontSize: textSize,
             color: textColor,
           },
-          textStyle as TextStyle,
+          textStyle,
         ]}
       >
         {children}
@@ -208,17 +196,18 @@ export const Loading: React.FC<LoadingProps> = props => {
     )
   ) : null
 
-  const containerStyle: StyleProp<ViewStyle> = [
-    {
-      flexDirection: vertical ? 'column' : 'row',
-      alignItems: 'center',
-      justifyContent: vertical ? 'center' : 'flex-start',
-    },
-    style,
-  ]
-
   return (
-    <View style={containerStyle} {...rest}>
+    <View
+      style={[
+        {
+          flexDirection: vertical ? 'column' : 'row',
+          alignItems: 'center',
+          justifyContent: vertical ? 'center' : 'flex-start',
+        },
+        style,
+      ]}
+      {...rest}
+    >
       <View style={contentStyle}>{indicator}</View>
       {textNode}
     </View>
@@ -233,5 +222,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
-  spinnerLine: {},
 })

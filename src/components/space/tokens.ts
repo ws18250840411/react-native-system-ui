@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import type { SpaceDirection, SpaceGap, SpaceSizePreset } from './types'
 
 export interface SpaceTokens {
@@ -32,20 +28,7 @@ const createSpaceTokens = (foundations: Foundations): SpaceTokens => {
   }
 }
 
-export const useSpaceTokens = (
-  overrides?: DeepPartial<SpaceTokens>
-): SpaceTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createSpaceTokens(foundations)
-    const componentOverrides = components?.space
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useSpaceTokens = createComponentTokensHook('space', createSpaceTokens)
 
 export const resolveGapInput = (
   gap?: SpaceGap,

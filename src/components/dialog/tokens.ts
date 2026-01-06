@@ -1,9 +1,5 @@
-import React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface DialogTokens {
   colors: {
@@ -50,13 +46,14 @@ export interface DialogTokens {
 
 export const createDialogTokens = (foundations: Foundations): DialogTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
-  const foreground = palette.default.foreground ?? '#111827'
+  const surface = palette.default[50]
+  const onSurface = palette.default[900]
   const secondary = palette.default[600]
 
   return {
     colors: {
-      background: '#ffffff',
-      title: foreground,
+      background: surface,
+      title: onSurface,
       message: secondary,
       divider: palette.default[200],
       cancel: palette.default[700],
@@ -97,16 +94,4 @@ export const createDialogTokens = (foundations: Foundations): DialogTokens => {
   }
 }
 
-export const useDialogTokens = (overrides?: DeepPartial<DialogTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createDialogTokens(foundations)
-    const globalOverrides = components?.dialog
-    const mergedOverrides = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
-  }, [foundations, components, overrides])
-}
+export const useDialogTokens = createComponentTokensHook('dialog', createDialogTokens)

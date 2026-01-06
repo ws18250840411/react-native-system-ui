@@ -8,11 +8,9 @@ import {
   View,
 } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
 import { useControllableValue } from '../../hooks'
-import { deepMerge } from '../../utils/deepMerge'
 
 import type { PasswordInputProps, PasswordInputRef } from './types'
 
@@ -97,19 +95,7 @@ const createPasswordInputTokens = (foundations: Foundations): PasswordInputToken
   },
 })
 
-const usePasswordInputTokens = (overrides?: DeepPartial<PasswordInputTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createPasswordInputTokens(foundations)
-    const globalOverrides = components?.passwordInput
-    const mergedOverrides = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
-  }, [components, foundations, overrides])
-}
+const usePasswordInputTokens = createComponentTokensHook('passwordInput', createPasswordInputTokens)
 
 const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
   (props, ref) => {
@@ -133,6 +119,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       maskStyle,
       cursorStyle,
       highlightTextStyle,
+      tokensOverride,
       style,
       onSubmit,
       onFocus,
@@ -140,12 +127,11 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       ...rest
     } = props
 
-    const isControlled = value !== undefined
     const lengthSafe = Number.isFinite(length)
       ? Math.max(1, Math.floor(length))
       : 1
-    const tokens = usePasswordInputTokens()
-    const colors = tokens.colors
+    const tokens = usePasswordInputTokens(tokensOverride)
+    const { colors, radii, sizing, typography, opacity } = tokens
 
     const inputRef = React.useRef<TextInput>(null)
     const [cursorVisible, setCursorVisible] = React.useState(true)
@@ -155,58 +141,42 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const keyboardType = type === 'number' ? 'number-pad' : 'default'
     const inputMode = type === 'number' ? 'numeric' : 'text'
 
-    const normalizeValue = React.useCallback(
-      (nextValue: string) => {
-        let next = nextValue ?? ''
-        if (typeof next !== 'string') {
-          next = String(next ?? '')
-        }
-        if (type === 'number') {
-          next = sanitizeNumber(next)
-        }
-        if (lengthSafe > 0 && next.length > lengthSafe) {
-          next = next.slice(0, lengthSafe)
-        }
-        return next
-      },
-      [lengthSafe, type],
-    )
-
     const [code = '', setCode] = useControllableValue<string>(
-      { value, defaultValue, onChange },
-      { defaultValue: '' },
+      props,
+      { defaultValue: '' }
     )
-    const normalizedCode = React.useMemo(
-      () => normalizeValue(code ?? ''),
-      [code, normalizeValue],
-    )
+    const normalizeValue = (nextValue: string) => {
+      let next = nextValue ?? ''
+      if (typeof next !== 'string') {
+        next = String(next ?? '')
+      }
+      if (type === 'number') {
+        next = sanitizeNumber(next)
+      }
+      if (lengthSafe > 0 && next.length > lengthSafe) {
+        next = next.slice(0, lengthSafe)
+      }
+      return next
+    }
+    const normalizedCode = normalizeValue(code ?? '')
 
-    const updateValue = React.useCallback(
-      (nextValue: string) => {
-        const normalized = normalizeValue(nextValue)
-        if (normalized === code) {
-          return
-        }
-        if (validator && !validator(normalized)) {
-          return
-        }
-        setCode(normalized)
-      },
-      [code, normalizeValue, setCode, validator],
-    )
+    const updateValue = (nextValue: string) => {
+      const normalized = normalizeValue(nextValue)
+      if (normalized === code) return
+      if (validator && !validator(normalized)) return
+      setCode(normalized)
+    }
 
-    const focusInput = React.useCallback(() => {
+    const focusInput = () => {
       if (disabled) return
       inputRef.current?.focus()
-    }, [disabled])
-
-    const blurInput = React.useCallback(() => {
+    }
+    const blurInput = () => {
       inputRef.current?.blur()
-    }, [])
-
-    const clearInput = React.useCallback(() => {
+    }
+    const clearInput = () => {
       updateValue('')
-    }, [updateValue])
+    }
 
     React.useImperativeHandle(
       ref,
@@ -215,50 +185,36 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
         blur: blurInput,
         clear: clearInput,
       }),
-      [blurInput, clearInput, focusInput],
     )
 
     React.useEffect(() => {
-      if (isControlled) {
-        return
-      }
-      if (normalizedCode !== code) {
-        setCode(normalizedCode)
-      }
-    }, [code, isControlled, normalizedCode, setCode])
+      if (!autoFocus || disabled) return
+      const timer = setTimeout(() => {
+        inputRef.current?.focus()
+      }, 60)
+      return () => clearTimeout(timer)
+    }, [autoFocus, disabled])
 
-    React.useEffect(() => {
-      if (autoFocus) {
-        const timer = setTimeout(() => {
-          focusInput()
-        }, 60)
-        return () => clearTimeout(timer)
-      }
-    }, [autoFocus, focusInput])
+    const handleChangeText = (text: string) => {
+      updateValue(text ?? '')
+    }
 
-    const handleChangeText = React.useCallback(
-      (text: string) => {
-        updateValue(text ?? '')
-      },
-      [updateValue],
-    )
-
-    const handleFocus = React.useCallback(() => {
+    const handleFocus = () => {
       setFocused(true)
       onFocus?.()
-    }, [onFocus])
+    }
 
-    const handleBlur = React.useCallback(() => {
+    const handleBlur = () => {
       setFocused(false)
       onBlur?.()
-    }, [onBlur])
+    }
 
     React.useEffect(() => {
       if (normalizedCode?.length === lengthSafe && lengthSafe > 0) {
         onSubmit?.(normalizedCode)
         blurInput()
       }
-    }, [blurInput, lengthSafe, normalizedCode, onSubmit])
+    }, [lengthSafe, normalizedCode, onSubmit])
 
     React.useEffect(() => {
       const shouldBlink = showCursor && focused && !disabled
@@ -284,24 +240,17 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       }
     }, [disabled, focused, showCursor])
 
-    const cells = React.useMemo(() => {
-      return Array.from({ length: lengthSafe }, (_, index) => {
-        const char = normalizedCode?.[index]
-        const isFilled = !!char
-        const showBlink =
-          showCursor &&
-          focused &&
-          !disabled &&
-          normalizedCode.length === index &&
-          index < lengthSafe
-        return {
-          key: index,
-          char,
-          isFilled,
-          showBlink,
-        }
-      })
-    }, [disabled, focused, lengthSafe, normalizedCode, showCursor])
+    const cells = Array.from({ length: lengthSafe }, (_, index) => {
+      const char = normalizedCode?.[index]
+      const isFilled = !!char
+      const showBlink =
+        showCursor &&
+        focused &&
+        !disabled &&
+        normalizedCode.length === index &&
+        index < lengthSafe
+      return { key: index, char, isFilled, showBlink }
+    })
 
     const gutterValue =
       typeof gutter === 'number' ? gutter : Number(gutter) || 0
@@ -310,8 +259,13 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const tip = errorInfo ?? info
     const tipColor = errorInfo ? colors.error : colors.muted
 
-    const wrapperBackground = hasGutter ? 'transparent' : colors.background
-    const securityBackground = hasGutter ? 'transparent' : colors.background
+    const backgroundColor = hasGutter ? 'transparent' : colors.background
+    const cellTextBase = {
+      color: colors.text,
+      fontSize: sizing.cellTextSize,
+      fontWeight: typography.cellTextWeight as any,
+      fontFamily: typography.fontFamily,
+    }
 
     return (
       <View style={style}>
@@ -320,9 +274,9 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
           style={[
             styles.wrapper,
             {
-              backgroundColor: wrapperBackground,
-              borderRadius: tokens.radii.wrapper,
-              opacity: disabled ? tokens.opacity.disabled : 1,
+              backgroundColor,
+              borderRadius: radii.wrapper,
+              opacity: disabled ? opacity.disabled : 1,
             },
             !hasGutter && {
               borderWidth: StyleSheet.hairlineWidth,
@@ -338,39 +292,21 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
             style={[
               styles.security,
               {
-                borderRadius: hasGutter ? 0 : tokens.radii.wrapper,
-                backgroundColor: securityBackground,
+                borderRadius: hasGutter ? 0 : radii.wrapper,
+                backgroundColor,
               },
             ]}
           >
             {cells.map((item, index) => {
-              const filledTextStyle =
-                !mask && item.isFilled
-                  ? [
-                    styles.cellText,
-                    {
-                      color: colors.text,
-                      fontSize: tokens.sizing.cellTextSize,
-                      fontWeight: tokens.typography.cellTextWeight as any,
-                      fontFamily: tokens.typography.fontFamily,
-                    },
-                    cellTextStyle,
-                    highlightTextStyle,
-                  ]
-                  : [
-                    styles.cellText,
-                    {
-                      color: colors.text,
-                      fontSize: tokens.sizing.cellTextSize,
-                      fontWeight: tokens.typography.cellTextWeight as any,
-                      fontFamily: tokens.typography.fontFamily,
-                    },
-                    cellTextStyle,
-                  ]
+              const filledTextStyle = [
+                cellTextBase,
+                cellTextStyle,
+                !mask && item.isFilled && highlightTextStyle,
+              ]
 
               const baseCell = [
                 styles.cell,
-                { backgroundColor: colors.background, height: tokens.sizing.cellHeight },
+                { backgroundColor: colors.background, height: sizing.cellHeight },
                 cellStyle,
                 item.isFilled && cellFilledStyle,
               ]
@@ -393,11 +329,10 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
                   {mask ? (
                     <View
                       style={[
-                        styles.mask,
                         {
-                          width: tokens.sizing.maskSize,
-                          height: tokens.sizing.maskSize,
-                          borderRadius: tokens.sizing.maskSize / 2,
+                          width: sizing.maskSize,
+                          height: sizing.maskSize,
+                          borderRadius: sizing.maskSize / 2,
                           backgroundColor: colors.text,
                           opacity: item.isFilled ? 1 : 0,
                         },
@@ -415,11 +350,11 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
                       style={[
                         styles.cursor,
                         {
-                          width: tokens.sizing.cursorWidth,
-                          height: `${tokens.sizing.cursorHeightRatio * 100}%`,
-                          borderRadius: tokens.sizing.cursorWidth / 2,
-                          top: `${tokens.sizing.cursorTopRatio * 100}%`,
-                          marginLeft: -tokens.sizing.cursorWidth / 2,
+                          width: sizing.cursorWidth,
+                          height: `${sizing.cursorHeightRatio * 100}%`,
+                          borderRadius: sizing.cursorWidth / 2,
+                          top: `${sizing.cursorTopRatio * 100}%`,
+                          marginLeft: -sizing.cursorWidth / 2,
                           backgroundColor: colors.cursor,
                           opacity: cursorVisible ? 1 : 0,
                         },
@@ -483,10 +418,6 @@ const styles = StyleSheet.create({
   cellGutter: {
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 0,
-  },
-  cellText: {
-  },
-  mask: {
   },
   cursor: {
     position: 'absolute',

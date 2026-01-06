@@ -12,11 +12,7 @@ export type {
 } from './types'
 export { useTabsTokens } from './tokens'
 
-const Tabs = TabsBase as typeof TabsBase & {
-  TabPane: typeof TabPane
-}
-
-Tabs.TabPane = TabPane
+const Tabs = Object.assign(TabsBase, { TabPane })
 
 export { TabPane }
 export default Tabs

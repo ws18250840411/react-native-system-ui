@@ -63,11 +63,8 @@ const useAvatarTokens = (overrides?: DeepPartial<AvatarTokens>): AvatarTokens =>
   return React.useMemo(() => {
     const base = createAvatarTokens(foundations)
     const componentOverrides = components?.avatar
-    const merged = componentOverrides
-      ? overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides
-      : overrides
+    const merged =
+      componentOverrides && overrides ? deepMerge(componentOverrides, overrides) : componentOverrides ?? overrides
     return merged ? deepMerge(base, merged) : base
   }, [components, foundations, overrides])
 }
@@ -92,28 +89,6 @@ const styles = StyleSheet.create({
   },
 })
 
-const getDimension = (size: AvatarSize | number | undefined, sizeMap: Record<AvatarSize, number>) => {
-  if (typeof size === 'number') {
-    return size
-  }
-  return sizeMap[size ?? 'medium']
-}
-
-const getRadius = (
-  shape: AvatarShape,
-  width: number,
-  height: number,
-  options: { squareMin: number; squareDivisor: number }
-) =>
-  shape === 'circle'
-    ? Math.min(width, height) / 2
-    : Math.max(options.squareMin, Math.min(width, height) / options.squareDivisor)
-
-const useFallbackText = (text?: string) => {
-  if (!text) return undefined
-  return text.trim().slice(0, 2).toUpperCase()
-}
-
 export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, AvatarProps>(
   (
     {
@@ -129,43 +104,33 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       style,
       textStyle,
       contentStyle,
+      tokensOverride,
       ...pressableProps
     },
     ref
   ) => {
-    const tokens = useAvatarTokens()
+    const tokens = useAvatarTokens(tokensOverride)
     const resolvedSize = size ?? tokens.defaults.size
     const resolvedShape = shape ?? tokens.defaults.shape
-    const baseSize = getDimension(resolvedSize, tokens.sizing.sizes)
+    const baseSize = typeof resolvedSize === 'number' ? resolvedSize : tokens.sizing.sizes[resolvedSize]
     const avatarWidth = width ?? baseSize
     const avatarHeight = height ?? baseSize
-    const borderRadius = getRadius(resolvedShape, avatarWidth, avatarHeight, tokens.radii)
-    const fallbackText = useFallbackText(text)
+    const borderRadius = resolvedShape === 'circle'
+      ? Math.min(avatarWidth, avatarHeight) / 2
+      : Math.max(tokens.radii.squareMin, Math.min(avatarWidth, avatarHeight) / tokens.radii.squareDivisor)
 
-    const containerStyle: StyleProp<ViewStyle> = [
-      styles.container,
-      {
-        width: avatarWidth,
-        height: avatarHeight,
-        borderRadius,
-        backgroundColor: backgroundColor ?? tokens.colors.background,
-      },
-      style,
-    ]
+    const fallbackText = text ? text.trim().slice(0, 2).toUpperCase() : undefined
 
-    const renderContent = () => {
-      if (src) {
-        const source = typeof src === 'string' ? { uri: src } : src
-        return (
-          <Image
-            source={source}
-            style={[styles.image, { borderRadius }]}
-            resizeMode="cover"
-          />
-        )
-      }
-      if (icon) {
-        return (
+    const content = src
+      ? (
+        <Image
+          source={typeof src === 'string' ? { uri: src } : src}
+          style={[styles.image, { borderRadius }]}
+          resizeMode="cover"
+        />
+      )
+      : icon
+        ? (
           <View
             style={[
               styles.iconWrapper,
@@ -179,31 +144,41 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
             {icon}
           </View>
         )
-      }
-      if (fallbackText) {
-        return (
-          <Text
-            style={[
-              styles.text,
-              {
-                color: color ?? tokens.colors.text,
-                fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              textStyle,
-            ]}
-            numberOfLines={1}
-          >
-            {fallbackText}
-          </Text>
-        )
-      }
-      return null
-    }
+        : fallbackText
+          ? (
+            <Text
+              style={[
+                styles.text,
+                {
+                  color: color ?? tokens.colors.text,
+                  fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
+                  fontWeight: tokens.typography.fontWeight,
+                },
+                textStyle,
+              ]}
+              numberOfLines={1}
+            >
+              {fallbackText}
+            </Text>
+          )
+          : null
 
     return (
-      <Pressable ref={ref} style={containerStyle} {...pressableProps}>
-        {renderContent()}
+      <Pressable
+        ref={ref}
+        style={[
+          styles.container,
+          {
+            width: avatarWidth,
+            height: avatarHeight,
+            borderRadius,
+            backgroundColor: backgroundColor ?? tokens.colors.background,
+          },
+          style,
+        ]}
+        {...pressableProps}
+      >
+        {content}
       </Pressable>
     )
   }

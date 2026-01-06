@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface NumberKeyboardTokens {
   colors: {
@@ -42,7 +38,8 @@ export interface NumberKeyboardTokens {
 
 const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
   const { palette, spacing, radii, fontSize } = foundations
-  const surface = palette.default[50] ?? '#ffffff'
+  const surface = palette.default[50]
+  const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     colors: {
       background: palette.default[100],
@@ -52,7 +49,7 @@ const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
       keyText: palette.default[900],
       keyTextActive: palette.primary[600],
       closeBackground: palette.primary[600],
-      closeText: palette.primary.foreground ?? '#ffffff',
+      closeText: onPrimary,
       border: palette.default[200],
     },
     spacing: {
@@ -79,16 +76,7 @@ const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
   }
 }
 
-export const useNumberKeyboardTokens = (
-  overrides?: DeepPartial<NumberKeyboardTokens>,
-): NumberKeyboardTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.numberKeyboard
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useNumberKeyboardTokens = createComponentTokensHook(
+  'numberKeyboard',
+  createTokens
+)

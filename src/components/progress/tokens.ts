@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { DeepPartial } from '../../types'
-import type { Foundations } from '../../design-system/tokens'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface ProgressTokens {
   colors: {
@@ -19,28 +15,24 @@ export interface ProgressTokens {
   }
 }
 
-const createProgressTokens = (foundations: Foundations): ProgressTokens => ({
-  colors: {
-    track: foundations.palette.default[100],
-    indicator: foundations.palette.primary[500],
-    pivotText: foundations.palette.primary.foreground ?? '#ffffff',
-  },
-  sizes: {
-    height: 4,
-    pivotFont: foundations.fontSize.xs,
-    pivotPaddingHorizontal: foundations.spacing.xs,
-    pivotPaddingVertical: 2,
-  },
-})
-
-export const useProgressTokens = (overrides?: DeepPartial<ProgressTokens>): ProgressTokens => {
-  const { foundations, components } = useTheme()
-  const base = React.useMemo(() => createProgressTokens(foundations), [foundations])
-  const componentOverrides = components?.progress
-  const merged = componentOverrides
-    ? overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides
-    : overrides
-  return merged ? deepMerge(base, merged) : base
+const createProgressTokens = (foundations: Foundations): ProgressTokens => {
+  const onPrimary = foundations.palette.primary.foreground ?? '#ffffff'
+  return {
+    colors: {
+      track: foundations.palette.default[100],
+      indicator: foundations.palette.primary[500],
+      pivotText: onPrimary,
+    },
+    sizes: {
+      height: 4,
+      pivotFont: foundations.fontSize.xs,
+      pivotPaddingHorizontal: foundations.spacing.xs,
+      pivotPaddingVertical: 2,
+    },
+  }
 }
+
+export const useProgressTokens = createComponentTokensHook(
+  'progress',
+  createProgressTokens
+)

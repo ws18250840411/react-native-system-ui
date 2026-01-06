@@ -145,8 +145,6 @@ export type {
   DropdownMenuInstance,
   DropdownItemInstance,
 } from './dropdown-menu'
-export { default as Popover } from './popover'
-export type { PopoverProps, PopoverPlacement } from './popover'
 export { default as Area } from './area'
 export type { AreaProps } from './area'
 export { default as List } from './list'
@@ -167,6 +165,8 @@ export { default as Swiper } from './swiper'
 export { SwiperItem } from './swiper'
 export { SwiperPagIndicator } from './swiper'
 export type { SwiperProps, SwiperInstance, SwiperItemProps } from './swiper'
+export type { SwiperPagIndicatorProps, SwiperPagIndicatorTokens } from './swiper'
+export { useSwiperPagIndicatorTokens } from './swiper'
 export { default as Uploader } from './uploader'
 export type {
   UploaderProps,

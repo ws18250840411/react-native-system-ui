@@ -1,30 +1,17 @@
 import React from 'react'
-import { Animated, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
+import { Animated, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
 
+import { useControllableValue } from '../../hooks'
+import { measureInWindow, nativeDriverEnabled } from '../../platform'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
 import { createHairlineBorderBottom } from '../../utils/hairline'
+import { parseNumber, parseNumberLike } from '../../utils/number'
 import type { DropdownMenuInstance, DropdownMenuProps } from './types'
 import { DropdownMenuContext } from './DropdownMenuContext'
 import { useDropdownMenuTokens } from './tokens'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
-
-const parseNumber = (value: number | string | undefined, fallback: number) => {
-  if (typeof value === 'number') return value
-  if (typeof value === 'string') {
-    const parsed = Number.parseFloat(value)
-    return Number.isFinite(parsed) ? parsed : fallback
-  }
-  return fallback
-}
-
-const parseDurationMs = (value: number | string | undefined, fallback: number) => {
-  if (value === undefined) return fallback
-  const parsed = typeof value === 'number' ? value : Number.parseFloat(value)
-  if (!Number.isFinite(parsed)) return fallback
-  return Math.max(0, parsed) * 1000
-}
 
 const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((props, ref) => {
   const {
@@ -39,44 +26,26 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     closeOnClickOverlay = true,
     closeOnClickOutside = true,
     swipeThreshold,
-    value: valueProp,
-    defaultValue: defaultValueProp,
-    onChange: onChangeProp,
+    value,
+    defaultValue,
+    onChange,
     onOpen,
     onClose,
     onOpened,
     onClosed,
+    tokensOverride,
     style,
     ...rest
   } = props
 
-  const tokens = useDropdownMenuTokens()
+  const tokens = useDropdownMenuTokens(tokensOverride)
 
-  const [value, setValue] = React.useState<Record<string, string | number>>(() => {
-    if (valueProp !== undefined) return valueProp
-    if (defaultValueProp !== undefined) return defaultValueProp
-    return {}
+  const [menuValue = {}, onMenuChange] = useControllableValue<Record<string, string | number>>(props, {
+    defaultValue: {},
   })
 
-  React.useEffect(() => {
-    if (valueProp !== undefined) {
-      setValue(valueProp)
-    }
-  }, [valueProp])
-
-  const handleMenuChange = React.useCallback(
-    (newValue: Record<string, string | number>) => {
-      setValue(newValue)
-      onChangeProp?.(newValue)
-    },
-    [onChangeProp]
-  )
-
   const [activeIndex, setActiveIndex] = React.useState<number | null>(null)
-  const activeIndexRef = React.useRef(activeIndex)
-  React.useEffect(() => {
-    activeIndexRef.current = activeIndex
-  }, [activeIndex])
+  const activeIndexRef = React.useRef<number | null>(null)
 
   const [panel, setPanel] = React.useState<React.ReactNode>(null)
   const [mounted, setMounted] = React.useState(false)
@@ -87,13 +56,12 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const panelRegistryRef = React.useRef(new Map<number, React.ReactNode>())
 
-  const zIndex = React.useMemo(() => parseNumber(zIndexProp, 10), [zIndexProp])
-  const durationMs = React.useMemo(() => parseDurationMs(duration, 200), [duration])
-  const threshold = React.useMemo(() => {
-    if (swipeThreshold === undefined) return undefined
-    const parsed = parseNumber(swipeThreshold, 0)
-    return parsed > 0 ? Math.floor(parsed) : undefined
-  }, [swipeThreshold])
+  const zIndex = parseNumber(zIndexProp, 10)
+  const durationMs =
+    duration === undefined ? 200 : Math.max(0, parseNumber(duration, 0.2)) * 1000
+  const thresholdRaw = swipeThreshold === undefined ? undefined : parseNumberLike(swipeThreshold)
+  const threshold =
+    thresholdRaw !== undefined && thresholdRaw > 0 ? Math.floor(thresholdRaw) : undefined
 
   const progress = React.useRef(new Animated.Value(0)).current
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
@@ -109,7 +77,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
       const animation = Animated.timing(progress, {
         toValue,
         duration: durationMs,
-        useNativeDriver: Platform.OS !== 'web',
+        useNativeDriver: nativeDriverEnabled,
       })
       animationRef.current = animation
       animation.start(({ finished }) => {
@@ -130,6 +98,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   const showItem = React.useCallback(
     (index: number) => {
       if (disabled) return
+      activeIndexRef.current = index
       setActiveIndex(index)
       setPanel(panelRegistryRef.current.get(index) ?? null)
     },
@@ -137,6 +106,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   )
 
   const closeMenu = React.useCallback(() => {
+    activeIndexRef.current = null
     setActiveIndex(null)
   }, [])
 
@@ -164,8 +134,11 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const requestMeasure = React.useCallback(() => {
     const node = barRef.current as any
-    if (node && typeof node.measureInWindow === 'function') {
-      node.measureInWindow((_x: number, y: number, _w: number, height: number) => {
+
+    measureInWindow(node, rect => {
+      if (rect) {
+        const y = rect.y
+        const height = rect.height
         if (!Number.isFinite(y) || !Number.isFinite(height)) return
         setBarFrame(prev => {
           if (prev && Math.abs(prev.y - y) < 0.5 && Math.abs(prev.height - height) < 0.5) {
@@ -173,16 +146,16 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
           }
           return { y, height }
         })
-      })
-      return
-    }
-
-    setBarFrame(prev => {
-      const fallback = { y: 0, height: barHeight }
-      if (prev && Math.abs(prev.y - fallback.y) < 0.5 && Math.abs(prev.height - fallback.height) < 0.5) {
-        return prev
+        return
       }
-      return fallback
+
+      setBarFrame(prev => {
+        const fallback = { y: 0, height: barHeight }
+        if (prev && Math.abs(prev.y - fallback.y) < 0.5 && Math.abs(prev.height - fallback.height) < 0.5) {
+          return prev
+        }
+        return fallback
+      })
     })
   }, [barHeight])
 
@@ -214,10 +187,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     requestMeasure()
   }, [mounted, requestMeasure, windowHeight])
 
-  const barScrollable = React.useMemo(() => {
-    if (threshold === undefined) return false
-    return React.Children.count(children) > threshold
-  }, [children, threshold])
+  const barScrollable = threshold !== undefined && React.Children.count(children) > threshold
 
   const contextValue = React.useMemo(
     () => ({
@@ -230,8 +200,8 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
       activeIcon,
       direction,
       disabled,
-      menuValue: value,
-      onMenuChange: handleMenuChange,
+      menuValue,
+      onMenuChange,
     }),
     [
       activeColor,
@@ -243,8 +213,8 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
       registerPanel,
       showItem,
       toggleItem,
-      value,
-      handleMenuChange,
+      menuValue,
+      onMenuChange,
     ],
   )
 
@@ -256,34 +226,18 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   const resolvedBarBottom = resolvedBarTop + resolvedBarHeight
   const bottomInset = Math.max(0, windowHeight - resolvedBarTop)
 
-  const maskInsetStyle = direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }
-  const panelInsetStyle = direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }
-  const panelRadiusStyle =
-    direction === 'up'
-      ? {
-        borderTopLeftRadius: 12,
-        borderTopRightRadius: 12,
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-      }
-      : {
-        borderTopLeftRadius: 0,
-        borderTopRightRadius: 0,
-        borderBottomLeftRadius: 12,
-        borderBottomRightRadius: 12,
-      }
+  const insetStyle = direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }
+  const panelRadiusStyle = direction === 'up' ? styles.panelUp : styles.panelDown
 
-  const panelAnimatedStyle = React.useMemo(() => {
-    const offset = 8
-    const translate = progress.interpolate({
-      inputRange: [0, 1],
-      outputRange: direction === 'up' ? [offset, 0] : [-offset, 0],
-    })
-    return {
-      opacity: progress,
-      transform: [{ translateY: translate }],
-    }
-  }, [direction, progress])
+  const offset = 8
+  const translate = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: direction === 'up' ? [offset, 0] : [-offset, 0],
+  })
+  const panelAnimatedStyle = {
+    opacity: progress,
+    transform: [{ translateY: translate }],
+  }
 
   const { zIndex: stackZIndex } = useOverlayStack({
     visible: mounted,
@@ -294,20 +248,21 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const resolvedZIndex = stackZIndex ?? zIndex
 
-  const barStyle = React.useMemo(
-    () => [
-      styles.barWrapper,
-      {
-        height: tokens.sizing.barHeight,
-        backgroundColor: tokens.colors.barBackground,
-        paddingHorizontal: tokens.spacing.horizontal,
-        ...(mounted && zIndex ? { zIndex: resolvedZIndex + 1 } : {}),
-        ...tokens.shadow,
-      },
-      createHairlineBorderBottom(tokens.colors.divider),
-    ],
-    [tokens.sizing.barHeight, tokens.colors.barBackground, tokens.spacing.horizontal, tokens.colors.divider, tokens.shadow, mounted, resolvedZIndex, zIndex]
+  const barChildren = React.Children.map(children, (child, index) =>
+    React.isValidElement(child) ? React.cloneElement(child as any, { index, barScrollable }) : child,
   )
+
+  const barStyle = [
+    styles.barWrapper,
+    {
+      height: tokens.sizing.barHeight,
+      backgroundColor: tokens.colors.barBackground,
+      paddingHorizontal: tokens.spacing.horizontal,
+      zIndex: mounted ? resolvedZIndex + 1 : undefined,
+      ...tokens.shadow,
+    },
+    createHairlineBorderBottom(tokens.colors.divider),
+  ]
 
   return (
     <DropdownMenuContext.Provider value={contextValue}>
@@ -327,19 +282,11 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.barScrollContent}
             >
-              {React.Children.map(children, (child, index) => (
-                React.isValidElement(child)
-                  ? React.cloneElement(child as React.ReactElement<any>, { index, barScrollable })
-                  : child
-              ))}
+              {barChildren}
             </ScrollView>
           ) : (
             <View style={styles.bar}>
-              {React.Children.map(children, (child, index) => (
-                React.isValidElement(child)
-                  ? React.cloneElement(child as React.ReactElement<any>, { index, barScrollable })
-                  : child
-              ))}
+              {barChildren}
             </View>
           )}
         </View>
@@ -351,7 +298,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
                 <AnimatedPressable
                   style={[
                     styles.mask,
-                    maskInsetStyle,
+                    insetStyle,
                     {
                       backgroundColor: overlay ? tokens.colors.mask : 'transparent',
                       opacity: progress,
@@ -371,7 +318,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
               <Animated.View
                 style={[
                   styles.panel,
-                  panelInsetStyle,
+                  insetStyle,
                   panelRadiusStyle,
                   panelAnimatedStyle,
                   {
@@ -420,6 +367,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     overflow: 'hidden',
+  },
+  panelUp: {
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  panelDown: {
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
   },
 })
 

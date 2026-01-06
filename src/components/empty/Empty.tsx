@@ -66,11 +66,8 @@ const useEmptyTokens = (overrides?: DeepPartial<EmptyTokens>) => {
   return React.useMemo(() => {
     const base = createEmptyTokens(foundations)
     const globalOverrides = components?.empty
-    const mergedOverrides = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
+    const mergedOverrides =
+      globalOverrides && overrides ? deepMerge(globalOverrides, overrides) : globalOverrides ?? overrides
     return mergedOverrides ? deepMerge(base, mergedOverrides) : base
   }, [foundations, components, overrides])
 }
@@ -79,8 +76,10 @@ const PRESET_IMAGES: EmptyImage[] = ['default', 'error', 'network', 'search']
 const resolvePresetImage = (value: EmptyImage) => `https://img.yzcdn.cn/vant/empty-image-${value}.png`
 
 export const Empty: React.FC<EmptyProps> = props => {
-  const tokens = useEmptyTokens()
+  const { tokensOverride } = props
+  const tokens = useEmptyTokens(tokensOverride)
   const {
+    tokensOverride: _tokensOverride,
     image = 'default',
     imageSize,
     imageStyle,
@@ -93,6 +92,7 @@ export const Empty: React.FC<EmptyProps> = props => {
   } = props
 
   const resolvedImageSize = imageSize ?? tokens.sizes.image
+  const hasChildren = children !== null && children !== undefined && children !== false
 
   const renderImage = () => {
     if (React.isValidElement(image)) {
@@ -114,11 +114,8 @@ export const Empty: React.FC<EmptyProps> = props => {
     }
 
     if (typeof image === 'string') {
-      const resolvedSrc = /^https?:/.test(image)
-        ? image
-        : PRESET_IMAGES.includes(image as EmptyImage)
-          ? resolvePresetImage(image as EmptyImage)
-          : resolvePresetImage('default')
+      const preset = PRESET_IMAGES.includes(image as EmptyImage) ? (image as EmptyImage) : 'default'
+      const resolvedSrc = /^https?:/.test(image) ? image : resolvePresetImage(preset)
 
       return (
         <Image
@@ -184,11 +181,11 @@ export const Empty: React.FC<EmptyProps> = props => {
     >
       {renderImage()}
       {renderDescription()}
-      {children === null || children === undefined || children === false ? null : (
+      {hasChildren ? (
         <View style={{ marginTop: tokens.spacing.footerMargin }}>
           {typeof children === 'string' || typeof children === 'number' ? <Text>{children}</Text> : children}
         </View>
-      )}
+      ) : null}
     </View>
   )
 }

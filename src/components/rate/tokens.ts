@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 
 export interface RateTokens {
   defaults: {
@@ -38,16 +34,4 @@ const createRateTokens = (foundations: Foundations): RateTokens => {
   }
 }
 
-export const useRateTokens = (
-  overrides?: DeepPartial<RateTokens>
-): RateTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createRateTokens(foundations)
-    const componentOverrides = components?.rate
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useRateTokens = createComponentTokensHook('rate', createRateTokens)

@@ -1,10 +1,9 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 
 export interface SwiperPagIndicatorTokens {
   colors: {
@@ -52,20 +51,10 @@ const createSwiperPagIndicatorTokens = (
   },
 })
 
-const useSwiperPagIndicatorTokens = (
-  overrides?: DeepPartial<SwiperPagIndicatorTokens>,
-): SwiperPagIndicatorTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createSwiperPagIndicatorTokens(foundations)
-    const componentOverrides = components?.swiperPagIndicator
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useSwiperPagIndicatorTokens = createComponentTokensHook(
+  'swiperPagIndicator',
+  createSwiperPagIndicatorTokens
+)
 
 export interface SwiperPagIndicatorProps {
   total: number
@@ -74,6 +63,7 @@ export interface SwiperPagIndicatorProps {
   style?: any
   activeColor?: string
   inactiveColor?: string
+  tokensOverride?: DeepPartial<SwiperPagIndicatorTokens>
 }
 
 const SwiperPagIndicator = React.memo<SwiperPagIndicatorProps>(
@@ -84,8 +74,9 @@ const SwiperPagIndicator = React.memo<SwiperPagIndicatorProps>(
     style,
     activeColor,
     inactiveColor,
+    tokensOverride,
   }) => {
-    const tokens = useSwiperPagIndicatorTokens()
+    const tokens = useSwiperPagIndicatorTokens(tokensOverride)
     const dots: React.ReactElement[] = []
     const resolvedActiveColor = activeColor ?? tokens.colors.active
     const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
@@ -105,7 +96,6 @@ const SwiperPagIndicator = React.memo<SwiperPagIndicatorProps>(
         <View
           key={i}
           style={[
-            styles.dot,
             {
               marginHorizontal: dotMargin,
               marginVertical: dotMargin,
@@ -143,7 +133,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    // 确保指示器始终覆盖在滑动轨道之上（web 下 transform 会创建 stacking context）
   },
   containerHorizontal: {
     position: 'absolute',
@@ -156,7 +145,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     flexDirection: 'column',
   },
-  dot: {},
 })
 
 export default SwiperPagIndicator

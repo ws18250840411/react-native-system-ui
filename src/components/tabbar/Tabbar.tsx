@@ -1,6 +1,7 @@
 import React from 'react'
 import { SafeAreaView, StyleSheet, View } from 'react-native'
 
+import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
 import { createHairlineBorderTop } from '../../utils/hairline'
 import { TabbarContext } from './TabbarContext'
@@ -8,7 +9,7 @@ import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarProps, TabbarValue } from './types'
 
 const TabbarBase: React.FC<TabbarProps> = props => {
-  const tokens = useTabbarTokens()
+  const tokens = useTabbarTokens(props.tokensOverride)
   const {
     children,
     value,
@@ -22,6 +23,7 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     placeholder = tokens.defaults.placeholder,
     safeAreaInsetBottom,
     iconSize = tokens.icon.size,
+    tokensOverride,
     style,
     contentStyle,
     onChange,
@@ -31,22 +33,8 @@ const TabbarBase: React.FC<TabbarProps> = props => {
   // 与 Vant 行为对齐：fixed 时默认开启 safe-area-inset-bottom
   const enableSafeAreaInsetBottom = safeAreaInsetBottom ?? fixed
 
-  const items = React.useMemo(() => {
-    return React.Children.toArray(children)
-      .map((child, index) => {
-        if (!React.isValidElement<TabbarItemProps>(child)) return null
-        const itemProps = child.props
-        const name = (itemProps.name ?? index) as TabbarValue
-        return {
-          element: child,
-          index,
-          name,
-        }
-      })
-      .filter(Boolean) as { element: React.ReactElement<TabbarItemProps>; index: number; name: TabbarValue }[]
-  }, [children])
-
-  const firstName = items[0]?.name
+  const items = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<TabbarItemProps>[]
+  const firstName = items.length ? ((items[0].props.name ?? 0) as TabbarValue) : undefined
   const [activeValue, setActiveValue] = useControllableValue<TabbarValue>(props, {
     defaultValue: firstName,
     valuePropName: 'value',
@@ -54,56 +42,37 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     trigger: 'onChange',
   })
 
-  const currentName = React.useMemo(() => {
-    if (activeValue === undefined || activeValue === null) {
-      return firstName
-    }
-    const exists = items.some(item => item.name === activeValue)
-    return exists ? activeValue : firstName
-  }, [activeValue, firstName, items])
+  const currentName =
+    activeValue === undefined || activeValue === null
+      ? firstName
+      : items.some((item, index) => (item.props.name ?? index) === activeValue)
+        ? activeValue
+        : firstName
 
   const [barHeight, setBarHeight] = React.useState(tokens.layout.height)
+  const contextValue = {
+    activeValue: currentName,
+    activeColor: activeColor ?? tokens.colors.active,
+    inactiveColor: inactiveColor ?? tokens.colors.inactive,
+    fontSize: tokens.typography.fontSize,
+    fontWeight: tokens.typography.fontWeight,
+    onSelect: (name: TabbarValue, index: number) => setActiveValue(name, index),
+  }
 
-  const handleSelect = React.useCallback(
-    (name: TabbarValue, index: number) => {
-      setActiveValue(name, index)
-    },
-    [setActiveValue]
-  )
+  const clonedChildren = items.map((item, index) => {
+    const name = (item.props.name ?? index) as TabbarValue
+    return React.cloneElement(item, {
+      key: item.key ?? name,
+      name,
+      index,
+      iconSize,
+      tokensOverride: mergeTokensOverride(tokensOverride, item.props.tokensOverride),
+    })
+  })
 
-  const contextValue = React.useMemo(
-    () => ({
-      activeValue: currentName,
-      activeColor: activeColor ?? tokens.colors.active,
-      inactiveColor: inactiveColor ?? tokens.colors.inactive,
-      fontSize: tokens.typography.fontSize,
-      fontWeight: tokens.typography.fontWeight,
-      onSelect: handleSelect,
-    }),
-    [
-      activeColor,
-      currentName,
-      handleSelect,
-      inactiveColor,
-      tokens.colors.active,
-      tokens.colors.inactive,
-      tokens.typography.fontSize,
-      tokens.typography.fontWeight,
-    ],
-  )
+  if (items.length === 0) return null
 
-  const clonedChildren = React.useMemo(() => {
-    return items.map(item =>
-      React.cloneElement(item.element, {
-        key: item.element.key ?? item.name,
-        name: item.name,
-        index: item.index,
-        iconSize,
-      })
-    )
-  }, [iconSize, items])
-
-  const navContent = (
+  const bar = (
     <View
       style={[
         styles.bar,
@@ -124,16 +93,6 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     </View>
   )
 
-  const safeAreaWrapped = enableSafeAreaInsetBottom ? (
-    <SafeAreaView style={{ backgroundColor: background }}>{navContent}</SafeAreaView>
-  ) : (
-    navContent
-  )
-
-  if (items.length === 0) {
-    return null
-  }
-
   return (
     <>
       {fixed && placeholder ? <View testID="rv-tabbar-placeholder" style={{ height: barHeight }} /> : null}
@@ -142,7 +101,11 @@ const TabbarBase: React.FC<TabbarProps> = props => {
         style={[styles.container, fixed && [styles.fixed, { zIndex }], style]}
         onLayout={event => setBarHeight(event.nativeEvent.layout.height)}
       >
-        {safeAreaWrapped}
+        {enableSafeAreaInsetBottom ? (
+          <SafeAreaView style={{ backgroundColor: background }}>{bar}</SafeAreaView>
+        ) : (
+          bar
+        )}
       </View>
     </>
   )

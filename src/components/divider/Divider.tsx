@@ -80,24 +80,18 @@ const useDividerTokens = (overrides?: DeepPartial<DividerTokens>) => {
 
   return React.useMemo(() => {
     const base = createDividerTokens(foundations)
-    const globalOverrides = components?.divider
-    const mergedOverrides = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
-  }, [foundations, components, overrides])
+    const componentOverrides = components?.divider
+    const merged =
+      componentOverrides && overrides
+        ? deepMerge(componentOverrides, overrides)
+        : componentOverrides ?? overrides
+    return merged ? deepMerge(base, merged) : base
+  }, [components, foundations, overrides])
 }
 
-const flexRatioMap = {
-  left: { left: 0.3, right: 1 },
-  center: { left: 1, right: 1 },
-  right: { left: 1, right: 0.3 },
-} as const
-
 export const Divider: React.FC<DividerProps> = props => {
-  const tokens = useDividerTokens()
+  const { tokensOverride } = props
+  const tokens = useDividerTokens(tokensOverride)
   const {
     children,
     type = tokens.defaults.type,
@@ -114,33 +108,27 @@ export const Divider: React.FC<DividerProps> = props => {
   const resolvedColor = lineColor ?? tokens.colors.line
   const borderStyle: ViewStyle['borderStyle'] = dashed ? 'dashed' : 'solid'
 
-  const renderContent = () => {
-    if (children === null || children === undefined || children === false) {
-      return null
-    }
-
-    if (typeof children === 'string' || typeof children === 'number') {
-      return (
-        <Text
-          style={[
-            styles.text,
-            {
-              color: tokens.colors.text,
-              fontSize: tokens.typography.fontSize,
-              lineHeight: tokens.typography.lineHeight,
-              fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.fontWeight as any,
-            },
-            textStyle,
-          ]}
-        >
-          {children}
-        </Text>
-      )
-    }
-
-    return children
-  }
+  const hasContent = children !== null && children !== undefined && children !== false
+  const content =
+    !hasContent ? null : typeof children === 'string' || typeof children === 'number' ? (
+      <Text
+        style={[
+          styles.text,
+          {
+            color: tokens.colors.text,
+            fontSize: tokens.typography.fontSize,
+            lineHeight: tokens.typography.lineHeight,
+            fontFamily: tokens.typography.fontFamily,
+            fontWeight: tokens.typography.fontWeight as any,
+          },
+          textStyle,
+        ]}
+      >
+        {children}
+      </Text>
+    ) : (
+      children
+    )
 
   if (type === 'vertical') {
     return (
@@ -152,7 +140,12 @@ export const Divider: React.FC<DividerProps> = props => {
         ]}
         {...rest}
       >
-        <View style={styles.verticalLine}>
+        <View
+          style={[
+            styles.verticalLine,
+            { width: hairline ? 1 : tokens.line.thickness },
+          ]}
+        >
           {hairline ? (
             <View
               style={createHairlineView({
@@ -181,11 +174,11 @@ export const Divider: React.FC<DividerProps> = props => {
     )
   }
 
-  const hasContent = children !== null && children !== undefined && children !== false
-  const ratios = flexRatioMap[contentPosition]
+  const leftGrow = contentPosition === 'left' ? 0.3 : 1
+  const rightGrow = contentPosition === 'right' ? 0.3 : 1
 
   const renderLine = () => (
-    <View style={styles.line}>
+    <View style={[styles.line, { height: hairline ? 1 : tokens.line.thickness }]}>
       {hairline ? (
         <View
           style={createHairlineView({
@@ -221,18 +214,11 @@ export const Divider: React.FC<DividerProps> = props => {
       ]}
       {...rest}
     >
+      <View style={{ flexGrow: hasContent ? leftGrow : 1, flexShrink: 1 }}>
+        {renderLine()}
+      </View>
       {hasContent ? (
         <>
-          <View
-            style={[
-              {
-                flexGrow: ratios.left,
-                flexShrink: 1,
-              },
-            ]}
-          >
-            {renderLine()}
-          </View>
           <View
             style={[
               styles.contentWrapper,
@@ -240,22 +226,13 @@ export const Divider: React.FC<DividerProps> = props => {
               contentStyle,
             ]}
           >
-            {renderContent()}
+            {content}
           </View>
-          <View
-            style={[
-              {
-                flexGrow: ratios.right,
-                flexShrink: 1,
-              },
-            ]}
-          >
+          <View style={{ flexGrow: rightGrow, flexShrink: 1 }}>
             {renderLine()}
           </View>
         </>
-      ) : (
-        <View style={{ flexGrow: 1 }}>{renderLine()}</View>
-      )}
+      ) : null}
     </View>
   )
 }
@@ -270,7 +247,6 @@ const styles = StyleSheet.create({
   },
   line: {
     position: 'relative',
-    height: 1,
   },
   contentWrapper: {
     justifyContent: 'center',
@@ -285,7 +261,6 @@ const styles = StyleSheet.create({
   },
   verticalLine: {
     position: 'relative',
-    width: 1,
     alignSelf: 'stretch',
   },
 })

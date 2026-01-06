@@ -23,9 +23,10 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
     style,
     index = 0,
     children: _children,
+    tokensOverride,
     ...rest
   } = props
-  const tokens = useSidebarTokens()
+  const tokens = useSidebarTokens(tokensOverride)
   const context = useSidebarContext()
 
   if (!context) {

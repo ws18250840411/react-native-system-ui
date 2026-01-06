@@ -12,12 +12,15 @@ import {
 import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 
+import { nativeDriverEnabled } from '../../platform'
 import type { NoticeBarProps } from './types'
 import { useNoticeBarTokens } from './tokens'
 
 const AnimatedText = Animated.createAnimatedComponent(Text)
+const IS_WEB = Platform.OS === 'web'
+const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
-if (Platform.OS === 'web') {
+if (IS_WEB) {
   const globalObj = typeof globalThis !== 'undefined' ? globalThis : (window as any)
   if (globalObj && globalObj.global === undefined) {
     globalObj.global = globalObj
@@ -33,6 +36,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     leftIcon,
     rightIcon,
     mode,
+    tokensOverride,
     delay = 1,
     speed = 60,
     scrollable,
@@ -43,12 +47,13 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     verticalDuration = 300,
     onPress,
     onClose,
+    onReplay,
     textProps,
     style,
     ...rest
   } = props
 
-  const tokens = useNoticeBarTokens()
+  const tokens = useNoticeBarTokens(tokensOverride)
   const resolvedColor = color ?? tokens.colors.text
   const resolvedBackground = background ?? tokens.colors.background
   const content = text ?? children
@@ -61,11 +66,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const [contentWidth, setContentWidth] = React.useState(0)
   const [containerWidth, setContainerWidth] = React.useState(0)
   const translateX = React.useRef(new Animated.Value(0)).current
-  const shouldScroll = React.useMemo(() => {
-    if (isVertical || wrapable) return false
-    if (scrollable !== undefined) return scrollable
-    return contentWidth > containerWidth
-  }, [isVertical, wrapable, scrollable, contentWidth, containerWidth])
+  const shouldScroll = !isVertical && !wrapable && (scrollable ?? contentWidth > containerWidth)
 
   const verticalItems = React.useMemo(() => {
     if (!isVertical) return []
@@ -103,11 +104,11 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
           toValue: -contentWidth,
           duration,
           easing: Easing.linear,
-          useNativeDriver: Platform.OS !== 'web',
+          useNativeDriver: nativeDriverEnabled,
         }),
       ]).start(({ finished }) => {
         if (finished && !cancelled) {
-          props.onReplay?.()
+          onReplay?.()
           run(false)
         }
       })
@@ -119,7 +120,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
       cancelled = true
       translateX.stopAnimation()
     }
-  }, [shouldScroll, translateX, delay, speed, contentWidth, containerWidth, props, isVertical])
+  }, [shouldScroll, translateX, delay, speed, contentWidth, containerWidth, onReplay, isVertical])
 
   React.useEffect(() => {
     if (!hasVerticalLoop || itemHeight === 0) {
@@ -136,7 +137,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
           toValue: -itemHeight * nextIndex,
           duration: verticalDuration,
           easing: Easing.linear,
-          useNativeDriver: Platform.OS !== 'web',
+          useNativeDriver: nativeDriverEnabled,
         }).start(({ finished }) => {
           if (cancelled || !finished) {
             return
@@ -204,7 +205,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   }
 
   const rightNode = renderRight()
-  const hasLeft = leftIcon !== null && leftIcon !== undefined && leftIcon !== false
+  const hasLeft = isRenderableNode(leftIcon)
   const hasRight = Boolean(rightNode)
 
   const handleItemLayout = (event: LayoutChangeEvent) => {
@@ -297,7 +298,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
       {...barPress.interactionProps}
       {...rest}
     >
-      {leftIcon !== null && leftIcon !== undefined && leftIcon !== false ? (
+      {hasLeft ? (
         <View style={[styles.sideSection, { minWidth: tokens.layout.sideMinWidth }]}>
           {leftIcon}
         </View>
@@ -330,7 +331,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
                   transform: [{ translateX }],
                 },
               ]}
-              {...(Platform.OS === 'web'
+              {...(IS_WEB
                 ? {}
                 : { numberOfLines: 1 as const, ellipsizeMode: 'clip' as const })}
               {...restTextProps}

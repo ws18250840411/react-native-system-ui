@@ -41,21 +41,9 @@ const parseOptions = (input?: NotifyInput): NotifyShowOptions => {
 
 const mergeOptions = (input: NotifyShowOptions, fallbackType: NotifyType): NotifyShowOptions => {
   const type = input.type ?? fallbackType
-  const base = {
-    ...currentOptions,
-    ...typeDefaults.get(type),
-  }
-
-  const merged: NotifyShowOptions = {
-    ...base,
-    ...input,
-    type,
-  }
-
-  if (merged.duration === undefined || merged.duration === null) {
-    merged.duration = base.duration ?? 3000
-  }
-
+  const base = { ...currentOptions, ...typeDefaults.get(type) }
+  const merged: NotifyShowOptions = { ...base, ...input, type }
+  merged.duration = merged.duration ?? base.duration ?? 3000
   return merged
 }
 
@@ -90,15 +78,15 @@ const NotifyPortal: React.FC<NotifyPortalProps> = ({ id, options }) => {
     }
   }, [id])
 
-  const handleClose = React.useCallback(() => {
+  const handleClose = () => {
     options.onClose?.()
     setVisible(false)
-  }, [options])
+  }
 
-  const handleClosed = React.useCallback(() => {
+  const handleClosed = () => {
     options.onClosed?.()
     removeNotify(id)
-  }, [id, options])
+  }
 
   return <Notify {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
 }
@@ -128,7 +116,7 @@ const showNotify = (input?: NotifyInput, fallbackType: NotifyType = 'primary'): 
       type: nextType,
     }
 
-    if ('duration' in parsed && (parsed.duration === undefined || parsed.duration === null)) {
+    if ('duration' in parsed && parsed.duration == null) {
       merged.duration = baseOptions.duration ?? 3000
     }
 
@@ -171,4 +159,3 @@ export const NotifyImperative = {
     }
   },
 }
-

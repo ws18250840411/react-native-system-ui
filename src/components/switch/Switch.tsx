@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -11,22 +10,15 @@ import {
   type GestureResponderEvent,
 } from 'react-native'
 
+import { nativeDriverEnabled } from '../../platform'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { useControllableValue } from '../../hooks'
+import { parseNumber } from '../../utils/number'
 import type { SwitchProps } from './types'
 import { useSwitchTokens } from './tokens'
 
 const AnimatedHandle = Animated.createAnimatedComponent(View)
 const switchEasing = Easing.bezier(0.25, 0.1, 0.25, 1)
-
-const parseNumber = (value: number | string | undefined, fallback: number) => {
-  if (typeof value === 'number') return value
-  if (typeof value === 'string') {
-    const parsed = Number.parseFloat(value)
-    return Number.isFinite(parsed) ? parsed : fallback
-  }
-  return fallback
-}
 
 export const Switch: React.FC<SwitchProps> = props => {
   const {
@@ -39,13 +31,14 @@ export const Switch: React.FC<SwitchProps> = props => {
     inactiveColor,
     activeValue = true,
     inactiveValue = false,
+    tokensOverride,
     onClick,
     onChange,
     style,
     ...rest
   } = props
 
-  const tokens = useSwitchTokens()
+  const tokens = useSwitchTokens(tokensOverride)
   const resolvedSize = Math.max(0, parseNumber(size, tokens.defaults.size))
 
   const padding = Math.max(2, Math.round(resolvedSize * 0.07))
@@ -76,7 +69,7 @@ export const Switch: React.FC<SwitchProps> = props => {
         toValue,
         duration: tokens.animation.duration,
         easing: switchEasing,
-        useNativeDriver: Platform.OS !== 'web',
+        useNativeDriver: nativeDriverEnabled,
       }),
       Animated.timing(colorProgress, {
         toValue,

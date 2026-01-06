@@ -1,9 +1,5 @@
-import * as React from "react"
-
-import { useTheme } from "../../design-system"
-import type { Foundations } from "../../design-system/tokens"
-import type { DeepPartial } from "../../types"
-import { deepMerge } from "../../utils/deepMerge"
+import { createComponentTokensHook } from "../../design-system"
+import { type Foundations } from "../../design-system/tokens"
 
 export interface CascaderTokens {
   colors: {
@@ -46,21 +42,23 @@ export interface CascaderTokens {
 
 const createTokens = (foundations: Foundations): CascaderTokens => {
   const { palette, spacing, radii } = foundations
+  const surface = palette.default[50]
+  const surfaceMuted = palette.default[100]
   return {
     colors: {
-      background: "#ffffff",
-      headerText: "#323232",
-      placeholder: "#969799",
-      closeIcon: "#c8c9cc",
-      closeIconActive: "#969799",
-      tabText: "#323232",
+      background: surface,
+      headerText: palette.default[900],
+      placeholder: palette.default[500],
+      closeIcon: palette.default[300],
+      closeIconActive: palette.default[500],
+      tabText: palette.default[900],
       tabActive: palette.primary[500],
-      tabInactive: "#969799",
-      optionText: "#323232",
-      optionDisabled: "#c8c9cc",
-      optionActiveBackground: "#f2f3f5",
+      tabInactive: palette.default[500],
+      optionText: palette.default[900],
+      optionDisabled: palette.default[300],
+      optionActiveBackground: surfaceMuted,
       optionActiveText: palette.primary[500],
-      divider: "#ebedf0",
+      divider: palette.default[200],
     },
     spacing: {
       headerPaddingHorizontal: spacing.lg,
@@ -86,12 +84,7 @@ const createTokens = (foundations: Foundations): CascaderTokens => {
   }
 }
 
-export const useCascaderTokens = (overrides?: DeepPartial<CascaderTokens>): CascaderTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.cascader
-    const merged = componentOverrides && overrides ? deepMerge(componentOverrides, overrides) : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useCascaderTokens = createComponentTokensHook(
+  "cascader",
+  createTokens
+)

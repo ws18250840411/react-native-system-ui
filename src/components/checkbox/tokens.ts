@@ -1,10 +1,7 @@
-import * as React from 'react'
 import type { TextStyle } from 'react-native'
 
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 import type { CheckboxShape } from './types'
 
 export interface CheckboxTokens {
@@ -43,7 +40,8 @@ export interface CheckboxTokens {
 
 const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
-  const surface = palette.default[50] ?? '#ffffff'
+  const surface = palette.default[50]
+  const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
       shape: 'round',
@@ -56,7 +54,7 @@ const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
       checkedBackground: palette.primary[500],
       disabledBorder: palette.default[300],
       disabledBackground: palette.default[100],
-      checkmark: palette.primary.foreground ?? '#ffffff',
+      checkmark: onPrimary,
       label: palette.default.foreground ?? '#111827',
       labelDisabled: palette.default[400],
     },
@@ -79,17 +77,7 @@ const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
   }
 }
 
-export const useCheckboxTokens = (
-  overrides?: DeepPartial<CheckboxTokens>
-): CheckboxTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createCheckboxTokens(foundations)
-    const componentOverrides = components?.checkbox
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useCheckboxTokens = createComponentTokensHook(
+  'checkbox',
+  createCheckboxTokens
+)

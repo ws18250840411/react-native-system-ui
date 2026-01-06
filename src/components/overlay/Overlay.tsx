@@ -8,10 +8,11 @@ import {
   type ViewStyle,
 } from 'react-native'
 
-import { deepMerge } from '../../utils/deepMerge'
+import type { DeepPartial } from '../../types'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from './useOverlayStack'
+import type { OverlayTokens } from './tokens'
 import { useOverlayTokens } from './tokens'
 
 export interface OverlayProps {
@@ -58,6 +59,7 @@ export interface OverlayProps {
    * 自定义 zIndex，默认由 OverlayStack 自动管理
    */
   zIndex?: number | string
+  tokensOverride?: DeepPartial<OverlayTokens>
   children?: React.ReactNode
 }
 
@@ -83,6 +85,7 @@ export const Overlay: React.FC<OverlayProps> = props => {
     duration,
     lockScroll = true,
     closeOnBackPress = false,
+    tokensOverride,
     onPress,
     onClick,
     style,
@@ -92,7 +95,7 @@ export const Overlay: React.FC<OverlayProps> = props => {
     children,
   } = props
 
-  const tokens = useOverlayTokens()
+  const tokens = useOverlayTokens(tokensOverride)
   const resolvedDuration = Math.max(0, parseNumberLike(duration, tokens.animationDuration) ?? tokens.animationDuration)
   const { mounted, animated } = usePresenceAnimation(visible, { duration: resolvedDuration })
 

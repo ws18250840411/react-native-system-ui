@@ -25,8 +25,9 @@ const shapeRadiusMap = (shape: SearchShape, square: number, round: number) => {
 
 const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const locale = useLocale()
-  const tokens = useSearchTokens()
+  const tokens = useSearchTokens(props.tokensOverride)
   const {
+    tokensOverride: _tokensOverride,
     label,
     action,
     actionText,

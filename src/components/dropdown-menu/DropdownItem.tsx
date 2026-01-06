@@ -20,6 +20,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     closeOnSelect = true,
     textStyle,
     panelStyle,
+    tokensOverride,
     children,
     onChange,
     onOpen,
@@ -30,7 +31,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     ...rest
   } = props
 
-  const tokens = useDropdownMenuTokens()
+  const tokens = useDropdownMenuTokens(tokensOverride)
   const {
     activeIndex,
     registerPanel,
@@ -39,29 +40,14 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     closeMenu,
     activeColor,
     activeIcon,
-    direction,
     disabled: menuDisabled,
     menuValue,
     onMenuChange,
   } = useDropdownMenuContext()
 
-  // 如果 DropdownMenu 有 value，优先从那里获取
-  const menuItemValue = name && menuValue ? menuValue[name] : undefined
-  const isMenuControlled = name !== undefined && menuValue !== undefined
-
-  const [localValue, setLocalValue] = React.useState<DropdownOption['value'] | undefined>(
-    () => props.value ?? props.defaultValue ?? menuItemValue
-  )
-
-  React.useEffect(() => {
-    if (isMenuControlled && menuItemValue !== undefined) {
-      setLocalValue(menuItemValue)
-    } else if (props.value !== undefined) {
-      setLocalValue(props.value)
-    }
-  }, [isMenuControlled, menuItemValue, props.value])
-
-  const value = isMenuControlled ? menuItemValue : (props.value ?? localValue)
+  const [itemValue, triggerChange] = useControllableValue<DropdownOption['value'] | undefined>(props)
+  const menuItemValue = name ? menuValue?.[name] : undefined
+  const value = menuItemValue !== undefined ? menuItemValue : itemValue
 
   const isActive = activeIndex === index
   const itemDisabled = menuDisabled || itemDisabledProp
@@ -69,69 +55,12 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
   const selectedOption = options?.find(option => option.value === value)
   const selectedText = getOptionText(selectedOption)
   const displayLabel = title ?? label ?? selectedText ?? placeholder
+  const activeTextColor = activeColor ?? tokens.colors.activeText
   const displayColor = itemDisabled
     ? tokens.colors.disabledText
-    : isActive
-      ? (activeColor ?? tokens.colors.activeText)
-      : selectedOption
-        ? (activeColor ?? tokens.colors.activeText)
-        : tokens.colors.placeholder
-
-  const handleSelect = React.useCallback(
-    (option: DropdownOption) => {
-      if (option.disabled) return
-      const newValue = option.value
-
-      // 如果 DropdownMenu 有 onChange，更新 menuValue
-      if (name && onMenuChange) {
-        const newMenuValue = { ...menuValue, [name]: newValue }
-        onMenuChange(newMenuValue)
-      }
-
-      // 如果 Item 有自己的 onChange，也调用
-      onChange?.(newValue, option)
-
-      // 更新本地值（非受控模式）
-      if (!isMenuControlled && props.value === undefined) {
-        setLocalValue(newValue)
-      }
-
-      if (closeOnSelect) {
-        closeMenu()
-      }
-    },
-    [closeMenu, closeOnSelect, name, onMenuChange, menuValue, onChange, isMenuControlled, props.value]
-  )
-
-  const renderActiveIcon = React.useCallback(() => {
-    const color = activeColor ?? tokens.colors.activeText
-    if (activeIcon) {
-      if (React.isValidElement(activeIcon)) {
-        const iconProps = (activeIcon.props ?? {}) as Record<string, unknown>
-        const canSetColor = Object.prototype.hasOwnProperty.call(iconProps, 'fill') || Object.prototype.hasOwnProperty.call(iconProps, 'color')
-        return canSetColor
-          ? React.cloneElement(activeIcon as React.ReactElement<any>, { fill: color, color })
-          : activeIcon
-      }
-      if (typeof activeIcon === 'string' || typeof activeIcon === 'number') {
-        return <Text style={[styles.activeIndicator, { color }]}>{activeIcon}</Text>
-      }
-      return <View style={styles.activeIndicatorNode}>{activeIcon}</View>
-    }
-    return <Text style={[styles.activeIndicator, { color }]}>✓</Text>
-  }, [activeColor, activeIcon, tokens.colors.activeText])
-
-  const renderOptionIcon = React.useCallback(
-    (optionIcon: DropdownOption['icon']) => {
-      if (!optionIcon) return null
-      if (React.isValidElement(optionIcon)) return optionIcon
-      if (typeof optionIcon === 'string' || typeof optionIcon === 'number') {
-        return <Text style={styles.optionIconText}>{optionIcon}</Text>
-      }
-      return optionIcon
-    },
-    [],
-  )
+    : isActive || selectedOption
+      ? activeTextColor
+      : tokens.colors.placeholder
 
   const panelContent = React.useMemo(() => {
     if (children) {
@@ -144,6 +73,45 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     if (!options?.length) {
       return null
     }
+
+    const renderActiveIcon = () => {
+      const color = activeTextColor
+      if (activeIcon) {
+        if (React.isValidElement(activeIcon)) {
+          const iconProps = activeIcon.props as any
+          return iconProps && ('fill' in iconProps || 'color' in iconProps)
+            ? React.cloneElement(activeIcon as any, { fill: color, color })
+            : activeIcon
+        }
+        if (typeof activeIcon === 'string' || typeof activeIcon === 'number') {
+          return <Text style={[styles.indicator, { color }]}>{activeIcon}</Text>
+        }
+        return <View style={styles.indicator}>{activeIcon}</View>
+      }
+      return <Text style={[styles.indicator, { color }]}>✓</Text>
+    }
+
+    const renderOptionIcon = (optionIcon: DropdownOption['icon']) => {
+      if (!optionIcon) return null
+      if (React.isValidElement(optionIcon)) return optionIcon
+      if (typeof optionIcon === 'string' || typeof optionIcon === 'number') {
+        return <Text style={styles.optionIconText}>{optionIcon}</Text>
+      }
+      return optionIcon
+    }
+
+    const handleSelect = (option: DropdownOption) => {
+      if (option.disabled) return
+      const newValue = option.value
+
+      if (name && onMenuChange) onMenuChange({ ...(menuValue ?? {}), [name]: newValue })
+      triggerChange(newValue, option)
+
+      if (closeOnSelect) {
+        closeMenu()
+      }
+    }
+
     return (
       <View style={[styles.optionPanel, panelStyle]}>
         {options.map(option => {
@@ -152,7 +120,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
           const optionColor = option.disabled
             ? tokens.colors.disabledText
             : active
-              ? (activeColor ?? tokens.colors.activeText)
+              ? activeTextColor
               : tokens.colors.text
           return (
             <Pressable
@@ -181,17 +149,19 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
       </View>
     )
   }, [
-    activeColor,
-    activeIcon,
     children,
-    handleSelect,
     options,
     panelStyle,
-    tokens.colors.activeText,
-    tokens.colors.disabledText,
-    tokens.colors.placeholder,
-    tokens.colors.text,
+    tokens,
     value,
+    activeIcon,
+    activeTextColor,
+    closeMenu,
+    closeOnSelect,
+    menuValue,
+    name,
+    onMenuChange,
+    triggerChange,
   ])
 
   React.useEffect(() => {
@@ -235,30 +205,22 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     [closeMenu, handleToggle, index, isActive, itemDisabled, showItem],
   )
 
-  const titleStyle = React.useMemo(
-    () => [
-      styles.title,
-      {
-        fontSize: tokens.sizing.titleFontSize,
-        lineHeight: tokens.sizing.titleLineHeight,
-        paddingHorizontal: tokens.spacing.titlePadding,
-      },
-      textStyle,
-      { color: displayColor },
-    ],
-    [tokens.sizing.titleFontSize, tokens.sizing.titleLineHeight, tokens.spacing.titlePadding, textStyle, displayColor, isActive, selectedOption, activeColor, tokens.colors.activeText, tokens.colors.placeholder, itemDisabled, tokens.colors.disabledText]
-  )
+  const titleStyle = [
+    {
+      fontSize: tokens.sizing.titleFontSize,
+      lineHeight: tokens.sizing.titleLineHeight,
+      paddingHorizontal: tokens.spacing.titlePadding,
+    },
+    textStyle,
+    { color: displayColor },
+  ]
 
-  const arrowStyle = React.useMemo(() => {
-    const baseStyle: any = [styles.arrow, { borderTopColor: tokens.colors.arrow }]
-    if (isActive) {
-      baseStyle.push(styles.arrowActive)
-      baseStyle.push({
-        borderBottomColor: activeColor ?? tokens.colors.activeText,
-      })
-    }
-    return baseStyle
-  }, [isActive, activeColor, tokens.colors.activeText, tokens.colors.arrow])
+  const arrowStyle = [
+    styles.arrow,
+    { borderTopColor: tokens.colors.arrow },
+    isActive && styles.arrowActive,
+    isActive && { borderBottomColor: activeColor ?? tokens.colors.activeText },
+  ]
 
   return (
     <Pressable
@@ -291,14 +253,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    minWidth: 0, // hack for flex ellipsis
+    minWidth: 0,
   },
   itemScrollable: {
     flex: 0,
     paddingHorizontal: 12,
-  },
-  title: {
-    // fontSize and lineHeight will be set dynamically
   },
   titleNode: {
     flexShrink: 1,
@@ -350,10 +309,7 @@ const styles = StyleSheet.create({
   optionTextNode: {
     flex: 1,
   },
-  activeIndicator: {
-    marginLeft: 12,
-  },
-  activeIndicatorNode: {
+  indicator: {
     marginLeft: 12,
   },
   customPanel: {

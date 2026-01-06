@@ -4,8 +4,6 @@ export interface NormalizedPickerResult {
   columns: PickerOption[][]
   values: PickerValue[]
   options: (PickerOption | undefined)[]
-  indexes: number[]
-  isCascade: boolean
 }
 
 export interface PreparedPickerColumns {
@@ -47,7 +45,6 @@ const normalizeMultiple = (
 ): NormalizedPickerResult => {
   const values: PickerValue[] = []
   const options: (PickerOption | undefined)[] = []
-  const indexes: number[] = []
 
   columnsList.forEach((opts, index) => {
     const current = rawValue[index]
@@ -58,15 +55,12 @@ const normalizeMultiple = (
     const target = targetIndex >= 0 ? opts[targetIndex] : undefined
     values[index] = (target?.value ?? current ?? defaults[index] ?? opts[0]?.value) as PickerValue
     options[index] = target
-    indexes[index] = targetIndex
   })
 
   return {
     columns: columnsList,
     values,
     options,
-    indexes,
-    isCascade: false,
   }
 }
 
@@ -74,7 +68,6 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
   const columns: PickerOption[][] = []
   const values: PickerValue[] = []
   const options: (PickerOption | undefined)[] = []
-  const indexes: number[] = []
 
   let currentOptions: PickerOption[] | undefined = rootOptions
   let depth = 0
@@ -87,7 +80,6 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
       targetIndex >= 0 ? currentOptions[targetIndex] : undefined
     values[depth] = (target?.value ?? current) as PickerValue
     options[depth] = target
-    indexes[depth] = targetIndex
 
     if (target && hasChildren(target)) {
       currentOptions = target.children
@@ -101,8 +93,6 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
     columns,
     values,
     options,
-    indexes,
-    isCascade: true,
   }
 }
 
@@ -161,18 +151,6 @@ export const normalizePicker = (
   }
 
   return normalizeMultiple(prepared.columnsList, prepared.defaults, rawValue)
-}
-
-export const normalizeValuesOnly = (
-  prepared: PreparedPickerColumns,
-  rawValueInput: PickerValue[] = [],
-): Pick<NormalizedPickerResult, 'values' | 'options' | 'indexes'> => {
-  const result = normalizePicker(prepared, rawValueInput)
-  return {
-    values: result.values,
-    options: result.options,
-    indexes: result.indexes,
-  }
 }
 
 export const shallowEqualArray = (a: PickerValue[] = [], b: PickerValue[] = []) => {

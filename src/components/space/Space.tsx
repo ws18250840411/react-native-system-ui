@@ -79,12 +79,13 @@ export const Space: React.FC<SpaceProps> = props => {
     block,
     fill,
     divider,
+    tokensOverride,
     style,
     onClick,
     ...rest
   } = props
 
-  const tokens = useSpaceTokens()
+  const tokens = useSpaceTokens(tokensOverride)
   const direction = directionProp ?? tokens.defaults.direction
   const wrap = wrapProp ?? tokens.defaults.wrap
 

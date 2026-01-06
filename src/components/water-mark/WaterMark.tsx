@@ -7,15 +7,6 @@ import { useWaterMarkTokens } from './tokens'
 const DEFAULT_MARK_WIDTH = 120
 const DEFAULT_MARK_HEIGHT = 64
 
-const toNumber = (value: number | string | undefined): number | undefined => {
-  if (typeof value === 'number') return value
-  if (typeof value === 'string') {
-    const parsed = Number.parseFloat(value)
-    return Number.isFinite(parsed) ? parsed : undefined
-  }
-  return undefined
-}
-
 const WaterMark: React.FC<WaterMarkProps> = props => {
   const {
     content = 'WaterMark',
@@ -31,21 +22,32 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     opacity,
     zIndex = 2000,
     fullPage = true,
+    tokensOverride,
     style,
     onLayoutCalculated,
     textStyle,
     ...rest
   } = props
-  const tokens = useWaterMarkTokens()
+  const tokens = useWaterMarkTokens(tokensOverride)
   const window = useWindowDimensions()
-  const [size, setSize] = React.useState(() => ({ width: fullPage ? window.width : 0, height: fullPage ? window.height : 0 }))
+  const [layoutSize, setLayoutSize] = React.useState({ width: 0, height: 0 })
+  const size = fullPage ? window : layoutSize
 
   const resolvedGapX = gapX ?? tokens.gapX
   const resolvedGapY = gapY ?? tokens.gapY
   const resolvedRotate = rotate ?? tokens.rotate
   const resolvedOpacity = opacity ?? tokens.opacity
 
-  const resolvedFontSize = toNumber(font?.size) ?? fontSize ?? tokens.fontSize
+  const fontSizeFromFont =
+    typeof font?.size === 'number'
+      ? font.size
+      : typeof font?.size === 'string'
+        ? Number.parseFloat(font.size)
+        : undefined
+  const resolvedFontSize =
+    (Number.isFinite(fontSizeFromFont ?? Number.NaN) ? fontSizeFromFont : undefined) ??
+    fontSize ??
+    tokens.fontSize
   const resolvedColor = font?.color ?? color ?? tokens.color
 
   const markWidth = image?.width ?? width ?? DEFAULT_MARK_WIDTH
@@ -59,15 +61,13 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
   const handleLayout = React.useCallback((event: LayoutChangeEvent) => {
     if (fullPage) return
     const { width, height } = event.nativeEvent.layout
-    setSize({ width, height })
+    setLayoutSize({ width, height })
     onLayoutCalculated?.({ width, height })
   }, [fullPage, onLayoutCalculated])
 
   React.useEffect(() => {
-    if (fullPage) {
-      setSize({ width: window.width, height: window.height })
-      onLayoutCalculated?.({ width: window.width, height: window.height })
-    }
+    if (!fullPage) return
+    onLayoutCalculated?.({ width: window.width, height: window.height })
   }, [fullPage, onLayoutCalculated, window.width, window.height])
 
   return (
@@ -113,8 +113,8 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
                     <Image
                       source={{ uri: image.src }}
                       style={{
-                        width: image.width,
-                        height: image.height,
+                        width: markWidth,
+                        height: markHeight,
                         opacity: resolvedOpacity,
                       }}
                       resizeMode="contain"
@@ -147,9 +147,7 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
+  wrapper: { flex: 1 },
 })
 
 WaterMark.displayName = 'WaterMark'

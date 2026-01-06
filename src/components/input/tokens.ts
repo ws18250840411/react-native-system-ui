@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import type { FieldClearTrigger, FieldInputAlign } from '../field/types'
 
 export interface InputTokens {
@@ -36,17 +32,4 @@ const createInputTokens = (foundations: Foundations): InputTokens => ({
   },
 })
 
-export const useInputTokens = (
-  overrides?: DeepPartial<InputTokens>,
-): InputTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createInputTokens(foundations)
-    const componentOverrides = components?.input
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useInputTokens = createComponentTokensHook('input', createInputTokens)

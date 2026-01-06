@@ -39,7 +39,8 @@ const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
 })
 
 const Cascader: React.FC<CascaderProps> = props => {
-  const tokens = useCascaderTokens()
+  const { tokensOverride } = props
+  const tokens = useCascaderTokens(tokensOverride)
   const [value, setValue] = useControllableValue<CascaderValue[]>(props, {
     defaultValue: [],
     trigger: "onChange",
@@ -65,9 +66,9 @@ const Cascader: React.FC<CascaderProps> = props => {
     testID,
     children,
     poppable = false,
-    visible: popupVisibleProp,
-    defaultVisible: popupDefaultVisible,
-    onVisibleChange,
+    visible: _visible,
+    defaultVisible: _defaultVisible,
+    onVisibleChange: _onVisibleChange,
     closeOnClickOverlay = true,
     closeOnFinish = true,
     popupPlacement = "bottom",
@@ -83,17 +84,12 @@ const Cascader: React.FC<CascaderProps> = props => {
   const [panelValue, setPanelValue] = React.useState<CascaderValue[]>(cascaderValue)
   const resolvedCloseable = closeable ?? true
 
-  const popupVisibilityProps: Record<string, any> = {}
-  if (Object.prototype.hasOwnProperty.call(props, "visible")) {
-    popupVisibilityProps.value = popupVisibleProp
-  }
-  if (Object.prototype.hasOwnProperty.call(props, "defaultVisible")) {
-    popupVisibilityProps.defaultValue = popupDefaultVisible
-  }
-  if (typeof onVisibleChange === "function") {
-    popupVisibilityProps.onChange = onVisibleChange
-  }
-  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(popupVisibilityProps, { defaultValue: false })
+  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
+    defaultValue: false,
+    valuePropName: "visible",
+    defaultValuePropName: "defaultVisible",
+    trigger: "onVisibleChange",
+  })
 
   const currentValue = poppable ? panelValue : cascaderValue
   const { tabs, items, depth } = useCascaderExtend(options, keys, currentValue)

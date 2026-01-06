@@ -59,9 +59,9 @@ export const useAriaPress = ({
     isDisabled: disabled || !allowHover,
   })
 
-  const { isFocused, focusProps } = useFocus()
+  const { isFocused, focusProps } = (useFocus as any)({ isDisabled: disabled })
 
-  const { focusProps: focusRingProps, isFocusVisible } = useFocusRing()
+  const { focusProps: focusRingProps, isFocusVisible } = (useFocusRing as any)({ isDisabled: disabled })
 
   let interactionProps = pressProps
   if (allowHover) {

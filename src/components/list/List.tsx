@@ -57,7 +57,8 @@ const useListTokens = (overrides?: DeepPartial<ListTokens>): ListTokens => {
 
 const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const locale = useLocale()
-  const tokens = useListTokens()
+  const { tokensOverride } = props
+  const tokens = useListTokens(tokensOverride)
 
   const {
     onLoad,

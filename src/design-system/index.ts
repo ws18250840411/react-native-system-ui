@@ -1,6 +1,8 @@
 export { ThemeProvider } from './ThemeProvider'
 export type { ThemeProviderProps, ThemeProviderValue } from './ThemeProvider'
 export { useTheme } from './useTheme'
+export { createComponentTokensHook } from './createComponentTokensHook'
+export { mergeTokensOverride } from './mergeTokensOverride'
 export { createTokens, defaultTokens } from './tokens'
 export type { ThemeTokens } from './tokens'
 export type { ThemeComponentKey, ThemeComponents } from './ThemeContext'

@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface SelectorTokens {
   defaults: {
@@ -42,6 +38,8 @@ export interface SelectorTokens {
 
 const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
   const { palette, spacing, radii, typography, fontSize } = foundations
+  const surface = palette.default[50]
+  const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
       columns: 3,
@@ -51,14 +49,14 @@ const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
     colors: {
       border: 'transparent',
       borderActive: 'transparent',
-      background: palette.default[50],
-      backgroundActive: '#efefff',
+      background: surface,
+      backgroundActive: palette.primary[50],
       text: palette.default[900],
       textActive: palette.primary[600],
       description: palette.default[500],
       disabledText: palette.default[400],
       check: palette.primary[600],
-      checkForeground: palette.primary.foreground ?? '#ffffff',
+      checkForeground: onPrimary,
     },
     spacing: {
       gap: spacing.sm,
@@ -78,16 +76,7 @@ const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
   }
 }
 
-export const useSelectorTokens = (
-  overrides?: DeepPartial<SelectorTokens>
-): SelectorTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createSelectorTokens(foundations)
-    const componentOverrides = components?.selector
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useSelectorTokens = createComponentTokensHook(
+  'selector',
+  createSelectorTokens
+)

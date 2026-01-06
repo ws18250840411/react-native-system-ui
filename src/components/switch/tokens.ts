@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import { resolveSemanticColors, type Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface SwitchTokens {
   defaults: {
@@ -45,7 +41,7 @@ export interface SwitchTokens {
 
 const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
   const { palette, opacity } = foundations
-  const { surface } = resolveSemanticColors(palette)
+  const surface = palette.default[50]
   return {
     defaults: {
       size: 30,
@@ -85,17 +81,7 @@ const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
   }
 }
 
-export const useSwitchTokens = (
-  overrides?: DeepPartial<SwitchTokens>
-): SwitchTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createSwitchTokens(foundations)
-    const componentOverrides = components?.switch
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useSwitchTokens = createComponentTokensHook(
+  'switch',
+  createSwitchTokens
+)

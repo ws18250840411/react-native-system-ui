@@ -30,6 +30,14 @@ afterEach(() => {
 })
 
 describe('Dialog', () => {
+  const getActionButtons = (tree: renderer.ReactTestRenderer) =>
+    tree.root.findAll(
+      node =>
+        node.type === Pressable &&
+        node.props.accessibilityRole === 'button' &&
+        node.props.testID !== 'dialog-overlay'
+    )
+
   it('renders title and message', () => {
     const tree = renderInHost(<Dialog visible title="提示" message="内容" />)
 
@@ -49,9 +57,8 @@ describe('Dialog', () => {
     const onConfirm = jest.fn()
     const tree = renderInHost(<Dialog visible onConfirm={onConfirm} />)
 
-    const [confirmButton] = tree.root.findAll(
-      node => node.type === Pressable && node.props.accessibilityRole === 'button'
-    )
+    const buttons = getActionButtons(tree)
+    const confirmButton = buttons[buttons.length - 1]
 
     act(() => {
       confirmButton.props.onPress?.()
@@ -66,9 +73,7 @@ describe('Dialog', () => {
       <Dialog visible showCancelButton onCancel={onCancel} cancelButtonText="取消" />
     )
 
-    const buttons = tree.root.findAll(
-      node => node.type === Pressable && node.props.accessibilityRole === 'button'
-    )
+    const buttons = getActionButtons(tree)
 
     expect(buttons).toHaveLength(2)
 
@@ -79,7 +84,7 @@ describe('Dialog', () => {
     expect(onCancel).toHaveBeenCalled()
   })
 
-  it('closes via overlay when enabled', () => {
+  it('closes via overlay when enabled', async () => {
     const onClose = jest.fn()
     const tree = renderInHost(
       <Dialog visible closeOnOverlayPress onClose={onClose} title="标题" />
@@ -87,8 +92,9 @@ describe('Dialog', () => {
 
     const overlay = tree.root.find(node => node.props?.testID === 'dialog-overlay')
 
-    act(() => {
+    await act(async () => {
       overlay.props.onPress?.()
+      await Promise.resolve()
     })
 
     expect(onClose).toHaveBeenCalled()
@@ -208,9 +214,7 @@ describe('Dialog', () => {
         promise = Dialog.confirm({ title: '确认操作' })
       })
 
-      const buttons = hostTree!.root.findAll(
-        node => node.type === Pressable && node.props.accessibilityRole === 'button'
-      )
+      const buttons = getActionButtons(hostTree!)
       const confirmButton = buttons[buttons.length - 1]
 
       const expectation = expect(promise).resolves.toBe(true)
@@ -231,10 +235,7 @@ describe('Dialog', () => {
         promise = Dialog.confirm({ title: '确认操作' })
       })
 
-      const buttons = hostTree!.root.findAll(
-        node => node.type === Pressable && node.props.accessibilityRole === 'button'
-      )
-      const cancelButton = buttons[0]
+      const [cancelButton] = getActionButtons(hostTree!)
 
       const expectation = expect(promise).rejects.toBe(false)
 

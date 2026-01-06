@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 import type { TabsAlign, TabsType } from './types'
 
 export interface TabsTokens {
@@ -93,7 +89,7 @@ export interface TabsTokens {
 
 const createTokens = (foundations: Foundations): TabsTokens => {
   const { palette, spacing, fontSize } = foundations
-  const surface = palette.default[50] ?? '#ffffff'
+  const surface = palette.default[50]
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
@@ -102,7 +98,6 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       ellipsis: true,
       swipeThreshold: 5,
       animated: true,
-      // 与 React Vant 保持一致，默认 300ms 动画时间
       duration: 300,
       lazyRender: true,
     },
@@ -145,7 +140,6 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       background: surface,
     },
     typography: {
-      // 对齐 React Vant：常规 14px，描述 12px，巨幕标题 16px
       titleSize: fontSize.sm,
       titleWeight: foundations.typography.weight.medium,
       titleActiveWeight: foundations.typography.weight.semiBold,
@@ -183,16 +177,4 @@ const createTokens = (foundations: Foundations): TabsTokens => {
   }
 }
 
-export const useTabsTokens = (
-  overrides?: DeepPartial<TabsTokens>,
-): TabsTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.tabs
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useTabsTokens = createComponentTokensHook('tabs', createTokens)

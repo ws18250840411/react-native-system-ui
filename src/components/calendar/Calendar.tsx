@@ -1,10 +1,10 @@
-import React from "react"
-import { Pressable, StyleSheet, Text, View, type TextStyle } from "react-native"
+import React from 'react'
+import { Pressable, StyleSheet, Text, View, type TextStyle } from 'react-native'
 
-import { useCalendarTokens } from "./tokens"
-import type { CalendarProps, CalendarType } from "./types"
-import { useControllableValue } from "../../hooks"
-import Popup from "../popup"
+import { useControllableValue } from '../../hooks'
+import Popup from '../popup'
+import { useCalendarTokens } from './tokens'
+import type { CalendarProps, CalendarType } from './types'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -28,22 +28,24 @@ const toArrayValue = (value?: Date | Date[] | null): Date[] => {
 const DEFAULT_MIN = new Date(new Date().getFullYear() - 10, 0, 1)
 const DEFAULT_MAX = new Date(new Date().getFullYear() + 10, 11, 31)
 
-const defaultWeekDays = ["日", "一", "二", "三", "四", "五", "六"]
+const defaultWeekDays = ['日', '一', '二', '三', '四', '五', '六']
 
 const isTextLike = (node: React.ReactNode): node is string | number =>
   typeof node === "string" || typeof node === "number"
 
 const Calendar: React.FC<CalendarProps> = props => {
-  const tokens = useCalendarTokens()
   const {
+    tokensOverride,
+    value: _value,
+    defaultValue: _defaultValue,
     minDate = DEFAULT_MIN,
     maxDate = DEFAULT_MAX,
-    type = "single",
-    title = "选择日期",
+    type = 'single',
+    title = '选择日期',
     showSubtitle = true,
     showHeader = true,
-    showConfirm = type !== "single",
-    confirmText = "确定",
+    showConfirm = type !== 'single',
+    confirmText = '确定',
     weekStartsOn = 0,
     weekdays,
     formatMonthTitle,
@@ -51,12 +53,12 @@ const Calendar: React.FC<CalendarProps> = props => {
     maxRange,
     onOverRange,
     poppable = false,
-    visible: popupVisibleProp,
-    defaultVisible: popupDefaultVisible,
-    onVisibleChange,
+    visible: _visible,
+    defaultVisible: _defaultVisible,
+    onVisibleChange: _onVisibleChange,
     closeOnClickOverlay = true,
     closeOnConfirm = true,
-    popupPlacement = "bottom",
+    popupPlacement = 'bottom',
     popupRound = true,
     popupProps: popupPropsOverrides,
     onOpen,
@@ -65,26 +67,17 @@ const Calendar: React.FC<CalendarProps> = props => {
     onClosed,
     color,
     onConfirm,
-    onSelect,
+    onSelect: _onSelect,
     style,
     ...rest
   } = props
-
-  const popupVisibilityProps: Record<string, any> = {}
-  if (Object.prototype.hasOwnProperty.call(props, "visible")) {
-    popupVisibilityProps.value = popupVisibleProp
-  }
-  if (Object.prototype.hasOwnProperty.call(props, "defaultVisible")) {
-    popupVisibilityProps.defaultValue = popupDefaultVisible
-  }
-  if (typeof onVisibleChange === "function") {
-    popupVisibilityProps.onChange = onVisibleChange
-  }
-
-  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(
-    popupVisibilityProps,
-    { defaultValue: false }
-  )
+  const tokens = useCalendarTokens(tokensOverride)
+  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
+    defaultValue: false,
+    valuePropName: 'visible',
+    defaultValuePropName: 'defaultVisible',
+    trigger: 'onVisibleChange',
+  })
 
   const {
     onClose: popupOnClose,
@@ -125,28 +118,13 @@ const Calendar: React.FC<CalendarProps> = props => {
   const resolvedCloseOnOverlayPress = overrideCloseOnOverlayPress ?? closeOnClickOverlay
   const resolvedOverlay = popupOverlay ?? true
 
-  const controllableSelection: {
-    value?: Date[]
-    defaultValue?: Date[]
-    onChange: (value?: Date[]) => void
-  } = {
-    onChange: value => {
-      const normalized = normalizeValue(value ?? [], type)
-      onSelect?.(mapValue(normalized, type))
-    },
-  }
-
-  if (Object.prototype.hasOwnProperty.call(props, "value")) {
-    controllableSelection.value = toArrayValue(props.value)
-  }
-
-  if (Object.prototype.hasOwnProperty.call(props, "defaultValue")) {
-    controllableSelection.defaultValue = toArrayValue(props.defaultValue)
-  }
-
-  const [selected, setSelected] = useControllableValue<Date[]>(controllableSelection, { defaultValue: [] as Date[] })
-
-  const value = selected ?? []
+  const [selectedValue, setSelectedValue] = useControllableValue<Date | Date[] | null>(props, {
+    defaultValue: null,
+    valuePropName: 'value',
+    defaultValuePropName: 'defaultValue',
+    trigger: 'onSelect',
+  })
+  const value = toArrayValue(selectedValue)
 
   const [currentMonth, setCurrentMonth] = React.useState(() => {
     const initial = value.length ? value[0] : new Date()
@@ -197,13 +175,13 @@ const Calendar: React.FC<CalendarProps> = props => {
     [minDate, maxDate]
   )
 
-  const confirmDisabled = type === "range" ? value.length < 2 : value.length === 0
+  const confirmDisabled = type === 'range' ? value.length < 2 : value.length === 0
 
   const maybeAutoConfirm = React.useCallback(
     (next: Date[]) => {
       if (showConfirm) return
-      if (type === "range" && next.length < 2) return
-      if (type === "multiple" && next.length === 0) return
+      if (type === 'range' && next.length < 2) return
+      if (type === 'multiple' && next.length === 0) return
       if (!next.length) return
       onConfirm?.(mapValue(next, type))
       if (poppable && closeOnConfirm) {
@@ -225,7 +203,7 @@ const Calendar: React.FC<CalendarProps> = props => {
 
   const isSelectionAllowed = React.useCallback(
     (next: Date[]) => {
-      if (type === "range" && next.length === 2) {
+      if (type === 'range' && next.length === 2) {
         const [start, end] = next
         if (!allowSameDay && isSameDay(start, end)) {
           return false
@@ -235,7 +213,7 @@ const Calendar: React.FC<CalendarProps> = props => {
           return false
         }
       }
-      if (type === "multiple" && maxRange && next.length > maxRange) {
+      if (type === 'multiple' && maxRange && next.length > maxRange) {
         onOverRange?.(maxRange)
         return false
       }
@@ -253,16 +231,16 @@ const Calendar: React.FC<CalendarProps> = props => {
     let next: Date[] = []
     const normalized = value.map(item => new Date(item))
     switch (type) {
-      case "single": {
+      case 'single': {
         next = [day]
         break
       }
-      case "multiple": {
+      case 'multiple': {
         const exists = normalized.find(item => isSameDay(item, day))
         next = exists ? normalized.filter(item => !isSameDay(item, day)) : [...normalized, day]
         break
       }
-      case "range": {
+      case 'range': {
         if (normalized.length < 1 || normalized.length > 1) {
           next = [day]
         } else {
@@ -282,14 +260,14 @@ const Calendar: React.FC<CalendarProps> = props => {
     if (!isSelectionAllowed(normalizedNext)) {
       return
     }
-    setSelected(normalizedNext)
+    setSelectedValue(mapValue(normalizedNext, type))
     if (!showConfirm) {
       maybeAutoConfirm(normalizedNext)
     }
-  }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelected, showConfirm, maybeAutoConfirm])
+  }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelectedValue, showConfirm, maybeAutoConfirm])
 
   const selectedMap = value.map(item => startOfDay(item).getTime())
-  const rangeBounds = type === "range" && value.length === 2
+  const rangeBounds = type === 'range' && value.length === 2
     ? [startOfDay(value[0]).getTime(), startOfDay(value[1]).getTime()]
     : null
 
@@ -306,7 +284,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     const isDisabled = timeValue < minDay || timeValue > maxDay
     const isSelected = selectedMap.includes(timeValue)
     const inRange =
-      type === "range" &&
+      type === 'range' &&
       rangeBounds &&
       timeValue > rangeBounds[0] &&
       timeValue < rangeBounds[1]
@@ -344,7 +322,6 @@ const Calendar: React.FC<CalendarProps> = props => {
   const content = (
     <View
       style={[
-        styles.container,
         {
           backgroundColor: tokens.colors.background,
           padding: tokens.spacing.containerPadding,
@@ -363,15 +340,15 @@ const Calendar: React.FC<CalendarProps> = props => {
           >
             <Text
               style={[
-                styles.navButton,
                 {
+                  textAlign: 'center',
                   fontSize: tokens.sizing.navButtonSize,
                   paddingHorizontal: tokens.spacing.navPaddingHorizontal,
                 },
-                !canGoPrev && styles.navButtonDisabled,
+                !canGoPrev && { opacity: 0.3 },
               ]}
             >
-              {"<"}
+              {'<'}
             </Text>
           </Pressable>
           <View style={styles.headerCenter}>
@@ -380,8 +357,8 @@ const Calendar: React.FC<CalendarProps> = props => {
                 ? (
                   <Text
                     style={[
-                      styles.headerTitle,
                       {
+                        textAlign: 'center',
                         color: tokens.colors.text,
                         fontSize: tokens.typography.headerTitleSize,
                         fontWeight: tokens.typography.headerTitleWeight as any,
@@ -398,8 +375,8 @@ const Calendar: React.FC<CalendarProps> = props => {
                 ? (
                   <Text
                     style={[
-                      styles.headerSubtitle,
                       {
+                        textAlign: 'center',
                         color: tokens.colors.headerSubtitle,
                         fontSize: tokens.typography.headerSubtitleSize,
                       },
@@ -418,15 +395,15 @@ const Calendar: React.FC<CalendarProps> = props => {
           >
             <Text
               style={[
-                styles.navButton,
                 {
+                  textAlign: 'center',
                   fontSize: tokens.sizing.navButtonSize,
                   paddingHorizontal: tokens.spacing.navPaddingHorizontal,
                 },
-                !canGoNext && styles.navButtonDisabled,
+                !canGoNext && { opacity: 0.3 },
               ]}
             >
-              {">"}
+              {'>'}
             </Text>
           </Pressable>
         </View>
@@ -436,7 +413,7 @@ const Calendar: React.FC<CalendarProps> = props => {
           <View key={`weekday-${index}`} style={styles.weekLabelItem}>
             {isTextLike(label)
               ? (
-                <Text style={[styles.weekLabel, { color: tokens.colors.text }]}>
+                <Text style={{ textAlign: 'center', color: tokens.colors.text }}>
                   {label}
                 </Text>
               )
@@ -466,8 +443,8 @@ const Calendar: React.FC<CalendarProps> = props => {
             ? (
               <Text
                 style={[
-                  styles.confirmText,
                   {
+                    textAlign: 'center',
                     color: tokens.colors.confirmText,
                     fontWeight: tokens.typography.confirmTextWeight as any,
                   },
@@ -505,20 +482,20 @@ const Calendar: React.FC<CalendarProps> = props => {
 }
 
 function mapValue(value: Date[], type: CalendarType): Date | Date[] {
-  if (type === "single") {
+  if (type === 'single') {
     return value[0] ?? new Date()
   }
-  if (type === "range" && value.length === 2) {
+  if (type === 'range' && value.length === 2) {
     return value
   }
   return value
 }
 
 function normalizeValue(value: Date[], type: CalendarType) {
-  if (type === "single") {
+  if (type === 'single') {
     return value.slice(0, 1)
   }
-  if (type === "range") {
+  if (type === 'range') {
     return value
       .slice(0, 2)
       .sort((a, b) => a.getTime() - b.getTime())
@@ -556,7 +533,7 @@ function buildMonth(month: Date, weekStartsOn: number): (Date | null)[] {
 }
 
 function getCalendarDayTestId(day: Date) {
-  return `calendar-day-${day.getFullYear()}-${`${day.getMonth() + 1}`.padStart(2, "0")}-${`${day.getDate()}`.padStart(2, "0")}`
+  return `calendar-day-${day.getFullYear()}-${`${day.getMonth() + 1}`.padStart(2, '0')}-${`${day.getDate()}`.padStart(2, '0')}`
 }
 
 function startOfMonth(date: Date) {
@@ -577,57 +554,39 @@ function isSameMonth(a: Date, b: Date) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-  },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerCenter: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
   },
-  headerTitle: {
-    textAlign: "center",
-  },
-  headerSubtitle: {
-    textAlign: "center",
-  },
-  navButton: {
-  },
-  navButtonDisabled: {
-    opacity: 0.3,
-  },
   weekRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   weekLabelItem: {
     width: `${100 / 7}%`,
-    alignItems: "center",
-  },
-  weekLabel: {
-    textAlign: "center",
+    alignItems: 'center',
   },
   days: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   dayButton: {
     width: `${100 / 7}%`,
-    alignItems: "center",
+    alignItems: 'center',
   },
   day: {
-    textAlign: "center",
+    textAlign: 'center',
   },
   dayPlaceholder: {
     width: `${100 / 7}%`,
   },
   confirmButton: {
-    alignItems: "center",
-  },
-  confirmText: {
+    alignItems: 'center',
   },
 })
 

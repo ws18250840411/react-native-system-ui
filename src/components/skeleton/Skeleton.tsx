@@ -1,40 +1,38 @@
 import React from 'react'
-import { Animated, Platform, StyleSheet, View } from 'react-native'
+import { Animated, StyleSheet, View } from 'react-native'
 
+import { nativeDriverEnabled } from '../../platform'
 import type { SkeletonProps } from './types'
 import { useSkeletonTokens } from './tokens'
 
-const DEFAULT_ROW_WIDTH = '100%'
-const DEFAULT_LAST_ROW_WIDTH = '60%'
-
-const normalizeValue = (value: number | string | undefined, fallback: number | string): number | string => {
-  if (typeof value === 'number') return value
-  if (typeof value === 'string' && value.length > 0) return value
-  return fallback
-}
+const normalize = (
+  value: number | string | undefined,
+  fallback: number | string,
+): number | string =>
+  typeof value === 'number' || (typeof value === 'string' && value) ? value : fallback
 
 const resolveSeries = (
   count: number,
   input: number | string | Array<number | string> | undefined,
   fallback: number | string,
 ): Array<number | string> => {
-  if (Array.isArray(input)) {
-    return Array.from({ length: count }).map((_, idx) => normalizeValue(input[idx], fallback))
-  }
-  return Array.from({ length: count }).map(() => normalizeValue(input, fallback))
+  return Array.from({ length: count }, (_, idx) =>
+    normalize(Array.isArray(input) ? input[idx] : input, fallback),
+  )
 }
 
 const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
+  const tokens = useSkeletonTokens(props.tokensOverride)
   const {
     loading = true,
     animate = true,
     avatar = false,
-    avatarSize = 32,
+    avatarSize = tokens.defaults.avatarSize,
     avatarShape = 'round',
     title = false,
-    titleWidth = '40%',
-    row = 3,
-    rowWidth = '100%',
+    titleWidth = tokens.defaults.titleWidth,
+    row = tokens.defaults.rowCount,
+    rowWidth = tokens.defaults.rowWidth,
     rowHeight,
     round = false,
     style,
@@ -42,56 +40,53 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
     ...rest
   } = props
 
-  const tokens = useSkeletonTokens()
   const rows = Math.max(0, row ?? 0)
-  const rowWidths = resolveSeries(rows, rowWidth, DEFAULT_ROW_WIDTH)
-  const rowHeights = resolveSeries(rows, rowHeight, 16)
-  if (
-    !Array.isArray(rowWidth) &&
-    rows > 1 &&
-    (typeof rowWidth === 'undefined' || rowWidth === DEFAULT_ROW_WIDTH)
-  ) {
-    rowWidths[rows - 1] = DEFAULT_LAST_ROW_WIDTH
+  const rowWidths = resolveSeries(rows, rowWidth, tokens.defaults.rowWidth)
+  const rowHeights = resolveSeries(rows, rowHeight, tokens.defaults.rowHeight)
+
+  if (!Array.isArray(rowWidth) && rows > 1 && (props.rowWidth === undefined || props.rowWidth === '100%')) {
+    rowWidths[rows - 1] = tokens.defaults.lastRowWidth
   }
-  const titleHeight = rowHeights[0] ?? 16
+
+  const titleHeight = rowHeights[0] ?? tokens.defaults.rowHeight
+  const resolvedAvatarSize = normalize(avatarSize, tokens.defaults.avatarSize)
+  const resolvedTitleWidth = normalize(titleWidth, tokens.defaults.titleWidth)
 
   const animated = React.useRef(new Animated.Value(0)).current
-  const loopRef = React.useRef<Animated.CompositeAnimation | null>(null)
 
   React.useEffect(() => {
-    if (loading && animate) {
-      loopRef.current = Animated.loop(
-        Animated.sequence([
-          Animated.timing(animated, {
-            toValue: 1,
-            duration: tokens.animation.duration / 2,
-            useNativeDriver: Platform.OS !== 'web',
-          }),
-          Animated.timing(animated, {
-            toValue: 0,
-            duration: tokens.animation.duration / 2,
-            useNativeDriver: Platform.OS !== 'web',
-          }),
-        ]),
-      )
-      loopRef.current.start()
-    } else {
-      loopRef.current?.stop()
+    if (!loading || !animate) {
       animated.setValue(0)
+      return
     }
-    return () => {
-      loopRef.current?.stop()
-    }
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animated, {
+          toValue: 1,
+          duration: tokens.animation.duration / 2,
+          useNativeDriver: nativeDriverEnabled,
+        }),
+        Animated.timing(animated, {
+          toValue: 0,
+          duration: tokens.animation.duration / 2,
+          useNativeDriver: nativeDriverEnabled,
+        }),
+      ]),
+    )
+    loop.start()
+    return () => loop.stop()
   }, [animate, animated, loading, tokens.animation.duration])
 
-  const animatedStyle = animate && loading
-    ? {
-      opacity: animated.interpolate({
-        inputRange: [0, 1],
-        outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
-      }),
-    }
-    : null
+  const animatedStyle =
+    !loading || !animate
+      ? undefined
+      : ({
+        opacity: animated.interpolate({
+          inputRange: [0, 1],
+          outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
+        }),
+      } as any)
 
   if (!loading) {
     return (
@@ -105,34 +100,29 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
     <View ref={ref} style={[styles.container, { gap: tokens.spacing.containerGap }, style]} {...rest}>
       {avatar ? (
         <Animated.View
-          style={
-            [
-              {
-                width: normalizeValue(avatarSize, 32),
-                height: normalizeValue(avatarSize, 32),
-                borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
-                backgroundColor: tokens.colors.block,
-              },
-              animatedStyle,
-            ] as any
-          }
+          style={[
+            {
+              width: resolvedAvatarSize,
+              height: resolvedAvatarSize,
+              borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
+              backgroundColor: tokens.colors.block,
+            },
+            animatedStyle,
+          ]}
         />
       ) : null}
       <View style={styles.content}>
         {title ? (
           <Animated.View
-            style={
-              [
-                styles.title,
-                {
-                  width: normalizeValue(titleWidth, '40%'),
-                  height: titleHeight,
-                  backgroundColor: tokens.colors.block,
-                  borderRadius: round ? tokens.radius : 0,
-                },
-                animatedStyle,
-              ] as any
-            }
+            style={[
+              {
+                width: resolvedTitleWidth,
+                height: titleHeight,
+                backgroundColor: tokens.colors.block,
+                borderRadius: round ? tokens.radius : 0,
+              },
+              animatedStyle,
+            ]}
           />
         ) : null}
         {rows > 0 ? (
@@ -141,19 +131,16 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
               <Animated.View
                 key={index}
                 testID={`rv-skeleton-row-${index}`}
-                style={
-                  [
-                    styles.row,
-                    {
-                      width,
-                      height: rowHeights[index],
-                      marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
-                      backgroundColor: tokens.colors.block,
-                      borderRadius: round ? tokens.radius : 0,
-                    },
-                    animatedStyle,
-                  ] as any
-                }
+                style={[
+                  {
+                    width,
+                    height: rowHeights[index],
+                    marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
+                    backgroundColor: tokens.colors.block,
+                    borderRadius: round ? tokens.radius : 0,
+                  },
+                  animatedStyle,
+                ]}
               />
             ))}
           </View>
@@ -171,14 +158,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  title: {
-    height: 16,
-  },
   rows: {
     width: '100%',
-  },
-  row: {
-    height: 16,
   },
 })
 

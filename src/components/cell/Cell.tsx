@@ -1,12 +1,12 @@
 import React from 'react'
 import type { DimensionValue, StyleProp, ViewStyle } from 'react-native'
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { Arrow } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 import { createHairlineView } from '../../utils/hairline'
 
 import { CellGroupContext } from './CellContext'
-import type { CellArrowDirection, CellProps } from './types'
+import type { CellProps } from './types'
 import { useCellTokens } from './tokens'
 
 const styles = StyleSheet.create({
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleText: {
-    display: 'flex', // 让 width/minWidth 在 RN Web 生效
+    display: 'flex',
   },
   value: {
     textAlign: 'right',
@@ -69,17 +69,16 @@ const styles = StyleSheet.create({
   },
 })
 
-const arrowTransforms: Record<CellArrowDirection, ViewStyle> = {
+const arrowTransforms: Record<'left' | 'right' | 'up' | 'down', ViewStyle> = {
   left: { transform: [{ rotate: '180deg' }] },
   right: {},
   up: { transform: [{ rotate: '-90deg' }] },
   down: { transform: [{ rotate: '90deg' }] },
 }
 
-type ExtendedViewStyle = ViewStyle & {
-  paddingStart?: DimensionValue
-  paddingEnd?: DimensionValue
-}
+const isRenderableNode = (val: any) => val != null && val !== false
+const isTextLikeNode = (val: any): val is string | number =>
+  typeof val === 'string' || typeof val === 'number'
 
 export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellProps>(
   (props, ref) => {
@@ -97,6 +96,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       center,
       size = 'normal',
       arrowDirection = 'right',
+      tokensOverride,
       children,
       style,
       titleStyle,
@@ -109,44 +109,39 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       ...rest
     } = props
 
-    const tokens = useCellTokens()
+    const tokens = useCellTokens(tokensOverride)
     const group = React.useContext(CellGroupContext)
-    const platform = Platform.OS
     const lineHeight = tokens.typography.lineHeight
 
-    const hasTitle = title !== undefined && title !== null && title !== false
-    const hasValue = value !== undefined && value !== null && value !== false
-    const hasLabel = label !== undefined && label !== null && label !== false
-    const hasExtra = extra !== undefined && extra !== null && extra !== false
-    const hasChildren = children !== undefined && children !== null && children !== false
-    const hasIcon = icon !== undefined && icon !== null && icon !== false
-    const hasRightIcon = rightIcon !== undefined && rightIcon !== null && rightIcon !== false
+    const hasTitle = isRenderableNode(title)
+    const hasValue = isRenderableNode(value)
+    const hasLabel = isRenderableNode(label)
+    const hasExtra = isRenderableNode(extra)
+    const hasChildren = isRenderableNode(children)
+    const hasIcon = isRenderableNode(icon)
+    const hasRightIcon = isRenderableNode(rightIcon)
 
     const onlyValue = !hasTitle && !hasChildren
-    const isPrimitiveValue = typeof value === 'string' || typeof value === 'number'
 
     const showBorder = border && group.border && !group.isLast
-    const showArrow = (isLink ?? false) || clickable
+    const showArrow = !!isLink || !!clickable
 
-    const hasPressHandler =
-      typeof onPress === 'function' ||
-      typeof rest.onLongPress === 'function' ||
-      typeof rest.onPressIn === 'function' ||
-      typeof rest.onPressOut === 'function'
+    const isInteractive =
+      !disabled &&
+      (clickable ||
+        !!onPress ||
+        !!rest.onLongPress ||
+        !!rest.onPressIn ||
+        !!rest.onPressOut)
 
-    const isInteractive = (clickable || hasPressHandler) && !disabled
-
-    const baseContainerStyle = React.useMemo(
-      () => ({
-        backgroundColor: tokens.container.background,
-        paddingVertical:
-          size === 'large'
-            ? tokens.container.largePaddingVertical
-            : tokens.container.paddingVertical,
-        paddingHorizontal: tokens.container.paddingHorizontal,
-      }),
-      [size, tokens.container],
-    )
+    const baseContainerStyle = {
+      backgroundColor: tokens.container.background,
+      paddingVertical:
+        size === 'large'
+          ? tokens.container.largePaddingVertical
+          : tokens.container.paddingVertical,
+      paddingHorizontal: tokens.container.paddingHorizontal,
+    }
 
     const containerStyles: StyleProp<ViewStyle> = [
       styles.container,
@@ -155,57 +150,48 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       style,
     ]
 
-    const resolvedPadding = React.useMemo(() => {
-      const flattened = StyleSheet.flatten([styles.container, baseContainerStyle, center && styles.center, style]) as
-        | ExtendedViewStyle
-        | undefined
-      const horizontal = typeof flattened?.paddingHorizontal === 'number' ? flattened.paddingHorizontal : undefined
+    const flattened = StyleSheet.flatten(containerStyles) as any
+    const paddingHorizontal =
+      typeof flattened?.paddingHorizontal === 'number'
+        ? flattened.paddingHorizontal
+        : undefined
+    const resolveInset = (primary?: DimensionValue, secondary?: DimensionValue) =>
+      typeof primary === 'number'
+        ? primary
+        : typeof secondary === 'number'
+          ? secondary
+          : typeof paddingHorizontal === 'number'
+            ? paddingHorizontal
+            : tokens.container.paddingHorizontal
+    const resolvedPadding = {
+      left: resolveInset(flattened?.paddingLeft, flattened?.paddingStart),
+      right: resolveInset(flattened?.paddingRight, flattened?.paddingEnd),
+    }
+    const hairline = showBorder ? (
+      <View
+        style={[
+          styles.hairline,
+          createHairlineView({
+            position: 'bottom',
+            color: tokens.border.color,
+            left: resolvedPadding.left,
+            right: resolvedPadding.right,
+            enabled: tokens.border.width > 0,
+            width: tokens.border.width,
+          }),
+        ]}
+      />
+    ) : null
 
-      const resolveInset = (primary?: DimensionValue, secondary?: DimensionValue) => {
-        if (typeof primary === 'number') return primary
-        if (typeof secondary === 'number') return secondary
-        if (typeof horizontal === 'number') return horizontal
-        return tokens.container.paddingHorizontal
-      }
-
-      return {
-        left: resolveInset(flattened?.paddingLeft, flattened?.paddingStart),
-        right: resolveInset(flattened?.paddingRight, flattened?.paddingEnd),
-      }
-    }, [baseContainerStyle, center, style, tokens.container.paddingHorizontal])
-
-    const hairline = React.useMemo(() => {
-      if (!showBorder) return null
-      const borderWidth = typeof tokens.border.width === 'number' ? tokens.border.width : undefined
-      try {
-        const hairlineStyle = createHairlineView({
-          position: 'bottom',
-          color: tokens.border.color,
-          left: resolvedPadding.left,
-          right: resolvedPadding.right,
-          enabled: borderWidth !== undefined ? borderWidth > 0 : true,
-          // 如果指定了自定义宽度，传递给 createHairlineView 统一处理
-          width: borderWidth,
-        })
-
-        return <View style={[styles.hairline, hairlineStyle]} />
-      } catch (e) {
-        if (typeof __DEV__ !== 'undefined' && __DEV__) {
-          console.warn('[Cell] Failed to create hairline view:', e)
-        }
-        return null
-      }
-    }, [
-      resolvedPadding.left,
-      resolvedPadding.right,
-      showBorder,
-      tokens.border.color,
-      tokens.border.width,
-    ])
+    const customContentStyle = [
+      styles.customContent,
+      { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] },
+      contentStyle,
+    ]
 
     const renderValue = () => {
       if (hasValue) {
-        if (isPrimitiveValue) {
+        if (isTextLikeNode(value)) {
           return (
             <Text
               style={[
@@ -226,32 +212,34 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
             </Text>
           )
         }
-        return (
-          <View
-            style={[
-              styles.customContent,
-              { justifyContent: center ? 'center' : 'flex-start' },
-              contentStyle,
-            ]}
-          >
-            {value}
-          </View>
-        )
+        return <View style={customContentStyle}>{value}</View>
       }
       if (hasChildren) {
-        return (
-          <View
-            style={[
-              styles.customContent,
-              { justifyContent: center ? 'center' : 'flex-start' },
-              contentStyle,
-            ]}
-          >
-            {children}
-          </View>
-        )
+        return <View style={customContentStyle}>{children}</View>
       }
       return null
+    }
+
+    const renderExtra = () => {
+      if (!hasExtra) return null
+      const marginLeft = tokens.spacing.extraGap
+      if (isTextLikeNode(extra)) {
+        return (
+          <Text
+            style={{
+              marginLeft,
+              color: tokens.typography.valueColor,
+              fontSize:
+                size === 'large'
+                  ? tokens.typography.largeValueSize
+                  : tokens.typography.valueSize,
+            }}
+          >
+            {extra}
+          </Text>
+        )
+      }
+      return <View style={{ marginLeft }}>{extra}</View>
     }
 
     const renderBody = () => (
@@ -286,7 +274,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
                 </Text>
               ) : null}
               {hasTitle
-                ? typeof title === 'string' || typeof title === 'number'
+                ? isTextLikeNode(title)
                   ? (
                     <Text
                       style={[
@@ -315,7 +303,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
             </View>
           )}
           {hasLabel
-            ? typeof label === 'string' || typeof label === 'number'
+            ? isTextLikeNode(label)
               ? (
                 <Text
                   style={[
@@ -349,8 +337,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
         <View
           style={[
             styles.valueContainer,
-            { minHeight: lineHeight },
-            { marginLeft: tokens.spacing.valueGap },
+            { minHeight: lineHeight, marginLeft: tokens.spacing.valueGap },
             !center && onlyValue && styles.valueOnlyContainer,
             center && styles.valueCenter,
           ]}
@@ -367,24 +354,6 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
           )}
       </>
     )
-
-    const renderExtra = () => {
-      if (!hasExtra) return null
-      if (typeof extra === 'string' || typeof extra === 'number') {
-        return (
-          <Text
-            style={{
-              marginLeft: tokens.spacing.extraGap,
-              color: tokens.typography.valueColor,
-              fontSize: size === 'large' ? tokens.typography.largeValueSize : tokens.typography.valueSize,
-            }}
-          >
-            {extra}
-          </Text>
-        )
-      }
-      return <View style={{ marginLeft: tokens.spacing.extraGap }}>{extra}</View>
-    }
 
     if (!isInteractive) {
       return (

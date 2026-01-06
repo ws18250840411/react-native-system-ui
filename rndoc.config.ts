@@ -202,7 +202,6 @@ export default defineConfig({
           '/components/image-preview',
           '/components/list',
           '/components/notice-bar',
-          '/components/popover',
           '/components/progress',
           '/components/swiper',
           '/components/swipe-cell',

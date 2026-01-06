@@ -18,7 +18,9 @@ import Loading from '../loading'
 import { Checked, Close } from 'react-native-system-icon'
 import { useOverlayStack } from '../overlay'
 import type { LoadingType } from '../loading'
+import type { DeepPartial } from '../../types'
 import { useToastTokens } from './tokens'
+import type { ToastTokens } from './tokens'
 
 export type ToastPosition = 'top' | 'middle' | 'bottom'
 export type ToastType = 'info' | 'success' | 'fail' | 'loading'
@@ -38,6 +40,7 @@ export interface ToastProps {
   closeOnClickOverlay?: boolean
   closeOnClick?: boolean
   loadingIndicator?: React.ReactNode
+  tokensOverride?: DeepPartial<ToastTokens>
   style?: StyleProp<ViewStyle>
   textStyle?: StyleProp<TextStyle>
   onClose?: () => void
@@ -62,6 +65,7 @@ export const Toast: React.FC<ToastProps> = props => {
     closeOnClickOverlay = false,
     closeOnClick = false,
     loadingIndicator,
+    tokensOverride,
     style,
     textStyle,
     onClose,
@@ -70,18 +74,20 @@ export const Toast: React.FC<ToastProps> = props => {
     onClosed,
   } = props
 
-  const tokens = useToastTokens()
+  const tokens = useToastTokens(tokensOverride)
+  const { colors } = tokens
   const { height: windowHeight } = useWindowDimensions()
   const { mounted, animated } = usePresenceAnimation(visible, { duration: tokens.animationDuration })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'toast' })
   const prevVisibleRef = React.useRef(visible)
   const closingRef = React.useRef(false)
   const positionOffset = windowHeight > 0 ? Math.round(windowHeight * 0.2) : 60
-  const positionStyle = React.useMemo<ViewStyle>(() => {
-    if (position === 'top') return { justifyContent: 'flex-start', paddingTop: positionOffset }
-    if (position === 'bottom') return { justifyContent: 'flex-end', paddingBottom: positionOffset }
-    return { justifyContent: 'center' }
-  }, [position, positionOffset])
+  const positionStyle: ViewStyle =
+    position === 'top'
+      ? { justifyContent: 'flex-start', paddingTop: positionOffset }
+      : position === 'bottom'
+        ? { justifyContent: 'flex-end', paddingBottom: positionOffset }
+        : { justifyContent: 'center' }
 
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
@@ -98,20 +104,21 @@ export const Toast: React.FC<ToastProps> = props => {
   }, [duration, onClose, visible])
 
   React.useEffect(() => {
+    let openedTimer: ReturnType<typeof setTimeout> | null = null
     if (visible) {
       closingRef.current = false
       if (!prevVisibleRef.current) {
         onOpen?.()
         if (onOpened) {
-          const timer = setTimeout(onOpened, tokens.animationDuration)
-          return () => clearTimeout(timer)
+          openedTimer = setTimeout(onOpened, tokens.animationDuration)
         }
       }
-      return
-    }
-
-    if (prevVisibleRef.current) {
+    } else if (prevVisibleRef.current) {
       closingRef.current = true
+    }
+    prevVisibleRef.current = visible
+    return () => {
+      if (openedTimer) clearTimeout(openedTimer)
     }
   }, [onOpen, onOpened, tokens.animationDuration, visible])
 
@@ -121,18 +128,14 @@ export const Toast: React.FC<ToastProps> = props => {
       onClosed?.()
     }
   }, [mounted, onClosed])
-
-  React.useEffect(() => {
-    prevVisibleRef.current = visible
-  }, [visible])
-
-  const handleCloseOnPress = React.useCallback(() => {
+  
+  const handleClose = () => {
     onClose?.()
-  }, [onClose])
+  }
 
   const toastPress = useAriaPress({
     disabled: !closeOnClick,
-    onPress: handleCloseOnPress,
+    onPress: handleClose,
     extraProps: {
       accessibilityRole: closeOnClick ? 'button' : 'alert',
       accessibilityHint: closeOnClick ? '双击关闭提示' : undefined,
@@ -145,13 +148,13 @@ export const Toast: React.FC<ToastProps> = props => {
     const resolvedIconSize = iconSize ?? tokens.iconSize
     switch (type) {
       case 'success':
-        return <Checked size={resolvedIconSize} fill={tokens.colors.text} color={tokens.colors.text} />
+        return <Checked size={resolvedIconSize} fill={colors.text} color={colors.text} />
       case 'fail':
-        return <Close size={resolvedIconSize} fill={tokens.colors.text} color={tokens.colors.text} />
+        return <Close size={resolvedIconSize} fill={colors.text} color={colors.text} />
       case 'loading':
         return (
           loadingIndicator ?? (
-            <Loading type={loadingType} color={tokens.colors.text} size={resolvedIconSize} />
+            <Loading type={loadingType} color={colors.text} size={resolvedIconSize} />
           )
         )
       default:
@@ -160,14 +163,29 @@ export const Toast: React.FC<ToastProps> = props => {
   }
   const iconNode = renderIcon()
   const isTextToast = type === 'info' && !iconNode
+  const boxStyle: ViewStyle = isTextToast
+    ? {
+      minWidth: tokens.textMinWidth,
+      minHeight: 0,
+      paddingVertical: tokens.textPaddingVertical,
+      paddingHorizontal: tokens.textPaddingHorizontal,
+    }
+    : {
+      minWidth: tokens.defaultWidth,
+      minHeight: tokens.defaultMinHeight,
+      padding: tokens.defaultPadding,
+    }
+  const toastStyle = {
+    borderRadius: tokens.radius,
+    opacity: closeOnClick && toastPress.states.pressed ? 0.85 : animated,
+    backgroundColor: tokens.colors.variants[type],
+    maxWidth: tokens.maxWidth,
+    ...boxStyle,
+  } as Animated.WithAnimatedValue<ViewStyle>
 
   if (!mounted) return null
 
-  const hasMessage =
-    message !== undefined &&
-    message !== null &&
-    message !== false &&
-    !(typeof message === 'string' && message.length === 0)
+  const hasMessage = message !== undefined && message !== null && message !== false && message !== ''
 
   return (
     <Portal>
@@ -182,9 +200,9 @@ export const Toast: React.FC<ToastProps> = props => {
         {overlay || forbidClick ? (
           <Pressable
             testID="rv-toast-overlay"
-            style={[styles.overlay, overlay ? { backgroundColor: tokens.colors.backdrop } : null, overlayStyle]}
+            style={[styles.overlay, overlay ? { backgroundColor: colors.backdrop } : null, overlayStyle]}
             pointerEvents="auto"
-            onPress={overlay && closeOnClickOverlay ? handleCloseOnPress : undefined}
+            onPress={overlay && closeOnClickOverlay ? handleClose : undefined}
             onStartShouldSetResponder={() => true}
             onMoveShouldSetResponder={() => true}
           />
@@ -193,24 +211,7 @@ export const Toast: React.FC<ToastProps> = props => {
           <Animated.View
             style={[
               styles.toast,
-              ({
-                borderRadius: tokens.radius,
-                opacity: closeOnClick && toastPress.states.pressed ? 0.85 : animated,
-                backgroundColor: tokens.colors.variants[type],
-                maxWidth: tokens.maxWidth,
-                ...(isTextToast
-                  ? ({
-                    minWidth: tokens.textMinWidth,
-                    minHeight: 0,
-                    paddingVertical: tokens.textPaddingVertical,
-                    paddingHorizontal: tokens.textPaddingHorizontal,
-                  } as ViewStyle)
-                  : ({
-                    minWidth: tokens.defaultWidth,
-                    minHeight: tokens.defaultMinHeight,
-                    padding: tokens.defaultPadding,
-                  } as ViewStyle)),
-              } as Animated.WithAnimatedValue<ViewStyle>),
+              toastStyle,
               style,
             ]}
           >
@@ -223,7 +224,7 @@ export const Toast: React.FC<ToastProps> = props => {
                   <Text
                     style={[
                       styles.message,
-                      { color: tokens.colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight },
+                      { color: colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight },
                       textStyle,
                     ]}
                   >

@@ -2,6 +2,7 @@ import React from 'react'
 import { Pressable, Text, type TextStyle, View, Platform } from 'react-native'
 
 import Loading from '../loading'
+import { withAlpha } from '../../utils/color'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
 import styles from './styles'
@@ -14,54 +15,8 @@ const getVisibleCount = (count: number) => {
   return normalized % 2 === 0 ? normalized + 1 : normalized
 }
 
-const clampUnit = (value: number) => Math.max(0, Math.min(1, value))
-
-const hexToRgb = (hex: string) => {
-  const normalized = hex.replace('#', '')
-  const expanded = normalized.length === 3 ? normalized.split('').map(char => char + char).join('') : normalized
-  if (expanded.length !== 6) return null
-  const r = parseInt(expanded.substring(0, 2), 16)
-  const g = parseInt(expanded.substring(2, 4), 16)
-  const b = parseInt(expanded.substring(4, 6), 16)
-  if ([r, g, b].some(channel => Number.isNaN(channel))) return null
-  return { r, g, b }
-}
-
-const withOpacity = (color: string, alpha: number) => {
-  const clamped = clampUnit(alpha)
-  const trimmed = color?.trim?.() ?? ''
-  if (!trimmed) return color
-  if (trimmed.startsWith('#')) {
-    const rgb = hexToRgb(trimmed)
-    if (rgb) {
-      return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamped})`
-    }
-    return color
-  }
-  const rgbMatch = trimmed.match(/^rgba?\(([^)]*)\)$/i)
-  if (rgbMatch) {
-    const parts = rgbMatch[1].split(',').map(part => part.trim()).slice(0, 3)
-    const numeric = parts.map(value => Number(value))
-    if (numeric.every(channel => Number.isFinite(channel))) {
-      const [r, g, b] = numeric
-      return `rgba(${r}, ${g}, ${b}, ${clamped})`
-    }
-  }
-  return trimmed
-}
-
 const GRADIENT_OVERLAY_ALPHA = 0.25
-const GRADIENT_START_ALPHA = 0.98
-const GRADIENT_END_ALPHA = 0.4
-const GRADIENT_SEGMENTS = 8
-
-const createGradientSteps = (start: number, end: number, segments: number) => {
-  const count = Math.max(1, segments)
-  const delta = (start - end) / count
-  return Array.from({ length: count + 1 }, (_, idx) => clampUnit(start - delta * idx))
-}
-
-const GRADIENT_STEPS = createGradientSteps(GRADIENT_START_ALPHA, GRADIENT_END_ALPHA, GRADIENT_SEGMENTS)
+const GRADIENT_STEPS = [0.98, 0.9075, 0.835, 0.7625, 0.69, 0.6175, 0.545, 0.4725, 0.4]
 
 const GradientMask: React.FC<{
   height: number
@@ -76,16 +31,16 @@ const GradientMask: React.FC<{
     position === 'top' ? { top: 0 } : { bottom: 0 },
   ]
 
-  const overlayColor = withOpacity(color, GRADIENT_OVERLAY_ALPHA)
+  const overlayColor = withAlpha(color, GRADIENT_OVERLAY_ALPHA)
 
   if (maskType === 'solid') {
-    return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: withOpacity(color, 0.9) }]} />
+    return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: withAlpha(color, 0.9) }]} />
   }
 
   if (isWeb) {
     const angle = position === 'top' ? '180deg' : '0deg'
-    const gradientStart = withOpacity(color, GRADIENT_START_ALPHA)
-    const gradientEnd = withOpacity(color, GRADIENT_END_ALPHA)
+    const gradientStart = withAlpha(color, 0.98)
+    const gradientEnd = withAlpha(color, 0.4)
     return (
       <View
         pointerEvents="none"
@@ -105,7 +60,7 @@ const GradientMask: React.FC<{
   return (
     <View pointerEvents="none" style={[...baseStyle, { backgroundColor: overlayColor }]}>
       {steps.map((opacity, idx) => (
-        <View key={idx} style={{ flex: 1, backgroundColor: withOpacity(color, opacity) }} />
+        <View key={idx} style={{ flex: 1, backgroundColor: withAlpha(color, opacity) }} />
       ))}
     </View>
   )
@@ -127,10 +82,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
       readOnly,
       decelerationRate,
       scrollEventThrottle,
-      disableRemoveClippedSubviewsOnWeb,
-      debug,
       swipeDuration,
-      effects,
     } = props
     const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
@@ -140,10 +92,10 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
       return findEnabledIndex(options, idx >= 0 ? idx : 0)
     }, [options, value])
 
-    const handleChange = React.useCallback(
-      (index: number) => {
-        const target = findEnabledIndex(options, index)
-        const option = options[target]
+      const handleChange = React.useCallback(
+        (index: number) => {
+          const target = findEnabledIndex(options, index)
+          const option = options[target]
         if (!option || option.disabled) return
         onSelect(option, columnIndex, target)
       },
@@ -162,10 +114,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
           indicatorColor={tokens.colors.indicator}
           decelerationRate={decelerationRate}
           scrollEventThrottle={scrollEventThrottle}
-          disableRemoveClippedSubviewsOnWeb={disableRemoveClippedSubviewsOnWeb}
-          debug={debug}
           swipeDuration={swipeDuration}
-          effects={effects}
           renderItem={(item: PickerOption | null) => {
             if (!item) return null
             const active = item.value === value
@@ -180,12 +129,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
             const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
             return (
               <View
-                style={{
-                  opacity: disabled ? 0.5 : 1,
-                  minHeight: itemHeight,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
+                style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]}
                 testID={testID}
                 accessible={!!a11yLabel}
                 accessibilityLabel={a11yLabel}
@@ -214,26 +158,12 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
         />
       </View>
     )
-  },
-  (prev, next) =>
-    prev.value === next.value &&
-    prev.itemHeight === next.itemHeight &&
-    prev.visibleItemCount === next.visibleItemCount &&
-    prev.readOnly === next.readOnly &&
-    prev.decelerationRate === next.decelerationRate &&
-    prev.scrollEventThrottle === next.scrollEventThrottle &&
-    prev.swipeDuration === next.swipeDuration &&
-    prev.effects === next.effects &&
-    prev.options === next.options &&
-    prev.tokens === next.tokens &&
-    prev.optionRender === next.optionRender &&
-    prev.getOptionTestID === next.getOptionTestID &&
-    prev.getOptionA11yLabel === next.getOptionA11yLabel &&
-    prev.debug === next.debug,
+  }
 )
 
 const Picker: React.FC<PickerProps> = props => {
-  const tokens = usePickerTokens()
+  const { tokensOverride } = props
+  const tokens = usePickerTokens(tokensOverride)
   const {
     columns = [],
     value: valueProp,
@@ -250,17 +180,14 @@ const Picker: React.FC<PickerProps> = props => {
     decelerationRate = 'fast',
     swipeDuration = tokens.defaults.swipeDuration,
     scrollEventThrottle = 16,
-    effects,
     columnsTop,
     columnsBottom,
     optionRender,
     getOptionTestID,
     getOptionA11yLabel,
     emitConfirmOnAutoSelect = true,
-    disableRemoveClippedSubviewsOnWeb = false,
     maskColor,
     maskType = tokens.defaults.maskType,
-    debug = false,
     onChange,
     onConfirm,
     onCancel,
@@ -283,78 +210,59 @@ const Picker: React.FC<PickerProps> = props => {
     onConfirm,
   })
 
-  const handleCancel = React.useCallback(() => {
-    onCancel?.()
-  }, [onCancel])
-
-  const renderActionContent = React.useCallback(
-    (content: React.ReactNode, options: { color: string }) => {
-      if (React.isValidElement(content)) {
-        return (
-          <View style={{ minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>
-            {content}
-          </View>
-        )
-      }
-      if (typeof content === 'string' || typeof content === 'number') {
-        return (
-          <Text
-            numberOfLines={1}
-            style={[
-              styles.actionText,
-              {
-                color: options.color,
-                fontSize: tokens.typography.toolbarSize,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.toolbarWeight as TextStyle['fontWeight'],
-              },
-            ]}
-          >
-            {content}
-          </Text>
-        )
-      }
-      return <View style={{ minWidth: 44 }} />
-    },
-    [tokens.typography.fontFamily, tokens.typography.toolbarSize, tokens.typography.toolbarWeight],
-  )
-
-  const renderTitleContent = React.useCallback(
-    (content: React.ReactNode) => {
-      if (content === undefined || content === null) {
-        return <View />
-      }
-      if (React.isValidElement(content)) {
-        return (
-          <View style={[styles.title, { alignItems: 'center', justifyContent: 'center' }]}>
-            {content}
-          </View>
-        )
-      }
+  const renderActionContent = (content: React.ReactNode, color: string) => {
+    if (React.isValidElement(content)) {
+      return (
+        <View style={{ minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>
+          {content}
+        </View>
+      )
+    }
+    if (typeof content === 'string' || typeof content === 'number') {
       return (
         <Text
+          numberOfLines={1}
           style={[
-            styles.title,
+            styles.actionText,
             {
+              color,
               fontSize: tokens.typography.toolbarSize,
               fontFamily: tokens.typography.fontFamily,
-              color: tokens.colors.text,
               fontWeight: tokens.typography.toolbarWeight as TextStyle['fontWeight'],
             },
           ]}
-          numberOfLines={1}
         >
-          {content as any}
+          {content}
         </Text>
       )
-    },
-    [
-      tokens.colors.text,
-      tokens.typography.fontFamily,
-      tokens.typography.toolbarSize,
-      tokens.typography.toolbarWeight,
-    ],
-  )
+    }
+    return <View style={{ minWidth: 44 }} />
+  }
+
+  const renderTitleContent = (content: React.ReactNode) => {
+    if (content == null) {
+      return <View />
+    }
+    if (React.isValidElement(content)) {
+      return <View style={[styles.title, { alignItems: 'center', justifyContent: 'center' }]}>{content}</View>
+    }
+    return (
+      <Text
+        style={[
+          styles.title,
+          {
+            fontSize: tokens.typography.toolbarSize,
+            fontFamily: tokens.typography.fontFamily,
+            color: tokens.colors.text,
+            fontWeight: tokens.typography.toolbarWeight as TextStyle['fontWeight'],
+          },
+        ]}
+        numberOfLines={1}
+      >
+        {content as any}
+      </Text>
+    )
+  }
 
   const renderToolbar = () => {
     if (!showToolbar) return null
@@ -369,12 +277,12 @@ const Picker: React.FC<PickerProps> = props => {
           },
         ]}
       >
-        <Pressable onPress={handleCancel} accessibilityRole="button">
-          {renderActionContent(cancelButtonText, { color: tokens.colors.cancel })}
+        <Pressable onPress={onCancel} accessibilityRole="button">
+          {renderActionContent(cancelButtonText, tokens.colors.cancel)}
         </Pressable>
         {renderTitleContent(title)}
         <Pressable onPress={handleConfirm} accessibilityRole="button">
-          {renderActionContent(confirmButtonText, { color: tokens.colors.confirm })}
+          {renderActionContent(confirmButtonText, tokens.colors.confirm)}
         </Pressable>
       </View>
     )
@@ -406,11 +314,8 @@ const Picker: React.FC<PickerProps> = props => {
                 optionRender={optionRender}
                 getOptionTestID={getOptionTestID}
                 getOptionA11yLabel={getOptionA11yLabel}
-                disableRemoveClippedSubviewsOnWeb={disableRemoveClippedSubviewsOnWeb}
-                debug={debug}
                 readOnly={readOnly}
                 swipeDuration={swipeDuration}
-                effects={effects}
                 onSelect={handleSelect}
                 tokens={tokens}
               />

@@ -107,7 +107,8 @@ const isNumericLike = (value: React.ReactNode): value is number | string => {
 const toNumber = (value: number | string) => Number(value)
 
 export const Badge: React.FC<BadgeProps> = props => {
-  const tokens = useBadgeTokens()
+  const { tokensOverride } = props
+  const tokens = useBadgeTokens(tokensOverride)
   const {
     children,
     content,
@@ -121,6 +122,7 @@ export const Badge: React.FC<BadgeProps> = props => {
     textStyle,
     onPress,
     style,
+    tokensOverride: _tokensOverride,
     ...rest
   } = props
 

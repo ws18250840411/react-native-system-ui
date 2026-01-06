@@ -1,9 +1,5 @@
-import React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 import type { ToastType } from './Toast'
 
 export interface ToastTokens {
@@ -59,16 +55,4 @@ export const createToastTokens = (foundations: Foundations): ToastTokens => {
   }
 }
 
-export const useToastTokens = (overrides?: DeepPartial<ToastTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createToastTokens(foundations)
-    const globalOverrides = components?.toast
-    const merged = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [foundations, components, overrides])
-}
+export const useToastTokens = createComponentTokensHook('toast', createToastTokens)

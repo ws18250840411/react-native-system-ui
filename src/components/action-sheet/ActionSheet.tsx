@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View, type PressableStateCallbackType } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
@@ -10,8 +10,7 @@ import type { ActionSheetAction, ActionSheetCloseAction, ActionSheetProps } from
 import { useActionSheetTokens, type ActionSheetTokens } from './tokens'
 
 const defaultCloseIcon = <Close size={18} />
-const isPromiseLike = (value: unknown): value is Promise<unknown> =>
-  !!value && typeof value === 'object' && typeof (value as any).then === 'function'
+const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
 const ActionSheetHeader: React.FC<{
   title: React.ReactNode
@@ -24,11 +23,12 @@ const ActionSheetHeader: React.FC<{
     onPress: onClose,
   })
 
+  const { colors, typography } = tokens
   return (
     <View style={styles.header}>
       <View style={styles.titleContainer}>
         {typeof title === 'string' || typeof title === 'number' ? (
-          <Text style={[styles.title, { color: tokens.colors.title, fontSize: tokens.typography.title }]}>{title}</Text>
+          <Text style={[styles.title, { color: colors.title, fontSize: typography.title }]}>{title}</Text>
         ) : (
           <View style={styles.titleNode}>{title}</View>
         )}
@@ -36,7 +36,7 @@ const ActionSheetHeader: React.FC<{
       {closeable ? (
         <Pressable style={styles.closeButton} accessibilityRole="button" hitSlop={8} {...closePress.interactionProps}>
           {React.isValidElement(closeIcon)
-            ? React.cloneElement(closeIcon, { fill: tokens.colors.description, color: tokens.colors.description } as any)
+            ? React.cloneElement(closeIcon, { fill: colors.description, color: colors.description } as any)
             : closeIcon}
         </Pressable>
       ) : null}
@@ -54,6 +54,7 @@ const ActionSheetItem: React.FC<{
 }> = React.memo(({ action, index, tokens, onPress }) => {
   const disabled = !!action.disabled
   const loading = !!action.loading
+  const { colors, spacing, typography } = tokens
   const actionPress = useAriaPress({
     disabled: disabled || loading,
     onPress,
@@ -64,42 +65,26 @@ const ActionSheetItem: React.FC<{
     },
   })
 
-  const color = action.color ?? tokens.colors.item
+  const color = action.color ?? colors.item
   const name = action.name
   const subname = action.subname
-  const hasName = name !== undefined && name !== null && name !== false
-  const hasSubname = subname !== undefined && subname !== null && subname !== false
-
   const hasIcon = !!action.icon
 
-  const itemStyle = React.useCallback(
-    ({ pressed }: PressableStateCallbackType) => [
-      styles.item,
-      hasIcon && styles.itemWithIcon,
-      {
-        paddingVertical: tokens.spacing.vertical,
-        paddingHorizontal: tokens.spacing.horizontal,
-        backgroundColor: pressed && !disabled && !loading
-          ? tokens.colors.itemPressedBackground
-          : tokens.colors.itemBackground,
-      },
-      action.style,
-    ],
-    [
-      hasIcon,
-      tokens.spacing.vertical,
-      tokens.spacing.horizontal,
-      disabled,
-      loading,
-      tokens.colors.itemBackground,
-      tokens.colors.itemPressedBackground,
-      action.style,
-    ]
-  )
+  const hasName = isRenderableNode(name)
+  const hasSubname = isRenderableNode(subname)
 
   return (
     <Pressable
-      style={itemStyle}
+      style={({ pressed }) => [
+        styles.item,
+        hasIcon && styles.itemWithIcon,
+        {
+          paddingVertical: spacing.vertical,
+          paddingHorizontal: spacing.horizontal,
+          backgroundColor: pressed && !disabled && !loading ? colors.itemPressedBackground : colors.itemBackground,
+        },
+        action.style,
+      ]}
       {...actionPress.interactionProps}
     >
       {hasIcon ? <View style={styles.icon}>{action.icon}</View> : null}
@@ -112,8 +97,8 @@ const ActionSheetItem: React.FC<{
               style={[
                 styles.itemText,
                 {
-                  color: disabled ? tokens.colors.disabled : color,
-                  fontSize: tokens.typography.item,
+                  color: disabled ? colors.disabled : color,
+                  fontSize: typography.item,
                 },
               ]}
             >
@@ -124,7 +109,7 @@ const ActionSheetItem: React.FC<{
           )}
           {hasSubname ? (
             typeof subname === 'string' || typeof subname === 'number' ? (
-              <Text style={[styles.subname, { color: tokens.colors.subitem }]}>{subname}</Text>
+              <Text style={[styles.subname, { color: colors.subitem }]}>{subname}</Text>
             ) : (
               <View style={styles.subnameNode}>{subname}</View>
             )
@@ -142,6 +127,7 @@ const ActionSheetCancel: React.FC<{
   tokens: ActionSheetTokens
   onPress: () => void
 }> = React.memo(({ cancelText, tokens, onPress }) => {
+  const { colors, spacing, typography } = tokens
   const cancelPress = useAriaPress({
     onPress,
     extraProps: { accessibilityRole: 'button', testID: 'rv-action-sheet-cancel' },
@@ -149,20 +135,20 @@ const ActionSheetCancel: React.FC<{
 
   return (
     <>
-      <View style={[styles.cancelGap, { height: tokens.spacing.cancelGap, backgroundColor: tokens.colors.cancelGapBackground }]} />
+      <View style={[styles.cancelGap, { height: spacing.cancelGap, backgroundColor: colors.cancelGapBackground }]} />
       <Pressable
         style={[
           styles.cancel,
           {
-            paddingVertical: tokens.spacing.vertical,
-            paddingHorizontal: tokens.spacing.horizontal,
-            backgroundColor: tokens.colors.cancelBackground,
+            paddingVertical: spacing.vertical,
+            paddingHorizontal: spacing.horizontal,
+            backgroundColor: colors.cancelBackground,
           },
         ]}
         {...cancelPress.interactionProps}
       >
         {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
-          <Text style={[styles.cancelText, { color: tokens.colors.cancel, fontSize: tokens.typography.item }]}>{cancelText}</Text>
+          <Text style={[styles.cancelText, { color: colors.cancel, fontSize: typography.item }]}>{cancelText}</Text>
         ) : (
           cancelText
         )}
@@ -174,7 +160,6 @@ const ActionSheetCancel: React.FC<{
 ActionSheetCancel.displayName = 'ActionSheetCancel'
 
 const ActionSheet: React.FC<ActionSheetProps> = props => {
-  const tokens = useActionSheetTokens()
   const {
     visible,
     title,
@@ -195,36 +180,22 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     overlay = true,
     lockScroll = true,
     closeOnClickOverlay = true,
+    tokensOverride,
+    style: popupStyle,
     ...popupProps
   } = props
 
-  const shouldCloseOnClickAction = React.useMemo(
-    () => closeOnClickAction ?? closeOnSelect ?? false,
-    [closeOnClickAction, closeOnSelect]
-  )
-  const hasTitle = React.useMemo(
-    () => title !== undefined && title !== null && title !== false,
-    [title]
-  )
-  const hasDescription = React.useMemo(
-    () => description !== undefined && description !== null && description !== false,
-    [description]
-  )
-  const hasCancelText = React.useMemo(
-    () => cancelText !== undefined && cancelText !== null && cancelText !== false,
-    [cancelText]
-  )
+  const tokens = useActionSheetTokens(tokensOverride)
+  const shouldCloseOnClickAction = closeOnClickAction ?? closeOnSelect ?? false
+  const hasTitle = isRenderableNode(title)
+  const hasDescription = isRenderableNode(description)
+  const hasCancelText = isRenderableNode(cancelText)
 
   const runBeforeClose = React.useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
       if (!beforeClose) return true
       try {
-        const result = beforeClose(action)
-        if (isPromiseLike(result)) {
-          const resolved = await result
-          return resolved !== false
-        }
-        return result !== false
+        return (await beforeClose(action)) !== false
       } catch (error) {
         console.error(error)
         return true
@@ -245,13 +216,9 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
   const handlePopupBeforeClose = React.useCallback(
     async (reason: 'close-icon' | 'overlay' | 'close') => {
       if (!beforeClose) return true
-      const actionMap: Record<string, ActionSheetCloseAction> = {
-        'close-icon': 'close-icon',
-        overlay: 'overlay',
-        close: 'close',
-      }
-      const action = actionMap[reason] ?? 'close'
-      return await runBeforeClose(action)
+      const action: ActionSheetCloseAction =
+        reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
+      return runBeforeClose(action)
     },
     [beforeClose, runBeforeClose]
   )
@@ -300,7 +267,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       onClose={onClose}
       style={[
         { paddingLeft: 0, paddingRight: 0, paddingBottom: 0 },
-        popupProps?.style,
+        popupStyle,
       ]}
       {...popupProps}
     >

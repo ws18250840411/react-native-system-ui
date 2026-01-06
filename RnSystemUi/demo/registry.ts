@@ -63,6 +63,7 @@ import CollapseDemoCustom from '../../docs/components/collapse/demo/custom'
 import CollapseDemoDisabled from '../../docs/components/collapse/demo/disabled'
 import ConfigProviderDemoLocale from '../../docs/components/config-provider/demo/locale'
 import ConfigProviderDemoTheme from '../../docs/components/config-provider/demo/theme'
+import ConfigProviderDemoTokensOverride from '../../docs/components/config-provider/demo/tokens-override'
 import CountDownDemoBasic from '../../docs/components/count-down/demo/basic'
 import CountDownDemoCustomStyle from '../../docs/components/count-down/demo/custom-style'
 import CountDownDemoFormat from '../../docs/components/count-down/demo/format'
@@ -152,8 +153,6 @@ import InputDemoStatus from '../../docs/components/input/demo/status'
 import InputDemoTextarea from '../../docs/components/input/demo/textarea'
 import InputDemoWordLimit from '../../docs/components/input/demo/word-limit'
 import ListDemoBasic from '../../docs/components/list/demo/basic'
-import ListDemoError from '../../docs/components/list/demo/error'
-import ListDemoRefresh from '../../docs/components/list/demo/refresh'
 import LoadingDemoColor from '../../docs/components/loading/demo/color'
 import LoadingDemoSize from '../../docs/components/loading/demo/size'
 import LoadingDemoText from '../../docs/components/loading/demo/text'
@@ -188,8 +187,6 @@ import PickerDemoBasic from '../../docs/components/picker/demo/basic'
 import PickerDemoCascade from '../../docs/components/picker/demo/cascade'
 import PickerDemoMulti from '../../docs/components/picker/demo/multi'
 import PickerDemoToolbar from '../../docs/components/picker/demo/toolbar'
-import PopoverDemoBasic from '../../docs/components/popover/demo/basic'
-import PopoverDemoPlacement from '../../docs/components/popover/demo/placement'
 import PopupDemoBase from '../../docs/components/popup/demo/base'
 import PopupDemoBeforeClose from '../../docs/components/popup/demo/beforeClose'
 import PopupDemoCloseable from '../../docs/components/popup/demo/closeable'
@@ -409,7 +406,6 @@ export const menuGroups: MenuGroup[] = [
       "image-preview",
       "list",
       "notice-bar",
-      "popover",
       "progress",
       "swiper",
       "swipe-cell",
@@ -626,6 +622,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "theme",
         title: "定制主题",
         Component: ConfigProviderDemoTheme,
+      },
+      {
+        id: "tokens-override",
+        title: "实例级 tokensOverride",
+        Component: ConfigProviderDemoTokensOverride,
       },
     ],
   },
@@ -1909,18 +1910,8 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     demos: [
       {
         id: "basic",
-        title: "滚动加载",
+        title: "basic",
         Component: ListDemoBasic,
-      },
-      {
-        id: "error",
-        title: "错误提示",
-        Component: ListDemoError,
-      },
-      {
-        id: "refresh",
-        title: "下拉刷新",
-        Component: ListDemoRefresh,
       },
     ],
   },
@@ -1956,21 +1947,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "vertical",
         title: "垂直滚动",
         Component: NoticeBarDemoVertical,
-      },
-    ],
-  },
-  "popover": {
-    title: "Popover 气泡卡片",
-    demos: [
-      {
-        id: "basic",
-        title: "基础",
-        Component: PopoverDemoBasic,
-      },
-      {
-        id: "placement",
-        title: "方向",
-        Component: PopoverDemoPlacement,
       },
     ],
   },

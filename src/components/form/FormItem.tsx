@@ -1,40 +1,12 @@
 import React from 'react'
 
 import { FormContext } from './FormContext'
-import type { FormInstance } from './Form'
-import type { FormItemRule, NamePath } from './types'
+import type { FormItemProps, FormItemRule } from './types'
+import { normalizeTrigger } from './utils'
 
-export type { FormItemRule } from './types'
+export type { FormItemProps, FormItemRule } from './types'
 
-const normalizeTrigger = (trigger?: string | string[]) => {
-  if (!trigger) return []
-  return Array.isArray(trigger) ? trigger : [trigger]
-}
-
-export interface FormItemProps {
-  name?: NamePath
-  label?: React.ReactNode
-  description?: React.ReactNode
-  intro?: React.ReactNode
-  tooltip?: React.ReactNode
-  rules?: FormItemRule[]
-  dependencies?: NamePath[]
-  valuePropName?: string
-  trigger?: string
-  validateTrigger?: string | string[]
-  showValidateMessage?: boolean
-  required?: boolean
-  noStyle?: boolean
-  shouldUpdate?: (prev: Record<string, any>, next: Record<string, any>) => boolean
-  initialValue?: any
-  children:
-    | React.ReactNode
-    | ((payload: {
-        getFieldValue: (name: NamePath) => any
-        getFieldsValue: () => Record<string, any>
-        form: FormInstance | null
-      }) => React.ReactNode)
-}
+const EMPTY_RULES: FormItemRule[] = []
 
 export const FormItem: React.FC<FormItemProps> = ({
   name,
@@ -49,7 +21,6 @@ export const FormItem: React.FC<FormItemProps> = ({
   validateTrigger,
   showValidateMessage,
   required,
-  noStyle,
   shouldUpdate,
   initialValue,
   children,
@@ -72,17 +43,14 @@ export const FormItem: React.FC<FormItemProps> = ({
     return <>{children}</>
   }
 
-  const normalizedRules = React.useMemo(() => rules ?? [], [rules])
+  const normalizedRules = rules ?? EMPTY_RULES
   const prevValuesRef = React.useRef<Record<string, any>>(context.values)
 
   React.useEffect(() => {
     prevValuesRef.current = context.values
   }, [context.values])
 
-  const shouldRender = React.useMemo(() => {
-    if (!shouldUpdate) return true
-    return shouldUpdate(prevValuesRef.current, context.values)
-  }, [shouldUpdate, context.values])
+  const shouldRender = !shouldUpdate || shouldUpdate(prevValuesRef.current, context.values)
 
   React.useEffect(() => {
     if (!name) return undefined
@@ -90,7 +58,7 @@ export const FormItem: React.FC<FormItemProps> = ({
       rules: normalizedRules,
       dependencies,
       initialValue,
-      validateTrigger: validateTrigger ?? trigger, // 传递 validateTrigger
+      validateTrigger: validateTrigger ?? trigger,
     })
   }, [context.registerField, name, normalizedRules, dependencies, initialValue, validateTrigger, trigger])
 
@@ -99,10 +67,7 @@ export const FormItem: React.FC<FormItemProps> = ({
   const fieldErrors = name ? context.getFieldError(name) : undefined
   const firstError = mergedShowMessage ? fieldErrors?.[0] : undefined
   const mergedRequired = required ?? normalizedRules.some(rule => rule.required)
-  const mergedValidateTriggers = React.useMemo(() => {
-    const merged = validateTrigger ?? trigger
-    return normalizeTrigger(merged)
-  }, [validateTrigger, trigger])
+  const mergedValidateTriggers = normalizeTrigger(validateTrigger ?? trigger)
 
   if (renderProps) {
     if (!shouldRender) return null
@@ -122,7 +87,6 @@ export const FormItem: React.FC<FormItemProps> = ({
 
   const childArray = React.Children.toArray(children)
   if (childArray.length !== 1) {
-    // 保底兜底：非单节点直接返回，避免运行时崩溃
     return <>{children}</>
   }
 

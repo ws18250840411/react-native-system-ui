@@ -15,23 +15,9 @@ import { List } from 'react-native-system-ui'
 
 ## 代码演示
 
-### 基础用法
+由于 `List` 会占满并接管滚动容器，多个场景示例通过 Tabs 在同一页面切换。
 
-滚动到底部自动请求下一页数据。
-
-<code src="./list/demo/basic.tsx" title="滚动加载"></code>
-
-### 错误提示
-
-若 `onLoad` 抛出错误，将进入错误状态并停止自动加载；提供 `errorText` 后可点击重试。
-
-<code src="./list/demo/error.tsx" title="错误提示"></code>
-
-### 下拉刷新
-
-由于 `List` 基于 `ScrollView` 实现，建议通过 `refreshControl` 组合下拉刷新能力（避免嵌套滚动容器）。
-
-<code src="./list/demo/refresh.tsx" title="下拉刷新"></code>
+<code src="./list/demo/basic.tsx" ></code>
 
 ## API
 

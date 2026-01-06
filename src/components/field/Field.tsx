@@ -14,9 +14,9 @@ import Dialog from '../dialog'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 
-const isDef = (val: any) => val !== undefined && val !== null
-const isRenderableNode = (val: any) => val !== undefined && val !== null && val !== false
-const isTextLikeNode = (val: React.ReactNode): val is string | number =>
+const isDef = (val: any) => val != null
+const isRenderableNode = (val: any) => val != null && val !== false
+const isTextLikeNode = (val: unknown): val is string | number =>
   typeof val === 'string' || typeof val === 'number'
 
 const trimExtraChar = (value: string, char: string, regExp: RegExp) => {
@@ -144,9 +144,10 @@ const mapKeyboardType = (type: FieldProps['type']): TextInputProps['keyboardType
 }
 
 export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) => {
-  const tokens = useFieldTokens()
+  const tokens = useFieldTokens(props.tokensOverride)
 
   const {
+    tokensOverride: _tokensOverride,
     label,
     labelWidth = tokens.defaults.labelWidth,
     labelAlign = tokens.defaults.labelAlign,
@@ -208,21 +209,18 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     maxLength,
     ...restInputProps
   } = props
-  const mergedTitleStyle = React.useMemo(
-    () => [
-      {
-        width: labelWidth,
-        minWidth: labelWidth,
-        maxWidth: labelWidth,
-        flexBasis: labelWidth,
-        marginRight: tokens.spacing.labelGap,
-        flexShrink: 0,
-        flexGrow: 0,
-      },
-      titleStyle,
-    ],
-    [labelWidth, titleStyle, tokens.spacing.labelGap],
-  )
+  const mergedTitleStyle = [
+    {
+      width: labelWidth,
+      minWidth: labelWidth,
+      maxWidth: labelWidth,
+      flexBasis: labelWidth,
+      marginRight: tokens.spacing.labelGap,
+      flexShrink: 0,
+      flexGrow: 0,
+    },
+    titleStyle,
+  ]
 
   const resolvedSuffix = suffixProp ?? button
   const resolvedDescription = intro ?? description
@@ -238,29 +236,25 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const inputRef = React.useRef<TextInput>(null)
   const introId = React.useId()
   const errorId = React.useId()
-  const describedBy = React.useMemo(() => {
-    const ids: string[] = []
-    if (isRenderableNode(errorMessage)) ids.push(errorId)
-    if (isRenderableNode(resolvedDescription)) ids.push(introId)
-    return ids.length ? ids : undefined
-  }, [errorId, errorMessage, introId, resolvedDescription])
+  const describedByIds = [
+    isRenderableNode(errorMessage) ? errorId : null,
+    isRenderableNode(resolvedDescription) ? introId : null,
+  ].filter(Boolean) as string[]
+  const describedBy = describedByIds.length ? describedByIds : undefined
 
   const lineHeight = tokens.defaults.textareaLineHeight
-  const minRows = React.useMemo(() => {
-    if (!isTextarea) return 1
-    if (autoSize && typeof autoSize === 'object' && isDef(autoSize.minRows)) {
-      return Math.max(1, autoSize.minRows!)
-    }
-    return Math.max(1, rows)
-  }, [autoSize, isTextarea, rows])
-
-  const maxRows = React.useMemo(() => {
-    if (!isTextarea) return undefined
-    if (autoSize && typeof autoSize === 'object' && isDef(autoSize.maxRows)) {
-      return Math.max(1, autoSize.maxRows!)
-    }
-    return undefined
-  }, [autoSize, isTextarea])
+  const autoSizeConfig = autoSize && typeof autoSize === 'object' ? autoSize : undefined
+  const minRows = !isTextarea
+    ? 1
+    : autoSizeConfig && isDef(autoSizeConfig.minRows)
+      ? Math.max(1, autoSizeConfig.minRows!)
+      : Math.max(1, rows)
+  const maxRows =
+    !isTextarea
+      ? undefined
+      : autoSizeConfig && isDef(autoSizeConfig.maxRows)
+        ? Math.max(1, autoSizeConfig.maxRows!)
+        : undefined
 
   const minHeight = isTextarea
     ? Math.max(tokens.sizes.textareaMinHeight, minRows * lineHeight)
@@ -268,26 +262,16 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const maxHeight = isTextarea && maxRows ? Math.max(tokens.sizes.textareaMinHeight, maxRows * lineHeight) : undefined
   const [textareaHeight, setTextareaHeight] = React.useState<number | undefined>(minHeight)
 
-  const formatValue = React.useCallback(
-    (inputValue: string, trigger: 'onChange' | 'onBlur' = 'onChange') => {
-      if (formatter && trigger === formatTrigger) {
-        return formatter(inputValue)
-      }
-      return inputValue
-    },
-    [formatter, formatTrigger],
-  )
+  const formatValue = (inputValue: string, trigger: 'onChange' | 'onBlur' = 'onChange') =>
+    formatter && trigger === formatTrigger ? formatter(inputValue) : inputValue
 
-  const updateValue = React.useCallback(
-    (next: string, trigger: 'onChange' | 'onBlur' = 'onChange') => {
-      const formatted = formatValue(next, trigger)
-      if (!isControlled) {
-        setInternalValue(formatted)
-      }
-      onChangeText?.(formatted)
-    },
-    [formatValue, isControlled, onChangeText],
-  )
+  const updateValue = (next: string, trigger: 'onChange' | 'onBlur' = 'onChange') => {
+    const formatted = formatValue(next, trigger)
+    if (!isControlled) {
+      setInternalValue(formatted)
+    }
+    onChangeText?.(formatted)
+  }
 
   React.useImperativeHandle(
     ref,
@@ -299,96 +283,75 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         return inputRef.current
       },
     }),
-    [updateValue],
   )
 
   const finalTextAlign = controlAlign !== 'left' ? controlAlign : inputAlignProp
 
-  const showClear = React.useMemo(() => {
-    if (clearable && !readOnly) {
-      const hasValue = (value ?? '') !== ''
-      const trigger =
-        clearTrigger === 'always' ||
-        (clearTrigger === 'focus' && (focused || pressingClear))
-      return hasValue && trigger
+  const showClear =
+    clearable &&
+    !readOnly &&
+    (value ?? '') !== '' &&
+    (clearTrigger === 'always' ||
+      (clearTrigger === 'focus' && (focused || pressingClear)))
+
+  const handleChangeText = (text: string) => {
+    let next = text ?? ''
+
+    if (type === 'number' || type === 'digit') {
+      const allowDot = type === 'number'
+      next = formatNumber(next, allowDot, allowDot)
     }
-    return false
-  }, [clearable, clearTrigger, focused, pressingClear, readOnly, value])
 
-  const handleChangeText = React.useCallback(
-    (text: string) => {
-      let next = text ?? ''
+    if (typeof maxLength === 'number' && maxLength >= 0 && next.length > maxLength) {
+      onOverlimit?.(next)
+      next = next.slice(0, maxLength)
+    }
 
-      if (type === 'number' || type === 'digit') {
-        const allowDot = type === 'number'
-        next = formatNumber(next, allowDot, allowDot)
+    updateValue(next, 'onChange')
+  }
+
+  const handleFocus = (event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
+    setFocused(true)
+    onFocus?.(event)
+    if (readOnly) {
+      inputRef.current?.blur()
+    }
+  }
+
+  const handleBlur = (event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
+    updateValue(value ?? '', 'onBlur')
+    setFocused(false)
+    onBlur?.(event)
+  }
+
+  const handlePressIn = (event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => {
+    onPressIn?.(event)
+    onClickInput?.()
+  }
+
+  const handleContentSizeChange = (event: { nativeEvent: { contentSize: { height: number } } }) => {
+    if (!isTextarea) return
+    const contentHeight = event.nativeEvent.contentSize?.height ?? 0
+    if (!contentHeight) return
+
+    let nextHeight = contentHeight
+    if (autoSize) {
+      nextHeight = Math.max(minHeight ?? contentHeight, contentHeight)
+      if (maxHeight) {
+        nextHeight = Math.min(nextHeight, maxHeight)
       }
+    } else if (minHeight) {
+      nextHeight = Math.max(minHeight, contentHeight)
+    }
+    setTextareaHeight(nextHeight)
+  }
 
-      if (typeof maxLength === 'number' && maxLength >= 0 && next.length > maxLength) {
-        onOverlimit?.(next)
-        next = next.slice(0, maxLength)
-      }
-
-      updateValue(next, 'onChange')
-    },
-    [maxLength, onOverlimit, type, updateValue],
-  )
-
-  const handleFocus = React.useCallback(
-    (event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
-      setFocused(true)
-      onFocus?.(event)
-      if (readOnly) {
-        inputRef.current?.blur()
-      }
-    },
-    [onFocus, readOnly],
-  )
-
-  const handleBlur = React.useCallback(
-    (event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
-      updateValue(value ?? '', 'onBlur')
-      setFocused(false)
-      onBlur?.(event)
-    },
-    [onBlur, updateValue, value],
-  )
-
-  const handlePressIn = React.useCallback(
-    (event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => {
-      onPressIn?.(event)
-      onClickInput?.()
-    },
-    [onClickInput, onPressIn],
-  )
-
-  const handleContentSizeChange = React.useCallback(
-    (event: { nativeEvent: { contentSize: { height: number } } }) => {
-      if (!isTextarea) return
-      const contentHeight = event.nativeEvent.contentSize?.height ?? 0
-      if (!contentHeight) return
-
-      let nextHeight = contentHeight
-      if (autoSize) {
-        nextHeight = Math.max(minHeight ?? contentHeight, contentHeight)
-        if (maxHeight) {
-          nextHeight = Math.min(nextHeight, maxHeight)
-        }
-      } else if (minHeight) {
-        nextHeight = Math.max(minHeight, contentHeight)
-      }
-      setTextareaHeight(nextHeight)
-    },
-    [autoSize, isTextarea, maxHeight, minHeight],
-  )
-
-  const handleClear = React.useCallback(() => {
-    // 清空受控/非受控值，并立刻保持焦点，避免 Web 上触发 blur 后按钮消失但文本未清空
+  const handleClear = () => {
     updateValue('')
     inputRef.current?.clear?.()
     inputRef.current?.focus?.()
     onClear?.()
-  }, [onClear, updateValue])
+  }
 
   const renderLabel = () => {
     if (!isRenderableNode(label)) return null
@@ -429,7 +392,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     let icon: React.ReactNode = defaultIcon
     let dialogProps: FieldTooltipProps | { message: React.ReactNode } = { message: tooltip as React.ReactNode }
 
-    if (!(React.isValidElement(tooltip) || typeof tooltip === 'string' || typeof tooltip === 'number')) {
+    if (!React.isValidElement(tooltip) && !isTextLikeNode(tooltip)) {
       const { icon: customIcon, ...rest } = tooltip as FieldTooltipProps
       icon = customIcon ?? defaultIcon
       dialogProps = rest as FieldTooltipProps
@@ -525,43 +488,18 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       return <View style={[styles.children, { minHeight: tokens.sizes.controlMinHeight }]}>{children}</View>
     }
 
-    const inputStyles = React.useMemo(() => {
-      const base = [
-        styles.input,
-        {
-          color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
-          fontSize: tokens.typography.inputSize,
-          textAlign: finalTextAlign,
-          lineHeight: tokens.typography.inputLineHeight,
-          height: tokens.typography.inputLineHeight,
-        },
-        inputStyle,
-      ]
-
-      if (isTextarea) {
-        base.push({
-          ...styles.textarea,
-          minHeight,
-          height: textareaHeight,
-          lineHeight,
-        })
-      }
-      return base
-    }, [
-      disabled,
-      error,
-      finalTextAlign,
+    const inputStyles = [
+      isTextarea ? styles.textarea : styles.input,
+      {
+        color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
+        fontSize: tokens.typography.inputSize,
+        textAlign: finalTextAlign,
+        lineHeight: isTextarea ? lineHeight : tokens.typography.inputLineHeight,
+        height: isTextarea ? textareaHeight : tokens.typography.inputLineHeight,
+        ...(isTextarea ? { minHeight } : null),
+      },
       inputStyle,
-      isTextarea,
-      lineHeight,
-      minHeight,
-      textareaHeight,
-      tokens.colors.disabled,
-      tokens.colors.error,
-      tokens.colors.input,
-      tokens.typography.inputLineHeight,
-      tokens.typography.inputSize,
-    ])
+    ]
 
     return (
       <TextInput
@@ -607,7 +545,6 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
             {
               color: tokens.colors.wordLimit,
               fontSize: tokens.typography.wordLimitSize ?? 12,
-              // React Vant 默认字数统计靠右展示，这里保持一致
               textAlign: 'right',
               alignSelf: 'flex-end',
               marginTop: tokens.spacing.wordLimitMarginTop,
@@ -689,39 +626,33 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     )
   }
 
-  const contentWrapperStyle = React.useMemo(
-    () => [
-      {
-        width: '100%' as const,
-        justifyContent: alignMap[controlAlign],
-      },
-      contentStyle,
-    ],
-    [contentStyle, controlAlign],
-  )
-
-  const renderAffix = React.useCallback(
-    (node: React.ReactNode) => {
-      if (typeof node === 'string' || typeof node === 'number') {
-        return (
-          <Text
-            style={[
-              styles.affixText,
-              {
-                color: tokens.colors.input,
-                fontSize: tokens.typography.inputSize,
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {node}
-          </Text>
-        )
-      }
-      return node
+  const contentWrapperStyle = [
+    {
+      width: '100%' as const,
+      justifyContent: alignMap[controlAlign],
     },
-    [tokens.colors.input, tokens.typography.inputSize],
-  )
+    contentStyle,
+  ]
+
+  const renderAffix = (node: React.ReactNode) => {
+    if (typeof node === 'string' || typeof node === 'number') {
+      return (
+        <Text
+          style={[
+            styles.affixText,
+            {
+              color: tokens.colors.input,
+              fontSize: tokens.typography.inputSize,
+            },
+          ]}
+          numberOfLines={1}
+        >
+          {node}
+        </Text>
+      )
+    }
+    return node
+  }
 
   return (
     <Cell

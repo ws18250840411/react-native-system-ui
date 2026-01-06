@@ -1,27 +1,9 @@
 import React from 'react'
-import {
-  PanResponder,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  type GestureResponderEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native'
+import { PanResponder, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
-import { createHairlineBorderBottom } from '../../utils/hairline'
 import type { IndexAnchorProps, IndexBarInstance, IndexBarProps, IndexBarValue } from './types'
 import { useIndexBarTokens } from './tokens'
-
-interface ParsedAnchor {
-  element: React.ReactElement<IndexAnchorProps>
-  index: IndexBarValue
-  title?: React.ReactNode
-}
 
 const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, ref) => {
   const {
@@ -38,159 +20,114 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     indicatorStyle,
     indexTextStyle,
     safeAreaInsetTop = false,
+    tokensOverride,
     onChange,
     onSelect,
     style,
     ...rest
   } = props
 
-  const tokens = useIndexBarTokens()
+  const { colors, layout } = useIndexBarTokens(tokensOverride)
   const scrollRef = React.useRef<ScrollView>(null)
   const scrollYRef = React.useRef(0)
   const anchorLayouts = React.useRef<Map<IndexBarValue, number>>(new Map())
   const indexListRef = React.useRef<View>(null)
   const indexListLayout = React.useRef<{ pageY: number; height: number } | null>(null)
   const pendingScrollToValueRef = React.useRef<IndexBarValue | null>(null)
-  const prevControlledValueRef = React.useRef<IndexBarValue | null>(null)
   const [stickyVisible, setStickyVisible] = React.useState(false)
+  const [indicator, setIndicator] = React.useState<{ visible: boolean; label?: string }>({ visible: false })
 
-  const anchors = React.useMemo<ParsedAnchor[]>(() => {
-    return React.Children.toArray(children)
-      .map(child => {
-        if (!React.isValidElement<IndexAnchorProps>(child)) return null
-        return {
-          element: child,
-          index: child.props.index,
-          title: child.props.title ?? child.props.index,
-        }
-      })
-      .filter(Boolean) as ParsedAnchor[]
+  const anchors = React.useMemo(() => {
+    return React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<IndexAnchorProps>[]
   }, [children])
 
   const navItems = React.useMemo<IndexBarValue[]>(() => {
-    if (indexList && indexList.length) return indexList
-    return anchors.map(anchor => anchor.index)
+    return indexList?.length ? indexList : anchors.map(anchor => anchor.props.index)
   }, [anchors, indexList])
 
   const firstIndex = navItems[0]
   const [activeIndex, setActiveIndex] = useControllableValue<IndexBarValue>(props, {
-    defaultValue: typeof firstIndex === 'undefined' ? anchors[0]?.index : firstIndex,
+    defaultValue: typeof firstIndex === 'undefined' ? anchors[0]?.props.index : firstIndex,
     valuePropName: 'value',
     defaultValuePropName: 'defaultValue',
     trigger: 'onChange',
   })
 
-  const currentIndex = React.useMemo(() => {
-    if (activeIndex === undefined || activeIndex === null) return firstIndex
-    const exists = navItems.some(item => item === activeIndex)
-    return exists ? activeIndex : firstIndex
-  }, [activeIndex, firstIndex, navItems])
+  const currentIndex =
+    activeIndex === undefined || activeIndex === null || !navItems.includes(activeIndex) ? firstIndex : activeIndex
 
-  const [indicator, setIndicator] = React.useState<{ visible: boolean; label?: string }>({
-    visible: false,
-  })
+  const showIndicatorNow = (label?: string) => {
+    if (!showIndicator) return
+    setIndicator({ visible: true, label })
+  }
 
-  const showIndicatorNow = React.useCallback(
-    (label?: string) => {
-      if (!showIndicator) return
-      setIndicator({ visible: true, label })
-    },
-    [showIndicator]
-  )
-
-  const hideIndicatorNow = React.useCallback(() => {
+  const hideIndicatorNow = () => {
     if (!showIndicator) return
     setIndicator(prev => (prev.visible ? { visible: false } : prev))
-  }, [showIndicator])
+  }
 
-  const getScrollTargetY = React.useCallback(
-    (index: IndexBarValue) => {
-      const y = anchorLayouts.current.get(index)
-      if (y === undefined) return undefined
-      // 让锚点标题滚到顶部（官方行为），吸顶标题只在锚点标题滚出顶部后才显示
-      const offset = stickyOffsetTop
-      return Math.max(0, y - offset)
-    },
-    [stickyOffsetTop]
-  )
-
-  const handleAnchorLayout = React.useCallback(
-    (index: IndexBarValue, layoutY: number) => {
-      anchorLayouts.current.set(index, layoutY)
-      const pending = pendingScrollToValueRef.current
-      if (pending === null) return
-      const targetY = getScrollTargetY(pending)
-      if (targetY === undefined) return
-      pendingScrollToValueRef.current = null
-      scrollRef.current?.scrollTo({ y: targetY, animated: false })
-    },
-    [getScrollTargetY]
-  )
-
-  const scrollToAnchor = React.useCallback(
-    (index: IndexBarValue, animated: boolean) => {
-      const targetY = getScrollTargetY(index)
-      if (targetY !== undefined) {
-        scrollRef.current?.scrollTo({ y: targetY, animated })
-        return
-      }
+  const scrollToAnchor = (index: IndexBarValue, animated: boolean) => {
+    const y = anchorLayouts.current.get(index)
+    if (y === undefined) {
       pendingScrollToValueRef.current = index
-    },
-    [getScrollTargetY]
-  )
+      return
+    }
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - stickyOffsetTop), animated })
+  }
 
-  const scrollToIndex = React.useCallback(
-    (index: IndexBarValue, animated: boolean = true) => {
-      scrollToAnchor(index, animated)
-      setActiveIndex(index)
-    },
-    [scrollToAnchor, setActiveIndex]
-  )
+  const handleAnchorLayout = (index: IndexBarValue, layoutY: number) => {
+    anchorLayouts.current.set(index, layoutY)
+    const pending = pendingScrollToValueRef.current
+    if (pending === null) return
+    const y = anchorLayouts.current.get(pending)
+    if (y === undefined) return
+    pendingScrollToValueRef.current = null
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - stickyOffsetTop), animated: false })
+  }
 
-  React.useImperativeHandle(ref, () => ({ scrollTo: (index: IndexBarValue) => scrollToIndex(index, true) }), [scrollToIndex])
+  const scrollToIndex = (index: IndexBarValue, animated: boolean = true) => {
+    scrollToAnchor(index, animated)
+    setActiveIndex(index)
+  }
 
-  const handleScroll = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const offsetY = event?.nativeEvent?.contentOffset?.y ?? 0
-      scrollYRef.current = offsetY
+  React.useImperativeHandle(ref, () => ({ scrollTo: (index: IndexBarValue) => scrollToIndex(index, true) }))
 
-      const sorted = [...anchorLayouts.current.entries()].sort((a, b) => a[1] - b[1])
-      let current = sorted[0]?.[0]
-      const threshold = sticky ? stickyOffsetTop : 0
-      for (const [index, layoutY] of sorted) {
-        if (offsetY + threshold + 1 >= layoutY) {
-          current = index
-        }
-      }
-      if (current !== undefined && current !== null && current !== currentIndex) {
-        setActiveIndex(current)
-      }
+  const handleScroll = (event: any) => {
+    const offsetY = event?.nativeEvent?.contentOffset?.y ?? 0
+    scrollYRef.current = offsetY
 
-      // 只在当前锚点标题滚出顶部后显示吸顶标题，避免“双标题”
-      if (sticky && current !== undefined && current !== null) {
-        const anchorY = anchorLayouts.current.get(current)
-        const nextStickyVisible = anchorY === undefined ? false : offsetY > Math.max(0, anchorY - stickyOffsetTop)
-        setStickyVisible(prev => (prev === nextStickyVisible ? prev : nextStickyVisible))
-      } else if (stickyVisible) {
-        setStickyVisible(false)
-      }
-    },
-    [currentIndex, setActiveIndex, sticky, stickyOffsetTop, stickyVisible]
-  )
+    const threshold = sticky ? stickyOffsetTop : 0
+    let nextIndex = currentIndex
+    for (const anchor of anchors) {
+      const y = anchorLayouts.current.get(anchor.props.index)
+      if (y === undefined) continue
+      if (offsetY + threshold + 1 >= y) nextIndex = anchor.props.index
+      else break
+    }
+    if (nextIndex !== undefined && nextIndex !== null && nextIndex !== currentIndex) {
+      setActiveIndex(nextIndex)
+    }
+
+    if (sticky && nextIndex !== undefined && nextIndex !== null) {
+      const y = anchorLayouts.current.get(nextIndex)
+      const nextStickyVisible = y !== undefined && offsetY > Math.max(0, y - stickyOffsetTop)
+      setStickyVisible(prev => (prev === nextStickyVisible ? prev : nextStickyVisible))
+    } else {
+      setStickyVisible(prev => (prev ? false : prev))
+    }
+  }
 
   React.useEffect(() => {
     if (value === undefined || value === null) return
-    if (prevControlledValueRef.current === value) return
-    prevControlledValueRef.current = value
-
-    const targetY = getScrollTargetY(value)
-    if (targetY === undefined) {
+    const y = anchorLayouts.current.get(value)
+    if (y === undefined) {
       pendingScrollToValueRef.current = value
       return
     }
+    const targetY = Math.max(0, y - stickyOffsetTop)
     if (Math.abs(targetY - scrollYRef.current) < 1) return
-    scrollToAnchor(value, true)
-  }, [getScrollTargetY, scrollToAnchor, value])
+    scrollRef.current?.scrollTo({ y: targetY, animated: true })
+  }, [stickyOffsetTop, value])
 
   const handlePressIn = (index: IndexBarValue) => {
     showIndicatorNow(String(index))
@@ -206,82 +143,78 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     return null
   }
 
-  const highlight = highlightColor ?? tokens.colors.activeText
-  const activeAnchor = anchors.find(anchor => anchor.index === currentIndex)
+  const highlight = highlightColor ?? colors.activeText
+  const activeAnchor = anchors.find(anchor => anchor.props.index === currentIndex)
 
   const stickyNode = sticky && stickyVisible && activeAnchor ? (
     <View
       style={[
         styles.sticky,
         {
-          backgroundColor: tokens.colors.stickyBackground,
-          height: tokens.layout.stickyHeight,
+          backgroundColor: colors.stickyBackground,
+          height: layout.stickyHeight,
         },
       ]}
     >
-      <Text style={[styles.stickyText, { color: highlight }]}>{activeAnchor.title}</Text>
+      <Text style={[styles.stickyText, { color: highlight }]}>{activeAnchor.props.title ?? activeAnchor.props.index}</Text>
     </View>
   ) : null
 
+  const indicatorSize = layout.indicatorSize
   const indicatorNode = showIndicator && indicator.visible ? (
     <View
       style={[
         styles.indicator,
         {
-          width: tokens.layout.indicatorSize,
-          height: tokens.layout.indicatorSize,
-          borderRadius: tokens.layout.indicatorSize / 2,
-          backgroundColor: tokens.colors.indicatorBackground,
+          width: indicatorSize,
+          height: indicatorSize,
+          borderRadius: indicatorSize / 2,
+          backgroundColor: colors.indicatorBackground,
           zIndex,
           transform: [
-            { translateX: -tokens.layout.indicatorSize / 2 },
-            { translateY: -tokens.layout.indicatorSize / 2 },
+            { translateX: -indicatorSize / 2 },
+            { translateY: -indicatorSize / 2 },
           ],
         },
         indicatorStyle,
       ]}
     >
-      <Text style={[styles.indicatorText, { color: tokens.colors.indicatorText }]}>{indicator.label}</Text>
+      <Text style={[styles.indicatorText, { color: colors.indicatorText }]}>{indicator.label}</Text>
     </View>
   ) : null
 
-  const pickIndexFromEvent = React.useCallback(
-    (evt: GestureResponderEvent): IndexBarValue | null => {
-      const layout = indexListLayout.current
-      if (!layout) return null
-      if (!navItems.length) return null
-      const pageY = evt.nativeEvent.pageY
-      const y = pageY - layout.pageY
-      const itemHeight = layout.height / navItems.length
-      if (itemHeight <= 0) return null
-      const rawIndex = Math.floor(y / itemHeight)
-      const idx = Math.min(navItems.length - 1, Math.max(0, rawIndex))
-      return navItems[idx] ?? null
-    },
-    [navItems]
-  )
+  const pickIndexFromEvent = (evt: any): IndexBarValue | null => {
+    const layout = indexListLayout.current
+    if (!layout || !navItems.length) return null
+    const itemHeight = layout.height / navItems.length
+    if (itemHeight <= 0) return null
+    const y = evt.nativeEvent.pageY - layout.pageY
+    const idx = Math.max(0, Math.min(navItems.length - 1, Math.floor(y / itemHeight)))
+    return navItems[idx] ?? null
+  }
 
-  const panResponder = React.useMemo(() => {
-    return PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: evt => {
-        const picked = pickIndexFromEvent(evt)
-        if (picked !== null) handlePressIn(picked)
-      },
-      onPanResponderMove: evt => {
-        const picked = pickIndexFromEvent(evt)
-        if (picked === null) return
-        showIndicatorNow(String(picked))
-        onSelect?.(picked)
-        if (picked !== currentIndex) {
-          scrollToIndex(picked, false)
-        }
-      },
-      onPanResponderRelease: () => hideIndicatorNow(),
-      onPanResponderTerminate: () => hideIndicatorNow(),
-    })
-  }, [currentIndex, handlePressIn, hideIndicatorNow, onSelect, pickIndexFromEvent, scrollToIndex, showIndicatorNow])
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: evt => {
+      const picked = pickIndexFromEvent(evt)
+      if (picked !== null) handlePressIn(picked)
+    },
+    onPanResponderMove: evt => {
+      const picked = pickIndexFromEvent(evt)
+      if (picked === null) return
+      showIndicatorNow(String(picked))
+      onSelect?.(picked)
+      if (picked !== currentIndex) {
+        scrollToIndex(picked, false)
+      }
+    },
+    onPanResponderRelease: () => hideIndicatorNow(),
+    onPanResponderTerminate: () => hideIndicatorNow(),
+  })
+
+  const StickyWrapper = safeAreaInsetTop ? SafeAreaView : View
+  const stickyWrapperStyle = [styles.stickyWrapper, { top: stickyOffsetTop, zIndex }]
 
   return (
     <View {...rest} style={[styles.container, style]}>
@@ -292,27 +225,21 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
         showsVerticalScrollIndicator={false}
       >
         {anchors.map(anchor =>
-          React.cloneElement(anchor.element, {
-            key: anchor.element.key ?? anchor.index,
-            active: anchor.index === currentIndex,
+          React.cloneElement(anchor, {
+            key: anchor.key ?? anchor.props.index,
+            active: anchor.props.index === currentIndex,
             highlightColor: highlight,
             onLayoutCapture: handleAnchorLayout,
           })
         )}
       </ScrollView>
-      {sticky && stickyVisible ? (
-        safeAreaInsetTop ? (
-          <SafeAreaView style={[styles.stickyWrapper, { top: stickyOffsetTop, zIndex }]}>{stickyNode}</SafeAreaView>
-        ) : (
-          <View style={[styles.stickyWrapper, { top: stickyOffsetTop, zIndex }]}>{stickyNode}</View>
-        )
-      ) : null}
+      {sticky && stickyVisible && stickyNode ? <StickyWrapper style={stickyWrapperStyle}>{stickyNode}</StickyWrapper> : null}
       <View
         style={[
           styles.indexList,
           {
-            width: tokens.layout.indexWidth,
-            paddingVertical: tokens.layout.paddingVertical,
+            width: layout.indexWidth,
+            paddingVertical: layout.paddingVertical,
             zIndex,
           },
         ]}
@@ -340,7 +267,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
                 <Text
                   style={[
                     styles.indexText,
-                    { color: isActive ? highlight : tokens.colors.text },
+                    { color: isActive ? highlight : colors.text },
                     indexTextStyle,
                   ]}
                 >

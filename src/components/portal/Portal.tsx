@@ -16,11 +16,14 @@ const usePortalManager = () => React.useContext(PortalContext) ?? globalManager
 
 const PortalComponent: React.FC<PortalProps> = ({ children }) => {
   const manager = usePortalManager()
+  if (manager === globalManager && typeof document === 'undefined') {
+    void ensureGlobalPortalHost()
+  }
   const keyRef = React.useRef<number | null>(null)
   const skipUpdateRef = React.useRef(true)
 
   React.useLayoutEffect(() => {
-    if (manager === globalManager) {
+    if (manager === globalManager && typeof document !== 'undefined') {
       void ensureGlobalPortalHost()
     }
 

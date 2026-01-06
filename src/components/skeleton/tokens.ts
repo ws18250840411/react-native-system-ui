@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface SkeletonTokens {
   defaults: {
@@ -32,6 +28,8 @@ export interface SkeletonTokens {
 
 const createTokens = (foundations: Foundations): SkeletonTokens => {
   const { palette, spacing, radii } = foundations
+  const surface = palette.default[50]
+  const surfaceMuted = palette.default[100]
   return {
     defaults: {
       rowCount: 3,
@@ -42,8 +40,8 @@ const createTokens = (foundations: Foundations): SkeletonTokens => {
       titleWidth: '40%',
     },
     colors: {
-      block: palette.default[100],
-      highlight: palette.default[50],
+      block: surfaceMuted,
+      highlight: surface,
     },
     radius: radii.sm,
     spacing: {
@@ -58,14 +56,7 @@ const createTokens = (foundations: Foundations): SkeletonTokens => {
   }
 }
 
-export const useSkeletonTokens = (overrides?: DeepPartial<SkeletonTokens>): SkeletonTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.skeleton
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useSkeletonTokens = createComponentTokensHook(
+  'skeleton',
+  createTokens
+)

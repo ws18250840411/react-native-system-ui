@@ -1,10 +1,7 @@
-import * as React from 'react'
 import { StyleSheet, type TextStyle } from 'react-native'
 
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface CellTokens {
   defaults: {
@@ -72,7 +69,6 @@ export interface CellTokens {
 
 export const createCellTokens = (foundations: Foundations): CellTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
-  const surface = palette.default[50] ?? '#ffffff'
   return {
     defaults: {
       groupBorder: true,
@@ -80,16 +76,16 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       groupCard: false,
     },
     container: {
-      background: surface,
+      background: '#ffffff',
       paddingVertical: 10,
       paddingHorizontal: 16,
       largePaddingVertical: 14,
-      activeOpacity: 0.6, // foundations.opacity.pressed is 0.85, maybe use that? 0.6 is specific to cell? Using 0.6 for now to match existing behavior.
-      rippleColor: palette.default[100], // match existing
+      activeOpacity: 0.6,
+      rippleColor: palette.default[100],
     },
     spacing: {
       iconGap: spacing.sm,
-      valueGap: spacing.none, // 官方 cell 标题与内容间无额外间距
+      valueGap: spacing.none,
       extraGap: spacing.sm,
       labelMarginTop: spacing.xs,
     },
@@ -116,7 +112,7 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       size: 16,
     },
     icon: {
-      size: 16, // 对齐 @cell-icon-size 16px
+      size: 16,
     },
     group: {
       marginBottom: spacing.md,
@@ -124,7 +120,7 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
       titleSize: fontSize.sm,
       titlePaddingHorizontal: spacing.lg,
       titlePaddingVertical: spacing.sm,
-      bodyBackground: surface,
+      bodyBackground: '#ffffff',
       insetRadius: radii.lg,
       insetMarginHorizontal: spacing.lg,
       cardShadow: {
@@ -138,13 +134,4 @@ export const createCellTokens = (foundations: Foundations): CellTokens => {
   }
 }
 
-export const useCellTokens = (overrides?: DeepPartial<CellTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createCellTokens(foundations)
-    const globalOverrides = components?.cell
-    const mergedOverrides =
-      globalOverrides && overrides ? deepMerge(globalOverrides, overrides) : globalOverrides ?? overrides
-    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
-  }, [components, foundations, overrides])
-}
+export const useCellTokens = createComponentTokensHook('cell', createCellTokens)

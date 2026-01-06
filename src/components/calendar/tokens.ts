@@ -1,9 +1,5 @@
-import * as React from "react"
-
-import { useTheme } from "../../design-system"
-import type { DeepPartial } from "../../types"
-import type { Foundations } from "../../design-system/tokens"
-import { deepMerge } from "../../utils/deepMerge"
+import { createComponentTokensHook } from "../../design-system"
+import { type Foundations } from "../../design-system/tokens"
 
 export interface CalendarTokens {
   colors: {
@@ -47,17 +43,19 @@ export interface CalendarTokens {
 
 const createCalendarTokens = (foundations: Foundations): CalendarTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
+  const surface = palette.default[50]
+  const onPrimary = palette.primary.foreground ?? "#ffffff"
   return {
     colors: {
       text: palette.default[800],
       weekend: palette.danger[500],
       disabled: palette.default[300],
-      background: "#ffffff",
+      background: surface,
       selectedBackground: palette.primary[500],
-      selectedText: palette.primary.foreground ?? "#ffffff",
+      selectedText: onPrimary,
       rangeBackground: palette.primary[100],
       headerSubtitle: palette.default[600],
-      confirmText: palette.primary.foreground ?? "#ffffff",
+      confirmText: onPrimary,
     },
     spacing: {
       row: spacing.xs,
@@ -88,14 +86,7 @@ const createCalendarTokens = (foundations: Foundations): CalendarTokens => {
   }
 }
 
-export const useCalendarTokens = (overrides?: DeepPartial<CalendarTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createCalendarTokens(foundations)
-    const componentOverrides = components?.calendar
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useCalendarTokens = createComponentTokensHook(
+  "calendar",
+  createCalendarTokens
+)

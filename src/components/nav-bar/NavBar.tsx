@@ -12,7 +12,7 @@ const isTextLikeNode = (node: React.ReactNode): node is string | number =>
   typeof node === 'string' || typeof node === 'number'
 
 const NavBarBase: React.FC<NavBarProps> = props => {
-  const tokens = useNavBarTokens()
+  const tokens = useNavBarTokens(props.tokensOverride)
   const {
     title,
     description,

@@ -10,7 +10,8 @@ const CHECK_MARK_CORNER_HEIGHT = 8
 const CHECK_MARK_CORNER_WIDTH = 10
 
 export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
-  const tokens = useSelectorTokens()
+  const { tokensOverride } = props
+  const tokens = useSelectorTokens(tokensOverride)
   const {
     options,
     columns: columnsProp = tokens.defaults.columns,

@@ -4,8 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { usePaginationTokens } from './tokens'
 import type { PaginationProps, PaginationPageItem } from './types'
 import { useControllableValue } from '../../hooks'
-
-const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
+import { clamp } from '../../utils/number'
 
 const isTextLike = (value: React.ReactNode): value is string | number =>
   typeof value === 'string' || typeof value === 'number'
@@ -32,7 +31,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     ...rest
   } = props
 
-  const tokens = usePaginationTokens()
+  const tokens = usePaginationTokens(props.tokensOverride)
   const [page, setPage] = useControllableValue<number>(props, {
     defaultValue: 1,
   })

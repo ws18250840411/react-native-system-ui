@@ -134,7 +134,8 @@ const useTagTokens = (overrides?: DeepPartial<TagTokens>): TagTokens => {
 }
 
 export const Tag: React.FC<TagProps> = props => {
-  const tokens = useTagTokens()
+  const { tokensOverride } = props
+  const tokens = useTagTokens(tokensOverride)
   const {
     children,
     type = tokens.defaults.type,
@@ -151,6 +152,7 @@ export const Tag: React.FC<TagProps> = props => {
     onPress,
     textStyle,
     style,
+    tokensOverride: _tokensOverride,
     ...rest
   } = props
 

@@ -1,6 +1,8 @@
 import React from 'react'
-import { Animated, Easing, Platform, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
+import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
+import { useControllableValue } from '../../hooks'
+import { nativeDriverEnabled } from '../../platform'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
@@ -27,10 +29,10 @@ interface KeyboardKey {
 }
 
 const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
-  const tokens = useNumberKeyboardTokens()
   const {
     visible,
     title,
+    tokensOverride,
     theme = 'default',
     extraKey,
     randomKeyOrder,
@@ -59,14 +61,18 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     ...rest
   } = props
 
-  const [internalValue, setInternalValue] = React.useState(defaultValue)
-  const isControlled = valueProp !== undefined
-  const value = isControlled ? valueProp ?? '' : internalValue
+  const tokens = useNumberKeyboardTokens(tokensOverride)
+  const { colors, radii, shadow, sizing, spacing } = tokens
 
-  const resolvedCloseText = React.useMemo(() => {
-    if (theme === 'custom') return closeButtonText ?? '完成'
-    return closeButtonText
-  }, [closeButtonText, theme])
+  const [mergedValue, setMergedValue] = useControllableValue<string>(props, {
+    defaultValue: '',
+    valuePropName: 'value',
+    defaultValuePropName: 'defaultValue',
+    trigger: 'onChange',
+  })
+  const value = mergedValue ?? ''
+
+  const resolvedCloseText = theme === 'custom' ? closeButtonText ?? '完成' : closeButtonText
 
   const closeSelf = React.useCallback(() => {
     onClose?.()
@@ -74,16 +80,6 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
       onBlur?.()
     }
   }, [blurOnClose, onBlur, onClose])
-
-  const changeValue = React.useCallback(
-    (next: string) => {
-      if (!isControlled) {
-        setInternalValue(next)
-      }
-      onChange?.(next)
-    },
-    [isControlled, onChange],
-  )
 
   const prevVisible = React.useRef(visible)
   React.useEffect(() => {
@@ -142,12 +138,12 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     return main
   }, [extraKey, randomKeyOrder, showDeleteKey, theme, visible])
 
-  const handleInput = React.useCallback((text?: string, type?: NumberKeyboardKeyType) => {
+  const handleInput = (text?: string, type?: NumberKeyboardKeyType) => {
     if (type === 'delete') {
       if (!value) return
       onDelete?.()
       const next = value.slice(0, -1)
-      changeValue(next)
+      setMergedValue(next)
       return
     }
     if (type === 'close') {
@@ -164,28 +160,18 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     }
     onInput?.(text)
     const next = `${value}${text}`
-    changeValue(next)
-  }, [changeValue, closeSelf, maxlength, onDelete, onInput, value])
+    setMergedValue(next)
+  }
 
-  const wrapperShadow = React.useMemo(
-    () =>
-      createPlatformShadow({
-        color: tokens.shadow.color,
-        opacity: tokens.shadow.opacity,
-        radius: tokens.shadow.radius,
-        offsetY: tokens.shadow.offsetY,
-        elevation: tokens.shadow.elevation,
-      }),
-    [
-      tokens.shadow.color,
-      tokens.shadow.elevation,
-      tokens.shadow.offsetY,
-      tokens.shadow.opacity,
-      tokens.shadow.radius,
-    ]
-  )
+  const wrapperShadow = createPlatformShadow({
+    color: shadow.color,
+    opacity: shadow.opacity,
+    radius: shadow.radius,
+    offsetY: shadow.offsetY,
+    elevation: shadow.elevation,
+  })
 
-  const getKeyContent = React.useCallback((key: KeyboardKey) => {
+  const getKeyContent = (key: KeyboardKey) => {
     if (key.type === 'delete') {
       if (deleteRender) return deleteRender()
       return deleteButtonText ?? '⌫'
@@ -203,7 +189,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
       return numberKeyRender(keyText)
     }
     return keyText
-  }, [deleteButtonText, deleteRender, extraKeyRender, numberKeyRender, resolvedCloseText])
+  }
 
   const renderKey = (
     key: KeyboardKey,
@@ -213,11 +199,11 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     const isClose = options?.isClose
     const isPlaceholder = key.type === '' && !key.text
     const disabled = isPlaceholder || (isClose && closeButtonLoading)
-    const onPress = disabled ? undefined : () => handleInput(key.text?.toString(), key.type)
-    const backgroundColor = isClose ? tokens.colors.closeBackground : tokens.colors.keyBackground
-    const activeBackground = tokens.colors.keyActiveBackground
-    const inactiveTextColor = isClose ? tokens.colors.closeText : tokens.colors.keyText
-    const pressedTextColor = isClose ? tokens.colors.closeText : tokens.colors.keyTextActive
+    const onPress = disabled ? undefined : () => handleInput(key.text, key.type)
+    const backgroundColor = isClose ? colors.closeBackground : colors.keyBackground
+    const activeBackground = colors.keyActiveBackground
+    const inactiveTextColor = isClose ? colors.closeText : colors.keyText
+    const pressedTextColor = isClose ? colors.closeText : colors.keyTextActive
 
     const contentNode = getKeyContent(key)
 
@@ -226,13 +212,11 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
         key={`${key.type}-${index}-${key.text ?? index}`}
         onPress={onPress}
         disabled={disabled}
-        style={[
-          {
-            flexBasis: key.wider ? '64%' : '30%',
-            flexGrow: key.wider ? 2 : 1,
-            opacity: isPlaceholder ? 1 : disabled ? 0.6 : 1,
-          },
-        ]}
+        style={{
+          flexBasis: key.wider ? '64%' : '30%',
+          flexGrow: key.wider ? 2 : 1,
+          opacity: isPlaceholder ? 1 : disabled ? 0.6 : 1,
+        }}
         accessible={!isPlaceholder}
         accessibilityRole={isPlaceholder ? undefined : 'button'}
         accessibilityLabel={
@@ -253,7 +237,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
         {({ pressed }) => {
           const isPressed = pressed && !disabled
           const keyBackground = disabled
-            ? tokens.colors.keyBackground
+            ? colors.keyBackground
             : isPressed
               ? activeBackground
               : backgroundColor
@@ -264,9 +248,9 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
               style={[
                 styles.key,
                 {
-                  height: isClose ? tokens.sizing.closeHeight : tokens.sizing.keyHeight,
+                  height: isClose ? sizing.closeHeight : sizing.keyHeight,
                   backgroundColor: keyBackground,
-                  borderRadius: tokens.radii.key,
+                  borderRadius: radii.key,
                 },
               ]}
             >
@@ -275,7 +259,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
               ) : React.isValidElement(contentNode) ? (
                 contentNode
               ) : (
-                <Text style={[styles.keyText, { color: textColor, fontSize: tokens.sizing.fontSize }]}>
+                <Text style={[styles.keyText, { color: textColor, fontSize: sizing.fontSize }]}>
                   {contentNode as any}
                 </Text>
               )}
@@ -299,7 +283,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     Animated.timing(animated, {
       toValue: visible ? 1 : 0,
       duration: effectiveDuration,
-      useNativeDriver: Platform.OS !== 'web',
+      useNativeDriver: nativeDriverEnabled,
       easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
     }).start(({ finished }) => {
       if (finished && !visible) {
@@ -335,14 +319,14 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
         style,
         {
           transform: [{ translateY }],
-          backgroundColor: tokens.colors.background,
+          backgroundColor: colors.background,
         },
       ]}
     >
       {(title || closeButtonText) && theme === 'default' && (
-        <View style={[styles.header, { paddingHorizontal: tokens.spacing.titlePadding }]}>
+        <View style={[styles.header, { paddingHorizontal: spacing.titlePadding }]}>
           <Text
-            style={[styles.title, styles.titleOverlay, { color: tokens.colors.title }]}
+            style={[styles.title, styles.titleOverlay, { color: colors.title }]}
             numberOfLines={1}
           >
             {title}
@@ -354,7 +338,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
               accessibilityRole="button"
               accessibilityLabel={resolvedCloseText}
             >
-              <Text style={{ color: tokens.colors.title }}>{resolvedCloseText}</Text>
+              <Text style={{ color: colors.title }}>{resolvedCloseText}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -365,16 +349,16 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
           style={[
             styles.customRow,
             {
-              paddingHorizontal: tokens.spacing.paddingHorizontal,
-              paddingBottom: tokens.spacing.paddingVertical,
-              gap: tokens.spacing.keyGap,
+              paddingHorizontal: spacing.paddingHorizontal,
+              paddingBottom: spacing.paddingVertical,
+              gap: spacing.keyGap,
             },
           ]}
         >
-          <View style={[styles.customMain, { gap: tokens.spacing.keyGap }]}>
+          <View style={[styles.customMain, { gap: spacing.keyGap }]}>
             {keys.map((key, index) => renderKey(key, index))}
           </View>
-          <View style={[styles.customSidebar, { gap: tokens.spacing.keyGap }]}>
+          <View style={[styles.customSidebar, { gap: spacing.keyGap }]}>
             {showDeleteKey
               ? renderKey({ type: 'delete' }, 999)
               : null}
@@ -383,13 +367,14 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
         </View>
       ) : (
         <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            paddingHorizontal: tokens.spacing.paddingHorizontal,
-            paddingBottom: tokens.spacing.paddingVertical,
-            gap: tokens.spacing.keyGap,
-          }}
+          style={[
+            styles.defaultRow,
+            {
+              paddingHorizontal: spacing.paddingHorizontal,
+              paddingBottom: spacing.paddingVertical,
+              gap: spacing.keyGap,
+            },
+          ]}
         >
           {keys.map((key, index) => renderKey(key, index))}
         </View>
@@ -437,6 +422,10 @@ const styles = StyleSheet.create({
   keyText: {
     includeFontPadding: false,
     textAlign: 'center',
+  },
+  defaultRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   customRow: {
     flexDirection: 'row',

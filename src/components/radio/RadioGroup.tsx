@@ -3,15 +3,9 @@ import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'reac
 import { useRadioGroup } from '@react-native-aria/radio'
 import { useRadioGroupState } from '@react-stately/radio'
 
-import { useTheme } from '../../design-system'
 import type { RadioGroupProps, RadioValue } from './types'
 import { RadioGroupContext } from './RadioContext'
 import { useRadioTokens } from './tokens'
-
-const serialize = (value: RadioValue | undefined) => {
-  if (value === undefined || value === null) return undefined
-  return String(value)
-}
 
 export const RadioGroup: React.FC<RadioGroupProps> = props => {
   const {
@@ -27,12 +21,13 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     name,
     children,
     style,
+    tokensOverride,
     accessibilityLabel,
     accessibilityHint,
     ...viewProps
   } = props
 
-  const tokens = useRadioTokens()
+  const tokens = useRadioTokens(tokensOverride)
   const gap = gapProp ?? tokens.spacing.groupGap
 
   const registryRef = React.useRef(new Map<string, RadioValue>())
@@ -44,8 +39,8 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   }, [])
 
   const state = useRadioGroupState({
-    value: serialize(value),
-    defaultValue: serialize(defaultValue),
+    value: value == null ? undefined : String(value),
+    defaultValue: defaultValue == null ? undefined : String(defaultValue),
     isDisabled: disabled,
     onChange: key => {
       const raw = registryRef.current.get(key)
@@ -63,13 +58,11 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     state
   )
 
-  const resolvedRadioGroupProps = React.useMemo(() => {
-    if (!accessibilityHint) return radioGroupProps
-    return {
-      ...radioGroupProps,
-      'aria-describedby': accessibilityHint,
-    }
-  }, [accessibilityHint, radioGroupProps])
+  const resolvedRadioGroupProps = {
+    ...((radioGroupProps ?? {}) as any),
+    ...(accessibilityHint ? { 'aria-describedby': accessibilityHint } : null),
+    'aria-disabled': disabled,
+  }
 
   const supportsGap = Platform.OS === 'web'
   const childrenArray = React.Children.toArray(children).filter(Boolean)
@@ -103,7 +96,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
       registerValue,
       unregisterValue,
     }),
-    [state, direction, iconSize, checkedColor, labelDisabled, registerValue, unregisterValue]
+    [state, direction, iconSize, checkedColor, labelDisabled]
   )
 
   return (

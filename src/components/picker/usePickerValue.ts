@@ -1,24 +1,15 @@
 import React from 'react'
 
 import type { PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
-import { normalizePicker, prepareColumns, shallowEqualArray, toArrayValue, type PreparedPickerColumns } from './utils'
+import { normalizePicker, prepareColumns, shallowEqualArray, toArrayValue } from './utils'
 
-export interface UsePickerValueParams {
+interface UsePickerValueParams {
   columns?: PickerColumns
   valueProp?: PickerProps['value']
   defaultValue?: PickerProps['defaultValue']
   emitConfirmOnAutoSelect?: boolean
   onChange?: PickerProps['onChange']
   onConfirm?: PickerProps['onConfirm']
-}
-
-export interface UsePickerValueResult {
-  preparedColumns: PreparedPickerColumns
-  normalized: ReturnType<typeof normalizePicker>
-  mergedValue: PickerValue[]
-  isControlled: boolean
-  handleSelect: (option: PickerOption, columnIndex: number) => void
-  handleConfirm: () => void
 }
 
 export const usePickerValue = ({
@@ -28,7 +19,7 @@ export const usePickerValue = ({
   emitConfirmOnAutoSelect = true,
   onChange,
   onConfirm,
-}: UsePickerValueParams): UsePickerValueResult => {
+}: UsePickerValueParams) => {
   const preparedColumns = React.useMemo(() => prepareColumns(columns), [columns])
   const isControlled = valueProp !== undefined
 
@@ -107,13 +98,8 @@ export const usePickerValue = ({
   }, [normalized.options, normalized.values, onConfirm])
 
   return {
-    preparedColumns,
     normalized,
-    mergedValue,
-    isControlled,
     handleSelect,
     handleConfirm,
   }
 }
-
-export default usePickerValue

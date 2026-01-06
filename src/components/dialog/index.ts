@@ -1,22 +1,13 @@
 import type React from 'react'
 import type {
   DialogProps,
-  DialogActionState,
-  DialogMessageAlign,
-  DialogTheme,
-  DialogBeforeCloseAction,
   DialogStatic,
-  DialogShowOptions,
-  DialogAlertOptions,
-  DialogConfirmOptions,
-  DialogSetDefaultOptions,
-  DialogResetDefaultOptions,
 } from './types'
 import { Dialog as DialogBase } from './Dialog'
 import { PortalHost } from '../portal'
 import { DialogImperative } from './imperative'
 
-const DialogWithStatics = Object.assign(DialogBase, {
+export const Dialog = Object.assign(DialogBase, {
   Host: PortalHost,
   show: DialogImperative.show,
   alert: DialogImperative.alert,
@@ -26,19 +17,5 @@ const DialogWithStatics = Object.assign(DialogBase, {
   resetDefaultOptions: DialogImperative.resetDefaultOptions,
 }) as React.FC<DialogProps> & DialogStatic
 
-const Dialog = DialogWithStatics
-
 export default Dialog
-export { Dialog }
-export type {
-  DialogProps,
-  DialogTheme,
-  DialogMessageAlign,
-  DialogActionState,
-  DialogBeforeCloseAction,
-  DialogShowOptions,
-  DialogAlertOptions,
-  DialogConfirmOptions,
-  DialogSetDefaultOptions,
-  DialogResetDefaultOptions,
-}
+export type * from './types'

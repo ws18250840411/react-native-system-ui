@@ -5,8 +5,6 @@ import type { PickerOption } from '../picker/types'
 import type { AreaProps, AreaOption } from './types'
 import { buildAreaColumns } from './utils'
 
-const noop = () => {}
-
 const Area: React.FC<AreaProps> = props => {
   const {
     areaList,
@@ -34,22 +32,12 @@ const Area: React.FC<AreaProps> = props => {
     [onConfirm]
   )
 
-  const pickerValueProps = React.useMemo(() => {
-    const next: Record<string, any> = {}
-    if (value !== undefined) {
-      next.value = value
-    }
-    if (defaultValue !== undefined) {
-      next.defaultValue = defaultValue
-    }
-    return next
-  }, [defaultValue, value])
-
   return (
     <Picker
-      {...pickerValueProps}
       {...pickerProps}
       columns={columns}
+      value={value}
+      defaultValue={defaultValue}
       onChange={handleChange}
       onConfirm={onConfirm ? handleConfirm : undefined}
     />

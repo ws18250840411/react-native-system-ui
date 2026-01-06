@@ -10,17 +10,10 @@ import type {
 } from './types'
 import Dialog from './Dialog'
 
-const isPromise = (value: unknown): value is Promise<unknown> =>
-  !!value && typeof value === 'object' && typeof (value as any).then === 'function'
-
 const runHook = async (handler?: () => any) => {
   if (!handler) return true
   try {
-    const result = handler()
-    if (isPromise(result)) {
-      const resolved = await result
-      return resolved !== false
-    }
+    const result = await handler()
     return result !== false
   } catch (error) {
     console.error(error)
@@ -44,7 +37,6 @@ interface DialogRegistryItem {
 }
 
 const dialogRegistry = new Map<number, DialogRegistryItem>()
-const pendingClosers = new Map<number, () => void>()
 
 type DefaultOptionsKey = 'default' | ImperativeMode
 
@@ -56,27 +48,16 @@ const defaultOptionsStore: Record<DefaultOptionsKey, DialogShowOptions> = {
 }
 
 const registerEntry = (key: number, options: DialogProps, meta: ImperativeMeta) => {
-  const entry: DialogRegistryItem = { key, options, meta }
-  const pendingClose = pendingClosers.get(key)
-  if (pendingClose) {
-    entry.close = pendingClose
-    pendingClosers.delete(key)
-  }
-  dialogRegistry.set(key, entry)
+  dialogRegistry.set(key, { key, options, meta })
 }
 
 const attachCloser = (key: number, close: () => void) => {
   const entry = dialogRegistry.get(key)
-  if (entry) {
-    entry.close = close
-    return
-  }
-  pendingClosers.set(key, close)
+  if (entry) entry.close = close
 }
 
 const unregisterEntry = (key: number) => {
   dialogRegistry.delete(key)
-  pendingClosers.delete(key)
 }
 
 const requestClose = (key: number) => {
@@ -200,14 +181,7 @@ const mergeWithDefaults = (
   mode: ImperativeMode,
   options: DialogShowOptions = {}
 ): DialogShowOptions => {
-  const merged = deepMerge(
-    deepMerge(
-      deepMerge({} as DialogShowOptions, defaultOptionsStore.default),
-      defaultOptionsStore[mode]
-    ),
-    options
-  )
-  return merged
+  return deepMerge(deepMerge(defaultOptionsStore.default, defaultOptionsStore[mode]), options)
 }
 
 const normalizeOptions = (mode: ImperativeMode, options: DialogShowOptions = {}) => {
@@ -227,13 +201,10 @@ const setDefaultOptions = (
   maybeOptions?: DialogShowOptions
 ) => {
   if (typeof targetOrOptions === 'string') {
-    defaultOptionsStore[targetOrOptions] = deepMerge(
-      { ...defaultOptionsStore[targetOrOptions] },
-      maybeOptions ?? {}
-    )
+    defaultOptionsStore[targetOrOptions] = deepMerge(defaultOptionsStore[targetOrOptions], maybeOptions ?? {})
     return
   }
-  defaultOptionsStore.default = deepMerge({ ...defaultOptionsStore.default }, targetOrOptions)
+  defaultOptionsStore.default = deepMerge(defaultOptionsStore.default, targetOrOptions)
 }
 
 const resetDefaultOptions = (target?: ImperativeMode) => {

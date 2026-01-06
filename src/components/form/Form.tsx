@@ -1,33 +1,17 @@
 import React from 'react'
-import { View, type ViewProps } from 'react-native'
+import { View } from 'react-native'
 
+import { isPromiseLike } from '../../utils/promise'
 import { FormContext } from './FormContext'
-import type { FormItemRule, NamePath, RegisteredFieldOptions } from './types'
-import { getValueByName, serializeNamePath, setValueByName, toNamePath } from './utils'
-
-const normalizeTrigger = (trigger?: string | string[]) => {
-  if (!trigger) return []
-  return Array.isArray(trigger) ? trigger : [trigger]
-}
-
-const isEmptyValue = (value: any) =>
-  value === undefined || value === null || value === ''
-
-const getValueLength = (value: any) => {
-  if (typeof value === 'number') {
-    return value
-  }
-  if (typeof value === 'string') {
-    return value.length
-  }
-  if (Array.isArray(value)) {
-    return value.length
-  }
-  return 0
-}
-
-const isPromise = <T,>(value: any): value is Promise<T> =>
-  !!value && typeof value === 'object' && typeof value.then === 'function'
+import type {
+  FormInstance,
+  FormItemRule,
+  FormProps,
+  FormSubscribeProps,
+  NamePath,
+  RegisteredFieldOptions,
+} from './types'
+import { getValueByName, normalizeTrigger, serializeNamePath, setValueByName } from './utils'
 
 const runRuleValidation = (
   rule: FormItemRule,
@@ -36,68 +20,31 @@ const runRuleValidation = (
 ): string | null | Promise<string | null> => {
   const message = rule.message ?? '表单验证未通过'
   const isString = typeof value === 'string'
-  const empty = isEmptyValue(value)
+  const empty = value == null || value === ''
 
-  if (rule.required) {
-    if (empty) {
-      return message
-    }
-    if (rule.whitespace && isString && value.trim().length === 0) {
-      return message
-    }
-  }
-
-  if (empty) {
-    return null
-  }
-
-  if (rule.pattern && isString && !rule.pattern.test(value)) {
+  if (rule.required && (empty || (rule.whitespace && isString && value.trim().length === 0))) {
     return message
   }
+  if (empty) return null
+  if (rule.pattern && isString && !rule.pattern.test(value)) return message
 
-  if (rule.len !== undefined) {
-    const length = getValueLength(value)
-    if (length !== rule.len) {
-      return message
-    }
+  if (rule.len !== undefined || rule.min !== undefined || rule.max !== undefined) {
+    const length =
+      typeof value === 'number'
+        ? value
+        : isString || Array.isArray(value)
+          ? value.length
+          : 0
+    if (rule.len !== undefined && length !== rule.len) return message
+    if (rule.min !== undefined && length < rule.min) return message
+    if (rule.max !== undefined && length > rule.max) return message
   }
 
-  if (rule.min !== undefined) {
-    const length = getValueLength(value)
-    if (length < rule.min) {
-      return message
-    }
-  }
-
-  if (rule.max !== undefined) {
-    const length = getValueLength(value)
-    if (length > rule.max) {
-      return message
-    }
-  }
-
-  if (rule.validator) {
-    const result = rule.validator(value, values)
-    if (isPromise(result)) {
-      return result.then(res => {
-        if (typeof res === 'string') {
-          return res
-        }
-        if (res === false) {
-          return message
-        }
-        return null
-      })
-    }
-    if (typeof result === 'string') {
-      return result
-    }
-    if (result === false) {
-      return message
-    }
-  }
-
-  return null
+  if (!rule.validator) return null
+  const handle = (result: any) =>
+    typeof result === 'string' ? result : result === false ? message : null
+  const result = rule.validator(value, values)
+  return isPromiseLike(result) ? result.then(handle) : handle(result)
 }
 
 const shallowEqual = (
@@ -117,26 +64,6 @@ const shallowEqual = (
     }
   }
   return true
-}
-
-export interface FormInstance {
-  submit: () => Promise<Record<string, any> | undefined>
-  getFieldsValue: () => Record<string, any>
-  setFieldsValue: (values: Record<string, any>) => void
-  resetFields: () => void
-  validateFields: (names?: NamePath[]) => Promise<Record<string, any>>
-  getFieldError: (name: NamePath) => string[]
-}
-
-export interface FormProps extends ViewProps {
-  initialValues?: Record<string, any>
-  colon?: boolean
-  labelWidth?: number
-  showValidateMessage?: boolean
-  footer?: React.ReactNode
-  onValuesChange?: (values: Record<string, any>, name: string, value: any) => void
-  onFinish?: (values: Record<string, any>) => void
-  children?: React.ReactNode
 }
 
 const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
@@ -162,22 +89,17 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   const valuesRef = React.useRef(values)
   const errorsRef = React.useRef(errors)
   const validationSeqRef = React.useRef<Record<string, number>>({})
-  const subscribersRef = React.useRef(new Set<(changed: Record<string, any>, all: Record<string, any>) => void>())
-  const formApiRef = React.useRef<FormInstance | null>(null)
-
-  React.useEffect(() => {
-    valuesRef.current = values
-  }, [values])
-
-  React.useEffect(() => {
-    errorsRef.current = errors
-  }, [errors])
+  const subscribersRef = React.useRef(
+    new Set<(changed: Record<string, any>, all: Record<string, any>) => void>(),
+  )
 
   React.useEffect(() => {
     if (shallowEqual(lastInitialValuesRef.current, mergedInitialValues)) {
       return
     }
     lastInitialValuesRef.current = mergedInitialValues
+    valuesRef.current = mergedInitialValues
+    errorsRef.current = {}
     setValues(mergedInitialValues)
     setErrors({})
   }, [mergedInitialValues])
@@ -193,11 +115,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         errorsRef.current = clone
         return clone
       }
-      if (
-        prevErrors &&
-        prevErrors.length === nextErrors.length &&
-        prevErrors.every((item, index) => item === nextErrors[index])
-      ) {
+      if (prevErrors?.[0] === nextErrors[0] && prevErrors.length === nextErrors.length) {
         return prev
       }
       const clone = { ...prev, [key]: nextErrors }
@@ -210,7 +128,6 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     const key = serializeNamePath(name)
     fieldsRef.current[key] = { ...options, name }
 
-    // 将 Form.Item initialValue 合并到表单初始值与当前值（仅在该字段尚未有值时）
     if (options.initialValue !== undefined) {
       const existsInInitial = getValueByName(lastInitialValuesRef.current, name)
       if (existsInInitial === undefined) {
@@ -220,7 +137,9 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       if (existsInState === undefined) {
         setValues(prev => {
           if (getValueByName(prev, name) !== undefined) return prev
-          return setValueByName(prev, name, options.initialValue)
+          const next = setValueByName(prev, name, options.initialValue)
+          valuesRef.current = next
+          return next
         })
       }
     }
@@ -255,17 +174,12 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       let activeRules = trigger
         ? fieldRules.filter(rule => {
           const ruleTrigger = rule.validateTrigger ?? fieldOptions.validateTrigger
-          if (!ruleTrigger) return true // 默认全通过？还是默认 onChange？通常如果 FormItem 没设，Rule 没设，就是 onChange
-          const triggers = normalizeTrigger(ruleTrigger)
-          return triggers.includes(trigger)
+          return !ruleTrigger || normalizeTrigger(ruleTrigger).includes(trigger)
         })
         : fieldRules
 
       if (!activeRules.length) {
-        const existingErrors = errorsRef.current[key]
-        if (!existingErrors || !existingErrors.length) {
-          return true
-        }
+        if (!errorsRef.current[key]?.length) return true
         activeRules = fieldRules
       }
 
@@ -274,7 +188,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 
       for (const rule of activeRules) {
         const result = runRuleValidation(rule, value, currentValues)
-        const error = isPromise(result) ? await result : result
+        const error = isPromiseLike(result) ? await result : result
         if (validationSeqRef.current[key] !== validationSeq) {
           return true
         }
@@ -316,11 +230,12 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         valuesRef.current = next
         onValuesChange?.(next, nameKey, value)
         runFieldValidation(name, trigger, value, next)
-        Object.entries(fieldsRef.current).forEach(([fieldName, meta]) => {
+        for (const fieldName in fieldsRef.current) {
+          const meta = fieldsRef.current[fieldName]
           if (meta.dependencies?.some(dep => serializeNamePath(dep) === nameKey)) {
             runFieldValidation(meta.name, trigger, getValueByName(next, meta.name), next)
           }
-        })
+        }
         notify({ [nameKey]: value }, next)
         return next
       })
@@ -341,27 +256,23 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     getFieldsValue: () => valuesRef.current,
     setFieldsValue: next => {
       setValues(prev => {
-        let changed = false
-        let merged: Record<string, any> = prev
+        let merged = prev
+        const changed: Record<string, any> = {}
         Object.keys(next).forEach(key => {
           const newVal = next[key]
-          const nextMerged = setValueByName(merged, key, newVal)
-          if (nextMerged !== merged) {
-            changed = true
-            merged = nextMerged
-            const keyPath = serializeNamePath(key)
-            onValuesChange?.(merged, keyPath, newVal)
-            runFieldValidation(key, undefined, newVal, merged)
-          }
+          if (getValueByName(merged, key) === newVal) return
+          changed[key] = newVal
+          merged = setValueByName(merged, key, newVal)
+          onValuesChange?.(merged, key, newVal)
+          runFieldValidation(key, undefined, newVal, merged)
         })
-        if (!changed) return prev
+        if (merged === prev) return prev
         valuesRef.current = merged
-        notify(next, merged)
+        notify(changed, merged)
         return merged
       })
     },
     resetFields: () => {
-      // 基于 form 初始值 + 各字段的 initialValue 重新构造
       let next = lastInitialValuesRef.current
       Object.values(fieldsRef.current).forEach(meta => {
         if (meta.initialValue === undefined) return
@@ -369,6 +280,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         next = setValueByName(next, meta.name, meta.initialValue)
       })
       valuesRef.current = next
+      errorsRef.current = {}
       setValues(next)
       setErrors({})
       notify(next, next)
@@ -378,9 +290,6 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   }), [notify, onFinish, onValuesChange, validateFields, runFieldValidation])
 
   React.useImperativeHandle(ref, () => formApi, [formApi])
-  React.useEffect(() => {
-    formApiRef.current = formApi
-  }, [formApi])
 
   const getFieldError = React.useCallback((name: NamePath) => errors[serializeNamePath(name)], [errors])
 
@@ -404,12 +313,12 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         subscribersRef.current.add(listener)
         return () => subscribersRef.current.delete(listener)
       },
-      form: formApiRef.current,
+      form: formApi,
       colon,
       labelWidth,
       showValidateMessage,
     }),
-    [values, setFieldValue, registerField, getFieldError, contextValidateField, colon, labelWidth, showValidateMessage],
+    [values, setFieldValue, registerField, getFieldError, contextValidateField, formApi, colon, labelWidth, showValidateMessage],
   )
 
   return (
@@ -424,32 +333,24 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 
 InternalForm.displayName = 'Form'
 
-export const useWatch = (
-  name?: NamePath | NamePath[],
-  formRef?: React.MutableRefObject<FormInstance | null>
-) => {
+export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRefObject<FormInstance | null>) => {
   const context = React.useContext(FormContext)
 
-  const names = React.useMemo<(NamePath[] | undefined)>(() => {
+  const names = React.useMemo(() => {
     if (name === undefined) return undefined
-    if (Array.isArray(name) && name.length && (typeof name[0] === 'string' || typeof name[0] === 'number')) {
-      return [name as NamePath]
-    }
-    if (Array.isArray(name)) return name as NamePath[]
-    return [name]
+    if (!Array.isArray(name)) return [name]
+    return name.length && (typeof name[0] === 'string' || typeof name[0] === 'number')
+      ? [name as NamePath]
+      : (name as NamePath[])
   }, [name])
 
   const getSnapshot = React.useCallback(
     (allValues?: Record<string, any>) => {
       const source = allValues ?? context?.getFieldsValue?.() ?? formRef?.current?.getFieldsValue?.() ?? {}
       if (!names) return source
-      if (names.length === 1) {
-        return getValueByName(source, names[0])
-      }
+      if (names.length === 1) return getValueByName(source, names[0])
       const picked: Record<string, any> = {}
-      names.forEach(key => {
-        picked[serializeNamePath(key)] = getValueByName(source, key)
-      })
+      for (const key of names) picked[serializeNamePath(key)] = getValueByName(source, key)
       return picked
     },
     [context, formRef, names],
@@ -469,27 +370,19 @@ export const useWatch = (
   return value
 }
 
-export interface FormSubscribeProps {
-  to?: string[]
-  children: (changedValues: Record<string, any>, form: FormInstance | null) => React.ReactNode
-}
-
 export const FormSubscribe: React.FC<FormSubscribeProps> = ({ to, children }) => {
   const context = React.useContext(FormContext)
-  const [payload, setPayload] = React.useState<{ changed: Record<string, any>; all: Record<string, any> }>(() => ({
-    changed: {},
-    all: context?.getFieldsValue?.() ?? {},
-  }))
+  const [changed, setChanged] = React.useState<Record<string, any>>({})
 
   React.useEffect(() => {
     if (!context?.subscribe) return undefined
-    return context.subscribe((changed, all) => {
-      if (to && !Object.keys(changed).some(key => to.includes(key))) return
-      setPayload({ changed, all })
+    return context.subscribe(next => {
+      if (to && !Object.keys(next).some(key => to.includes(key))) return
+      setChanged(next)
     })
   }, [context, to])
 
-  return <>{children(payload.changed, context?.form ?? null)}</>
+  return <>{children(changed, context?.form ?? null)}</>
 }
 
 export default InternalForm

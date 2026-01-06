@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface UploaderTokens {
   size: number
@@ -24,6 +20,7 @@ export interface UploaderTokens {
 
 const createTokens = (foundations: Foundations): UploaderTokens => {
   const { palette, spacing, radii } = foundations
+  const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     size: 80,
     gap: spacing.sm,
@@ -34,22 +31,12 @@ const createTokens = (foundations: Foundations): UploaderTokens => {
       text: palette.default[500],
       icon: palette.default[500],
       deleteBackground: 'rgba(0,0,0,0.65)',
-      deleteIcon: palette.primary.foreground ?? '#fff',
+      deleteIcon: onPrimary,
       maskBackground: 'rgba(0,0,0,0.45)',
-      maskText: palette.primary.foreground ?? '#fff',
+      maskText: onPrimary,
       failed: palette.danger[500],
     },
   }
 }
 
-export const useUploaderTokens = (overrides?: DeepPartial<UploaderTokens>): UploaderTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.uploader
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useUploaderTokens = createComponentTokensHook('uploader', createTokens)

@@ -12,17 +12,16 @@ import {
 } from 'react-native'
 
 import { useAriaPress, useControllableValue } from '../../hooks'
+import { parseNumberLike } from '../../utils/number'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
 
-const AnimatedIndicator = Animated.View
-const AnimatedScrollView = Animated.ScrollView
 const requestFrame =
   typeof requestAnimationFrame === 'function'
     ? requestAnimationFrame
     : (cb: (time?: number) => void) => setTimeout(cb, 16)
 
-const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
+const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 const isTextLikeNode = (node: React.ReactNode): node is string | number =>
   typeof node === 'string' || typeof node === 'number'
 
@@ -73,9 +72,7 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   isLast,
 }) => {
   const isDisabled = !!pane.disabled
-  // We keep interaction enabled to support onClickTab even when disabled
   const ariaPress = useAriaPress({
-    disabled: false,
     onPress: event => onSelect(pane, pane.index, event),
     extraProps: {
       accessibilityRole: 'tab',
@@ -87,14 +84,10 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const isCapsule = type === 'capsule'
   const isJumbo = type === 'jumbo'
   const isCard = type === 'card'
-  const renderTitle = React.useMemo(
-    () => (typeof pane.title === 'function' ? pane.title(isActive) : pane.title ?? pane.name),
-    [isActive, pane.name, pane.title],
-  )
-  const renderDescription = React.useMemo(
-    () => (typeof pane.description === 'function' ? pane.description(isActive) : pane.description),
-    [isActive, pane.description],
-  )
+  const renderTitle =
+    typeof pane.title === 'function' ? pane.title(isActive) : pane.title ?? pane.name
+  const renderDescription =
+    typeof pane.description === 'function' ? pane.description(isActive) : pane.description
 
   const activeTitleColor = titleActiveColor ?? (isCard ? tokens.colors.cardActiveText : isCapsule ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive)
   const inactiveTitleColor = titleInactiveColor ?? (isCard ? color ?? tokens.colors.cardBorder : isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
@@ -111,8 +104,8 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
         : tokens.colors.description
 
   const shouldFlex = !scrollable && (align !== 'start' || isCard)
-  const horizontalPadding = isCard || isJumbo ? 0 : isCapsule ? 0 : tokens.tabList.paddingHorizontal
-  const verticalPadding = isCard || isJumbo ? 0 : isCapsule ? 0 : tokens.tabList.paddingVertical
+  const horizontalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingHorizontal
+  const verticalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingVertical
   const labelWrapperStyles: any[] = [styles.labelWrapper]
   if (isJumbo) {
     labelWrapperStyles.push(styles.labelWrapperJumbo)
@@ -144,7 +137,6 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   return (
     <Pressable
       {...ariaPress.interactionProps}
-      disabled={false}
       onLayout={event => onLayout(pane.name, event)}
       style={[
         styles.tabItem,
@@ -267,7 +259,8 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
 const TabBarItem = React.memo(TabBarItemInner)
 
 const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref) => {
-  const tokens = useTabsTokens()
+  const { tokensOverride } = props
+  const tokens = useTabsTokens(tokensOverride)
   const {
     children,
     type = tokens.defaults.type,
@@ -297,45 +290,23 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     titleInactiveColor,
     beforeChange,
     onClickTab,
-    onChange: _onChange,
+    onChange,
     style,
     ...rest
   } = props
-  void _onChange
 
-  const resolveNumericValue = (val?: number | string): number | undefined => {
-    if (typeof val === 'number') {
-      return val
-    }
-    if (typeof val === 'string') {
-      const parsed = Number(val)
-      if (!Number.isNaN(parsed)) {
-        return parsed
-      }
-    }
-    return undefined
-  }
-
-  const fallbackLineWidth = lineWidth ?? tokens.indicator.width
-  const resolvedLineWidth = resolveNumericValue(fallbackLineWidth)
-  const resolvedLineHeight = resolveNumericValue(lineHeight) ?? tokens.indicator.height
-  const resolvedDuration = resolveNumericValue(duration) ?? tokens.defaults.duration
-  const resolvedSwipeThreshold = resolveNumericValue(swipeThreshold) ?? tokens.defaults.swipeThreshold
-  const swipeableConfig = React.useMemo(() => {
-    if (!swipeable) {
-      return undefined
-    }
-    if (typeof swipeable === 'object') {
-      return {
-        autoHeight: swipeable.autoHeight ?? true,
-        preventScroll: swipeable.preventScroll ?? true,
-      }
-    }
-    return {
-      autoHeight: true,
-      preventScroll: true,
-    }
-  }, [swipeable])
+  const resolvedLineWidth = parseNumberLike(lineWidth ?? tokens.indicator.width)
+  const resolvedLineHeight = parseNumberLike(lineHeight) ?? tokens.indicator.height
+  const resolvedDuration = parseNumberLike(duration) ?? tokens.defaults.duration
+  const resolvedSwipeThreshold = parseNumberLike(swipeThreshold) ?? tokens.defaults.swipeThreshold
+  const swipeableConfig = !swipeable
+    ? undefined
+    : typeof swipeable === 'object'
+      ? {
+          autoHeight: swipeable.autoHeight ?? true,
+          preventScroll: swipeable.preventScroll ?? true,
+        }
+      : { autoHeight: true, preventScroll: true }
   const isSwipeable = !!swipeableConfig
 
   const panes = React.useMemo<ParsedPane[]>(() => {
@@ -362,13 +333,12 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     trigger: 'onChange',
   })
 
-  const currentName = React.useMemo(() => {
-    if (activeValue === undefined || activeValue === null) {
-      return firstPaneName
-    }
-    const exists = panes.some(pane => pane.name === activeValue)
-    return exists ? activeValue : firstPaneName
-  }, [activeValue, firstPaneName, panes])
+  const currentName =
+    activeValue == null
+      ? firstPaneName
+      : panes.some(pane => pane.name === activeValue)
+        ? activeValue
+        : firstPaneName
 
   const currentNameRef = React.useRef<TabsValue | undefined | null>(currentName)
   React.useEffect(() => {
@@ -383,16 +353,14 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     return map
   }, [panes])
 
-  const paneSignature = React.useMemo(() => panes.map(pane => String(pane.name)).join('|'), [panes])
-
-  const activeIndex = React.useMemo(() => {
-    if (currentName === undefined || currentName === null) return -1
-    return nameIndexMap.get(currentName) ?? -1
-  }, [currentName, nameIndexMap])
+  const activeIndex =
+    currentName == null
+      ? -1
+      : nameIndexMap.get(currentName) ?? -1
 
   const visitedRef = React.useRef<Set<TabsValue>>(new Set())
   React.useEffect(() => {
-    if (currentName === undefined || currentName === null) return
+    if (currentName == null) return
     visitedRef.current.add(currentName)
   }, [currentName])
 
@@ -404,7 +372,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     Array.from(layoutMap.current.keys()).forEach(name => {
       if (!validNames.has(name)) layoutMap.current.delete(name)
     })
-  }, [paneSignature, panes])
+  }, [panes])
 
   const shouldTrackPaneLayouts = isSwipeable && swipeableConfig?.autoHeight
 
@@ -456,7 +424,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const animateIndicator = React.useCallback(
     (name?: TabsValue, immediate?: boolean) => {
-      if (name === undefined || name === null || type !== 'line') return false
+      if (name == null || type !== 'line') return false
       const shouldUseEqualWidth =
         !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
       const index = nameIndexMap.get(name) ?? -1
@@ -488,23 +456,20 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const scrollIntoView = React.useCallback(
     (immediate?: boolean) => {
-      if (!scrollable || currentName === undefined || currentName === null) return
+      if (!scrollable || currentName == null) return
       const layout = layoutMap.current.get(currentName)
       const containerWidth = navContainerWidthRef.current
       if (!layout || !containerWidth) return
-      const measuredContentWidth = navContentWidthRef.current
-      const contentWidth = measuredContentWidth
+      const contentWidth = navContentWidthRef.current
       const targetX = layout.x - (containerWidth - layout.width) / 2
       const maxScroll = Math.max(contentWidth - containerWidth, 0)
       const clampedX = Math.max(0, Math.min(targetX, maxScroll))
-      // 内容没溢出就无需滚动
       if (maxScroll <= 0) {
         return
       }
       if (Math.abs(clampedX - navLastScrollXRef.current) < 1) {
         return
       }
-      // 取消上一次滚动动画
       if (navScrollAnimRef.current) {
         navScrollAnimRef.current.stop()
         navScrollAnimRef.current = null
@@ -563,7 +528,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   }, [])
 
   React.useEffect(() => {
-    if (currentName === undefined || currentName === null) return
+    if (currentName == null) return
     const shouldAnimate = indicatorInitializedRef.current
     const didAnimate = animateIndicator(currentName, !shouldAnimate)
     if (didAnimate && !indicatorInitializedRef.current) {
@@ -589,7 +554,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const handleNavContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
     const { width } = event.nativeEvent.layout
     navContainerWidthRef.current = width
-    // 均分模式下不依赖 TabItem 的 onLayout，因此容器宽度就绪后补一次指示器计算
     if (!scrollable && align !== 'start' && type === 'line' && currentName !== undefined && currentName !== null) {
       const shouldAnimate = indicatorInitializedRef.current
       const didAnimate = animateIndicator(currentName, !shouldAnimate)
@@ -604,21 +568,18 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     setContainerWidth(prev => (prev === nextWidth ? prev : nextWidth))
   }, [])
 
-
   const runBeforeChange = React.useCallback(
     (name: TabsValue) => {
       if (!beforeChange) {
         return Promise.resolve(true)
       }
       try {
-        const result = beforeChange(name)
-        if (typeof result === 'boolean' || result === undefined) {
-          return Promise.resolve(result !== false)
-        }
-        if (result && typeof (result as Promise<boolean>).then === 'function') {
-          return (result as Promise<boolean>).then(res => res !== false)
-        }
-        return Promise.resolve(true)
+        return Promise.resolve(beforeChange(name))
+          .then(res => res !== false)
+          .catch(error => {
+            console.warn('[Tabs] beforeChange 抛出异常：', error)
+            return false
+          })
       } catch (error) {
         console.warn('[Tabs] beforeChange 抛出异常：', error)
         return Promise.resolve(false)
@@ -677,21 +638,16 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const handleSelect = React.useCallback(
     (pane: ParsedPane, index: number, event?: unknown) => {
-      if (pane.disabled || pane.name === currentNameRef.current) {
-        onClickTab?.({
-          name: pane.name,
-          index,
-          disabled: !!pane.disabled,
-          event,
-        })
-        return
-      }
-      onClickTab?.({
+      const payload = {
         name: pane.name,
         index,
         disabled: !!pane.disabled,
         event,
-      })
+      }
+      onClickTab?.(payload)
+      if (pane.disabled || pane.name === currentNameRef.current) {
+        return
+      }
       if (!beforeChange) {
         setActiveValue(pane.name, index)
         return
@@ -708,7 +664,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const scrollTo = React.useCallback(
     (name: TabsValue, _options?: { immediate?: boolean }) => {
-      void _options
       const target = panes.find(pane => pane.name === name && !pane.disabled)
       if (!target) {
         return
@@ -722,7 +677,6 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     scrollTo,
   }), [scrollTo])
 
-  // 首次渲染时立即定位（与官方对齐：首次 immediate）
   const firstRenderRef = React.useRef(true)
   React.useEffect(() => {
     if (firstRenderRef.current) {
@@ -759,6 +713,23 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   if (panes.length === 0) {
     return null
   }
+
+  const indicatorNode = showIndicator ? (
+    <Animated.View
+      testID="rv-tabs-indicator"
+      style={[
+        styles.indicator,
+        {
+          height: resolvedLineHeight,
+          borderRadius: indicatorCornerRadius,
+          backgroundColor: indicatorColor,
+          width: indicatorWidth,
+          bottom: indicatorBottom,
+          transform: [{ translateX: indicatorX }],
+        },
+      ]}
+    />
+  ) : null
 
   const navItems = panes.map(pane => (
     <TabBarItem
@@ -804,42 +775,12 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       contentContainerStyle={styles.navContent}
     >
       {navItems}
-      {showIndicator ? (
-        <AnimatedIndicator
-          testID="rv-tabs-indicator"
-          style={[
-            styles.indicator,
-            {
-              height: resolvedLineHeight,
-              borderRadius: indicatorCornerRadius,
-              backgroundColor: indicatorColor,
-              width: indicatorWidth,
-              bottom: indicatorBottom,
-              transform: [{ translateX: indicatorX }],
-            },
-          ]}
-        />
-      ) : null}
+      {indicatorNode}
     </ScrollView>
   ) : (
     <View style={[styles.navContent, styles.navContentStatic]}>
       {navItems}
-      {showIndicator ? (
-        <AnimatedIndicator
-          testID="rv-tabs-indicator"
-          style={[
-            styles.indicator,
-            {
-              height: resolvedLineHeight,
-              borderRadius: indicatorCornerRadius,
-              backgroundColor: indicatorColor,
-              width: indicatorWidth,
-              bottom: indicatorBottom,
-              transform: [{ translateX: indicatorX }],
-            },
-          ]}
-        />
-      ) : null}
+      {indicatorNode}
     </View>
   )
 
@@ -921,7 +862,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const contentNode = isSwipeable ? (
     <View style={swipeableContentStyle}>
-      <AnimatedScrollView
+      <Animated.ScrollView
         ref={swipeableScrollRef}
         horizontal
         pagingEnabled
@@ -932,7 +873,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         directionalLockEnabled={swipeableConfig?.preventScroll !== false}
       >
         {paneNodes}
-      </AnimatedScrollView>
+      </Animated.ScrollView>
     </View>
   ) : (
     <View style={baseContentStyle}>{paneNodes}</View>

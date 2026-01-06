@@ -58,7 +58,7 @@ export default function IndexBarTabbedDemo() {
       <Tabs.TabPane name="basic" title="基础用法">
         <AlphaDemo />
       </Tabs.TabPane>
-      <Tabs.TabPane name="custom" title="自定义索引列表">
+      <Tabs.TabPane name="custom" title="自定义索引">
         <CustomDemo />
       </Tabs.TabPane>
     </Tabs>

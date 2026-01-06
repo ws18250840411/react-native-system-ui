@@ -24,7 +24,7 @@ export default () => {
           ))}
         </IndexBar>
       </Tabs.TabPane>
-      <Tabs.TabPane title='自定义索引列表'>
+      <Tabs.TabPane title='自定义索引'>
         <IndexBar indexList={customIndexList}>
           {customIndexList.map(item => (
             <div key={item}>

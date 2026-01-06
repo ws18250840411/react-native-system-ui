@@ -1,10 +1,7 @@
-import * as React from 'react'
 import type { TextStyle } from 'react-native'
 
-import { useTheme } from '../../design-system'
-import { resolveSemanticColors, type Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 import type { SearchShape } from './types'
 
 export interface SearchTokens {
@@ -47,7 +44,7 @@ export interface SearchTokens {
 
 const createSearchTokens = (foundations: Foundations): SearchTokens => {
   const { palette, spacing, radii, fontSize } = foundations
-  const { surface } = resolveSemanticColors(palette)
+  const surface = palette.default[50]
   return {
     defaults: {
       shape: 'square',
@@ -87,17 +84,7 @@ const createSearchTokens = (foundations: Foundations): SearchTokens => {
   }
 }
 
-export const useSearchTokens = (
-  overrides?: DeepPartial<SearchTokens>,
-): SearchTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createSearchTokens(foundations)
-    const componentOverrides = components?.search
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useSearchTokens = createComponentTokensHook(
+  'search',
+  createSearchTokens
+)

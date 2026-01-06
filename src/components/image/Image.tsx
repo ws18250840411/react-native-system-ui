@@ -93,12 +93,13 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     containerStyle,
     style,
     children,
+    tokensOverride,
     onLoad,
     onError,
     ...rest
   } = props
 
-  const tokens = useImageTokens()
+  const tokens = useImageTokens(tokensOverride)
   const flattenedImageStyle = React.useMemo(() => StyleSheet.flatten(style) as any, [style])
   const flattenedContainerStyle = React.useMemo(
     () => StyleSheet.flatten(containerStyle) as any,

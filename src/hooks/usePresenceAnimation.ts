@@ -1,5 +1,7 @@
 import React from 'react'
-import { Animated, Easing, Platform } from 'react-native'
+import { Animated, Easing } from 'react-native'
+
+import { nativeDriverEnabled } from '../platform'
 
 interface PresenceOptions {
   duration?: number
@@ -17,7 +19,7 @@ export const usePresenceAnimation = (
 ) => {
   const [mounted, setMounted] = React.useState(visible)
   const animated = React.useRef(new Animated.Value(visible && !appear ? 1 : 0)).current
-  const useNativeDriver = Platform.OS !== 'web'
+  const useNativeDriver = nativeDriverEnabled
 
   React.useEffect(() => {
     if (visible) {

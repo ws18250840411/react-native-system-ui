@@ -2,13 +2,14 @@ import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
+import { deepMerge } from '../../utils/deepMerge'
 import type { SidebarItemProps, SidebarProps } from './types'
 import { SidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
 
 const SidebarBase: React.FC<SidebarProps> = props => {
-  const tokens = useSidebarTokens()
-  const { children, value, defaultValue, sideStyle, onChange, style, ...rest } = props
+  const { children, value, defaultValue, sideStyle, onChange, style, tokensOverride, ...rest } = props
+  const tokens = useSidebarTokens(tokensOverride)
 
   const items = React.useMemo(() => {
     return React.Children.toArray(children)
@@ -45,9 +46,13 @@ const SidebarBase: React.FC<SidebarProps> = props => {
       React.cloneElement(item.element, {
         key: item.element.key ?? item.index,
         index: item.index,
+        tokensOverride:
+          (item.element.props.tokensOverride && tokensOverride)
+            ? deepMerge(tokensOverride, item.element.props.tokensOverride)
+            : item.element.props.tokensOverride ?? tokensOverride,
       })
     )
-  }, [items])
+  }, [items, tokensOverride])
 
   const activeItem = React.useMemo(() => {
     return items.find(item => item.index === currentIndex)?.element

@@ -1,10 +1,7 @@
-import * as React from 'react'
 import type { TextStyle } from 'react-native'
 
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface TabbarTokens {
   defaults: {
@@ -35,6 +32,7 @@ export interface TabbarTokens {
 
 const createTokens = (foundations: Foundations): TabbarTokens => {
   const { palette, spacing, fontSize } = foundations
+  const surface = palette.default[50]
   return {
     defaults: {
       fixed: true,
@@ -44,11 +42,10 @@ const createTokens = (foundations: Foundations): TabbarTokens => {
       safeAreaInsetBottom: false,
     },
     colors: {
-      background: palette.default[50] ?? '#ffffff',
-      // 对齐 Vant 默认色值（更利于“看起来一致”）
-      border: '#ebedf0',
-      active: '#3f45ff',
-      inactive: '#7d7e80',
+      background: surface,
+      border: palette.default[200],
+      active: palette.primary[600],
+      inactive: palette.default[600],
     },
     layout: {
       // 对齐官方默认观感（Vant Tabbar）：50 高度、无左右 padding
@@ -66,16 +63,4 @@ const createTokens = (foundations: Foundations): TabbarTokens => {
   }
 }
 
-export const useTabbarTokens = (
-  overrides?: DeepPartial<TabbarTokens>,
-): TabbarTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.tabbar
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useTabbarTokens = createComponentTokensHook('tabbar', createTokens)

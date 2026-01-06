@@ -5,13 +5,12 @@ import {
   View,
   StyleSheet,
   PanResponder,
-  type PanResponderGestureState,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  type ViewStyle,
 } from 'react-native'
 
-import { adjustIndex, clamp, indexToOffset, offsetToIndex, shouldMomentum, momentumTarget } from './core'
+import { clamp } from '../../utils/number'
+import { indexToOffset, offsetToIndex, shouldMomentum, momentumTarget } from './core'
 import styles from './styles'
 
 type WheelPickerRender<T> = (item: T | null, index: number) => React.ReactNode
@@ -27,10 +26,7 @@ export type WheelPickerProps<T> = {
   indicatorColor: string
   decelerationRate?: 'normal' | 'fast' | number
   scrollEventThrottle?: number
-  disableRemoveClippedSubviewsOnWeb?: boolean
-  debug?: boolean
   swipeDuration?: number
-  effects?: boolean
 }
 
 const WheelPickerInner = <T,>({
@@ -45,7 +41,6 @@ const WheelPickerInner = <T,>({
   decelerationRate = 'fast',
   scrollEventThrottle = 16,
   swipeDuration = 300,
-  effects,
 }: WheelPickerProps<T>) => {
   const isWeb = Platform.OS === 'web'
   const listRef = React.useRef<FlatList<T>>(null)
@@ -53,7 +48,6 @@ const WheelPickerInner = <T,>({
   const total = data.length
   const containerHeight = itemHeight * (visibleRest * 2 + 1)
 
-  // --- Native / RN Web FlatList branch ---
   const dragEndTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const momentumRef = React.useRef(false)
 
@@ -70,24 +64,20 @@ const WheelPickerInner = <T,>({
     (offsetY: number) => {
       if (readOnly) return
       const { index } = offsetToIndex(-offsetY, itemHeight, total, data as any)
-      const clamped = clamp(index, 0, Math.max(0, total - 1))
-      if (clamped !== selectedIndex) onChange(clamped)
+      if (index !== selectedIndex) onChange(index)
     },
     [data, itemHeight, onChange, readOnly, selectedIndex, total],
   )
 
   React.useEffect(() => {
-    // keep scroll position in sync with selectedIndex
     const offset = Math.max(selectedIndex, 0) * itemHeight
     listRef.current?.scrollToOffset({ offset, animated: false })
   }, [itemHeight, selectedIndex])
 
-  // --- Web-only simple wheel handling when not using FlatList native scroll physics ---
   const [webOffset, setWebOffset] = React.useState(() => indexToOffset(selectedIndex, itemHeight))
   const webOffsetRef = React.useRef(webOffset)
   const startOffsetRef = React.useRef(0)
   const startTimeRef = React.useRef(0)
-  const panLock = React.useRef(false)
   const [webTransition, setWebTransition] = React.useState(0)
   React.useEffect(() => {
     if (!isWeb) return
@@ -114,9 +104,7 @@ const WheelPickerInner = <T,>({
     [data, isWeb, itemHeight, onChange, readOnly, selectedIndex, swipeDuration, total],
   )
 
-  const webTransform: ViewStyle = {
-    transform: [{ translateY: webOffset }],
-  }
+  const webTransform = { transform: [{ translateY: webOffset }] }
 
   const panResponder = React.useMemo(
     () =>
@@ -125,7 +113,6 @@ const WheelPickerInner = <T,>({
         onMoveShouldSetPanResponder: () => isWeb && !readOnly,
         onPanResponderGrant: () => {
           if (!isWeb) return
-          panLock.current = true
           setWebTransition(0)
           startOffsetRef.current = webOffsetRef.current
           startTimeRef.current = Date.now()
@@ -136,7 +123,7 @@ const WheelPickerInner = <T,>({
           webOffsetRef.current = next
           setWebOffset(next)
         },
-        onPanResponderRelease: (_, gesture: PanResponderGestureState) => {
+        onPanResponderRelease: (_, gesture) => {
           if (!isWeb || readOnly) return
           const duration = Date.now() - startTimeRef.current
           const distance = gesture.dy
@@ -148,13 +135,11 @@ const WheelPickerInner = <T,>({
           setWebTransition(swipeDuration)
           webOffsetRef.current = snapOffset
           setWebOffset(snapOffset)
-          panLock.current = false
           if (index !== selectedIndex) onChange(index)
         },
         onPanResponderTerminationRequest: () => false,
         onPanResponderTerminate: () => {
           if (!isWeb) return
-          panLock.current = false
           setWebTransition(0)
         },
       }),
@@ -233,7 +218,7 @@ const WheelPickerInner = <T,>({
         snapToInterval={itemHeight}
         snapToAlignment="start"
         nestedScrollEnabled={true}
-        removeClippedSubviews={Platform.OS !== 'web'}
+        removeClippedSubviews={!isWeb}
         collapsable={false}
         ListHeaderComponent={<View style={{ height: spacerHeight }} />}
         ListFooterComponent={<View style={{ height: spacerHeight }} />}
@@ -266,7 +251,7 @@ const WheelPickerInner = <T,>({
   )
 }
 
-const WheelPicker = React.memo(WheelPickerInner) as <T>(props: WheelPickerProps<T>) => React.ReactElement | null
+const WheelPicker = React.memo(WheelPickerInner) as typeof WheelPickerInner
 
 const webOnlyStyles = StyleSheet.create({
   grab: ({

@@ -4,7 +4,8 @@ import { StyleSheet, View } from 'react-native'
 
 import type { FlexContextValue, FlexDirection } from './FlexContext'
 import { FlexContext } from './FlexContext'
-import { useFlexTokens } from './tokens'
+import type { DeepPartial } from '../../types'
+import { useFlexTokens, type FlexTokens } from './tokens'
 
 export type FlexWrap = 'nowrap' | 'wrap' | 'wrap-reverse'
 export type FlexAlign = 'start' | 'center' | 'end' | 'baseline' | 'stretch'
@@ -19,6 +20,7 @@ export interface FlexProps {
   justify?: FlexJustify
   style?: StyleProp<ViewStyle>
   columns?: number
+  tokensOverride?: DeepPartial<FlexTokens>
 }
 
 const alignMap: Record<FlexAlign, ViewStyle['alignItems']> = {
@@ -53,8 +55,9 @@ export const Flex: React.FC<FlexProps> = ({
   justify,
   style,
   columns,
+  tokensOverride,
 }) => {
-  const tokens = useFlexTokens()
+  const tokens = useFlexTokens(tokensOverride)
   const resolvedDirection = direction ?? tokens.defaults.direction
   const resolvedWrap = wrap ?? tokens.defaults.wrap
   const resolvedAlign = align ?? tokens.defaults.align

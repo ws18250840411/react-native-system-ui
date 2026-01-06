@@ -22,24 +22,21 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
   const { foundations } = useTheme()
   const gap = spacing ?? foundations.spacing.xs
 
-  const wrapped = React.useMemo(() => {
-    const validChildren = React.Children.toArray(children)
-    return validChildren.map((child, index) => {
-      const key =
-        React.isValidElement(child) && child.key !== null ? child.key : index
-      const isLast = index === validChildren.length - 1
-      const marginStyles: ViewStyle =
-        direction === 'horizontal'
-          ? { marginRight: isLast ? 0 : gap }
-          : { marginBottom: isLast ? 0 : gap }
+  const childArray = React.Children.toArray(children)
+  const wrapped = childArray.map((child, index) => {
+    const key = React.isValidElement(child) && child.key !== null ? child.key : index
+    const isLast = index === childArray.length - 1
+    const marginStyles: ViewStyle =
+      direction === 'horizontal'
+        ? { marginRight: isLast ? 0 : gap }
+        : { marginBottom: isLast ? 0 : gap }
 
-      return (
-        <View key={key} style={marginStyles}>
-          {child}
-        </View>
-      )
-    })
-  }, [children, direction, gap])
+    return (
+      <View key={key} style={marginStyles}>
+        {child}
+      </View>
+    )
+  })
 
   return (
     <ButtonGroupContext.Provider value={contextValue}>

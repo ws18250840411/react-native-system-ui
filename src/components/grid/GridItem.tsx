@@ -1,5 +1,5 @@
 import React from 'react'
-import type { PressableStateCallbackType, TextStyle, ViewStyle } from 'react-native'
+import type { TextStyle, ViewStyle } from 'react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Badge from '../badge'
@@ -11,8 +11,7 @@ type GridItemInternalProps = GridItemProps & {
   gridItemIndex?: number
 }
 
-const isRenderable = (value: React.ReactNode) =>
-  value !== undefined && value !== null && value !== false
+const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
 export const GridItem: React.FC<GridItemProps> = props => {
   const context = React.useContext(GridContext)
@@ -56,27 +55,22 @@ export const GridItem: React.FC<GridItemProps> = props => {
   const lastRowIndex = Math.floor((count - 1) / columnNum)
 
   const baseItemStyle: ViewStyle = {
-    flexBasis: widthPercent as any, // TypeScript type workaround
+    flexBasis: widthPercent as any,
     width: widthPercent as any,
     maxWidth: widthPercent as any,
     borderColor: tokens.colors.border,
   }
 
-  // react-vant square 处理：当 square 为 true 时，使用 paddingTop 撑开高度实现正方形
   if (square) {
     baseItemStyle.aspectRatio = 1
   }
 
-  // react-vant gutter 处理逻辑
   if (gutter) {
     baseItemStyle.paddingRight = gutter
     if (rowIndex > 0) {
       baseItemStyle.marginTop = gutter
     }
   }
-
-  // react-vant 边框通过 content 的 ::after 伪元素实现
-  // 在 React Native 中，我们使用独立 View 作为边框，统一使用 hairline 工具函数
 
   const contentOrientation = direction === 'horizontal' ? styles.horizontal : styles.vertical
   const reverseStyle = reverse
@@ -85,15 +79,12 @@ export const GridItem: React.FC<GridItemProps> = props => {
       : styles.reverseColumn
     : null
 
-  // react-vant: contentStyle 处理
-  // 官方实现：只在 square && gutter 时设置 contentStyle
   const contentBaseStyle: ViewStyle = {
     paddingHorizontal: tokens.spacing.paddingHorizontal,
     paddingVertical: tokens.spacing.paddingVertical,
     backgroundColor: tokens.colors.background,
   }
 
-  // react-vant: &__content--square { position: absolute; top: 0; right: 0; left: 0; }
   if (square) {
     contentBaseStyle.position = 'absolute'
     contentBaseStyle.top = 0
@@ -101,56 +92,14 @@ export const GridItem: React.FC<GridItemProps> = props => {
     contentBaseStyle.left = 0
   }
 
-  // react-vant: 当 square && gutter 时，调整 right 和 bottom，设置 height: auto
   if (square && gutter) {
     contentBaseStyle.right = gutter
     contentBaseStyle.bottom = gutter
     contentBaseStyle.height = 'auto'
   }
 
-  // 渲染边框（通过独立 View 实现）
-  // react-vant: &__content::after { border-width: 0 var(--rv-border-width-base) var(--rv-border-width-base) 0; }
-  // 当 border && gutter 时，使用 surround 类：border-width: var(--rv-border-width-base);
-  const renderBorder = () => {
-    if (!border) return null
-
-    // 无 gutter 时，只显示右边和底部边框
-    const borderViews: React.ReactNode[] = []
-
-    // 右侧边框（非最后一列）
-    if (!isLastColumn) {
-      borderViews.push(
-        <View
-          key="right"
-          style={createHairlineView({
-            position: 'right',
-            color: tokens.colors.border,
-            top: 0,
-            bottom: 0,
-            right: 0,
-          })}
-        />
-      )
-    }
-
-    // 底部边框（非最后一行）
-    if (rowIndex < lastRowIndex) {
-      borderViews.push(
-        <View
-          key="bottom"
-          style={createHairlineView({
-            position: 'bottom',
-            color: tokens.colors.border,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          })}
-        />
-      )
-    }
-
-    return borderViews.length > 0 ? <>{borderViews}</> : null
-  }
+  const showRightBorder = border && !isLastColumn
+  const showBottomBorder = border && rowIndex < lastRowIndex
 
   const contentWrapperStyle = [
     styles.contentBase,
@@ -168,7 +117,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
       return null
     }
 
-    const hasText = isRenderable(text)
+    const hasText = isRenderableNode(text)
     const iconNode = icon
       ? typeof icon === 'function'
         ? icon(iconSize, resolvedIconColor)
@@ -201,7 +150,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
   }
 
   const renderText = () => {
-    if (!isRenderable(text)) {
+    if (!isRenderableNode(text)) {
       return null
     }
 
@@ -211,7 +160,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
         fontSize: tokens.typography.fontSize,
         lineHeight: tokens.typography.lineHeight,
         fontFamily: tokens.typography.fontFamily,
-        fontWeight: tokens.typography.fontWeight as any, // TypeScript type workaround
+        fontWeight: tokens.typography.fontWeight as any,
       }
 
       return (
@@ -234,22 +183,37 @@ export const GridItem: React.FC<GridItemProps> = props => {
   )
 
   if (isInteractive) {
-    const pressableStyle = (state: PressableStateCallbackType): ViewStyle[] => [
-      baseItemStyle,
-      style as ViewStyle,
-      { opacity: state.pressed ? 0.85 : 1 },
-    ]
-
     return (
       <Pressable
-        style={pressableStyle}
+        style={({ pressed }) => [baseItemStyle, style as ViewStyle, { opacity: pressed ? 0.85 : 1 }]}
         android_ripple={{ color: tokens.colors.active }}
         onPress={onPress}
         {...rest}
       >
         <View style={contentWrapperStyle}>
           {contentBody}
-          {renderBorder()}
+          {showRightBorder ? (
+            <View
+              style={createHairlineView({
+                position: 'right',
+                color: tokens.colors.border,
+                top: 0,
+                bottom: 0,
+                right: 0,
+              })}
+            />
+          ) : null}
+          {showBottomBorder ? (
+            <View
+              style={createHairlineView({
+                position: 'bottom',
+                color: tokens.colors.border,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              })}
+            />
+          ) : null}
         </View>
       </Pressable>
     )
@@ -259,7 +223,28 @@ export const GridItem: React.FC<GridItemProps> = props => {
     <View style={[baseItemStyle, style as ViewStyle]} {...rest}>
       <View style={contentWrapperStyle}>
         {contentBody}
-        {renderBorder()}
+        {showRightBorder ? (
+          <View
+            style={createHairlineView({
+              position: 'right',
+              color: tokens.colors.border,
+              top: 0,
+              bottom: 0,
+              right: 0,
+            })}
+          />
+        ) : null}
+        {showBottomBorder ? (
+          <View
+            style={createHairlineView({
+              position: 'bottom',
+              color: tokens.colors.border,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            })}
+          />
+        ) : null}
       </View>
     </View>
   )
@@ -269,9 +254,6 @@ GridItem.displayName = 'GridItem'
 
 const styles = StyleSheet.create({
   contentBase: {
-    // react-vant: &__content { height: 100%; }
-    // 在 React Native 中，我们使用 flex: 1 让 content 填充父容器
-    // 这样自定义内容（如 Image）也能正确显示
     flex: 1,
     justifyContent: 'center',
   },

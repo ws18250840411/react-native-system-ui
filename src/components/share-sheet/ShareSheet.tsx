@@ -117,7 +117,6 @@ const ShareSheetCancel: React.FC<{
 }
 
 const ShareSheet: React.FC<ShareSheetProps> = props => {
-  const tokens = useShareSheetTokens()
   const {
     visible,
     title,
@@ -128,6 +127,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
     closeOnSelect = true,
     safeAreaInsetBottom = true,
     children,
+    tokensOverride,
     onSelect,
     onCancel,
     onClose,
@@ -137,6 +137,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
     ...popupProps
   } = props
 
+  const tokens = useShareSheetTokens(tokensOverride)
   const groups = React.useMemo(() => normalizeOptions(options), [options])
   const resolvedColumns = React.useMemo(() => {
     if (typeof columns !== 'number' || !Number.isFinite(columns) || columns <= 0) return 4

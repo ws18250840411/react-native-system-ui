@@ -1,34 +1,15 @@
 import React from 'react'
-import {
-  Image as RNImage,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-} from 'react-native'
+import { Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Popup from '../popup'
 import Swiper, { type SwiperInstance } from '../swiper'
-import type { ImagePreviewProps, ImagePreviewRef, ImagePreviewCloseReason, ImagePreviewImage } from './types'
+import type { ImagePreviewProps, ImagePreviewRef, ImagePreviewCloseReason } from './types'
 import { useImagePreviewTokens } from './tokens'
 
-const clampIndex = (index: number, total: number) => {
-  if (total <= 0) return 0
-  if (index < 0) return 0
-  if (index > total - 1) return total - 1
-  return index
-}
+const clampIndex = (index: number, total: number) =>
+  total <= 0 ? 0 : Math.max(0, Math.min(total - 1, index))
 
 const IS_WEB = Platform.OS === 'web'
-
-const resolveImageSource = (image?: ImagePreviewImage) => {
-  if (!image) return undefined
-  if (typeof image === 'string') {
-    return { uri: image }
-  }
-  return image
-}
 
 const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props, ref) => {
   const {
@@ -36,6 +17,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     images = [],
     startPosition = 0,
     swipeDuration = 300,
+    tokensOverride,
     lazyRender = false,
     lazyRenderBuffer = 1,
     showIndex = true,
@@ -57,220 +39,169 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     beforeClose,
   } = props
 
-  const tokens = useImagePreviewTokens()
+  const { colors } = useImagePreviewTokens(tokensOverride)
   const swiperRef = React.useRef<SwiperInstance>(null)
   const popupCloseReason = React.useRef<ImagePreviewCloseReason>('close')
   const tapStartRef = React.useRef<{ x: number; y: number } | null>(null)
   const tapMovedRef = React.useRef(false)
   const [active, setActive] = React.useState(() => clampIndex(startPosition, images.length))
-  const activeRef = React.useRef(active)
+  const safeActive = clampIndex(active, images.length)
 
-  // 保证回调里拿到的 active 永远是最新的
-  React.useEffect(() => {
-    activeRef.current = active
-  }, [active])
-
-  // 避免每次 render 都为 string 图片创建新的 { uri } 对象
-  const resolvedImages = React.useMemo(() => {
-    return images.map(img => resolveImageSource(img))
-  }, [images])
-
-  const shouldRenderImage = React.useCallback((index: number) => {
-    if (!lazyRender) return true
-    if (images.length <= 1) return true
-    const buffer = Math.max(0, lazyRenderBuffer | 0)
-    return Math.abs(index - activeRef.current) <= buffer
-  }, [images.length, lazyRender, lazyRenderBuffer])
-
-  const runBeforeClose = React.useCallback(async (reason: ImagePreviewCloseReason) => {
-    if (!beforeClose) return true
-    const result = await beforeClose({ reason, index: active, image: images[active] })
-    return result !== false
-  }, [beforeClose, active, images])
-
-  const finalizeClose = React.useCallback(() => {
-    onClose?.({ index: active, image: images[active] })
-  }, [active, images, onClose])
-
-  const requestClose = React.useCallback(async (reason: ImagePreviewCloseReason, opts?: { bypassCheck?: boolean }) => {
-    if (!opts?.bypassCheck) {
-      const allow = await runBeforeClose(reason)
-      if (!allow) {
-        return
-      }
-    }
-    finalizeClose()
-  }, [finalizeClose, runBeforeClose])
-
-  const handlePopupBeforeClose = React.useCallback(async (reason: 'close-icon' | 'overlay' | 'close') => {
-    const mapped: ImagePreviewCloseReason =
-      reason === 'close-icon'
-        ? 'close-icon'
-        : reason === 'overlay'
-          ? 'overlay'
-          : 'close'
-    popupCloseReason.current = mapped
-    return runBeforeClose(mapped)
-  }, [runBeforeClose])
-
-  const handlePopupClose = React.useCallback(() => {
-    requestClose(popupCloseReason.current, { bypassCheck: true })
-  }, [requestClose])
-
-  const swipeToIndex = React.useCallback((index: number, animated = true) => {
-    swiperRef.current?.swipeTo(index, animated)
-  }, [])
-
-  React.useImperativeHandle(ref, () => ({
-    swipeTo: (index: number, animated = true) => {
-      const next = clampIndex(index, images.length)
-      activeRef.current = next
-      setActive(next)
-      swipeToIndex(next, animated)
-    },
-  }), [images.length, swipeToIndex])
+  const resolvedImages = React.useMemo(
+    () => images.map(img => (typeof img === 'string' ? { uri: img } : img)),
+    [images]
+  )
 
   React.useEffect(() => {
-    setActive(current => {
-      const next = clampIndex(current, images.length)
-      activeRef.current = next
-      return next
-    })
+    setActive(current => clampIndex(current, images.length))
   }, [images.length])
 
   React.useEffect(() => {
     if (!visible) return
     const next = clampIndex(startPosition, images.length)
-    activeRef.current = next
     setActive(next)
     const raf = requestAnimationFrame(() => {
-      swipeToIndex(next, false)
+      swiperRef.current?.swipeTo(next, false)
     })
     return () => cancelAnimationFrame(raf)
-  }, [images.length, startPosition, swipeToIndex, visible])
+  }, [images.length, startPosition, visible])
 
-  const handleSwiperChange = React.useCallback((idx: number) => {
-    if (activeRef.current === idx) return
-    activeRef.current = idx
+  const runBeforeClose = async (reason: ImagePreviewCloseReason) => {
+    if (!beforeClose) return true
+    const result = await beforeClose({ reason, index: safeActive, image: images[safeActive] })
+    return result !== false
+  }
+
+  const requestClose = async (reason: ImagePreviewCloseReason, bypassCheck = false) => {
+    if (!bypassCheck) {
+      const allow = await runBeforeClose(reason)
+      if (!allow) return
+    }
+    onClose?.({ index: safeActive, image: images[safeActive] })
+  }
+
+  const handlePopupBeforeClose = async (reason: 'close-icon' | 'overlay' | 'close') => {
+    const mapped: ImagePreviewCloseReason =
+      reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
+    popupCloseReason.current = mapped
+    return runBeforeClose(mapped)
+  }
+
+  const handlePopupClose = () => {
+    void requestClose(popupCloseReason.current, true)
+  }
+
+  React.useImperativeHandle(ref, () => ({
+    swipeTo: (index: number, animated = true) => {
+      const next = clampIndex(index, images.length)
+      setActive(next)
+      swiperRef.current?.swipeTo(next, animated)
+    },
+  }))
+
+  const shouldRenderImage = (index: number) => {
+    if (!lazyRender) return true
+    const buffer = Math.max(0, lazyRenderBuffer | 0)
+    return Math.abs(index - safeActive) <= buffer
+  }
+
+  const handleSwiperChange = (idx: number) => {
+    if (safeActive === idx) return
     setActive(idx)
     onChange?.(idx)
-  }, [onChange])
+  }
 
-  const handleImagePress = React.useCallback(() => {
+  const handleImagePress = () => {
     if (closeOnlyClickCloseIcon) return
-    requestClose('content')
-  }, [closeOnlyClickCloseIcon, requestClose])
+    void requestClose('content')
+  }
 
   const TAP_MOVE_THRESHOLD_PX = 8
-  const markTapStart = React.useCallback((x: number, y: number) => {
+  const resetTap = () => {
+    tapStartRef.current = null
+    tapMovedRef.current = false
+  }
+  const markTapStart = (x: number, y: number) => {
     tapStartRef.current = { x, y }
     tapMovedRef.current = false
-  }, [])
-  const markTapMove = React.useCallback((x: number, y: number) => {
+  }
+  const markTapMove = (x: number, y: number) => {
     const start = tapStartRef.current
     if (!start) return
     const dx = x - start.x
     const dy = y - start.y
-    if ((dx * dx + dy * dy) >= TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX) {
+    if (dx * dx + dy * dy >= TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX) {
       tapMovedRef.current = true
     }
-  }, [])
-  const tryTapEnd = React.useCallback((x: number, y: number) => {
+  }
+  const tryTapEnd = (x: number, y: number) => {
     const start = tapStartRef.current
     const moved = tapMovedRef.current
-    tapStartRef.current = null
-    tapMovedRef.current = false
+    resetTap()
     if (!start || moved) return
     const dx = x - start.x
     const dy = y - start.y
-    if ((dx * dx + dy * dy) >= TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX) return
+    if (dx * dx + dy * dy >= TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX) return
     handleImagePress()
-  }, [handleImagePress])
+  }
 
-  // 这些 handler 在每张图上都复用同一份引用，避免 children 每次都因 props 变化而重建
-  const onSlideTouchStart = React.useCallback((e: any) => {
-    const ne = e?.nativeEvent
-    if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
-  }, [markTapStart])
-  const onSlideTouchMove = React.useCallback((e: any) => {
-    const ne = e?.nativeEvent
-    if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
-  }, [markTapMove])
-  const onSlideTouchEnd = React.useCallback((e: any) => {
-    const ne = e?.nativeEvent
-    if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
-  }, [tryTapEnd])
-  const onSlideTouchCancel = React.useCallback(() => {
-    tapStartRef.current = null
-    tapMovedRef.current = false
-  }, [])
+  const slidePressableHandlers: any = {
+    onTouchStart: (e: any) => {
+      const ne = e?.nativeEvent
+      if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
+    },
+    onTouchMove: (e: any) => {
+      const ne = e?.nativeEvent
+      if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
+    },
+    onTouchEnd: (e: any) => {
+      const ne = e?.nativeEvent
+      if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
+    },
+    onTouchCancel: resetTap,
+  }
 
-  const onSlideMouseDown = React.useCallback((e: any) => {
-    const ne = e?.nativeEvent
-    if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
-  }, [markTapStart])
-  const onSlideMouseMove = React.useCallback((e: any) => {
-    const ne = e?.nativeEvent
-    if (ne?.buttons !== 1) return
-    if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
-  }, [markTapMove])
-  const onSlideMouseUp = React.useCallback((e: any) => {
-    const ne = e?.nativeEvent
-    if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
-  }, [tryTapEnd])
-
-  const slidePressableHandlers = React.useMemo(() => {
-    const base: any = {
-      onTouchStart: onSlideTouchStart,
-      onTouchMove: onSlideTouchMove,
-      onTouchEnd: onSlideTouchEnd,
-      onTouchCancel: onSlideTouchCancel,
+  if (IS_WEB) {
+    slidePressableHandlers.onMouseDown = (e: any) => {
+      const ne = e?.nativeEvent
+      if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
     }
-    if (IS_WEB) {
-      base.onMouseDown = onSlideMouseDown
-      base.onMouseMove = onSlideMouseMove
-      base.onMouseUp = onSlideMouseUp
+    slidePressableHandlers.onMouseMove = (e: any) => {
+      const ne = e?.nativeEvent
+      if (ne?.buttons !== 1) return
+      if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
     }
-    return base
-  }, [
-    onSlideMouseDown,
-    onSlideMouseMove,
-    onSlideMouseUp,
-    onSlideTouchCancel,
-    onSlideTouchEnd,
-    onSlideTouchMove,
-    onSlideTouchStart,
-  ])
+    slidePressableHandlers.onMouseUp = (e: any) => {
+      const ne = e?.nativeEvent
+      if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
+    }
+  }
 
-  const renderIndex = () => {
-    if (!showIndex || images.length === 0) return null
-    return (
+  const indexNode =
+    showIndex && images.length ? (
       <View style={styles.index} testID="rv-image-preview-index">
-        <View style={[styles.indexBadge, { backgroundColor: tokens.colors.indexBackground }]}>
+        <View style={[styles.indexBadge, { backgroundColor: colors.indexBackground }]}>
           {indexRender ? (
-            indexRender({ index: active, len: images.length })
+            indexRender({ index: safeActive, len: images.length })
           ) : (
-            <Text style={[styles.indexText, { color: tokens.colors.indexText }]}>{`${active + 1} / ${images.length}`}</Text>
+            <Text style={[styles.indexText, { color: colors.indexText }]}>{`${safeActive + 1} / ${images.length}`}</Text>
           )}
         </View>
       </View>
-    )
-  }
+    ) : null
 
-  const renderIndicators = () => {
-    if (!showIndicators || images.length <= 1) return null
-    return (
+  const indicatorsNode =
+    showIndicators && images.length > 1 ? (
       <View testID="rv-image-preview-indicators">
         <Swiper.PagIndicator
           total={images.length}
-          current={active}
-          activeColor={tokens.colors.indicatorActive}
-          inactiveColor={tokens.colors.indicatorInactive}
+          current={safeActive}
+          activeColor={colors.indicatorActive}
+          inactiveColor={colors.indicatorInactive}
           style={{ bottom: 32 }}
         />
       </View>
-    )
-  }
+    ) : null
 
   return (
     <Popup
@@ -293,8 +224,8 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       onClose={handlePopupClose}
       onClosed={onClosed}
     >
-      <View style={[styles.content, { backgroundColor: tokens.colors.background }]}>
-        {renderIndex()}
+      <View style={[styles.content, { backgroundColor: colors.background }]}>
+        {indexNode}
         {images.length === 0 ? (
           <View style={styles.empty} testID="rv-image-preview-empty" />
         ) : (
@@ -314,7 +245,6 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
               <Swiper.Item key={idx} style={styles.slide} testID={`rv-image-preview-slide-${idx}`}>
                 <Pressable
                   style={styles.slidePressable}
-                  // 不用 onPress（会在滑动切换时误触发），改为基于位移阈值判断“真正的 tap”
                   {...slidePressableHandlers}
                 >
                   {shouldRenderImage(idx) ? (
@@ -331,7 +261,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
             ))}
           </Swiper>
         )}
-        {renderIndicators()}
+        {indicatorsNode}
       </View>
     </Popup>
   )

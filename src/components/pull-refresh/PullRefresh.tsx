@@ -1,17 +1,8 @@
 import React from 'react'
-import {
-  Animated,
-  PanResponder,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native'
+import { Animated, PanResponder, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import { nativeDriverEnabled } from '../../platform'
+import { parseNumberLike } from '../../utils/number'
 import { useLocale } from '../config-provider/useLocale'
 import { usePullRefreshTokens } from './tokens'
 import type { PullRefreshProps, PullRefreshStatus, PullRefreshStatusText } from './types'
@@ -22,8 +13,10 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const {
     children,
     onRefresh,
+    onRefreshEnd,
     refreshing,
     defaultRefreshing,
+    tokensOverride,
     pullingText,
     loosingText,
     loadingText,
@@ -39,36 +32,14 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
 
   const isWeb = Platform.OS === 'web'
   const locale = useLocale()
-  const tokens = usePullRefreshTokens()
+  const tokens = usePullRefreshTokens(tokensOverride)
+  const { colors, sizing } = tokens
 
   const translateY = React.useRef(new Animated.Value(0)).current
-  const headHeightNumber = React.useMemo(() => {
-    const raw = typeof headHeight === 'undefined' ? tokens.sizing.headHeight : headHeight
-    if (typeof raw === 'number') return raw
-    const parsed = Number.parseFloat(raw)
-    return Number.isFinite(parsed) ? parsed : tokens.sizing.headHeight
-  }, [headHeight, tokens.sizing.headHeight])
-
-  const pullDistanceNumber = React.useMemo(() => {
-    if (typeof pullDistance === 'undefined') return headHeightNumber
-    if (typeof pullDistance === 'number') return pullDistance
-    const parsed = Number.parseFloat(pullDistance)
-    return Number.isFinite(parsed) ? parsed : headHeightNumber
-  }, [headHeightNumber, pullDistance])
-
-  const successDurationMs = React.useMemo(() => {
-    if (typeof successDuration === 'undefined') return DEFAULT_SUCCESS_DURATION
-    if (typeof successDuration === 'number') return successDuration
-    const parsed = Number.parseFloat(successDuration)
-    return Number.isFinite(parsed) ? parsed : DEFAULT_SUCCESS_DURATION
-  }, [successDuration])
-
-  const animationDurationMs = React.useMemo(() => {
-    if (typeof animationDuration === 'undefined') return 300
-    if (typeof animationDuration === 'number') return animationDuration
-    const parsed = Number.parseFloat(animationDuration)
-    return Number.isFinite(parsed) ? parsed : 300
-  }, [animationDuration])
+  const headHeightNumber = parseNumberLike(headHeight, sizing.headHeight) ?? sizing.headHeight
+  const pullDistanceNumber = parseNumberLike(pullDistance, headHeightNumber) ?? headHeightNumber
+  const successDurationMs = parseNumberLike(successDuration, DEFAULT_SUCCESS_DURATION) ?? DEFAULT_SUCCESS_DURATION
+  const animationDurationMs = parseNumberLike(animationDuration, 300) ?? 300
 
   const isControlled = refreshing !== undefined
   const [innerRefreshing, setInnerRefreshing] = React.useState(!!defaultRefreshing)
@@ -84,29 +55,25 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const refreshTriggeredRef = React.useRef(false)
   const refreshSucceededRef = React.useRef(false)
 
-  const setDistanceValue = React.useCallback(
-    (nextDistance: number, options: { animate?: boolean } = {}) => {
-      const { animate = false } = options
-      const normalized = Math.max(0, Math.round(nextDistance))
-      distanceRef.current = normalized
+  const setDistanceValue = React.useCallback((nextDistance: number, animate = false) => {
+    const normalized = Math.max(0, Math.round(nextDistance))
+    distanceRef.current = normalized
 
-      if (isWeb) {
-        translateY.stopAnimation()
-        if (animate && animationDurationMs > 0) {
-          Animated.timing(translateY, {
-            toValue: normalized,
-            duration: animationDurationMs,
-            useNativeDriver: false,
-          }).start()
-        } else {
-          translateY.setValue(normalized)
-        }
+    if (isWeb) {
+      translateY.stopAnimation()
+      if (animate && animationDurationMs > 0) {
+        Animated.timing(translateY, {
+          toValue: normalized,
+          duration: animationDurationMs,
+          useNativeDriver: false,
+        }).start()
+      } else {
+        translateY.setValue(normalized)
       }
+    }
 
-      setDistance(prev => (Math.abs(prev - normalized) < 1 ? prev : normalized))
-    },
-    [animationDurationMs, isWeb, translateY],
-  )
+    setDistance(prev => (Math.abs(prev - normalized) < 1 ? prev : normalized))
+  }, [animationDurationMs, isWeb, translateY])
 
   React.useEffect(() => {
     return () => {
@@ -116,26 +83,18 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     }
   }, [])
 
-  const setRefreshing = React.useCallback((value: boolean) => {
-    if (!isControlled) {
-      setInnerRefreshing(value)
-    }
-  }, [isControlled])
+  const setRefreshing = (value: boolean) => {
+    if (!isControlled) setInnerRefreshing(value)
+  }
 
   React.useEffect(() => {
     mergedRefreshingRef.current = mergedRefreshing
   }, [mergedRefreshing])
 
-  const resolveStatusText = React.useCallback(
-    (text: PullRefreshStatusText | undefined, fallback: React.ReactNode) => {
-      const resolved = typeof text === 'undefined' ? fallback : text
-      if (typeof resolved === 'function') {
-        return resolved({ distance })
-      }
-      return resolved
-    },
-    [distance],
-  )
+  const resolveStatusText = (text: PullRefreshStatusText | undefined, fallback: React.ReactNode) => {
+    const resolved = typeof text === 'undefined' ? fallback : text
+    return typeof resolved === 'function' ? resolved({ distance }) : resolved
+  }
 
   const triggerSuccess = React.useCallback(() => {
     if (successText === null || successText === undefined || successText === false) return
@@ -160,9 +119,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       refreshSucceededRef.current = true
     } finally {
       setRefreshing(false)
-      if (typeof props.onRefreshEnd === 'function') {
-        setTimeout(() => props.onRefreshEnd?.(), 0)
-      }
+      if (typeof onRefreshEnd === 'function') setTimeout(onRefreshEnd, 0)
 
       if (refreshTriggeredRef.current && refreshSucceededRef.current && !mergedRefreshingRef.current) {
         triggerSuccess()
@@ -170,7 +127,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         refreshSucceededRef.current = false
       }
     }
-  }, [disabled, mergedRefreshing, onRefresh, props.onRefreshEnd, setRefreshing, triggerSuccess])
+  }, [disabled, mergedRefreshing, onRefresh, onRefreshEnd, triggerSuccess])
 
   // Web 端没有原生下拉回弹与 RefreshControl，需要用拖拽手势模拟内容下移。
   React.useEffect(() => {
@@ -178,16 +135,16 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     if (draggingRef.current) return
 
     if (disabled) {
-      setDistanceValue(0, { animate: true })
+      setDistanceValue(0, true)
       return
     }
 
     if (mergedRefreshing || showSuccess) {
-      setDistanceValue(headHeightNumber, { animate: true })
+      setDistanceValue(headHeightNumber, true)
       return
     }
 
-    setDistanceValue(0, { animate: true })
+    setDistanceValue(0, true)
   }, [disabled, headHeightNumber, isWeb, mergedRefreshing, setDistanceValue, showSuccess])
 
   React.useEffect(() => {
@@ -208,13 +165,16 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     refreshSucceededRef.current = false
   }, [mergedRefreshing, showSuccess, triggerSuccess])
 
-  const status = React.useMemo<PullRefreshStatus>(() => {
-    if (mergedRefreshing) return 'loading'
-    if (showSuccess) return 'success'
-    if (disabled) return 'normal'
-    if (distance === 0) return 'normal'
-    return distance < pullDistanceNumber ? 'pulling' : 'loosing'
-  }, [disabled, distance, mergedRefreshing, pullDistanceNumber, showSuccess])
+  const status: PullRefreshStatus =
+    mergedRefreshing
+      ? 'loading'
+      : showSuccess
+        ? 'success'
+        : disabled || distance === 0
+          ? 'normal'
+          : distance < pullDistanceNumber
+            ? 'pulling'
+            : 'loosing'
 
   const opacity = React.useRef(new Animated.Value(status === 'normal' ? 0 : 1)).current
   React.useEffect(() => {
@@ -223,10 +183,10 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       opacity.setValue(toValue)
       return
     }
-    Animated.timing(opacity, { toValue, duration: animationDurationMs, useNativeDriver: Platform.OS !== 'web' }).start()
+    Animated.timing(opacity, { toValue, duration: animationDurationMs, useNativeDriver: nativeDriverEnabled }).start()
   }, [animationDurationMs, opacity, status])
 
-  const renderStatus = () => {
+  const statusNode = (() => {
     switch (status) {
       case 'pulling':
         return resolveStatusText(pullingText, locale.vanPullRefresh.pulling)
@@ -239,61 +199,39 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       default:
         return null
     }
-  }
+  })()
 
   const shouldReserveHead = (status === 'loading' || status === 'success') && distance === 0
-  const contentContainerStyle = React.useMemo(() => {
-    if (!shouldReserveHead) return scrollProps.contentContainerStyle
-    const flattened = StyleSheet.flatten(scrollProps.contentContainerStyle) as any
-    const basePaddingTop = typeof flattened?.paddingTop === 'number' ? flattened.paddingTop : 0
-    return [
-      scrollProps.contentContainerStyle,
-      {
-        paddingTop: basePaddingTop + headHeightNumber,
-      },
-    ]
-  }, [headHeightNumber, scrollProps.contentContainerStyle, shouldReserveHead])
+  const flattenedContainerStyle = StyleSheet.flatten(scrollProps.contentContainerStyle) as any
+  const basePaddingTop = typeof flattenedContainerStyle?.paddingTop === 'number' ? flattenedContainerStyle.paddingTop : 0
+  const contentContainerStyle = shouldReserveHead
+    ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
+    : scrollProps.contentContainerStyle
 
-  const handleScroll = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      scrollProps.onScroll?.(event)
-      const offset = event.nativeEvent.contentOffset?.y ?? 0
-
-      if (isWeb) {
-        scrollTopRef.current = Math.max(0, offset)
-        return
-      }
-
-      if (disabled) return
-      const nextDistance = offset < 0 ? -offset : 0
-
-      if (Math.abs(distanceRef.current - nextDistance) < 1) return
-      distanceRef.current = nextDistance
-      setDistance(nextDistance)
-    },
-    [disabled, isWeb, scrollProps],
-  )
-
-  const easeDistance = React.useCallback(
-    (raw: number) => {
-      const pullDistance = pullDistanceNumber
-      let eased = raw
-
-      if (eased > pullDistance) {
-        if (eased < pullDistance * 2) {
-          eased = pullDistance + (eased - pullDistance) / 2
-        } else {
-          eased = pullDistance * 1.5 + (eased - pullDistance * 2) / 4
-        }
-      }
-
-      return Math.round(eased)
-    },
-    [pullDistanceNumber],
-  )
+  const handleScroll = (event: any) => {
+    scrollProps.onScroll?.(event)
+    const offset = event?.nativeEvent?.contentOffset?.y ?? 0
+    if (isWeb) {
+      scrollTopRef.current = Math.max(0, offset)
+      return
+    }
+    if (disabled) return
+    setDistanceValue(offset < 0 ? -offset : 0)
+  }
 
   const panResponder = React.useMemo(() => {
     if (!isWeb) return null
+    const easeDistance = (raw: number) => {
+      const pullDistance = pullDistanceNumber
+      let eased = raw
+      if (eased > pullDistance) {
+        eased =
+          eased < pullDistance * 2
+            ? pullDistance + (eased - pullDistance) / 2
+            : pullDistance * 1.5 + (eased - pullDistance * 2) / 4
+      }
+      return Math.round(eased)
+    }
     return PanResponder.create({
       onMoveShouldSetPanResponder: (_event, gestureState) => {
         if (disabled) return false
@@ -317,10 +255,10 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         if (scrollTopRef.current > 0) return
 
         const raw = Math.max(0, gestureState.dy ?? 0)
-        setDistanceValue(easeDistance(raw), { animate: false })
+        setDistanceValue(easeDistance(raw))
 
         if (typeof (event as any)?.preventDefault === 'function') {
-          ;(event as any).preventDefault()
+          ; (event as any).preventDefault()
         }
       },
       onPanResponderRelease: async (_event, gestureState) => {
@@ -333,21 +271,20 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         const shouldRefresh = nextDistance >= pullDistanceNumber
 
         if (shouldRefresh) {
-          setDistanceValue(headHeightNumber, { animate: true })
+          setDistanceValue(headHeightNumber, true)
           await handleRefresh()
           return
         }
 
-        setDistanceValue(0, { animate: true })
+        setDistanceValue(0, true)
       },
       onPanResponderTerminate: () => {
         draggingRef.current = false
-        setDistanceValue(0, { animate: true })
+        setDistanceValue(0, true)
       },
     })
   }, [
     disabled,
-    easeDistance,
     handleRefresh,
     headHeightNumber,
     isWeb,
@@ -387,17 +324,11 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
           ]}
         >
           <Animated.View style={{ opacity }}>
-            {(() => {
-              const node = renderStatus()
-              if (typeof node === 'string' || typeof node === 'number') {
-                return (
-                  <Text style={{ color: status === 'success' ? tokens.colors.success : tokens.colors.text }}>
-                    {node}
-                  </Text>
-                )
-              }
-              return node
-            })()}
+            {typeof statusNode === 'string' || typeof statusNode === 'number' ? (
+              <Text style={{ color: status === 'success' ? colors.success : colors.text }}>
+                {statusNode}
+              </Text>
+            ) : statusNode}
           </Animated.View>
         </View>
         {children}

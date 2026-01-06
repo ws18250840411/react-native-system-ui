@@ -33,6 +33,17 @@ import { ConfigProvider } from 'react-native-system-ui'
 
 > 如果仅需要快速切换预设，可直接传入 `themePresets.dark`、`themePresets.aurora` 等对象，无需手动创建 tokens。
 
+### 实例级 tokensOverride（按组件覆盖）
+
+除了通过 `ConfigProvider.theme` 做全局主题定制之外，本库的大部分组件还支持在组件实例上直接传入 `tokensOverride`，用来做“这一处”样式/尺寸等 tokens 的局部覆盖。
+
+- 生效优先级：组件默认 tokens < `ConfigProvider.theme.components`（全局组件 tokens）< 组件 `tokensOverride`（实例覆盖）
+- 类型：`tokensOverride` 的类型为 `DeepPartial<该组件对应的 Tokens>`，只需要填你要改的字段即可（TS 会自动提示）
+
+<code title="实例级 tokensOverride" src="./config-provider/demo/tokens-override.tsx"></code>
+
+> 注意：少数组件是“组合封装”形式，可能会提供多个覆盖入口。例如 `Input` 同时提供 `tokensOverride`（影响 Input 外层样式）与 `fieldTokensOverride`（影响内部 Field 的 tokens）。
+
 ## API
 
 | 属性 | 说明 | 类型 | 默认值 |

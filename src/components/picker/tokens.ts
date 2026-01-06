@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 import type { PickerToolbarPosition } from './types'
 
 export interface PickerTokens {
@@ -43,7 +39,6 @@ export interface PickerTokens {
 
 const createPickerTokens = (foundations: Foundations): PickerTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
-  const surface = palette.default[50] ?? '#ffffff'
   return {
     defaults: {
       itemHeight: 44,
@@ -54,14 +49,14 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
       maskType: 'gradient',
     },
     colors: {
-      background: surface,
+      background: '#ffffff',
       indicator: palette.default[200] ?? '#ebedf0',
       text: palette.default[900],
       textMuted: palette.default[900],
       textDisabled: palette.default[400],
       confirm: palette.primary[600],
       cancel: palette.default[600],
-      mask: surface,
+      mask: '#ffffff',
     },
     spacing: {
       toolbarHeight: 44,
@@ -80,16 +75,4 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
   }
 }
 
-export const usePickerTokens = (overrides?: DeepPartial<PickerTokens>): PickerTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createPickerTokens(foundations)
-    const globalOverrides = components?.picker
-    const merged = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const usePickerTokens = createComponentTokensHook('picker', createPickerTokens)

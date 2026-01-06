@@ -6,17 +6,10 @@ import type { CountDownInstance, CountDownProps } from './types'
 import { parseFormat } from './utils'
 import { useCountDownTokens } from './tokens'
 
-const getTimeValue = (time?: number | string) => {
-  if (typeof time === 'number') return time
-  if (typeof time === 'string') {
-    const parsed = Number(time)
-    return Number.isFinite(parsed) ? parsed : 0
-  }
-  return 0
-}
-
 const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, ref) => {
+  const tokens = useCountDownTokens(props.tokensOverride)
   const {
+    tokensOverride: _tokensOverride,
     autoStart = true,
     millisecond = false,
     time = 0,
@@ -28,9 +21,10 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     ...rest
   } = props
 
-  const tokens = useCountDownTokens()
-
-  const normalizedTime = React.useMemo(() => Math.max(0, getTimeValue(time)), [time])
+  const normalizedTime = React.useMemo(() => {
+    const parsed = typeof time === 'number' ? time : typeof time === 'string' ? Number(time) : 0
+    return Math.max(0, Number.isFinite(parsed) ? parsed : 0)
+  }, [time])
 
   const { start, pause, reset, current } = useCountDown({
     time: normalizedTime,
@@ -51,7 +45,7 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     return () => {
       pause()
     }
-  }, [normalizedTime])
+  }, [pause, resetTime])
 
   React.useImperativeHandle(ref, () => ({
     start,
@@ -59,13 +53,10 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     reset: resetTime,
   }), [pause, resetTime, start])
 
-  const defaultTextStyle = React.useMemo<TextStyle>(() => ({
-    color: tokens.text.color,
-    fontSize: tokens.text.fontSize,
-    lineHeight: tokens.text.lineHeight,
-    fontFamily: tokens.text.fontFamily,
+  const defaultTextStyle: TextStyle = {
+    ...tokens.text,
     fontWeight: tokens.text.fontWeight as TextStyle['fontWeight'],
-  }), [tokens.text.color, tokens.text.fontFamily, tokens.text.fontSize, tokens.text.fontWeight, tokens.text.lineHeight])
+  }
 
   const content = React.useMemo(() => {
     if (typeof children === 'function') {

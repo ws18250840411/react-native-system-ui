@@ -13,10 +13,9 @@ import {
   type ViewStyle,
 } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
@@ -39,6 +38,7 @@ export interface NotifyProps {
   closeOnClick?: boolean
   style?: StyleProp<ViewStyle>
   textStyle?: StyleProp<TextStyle>
+  tokensOverride?: DeepPartial<NotifyTokens>
   onClick?: () => void
   onClose?: () => void
   onOpen?: () => void
@@ -89,19 +89,7 @@ const createNotifyTokens = (foundations: Foundations): NotifyTokens => ({
   defaultDuration: 3000,
 })
 
-const useNotifyTokens = (overrides?: DeepPartial<NotifyTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createNotifyTokens(foundations)
-    const globalOverrides = components?.notify
-    const merged = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+const useNotifyTokens = createComponentTokensHook('notify', createNotifyTokens)
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -120,6 +108,7 @@ export const Notify: React.FC<NotifyProps> = props => {
     closeOnClick = false,
     style,
     textStyle,
+    tokensOverride,
     onClick,
     onClose,
     onOpen,
@@ -127,7 +116,7 @@ export const Notify: React.FC<NotifyProps> = props => {
     onClosed,
   } = props
 
-  const tokens = useNotifyTokens()
+  const tokens = useNotifyTokens(tokensOverride)
   const variant = tokens.colors.variants[type]
   const resolvedBackground = background ?? variant.background
   const resolvedTextColor = color ?? variant.text
@@ -145,20 +134,19 @@ export const Notify: React.FC<NotifyProps> = props => {
   const closingRef = React.useRef(false)
 
   React.useEffect(() => {
+    let openedTimer: ReturnType<typeof setTimeout> | null = null
     if (visible) {
       closingRef.current = false
       if (!prevVisibleRef.current) {
         onOpen?.()
-        if (onOpened) {
-          const timer = setTimeout(onOpened, tokens.animationDuration)
-          return () => clearTimeout(timer)
-        }
+        if (onOpened) openedTimer = setTimeout(onOpened, tokens.animationDuration)
       }
-      return
-    }
-
-    if (prevVisibleRef.current) {
+    } else if (prevVisibleRef.current) {
       closingRef.current = true
+    }
+    prevVisibleRef.current = visible
+    return () => {
+      if (openedTimer) clearTimeout(openedTimer)
     }
   }, [onOpen, onOpened, tokens.animationDuration, visible])
 
@@ -168,10 +156,6 @@ export const Notify: React.FC<NotifyProps> = props => {
       onClosed?.()
     }
   }, [mounted, onClosed])
-
-  React.useEffect(() => {
-    prevVisibleRef.current = visible
-  }, [visible])
 
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
@@ -185,14 +169,13 @@ export const Notify: React.FC<NotifyProps> = props => {
     }
   }, [onClose, resolvedDuration, visible])
 
+  const handlePress = () => {
+    onClick?.()
+    if (closeOnClick) onClose?.()
+  }
   const press = useAriaPress({
     disabled: !onClick && !closeOnClick,
-    onPress: () => {
-      onClick?.()
-      if (closeOnClick) {
-        onClose?.()
-      }
-    },
+    onPress: handlePress,
     extraProps: {
       accessibilityRole: closeOnClick || !!onClick ? 'button' : 'alert',
       accessibilityLiveRegion: 'assertive',
@@ -217,11 +200,7 @@ export const Notify: React.FC<NotifyProps> = props => {
         outputRange: [-translateDistance, 0],
       })
 
-  const hasMessage =
-    message !== undefined &&
-    message !== null &&
-    message !== false &&
-    !(typeof message === 'string' && message.length === 0)
+  const hasMessage = message !== undefined && message !== null && message !== false && message !== ''
 
   if (!mounted) return null
 

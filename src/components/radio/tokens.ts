@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 import type { RadioLabelPosition } from './types'
 
 export interface RadioTokens {
@@ -42,7 +38,8 @@ export interface RadioTokens {
 
 const createRadioTokens = (foundations: Foundations): RadioTokens => {
   const { palette, spacing, fontSize, typography } = foundations
-  const surface = palette.default[50] ?? '#ffffff'
+  const surface = palette.default[50]
+  const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
       iconSize: 20,
@@ -54,7 +51,7 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
       checkedBackground: palette.primary[500],
       disabledBorder: palette.default[300],
       disabledBackground: palette.default[100],
-      checkmark: palette.primary.foreground ?? '#ffffff',
+      checkmark: onPrimary,
       label: palette.default.foreground ?? '#111827',
       labelDisabled: palette.default[400],
     },
@@ -78,17 +75,7 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
   }
 }
 
-export const useRadioTokens = (
-  overrides?: DeepPartial<RadioTokens>
-): RadioTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createRadioTokens(foundations)
-    const componentOverrides = components?.radio
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useRadioTokens = createComponentTokensHook(
+  'radio',
+  createRadioTokens
+)

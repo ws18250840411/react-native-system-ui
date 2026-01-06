@@ -6,7 +6,7 @@ import { Cell, Tabs, Typography } from 'react-native-system-ui'
 
 import { componentRegistry } from '@/demo/registry'
 
-const USE_DEMO_LIST_SLUGS = new Set(['list', 'pull-refresh'])
+const FULLSCREEN_DEMO_SLUGS = new Set(['list', 'pull-refresh'])
 
 export default function ComponentDemosScreen() {
   const router = useRouter()
@@ -16,7 +16,7 @@ export default function ComponentDemosScreen() {
 
   const title = entry?.title ?? resolvedSlug ?? '组件'
   const isIndexBar = resolvedSlug === 'index-bar'
-  const useDemoList = resolvedSlug ? USE_DEMO_LIST_SLUGS.has(resolvedSlug) : false
+  const isFullscreenDemo = resolvedSlug ? FULLSCREEN_DEMO_SLUGS.has(resolvedSlug) : false
 
   const indexBarDemos = React.useMemo(() => {
     if (!isIndexBar || !entry) return null
@@ -25,6 +25,18 @@ export default function ComponentDemosScreen() {
     const controlled = entry.demos.find(d => d.id === 'controlled')
     return { basic, custom, controlled }
   }, [entry, isIndexBar])
+
+  if (entry && isFullscreenDemo) {
+    const DemoComponent = entry.demos[0]?.Component
+    return (
+      <View style={styles.root}>
+        <Stack.Screen options={{ title }} />
+        <View style={styles.fullscreen}>
+          {DemoComponent ? <DemoComponent /> : null}
+        </View>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.root}>
@@ -74,41 +86,25 @@ export default function ComponentDemosScreen() {
               </View>
             ) : null}
           </View>
-        ) : useDemoList ? (
-          <View style={styles.pagePadding}>
-            <Cell.Group title="代码演示">
-              {entry.demos.map(demo => (
-                <Cell
-                  key={demo.id}
-                  title={demo.title}
-                  isLink
-                  onPress={() =>
-                    router.push({
-                      pathname: '/components/[slug]/[demo]',
-                      params: { slug: resolvedSlug, demo: demo.id },
-                    })
-                  }
-                />
-              ))}
-            </Cell.Group>
-          </View>
         ) : (
           <>
-            {(resolvedSlug === 'swiper'
-              ? entry.demos.filter(demo => demo.id !== 'vertical' && demo.id !== 'vertical-center')
-              : entry.demos
-            ).map((demo, index, list) => {
-              const DemoComponent = demo.Component
-              const isLast = index === list.length - 1
-              return (
-                <View key={demo.id} style={[styles.item, isLast ? styles.itemLast : null]}>
-                  <Typography.Text style={styles.sectionTitle}>{demo.title}</Typography.Text>
-                  <View style={styles.sectionContent}>
-                    <DemoComponent />
+            <View style={styles.pagePadding}>
+              {(resolvedSlug === 'swiper'
+                ? entry.demos.filter(demo => demo.id !== 'vertical' && demo.id !== 'vertical-center')
+                : entry.demos
+              ).map((demo, index, list) => {
+                const DemoComponent = demo.Component
+                const isLast = index === list.length - 1
+                return (
+                  <View key={demo.id} style={[styles.item, isLast ? styles.itemLast : null]}>
+                    <Typography.Text style={styles.sectionTitle}>{demo.title}</Typography.Text>
+                    <View style={styles.sectionContent}>
+                      <DemoComponent />
+                    </View>
                   </View>
-                </View>
-              )
-            })}
+                )
+              })}
+            </View>
             {resolvedSlug === 'swiper' ? (
               <View style={styles.moreDemos}>
                 <Cell.Group title="更多演示">
@@ -142,6 +138,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f7f8fa',
   },
+  fullscreen: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
   content: {
     paddingBottom: 24,
   },
@@ -173,15 +173,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     paddingVertical: 12,
-    paddingHorizontal: 16,
     fontSize: 14,
     fontWeight: '700',
     color: '#323233',
   },
   sectionContent: {
-    marginHorizontal: 16,
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
+    width: '100%',
   },
 })

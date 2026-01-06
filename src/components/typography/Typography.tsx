@@ -103,8 +103,8 @@ const isEllipsisObject = (
 ): ellipsis is EllipsisConfig => typeof ellipsis === 'object' && !!ellipsis
 
 const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, ref) => {
-  const tokens = useTypographyTokens()
   const {
+    tokensOverride,
     children,
     type = 'default',
     color: colorProp,
@@ -120,6 +120,7 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     onPress,
     ...textProps
   } = props
+  const tokens = useTypographyTokens(tokensOverride)
 
   const ellipsisRows = resolveEllipsisRows(ellipsis)
   const ellipsisConfig = isEllipsisObject(ellipsis) ? ellipsis : undefined

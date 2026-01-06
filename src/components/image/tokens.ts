@@ -1,9 +1,5 @@
-import * as React from 'react'
-
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { createComponentTokensHook } from '../../design-system'
+import { type Foundations } from '../../design-system/tokens'
 
 export interface ImageTokens {
   colors: {
@@ -18,9 +14,10 @@ export interface ImageTokens {
 
 const createTokens = (foundations: Foundations): ImageTokens => {
   const { palette, radii } = foundations
+  const surface = palette.default[50]
   return {
     colors: {
-      background: palette.default[50],
+      background: surface,
       text: palette.default[500],
       error: palette.danger[500],
     },
@@ -30,16 +27,4 @@ const createTokens = (foundations: Foundations): ImageTokens => {
   }
 }
 
-export const useImageTokens = (
-  overrides?: DeepPartial<ImageTokens>,
-): ImageTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTokens(foundations)
-    const componentOverrides = components?.image
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+export const useImageTokens = createComponentTokensHook('image', createTokens)

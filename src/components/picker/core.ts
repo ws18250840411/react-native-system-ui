@@ -1,21 +1,17 @@
 import type { PickerOption } from './types'
 
+import { clamp } from '../../utils/number'
+import { findEnabledIndex } from './utils'
+
 const MOMENTUM_LIMIT_TIME = 500
 const MOMENTUM_LIMIT_DISTANCE = 8
 
-export const clamp = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val))
-
-export const adjustIndex = (index: number, options: PickerOption[]) => {
+const adjustIndex = (index: number, options: PickerOption[]) => {
   const total = options.length
   if (!total) return 0
-  let i = clamp(index, 0, total - 1)
-  for (let up = i; up < total; up += 1) {
-    if (!options[up]?.disabled) return up
-  }
-  for (let down = i - 1; down >= 0; down -= 1) {
-    if (!options[down]?.disabled) return down
-  }
-  return i
+  const i = clamp(index, 0, total - 1)
+  const next = findEnabledIndex(options, i)
+  return next >= 0 ? next : i
 }
 
 export const indexToOffset = (index: number, itemHeight: number) => -index * itemHeight

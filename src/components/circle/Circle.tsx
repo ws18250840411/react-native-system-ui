@@ -71,6 +71,7 @@ export interface CircleProps {
   style?: StyleProp<ViewStyle>
   textStyle?: StyleProp<TextStyle>
   children?: React.ReactNode
+  tokensOverride?: DeepPartial<CircleTokens>
 }
 
 export interface CircleTokens {
@@ -199,9 +200,10 @@ export const Circle: React.FC<CircleProps> = props => {
     style,
     textStyle,
     children,
+    tokensOverride,
   } = props
 
-  const tokens = useCircleTokens()
+  const tokens = useCircleTokens(tokensOverride)
   const resolvedSize = Math.max(0, parseNumberLike(size, tokens.size))
   const resolvedStrokeWidth = Math.max(0, parseNumberLike(strokeWidth, tokens.strokeWidth))
   const rate = clampPercentage(parsePercentage(rateProp))
