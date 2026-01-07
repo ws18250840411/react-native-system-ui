@@ -1,8 +1,6 @@
 import React from 'react'
-import { View, Text, StyleSheet, Dimensions } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { Swiper } from 'react-native-system-ui'
-
-const { width } = Dimensions.get('window')
 
 interface SlideItem {
   id: number
@@ -42,7 +40,7 @@ const styles = StyleSheet.create({
     height: 200,
   },
   slide: {
-    width,
+    width: '100%',
     height: 200,
     justifyContent: 'center',
     alignItems: 'center',
@@ -58,4 +56,3 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
   },
 })
-

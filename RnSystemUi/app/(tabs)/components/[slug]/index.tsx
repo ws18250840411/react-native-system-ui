@@ -1,5 +1,5 @@
 import React from 'react'
-import { ScrollView, StyleSheet, View } from 'react-native'
+import { FlatList, ScrollView, StyleSheet, View } from 'react-native'
 
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { Cell, Tabs, Typography } from 'react-native-system-ui'
@@ -38,15 +38,11 @@ export default function ComponentDemosScreen() {
     )
   }
 
-  return (
-    <View style={styles.root}>
-      <Stack.Screen options={{ title }} />
-      <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled={true}>
-        {!entry ? (
-          <View style={styles.pagePadding}>
-            <Typography.Text type="secondary">未找到该组件：{resolvedSlug}</Typography.Text>
-          </View>
-        ) : isIndexBar && indexBarDemos?.basic && indexBarDemos?.custom ? (
+  if (isIndexBar && indexBarDemos?.basic && indexBarDemos?.custom) {
+    return (
+      <View style={styles.root}>
+        <Stack.Screen options={{ title }} />
+        <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled={true}>
           <View style={styles.indexBarWrapper}>
             <Tabs
               defaultActive={indexBarDemos.basic.id}
@@ -86,26 +82,43 @@ export default function ComponentDemosScreen() {
               </View>
             ) : null}
           </View>
-        ) : (
-          <>
-            <View style={styles.pagePadding}>
-              {(resolvedSlug === 'swiper'
-                ? entry.demos.filter(demo => demo.id !== 'vertical' && demo.id !== 'vertical-center')
-                : entry.demos
-              ).map((demo, index, list) => {
-                const DemoComponent = demo.Component
-                const isLast = index === list.length - 1
-                return (
-                  <View key={demo.id} style={[styles.item, isLast ? styles.itemLast : null]}>
-                    <Typography.Text style={styles.sectionTitle}>{demo.title}</Typography.Text>
-                    <View style={styles.sectionContent}>
-                      <DemoComponent />
-                    </View>
-                  </View>
-                )
-              })}
-            </View>
-            {resolvedSlug === 'swiper' ? (
+        </ScrollView>
+      </View>
+    )
+  }
+
+  const demos = entry
+    ? resolvedSlug === 'swiper'
+      ? entry.demos.filter(demo => demo.id !== 'vertical' && demo.id !== 'vertical-center')
+      : entry.demos
+    : []
+
+  return (
+    <View style={styles.root}>
+      <Stack.Screen options={{ title }} />
+      {!entry ? (
+        <View style={[styles.content, styles.pagePadding]}>
+          <Typography.Text type="secondary">未找到该组件：{resolvedSlug}</Typography.Text>
+        </View>
+      ) : (
+        <FlatList
+          data={demos}
+          keyExtractor={item => item.id}
+          contentContainerStyle={[styles.content, { paddingTop: 12 }]}
+          renderItem={({ item, index }) => {
+            const DemoComponent = item.Component
+            const isLast = index === demos.length - 1
+            return (
+              <View style={[styles.item, isLast ? styles.itemLast : null, { paddingHorizontal: 16 }]}>
+                <Typography.Text style={styles.sectionTitle}>{item.title}</Typography.Text>
+                <View style={styles.sectionContent}>
+                  <DemoComponent />
+                </View>
+              </View>
+            )
+          }}
+          ListFooterComponent={
+            resolvedSlug === 'swiper' ? (
               <View style={styles.moreDemos}>
                 <Cell.Group title="更多演示">
                   {entry.demos
@@ -125,10 +138,10 @@ export default function ComponentDemosScreen() {
                     ))}
                 </Cell.Group>
               </View>
-            ) : null}
-          </>
-        )}
-      </ScrollView>
+            ) : null
+          }
+        />
+      )}
     </View>
   )
 }

@@ -38,7 +38,7 @@ const createTokens = (foundations: Foundations): SidebarTokens => {
       indicatorWidth: 4,
     },
     typography: {
-      fontSize: fontSize.md,
+      fontSize: fontSize.sm,
       fontWeight: '500',
     },
   }

@@ -18,3 +18,7 @@ export default () => (
 - ⚡️ **原生性能**：无多余 DOM、直连 React Native StyleSheet。
 
 更多指南：参见 `Guide / 架构` 与 `Components / Button`。
+
+## 组件体积
+
+<code src="./SizeList.tsx" inline />

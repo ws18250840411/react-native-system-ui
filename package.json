@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc dev",
     "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build",
-    "docs:build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
+    "docs:update-size": "node scripts/generate-docs-size-data.mjs",
+    "docs:build": "npm run docs:update-size && NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
     "preview": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc preview",
     "rn:demos:sync": "node scripts/generate-rn-demo-registry.js",
     "test": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" node node_modules/.pnpm/node_modules/jest/bin/jest.js --config node_modules/rndoc-cli/cjs/jest.config.cjs --rootDir . --runInBand",
