@@ -1,43 +1,26 @@
 import React from 'react'
-import type { StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
-import type {
-  SpaceAlign,
-  SpaceDirection,
-  SpaceGap,
-  SpaceJustify,
-  SpaceProps,
-  SpaceSizePreset,
-} from './types'
+import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
 import { resolveGapInput, useSpaceTokens } from './tokens'
 
-export type {
-  SpaceAlign,
-  SpaceDirection,
-  SpaceJustify,
-  SpaceGap,
-  SpaceProps,
-  SpaceSizePreset,
-} from './types'
-
-const alignMap: Record<SpaceAlign, ViewStyle['alignItems']> = {
+const alignMap = {
   start: 'flex-start',
   end: 'flex-end',
   center: 'center',
   baseline: 'baseline',
   stretch: 'stretch',
-}
+} as const
 
-const justifyMap: Record<Exclude<SpaceJustify, 'stretch'>, ViewStyle['justifyContent']> = {
+const justifyMap = {
   start: 'flex-start',
   end: 'flex-end',
   center: 'center',
   between: 'space-between',
   around: 'space-around',
   evenly: 'space-evenly',
-}
+} as const
 
 const parseValue = (
   value: number | string | undefined,
@@ -58,7 +41,6 @@ const parseGap = (
   presets: Record<SpaceSizePreset, number>
 ): [number, number] => {
   if (Array.isArray(value)) {
-    // 对齐 CSS gap 语义：`gap: <row-gap> <column-gap>`，数组写法为 [vertical, horizontal]
     const verticalGap = parseValue(value[0], presets)
     const horizontalGap = parseValue(value[1], presets)
     return [horizontalGap, verticalGap]
@@ -86,7 +68,7 @@ export const Space: React.FC<SpaceProps> = props => {
   } = props
 
   const tokens = useSpaceTokens(tokensOverride)
-  const direction = directionProp ?? tokens.defaults.direction
+  const isHorizontal = (directionProp ?? tokens.defaults.direction) === 'horizontal'
   const wrap = wrapProp ?? tokens.defaults.wrap
 
   const gapInput = resolveGapInput(gap, size, tokens.defaults.gapPreset)
@@ -94,7 +76,6 @@ export const Space: React.FC<SpaceProps> = props => {
   const horizontalGap = Math.max(0, rawHorizontalGap)
   const verticalGap = Math.max(0, rawVerticalGap)
 
-  const isHorizontal = direction === 'horizontal'
   const shouldStretchJustify = justify === 'stretch'
   const justifyForStyle: Exclude<SpaceJustify, 'stretch'> = shouldStretchJustify
     ? 'start'
@@ -104,85 +85,54 @@ export const Space: React.FC<SpaceProps> = props => {
   const supportsGap = Platform.OS === 'web'
   const shouldFillMainAxis = isHorizontal && ((fill ?? false) || shouldStretchJustify)
 
-  const childArray = React.Children.toArray(children).filter(
-    child => child !== null && child !== undefined
-  )
+  const containerBaseStyle: any = {
+    flexDirection: isHorizontal ? 'row' : 'column',
+    flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
+    alignItems: alignMap[resolvedAlign],
+    justifyContent: justifyMap[justifyForStyle],
+    width: shouldBlock ? '100%' : undefined,
+  }
 
-  const composedChildren: Array<{
-    node: React.ReactNode
-    isDivider: boolean
-    key: React.Key
-  }> = []
+  const spacingStyle: any = supportsGap
+    ? null
+    : isHorizontal
+      ? { paddingHorizontal: horizontalGap / 2, paddingVertical: verticalGap / 2 }
+      : { paddingVertical: verticalGap / 2 }
+
+  if (supportsGap) {
+    containerBaseStyle.columnGap = isHorizontal ? horizontalGap : undefined
+    containerBaseStyle.rowGap = verticalGap
+  } else {
+    containerBaseStyle.marginHorizontal = isHorizontal && horizontalGap ? -horizontalGap / 2 : undefined
+    containerBaseStyle.marginVertical = verticalGap ? -verticalGap / 2 : undefined
+  }
+
+  const childArray = React.Children.toArray(children).filter(child => child != null)
+  const content: React.ReactNode[] = []
   childArray.forEach((child, index) => {
-    const key =
-      React.isValidElement(child) && child.key !== null ? child.key : index
-    composedChildren.push({ node: child, isDivider: false, key })
+    const key = React.isValidElement(child) && child.key !== null ? child.key : index
+    const fillStyle = shouldFillMainAxis
+      ? { flexGrow: 1, flexBasis: 0, minWidth: 0 }
+      : !isHorizontal && (fill || shouldBlock)
+        ? { width: '100%' }
+        : null
+    const node = typeof child === 'string' || typeof child === 'number' ? <Text>{child}</Text> : child
+    content.push(
+      <View key={key as any} style={[spacingStyle, fillStyle]}>
+        {node}
+      </View>,
+    )
+
     if (divider && index < childArray.length - 1) {
-      composedChildren.push({ node: divider, isDivider: true, key: `divider-${String(key)}` })
+      const dividerNode =
+        typeof divider === 'string' || typeof divider === 'number' ? <Text>{divider}</Text> : divider
+      content.push(
+        <View key={`divider-${String(key)}`} style={spacingStyle}>
+          {dividerNode}
+        </View>,
+      )
     }
   })
-
-  const containerBaseStyle = React.useMemo<ViewStyle>(() => {
-    const base: ViewStyle = {
-      flexDirection: isHorizontal ? 'row' : 'column',
-      flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
-      alignItems: alignMap[resolvedAlign],
-      justifyContent: justifyMap[justifyForStyle],
-      width: shouldBlock ? '100%' : undefined,
-    }
-
-    if (supportsGap) {
-      base.columnGap = isHorizontal ? horizontalGap : undefined
-      base.rowGap = verticalGap
-    } else {
-      base.marginHorizontal =
-        isHorizontal && horizontalGap ? -horizontalGap / 2 : undefined
-      base.marginVertical = verticalGap ? -verticalGap / 2 : undefined
-    }
-
-    return base
-  }, [isHorizontal, wrap, resolvedAlign, justifyForStyle, shouldBlock, supportsGap, horizontalGap, verticalGap])
-
-  const spacingStyle = React.useMemo<ViewStyle | undefined>(() => {
-    if (supportsGap) return undefined
-    if (isHorizontal) {
-      return {
-        paddingHorizontal: horizontalGap / 2,
-        paddingVertical: verticalGap / 2,
-      }
-    }
-    return {
-      paddingVertical: verticalGap / 2,
-    }
-  }, [supportsGap, isHorizontal, horizontalGap, verticalGap])
-
-  const renderItem = React.useCallback((item: (typeof composedChildren)[number]) => {
-    const fillStyle: ViewStyle | undefined = item.isDivider
-      ? undefined
-      : {
-        ...(shouldFillMainAxis
-          ? {
-            flexGrow: 1,
-            flexBasis: 0,
-            minWidth: 0,
-          }
-          : {}),
-        ...(!isHorizontal && (fill || shouldBlock) ? { width: '100%' } : {}),
-      }
-
-    const child =
-      typeof item.node === 'string' || typeof item.node === 'number' ? (
-        <Text>{item.node}</Text>
-      ) : (
-        item.node
-      )
-
-    return (
-      <View key={item.key} style={[spacingStyle, fillStyle]}>
-        {child}
-      </View>
-    )
-  }, [shouldFillMainAxis, isHorizontal, fill, shouldBlock, spacingStyle])
 
   const interactive = typeof onClick === 'function'
   const { interactionProps, states } = useAriaPress({
@@ -191,17 +141,10 @@ export const Space: React.FC<SpaceProps> = props => {
     extraProps: interactive ? { accessibilityRole: 'button' } : undefined,
   })
 
-  const content = composedChildren.map(renderItem)
-
   if (interactive) {
-    const pressableStyle: StyleProp<ViewStyle> = [
-      containerBaseStyle,
-      style,
-      states.pressed ? { opacity: 0.85 } : null,
-    ]
     return (
       <Pressable
-        style={pressableStyle}
+        style={[containerBaseStyle, style, states.pressed ? { opacity: 0.85 } : null]}
         {...interactionProps}
         {...rest}
       >

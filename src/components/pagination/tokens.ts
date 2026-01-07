@@ -1,21 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
-
-export interface PaginationTokens {
-  colors: {
-    text: string
-    disabled: string
-    activeText: string
-    activeBackground: string
-    border: string
-  }
-  spacing: {
-    gap: number
-    paddingX: number
-    paddingY: number
-  }
-  radius: number
-}
+import type { PaginationTokens } from './types'
 
 const createTokens = (foundations: Foundations): PaginationTokens => {
   const { palette, spacing, radii } = foundations
@@ -37,7 +22,4 @@ const createTokens = (foundations: Foundations): PaginationTokens => {
   }
 }
 
-export const usePaginationTokens = createComponentTokensHook(
-  'pagination',
-  createTokens
-)
+export const usePaginationTokens = createComponentTokensHook('pagination', createTokens)

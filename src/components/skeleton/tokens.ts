@@ -1,30 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
-
-export interface SkeletonTokens {
-  defaults: {
-    rowCount: number
-    rowWidth: number | string
-    lastRowWidth: number | string
-    rowHeight: number | string
-    avatarSize: number | string
-    titleWidth: number | string
-  }
-  colors: {
-    block: string
-    highlight: string
-  }
-  radius: number
-  spacing: {
-    containerGap: number
-    rowGap: number
-  }
-  animation: {
-    duration: number
-    minOpacity: number
-    maxOpacity: number
-  }
-}
+import type { SkeletonTokens } from './types'
 
 const createTokens = (foundations: Foundations): SkeletonTokens => {
   const { palette, spacing, radii } = foundations
@@ -56,7 +32,4 @@ const createTokens = (foundations: Foundations): SkeletonTokens => {
   }
 }
 
-export const useSkeletonTokens = createComponentTokensHook(
-  'skeleton',
-  createTokens
-)
+export const useSkeletonTokens = createComponentTokensHook('skeleton', createTokens)

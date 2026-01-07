@@ -2,7 +2,17 @@ import type * as React from 'react'
 import type { ScrollViewProps, ViewProps } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { ListTokens } from './List'
+
+export interface ListTokens {
+  colors: {
+    errorText: string
+    finishedText: string
+  }
+  spacing: {
+    footerPaddingVertical: number
+    inlineGap: number
+  }
+}
 
 export interface ListProps extends ScrollViewProps {
   onLoad?: (isRetry: boolean) => void | Promise<void>

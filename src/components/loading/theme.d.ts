@@ -1,4 +1,4 @@
-import type { LoadingTokens } from './Loading'
+import type { LoadingTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

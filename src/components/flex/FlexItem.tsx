@@ -1,17 +1,15 @@
 import React from 'react'
-import type { StyleProp, ViewStyle } from 'react-native'
 import { View } from 'react-native'
 
 import { FlexContext } from './FlexContext'
+import type { FlexItemProps } from './types'
 
-export interface FlexItemProps {
-  span?: number
-  flex?: number | string
-  style?: StyleProp<ViewStyle>
-  children?: React.ReactNode
+type FlexStyle = {
+  flex?: number
+  flexGrow?: number
+  flexShrink?: number
+  flexBasis?: number | 'auto'
 }
-
-type FlexStyle = Pick<ViewStyle, 'flex' | 'flexGrow' | 'flexShrink' | 'flexBasis'>
 
 const parseFlexBasis = (value: string): FlexStyle['flexBasis'] => {
   if (value === 'auto') {
@@ -80,38 +78,29 @@ export const FlexItem: React.FC<FlexItemProps> = ({
 }) => {
   const { horizontalGap, verticalGap, columns } = React.useContext(FlexContext)
 
-  // Use useMemo to prevent style recalculation on every render
-  const itemStyle = React.useMemo<StyleProp<ViewStyle>>(() => {
-    if (typeof span === 'number' && span <= 0) {
-      return null
-    }
-
-    const widthStyle: ViewStyle = {}
-
-    if (typeof span === 'number') {
-      const resolvedColumns = columns > 0 ? columns : 1
-      const percent = Math.min(Math.max(span, 0), resolvedColumns) / resolvedColumns
-      widthStyle.width = `${percent * 100}%`
-      widthStyle.flexGrow = 0
-      widthStyle.flexShrink = 0
-    }
-
-    const flexStyle = parseFlex(flex)
-
-    return [
-      {
-        paddingHorizontal: horizontalGap / 2,
-        paddingVertical: verticalGap / 2,
-      },
-      widthStyle,
-      flexStyle,
-      style,
-    ]
-  }, [span, flex, columns, horizontalGap, verticalGap, style])
-
   if (typeof span === 'number' && span <= 0) {
     return null
   }
 
-  return <View style={itemStyle}>{children}</View>
+  const widthStyle: any = {}
+  if (typeof span === 'number') {
+    const resolvedColumns = columns > 0 ? columns : 1
+    const percent = Math.min(Math.max(span, 0), resolvedColumns) / resolvedColumns
+    widthStyle.width = `${percent * 100}%`
+    widthStyle.flexGrow = 0
+    widthStyle.flexShrink = 0
+  }
+
+  return (
+    <View
+      style={[
+        { paddingHorizontal: horizontalGap / 2, paddingVertical: verticalGap / 2 },
+        widthStyle,
+        parseFlex(flex),
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  )
 }

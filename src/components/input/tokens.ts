@@ -1,21 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { FieldClearTrigger, FieldInputAlign } from '../field/types'
-
-export interface InputTokens {
-  defaults: {
-    inputAlign: FieldInputAlign
-    clearTrigger: FieldClearTrigger
-    border: boolean
-  }
-  spacing: {
-    paddingHorizontal: number
-    paddingVertical: number
-  }
-  colors: {
-    background: string
-  }
-}
+import type { InputTokens } from './types'
 
 const createInputTokens = (foundations: Foundations): InputTokens => ({
   defaults: {

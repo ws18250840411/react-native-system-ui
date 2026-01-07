@@ -1,15 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-
-export interface CountDownTokens {
-  text: {
-    color: string
-    fontSize: number
-    lineHeight: number
-    fontFamily: string
-    fontWeight: string | number
-  }
-}
+import type { CountDownTokens } from './types'
 
 export const createCountDownTokens = (foundations: Foundations): CountDownTokens => {
   const { palette, fontSize, typography } = foundations
@@ -26,7 +17,4 @@ export const createCountDownTokens = (foundations: Foundations): CountDownTokens
   }
 }
 
-export const useCountDownTokens = createComponentTokensHook(
-  'countDown',
-  createCountDownTokens
-)
+export const useCountDownTokens = createComponentTokensHook('countDown', createCountDownTokens)

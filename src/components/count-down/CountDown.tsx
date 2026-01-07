@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View, type TextStyle } from 'react-native'
+import { Text, View } from 'react-native'
 
 import { useCountDown } from '../../hooks'
 import type { CountDownInstance, CountDownProps } from './types'
@@ -21,10 +21,8 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     ...rest
   } = props
 
-  const normalizedTime = React.useMemo(() => {
-    const parsed = typeof time === 'number' ? time : typeof time === 'string' ? Number(time) : 0
-    return Math.max(0, Number.isFinite(parsed) ? parsed : 0)
-  }, [time])
+  const parsed = typeof time === 'number' ? time : typeof time === 'string' ? Number(time) : 0
+  const normalizedTime = Math.max(0, Number.isFinite(parsed) ? parsed : 0)
 
   const { start, pause, reset, current } = useCountDown({
     time: normalizedTime,
@@ -33,41 +31,34 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     onFinish,
   })
 
-  const resetTime = React.useCallback(() => {
+  const resetTime = () => {
     reset(normalizedTime)
     if (autoStart && normalizedTime > 0) {
       start()
     }
-  }, [autoStart, normalizedTime, reset, start])
+  }
 
   React.useEffect(() => {
     resetTime()
     return () => {
       pause()
     }
-  }, [pause, resetTime])
+  }, [autoStart, normalizedTime, pause, reset, start])
 
-  React.useImperativeHandle(ref, () => ({
-    start,
-    pause,
-    reset: resetTime,
-  }), [pause, resetTime, start])
+  React.useImperativeHandle(ref, () => ({ start, pause, reset: resetTime }))
 
-  const defaultTextStyle: TextStyle = {
-    ...tokens.text,
-    fontWeight: tokens.text.fontWeight as TextStyle['fontWeight'],
-  }
-
-  const content = React.useMemo(() => {
-    if (typeof children === 'function') {
-      const rendered = children(current)
-      if (typeof rendered === 'string' || typeof rendered === 'number') {
-        return <Text style={defaultTextStyle}>{rendered}</Text>
-      }
-      return rendered
-    }
-    return <Text style={defaultTextStyle}>{parseFormat(format, current)}</Text>
-  }, [children, current, defaultTextStyle, format])
+  const defaultTextStyle: any = tokens.text
+  const content =
+    typeof children === 'function'
+      ? (() => {
+        const rendered = children(current)
+        return typeof rendered === 'string' || typeof rendered === 'number' ? (
+          <Text style={defaultTextStyle}>{rendered}</Text>
+        ) : (
+          rendered
+        )
+      })()
+      : <Text style={defaultTextStyle}>{parseFormat(format, current)}</Text>
 
   return (
     <View style={style} {...rest}>

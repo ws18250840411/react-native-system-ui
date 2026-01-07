@@ -1,4 +1,4 @@
-import type { EmptyTokens } from './Empty'
+import type { EmptyTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

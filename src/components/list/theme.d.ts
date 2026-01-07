@@ -1,4 +1,4 @@
-import type { ListTokens } from './List'
+import type { ListTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

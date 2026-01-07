@@ -8,4 +8,4 @@ export type {
   InputInstance,
   InputTextAreaAutoSize,
   InputTextAreaAutoSizeConfig,
-} from './Input'
+} from './types'

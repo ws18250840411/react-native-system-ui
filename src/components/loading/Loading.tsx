@@ -9,33 +9,9 @@ import {
 } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
-import type { LoadingProps } from './types'
-
-export interface LoadingTokens {
-  defaults: {
-    type: 'circular' | 'spinner'
-    size: number
-    textSize: number
-    vertical: boolean
-  }
-  colors: {
-    indicator: string
-    text: string
-  }
-  spinner: {
-    lineWidth: number
-    lineLength: number
-    itemCount: number
-    innerGapRatio: number
-  }
-  spacing: {
-    gap: number
-  }
-}
+import type { LoadingProps, LoadingTokens } from './types'
 
 const createLoadingTokens = (foundations: Foundations): LoadingTokens => ({
   defaults: {
@@ -59,23 +35,10 @@ const createLoadingTokens = (foundations: Foundations): LoadingTokens => ({
   },
 })
 
-const useLoadingTokens = (overrides?: DeepPartial<LoadingTokens>) => {
-  const { foundations, components } = useTheme()
-
-  return React.useMemo(() => {
-    const base = createLoadingTokens(foundations)
-    const componentOverrides = components?.loading
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [foundations, components, overrides])
-}
+const useLoadingTokens = createComponentTokensHook('loading', createLoadingTokens)
 
 export const Loading: React.FC<LoadingProps> = props => {
-  const { tokensOverride } = props
-  const tokens = useLoadingTokens(tokensOverride)
+  const tokens = useLoadingTokens(props.tokensOverride)
   const {
     color = tokens.colors.indicator,
     size = tokens.defaults.size,

@@ -1,43 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
-
-export interface SwitchTokens {
-  defaults: {
-    size: number
-  }
-  colors: {
-    activeTrack: string
-    inactiveTrack: string
-    handle: string
-    border: string
-  }
-  opacity: {
-    disabled: number
-    pressed: number
-  }
-  animation: {
-    duration: number
-  }
-  shadow: {
-    outer: {
-      color: string
-      opacity: number
-      radius: number
-      offsetY: number
-      elevation: number
-    }
-    inner: {
-      color: string
-      opacity: number
-      radius: number
-      offsetY: number
-      elevation: number
-    }
-  }
-  loader: {
-    size: number
-  }
-}
+import type { SwitchTokens } from './types'
 
 const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
   const { palette, opacity } = foundations
@@ -72,7 +35,7 @@ const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
         opacity: 0.12,
         radius: 2,
         offsetY: 2,
-        elevation: 2, // Approximate for Web boxShadow logic
+        elevation: 2,
       },
     },
     loader: {
@@ -81,7 +44,4 @@ const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
   }
 }
 
-export const useSwitchTokens = createComponentTokensHook(
-  'switch',
-  createSwitchTokens
-)
+export const useSwitchTokens = createComponentTokensHook('switch', createSwitchTokens)

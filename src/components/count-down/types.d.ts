@@ -1,13 +1,22 @@
-import type { ViewProps } from 'react-native'
+import type { TextStyle, ViewProps } from 'react-native'
 import type { CountDownCurrentTime } from '../../hooks'
 
 import type { DeepPartial } from '../../types'
-import type { CountDownTokens } from './tokens'
 
 export type CountDownInstance = {
   start: () => void
   pause: () => void
   reset: () => void
+}
+
+export interface CountDownTokens {
+  text: {
+    color: string
+    fontSize: number
+    lineHeight: number
+    fontFamily: string
+    fontWeight: TextStyle['fontWeight']
+  }
 }
 
 export interface CountDownProps extends Omit<ViewProps, 'children'> {

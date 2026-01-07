@@ -1,14 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-
-export interface WaterMarkTokens {
-  gapX: number
-  gapY: number
-  rotate: number
-  fontSize: number
-  color: string
-  opacity: number
-}
+import type { WaterMarkTokens } from './types'
 
 const createTokens = (foundations: Foundations): WaterMarkTokens => {
   const { palette } = foundations
@@ -22,7 +14,4 @@ const createTokens = (foundations: Foundations): WaterMarkTokens => {
   }
 }
 
-export const useWaterMarkTokens = createComponentTokensHook(
-  'waterMark',
-  createTokens
-)
+export const useWaterMarkTokens = createComponentTokensHook('waterMark', createTokens)

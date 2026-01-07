@@ -1,7 +1,6 @@
 import React from 'react'
 
 import Picker from '../picker'
-import type { PickerOption } from '../picker/types'
 import type { AreaProps, AreaOption } from './types'
 import { buildAreaColumns } from './utils'
 
@@ -16,21 +15,12 @@ const Area: React.FC<AreaProps> = props => {
     ...pickerProps
   } = props
 
-  const columns = React.useMemo(() => buildAreaColumns(areaList, columnsNum), [areaList, columnsNum])
-
-  const handleChange = React.useCallback(
-    (values: (string | number)[], options: (PickerOption | undefined)[]) => {
-      onChange?.(values.map(String), options as (AreaOption | undefined)[])
-    },
-    [onChange]
-  )
-
-  const handleConfirm = React.useCallback(
-    (values: (string | number)[], options: (PickerOption | undefined)[]) => {
-      onConfirm?.(values.map(String), options as (AreaOption | undefined)[])
-    },
-    [onConfirm]
-  )
+  const columns = buildAreaColumns(areaList, columnsNum)
+  const handleChange = (values: (string | number)[], options: any[]) =>
+    onChange?.(values.map(String), options as (AreaOption | undefined)[])
+  const handleConfirm = onConfirm
+    ? (values: (string | number)[], options: any[]) => onConfirm(values.map(String), options as (AreaOption | undefined)[])
+    : undefined
 
   return (
     <Picker
@@ -39,7 +29,7 @@ const Area: React.FC<AreaProps> = props => {
       value={value}
       defaultValue={defaultValue}
       onChange={handleChange}
-      onConfirm={onConfirm ? handleConfirm : undefined}
+      onConfirm={handleConfirm}
     />
   )
 }

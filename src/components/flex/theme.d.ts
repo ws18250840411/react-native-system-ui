@@ -1,4 +1,4 @@
-import type { FlexTokens } from './tokens'
+import type { FlexTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

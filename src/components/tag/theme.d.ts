@@ -1,4 +1,4 @@
-import type { TagTokens } from './Tag'
+import type { TagTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

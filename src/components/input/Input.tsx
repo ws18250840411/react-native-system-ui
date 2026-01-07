@@ -1,55 +1,10 @@
-import React from "react"
-import type {
-  StyleProp,
-  TextInput,
-  TextStyle,
-  ViewStyle,
-} from "react-native"
+import React from 'react'
 
-import Field from "../field"
-import type { FieldTokens } from "../field/tokens"
-import { useFieldTokens } from "../field/tokens"
-import type {
-  FieldAutosizeConfig,
-  FieldClearTrigger,
-  FieldInputAlign,
-  FieldProps,
-  FieldShowWordLimit,
-} from "../field/types"
-import type { FieldInstance } from "../field/types"
-import type { DeepPartial } from "../../types"
-import type { InputTokens } from "./tokens"
-import { useInputTokens } from "./tokens"
-
-export interface InputProps extends Omit<FieldProps, "tokensOverride"> {
-  align?: FieldInputAlign
-  clearTrigger?: FieldClearTrigger
-  onChange?: (value: string) => void
-  showWordLimit?: FieldShowWordLimit
-  style?: StyleProp<ViewStyle>
-  inputStyle?: StyleProp<TextStyle>
-  fieldTokensOverride?: DeepPartial<FieldTokens>
-  tokensOverride?: DeepPartial<InputTokens>
-}
-
-export interface InputInstance {
-  focus: () => void
-  blur: () => void
-  clear: () => void
-  nativeElement: TextInput | null
-}
-
-export interface InputTextAreaAutoSizeConfig {
-  minHeight?: number
-  maxHeight?: number
-}
-
-export type InputTextAreaAutoSize = boolean | InputTextAreaAutoSizeConfig
-
-export interface InputTextAreaProps
-  extends Omit<InputProps, "type" | "autoSize" | "autosize"> {
-  autoSize?: InputTextAreaAutoSize
-}
+import Field from '../field'
+import { useFieldTokens } from '../field/tokens'
+import type { FieldAutosizeConfig } from '../field/types'
+import type { InputInstance, InputProps, InputTextAreaProps } from './types'
+import { useInputTokens } from './tokens'
 
 const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) => {
   const {
@@ -68,41 +23,30 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
   } = props
 
   const tokens = useInputTokens(tokensOverride)
-  const inputRef = React.useRef<FieldInstance>(null)
+  const inputRef = React.useRef<any>(null)
 
-  const handleChangeText = React.useCallback(
-    (value: string) => {
-      onChange?.(value)
-      onChangeText?.(value)
+  const handleChangeText = (value: string) => {
+    onChange?.(value)
+    onChangeText?.(value)
+  }
+
+  React.useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus?.(),
+    blur: () => inputRef.current?.blur?.(),
+    clear: () => {
+      handleChangeText('')
+      inputRef.current?.clear?.()
     },
-    [onChange, onChangeText],
-  )
-
-  React.useImperativeHandle(
-    ref,
-    () => ({
-      focus: () => {
-        inputRef.current?.focus?.()
-      },
-      blur: () => {
-        inputRef.current?.blur?.()
-      },
-      clear: () => {
-        handleChangeText("")
-        inputRef.current?.clear?.()
-      },
-      get nativeElement() {
-        return inputRef.current?.nativeElement ?? null
-      },
-    }),
-    [handleChangeText],
-  )
+    get nativeElement() {
+      return inputRef.current?.nativeElement ?? null
+    },
+  }))
 
   const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
   const resolvedClearTrigger =
     clearTriggerOverride ?? tokens.defaults.clearTrigger
   const resolvedKeyboardType =
-    keyboardTypeProp ?? (type === "number" ? "decimal-pad" : undefined)
+    keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined)
 
   return (
     <Field
@@ -128,7 +72,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
   )
 })
 
-InputComponent.displayName = "Input"
+InputComponent.displayName = 'Input'
 
 const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref) => {
   const { autoSize, ...rest } = props
@@ -149,17 +93,10 @@ const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref
     resolvedAutoSize = minRows || maxRows ? { minRows, maxRows } : undefined
   }
 
-  return (
-    <InputComponent
-      ref={ref}
-      {...rest}
-      type="textarea"
-      autoSize={resolvedAutoSize}
-    />
-  )
+  return <InputComponent ref={ref} {...rest} type="textarea" autoSize={resolvedAutoSize} />
 })
 
-TextArea.displayName = "Input.TextArea"
+TextArea.displayName = 'Input.TextArea'
 
 const Input = Object.assign(InputComponent, { TextArea })
 

@@ -1,15 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { SpaceDirection, SpaceGap, SpaceSizePreset } from './types'
-
-export interface SpaceTokens {
-  defaults: {
-    direction: SpaceDirection
-    wrap: boolean
-    gapPreset: SpaceSizePreset
-  }
-  presets: Record<SpaceSizePreset, number>
-}
+import type { SpaceGap, SpaceSizePreset, SpaceTokens } from './types'
 
 const createSpaceTokens = (foundations: Foundations): SpaceTokens => {
   const { spacing } = foundations

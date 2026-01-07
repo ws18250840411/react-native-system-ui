@@ -1,4 +1,4 @@
-import type { DividerTokens } from './Divider'
+import type { DividerTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

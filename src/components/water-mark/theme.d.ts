@@ -1,4 +1,4 @@
-import type { WaterMarkTokens } from './tokens'
+import type { WaterMarkTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

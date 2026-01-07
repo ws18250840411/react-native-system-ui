@@ -2,9 +2,24 @@ import type { ViewProps } from 'react-native'
 import React from 'react'
 
 import type { DeepPartial } from '../../types'
-import type { PaginationTokens } from './tokens'
 
 export type PaginationMode = 'multi' | 'simple'
+
+export interface PaginationTokens {
+  colors: {
+    text: string
+    disabled: string
+    activeText: string
+    activeBackground: string
+    border: string
+  }
+  spacing: {
+    gap: number
+    paddingX: number
+    paddingY: number
+  }
+  radius: number
+}
 
 export interface PaginationPageItem {
   number: number

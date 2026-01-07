@@ -1,5 +1,5 @@
 import React from 'react'
-import { Image, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native'
+import { Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 
 import type { WaterMarkProps } from './types'
 import { useWaterMarkTokens } from './tokens'
@@ -58,12 +58,12 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
   const rows = size.height ? Math.ceil(size.height / cellHeight) + 1 : 1
   const cols = size.width ? Math.ceil(size.width / cellWidth) + 1 : 1
 
-  const handleLayout = React.useCallback((event: LayoutChangeEvent) => {
+  const handleLayout = (event: any) => {
     if (fullPage) return
     const { width, height } = event.nativeEvent.layout
     setLayoutSize({ width, height })
     onLayoutCalculated?.({ width, height })
-  }, [fullPage, onLayoutCalculated])
+  }
 
   React.useEffect(() => {
     if (!fullPage) return

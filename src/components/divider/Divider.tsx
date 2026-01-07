@@ -1,44 +1,10 @@
 import React from 'react'
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import { createHairlineView } from '../../utils/hairline'
-import type { DividerProps } from './types'
-import type { DividerContentPosition, DividerType } from './types'
-
-export interface DividerTokens {
-  defaults: {
-    type: DividerType
-    dashed: boolean
-    hairline: boolean
-    contentPosition: DividerContentPosition
-  }
-  colors: {
-    line: string
-    text: string
-  }
-  typography: {
-    fontSize: number
-    lineHeight: number
-    fontFamily: string
-    fontWeight: string
-  }
-  spacing: {
-    vertical: number
-    horizontal: number
-    contentPadding: number
-  }
-  line: {
-    thickness: number
-    sideMinFlex: number
-  }
-  vertical: {
-    minHeight: number
-  }
-}
+import type { DividerProps, DividerTokens } from './types'
 
 const createDividerTokens = (foundations: Foundations): DividerTokens => {
   const { palette, fontSize, typography, spacing } = foundations
@@ -75,23 +41,10 @@ const createDividerTokens = (foundations: Foundations): DividerTokens => {
   }
 }
 
-const useDividerTokens = (overrides?: DeepPartial<DividerTokens>) => {
-  const { foundations, components } = useTheme()
-
-  return React.useMemo(() => {
-    const base = createDividerTokens(foundations)
-    const componentOverrides = components?.divider
-    const merged =
-      componentOverrides && overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+const useDividerTokens = createComponentTokensHook('divider', createDividerTokens)
 
 export const Divider: React.FC<DividerProps> = props => {
-  const { tokensOverride } = props
-  const tokens = useDividerTokens(tokensOverride)
+  const tokens = useDividerTokens(props.tokensOverride)
   const {
     children,
     type = tokens.defaults.type,
@@ -106,7 +59,7 @@ export const Divider: React.FC<DividerProps> = props => {
   } = props
 
   const resolvedColor = lineColor ?? tokens.colors.line
-  const borderStyle: ViewStyle['borderStyle'] = dashed ? 'dashed' : 'solid'
+  const borderStyle = dashed ? 'dashed' : 'solid'
 
   const hasContent = children !== null && children !== undefined && children !== false
   const content =

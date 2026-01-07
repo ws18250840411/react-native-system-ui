@@ -1,34 +1,13 @@
 import React from 'react'
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-  type LayoutChangeEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import { useLocale } from '../config-provider/useLocale'
 import Loading from '../loading'
-import type { ListProps, ListRef } from './types'
+import type { ListProps, ListRef, ListTokens } from './types'
 
-const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
-
-export interface ListTokens {
-  colors: {
-    errorText: string
-    finishedText: string
-  }
-  spacing: {
-    footerPaddingVertical: number
-    inlineGap: number
-  }
-}
+const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
 const createListTokens = (foundations: Foundations): ListTokens => {
   return {
@@ -43,22 +22,11 @@ const createListTokens = (foundations: Foundations): ListTokens => {
   }
 }
 
-const useListTokens = (overrides?: DeepPartial<ListTokens>): ListTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createListTokens(foundations)
-    const componentOverrides = components?.list
-    const merged = componentOverrides && overrides
-      ? deepMerge(componentOverrides, overrides)
-      : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+const useListTokens = createComponentTokensHook('list', createListTokens)
 
 const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const locale = useLocale()
-  const { tokensOverride } = props
-  const tokens = useListTokens(tokensOverride)
+  const tokens = useListTokens(props.tokensOverride)
 
   const {
     onLoad,
@@ -75,7 +43,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     ...scrollProps
   } = props
 
-  const loadingText = typeof loadingTextProp === 'undefined' ? locale.loading : loadingTextProp
+  const loadingText = loadingTextProp === undefined ? locale.loading : loadingTextProp
 
   const loadingControlled = typeof loading !== 'undefined'
   const errorControlled = typeof error !== 'undefined'
@@ -88,74 +56,53 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const containerHeightRef = React.useRef(0)
   const contentHeightRef = React.useRef(0)
 
-  const triggerLoad = React.useCallback(
-    async (isRetry: boolean) => {
-      if (!onLoad || finished) return
-      if (loadingRef.current) return
-      if (mergedLoading) return
-      if (mergedError && !isRetry) return
+  const triggerLoad = async (isRetry: boolean) => {
+    if (!onLoad || finished) return
+    if (loadingRef.current || mergedLoading) return
+    if (mergedError && !isRetry) return
 
-      loadingRef.current = true
-      if (!loadingControlled) setInnerLoading(true)
-      if (!errorControlled) setInnerError(false)
-      try {
-        await Promise.resolve(onLoad(isRetry))
-      } catch (error) {
-        if (!errorControlled) setInnerError(true)
-      } finally {
-        loadingRef.current = false
-        if (!loadingControlled) setInnerLoading(false)
-      }
-    },
-    [errorControlled, finished, loadingControlled, mergedError, mergedLoading, onLoad]
-  )
+    loadingRef.current = true
+    if (!loadingControlled) setInnerLoading(true)
+    if (!errorControlled) setInnerError(false)
+    try {
+      await Promise.resolve(onLoad(isRetry))
+    } catch {
+      if (!errorControlled) setInnerError(true)
+    } finally {
+      loadingRef.current = false
+      if (!loadingControlled) setInnerLoading(false)
+    }
+  }
 
-  const check = React.useCallback(() => {
+  const check = () => {
     if (mergedLoading || mergedError) return
     if (contentHeightRef.current <= containerHeightRef.current && !finished) {
       triggerLoad(false)
     }
-  }, [finished, mergedError, mergedLoading, triggerLoad])
+  }
 
-  React.useImperativeHandle(ref, () => ({ check }), [check])
+  React.useImperativeHandle(ref, () => ({ check }))
 
-  const handleScroll = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      props.onScroll?.(event)
-      const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent
-      const distance = contentSize.height - (layoutMeasurement.height + contentOffset.y)
-      if (distance <= offset) {
-        triggerLoad(false)
-      }
-    },
-    [offset, props, triggerLoad]
-  )
+  const handleScroll = (event: any) => {
+    props.onScroll?.(event)
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent
+    const distance = contentSize.height - (layoutMeasurement.height + contentOffset.y)
+    if (distance <= offset) triggerLoad(false)
+  }
 
-  const handleContentSizeChange = React.useCallback(
-    (width: number, height: number) => {
-      props.onContentSizeChange?.(width, height)
-      contentHeightRef.current = height
-      if (immediateCheck) {
-        check()
-      }
-    },
-    [check, immediateCheck, props]
-  )
+  const handleContentSizeChange = (width: number, height: number) => {
+    props.onContentSizeChange?.(width, height)
+    contentHeightRef.current = height
+    if (immediateCheck) check()
+  }
 
-  const handleLayout = React.useCallback(
-    (event: LayoutChangeEvent) => {
-      props.onLayout?.(event)
-      containerHeightRef.current = event.nativeEvent.layout.height
-      if (immediateCheck) {
-        check()
-      }
-    },
-    [check, immediateCheck, props]
-  )
+  const handleLayout = (event: any) => {
+    props.onLayout?.(event)
+    containerHeightRef.current = event.nativeEvent.layout.height
+    if (immediateCheck) check()
+  }
 
-  const retry = React.useCallback(() => {
-    triggerLoad(true)
-  }, [triggerLoad])
+  const retry = () => triggerLoad(true)
 
   React.useEffect(() => {
     if (!immediateCheck) return

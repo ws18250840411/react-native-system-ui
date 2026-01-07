@@ -1,4 +1,4 @@
-import type { SkeletonTokens } from './tokens'
+import type { SkeletonTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

@@ -72,5 +72,3 @@ export const localeBase = {
     add: '新增地址',
   },
 }
-
-export type Locale = typeof localeBase

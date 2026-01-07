@@ -1,47 +1,11 @@
 import React from 'react'
-import type { PressableStateCallbackType } from 'react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import { getHairlineWidth } from '../../utils/hairline'
-import type { TagProps, TagSize, TagType } from './types'
-
-const isRenderable = (value: React.ReactNode) => value !== null && value !== undefined
-
-export interface TagTokens {
-  defaults: {
-    type: TagType
-    size: TagSize
-    plain: boolean
-    round: boolean
-    mark: boolean
-  }
-  toneMap: Record<TagType, { background: string; text: string }>
-  sizes: Record<
-    TagSize,
-    { fontSize: number; paddingHorizontal: number; paddingVertical: number; borderRadius: number; lineHeight: number }
-  >
-  radius: {
-    round: number
-    markLeading: number
-  }
-  colors: {
-    plainBackground: string
-  }
-  close: {
-    size: number
-    gap: number
-  }
-  typography: {
-    fontFamily: string
-    lineHeightMultiplier: number
-    fontWeight: string
-  }
-}
+import type { TagProps, TagTokens } from './types'
 
 const buildTone = (
   palette: Foundations['palette'],
@@ -53,7 +17,7 @@ const buildTone = (
 })
 
 const createTagTokens = (foundations: Foundations): TagTokens => {
-  const { palette, spacing, fontSize, radii, typography } = foundations
+  const { palette, radii, typography } = foundations
 
   return {
     defaults: {
@@ -72,32 +36,32 @@ const createTagTokens = (foundations: Foundations): TagTokens => {
     },
     sizes: {
       mini: {
-        fontSize: 10, // 10px (font-size-xs)
-        paddingHorizontal: 4, // 4px
+        fontSize: 10,
+        paddingHorizontal: 4,
         paddingVertical: 0,
-        borderRadius: 2, // 2px
-        lineHeight: 16, // 16px
+        borderRadius: 2,
+        lineHeight: 16,
       },
       small: {
-        fontSize: 12, // 12px (var(--rv-font-size-sm))
-        paddingHorizontal: 4, // 4px (var(--rv-padding-base))
-        paddingVertical: 0, // 0
-        borderRadius: 2, // 2px (2 * @hd)
-        lineHeight: 16, // 16px (16 * @hd)
+        fontSize: 12,
+        paddingHorizontal: 4,
+        paddingVertical: 0,
+        borderRadius: 2,
+        lineHeight: 16,
       },
       medium: {
-        fontSize: 12, // 12px (var(--rv-font-size-sm))
-        paddingHorizontal: 6, // 6px (6 * @hd)
-        paddingVertical: 2, // 2px (2 * @hd)
-        borderRadius: 4, // 4px (var(--rv-border-radius-md))
-        lineHeight: 16, // 16px
+        fontSize: 12,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        lineHeight: 16,
       },
       large: {
-        fontSize: 14, // 14px (var(--rv-font-size-md))
-        paddingHorizontal: 8, // 8px (var(--rv-padding-xs))
-        paddingVertical: 4, // 4px (var(--rv-padding-base))
-        borderRadius: 4, // 4px (var(--rv-border-radius-md))
-        lineHeight: 16, // 16px
+        fontSize: 14,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        lineHeight: 16,
       },
     },
     radius: {
@@ -108,34 +72,21 @@ const createTagTokens = (foundations: Foundations): TagTokens => {
       plainBackground: '#ffffff',
     },
     close: {
-      size: 12, // 12px (var(--rv-font-size-sm))
-      gap: 2, // 2px (margin-left: 2px)
+      size: 12,
+      gap: 2,
     },
     typography: {
       fontFamily: typography.fontFamily,
       lineHeightMultiplier: typography.lineHeightMultiplier,
-      fontWeight: String(typography.weight.medium),
+      fontWeight: typography.weight.medium,
     },
   }
 }
 
-const useTagTokens = (overrides?: DeepPartial<TagTokens>): TagTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createTagTokens(foundations)
-    const componentOverrides = components?.tag
-    const merged = componentOverrides
-      ? overrides
-        ? deepMerge(componentOverrides, overrides)
-        : componentOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [foundations, components, overrides])
-}
+const useTagTokens = createComponentTokensHook('tag', createTagTokens)
 
 export const Tag: React.FC<TagProps> = props => {
-  const { tokensOverride } = props
-  const tokens = useTagTokens(tokensOverride)
+  const tokens = useTagTokens(props.tokensOverride)
   const {
     children,
     type = tokens.defaults.type,
@@ -163,66 +114,53 @@ export const Tag: React.FC<TagProps> = props => {
   const tone = tokens.toneMap[type] ?? tokens.toneMap.default
   const sizeTokens = tokens.sizes[size]
   const backgroundColor = plain ? tokens.colors.plainBackground : color ?? tone.background
-  const resolvedTextColor = textColor
-    ? textColor
-    : plain
-      ? color ?? tone.background
-      : tone.text
+  const resolvedTextColor = textColor ?? (plain ? color ?? tone.background : tone.text)
 
   const borderColor = plain ? color ?? tone.background : 'transparent'
   const borderWidth = plain ? getHairlineWidth() : 0
 
-  const resolvedRadius = round ? tokens.radius.round : sizeTokens.borderRadius
-
-  const baseContainerStyle = [
+  const borderRadius = round ? tokens.radius.round : sizeTokens.borderRadius
+  const baseContainerStyle: any[] = [
     styles.container,
     {
       backgroundColor,
       paddingHorizontal: sizeTokens.paddingHorizontal,
       paddingVertical: sizeTokens.paddingVertical,
-      borderRadius: resolvedRadius,
+      borderRadius,
       borderWidth,
       borderColor,
     },
     mark && {
       borderTopLeftRadius: tokens.radius.markLeading,
       borderBottomLeftRadius: tokens.radius.markLeading,
-      borderTopRightRadius: tokens.radius.round, // 右侧圆角 (var(--rv-border-radius-max))
+      borderTopRightRadius: tokens.radius.round,
       borderBottomRightRadius: tokens.radius.round,
     },
     style,
   ]
 
-  const labelStyle = [
-    styles.text,
-    {
-      color: resolvedTextColor,
-      fontSize: sizeTokens.fontSize,
-      lineHeight: sizeTokens.lineHeight,
-      fontFamily: tokens.typography.fontFamily,
-      fontWeight: tokens.typography.fontWeight,
-    },
-    textStyle,
-  ]
+  const label =
+    children == null || children === false ? null : typeof children === 'string' || typeof children === 'number' ? (
+      <Text
+        style={[
+          {
+            color: resolvedTextColor,
+            fontSize: sizeTokens.fontSize,
+            lineHeight: sizeTokens.lineHeight,
+            fontFamily: tokens.typography.fontFamily,
+            fontWeight: tokens.typography.fontWeight,
+          },
+          textStyle,
+        ]}
+      >
+        {children}
+      </Text>
+    ) : (
+      children
+    )
 
-  const renderLabel = () => {
-    if (!isRenderable(children)) {
-      return null
-    }
-    if (typeof children === 'string' || typeof children === 'number') {
-      return <Text style={labelStyle}>{children}</Text>
-    }
-    return children
-  }
-
-  const renderClose = () => {
-    if (!closeable) return null
-
-    const iconNode = typeof closeIcon === 'function'
-      ? closeIcon(resolvedTextColor, tokens.close.size)
-      : closeIcon
-
-    return (
+  const close =
+    !closeable ? null : (
       <Pressable
         accessibilityRole="button"
         hitSlop={8}
@@ -232,33 +170,29 @@ export const Tag: React.FC<TagProps> = props => {
           onClose?.()
         }}
       >
-        {iconNode ?? (
-          <Close size={tokens.close.size} fill={resolvedTextColor} color={resolvedTextColor} />
-        )}
+        {typeof closeIcon === 'function'
+          ? closeIcon(resolvedTextColor, tokens.close.size)
+          : closeIcon ?? <Close size={tokens.close.size} fill={resolvedTextColor} color={resolvedTextColor} />}
       </Pressable>
     )
-  }
 
   if (onPress) {
-    const pressableStyle = ({ pressed }: PressableStateCallbackType) => [
-      ...baseContainerStyle,
-      {
-        opacity: pressed ? 0.85 : 1,
-      },
-    ]
-
     return (
-      <Pressable style={pressableStyle} onPress={onPress} {...rest}>
-        {renderLabel()}
-        {renderClose()}
+      <Pressable
+        style={({ pressed }) => [...baseContainerStyle, { opacity: pressed ? 0.85 : 1 }]}
+        onPress={onPress}
+        {...rest}
+      >
+        {label}
+        {close}
       </Pressable>
     )
   }
 
   return (
     <View style={baseContainerStyle} {...rest}>
-      {renderLabel()}
-      {renderClose()}
+      {label}
+      {close}
     </View>
   )
 }
@@ -270,9 +204,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-  },
-  text: {
-    // 文本对齐由 flex 容器处理
   },
   close: {
     alignItems: 'center',

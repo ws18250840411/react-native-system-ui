@@ -1,35 +1,9 @@
 import React from 'react'
-import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
-import type { AvatarProps, AvatarShape, AvatarSize } from './types'
-
-export interface AvatarTokens {
-  defaults: {
-    size: AvatarSize
-    shape: AvatarShape
-  }
-  sizing: {
-    sizes: Record<AvatarSize, number>
-    iconMaxSize: number
-  }
-  colors: {
-    background: string
-    text: string
-  }
-  typography: {
-    fontWeight: TextStyle['fontWeight']
-    fallbackTextScale: number
-  }
-  radii: {
-    squareMin: number
-    squareDivisor: number
-  }
-}
+import type { AvatarProps, AvatarTokens } from './types'
 
 const createAvatarTokens = (foundations: Foundations): AvatarTokens => ({
   defaults: {
@@ -58,16 +32,7 @@ const createAvatarTokens = (foundations: Foundations): AvatarTokens => ({
   },
 })
 
-const useAvatarTokens = (overrides?: DeepPartial<AvatarTokens>): AvatarTokens => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createAvatarTokens(foundations)
-    const componentOverrides = components?.avatar
-    const merged =
-      componentOverrides && overrides ? deepMerge(componentOverrides, overrides) : componentOverrides ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
+const useAvatarTokens = createComponentTokensHook('avatar', createAvatarTokens)
 
 const styles = StyleSheet.create({
   container: {

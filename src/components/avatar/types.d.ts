@@ -8,10 +8,32 @@ import type {
 } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { AvatarTokens } from './Avatar'
 
 export type AvatarShape = 'circle' | 'square'
 export type AvatarSize = 'small' | 'medium' | 'large'
+
+export interface AvatarTokens {
+  defaults: {
+    size: AvatarSize
+    shape: AvatarShape
+  }
+  sizing: {
+    sizes: Record<AvatarSize, number>
+    iconMaxSize: number
+  }
+  colors: {
+    background: string
+    text: string
+  }
+  typography: {
+    fontWeight: TextStyle['fontWeight']
+    fallbackTextScale: number
+  }
+  radii: {
+    squareMin: number
+    squareDivisor: number
+  }
+}
 
 export interface AvatarProps extends Omit<PressableProps, 'style'> {
   src?: string | ImageSourcePropType

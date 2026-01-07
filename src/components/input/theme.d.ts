@@ -1,4 +1,4 @@
-import type { InputTokens } from './tokens'
+import type { InputTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

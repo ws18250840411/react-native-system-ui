@@ -1,7 +1,15 @@
 import type { StyleProp, TextStyle, ViewProps } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { WaterMarkTokens } from './tokens'
+
+export interface WaterMarkTokens {
+  gapX: number
+  gapY: number
+  rotate: number
+  fontSize: number
+  color: string
+  opacity: number
+}
 
 export interface WaterMarkImage {
   src: string

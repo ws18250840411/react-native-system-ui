@@ -1,9 +1,33 @@
 import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { EmptyTokens } from './Empty'
 
 export type EmptyImage = 'default' | 'error' | 'network' | 'search'
+
+export interface EmptyTokens {
+  spacing: {
+    paddingVertical: number
+    paddingHorizontal: number
+    descriptionMargin: number
+    descriptionPaddingHorizontal: number
+    footerMargin: number
+  }
+  colors: {
+    description: string
+    iconBackground: string
+    iconColor: string
+  }
+  sizes: {
+    image: number
+    fontSize: number
+  }
+  typography: {
+    descriptionSize: number
+    descriptionLineHeight: number
+    descriptionFontFamily: string
+    descriptionFontWeight: TextStyle['fontWeight']
+  }
+}
 
 export interface EmptyProps extends ViewProps {
   image?: EmptyImage | string | React.ReactNode

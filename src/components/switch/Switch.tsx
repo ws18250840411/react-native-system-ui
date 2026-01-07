@@ -6,8 +6,6 @@ import {
   Pressable,
   StyleSheet,
   View,
-  type PressableStateCallbackType,
-  type GestureResponderEvent,
 } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
@@ -54,7 +52,7 @@ export const Switch: React.FC<SwitchProps> = props => {
     trigger: 'onChange',
   })
 
-  const isChecked = React.useMemo(() => value === activeValue, [activeValue, value])
+  const isChecked = value === activeValue
 
   const progress = React.useRef(new Animated.Value(isChecked ? 1 : 0)).current
   const colorProgress = React.useRef(new Animated.Value(isChecked ? 1 : 0)).current
@@ -82,10 +80,7 @@ export const Switch: React.FC<SwitchProps> = props => {
 
   const translateX = progress.interpolate({
     inputRange: [0, 1],
-    outputRange: [
-      0,
-      translateDistance,
-    ],
+    outputRange: [0, translateDistance],
   })
 
   const resolvedActiveColor = activeColor ?? tokens.colors.activeTrack
@@ -96,43 +91,17 @@ export const Switch: React.FC<SwitchProps> = props => {
     outputRange: [resolvedInactiveColor, resolvedActiveColor],
   })
 
-  const trackBorderWidth = Math.max(1, StyleSheet.hairlineWidth)
+  const handlePress = (event: any) => {
+    if (disabled) return
+    onClick?.(event)
+    if (loading) return
+    const next = isChecked ? inactiveValue : activeValue
+    if (Object.is(next, value)) return
+    triggerChange(next)
+  }
 
-  const pressableStyle = React.useCallback(
-    ({ pressed }: PressableStateCallbackType) => [
-      styles.container,
-      {
-        opacity: disabled ? tokens.opacity.disabled : pressed ? tokens.opacity.pressed : 1,
-      },
-      style,
-    ],
-    [disabled, style, tokens.opacity.disabled, tokens.opacity.pressed]
-  )
-
-  const handlePress = React.useCallback(
-    (event: GestureResponderEvent) => {
-      if (disabled) return
-      onClick?.(event)
-      if (loading) return
-
-      const next = isChecked ? inactiveValue : activeValue
-      if (Object.is(next, value)) return
-      triggerChange(next)
-    },
-    [
-      activeValue,
-      disabled,
-      inactiveValue,
-      isChecked,
-      loading,
-      onClick,
-      triggerChange,
-      value,
-    ],
-  )
-
-  const shadowOuter = React.useMemo(() => createPlatformShadow(tokens.shadow.outer), [tokens.shadow.outer])
-  const shadowInner = React.useMemo(() => createPlatformShadow(tokens.shadow.inner), [tokens.shadow.inner])
+  const shadowOuter = createPlatformShadow(tokens.shadow.outer)
+  const shadowInner = createPlatformShadow(tokens.shadow.inner)
 
   return (
     <Pressable
@@ -140,7 +109,11 @@ export const Switch: React.FC<SwitchProps> = props => {
       accessibilityRole="switch"
       accessibilityState={{ checked: isChecked, disabled }}
       disabled={disabled}
-      style={pressableStyle}
+      style={({ pressed }: any) => [
+        styles.container,
+        { opacity: disabled ? tokens.opacity.disabled : pressed ? tokens.opacity.pressed : 1 },
+        style,
+      ]}
       onPress={handlePress}
     >
       <Animated.View
@@ -151,7 +124,7 @@ export const Switch: React.FC<SwitchProps> = props => {
             height: trackHeight,
             borderRadius: trackHeight / 2,
             backgroundColor: animatedTrackColor,
-            borderWidth: trackBorderWidth,
+            borderWidth: Math.max(1, StyleSheet.hairlineWidth),
             borderColor: tokens.colors.border,
           },
           { pointerEvents: 'none' },

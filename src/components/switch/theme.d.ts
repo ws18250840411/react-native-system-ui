@@ -1,4 +1,4 @@
-import type { SwitchTokens } from './tokens'
+import type { SwitchTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

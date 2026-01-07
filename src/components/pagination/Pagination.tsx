@@ -9,12 +9,6 @@ import { clamp } from '../../utils/number'
 const isTextLike = (value: React.ReactNode): value is string | number =>
   typeof value === 'string' || typeof value === 'number'
 
-const makePage = (number: number, text: React.ReactNode, active?: boolean): PaginationPageItem => ({
-  number,
-  text,
-  active,
-})
-
 const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
   const {
     mode = 'multi',
@@ -36,19 +30,16 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     defaultValue: 1,
   })
 
-  const count = React.useMemo(() => {
-    if (pageCount > 0) return pageCount
-    if (totalItems && itemsPerPage) {
-      return Math.max(1, Math.ceil(totalItems / itemsPerPage))
-    }
-    return 1
-  }, [itemsPerPage, pageCount, totalItems])
+  const count =
+    pageCount > 0
+      ? pageCount
+      : totalItems && itemsPerPage
+        ? Math.max(1, Math.ceil(totalItems / itemsPerPage))
+        : 1
+  const currentPage = clamp(page, 1, count)
 
-  const currentPage = React.useMemo(() => clamp(page, 1, count), [count, page])
-
-  const pages = React.useMemo(() => {
-    if (mode !== 'multi') return []
-    const items: PaginationPageItem[] = []
+  const pages: PaginationPageItem[] = []
+  if (mode === 'multi') {
     const limit = Math.max(1, showPageSize)
     let startPage = 1
     let endPage = count
@@ -64,20 +55,14 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     }
 
     for (let number = startPage; number <= endPage; number += 1) {
-      items.push(makePage(number, number, number === currentPage))
+      pages.push({ number, text: number, active: number === currentPage })
     }
 
     if (maxSized && forceEllipses) {
-      if (startPage > 1) {
-        items.unshift(makePage(startPage - 1, '...'))
-      }
-      if (endPage < count) {
-        items.push(makePage(endPage + 1, '...'))
-      }
+      if (startPage > 1) pages.unshift({ number: startPage - 1, text: '...' })
+      if (endPage < count) pages.push({ number: endPage + 1, text: '...' })
     }
-
-    return items
-  }, [mode, showPageSize, count, currentPage, forceEllipses])
+  }
 
   React.useEffect(() => {
     if (page !== currentPage) {
@@ -85,10 +70,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     }
   }, [currentPage, page, setPage])
 
-  const handleSelect = React.useCallback((next: number) => {
-    const target = clamp(next, 1, count)
-    setPage(target)
-  }, [count, setPage])
+  const handleSelect = (next: number) => setPage(clamp(next, 1, count))
 
   const renderPage = (item: PaginationPageItem, index: number) => {
     const node = pageRender ? pageRender(item) : item.text
@@ -121,27 +103,6 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         )}
       </Pressable>
     )
-  }
-
-  const renderDesc = () => {
-    if (mode !== 'multi') {
-      const descNode = pageDesc ?? `${currentPage}/${count}`
-      if (!isTextLike(descNode)) {
-        return (
-          <View style={styles.desc} testID="rv-pagination-desc">
-            {descNode}
-          </View>
-        )
-      }
-      return (
-        <Text style={[styles.desc, { color: tokens.colors.text }]}
-          testID="rv-pagination-desc"
-        >
-          {descNode}
-        </Text>
-      )
-    }
-    return null
   }
 
   const renderControl = (type: 'prev' | 'next') => {
@@ -177,6 +138,8 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     )
   }
 
+  const descNode = mode === 'multi' ? null : pageDesc ?? `${currentPage}/${count}`
+
   return (
     <View ref={ref} style={[styles.container, style]} {...rest}>
       {renderControl('prev')}
@@ -185,7 +148,15 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
           {pages.map(renderPage)}
         </View>
       ) : null}
-      {renderDesc()}
+      {descNode == null ? null : isTextLike(descNode) ? (
+        <Text style={[styles.desc, { color: tokens.colors.text }]} testID="rv-pagination-desc">
+          {descNode}
+        </Text>
+      ) : (
+        <View style={styles.desc} testID="rv-pagination-desc">
+          {descNode}
+        </View>
+      )}
       {renderControl('next')}
     </View>
   )

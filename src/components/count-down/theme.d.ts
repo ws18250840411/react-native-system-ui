@@ -1,4 +1,4 @@
-import type { CountDownTokens } from './tokens'
+import type { CountDownTokens } from './types'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {
