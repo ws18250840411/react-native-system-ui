@@ -20,7 +20,6 @@ const PortalComponent: React.FC<PortalProps> = ({ children }) => {
     void ensureGlobalPortalHost()
   }
   const keyRef = React.useRef<number | null>(null)
-  const skipUpdateRef = React.useRef(true)
 
   React.useLayoutEffect(() => {
     if (manager === globalManager && typeof document !== 'undefined') {
@@ -29,7 +28,6 @@ const PortalComponent: React.FC<PortalProps> = ({ children }) => {
 
     const key = manager.mount(children ?? null)
     keyRef.current = key
-    skipUpdateRef.current = true
     return () => {
       if (keyRef.current !== null) {
         manager.unmount(keyRef.current)
@@ -38,10 +36,6 @@ const PortalComponent: React.FC<PortalProps> = ({ children }) => {
   }, [manager])
 
   React.useLayoutEffect(() => {
-    if (skipUpdateRef.current) {
-      skipUpdateRef.current = false
-      return
-    }
     if (keyRef.current !== null) {
       manager.update(keyRef.current, children ?? null)
     }

@@ -8,7 +8,8 @@ export interface ShareSheetTokens {
     description: string
     option: string
     optionDesc: string
-    border?: string
+    border: string
+    divider: string
   }
   spacing: {
     horizontal: number
@@ -36,6 +37,8 @@ const createTokens = (foundations: Foundations): ShareSheetTokens => {
       description: palette.default[500],
       option: palette.default[900],
       optionDesc: palette.default[500],
+      border: palette.default[200],
+      divider: palette.default[100],
     },
     spacing: {
       horizontal: spacing.md,

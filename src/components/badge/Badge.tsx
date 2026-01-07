@@ -7,104 +7,17 @@ import type {
 } from 'react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { useTheme } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
 import type { BadgeProps } from './types'
+import { useBadgeTokens } from './tokens'
 
-export interface BadgeTokens {
-  defaults: {
-    showZero: boolean
-  }
-  colors: {
-    background: string
-    dot: string
-    text: string
-    border: string
-  }
-  sizes: {
-    minWidth: number
-    height: number
-    paddingHorizontal: number
-    paddingVertical: number
-    dotSize: number
-    borderRadius: number
-    borderWidth: number
-  }
-  typography: {
-    fontSize: number
-    fontWeight: TextStyle['fontWeight']
-    fontFamily: string
-    lineHeight: number
-  }
-}
+const isRenderable = (value: React.ReactNode) =>
+  value != null &&
+  typeof value !== 'boolean' &&
+  (typeof value !== 'string' || value.length > 0)
 
-const createBadgeTokens = (foundations: Foundations): BadgeTokens => {
-  const { palette, spacing, fontSize, radii, typography } = foundations
-
-  return {
-    defaults: {
-      showZero: true,
-    },
-    colors: {
-      background: palette.danger[500],
-      dot: palette.danger[500],
-      text: palette.danger.foreground ?? '#ffffff',
-      border: '#ffffff',
-    },
-    sizes: {
-      minWidth: 18,
-      height: 18,
-      paddingHorizontal: spacing.xs,
-      paddingVertical: spacing.xxs,
-      dotSize: 8,
-      borderRadius: radii.pill,
-      borderWidth: 1,
-    },
-    typography: {
-      fontSize: fontSize.xs,
-      fontWeight: typography.weight.bold,
-      fontFamily: typography.fontFamily,
-      lineHeight: fontSize.xs * typography.lineHeightMultiplier,
-    },
-  }
-}
-
-const useBadgeTokens = (overrides?: DeepPartial<BadgeTokens>) => {
-  const { foundations, components } = useTheme()
-
-  return React.useMemo(() => {
-    const base = createBadgeTokens(foundations)
-    const globalOverrides = components?.badge
-    const mergedOverrides = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-
-    return mergedOverrides ? deepMerge(base, mergedOverrides) : base
-  }, [foundations, components, overrides])
-}
-
-const isRenderable = (value: React.ReactNode) => {
-  if (value === null || value === undefined) return false
-  if (typeof value === 'boolean') return false
-  if (typeof value === 'string') return value.length > 0
-  return true
-}
-
-const isNumericLike = (value: React.ReactNode): value is number | string => {
-  if (typeof value === 'number') return true
-  if (typeof value === 'string') {
-    const trimmed = value.trim()
-    if (!trimmed) return false
-    return !Number.isNaN(Number(trimmed))
-  }
-  return false
-}
-
-const toNumber = (value: number | string) => Number(value)
+const isNumericLike = (value: React.ReactNode): value is number | string =>
+  typeof value === 'number' ||
+  (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value)))
 
 export const Badge: React.FC<BadgeProps> = props => {
   const { tokensOverride } = props
@@ -129,8 +42,8 @@ export const Badge: React.FC<BadgeProps> = props => {
   const hasChildren = React.Children.count(children) > 0
   const [badgeSize, setBadgeSize] = React.useState({ width: 0, height: 0 })
 
-  const numericContent = isNumericLike(content) ? toNumber(content) : null
-  const numericMax = isNumericLike(max) ? toNumber(max) : null
+  const numericContent = isNumericLike(content) ? Number(content) : null
+  const numericMax = isNumericLike(max) ? Number(max) : null
   const shouldHideForZero =
     numericContent !== null && numericContent === 0 && !showZero
 
@@ -146,7 +59,7 @@ export const Badge: React.FC<BadgeProps> = props => {
       return `${numericMax}+`
     }
     return content
-  }, [visible, dot, numericContent, numericMax, max, content])
+  }, [content, dot, numericContent, numericMax, visible])
 
   const handleBadgeLayout = React.useCallback(
     (event: LayoutChangeEvent) => {
@@ -172,21 +85,6 @@ export const Badge: React.FC<BadgeProps> = props => {
       ],
     }
   }, [badgeSize.height, badgeSize.width, hasChildren])
-
-  const buildOffsetStyle = (standalone: boolean): ViewStyle | undefined => {
-    if (!offset) return undefined
-    const [x, y] = offset
-    if (standalone) {
-      return {
-        marginLeft: x as ViewStyle['marginLeft'],
-        marginTop: y as ViewStyle['marginTop'],
-      }
-    }
-    return {
-      right: x as ViewStyle['right'],
-      top: y as ViewStyle['top'],
-    }
-  }
 
   const renderContentNode = () => {
     if (!visible || dot) return null
@@ -215,54 +113,33 @@ export const Badge: React.FC<BadgeProps> = props => {
   }
 
   const renderBadgeNode = (standalone: boolean) => {
-    if (!visible && !dot) {
-      return null
-    }
-
-    const sharedStyle: ViewStyle = {
-      alignItems: 'center',
-      justifyContent: 'center',
-    }
+    if (!visible) return null
     const pointerEvents = standalone ? 'auto' : 'none'
     const onLayout = !standalone && hasChildren ? handleBadgeLayout : undefined
 
-    if (dot) {
-      const dotShape: ViewStyle = {
-        width: tokens.sizes.dotSize,
-        height: tokens.sizes.dotSize,
-        borderRadius: tokens.sizes.dotSize / 2,
-        backgroundColor: color ?? tokens.colors.dot,
-      }
+    const offsetStyle: ViewStyle | undefined = offset
+      ? standalone
+        ? { marginLeft: offset[0] as any, marginTop: offset[1] as any }
+        : { right: offset[0] as any, top: offset[1] as any }
+      : undefined
 
-      return (
-        <View
-          pointerEvents={pointerEvents}
-          onLayout={onLayout}
-          style={[
-            standalone ? styles.standalone : styles.badge,
-            sharedStyle,
-            dotShape,
-            !standalone ? fixedTransformStyle : null,
-            buildOffsetStyle(standalone),
-            badgeStyle,
-            standalone ? style : null,
-          ]}
-        />
-      )
-    }
-
-    const bubbleBackground = color ?? tokens.colors.background
-
-    const bubbleShape: ViewStyle = {
-      minWidth: tokens.sizes.minWidth,
-      minHeight: tokens.sizes.height,
-      paddingHorizontal: tokens.sizes.paddingHorizontal,
-      paddingVertical: tokens.sizes.paddingVertical,
-      borderRadius: tokens.sizes.borderRadius,
-      borderWidth: tokens.sizes.borderWidth,
-      borderColor: tokens.colors.border,
-      backgroundColor: bubbleBackground,
-    }
+    const shape: ViewStyle = dot
+      ? {
+          width: tokens.sizes.dotSize,
+          height: tokens.sizes.dotSize,
+          borderRadius: tokens.sizes.dotSize / 2,
+          backgroundColor: color ?? tokens.colors.dot,
+        }
+      : {
+          minWidth: tokens.sizes.minWidth,
+          minHeight: tokens.sizes.height,
+          paddingHorizontal: tokens.sizes.paddingHorizontal,
+          paddingVertical: tokens.sizes.paddingVertical,
+          borderRadius: tokens.sizes.borderRadius,
+          borderWidth: tokens.sizes.borderWidth,
+          borderColor: tokens.colors.border,
+          backgroundColor: color ?? tokens.colors.background,
+        }
 
     return (
       <View
@@ -270,21 +147,20 @@ export const Badge: React.FC<BadgeProps> = props => {
         onLayout={onLayout}
         style={[
           standalone ? styles.standalone : styles.badge,
-          sharedStyle,
-          bubbleShape,
+          shape,
           !standalone ? fixedTransformStyle : null,
-          buildOffsetStyle(standalone),
+          offsetStyle,
           badgeStyle,
           standalone ? style : null,
         ]}
       >
-        {renderContentNode()}
+        {dot ? null : renderContentNode()}
       </View>
     )
   }
 
   if (hasChildren) {
-    const badgeNode = visible || dot ? renderBadgeNode(false) : null
+    const badgeNode = visible ? renderBadgeNode(false) : null
 
     if (onPress) {
       const pressableStyle = ({ pressed }: PressableStateCallbackType) => [
@@ -309,9 +185,7 @@ export const Badge: React.FC<BadgeProps> = props => {
     )
   }
 
-  if (!visible && !dot) {
-    return null
-  }
+  if (!visible) return null
 
   const badgeNode = renderBadgeNode(true)
 

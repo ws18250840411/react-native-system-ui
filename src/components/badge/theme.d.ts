@@ -1,4 +1,4 @@
-import type { BadgeTokens } from './Badge'
+import type { BadgeTokens } from './tokens'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

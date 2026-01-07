@@ -83,6 +83,10 @@ export const GridItem: React.FC<GridItemProps> = props => {
     paddingHorizontal: tokens.spacing.paddingHorizontal,
     paddingVertical: tokens.spacing.paddingVertical,
     backgroundColor: tokens.colors.background,
+    // 需要相对定位，以便绝对定位的边框 View 能正确显示
+    position: 'relative',
+    // 确保边框 View 不会被裁剪
+    overflow: 'visible',
   }
 
   if (square) {
@@ -90,6 +94,8 @@ export const GridItem: React.FC<GridItemProps> = props => {
     contentBaseStyle.top = 0
     contentBaseStyle.right = 0
     contentBaseStyle.left = 0
+    // 确保有完整的高度，以便边框能正确显示
+    contentBaseStyle.bottom = 0
   }
 
   if (square && gutter) {
@@ -98,8 +104,9 @@ export const GridItem: React.FC<GridItemProps> = props => {
     contentBaseStyle.height = 'auto'
   }
 
-  const showRightBorder = border && !isLastColumn
-  const showBottomBorder = border && rowIndex < lastRowIndex
+  // 只有没有gutter时才显示边框，有gutter时不需要边框
+  const showRightBorder = border && !gutter && !isLastColumn
+  const showBottomBorder = border && !gutter && rowIndex < lastRowIndex
 
   const contentWrapperStyle = [
     styles.contentBase,
@@ -174,12 +181,51 @@ export const GridItem: React.FC<GridItemProps> = props => {
   }
 
   const isInteractive = clickable || typeof onPress === 'function'
-
   const contentBody = children ?? (
     <>
       {renderIcon()}
       {renderText()}
     </>
+  )
+
+  const renderBorders = () => (
+    <>
+      {showRightBorder && (
+        <View
+          style={[
+            styles.borderRight,
+            createHairlineView({
+              position: 'right',
+              color: tokens.colors.border,
+              top: 0,
+              bottom: 0,
+              right: 0,
+            }),
+          ]}
+        />
+      )}
+      {showBottomBorder && (
+        <View
+          style={[
+            styles.borderBottom,
+            createHairlineView({
+              position: 'bottom',
+              color: tokens.colors.border,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }),
+          ]}
+        />
+      )}
+    </>
+  )
+
+  const content = (
+    <View style={contentWrapperStyle}>
+      {contentBody}
+      {renderBorders()}
+    </View>
   )
 
   if (isInteractive) {
@@ -190,62 +236,14 @@ export const GridItem: React.FC<GridItemProps> = props => {
         onPress={onPress}
         {...rest}
       >
-        <View style={contentWrapperStyle}>
-          {contentBody}
-          {showRightBorder ? (
-            <View
-              style={createHairlineView({
-                position: 'right',
-                color: tokens.colors.border,
-                top: 0,
-                bottom: 0,
-                right: 0,
-              })}
-            />
-          ) : null}
-          {showBottomBorder ? (
-            <View
-              style={createHairlineView({
-                position: 'bottom',
-                color: tokens.colors.border,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              })}
-            />
-          ) : null}
-        </View>
+        {content}
       </Pressable>
     )
   }
 
   return (
     <View style={[baseItemStyle, style as ViewStyle]} {...rest}>
-      <View style={contentWrapperStyle}>
-        {contentBody}
-        {showRightBorder ? (
-          <View
-            style={createHairlineView({
-              position: 'right',
-              color: tokens.colors.border,
-              top: 0,
-              bottom: 0,
-              right: 0,
-            })}
-          />
-        ) : null}
-        {showBottomBorder ? (
-          <View
-            style={createHairlineView({
-              position: 'bottom',
-              color: tokens.colors.border,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            })}
-          />
-        ) : null}
-      </View>
+      {content}
     </View>
   )
 }
@@ -279,5 +277,11 @@ const styles = StyleSheet.create({
   },
   text: {
     textAlign: 'center',
+  },
+  borderRight: {
+    width: 1,
+  },
+  borderBottom: {
+    height: 1,
   },
 })

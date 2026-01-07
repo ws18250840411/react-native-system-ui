@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { BackHandler, Platform } from 'react-native'
 
 import { setBodyScrollLocked } from '../../platform'

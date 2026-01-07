@@ -10,10 +10,10 @@ import {
   type ViewStyle,
 } from 'react-native'
 import Svg, { Circle as SvgCircle } from 'react-native-svg'
-import { useTheme } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
-import { deepMerge } from '../../utils/deepMerge'
+import { clamp, parseNumber, parsePercentage } from '../../utils/number'
 
 export type CircleStartPosition = 'top' | 'right' | 'bottom' | 'left'
 export type CircleLineCap = 'round' | 'butt' | 'square'
@@ -100,47 +100,7 @@ const createCircleTokens = (foundations: Foundations): CircleTokens => ({
   animationDuration: 300,
 })
 
-const useCircleTokens = (overrides?: DeepPartial<CircleTokens>) => {
-  const { foundations, components } = useTheme()
-  return React.useMemo(() => {
-    const base = createCircleTokens(foundations)
-    const globalOverrides = components?.circle
-    const merged = globalOverrides
-      ? overrides
-        ? deepMerge(globalOverrides, overrides)
-        : globalOverrides
-      : overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [components, foundations, overrides])
-}
-
-const clampPercentage = (value: number) => {
-  if (Number.isNaN(value)) return 0
-  if (value < 0) return 0
-  if (value > 100) return 100
-  return value
-}
-
-const parseNumberLike = (value: number | string | undefined, fallback: number) => {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
-  }
-  if (typeof value === 'string') {
-    const parsed = parseFloat(value)
-    return Number.isFinite(parsed) ? parsed : fallback
-  }
-  return fallback
-}
-
-const parsePercentage = (percentage?: number | string) => {
-  if (typeof percentage === 'number') return percentage
-  if (typeof percentage === 'string') {
-    const normalized = percentage.trim().replace('%', '')
-    const parsed = Number(normalized)
-    return Number.isNaN(parsed) ? 0 : parsed
-  }
-  return 0
-}
+const useCircleTokens = createComponentTokensHook('circle', createCircleTokens)
 
 const resolveSvgRotation = (position: CircleStartPosition) => {
   switch (position) {
@@ -184,6 +144,8 @@ const isTransparentColor = (value: string) => {
   return false
 }
 
+const AnimatedSvgCircle = Animated.createAnimatedComponent(SvgCircle)
+
 export const Circle: React.FC<CircleProps> = props => {
   const {
     rate: rateProp = 0,
@@ -204,31 +166,17 @@ export const Circle: React.FC<CircleProps> = props => {
   } = props
 
   const tokens = useCircleTokens(tokensOverride)
-  const resolvedSize = Math.max(0, parseNumberLike(size, tokens.size))
-  const resolvedStrokeWidth = Math.max(0, parseNumberLike(strokeWidth, tokens.strokeWidth))
-  const rate = clampPercentage(parsePercentage(rateProp))
+  const resolvedSize = Math.max(0, parseNumber(size, tokens.size))
+  const resolvedStrokeWidth = Math.max(0, parseNumber(strokeWidth, tokens.strokeWidth))
+  const rate = clamp(parsePercentage(rateProp) || 0, 0, 100)
 
   const resolvedColor = color ?? tokens.colors.color
   const resolvedLayerColor = layerColor ?? tokens.colors.layerColor
 
   const renderContent = () => {
-    if (children === undefined || children === null || children === false) return null
-    if (typeof children === 'string' || typeof children === 'number') {
-      return (
-        <Text
-          style={[
-            styles.text,
-            { color: tokens.colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight },
-            textStyle,
-          ]}
-        >
-          {children}
-        </Text>
-      )
-    }
+    if (children == null || children === false) return null
     const childArray = React.Children.toArray(children)
-    if (childArray.length > 0 && childArray.every(item => typeof item === 'string' || typeof item === 'number')) {
-      const text = childArray.map(item => String(item)).join('')
+    if (childArray.every(item => typeof item === 'string' || typeof item === 'number')) {
       return (
         <Text
           style={[
@@ -237,7 +185,7 @@ export const Circle: React.FC<CircleProps> = props => {
             textStyle,
           ]}
         >
-          {text}
+          {childArray.map(item => String(item)).join('')}
         </Text>
       )
     }
@@ -255,9 +203,20 @@ export const Circle: React.FC<CircleProps> = props => {
       ? `conic-gradient(from ${rotation}deg, ${resolvedColor} 0deg ${progressAngle}deg, ${resolvedLayerColor} ${progressAngle}deg 360deg)`
       : `conic-gradient(from ${rotation}deg, ${resolvedLayerColor} 0deg ${360 - progressAngle}deg, ${resolvedColor} ${360 - progressAngle}deg 360deg)`
 
-    const webMask = safeStroke > 0
-      ? (`radial-gradient(farthest-side, transparent calc(100% - ${safeStroke}px), #000 calc(100% - ${safeStroke}px))`)
-      : undefined
+    const webMask =
+      safeStroke > 0
+        ? `radial-gradient(farthest-side, transparent calc(100% - ${safeStroke}px), #000 calc(100% - ${safeStroke}px))`
+        : undefined
+    const webMaskStyle = webMask
+      ? ({
+          WebkitMaskImage: webMask,
+          maskImage: webMask,
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskSize: '100% 100%',
+          maskSize: '100% 100%',
+        } as any)
+      : null
 
     return (
       <View
@@ -278,16 +237,7 @@ export const Circle: React.FC<CircleProps> = props => {
               height: resolvedSize,
               borderRadius: resolvedSize / 2,
               backgroundImage: gradient as any,
-              ...(webMask
-                ? ({
-                  WebkitMaskImage: webMask,
-                  maskImage: webMask,
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskSize: '100% 100%',
-                  maskSize: '100% 100%',
-                } as any)
-                : null),
+              ...webMaskStyle,
             },
           ]}
         />
@@ -313,8 +263,6 @@ export const Circle: React.FC<CircleProps> = props => {
     )
   }
 
-  const AnimatedCircle = React.useMemo(() => Animated.createAnimatedComponent(SvgCircle), [SvgCircle])
-
   const radius = Math.max(0, (resolvedSize - resolvedStrokeWidth) / 2)
   const circumference = 2 * Math.PI * radius
   const rotation = resolveSvgRotation(startPosition)
@@ -322,10 +270,8 @@ export const Circle: React.FC<CircleProps> = props => {
   const dashOffsetTarget = (clockwise ? 1 : -1) * circumference * (1 - rate / 100)
 
   const dashOffset = React.useRef(new Animated.Value(dashOffsetTarget)).current
-  const dashAnimationRef = React.useRef<Animated.CompositeAnimation | null>(null)
 
   React.useEffect(() => {
-    dashAnimationRef.current?.stop()
     if (!animated || safeDuration <= 0) {
       dashOffset.setValue(dashOffsetTarget)
       return
@@ -335,7 +281,6 @@ export const Circle: React.FC<CircleProps> = props => {
       duration: safeDuration,
       useNativeDriver: false,
     })
-    dashAnimationRef.current = animation
     animation.start()
     return () => animation.stop()
   }, [animated, dashOffset, dashOffsetTarget, safeDuration])
@@ -351,7 +296,7 @@ export const Circle: React.FC<CircleProps> = props => {
           strokeWidth={resolvedStrokeWidth}
           fill={fill}
         />
-        <AnimatedCircle
+        <AnimatedSvgCircle
           cx={resolvedSize / 2}
           cy={resolvedSize / 2}
           r={radius}

@@ -91,9 +91,7 @@ const hostStack: PortalLayer[] = []
 const portalEntries = new Map<number, React.ReactNode>()
 let nextPortalKey = 1
 let warnedNative = false
-let autoHostActive = false
 let autoHostTeardownScheduled = false
-let autoHostRedundantTeardownScheduled = false
 
 const getEntriesSnapshot = (): PortalEntry[] =>
   Array.from(portalEntries.entries()).map(([key, children]) => ({
@@ -111,7 +109,7 @@ const notifyCurrentHost = () => {
 const registerHost = (host: PortalLayer) => {
   hostStack.push(host)
   host.setEntries(getEntriesSnapshot())
-  scheduleTeardownIfRedundant()
+  scheduleTeardownAutoHost()
 }
 
 const unregisterHost = (host: PortalLayer) => {
@@ -124,7 +122,7 @@ const unregisterHost = (host: PortalLayer) => {
   } else {
     notifyCurrentHost()
   }
-  scheduleTeardownIfIdle()
+  scheduleTeardownAutoHost()
 }
 
 const mountPortal = (children: React.ReactNode, key?: number) => {
@@ -142,48 +140,30 @@ const updatePortal = (key: number, children: React.ReactNode) => {
 const unmountPortal = (key: number) => {
   if (portalEntries.delete(key)) {
     notifyCurrentHost()
-    scheduleTeardownIfIdle()
+    scheduleTeardownAutoHost()
   }
 }
 
 const teardownAutoHost = () => {
-  if (!autoHostActive) return
+  if (!autoHostRoot) return
   autoHostRoot?.unmount?.()
   autoHostRoot = null
   if (autoHostContainer?.parentNode) {
     autoHostContainer.parentNode.removeChild(autoHostContainer)
   }
   autoHostContainer = null
-  autoHostActive = false
   autoHostTeardownScheduled = false
-  autoHostRedundantTeardownScheduled = false
 }
 
-const scheduleTeardownIfIdle = () => {
-  if (!autoHostActive) return
+const scheduleTeardownAutoHost = () => {
+  if (!autoHostRoot) return
   if (autoHostTeardownScheduled) return
-  if (portalEntries.size > 0) return
-  if (hostStack.length > 1) return
   autoHostTeardownScheduled = true
   Promise.resolve().then(() => {
-    if (portalEntries.size === 0 && (hostStack.length === 0 || hostStack.length === 1) && autoHostActive) {
+    autoHostTeardownScheduled = false
+    if (!autoHostRoot) return
+    if (hostStack.length > 1 || (portalEntries.size === 0 && hostStack.length <= 1)) {
       teardownAutoHost()
-    } else {
-      autoHostTeardownScheduled = false
-    }
-  })
-}
-
-const scheduleTeardownIfRedundant = () => {
-  if (!autoHostActive) return
-  if (autoHostRedundantTeardownScheduled) return
-  if (hostStack.length <= 1) return
-  autoHostRedundantTeardownScheduled = true
-  Promise.resolve().then(() => {
-    if (autoHostActive && hostStack.length > 1) {
-      teardownAutoHost()
-    } else {
-      autoHostRedundantTeardownScheduled = false
     }
   })
 }
@@ -194,7 +174,7 @@ const clearPortals = () => {
     notifyCurrentHost()
   }
   warnedNative = false
-  scheduleTeardownIfIdle()
+  scheduleTeardownAutoHost()
 }
 
 const globalManager: PortalManager = {
@@ -299,9 +279,8 @@ export const ensureGlobalPortalHost = () => {
       autoHostContainer.setAttribute('data-rnsu-portal-host', 'true')
       doc.body.appendChild(autoHostContainer)
       autoHostRoot = createRoot(autoHostContainer)
-      autoHostActive = true
       autoHostRoot.render(<PortalHost fixed />)
-      scheduleTeardownIfIdle()
+      scheduleTeardownAutoHost()
     })
     .catch(error => {
       teardownAutoHost()

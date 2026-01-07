@@ -36,47 +36,39 @@ export interface SelectorTokens {
   }
 }
 
-const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
-  const { palette, spacing, radii, typography, fontSize } = foundations
-  const surface = palette.default[50]
-  const onPrimary = palette.primary.foreground ?? '#ffffff'
-  return {
-    defaults: {
-      columns: 3,
-      multiple: false,
-      showCheckMark: true,
-    },
-    colors: {
-      border: 'transparent',
-      borderActive: 'transparent',
-      background: surface,
-      backgroundActive: palette.primary[50],
-      text: palette.default[900],
-      textActive: palette.primary[600],
-      description: palette.default[500],
-      disabledText: palette.default[400],
-      check: palette.primary[600],
-      checkForeground: onPrimary,
-    },
-    spacing: {
-      gap: spacing.sm,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.lg,
-      descriptionMarginTop: spacing.xxs,
-    },
-    radii: {
-      item: radii.xs,
-    },
-    typography: {
-      fontSize: fontSize.md,
-      descriptionSize: fontSize.sm,
-      fontFamily: typography.fontFamily,
-      fontWeight: String(typography.weight.medium),
-    },
-  }
-}
+const createSelectorTokens = ({
+  palette,
+  spacing,
+  radii,
+  typography,
+  fontSize,
+}: Foundations): SelectorTokens => ({
+  defaults: { columns: 3, multiple: false, showCheckMark: true },
+  colors: {
+    border: 'transparent',
+    borderActive: 'transparent',
+    background: palette.default[50],
+    backgroundActive: palette.primary[50],
+    text: palette.default[900],
+    textActive: palette.primary[600],
+    description: palette.default[500],
+    disabledText: palette.default[400],
+    check: palette.primary[600],
+    checkForeground: palette.primary.foreground ?? '#fff',
+  },
+  spacing: {
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    descriptionMarginTop: spacing.xxs,
+  },
+  radii: { item: radii.xs },
+  typography: {
+    fontSize: fontSize.md,
+    descriptionSize: fontSize.sm,
+    fontFamily: typography.fontFamily,
+    fontWeight: String(typography.weight.medium),
+  },
+})
 
-export const useSelectorTokens = createComponentTokensHook(
-  'selector',
-  createSelectorTokens
-)
+export const useSelectorTokens = createComponentTokensHook('selector', createSelectorTokens)

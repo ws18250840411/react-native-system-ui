@@ -76,7 +76,7 @@ export const defaultFoundations: Foundations = {
     default: {
       50: '#f7f8fa',
       100: '#f1f2f5',
-      200: '#e3e5eb',
+      200: '#ebedf0',
       300: '#c8ccd6',
       400: '#a8aebb',
       500: '#888f9f',

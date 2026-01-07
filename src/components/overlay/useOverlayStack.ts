@@ -1,5 +1,4 @@
-import React from 'react'
-import { useSyncExternalStore } from 'react'
+import React, { useSyncExternalStore } from 'react'
 
 import type { OverlayStackEntry, OverlayStackMountOptions } from './OverlayStackStore'
 import { overlayStackStore } from './OverlayStackStore'

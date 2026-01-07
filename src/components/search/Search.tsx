@@ -8,20 +8,11 @@ import {
 } from 'react-native'
 import { Search as SearchIcon } from 'react-native-system-icon'
 
-import { useAriaPress } from '../../hooks'
-import { useControllableValue } from '../../hooks'
+import { useAriaPress, useControllableValue } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
-import Field from '../field'
-import type { FieldProps } from '../field'
-import type { FieldInstance } from '../field/types'
+import Field, { type FieldInstance, type FieldProps } from '../field'
 import { useSearchTokens } from './tokens'
 import type { SearchProps, SearchRef, SearchShape } from './types'
-
-const toValue = (value?: string) => (value ?? '')
-
-const shapeRadiusMap = (shape: SearchShape, square: number, round: number) => {
-  return shape === 'round' ? round : square
-}
 
 const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const locale = useLocale()
@@ -57,7 +48,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   } = props
 
   const [value, triggerChange] = useControllableValue<string>(props, { defaultValue: '' })
-  const inputValue = toValue(value)
+  const inputValue = value ?? ''
   const resolvedInputAlign = align ?? inputAlign
 
   const handleChange = React.useCallback(
@@ -93,7 +84,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const shouldShowAction = !!action || showAction
   const isCustomActionText = React.isValidElement(actionText)
   const shouldRenderCancelAction = shouldShowAction && !action && !isCustomActionText
-  const radius = shapeRadiusMap(shape, tokens.radius.square, tokens.radius.round)
+  const radius = shape === 'round' ? tokens.radius.round : tokens.radius.square
 
   const inputRef = React.useRef<FieldInstance>(null)
   React.useImperativeHandle(
@@ -140,23 +131,19 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     if (typeof label === 'string' || typeof label === 'number') {
       return (
         <Text
-          style={[
-            {
-              marginRight: tokens.spacing.labelGap,
-              color: tokens.colors.label,
-              fontSize: tokens.typography.label,
-              fontWeight: tokens.typography.labelWeight as TextStyle['fontWeight'],
-            },
-          ]}
+          style={{
+            marginRight: tokens.spacing.labelGap,
+            color: tokens.colors.label,
+            fontSize: tokens.typography.label,
+            fontWeight: tokens.typography.labelWeight as TextStyle['fontWeight'],
+          }}
         >
           {label}
         </Text>
       )
     }
     return (
-      <View style={{ marginRight: tokens.spacing.labelGap }}>
-        {label}
-      </View>
+      <View style={{ marginRight: tokens.spacing.labelGap }}>{label}</View>
     )
   }
 
@@ -190,13 +177,11 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
         {...cancelActionPress.interactionProps}
       >
         <Text
-          style={[
-            {
-              color: tokens.colors.action,
-              fontSize: tokens.typography.action,
-              fontWeight: tokens.typography.actionWeight as TextStyle['fontWeight'],
-            },
-          ]}
+          style={{
+            color: tokens.colors.action,
+            fontSize: tokens.typography.action,
+            fontWeight: tokens.typography.actionWeight as TextStyle['fontWeight'],
+          }}
         >
           {actionText ?? locale.cancel}
         </Text>

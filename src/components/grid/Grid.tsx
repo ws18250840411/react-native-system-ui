@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native'
 
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import { createHairlineBorderTop } from '../../utils/hairline'
+import { createHairlineView } from '../../utils/hairline'
 import { GridContext, type GridTokens } from './GridContext'
 import type { GridProps } from './types'
 
@@ -25,7 +25,7 @@ const createGridTokens = (foundations: Foundations): GridTokens => {
     colors: {
       border: palette.default[200],
       text: palette.default[600],
-      background: palette.default[50] ?? '#ffffff',
+      background: '#ffffff',
       active: palette.default[100],
     },
     spacing: {
@@ -66,18 +66,15 @@ export const Grid: React.FC<GridProps> = props => {
     child => child !== null && child !== undefined,
   )
 
+  const showBorder = border && !gutter
+  const borderColor = tokens.colors.border
+
   const containerStyle = [
     styles.container,
-    gutter
-      ? {
-        paddingLeft: gutter,
-      }
-      : null,
-    border && !gutter
-      ? createHairlineBorderTop(tokens.colors.border)
-      : null,
+    gutter ? { paddingLeft: gutter } : null,
+    showBorder ? styles.containerWithBorder : null,
     style,
-  ]
+  ] as any
 
   const contextValue = {
     columnNum,
@@ -94,20 +91,37 @@ export const Grid: React.FC<GridProps> = props => {
     tokens,
   }
 
+  const renderBorder = (position: 'top' | 'bottom') => {
+    if (!showBorder) return null
+    return (
+      <View
+        style={[
+          styles.border,
+          position === 'top' ? styles.borderTop : styles.borderBottom,
+          createHairlineView({
+            position,
+            color: borderColor,
+            left: 0,
+            right: 0,
+            [position]: 0,
+          }),
+        ]}
+      />
+    )
+  }
+
   return (
     <GridContext.Provider value={contextValue}>
       <View style={containerStyle} {...rest}>
+        {renderBorder('top')}
         {childArray.map((child, index) => {
-          if (!React.isValidElement(child)) {
-            return null
-          }
-
-          const key = child.key ?? index
+          if (!React.isValidElement(child)) return null
           return React.cloneElement(child as React.ReactElement<any>, {
             gridItemIndex: index,
-            key,
+            key: child.key ?? index,
           })
         })}
+        {renderBorder('bottom')}
       </View>
     </GridContext.Provider>
   )
@@ -119,5 +133,21 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  containerWithBorder: {
+    position: 'relative',
+  },
+  border: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    zIndex: 1,
+  },
+  borderTop: {
+    top: 0,
+  },
+  borderBottom: {
+    bottom: 0,
   },
 })

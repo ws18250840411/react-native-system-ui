@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineView } from '../../utils/hairline'
@@ -8,18 +8,7 @@ import type { ShareSheetOption, ShareSheetOptions, ShareSheetProps } from './typ
 import { useShareSheetTokens, type ShareSheetTokens } from './tokens'
 
 const isValidNode = (node: React.ReactNode) =>
-  node !== undefined &&
-  node !== null &&
-  node !== false &&
-  !(typeof node === 'string' && node.length === 0)
-
-const renderTextNode = (node: React.ReactNode, textStyle: any) => {
-  if (!isValidNode(node)) return null
-  if (typeof node === 'string' || typeof node === 'number') {
-    return <Text style={textStyle}>{node}</Text>
-  }
-  return node
-}
+  node != null && node !== false && (typeof node !== 'string' || node.length > 0)
 
 const normalizeOptions = (options?: ShareSheetOptions): ShareSheetOption[][] => {
   if (!options || options.length === 0) return []
@@ -36,7 +25,6 @@ const ShareSheetOptionItem: React.FC<{
   tokens: ShareSheetTokens
   onSelect: (option: ShareSheetOption, index: number) => void
 }> = ({ option, index, columns, tokens, onSelect }) => {
-  const resolvedColumns = columns > 0 ? columns : 1
   const press = useAriaPress({
     onPress: () => onSelect(option, index),
     extraProps: {
@@ -49,17 +37,22 @@ const ShareSheetOptionItem: React.FC<{
     <Pressable
       style={[
         styles.option,
-        { width: `${100 / resolvedColumns}%` },
+        { width: `${100 / columns}%` },
       ]}
       {...press.interactionProps}
     >
-      <View style={[styles.icon, { width: tokens.sizing.icon, height: tokens.sizing.icon, marginHorizontal: 12 }]}>
+      <View style={[styles.icon, { width: tokens.sizing.icon, height: tokens.sizing.icon }]}>
         {option.icon}
       </View>
-      {renderTextNode(
-        option.name,
-        [styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option, paddingHorizontal: 4 }]
-      )}
+      {isValidNode(option.name)
+        ? typeof option.name === 'string' || typeof option.name === 'number'
+          ? (
+              <Text style={[styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]}>
+                {option.name}
+              </Text>
+            )
+          : option.name
+        : null}
       {isValidNode(option.description) ? (
         typeof option.description === 'string' || typeof option.description === 'number' ? (
           <Text
@@ -69,14 +62,13 @@ const ShareSheetOptionItem: React.FC<{
                 color: tokens.colors.optionDesc,
                 marginTop: tokens.spacing.gap,
                 fontSize: tokens.typography.optionDesc,
-                paddingHorizontal: 16,
               },
             ]}
           >
             {option.description}
           </Text>
         ) : (
-          <View style={{ marginTop: tokens.spacing.gap, alignItems: 'center', paddingHorizontal: 16 }}>
+          <View style={[styles.optionDescNode, { marginTop: tokens.spacing.gap }]}>
             {option.description}
           </View>
         )
@@ -96,15 +88,7 @@ const ShareSheetCancel: React.FC<{
   })
 
   return (
-    <View style={styles.cancelWrapper}>
-      <View
-        style={[
-          styles.cancelDivider,
-          {
-            height: 8,
-          },
-        ]}
-      />
+    <View style={{ backgroundColor: tokens.colors.divider }}>
       <Pressable style={[styles.cancel, { backgroundColor: tokens.colors.background }]} {...cancelPress.interactionProps}>
         {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
           <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
@@ -138,61 +122,44 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   } = props
 
   const tokens = useShareSheetTokens(tokensOverride)
-  const groups = React.useMemo(() => normalizeOptions(options), [options])
-  const resolvedColumns = React.useMemo(() => {
-    if (typeof columns !== 'number' || !Number.isFinite(columns) || columns <= 0) return 4
-    return Math.max(1, Math.floor(columns))
-  }, [columns])
+  const groups = normalizeOptions(options)
+  const resolvedColumns =
+    typeof columns === 'number' && Number.isFinite(columns) ? Math.max(1, Math.floor(columns)) : 4
 
   const hasTitle = isValidNode(title)
   const hasDescription = isValidNode(description)
   const hasCancelText = isValidNode(cancelText)
 
-  const close = React.useCallback(
-    (reason: 'cancel' | 'select') => {
-      if (reason === 'cancel') {
-        onCancel?.()
-      }
-      onClose?.()
-    },
-    [onCancel, onClose]
-  )
+  const close = (isCancel?: boolean) => {
+    if (isCancel) onCancel?.()
+    onClose?.()
+  }
 
-  const handleSelect = React.useCallback(
-    (option: ShareSheetOption, index: number) => {
-      onSelect?.(option, index)
-      option.onPress?.(option)
-      if (closeOnSelect) {
-        close('select')
-      }
-    },
-    [close, closeOnSelect, onSelect]
-  )
+  const handleSelect = (option: ShareSheetOption, index: number) => {
+    onSelect?.(option, index)
+    option.onPress?.(option)
+    if (closeOnSelect) close()
+  }
 
   const renderGroups = () => {
-    if (!groups.length && !children) return null
+    if (!groups.length) return null
     let globalIndex = 0
     return groups.map((group, groupIndex) => {
-      const hasBorder = groupIndex !== 0
       return (
-        <View key={groupIndex} style={styles.group}>
-          {hasBorder ? (
+        <View key={groupIndex}>
+          {groupIndex ? (
             <View
-              style={[
-                styles.groupBorder,
-                createHairlineView({
-                  position: 'top',
-                  color: tokens.colors.border ?? 'rgba(0,0,0,0.06)',
-                  left: tokens.spacing.horizontal,
-                  right: tokens.spacing.horizontal,
-                }),
-              ]}
+              style={createHairlineView({
+                position: 'top',
+                color: tokens.colors.border,
+                left: tokens.spacing.horizontal,
+                right: tokens.spacing.horizontal,
+              })}
             />
           ) : null}
-          <View style={[styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingTop: 12, paddingBottom: 12 }]}>
+          <View style={[styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }]}>
             {group.map(option => {
-              const currentIndex = globalIndex
-              globalIndex += 1
+              const currentIndex = globalIndex++
               return (
                 <ShareSheetOptionItem
                   key={option.key ?? currentIndex}
@@ -218,7 +185,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
       safeAreaInsetBottom={safeAreaInsetBottom}
       overlay={overlay}
       lockScroll={lockScroll}
-      onClose={() => close('cancel')}
+      onClose={() => close(true)}
       style={[styles.popupOverride, popupProps.style]}
       {...popupProps}
     >
@@ -238,7 +205,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
                   </Text>
                 )
                 : (
-                  <View style={styles.titleNode}>{title}</View>
+                  <View style={styles.node}>{title}</View>
                 )
               : null}
             {hasDescription
@@ -257,7 +224,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
                   </Text>
                 )
                 : (
-                  <View style={styles.descriptionNode}>{description}</View>
+                  <View style={styles.node}>{description}</View>
                 )
               : null}
           </View>
@@ -269,7 +236,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
             <ShareSheetCancel
               cancelText={cancelText}
               tokens={tokens}
-              onPress={() => close('cancel')}
+              onPress={() => close(true)}
             />
           )
           : null}
@@ -300,20 +267,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
-  titleNode: {
+  node: {
     alignItems: 'center',
     marginTop: 4,
-  },
-  descriptionNode: {
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  group: {
-  },
-  groupBorder: {
-    position: 'absolute',
-    top: 0,
-    pointerEvents: 'none',
   },
   optionsRow: {
     flexDirection: 'row',
@@ -326,22 +282,24 @@ const styles = StyleSheet.create({
   icon: {
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: 12,
   },
   optionText: {
     fontWeight: '500',
     textAlign: 'center',
+    paddingHorizontal: 4,
   },
   optionDesc: {
-    fontSize: 12,
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
-  cancelWrapper: {
-    backgroundColor: '#f7f8fa',
-  },
-  cancelDivider: {
-    width: '100%',
+  optionDescNode: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
   },
   cancel: {
     paddingVertical: 14,
+    marginTop: 8,
     alignItems: 'center',
   },
   cancelText: {

@@ -1,5 +1,4 @@
 import type { TextStyle } from 'react-native'
-
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { SearchShape } from './types'
@@ -46,10 +45,7 @@ const createSearchTokens = (foundations: Foundations): SearchTokens => {
   const { palette, spacing, radii, fontSize } = foundations
   const surface = palette.default[50]
   return {
-    defaults: {
-      shape: 'square',
-      clearTrigger: 'focus',
-    },
+    defaults: { shape: 'square', clearTrigger: 'focus' },
     colors: {
       background: surface,
       contentBackground: surface,
@@ -65,26 +61,16 @@ const createSearchTokens = (foundations: Foundations): SearchTokens => {
       contentPaddingHorizontal: spacing.sm,
       contentPaddingVertical: spacing.xs,
     },
-    radius: {
-      square: radii.md,
-      round: radii.pill,
-    },
+    radius: { square: radii.md, round: radii.pill },
     typography: {
       label: fontSize.sm,
       labelWeight: '500',
       action: fontSize.sm,
       actionWeight: '500',
     },
-    opacity: {
-      actionPressed: 0.6,
-    },
-    icon: {
-      size: fontSize.md,
-    },
+    opacity: { actionPressed: 0.6 },
+    icon: { size: fontSize.md },
   }
 }
 
-export const useSearchTokens = createComponentTokensHook(
-  'search',
-  createSearchTokens
-)
+export const useSearchTokens = createComponentTokensHook('search', createSearchTokens)

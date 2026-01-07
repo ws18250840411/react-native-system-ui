@@ -1,7 +1,7 @@
 import type { PressableProps, StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { BadgeTokens } from './Badge'
+import type { BadgeTokens } from './tokens'
 
 export type BadgeOffset = [number | string, number | string]
 

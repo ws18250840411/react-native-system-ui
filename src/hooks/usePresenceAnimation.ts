@@ -20,8 +20,12 @@ export const usePresenceAnimation = (
   const [mounted, setMounted] = React.useState(visible)
   const animated = React.useRef(new Animated.Value(visible && !appear ? 1 : 0)).current
   const useNativeDriver = nativeDriverEnabled
+  const animationIdRef = React.useRef(0)
 
   React.useEffect(() => {
+    animationIdRef.current += 1
+    const animationId = animationIdRef.current
+    animated.stopAnimation()
     if (visible) {
       setMounted(true)
       Animated.timing(animated, {
@@ -37,6 +41,7 @@ export const usePresenceAnimation = (
         easing,
         useNativeDriver,
       }).start(() => {
+        if (animationId !== animationIdRef.current) return
         setMounted(false)
       })
     }

@@ -36,15 +36,8 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
   const selectedSet = React.useMemo(() => new Set(value), [value])
 
   const triggerValueChange = React.useCallback(
-    (next: V[]) => {
-      const extend = {
-        get items() {
-          return options.filter(option => next.includes(option.value))
-        },
-      }
-      triggerChange(next, extend)
-    },
-    [options, triggerChange],
+    (next: V[]) => triggerChange(next, { items: options.filter(o => next.includes(o.value)) }),
+    [options, triggerChange]
   )
 
   const toggleOption = React.useCallback(
@@ -85,96 +78,6 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
         const descriptionContent = option.description
         const hasDescription = descriptionContent !== undefined && descriptionContent !== null
 
-        const itemContent = (
-          <View
-            style={[
-              styles.item,
-              {
-                marginHorizontal: itemMargin,
-                marginVertical: itemMargin,
-                paddingHorizontal: tokens.spacing.paddingHorizontal,
-                paddingVertical: tokens.spacing.paddingVertical,
-                borderRadius: tokens.radii.item,
-                borderColor: active
-                  ? tokens.colors.borderActive
-                  : tokens.colors.border,
-                backgroundColor: active
-                  ? tokens.colors.backgroundActive
-                  : tokens.colors.background,
-                flex: 1,
-                opacity: isDisabled ? 0.45 : 1,
-              },
-              itemStyle,
-            ]}
-          >
-            {typeof labelContent === 'string' || typeof labelContent === 'number' ? (
-              <Text
-                style={[
-                  styles.label,
-                  {
-                    color: labelColor,
-                    fontSize: tokens.typography.fontSize,
-                    lineHeight: tokens.typography.fontSize * 1.4,
-                    fontFamily: tokens.typography.fontFamily,
-                    fontWeight: tokens.typography.fontWeight as TextStyle['fontWeight'],
-                  },
-                  labelStyle,
-                ]}
-              >
-                {labelContent}
-              </Text>
-            ) : (
-              labelContent
-            )}
-
-            {hasDescription ? (
-              typeof descriptionContent === 'string' || typeof descriptionContent === 'number' ? (
-                <Text
-                  style={[
-                    styles.description,
-                    {
-                      marginTop: tokens.spacing.descriptionMarginTop,
-                      color: descriptionColor,
-                      fontSize: tokens.typography.descriptionSize,
-                      lineHeight: tokens.typography.descriptionSize * 1.4,
-                    },
-                    descriptionStyle,
-                  ]}
-                >
-                  {descriptionContent}
-                </Text>
-              ) : (
-                <View style={{ marginTop: tokens.spacing.descriptionMarginTop }}>{descriptionContent}</View>
-              )
-            ) : null}
-            {active && showCheckMark ? (
-              <>
-                <View
-                  style={[
-                    styles.checkMarkTriangle,
-                    {
-                      borderTopWidth: CHECK_MARK_CORNER_HEIGHT,
-                      borderBottomWidth: CHECK_MARK_CORNER_HEIGHT,
-                      borderLeftWidth: CHECK_MARK_CORNER_WIDTH,
-                      borderRightWidth: CHECK_MARK_CORNER_WIDTH,
-                      borderBottomColor: tokens.colors.check,
-                      borderRightColor: tokens.colors.check,
-                    },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.checkMark,
-                    { color: tokens.colors.checkForeground },
-                  ]}
-                >
-                  {CHECK_MARK}
-                </Text>
-              </>
-            ) : null}
-          </View>
-        )
-
         return (
           <Pressable
             key={String(option.value)}
@@ -188,7 +91,85 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
             disabled={isDisabled}
             style={[styles.pressable, { width: basis }]}
           >
-            {itemContent}
+            <View
+              style={[
+                styles.item,
+                {
+                  marginHorizontal: itemMargin,
+                  marginVertical: itemMargin,
+                  paddingHorizontal: tokens.spacing.paddingHorizontal,
+                  paddingVertical: tokens.spacing.paddingVertical,
+                  borderRadius: tokens.radii.item,
+                  borderColor: active ? tokens.colors.borderActive : tokens.colors.border,
+                  backgroundColor: active ? tokens.colors.backgroundActive : tokens.colors.background,
+                  flex: 1,
+                  opacity: isDisabled ? 0.45 : 1,
+                },
+                itemStyle,
+              ]}
+            >
+              {typeof labelContent === 'string' || typeof labelContent === 'number' ? (
+                <Text
+                  style={[
+                    styles.label,
+                    {
+                      color: labelColor,
+                      fontSize: tokens.typography.fontSize,
+                      lineHeight: tokens.typography.fontSize * 1.4,
+                      fontFamily: tokens.typography.fontFamily,
+                      fontWeight: tokens.typography.fontWeight as TextStyle['fontWeight'],
+                    },
+                    labelStyle,
+                  ]}
+                >
+                  {labelContent}
+                </Text>
+              ) : (
+                labelContent
+              )}
+
+              {hasDescription ? (
+                typeof descriptionContent === 'string' || typeof descriptionContent === 'number' ? (
+                  <Text
+                    style={[
+                      styles.description,
+                      {
+                        marginTop: tokens.spacing.descriptionMarginTop,
+                        color: descriptionColor,
+                        fontSize: tokens.typography.descriptionSize,
+                        lineHeight: tokens.typography.descriptionSize * 1.4,
+                      },
+                      descriptionStyle,
+                    ]}
+                  >
+                    {descriptionContent}
+                  </Text>
+                ) : (
+                  <View style={{ marginTop: tokens.spacing.descriptionMarginTop }}>{descriptionContent}</View>
+                )
+              ) : null}
+
+              {active && showCheckMark ? (
+                <>
+                  <View
+                    style={[
+                      styles.checkMarkTriangle,
+                      {
+                        borderTopWidth: CHECK_MARK_CORNER_HEIGHT,
+                        borderBottomWidth: CHECK_MARK_CORNER_HEIGHT,
+                        borderLeftWidth: CHECK_MARK_CORNER_WIDTH,
+                        borderRightWidth: CHECK_MARK_CORNER_WIDTH,
+                        borderBottomColor: tokens.colors.check,
+                        borderRightColor: tokens.colors.check,
+                      },
+                    ]}
+                  />
+                  <Text style={[styles.checkMark, { color: tokens.colors.checkForeground }]}>
+                    {CHECK_MARK}
+                  </Text>
+                </>
+              ) : null}
+            </View>
           </Pressable>
         )
       })}
