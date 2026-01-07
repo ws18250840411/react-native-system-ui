@@ -230,15 +230,18 @@ const WheelPickerInner = <T,>({
           pointerEvents="none"
         />
         <View
-          style={webTransform}
+          style={[
+            webTransform,
+            isWeb
+              ? {
+                transitionProperty: webTransition ? 'transform' : 'none',
+                transitionDuration: `${webTransition}ms`,
+                transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
+                willChange: 'transform',
+              }
+              : undefined,
+          ]}
           {...({ onTransitionEnd: handleWebTransitionEnd } as any)}
-          {...(isWeb
-            ? {
-              transitionProperty: webTransition ? 'transform' : 'none',
-              transitionDuration: `${webTransition}ms`,
-              transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
-            }
-            : null) as any}
         >
           <View style={{ height: spacerHeight }} />
           {data.map((item, index) => {
