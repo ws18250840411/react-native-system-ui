@@ -20,6 +20,7 @@ export interface AvatarTokens {
   sizing: {
     sizes: Record<AvatarSize, number>
     iconMaxSize: number
+    loadingSize: number
   }
   colors: {
     background: string
@@ -35,8 +36,11 @@ export interface AvatarTokens {
   }
 }
 
+import type { ImageFit } from '../image/types'
+
 export interface AvatarProps extends Omit<PressableProps, 'style'> {
   src?: string | ImageSourcePropType
+  fit?: ImageFit
   icon?: React.ReactNode
   text?: string
   size?: AvatarSize | number

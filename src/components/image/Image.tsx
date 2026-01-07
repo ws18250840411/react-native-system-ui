@@ -44,24 +44,23 @@ const LAYOUT_STYLE_KEYS = new Set([
 ])
 
 const isLayoutStyleKey = (key: string) => LAYOUT_STYLE_KEYS.has(key) || key.startsWith('margin')
+const isBorderRadiusStyleKey = (key: string) => key === 'borderRadius' || (key.startsWith('border') && key.endsWith('Radius'))
 
 const splitImageStyle = (style: any) => {
-  if (!style) return { container: undefined, image: undefined, borderRadius: undefined as number | undefined }
+  if (!style) return { container: undefined, image: undefined, borderRadius: undefined }
+
+  const flattened = StyleSheet.flatten(style)
   const container: Record<string, any> = {}
   const image: Record<string, any> = {}
-  let borderRadius: number | undefined
+  const borderRadius: Record<string, any> = {}
 
-  Object.keys(style).forEach(key => {
-    const value = style[key]
+  Object.keys(flattened).forEach(key => {
+    const value = (flattened as any)[key]
     if (value === undefined) return
 
-    if (key === 'borderRadius' && typeof value === 'number') {
-      borderRadius = value
-      return
-    }
-    if (key.startsWith('border') && key.endsWith('Radius')) return
-
-    if (isLayoutStyleKey(key)) {
+    if (isBorderRadiusStyleKey(key)) {
+      borderRadius[key] = value
+    } else if (isLayoutStyleKey(key)) {
       container[key] = value
     } else {
       image[key] = value
@@ -71,7 +70,7 @@ const splitImageStyle = (style: any) => {
   return {
     container: Object.keys(container).length ? container : undefined,
     image: Object.keys(image).length ? image : undefined,
-    borderRadius,
+    borderRadius: Object.keys(borderRadius).length ? borderRadius : undefined,
   }
 }
 
@@ -81,6 +80,13 @@ const renderOverlayLabel = (node: React.ReactNode, color: string, marginTop?: nu
     return <Text style={[styles.text, { color }, marginTop ? { marginTop } : null]}>{node}</Text>
   }
   return marginTop ? <View style={{ marginTop }}>{node}</View> : node
+}
+
+const resolvePreserveAspectRatio = (fit: string): string => {
+  if (fit === 'contain' || fit === 'scale-down') return 'xMidYMid meet'
+  if (fit === 'stretch' || fit === 'fill') return 'none'
+  if (fit === 'none' || fit === 'center') return 'xMidYMid meet' // SVG doesn't strictly support 'center' without viewBox manipulation, meet is closest safe default
+  return 'xMidYMid slice' // default for 'cover'
 }
 
 const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((props, ref) => {
@@ -113,10 +119,8 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   } = props
 
   const tokens = useImageTokens(tokensOverride)
-  const flattenedImageStyle = React.useMemo(() => StyleSheet.flatten(style) as any, [style])
-  const flattenedContainerStyle = React.useMemo(() => StyleSheet.flatten(containerStyle) as any, [containerStyle])
   const { container: containerLayoutStyle, image: imageStyleWithoutLayout, borderRadius: styleBorderRadius } =
-    React.useMemo(() => splitImageStyle(flattenedImageStyle), [flattenedImageStyle])
+    React.useMemo(() => splitImageStyle(style), [style])
 
   const actualSource = React.useMemo(() => {
     if (source) return source
@@ -145,17 +149,33 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     [onError]
   )
 
-  const containerBorderRadius =
-    typeof flattenedContainerStyle?.borderRadius === 'number' ? flattenedContainerStyle.borderRadius : undefined
+  const mergedBorderRadiusStyle = React.useMemo(() => {
+    if (round) return { borderRadius: 9999 } as Record<string, any>
+    if (typeof radius === 'number') return { borderRadius: radius } as Record<string, any>
 
-  const borderRadius = round ? 9999 : radius ?? containerBorderRadius ?? styleBorderRadius ?? undefined
+    const { borderRadius: containerBorderRadius } = splitImageStyle(containerStyle)
+
+    const merged = {
+      ...(styleBorderRadius ?? {}),
+      ...(containerBorderRadius ?? {}),
+    }
+    return Object.keys(merged).length ? merged : undefined
+  }, [containerStyle, radius, round, styleBorderRadius])
 
   const uri = (actualSource as any)?.uri
-  const isSvg = typeof uri === 'string' && (uri.endsWith('.svg') || uri.includes('.svg?') || uri.includes('/svg?'))
+  const normalizedUri = typeof uri === 'string' ? uri.toLowerCase() : undefined
+  const isSvg =
+    typeof normalizedUri === 'string' &&
+    (normalizedUri.endsWith('.svg') || normalizedUri.includes('.svg?') || normalizedUri.includes('/svg?'))
 
   const resolvedLoadingSize = typeof loadingSize === 'number' ? loadingSize : 20
   const resolvedErrorIconSize = iconSize ?? 20
   const Container = onPress ? Pressable : View
+  const imageCommonStyle = [
+    StyleSheet.absoluteFill,
+    ...(mergedBorderRadiusStyle ? [mergedBorderRadiusStyle] : []),
+    imageStyleWithoutLayout,
+  ]
 
   return (
     <Container
@@ -164,7 +184,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
         {
           width,
           height,
-          ...(borderRadius !== undefined ? { borderRadius, overflow: 'hidden' as const } : {}),
+          ...(mergedBorderRadiusStyle ? { ...mergedBorderRadiusStyle, overflow: 'hidden' as const } : {}),
           backgroundColor: tokens.colors.background,
           alignItems: 'center',
           justifyContent: 'center',
@@ -173,19 +193,30 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
         containerStyle,
       ]}
     >
+      {status === 'loading' && showLoading ? (
+        <View style={styles.overlay} pointerEvents="none" testID="rv-image-loading">
+          {loadingIcon || (
+            <ActivityIndicator
+              color={tokens.colors.text}
+              size={typeof loadingSize === 'string' ? loadingSize : 'small'}
+              style={{ transform: [{ scale: resolvedLoadingSize / 20 }] }}
+            />
+          )}
+          {renderOverlayLabel(loadingText, tokens.colors.text, 4)}
+        </View>
+      ) : null}
       {actualSource ? (
         isSvg && Platform.OS !== 'web' ? (
           <SvgUri
             width="100%"
             height="100%"
             uri={(actualSource as any).uri}
-            style={[
-              StyleSheet.absoluteFill,
-              ...(borderRadius !== undefined ? [{ borderRadius }] : []),
-              imageStyleWithoutLayout,
-            ]}
-            onLoad={() => handleLoad({} as any)}
-            onError={() => handleError({} as any)}
+            preserveAspectRatio={resolvePreserveAspectRatio(fit)}
+            accessibilityLabel={alt}
+            {...rest}
+            style={imageCommonStyle}
+            onLoad={() => handleLoad({ nativeEvent: {} } as any)}
+            onError={(error) => handleError({ nativeEvent: { error } } as any)}
           />
         ) : (
           <RNImage
@@ -193,28 +224,12 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             accessibilityLabel={alt}
             {...rest}
             source={actualSource}
-            style={[
-              StyleSheet.absoluteFill,
-              ...(borderRadius !== undefined ? [{ borderRadius }] : []),
-              imageStyleWithoutLayout,
-            ]}
+            style={imageCommonStyle}
             resizeMode={resolveFitMode(fit)}
             onLoad={handleLoad}
             onError={handleError}
           />
         )
-      ) : null}
-      {status === 'loading' && showLoading ? (
-        <View style={styles.overlay} pointerEvents="none" testID="rv-image-loading">
-          {loadingIcon || (
-            <ActivityIndicator
-              color={tokens.colors.text}
-              size={typeof loadingSize === 'number' ? 'small' : (loadingSize as 'small' | 'large' | undefined) ?? 'small'}
-              style={{ transform: [{ scale: resolvedLoadingSize / 20 }] }}
-            />
-          )}
-          {renderOverlayLabel(loadingText, tokens.colors.text, 4)}
-        </View>
       ) : null}
       {status === 'error' && showError ? (
         <View style={styles.overlay} pointerEvents="none" testID="rv-image-error">

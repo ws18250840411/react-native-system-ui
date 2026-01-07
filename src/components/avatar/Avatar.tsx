@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Image from '../image'
 import { createComponentTokensHook } from '../../design-system'
@@ -18,6 +18,7 @@ const createAvatarTokens = (foundations: Foundations): AvatarTokens => ({
       large: 40,
     },
     iconMaxSize: 32,
+    loadingSize: 12,
   },
   colors: {
     background: foundations.palette.default[100],
@@ -56,8 +57,8 @@ const styles = StyleSheet.create({
 })
 
 export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, AvatarProps>(
-  (
-    {
+  (props, ref) => {
+    const {
       src,
       icon,
       text,
@@ -65,6 +66,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       width,
       height,
       shape,
+      fit,
       color,
       backgroundColor,
       style,
@@ -72,9 +74,8 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       contentStyle,
       tokensOverride,
       ...pressableProps
-    },
-    ref
-  ) => {
+    } = props
+
     const tokens = useAvatarTokens(tokensOverride)
     const resolvedSize = size ?? tokens.defaults.size
     const resolvedShape = shape ?? tokens.defaults.shape
@@ -85,19 +86,23 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       ? Math.min(avatarWidth, avatarHeight) / 2
       : Math.max(tokens.radii.squareMin, Math.min(avatarWidth, avatarHeight) / tokens.radii.squareDivisor)
 
-    const fallbackText = text ? text.trim().slice(0, 2).toUpperCase() : undefined
+    const [isImageError, setIsImageError] = React.useState(false)
 
-    const content = src
-      ? (
-        <Image
-          source={typeof src === 'string' ? { uri: src } : src}
-          style={[styles.image, { borderRadius }]}
-          fit="cover"
-          loadingText={null}
-        />
-      )
-      : icon
-        ? (
+    React.useEffect(() => {
+      setIsImageError(false)
+    }, [src])
+
+    const handleImageError = React.useCallback(() => {
+      setIsImageError(true)
+    }, [])
+
+    const fallbackText = React.useMemo(() => {
+      return text ? text.trim().slice(0, 2).toUpperCase() : undefined
+    }, [text])
+
+    const fallbackContent = React.useMemo(() => {
+      if (icon) {
+        return (
           <View
             style={[
               styles.iconWrapper,
@@ -111,24 +116,50 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
             {icon}
           </View>
         )
-        : fallbackText
-          ? (
-            <Text
-              style={[
-                styles.text,
-                {
-                  color: color ?? tokens.colors.text,
-                  fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
-                  fontWeight: tokens.typography.fontWeight,
-                },
-                textStyle,
-              ]}
-              numberOfLines={1}
-            >
-              {fallbackText}
-            </Text>
-          )
-          : null
+      }
+      if (fallbackText) {
+        return (
+          <Text
+            style={[
+              styles.text,
+              {
+                color: color ?? tokens.colors.text,
+                fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
+                fontWeight: tokens.typography.fontWeight,
+              },
+              textStyle,
+            ]}
+            numberOfLines={1}
+          >
+            {fallbackText}
+          </Text>
+        )
+      }
+      return null
+    }, [
+      icon,
+      fallbackText,
+      avatarWidth,
+      avatarHeight,
+      tokens,
+      contentStyle,
+      color,
+      textStyle,
+    ])
+
+    const content = src && !isImageError
+      ? (
+        <Image
+          source={typeof src === 'string' ? { uri: src } : src}
+          style={[styles.image, { borderRadius }]}
+          fit={fit ?? 'cover'}
+          loadingText={null}
+          loadingSize={tokens.sizing.loadingSize}
+          showError={false}
+          onError={handleImageError}
+        />
+      )
+      : fallbackContent
 
     return (
       <Pressable

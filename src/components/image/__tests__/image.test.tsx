@@ -97,6 +97,46 @@ describe('Image', () => {
     expect(style.borderRadius).toBe(8)
   })
 
+  it('clips when corner radius is provided via containerStyle', () => {
+    const tree = renderer.create(
+      <Image
+        src="https://example.com/a.png"
+        showLoading={false}
+        containerStyle={{ borderTopLeftRadius: 8, borderTopRightRadius: 6 }}
+      />
+    )
+    const view = tree.root.findByType(View)
+    const style = StyleSheet.flatten(view.props.style)
+    expect(style.overflow).toBe('hidden')
+    expect(style.borderTopLeftRadius).toBe(8)
+    expect(style.borderTopRightRadius).toBe(6)
+
+    const rnImage = tree.root.findByType(RNImage)
+    const imageStyle = StyleSheet.flatten(rnImage.props.style)
+    expect(imageStyle.borderTopLeftRadius).toBe(8)
+    expect(imageStyle.borderTopRightRadius).toBe(6)
+  })
+
+  it('clips when corner radius is provided via style', () => {
+    const tree = renderer.create(
+      <Image
+        src="https://example.com/a.png"
+        showLoading={false}
+        style={{ width: 100, height: 80, borderBottomLeftRadius: 10, borderBottomRightRadius: 12 }}
+      />
+    )
+    const view = tree.root.findByType(View)
+    const style = StyleSheet.flatten(view.props.style)
+    expect(style.overflow).toBe('hidden')
+    expect(style.borderBottomLeftRadius).toBe(10)
+    expect(style.borderBottomRightRadius).toBe(12)
+
+    const rnImage = tree.root.findByType(RNImage)
+    const imageStyle = StyleSheet.flatten(rnImage.props.style)
+    expect(imageStyle.borderBottomLeftRadius).toBe(10)
+    expect(imageStyle.borderBottomRightRadius).toBe(12)
+  })
+
   it('maps fit prop to resizeMode', () => {
     const tree = renderer.create(<Image src="https://example.com/a.png" fit="contain" />)
     const rnImage = tree.root.findByType(RNImage)
