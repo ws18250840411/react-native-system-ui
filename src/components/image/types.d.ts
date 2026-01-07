@@ -17,8 +17,14 @@ export interface ImageProps extends Omit<RNImageProps, 'source' | 'width' | 'hei
   showLoading?: boolean
   showError?: boolean
   loadingText?: React.ReactNode
+  loadingIcon?: React.ReactNode
+  errorIcon?: React.ReactNode
+  iconSize?: number
+  loadingSize?: 'small' | 'large' | number
   errorText?: React.ReactNode
   fallback?: React.ReactNode
+  onPress?: (event: any) => void
+  alt?: string
   containerStyle?: StyleProp<ViewStyle>
   children?: React.ReactNode
   tokensOverride?: DeepPartial<ImageTokens>

@@ -1,5 +1,6 @@
 import React from 'react'
-import { ActivityIndicator, Image as RNImage, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { SvgUri } from 'react-native-svg'
 
 import { useImageTokens } from './tokens'
 import type { ImageProps } from './types'
@@ -20,27 +21,29 @@ type RNImageOnErrorEvent = Parameters<
   NonNullable<React.ComponentProps<typeof RNImage>['onError']>
 >[0]
 
-const isLayoutStyleKey = (key: string) =>
-  key === 'width' ||
-  key === 'height' ||
-  key === 'minWidth' ||
-  key === 'minHeight' ||
-  key === 'maxWidth' ||
-  key === 'maxHeight' ||
-  key === 'flex' ||
-  key === 'flexGrow' ||
-  key === 'flexShrink' ||
-  key === 'flexBasis' ||
-  key === 'alignSelf' ||
-  key === 'aspectRatio' ||
-  key === 'position' ||
-  key === 'top' ||
-  key === 'right' ||
-  key === 'bottom' ||
-  key === 'left' ||
-  key === 'start' ||
-  key === 'end' ||
-  key.startsWith('margin')
+const LAYOUT_STYLE_KEYS = new Set([
+  'width',
+  'height',
+  'minWidth',
+  'minHeight',
+  'maxWidth',
+  'maxHeight',
+  'flex',
+  'flexGrow',
+  'flexShrink',
+  'flexBasis',
+  'alignSelf',
+  'aspectRatio',
+  'position',
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'start',
+  'end',
+])
+
+const isLayoutStyleKey = (key: string) => LAYOUT_STYLE_KEYS.has(key) || key.startsWith('margin')
 
 const splitImageStyle = (style: any) => {
   if (!style) return { container: undefined, image: undefined, borderRadius: undefined as number | undefined }
@@ -92,8 +95,14 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     showLoading = true,
     showError = true,
     loadingText = '加载中…',
+    loadingIcon,
+    errorIcon,
+    iconSize,
+    loadingSize,
     errorText = '加载失败',
     fallback,
+    onPress,
+    alt,
     containerStyle,
     style,
     children,
@@ -141,8 +150,16 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
 
   const borderRadius = round ? 9999 : radius ?? containerBorderRadius ?? styleBorderRadius ?? undefined
 
+  const uri = (actualSource as any)?.uri
+  const isSvg = typeof uri === 'string' && (uri.endsWith('.svg') || uri.includes('.svg?') || uri.includes('/svg?'))
+
+  const resolvedLoadingSize = typeof loadingSize === 'number' ? loadingSize : 20
+  const resolvedErrorIconSize = iconSize ?? 20
+  const Container = onPress ? Pressable : View
+
   return (
-    <View
+    <Container
+      onPress={onPress}
       style={[
         {
           width,
@@ -157,35 +174,62 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
       ]}
     >
       {actualSource ? (
-        <RNImage
-          ref={ref}
-          {...rest}
-          source={actualSource}
-          style={[
-            StyleSheet.absoluteFill,
-            ...(borderRadius !== undefined ? [{ borderRadius }] : []),
-            imageStyleWithoutLayout,
-          ]}
-          resizeMode={resolveFitMode(fit)}
-          onLoad={handleLoad}
-          onError={handleError}
-        />
+        isSvg && Platform.OS !== 'web' ? (
+          <SvgUri
+            width="100%"
+            height="100%"
+            uri={(actualSource as any).uri}
+            style={[
+              StyleSheet.absoluteFill,
+              ...(borderRadius !== undefined ? [{ borderRadius }] : []),
+              imageStyleWithoutLayout,
+            ]}
+            onLoad={() => handleLoad({} as any)}
+            onError={() => handleError({} as any)}
+          />
+        ) : (
+          <RNImage
+            ref={ref}
+            accessibilityLabel={alt}
+            {...rest}
+            source={actualSource}
+            style={[
+              StyleSheet.absoluteFill,
+              ...(borderRadius !== undefined ? [{ borderRadius }] : []),
+              imageStyleWithoutLayout,
+            ]}
+            resizeMode={resolveFitMode(fit)}
+            onLoad={handleLoad}
+            onError={handleError}
+          />
+        )
       ) : null}
       {status === 'loading' && showLoading ? (
         <View style={styles.overlay} pointerEvents="none" testID="rv-image-loading">
-          <ActivityIndicator color={tokens.colors.text} />
+          {loadingIcon || (
+            <ActivityIndicator
+              color={tokens.colors.text}
+              size={typeof loadingSize === 'number' ? 'small' : (loadingSize as 'small' | 'large' | undefined) ?? 'small'}
+              style={{ transform: [{ scale: resolvedLoadingSize / 20 }] }}
+            />
+          )}
           {renderOverlayLabel(loadingText, tokens.colors.text, 4)}
         </View>
       ) : null}
       {status === 'error' && showError ? (
         <View style={styles.overlay} pointerEvents="none" testID="rv-image-error">
+          {errorIcon ? (
+            <View style={{ width: resolvedErrorIconSize, height: resolvedErrorIconSize, alignItems: 'center', justifyContent: 'center' }}>
+              {errorIcon}
+            </View>
+          ) : null}
           {fallback !== undefined && fallback !== null && fallback !== false
             ? renderOverlayLabel(fallback, tokens.colors.error)
             : renderOverlayLabel(errorText, tokens.colors.error)}
         </View>
       ) : null}
       {children}
-    </View>
+    </Container>
   )
 })
 

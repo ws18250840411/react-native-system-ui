@@ -53,7 +53,7 @@
 | --- | --- | --- |
 | button | 复核后冻结 | Press 交互/无障碍/平台反馈细节 |
 | checkbox | 复核后冻结 | 组选逻辑+无障碍/交互一致性 |
-| image | 复核后冻结 | Web/Native source 差异、加载/占位细节 |
+| image | 已冻结 ✅ | Web/Native source 差异已处理、加载/占位/Error/SVG 逻辑已完善 |
 | list | 复核后冻结 | 滚动/加载更多/刷新组合，易引入回归 |
 | loading | 复核后冻结 | 动画 driver 与渲染一致性 |
 | nav-bar | 复核后冻结 | SafeArea/布局与交互细节 |

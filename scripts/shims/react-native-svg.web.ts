@@ -38,6 +38,8 @@ export const FeMergeNode = Empty
 export const FeGaussianBlur = Empty
 export const FeBlend = Empty
 export const FeColorMatrix = Empty
+export const SvgUri = Empty
+export const SvgXml = Empty
 
 export default Svg
 

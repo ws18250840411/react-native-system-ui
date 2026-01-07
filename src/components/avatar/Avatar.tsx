@@ -1,6 +1,7 @@
 import React from 'react'
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
+import Image from '../image'
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { AvatarProps, AvatarTokens } from './types'
@@ -91,7 +92,8 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
         <Image
           source={typeof src === 'string' ? { uri: src } : src}
           style={[styles.image, { borderRadius }]}
-          resizeMode="cover"
+          fit="cover"
+          loadingText={null}
         />
       )
       : icon
