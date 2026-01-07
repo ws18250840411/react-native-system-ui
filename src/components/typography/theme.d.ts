@@ -1,4 +1,4 @@
-import type { TypographyTokens } from './Typography'
+import type { TypographyTokens } from './tokens'
 
 declare module '../../design-system/ThemeContext' {
   interface ThemeComponentTokensMap {

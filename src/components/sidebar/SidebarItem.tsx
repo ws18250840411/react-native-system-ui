@@ -7,8 +7,7 @@ import type { SidebarItemProps } from './types'
 import { useSidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
 
-const isRenderable = (value: React.ReactNode) =>
-  value !== undefined && value !== null && value !== false
+const isRenderable = (value: React.ReactNode) => value !== undefined && value !== null && value !== false
 
 const SidebarItem: React.FC<SidebarItemProps> = props => {
   const {
@@ -37,14 +36,17 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
   }
 
   const isActive = context.activeIndex === index
+  const titleColor = disabled
+    ? tokens.colors.disabled
+    : isActive
+      ? tokens.colors.titleActive
+      : tokens.colors.title
 
   const press = useAriaPress({
     disabled,
     onPress: () => {
-      if (!disabled) {
-        onClick?.(index)
-        context.onSelect(index)
-      }
+      onClick?.(index)
+      context.onSelect(index)
     },
     extraProps: {
       accessibilityRole: 'tab',
@@ -62,12 +64,14 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
       <View style={styles.indicatorWrapper}>
         {isActive ? (
           <View
-            style={{
-              width: tokens.layout.indicatorWidth,
-              height: 20,
-              borderRadius: tokens.layout.indicatorWidth,
-              backgroundColor: tokens.colors.indicator,
-            }}
+            style={[
+              styles.indicator,
+              {
+                width: tokens.layout.indicatorWidth,
+                borderRadius: tokens.layout.indicatorWidth,
+                backgroundColor: tokens.colors.indicator,
+              },
+            ]}
           />
         ) : null}
       </View>
@@ -78,11 +82,11 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
               ? (
                 <Text
                   style={[
-                    styles.title,
                     {
-                      color: isActive ? tokens.colors.titleActive : tokens.colors.title,
+                      color: titleColor,
+                      fontSize: tokens.typography.fontSize,
+                      fontWeight: tokens.typography.fontWeight as any,
                     },
-                    disabled && { color: tokens.colors.disabled },
                     textStyle,
                   ]}
                 >
@@ -123,14 +127,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
   },
+  indicator: {
+    height: 20,
+  },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '500',
   },
   badge: {
     marginLeft: 4,

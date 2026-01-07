@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minWidth: 0,
-    overflow: 'hidden',
+    minHeight: 0,
   },
   input: {
     flex: 1,
@@ -68,6 +69,8 @@ const styles = StyleSheet.create({
     outlineWidth: 0,
     outlineColor: 'transparent',
     backgroundColor: 'transparent',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   textarea: {
     flex: 1,
@@ -494,9 +497,22 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
         fontSize: tokens.typography.inputSize,
         textAlign: finalTextAlign,
-        lineHeight: isTextarea ? lineHeight : tokens.typography.inputLineHeight,
-        height: isTextarea ? textareaHeight : tokens.typography.inputLineHeight,
-        ...(isTextarea ? { minHeight } : null),
+        ...(isTextarea
+          ? {
+              lineHeight,
+              height: textareaHeight,
+              minHeight,
+            }
+          : Platform.OS === 'web'
+            ? {
+                // Web 上不设置固定 height，让 TextInput 自适应
+                minHeight: tokens.sizes.controlMinHeight,
+              }
+            : {
+                // React Native 上需要明确的高度，使用 lineHeight 确保文本居中
+                height: tokens.typography.inputLineHeight,
+                lineHeight: tokens.typography.inputLineHeight,
+              }),
       },
       inputStyle,
     ]

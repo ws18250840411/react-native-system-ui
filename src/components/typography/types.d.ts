@@ -1,7 +1,7 @@
 import type { TextProps } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { TypographyTokens } from './Typography'
+import type { TypographyTokens } from './tokens'
 
 export type TypographyType =
   | 'default'

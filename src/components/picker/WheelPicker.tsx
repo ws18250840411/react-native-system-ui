@@ -79,12 +79,62 @@ const WheelPickerInner = <T,>({
   const startOffsetRef = React.useRef(0)
   const startTimeRef = React.useRef(0)
   const [webTransition, setWebTransition] = React.useState(0)
+  const pendingIndexRef = React.useRef<number | null>(null)
+  const pendingTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const rafIdRef = React.useRef<number | null>(null)
+
+  const stopRaf = React.useCallback(() => {
+    if (rafIdRef.current != null && typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(rafIdRef.current)
+      rafIdRef.current = null
+    }
+  }, [])
+
+  const clearPendingTimer = React.useCallback(() => {
+    if (pendingTimerRef.current) {
+      clearTimeout(pendingTimerRef.current)
+      pendingTimerRef.current = null
+    }
+  }, [])
+
+  React.useEffect(() => () => clearPendingTimer(), [clearPendingTimer])
+  React.useEffect(() => () => stopRaf(), [stopRaf])
   React.useEffect(() => {
     if (!isWeb) return
+    clearPendingTimer()
+    pendingIndexRef.current = null
     const next = indexToOffset(selectedIndex, itemHeight)
     webOffsetRef.current = next
     setWebOffset(next)
-  }, [isWeb, itemHeight, selectedIndex])
+  }, [clearPendingTimer, isWeb, itemHeight, selectedIndex])
+
+  const finalizePendingChange = React.useCallback(() => {
+    if (readOnly) return
+    const nextIndex = pendingIndexRef.current
+    if (nextIndex == null) return
+    pendingIndexRef.current = null
+    clearPendingTimer()
+    if (nextIndex !== selectedIndex) onChange(nextIndex)
+  }, [clearPendingTimer, onChange, readOnly, selectedIndex])
+
+  const startWebSnap = React.useCallback(
+    (targetIndex: number) => {
+      if (readOnly) return
+      const clampedIndex = clamp(targetIndex, 0, Math.max(0, total - 1))
+      const targetOffset = indexToOffset(clampedIndex, itemHeight)
+      clearPendingTimer()
+      pendingIndexRef.current = clampedIndex
+      webOffsetRef.current = targetOffset
+      setWebTransition(swipeDuration)
+      setWebOffset(targetOffset)
+      if (swipeDuration <= 0) {
+        finalizePendingChange()
+      } else {
+        pendingTimerRef.current = setTimeout(finalizePendingChange, swipeDuration + 80)
+      }
+    },
+    [clearPendingTimer, finalizePendingChange, itemHeight, readOnly, swipeDuration, total],
+  )
 
   const handleWheel = React.useCallback(
     (event: unknown) => {
@@ -95,16 +145,20 @@ const WheelPickerInner = <T,>({
       const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data as any)
       const nextIndex = clamp(index + direction, 0, total - 1)
       if (nextIndex === selectedIndex) return
-      const nextOffset = indexToOffset(nextIndex, itemHeight)
-      webOffsetRef.current = nextOffset
-      setWebTransition(swipeDuration)
-      setWebOffset(nextOffset)
-      onChange(nextIndex)
+      startWebSnap(nextIndex)
     },
-    [data, isWeb, itemHeight, onChange, readOnly, selectedIndex, swipeDuration, total],
+    [data, isWeb, itemHeight, readOnly, selectedIndex, startWebSnap, total],
   )
 
   const webTransform = { transform: [{ translateY: webOffset }] }
+  const handleWebTransitionEnd = React.useCallback(
+    (event: any) => {
+      const propertyName = event?.nativeEvent?.propertyName ?? event?.propertyName
+      if (propertyName && propertyName !== 'transform' && propertyName !== 'webkitTransform') return
+      finalizePendingChange()
+    },
+    [finalizePendingChange],
+  )
 
   const panResponder = React.useMemo(
     () =>
@@ -113,15 +167,32 @@ const WheelPickerInner = <T,>({
         onMoveShouldSetPanResponder: () => isWeb && !readOnly,
         onPanResponderGrant: () => {
           if (!isWeb) return
+          stopRaf()
+          pendingIndexRef.current = null
           setWebTransition(0)
           startOffsetRef.current = webOffsetRef.current
           startTimeRef.current = Date.now()
         },
         onPanResponderMove: (_, gesture) => {
           if (!isWeb || readOnly) return
-          const next = clamp(startOffsetRef.current + gesture.dy, -Math.max(0, total - 1) * itemHeight, 0)
+          const next = clamp(
+            startOffsetRef.current + gesture.dy,
+            -Math.max(0, total - 1) * itemHeight,
+            0,
+          )
           webOffsetRef.current = next
-          setWebOffset(next)
+          if (typeof requestAnimationFrame !== 'undefined') {
+            if (rafIdRef.current != null) {
+              cancelAnimationFrame(rafIdRef.current)
+              rafIdRef.current = null
+            }
+            rafIdRef.current = requestAnimationFrame(() => {
+              rafIdRef.current = null
+              setWebOffset(webOffsetRef.current)
+            })
+          } else {
+            setWebOffset(next)
+          }
         },
         onPanResponderRelease: (_, gesture) => {
           if (!isWeb || readOnly) return
@@ -131,11 +202,8 @@ const WheelPickerInner = <T,>({
           if (shouldMomentum(distance, duration)) {
             target = momentumTarget(distance, duration, startOffsetRef.current, itemHeight, -Math.max(0, total - 1) * itemHeight)
           }
-          const { index, snapOffset } = offsetToIndex(target, itemHeight, total, data as any)
-          setWebTransition(swipeDuration)
-          webOffsetRef.current = snapOffset
-          setWebOffset(snapOffset)
-          if (index !== selectedIndex) onChange(index)
+          const { index } = offsetToIndex(target, itemHeight, total, data as any)
+          startWebSnap(index)
         },
         onPanResponderTerminationRequest: () => false,
         onPanResponderTerminate: () => {
@@ -163,6 +231,7 @@ const WheelPickerInner = <T,>({
         />
         <View
           style={webTransform}
+          {...({ onTransitionEnd: handleWebTransitionEnd } as any)}
           {...(isWeb
             ? {
               transitionProperty: webTransition ? 'transform' : 'none',

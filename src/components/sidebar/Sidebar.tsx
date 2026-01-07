@@ -1,8 +1,8 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
+import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
-import { deepMerge } from '../../utils/deepMerge'
 import type { SidebarItemProps, SidebarProps } from './types'
 import { SidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
@@ -28,10 +28,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
     trigger: 'onChange',
   })
 
-  const currentIndex = React.useMemo(() => {
-    const exists = items.some(item => item.index === activeIndex)
-    return exists ? activeIndex : firstIndex
-  }, [activeIndex, firstIndex, items])
+  const currentIndex = items.some(item => item.index === activeIndex) ? activeIndex : firstIndex
 
   const contextValue = React.useMemo(
     () => ({
@@ -46,10 +43,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
       React.cloneElement(item.element, {
         key: item.element.key ?? item.index,
         index: item.index,
-        tokensOverride:
-          (item.element.props.tokensOverride && tokensOverride)
-            ? deepMerge(tokensOverride, item.element.props.tokensOverride)
-            : item.element.props.tokensOverride ?? tokensOverride,
+        tokensOverride: mergeTokensOverride(tokensOverride, item.element.props.tokensOverride),
       })
     )
   }, [items, tokensOverride])
@@ -59,14 +53,13 @@ const SidebarBase: React.FC<SidebarProps> = props => {
   }, [currentIndex, items])
 
   const activeContentStyle = activeItem?.props?.contentStyle
-  const activeContentNode = React.useMemo(() => {
-    const content = activeItem?.props?.children
-    if (content === null || content === undefined || content === false) return null
-    if (typeof content === 'string' || typeof content === 'number') {
-      return <Text>{content}</Text>
-    }
-    return content
-  }, [activeItem])
+  const activeContent = activeItem?.props?.children
+  const activeContentNode =
+    activeContent == null || activeContent === false
+      ? null
+      : typeof activeContent === 'string' || typeof activeContent === 'number'
+        ? <Text>{activeContent}</Text>
+        : activeContent
 
   return (
     <View
@@ -78,7 +71,6 @@ const SidebarBase: React.FC<SidebarProps> = props => {
           styles.side,
           {
             width: tokens.layout.width,
-            borderRightWidth: StyleSheet.hairlineWidth,
             borderRightColor: tokens.colors.border,
           },
           sideStyle,
@@ -88,7 +80,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
           {clonedItems}
         </SidebarContext.Provider>
       </View>
-      <View style={[styles.content, { backgroundColor: tokens.colors.background }, activeContentStyle]}>
+      <View style={[styles.content, activeContentStyle]}>
         {activeContentNode}
       </View>
     </View>
