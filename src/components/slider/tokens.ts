@@ -30,7 +30,6 @@ export interface SliderTokens {
 }
 
 const createSliderTokens = (foundations: Foundations): SliderTokens => {
-  const surface = foundations.palette.default[50]
   return {
     track: {
       height: 2,
@@ -44,8 +43,8 @@ const createSliderTokens = (foundations: Foundations): SliderTokens => {
     colors: {
       active: foundations.palette.primary[500],
       inactive: foundations.palette.default[300],
-      thumbBackground: surface,
-      thumbIndicator: surface,
+      thumbBackground: '#ffffff',
+      thumbIndicator: '#ffffff',
     },
     spacing: {
       containerPaddingVertical: foundations.spacing.md,

@@ -29,10 +29,9 @@ export interface ShareSheetTokens {
 
 const createTokens = (foundations: Foundations): ShareSheetTokens => {
   const { palette, spacing, fontSize } = foundations
-  const surface = palette.default[50]
   return {
     colors: {
-      background: surface,
+      background: '#ffffff',
       title: palette.default[900],
       description: palette.default[500],
       option: palette.default[900],

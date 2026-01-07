@@ -38,7 +38,6 @@ export interface RadioTokens {
 
 const createRadioTokens = (foundations: Foundations): RadioTokens => {
   const { palette, spacing, fontSize, typography } = foundations
-  const surface = palette.default[50]
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
@@ -47,7 +46,7 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
     },
     colors: {
       border: palette.default[400],
-      background: surface,
+      background: '#ffffff',
       checkedBackground: palette.primary[500],
       disabledBorder: palette.default[300],
       disabledBackground: palette.default[100],

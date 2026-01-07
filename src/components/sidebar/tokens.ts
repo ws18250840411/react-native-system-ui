@@ -23,10 +23,9 @@ export interface SidebarTokens {
 
 const createTokens = (foundations: Foundations): SidebarTokens => {
   const { palette, fontSize } = foundations
-  const surface = palette.default[50]
   return {
     colors: {
-      background: surface,
+      background: '#ffffff',
       border: palette.default[200],
       title: palette.default[800],
       titleActive: palette.primary[600],

@@ -46,13 +46,12 @@ export interface DialogTokens {
 
 export const createDialogTokens = (foundations: Foundations): DialogTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
-  const surface = palette.default[50]
   const onSurface = palette.default[900]
   const secondary = palette.default[600]
 
   return {
     colors: {
-      background: surface,
+      background: '#ffffff',
       title: onSurface,
       message: secondary,
       divider: palette.default[200],

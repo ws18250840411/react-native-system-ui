@@ -14,10 +14,9 @@ export interface ImageTokens {
 
 const createTokens = (foundations: Foundations): ImageTokens => {
   const { palette, radii } = foundations
-  const surface = palette.default[50]
   return {
     colors: {
-      background: surface,
+      background: '#ffffff',
       text: palette.default[500],
       error: palette.danger[500],
     },

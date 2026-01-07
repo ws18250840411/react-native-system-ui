@@ -42,11 +42,10 @@ export interface CascaderTokens {
 
 const createTokens = (foundations: Foundations): CascaderTokens => {
   const { palette, spacing, radii } = foundations
-  const surface = palette.default[50]
   const surfaceMuted = palette.default[100]
   return {
     colors: {
-      background: surface,
+      background: '#ffffff',
       headerText: palette.default[900],
       placeholder: palette.default[500],
       closeIcon: palette.default[300],

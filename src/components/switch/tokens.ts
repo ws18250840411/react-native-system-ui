@@ -4,15 +4,14 @@ import type { SwitchTokens } from './types'
 
 const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
   const { palette, opacity } = foundations
-  const surface = palette.default[50]
   return {
     defaults: {
       size: 30,
     },
     colors: {
       activeTrack: palette.primary[500],
-      inactiveTrack: surface,
-      handle: surface,
+      inactiveTrack: '#ffffff',
+      handle: '#ffffff',
       border: palette.default[300],
     },
     opacity: {

@@ -35,7 +35,6 @@ export interface DropdownMenuTokens {
 
 const createTokens = (foundations: Foundations): DropdownMenuTokens => {
   const { palette, spacing, fontSize, typography } = foundations
-  const surface = palette.default[50]
   return {
     colors: {
       text: palette.default[900],
@@ -43,10 +42,10 @@ const createTokens = (foundations: Foundations): DropdownMenuTokens => {
       placeholder: palette.default[500],
       disabledText: palette.default[400],
       arrow: palette.default[500],
-      panelBackground: surface,
+      panelBackground: '#ffffff',
       mask: 'rgba(0,0,0,0.45)',
       divider: palette.default[200],
-      barBackground: surface,
+      barBackground: '#ffffff',
     },
     spacing: {
       horizontal: spacing.md,

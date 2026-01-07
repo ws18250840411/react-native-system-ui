@@ -4,7 +4,6 @@ import type { SkeletonTokens } from './types'
 
 const createTokens = (foundations: Foundations): SkeletonTokens => {
   const { palette, spacing, radii } = foundations
-  const surface = palette.default[50]
   const surfaceMuted = palette.default[100]
   return {
     defaults: {
@@ -17,7 +16,7 @@ const createTokens = (foundations: Foundations): SkeletonTokens => {
     },
     colors: {
       block: surfaceMuted,
-      highlight: surface,
+      highlight: '#ffffff',
     },
     radius: radii.sm,
     spacing: {

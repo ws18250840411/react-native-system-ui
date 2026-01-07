@@ -29,7 +29,7 @@ export interface NavBarTokens {
 const createTokens = ({ palette, spacing, fontSize }: Foundations): NavBarTokens => ({
   defaults: { fixed: false, placeholder: false, border: true, safeAreaInsetTop: false },
   colors: {
-    background: palette.default[50],
+    background: '#ffffff',
     text: palette.default[900],
     description: palette.default[500],
     border: palette.default[200],

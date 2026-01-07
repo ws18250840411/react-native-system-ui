@@ -25,7 +25,6 @@ export interface IndexBarTokens {
 
 const createTokens = (foundations: Foundations): IndexBarTokens => {
   const { palette, spacing } = foundations
-  const surface = palette.default[50]
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     colors: {
@@ -33,9 +32,9 @@ const createTokens = (foundations: Foundations): IndexBarTokens => {
       activeText: palette.primary[600],
       indicatorBackground: 'rgba(0,0,0,0.6)',
       indicatorText: onPrimary,
-      stickyBackground: surface,
+      stickyBackground: '#ffffff',
       stickyText: palette.default[900],
-      anchorBackground: surface,
+      anchorBackground: '#ffffff',
       anchorText: palette.default[900],
       border: palette.default[200],
     },

@@ -43,14 +43,13 @@ export interface CalendarTokens {
 
 const createCalendarTokens = (foundations: Foundations): CalendarTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
-  const surface = palette.default[50]
   const onPrimary = palette.primary.foreground ?? "#ffffff"
   return {
     colors: {
       text: palette.default[800],
       weekend: palette.danger[500],
       disabled: palette.default[300],
-      background: surface,
+      background: '#ffffff',
       selectedBackground: palette.primary[500],
       selectedText: onPrimary,
       rangeBackground: palette.primary[100],

@@ -47,7 +47,7 @@ const createSelectorTokens = ({
   colors: {
     border: 'transparent',
     borderActive: 'transparent',
-    background: palette.default[50],
+    background: '#ffffff',
     backgroundActive: palette.primary[50],
     text: palette.default[900],
     textActive: palette.primary[600],

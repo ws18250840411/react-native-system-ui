@@ -32,7 +32,6 @@ export interface TabbarTokens {
 
 const createTokens = (foundations: Foundations): TabbarTokens => {
   const { palette, spacing, fontSize } = foundations
-  const surface = palette.default[50]
   return {
     defaults: {
       fixed: true,
@@ -42,7 +41,7 @@ const createTokens = (foundations: Foundations): TabbarTokens => {
       safeAreaInsetBottom: false,
     },
     colors: {
-      background: surface,
+      background: '#ffffff',
       border: palette.default[200],
       active: palette.primary[600],
       inactive: palette.default[600],

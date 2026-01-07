@@ -30,10 +30,9 @@ export interface ActionSheetTokens {
 
 const createTokens = (foundations: Foundations): ActionSheetTokens => {
   const { palette, spacing, fontSize } = foundations
-  const surface = palette.default[50]
   return {
     colors: {
-      background: surface,
+      background: '#ffffff',
       title: palette.default[900],
       description: palette.default[500],
       item: palette.default[900],
@@ -41,9 +40,9 @@ const createTokens = (foundations: Foundations): ActionSheetTokens => {
       cancel: palette.default[900],
       disabled: palette.default[400],
       border: palette.default[200],
-      itemBackground: surface,
+      itemBackground: '#ffffff',
       itemPressedBackground: palette.default[100],
-      cancelBackground: surface,
+      cancelBackground: '#ffffff',
       cancelGapBackground: palette.default[100] ?? '#f1f2f5',
     },
     spacing: {
