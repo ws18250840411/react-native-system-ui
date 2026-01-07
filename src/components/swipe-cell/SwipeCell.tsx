@@ -1,7 +1,10 @@
 import React from 'react'
 import {
   Animated,
+  Easing,
   PanResponder,
+  Platform,
+  Pressable,
   StyleSheet,
   View,
   type LayoutChangeEvent,
@@ -28,6 +31,11 @@ export interface SwipeCellProps {
   leftWidth?: number
   rightWidth?: number
   disabled?: boolean
+  /**
+   * 点击操作区后是否自动关闭
+   * @default true
+   */
+  closeOnActionPress?: boolean
   /**
    * 触发打开的阈值比例（0-1），默认 0.3
    */
@@ -69,6 +77,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
     leftWidth: leftWidthProp,
     rightWidth: rightWidthProp,
     disabled = false,
+    closeOnActionPress = true,
     threshold = 0.3,
     duration = 180,
     onOpen,
@@ -81,20 +90,75 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
     children,
   } = props
 
+  const isWeb = Platform.OS === 'web'
+
   const translateX = React.useRef(new Animated.Value(0)).current
   const positionRef = React.useRef<SwipeCellPosition>('closed')
+  const [position, setPosition] = React.useState<SwipeCellPosition>('closed')
   const startXRef = React.useRef(0)
+  const panActiveRef = React.useRef(false)
+  const actionTapStartRef = React.useRef<{ side: SwipeCellSide; x: number; y: number } | null>(null)
+  const closeFromActionTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [measuredLeftWidth, setMeasuredLeftWidth] = React.useState(0)
   const [measuredRightWidth, setMeasuredRightWidth] = React.useState(0)
 
+  const dragRafIdRef = React.useRef<number | null>(null)
+  const dragPendingRef = React.useRef<number | null>(null)
+
   const leftWidth = Math.max(0, leftWidthProp ?? measuredLeftWidth)
   const rightWidth = Math.max(0, rightWidthProp ?? measuredRightWidth)
+
+  const clearCloseFromActionTimer = React.useCallback(() => {
+    if (closeFromActionTimerRef.current != null) {
+      clearTimeout(closeFromActionTimerRef.current)
+    }
+    closeFromActionTimerRef.current = null
+  }, [])
+
+  const cancelDragRaf = React.useCallback(() => {
+    if (dragRafIdRef.current != null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(dragRafIdRef.current)
+    }
+    dragRafIdRef.current = null
+    dragPendingRef.current = null
+  }, [])
+
+  const flushDrag = React.useCallback(() => {
+    const pending = dragPendingRef.current
+    if (pending == null) return
+    dragPendingRef.current = null
+    translateX.setValue(pending)
+  }, [translateX])
+
+  const scheduleDrag = React.useCallback(
+    (next: number) => {
+      if (typeof requestAnimationFrame !== 'function') {
+        translateX.setValue(next)
+        return
+      }
+      dragPendingRef.current = next
+      if (dragRafIdRef.current != null) return
+      dragRafIdRef.current = requestAnimationFrame(() => {
+        dragRafIdRef.current = null
+        flushDrag()
+      })
+    },
+    [flushDrag, translateX]
+  )
+
+  React.useEffect(() => {
+    return () => {
+      cancelDragRaf()
+      clearCloseFromActionTimer()
+    }
+  }, [cancelDragRaf, clearCloseFromActionTimer])
 
   const emitPositionChange = React.useCallback(
     (next: SwipeCellPosition) => {
       if (positionRef.current !== next) {
         positionRef.current = next
+        setPosition(next)
         onChange?.(next)
       }
     },
@@ -104,10 +168,12 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   const animateTo = React.useCallback(
     (target: number, nextPosition: SwipeCellPosition) => {
       const prevPosition = positionRef.current
+      cancelDragRaf()
       translateX.stopAnimation()
       Animated.timing(translateX, {
         toValue: target,
         duration: Math.max(0, duration),
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: nativeDriverEnabled,
       }).start(({ finished }) => {
         if (!finished) return
@@ -120,7 +186,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
         emitPositionChange(nextPosition)
       })
     },
-    [duration, emitPositionChange, onClose, onOpen, translateX]
+    [cancelDragRaf, duration, emitPositionChange, onClose, onOpen, translateX]
   )
 
   const open = React.useCallback(
@@ -138,6 +204,55 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   const close = React.useCallback(() => {
     animateTo(0, 'closed')
   }, [animateTo])
+
+  const handleActionClick = React.useCallback(
+    (side: SwipeCellSide) => {
+      if (!closeOnActionPress) return
+      if (positionRef.current !== side) return
+      close()
+    },
+    [close, closeOnActionPress]
+  )
+
+  const handleActionTouchStart = React.useCallback(
+    (side: SwipeCellSide, event: any) => {
+      if (!closeOnActionPress) return
+      if (positionRef.current !== side) return
+      const x = event?.nativeEvent?.pageX
+      const y = event?.nativeEvent?.pageY
+      if (typeof x !== 'number' || typeof y !== 'number') return
+      actionTapStartRef.current = { side, x, y }
+    },
+    [closeOnActionPress]
+  )
+
+  const handleActionTouchEnd = React.useCallback(
+    (side: SwipeCellSide, event: any) => {
+      if (!closeOnActionPress) return
+      if (positionRef.current !== side) return
+      if (panActiveRef.current) return
+
+      const start = actionTapStartRef.current
+      actionTapStartRef.current = null
+      if (!start || start.side !== side) return
+
+      const x = event?.nativeEvent?.pageX
+      const y = event?.nativeEvent?.pageY
+      if (typeof x !== 'number' || typeof y !== 'number') return
+
+      const TAP_SLOP = 8
+      if (Math.abs(x - start.x) > TAP_SLOP || Math.abs(y - start.y) > TAP_SLOP) return
+
+      clearCloseFromActionTimer()
+      closeFromActionTimerRef.current = setTimeout(() => {
+        closeFromActionTimerRef.current = null
+        if (positionRef.current === side) {
+          close()
+        }
+      }, 0)
+    },
+    [clearCloseFromActionTimer, close, closeOnActionPress]
+  )
 
   React.useImperativeHandle(
     ref,
@@ -176,12 +291,50 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
       const safeThreshold = clamp(threshold, 0, 1)
       const leftThreshold = leftWidth * safeThreshold
       const rightThreshold = rightWidth * safeThreshold
+      const leftCloseThreshold = leftWidth * (1 - safeThreshold)
+      const rightCloseThreshold = rightWidth * (1 - safeThreshold)
+      const position = positionRef.current
 
-      if (velocityX > 0.35 && hasLeft) return { target: leftWidth, position: 'left' as const }
-      if (velocityX < -0.35 && hasRight) return { target: -rightWidth, position: 'right' as const }
+      const VELOCITY_THRESHOLD = 0.35
 
-      if (current > leftThreshold && hasLeft) return { target: leftWidth, position: 'left' as const }
-      if (current < -rightThreshold && hasRight) return { target: -rightWidth, position: 'right' as const }
+      if (position === 'closed') {
+        if (velocityX > VELOCITY_THRESHOLD && hasLeft) return { target: leftWidth, position: 'left' as const }
+        if (velocityX < -VELOCITY_THRESHOLD && hasRight) return { target: -rightWidth, position: 'right' as const }
+
+        if (current > leftThreshold && hasLeft) return { target: leftWidth, position: 'left' as const }
+        if (current < -rightThreshold && hasRight) return { target: -rightWidth, position: 'right' as const }
+
+        return { target: 0, position: 'closed' as const }
+      }
+
+      if (position === 'left') {
+        if (!hasLeft) return { target: 0, position: 'closed' as const }
+
+        // 从左侧打开状态滑动到右侧：只有跨过 0 才允许打开右侧，避免快速滑动时“直接跳到另一侧”
+        if (current < 0 && hasRight) {
+          if (velocityX < -VELOCITY_THRESHOLD) return { target: -rightWidth, position: 'right' as const }
+          if (current < -rightThreshold) return { target: -rightWidth, position: 'right' as const }
+          return { target: 0, position: 'closed' as const }
+        }
+
+        if (velocityX > VELOCITY_THRESHOLD) return { target: leftWidth, position: 'left' as const }
+        if (current > leftCloseThreshold) return { target: leftWidth, position: 'left' as const }
+        return { target: 0, position: 'closed' as const }
+      }
+
+      if (position === 'right') {
+        if (!hasRight) return { target: 0, position: 'closed' as const }
+
+        if (current > 0 && hasLeft) {
+          if (velocityX > VELOCITY_THRESHOLD) return { target: leftWidth, position: 'left' as const }
+          if (current > leftThreshold) return { target: leftWidth, position: 'left' as const }
+          return { target: 0, position: 'closed' as const }
+        }
+
+        if (velocityX < -VELOCITY_THRESHOLD) return { target: -rightWidth, position: 'right' as const }
+        if (current < -rightCloseThreshold) return { target: -rightWidth, position: 'right' as const }
+        return { target: 0, position: 'closed' as const }
+      }
 
       return { target: 0, position: 'closed' as const }
     },
@@ -190,8 +343,29 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
 
   const panResponder = React.useMemo(
     () => {
-      const shouldSet = (_evt: any, gesture: PanResponderGestureState) => !disabled && isHorizontalSwipe(gesture)
+      const shouldSet = (_evt: any, gesture: PanResponderGestureState) => {
+        if (disabled) return false
+        if (!isHorizontalSwipe(gesture)) return false
+
+        const dx = gesture.dx ?? 0
+        const hasLeft = leftWidth > 0 && !!left
+        const hasRight = rightWidth > 0 && !!right
+        const position = positionRef.current
+
+        // 关闭状态下：只在有对应侧操作区时才拦截，避免“滑了但没任何反馈/阻断列表滚动”
+        if (position === 'closed') {
+          if (dx > 0) return hasLeft
+          if (dx < 0) return hasRight
+          return false
+        }
+
+        // 打开状态下：允许从任意区域继续拖拽回中间或另一侧
+        return true
+      }
       const handleEnd = (_evt: any, gesture: PanResponderGestureState) => {
+        panActiveRef.current = false
+        flushDrag()
+        cancelDragRaf()
         translateX.stopAnimation(value => {
           const decided = decideTarget(value, gesture)
           animateTo(decided.target, decided.position)
@@ -202,12 +376,15 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
         onMoveShouldSetPanResponder: shouldSet,
         onMoveShouldSetPanResponderCapture: shouldSet,
         onPanResponderGrant: () => {
+          panActiveRef.current = true
+          cancelDragRaf()
           translateX.stopAnimation(value => {
             startXRef.current = value
           })
         },
         onPanResponderMove: (_evt, gesture) => {
-          translateX.setValue(clamp(startXRef.current + gesture.dx, -rightWidth, leftWidth))
+          const next = clamp(startXRef.current + gesture.dx, -rightWidth, leftWidth)
+          scheduleDrag(next)
         },
         onPanResponderRelease: handleEnd,
         onPanResponderTerminate: handleEnd,
@@ -215,7 +392,19 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
         onShouldBlockNativeResponder: () => false,
       })
     },
-    [animateTo, decideTarget, disabled, leftWidth, rightWidth, translateX]
+    [
+      animateTo,
+      cancelDragRaf,
+      decideTarget,
+      disabled,
+      flushDrag,
+      left,
+      leftWidth,
+      right,
+      rightWidth,
+      scheduleDrag,
+      translateX,
+    ]
   )
 
   return (
@@ -225,6 +414,9 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
           style={[styles.left, leftStyle]}
           pointerEvents="box-none"
           onLayout={handleLeftLayout}
+          onTouchStart={closeOnActionPress ? (e) => handleActionTouchStart('left', e) : undefined}
+          onTouchEnd={closeOnActionPress ? (e) => handleActionTouchEnd('left', e) : undefined}
+          {...(isWeb ? ({ onClick: () => handleActionClick('left') } as any) : undefined)}
         >
           {left}
         </View>
@@ -235,6 +427,9 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
           style={[styles.right, rightStyle]}
           pointerEvents="box-none"
           onLayout={handleRightLayout}
+          onTouchStart={closeOnActionPress ? (e) => handleActionTouchStart('right', e) : undefined}
+          onTouchEnd={closeOnActionPress ? (e) => handleActionTouchEnd('right', e) : undefined}
+          {...(isWeb ? ({ onClick: () => handleActionClick('right') } as any) : undefined)}
         >
           {right}
         </View>
@@ -250,6 +445,12 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
         ]}
       >
         {children}
+        {position !== 'closed' ? (
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={close}
+          />
+        ) : null}
       </Animated.View>
     </View>
   )

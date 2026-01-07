@@ -44,7 +44,6 @@ export default function TabsBasicDemo() {
           border={false}
           color={primaryColor}
           titleActiveColor={primaryColor}
-          align="start"
           tabStyle={fullTabStyle}
         >
           {lineTabs.map(tab => (
@@ -61,9 +60,8 @@ export default function TabsBasicDemo() {
           type="capsule"
           color={primaryColor}
           defaultActive={capsuleTabs[0].key}
-          align="start"
-          tabStyle={fullTabStyle}
           tabBarStyle={{ paddingHorizontal: 0 }}
+          tabStyle={fullTabStyle}
         >
           {capsuleTabs.map(tab => (
             <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
@@ -79,7 +77,6 @@ export default function TabsBasicDemo() {
           type="jumbo"
           color={primaryColor}
           defaultActive={jumboTabs[0].key}
-          align="start"
           tabStyle={fullTabStyle}
         >
           {jumboTabs.map(tab => (
@@ -101,7 +98,6 @@ export default function TabsBasicDemo() {
           type="card"
           color={primaryColor}
           defaultActive={cardTabs[0].key}
-          align="start"
           tabStyle={fullTabStyle}
         >
           {cardTabs.map(tab => (

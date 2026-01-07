@@ -23,7 +23,13 @@ export default function TabsScrollableDemo() {
   return (
     <View style={styles.root}>
       <DemoBlock>
-        <Tabs defaultActive={tabs[0].key} color="#3a7afe" titleActiveColor="#3a7afe" align="start">
+        <Tabs
+          defaultActive={tabs[0].key}
+          color="#3a7afe"
+          titleActiveColor="#3a7afe"
+          scrollable
+          align="start"
+        >
           {tabs.map(tab => (
             <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
               <Pane>{tab.desc}</Pane>

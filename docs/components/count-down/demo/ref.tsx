@@ -7,9 +7,11 @@ export default () => {
   return (
     <Space direction="vertical" gap={8}>
       <CountDown ref={ref} autoStart={false} time={60 * 1000} format="mm:ss" />
-      <Button text="开始" onPress={() => ref.current?.start()} />
-      <Button text="暂停" onPress={() => ref.current?.pause()} />
-      <Button text="重置" onPress={() => ref.current?.reset()} />
+      <Space gap={8}>
+        <Button text="开始" onPress={() => ref.current?.start()} />
+        <Button text="暂停" onPress={() => ref.current?.pause()} />
+        <Button text="重置" onPress={() => ref.current?.reset()} />
+      </Space>
     </Space>
   )
 }

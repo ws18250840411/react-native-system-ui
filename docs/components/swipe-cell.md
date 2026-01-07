@@ -9,6 +9,8 @@ simulator:
 
 对列表项进行左右滑动，展示更多操作按钮（例如删除、收藏等）。
 
+滑开后点击内容区域或操作按钮会自动关闭并恢复初始状态。
+
 ## 引入
 
 ```js
@@ -38,6 +40,7 @@ import { SwipeCell } from 'react-native-system-ui'
 | `leftWidth` | 左侧操作区宽度（不传则自动测量） | `number` | - |
 | `rightWidth` | 右侧操作区宽度（不传则自动测量） | `number` | - |
 | `disabled` | 是否禁用滑动 | `boolean` | `false` |
+| `closeOnActionPress` | 点击操作区后是否自动关闭 | `boolean` | `true` |
 | `threshold` | 打开阈值比例（0-1） | `number` | `0.3` |
 | `duration` | 动画时长（ms） | `number` | `180` |
 | `onOpen` | 打开某一侧时触发 | `(side) => void` | - |
@@ -55,4 +58,3 @@ import { SwipeCell } from 'react-native-system-ui'
 | `open(side)` | 打开 `left/right` |
 | `close()` | 关闭并回到初始位置 |
 | `getPosition()` | 获取当前状态：`'closed' \| 'left' \| 'right'` |
-

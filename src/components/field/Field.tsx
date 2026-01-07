@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minWidth: 0,
-    minHeight: 0,
   },
   input: {
     flex: 1,
@@ -499,20 +498,13 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         textAlign: finalTextAlign,
         ...(isTextarea
           ? {
-              lineHeight,
-              height: textareaHeight,
-              minHeight,
-            }
-          : Platform.OS === 'web'
-            ? {
-                // Web 上不设置固定 height，让 TextInput 自适应
-                minHeight: tokens.sizes.controlMinHeight,
-              }
-            : {
-                // React Native 上需要明确的高度，使用 lineHeight 确保文本居中
-                height: tokens.typography.inputLineHeight,
-                lineHeight: tokens.typography.inputLineHeight,
-              }),
+            lineHeight,
+            height: textareaHeight,
+            minHeight,
+          }
+          : {
+            minHeight: tokens.sizes.controlMinHeight,
+          }),
       },
       inputStyle,
     ]

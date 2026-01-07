@@ -23,7 +23,12 @@ export default function TabsDisabledDemo() {
   return (
     <View style={styles.root}>
       <DemoBlock>
-        <Tabs defaultActive="a" color="#3a7afe" titleActiveColor="#3a7afe" align="start">
+        <Tabs
+          defaultActive="a"
+          color="#3a7afe"
+          titleActiveColor="#3a7afe"
+          tabStyle={{ flexGrow: 1, flexShrink: 1, flexBasis: 0 }}
+        >
           {panes.map(item => (
             <Tabs.TabPane
               key={item.name}

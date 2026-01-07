@@ -39,6 +39,7 @@ export default function TabsSwipeableDemo() {
           lazyRenderPlaceholder={<Pane title="加载中" desc="内容" />}
           color="#3a7afe"
           titleActiveColor="#3a7afe"
+          tabStyle={{ flexGrow: 1, flexShrink: 1, flexBasis: 0 }}
         >
           {sections.map(section => (
             <Tabs.TabPane key={section.key} name={section.key} title={section.title}>

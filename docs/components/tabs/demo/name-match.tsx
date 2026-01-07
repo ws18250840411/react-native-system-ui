@@ -27,7 +27,12 @@ export default function TabsNameMatchDemo() {
   return (
     <View style={styles.root}>
       <DemoBlock>
-        <Tabs defaultActive="c" align="start" color="#3a7afe" titleActiveColor="#3a7afe">
+        <Tabs
+          defaultActive="c"
+          color="#3a7afe"
+          titleActiveColor="#3a7afe"
+          tabStyle={{ flexGrow: 1, flexShrink: 1, flexBasis: 0 }}
+        >
           {panes.map(item => (
             <Tabs.TabPane key={item.name} name={item.name} title={item.label}>
               <Pane>{item.content}</Pane>
