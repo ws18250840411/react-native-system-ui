@@ -43,7 +43,8 @@ const LAYOUT_STYLE_KEYS = new Set([
   'end',
 ])
 
-const isLayoutStyleKey = (key: string) => LAYOUT_STYLE_KEYS.has(key) || key.startsWith('margin')
+const isLayoutStyleKey = (key: string) =>
+  LAYOUT_STYLE_KEYS.has(key) || key.startsWith('margin') || key.startsWith('padding') || key.startsWith('border')
 const isBorderRadiusStyleKey = (key: string) => key === 'borderRadius' || (key.startsWith('border') && key.endsWith('Radius'))
 
 const splitImageStyle = (style: any) => {
@@ -156,8 +157,8 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     const { borderRadius: containerBorderRadius } = splitImageStyle(containerStyle)
 
     const merged = {
-      ...(styleBorderRadius ?? {}),
       ...(containerBorderRadius ?? {}),
+      ...(styleBorderRadius ?? {}),
     }
     return Object.keys(merged).length ? merged : undefined
   }, [containerStyle, radius, round, styleBorderRadius])
@@ -170,7 +171,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
 
   const resolvedLoadingSize = typeof loadingSize === 'number' ? loadingSize : 20
   const resolvedErrorIconSize = iconSize ?? 20
-  const Container = onPress ? Pressable : View
+  const Container = (onPress ? Pressable : View) as any
   const imageCommonStyle = [
     StyleSheet.absoluteFill,
     ...(mergedBorderRadiusStyle ? [mergedBorderRadiusStyle] : []),
