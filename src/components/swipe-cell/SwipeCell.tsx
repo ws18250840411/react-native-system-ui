@@ -189,35 +189,32 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   )
 
   const panResponder = React.useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_evt, gesture) => !disabled && isHorizontalSwipe(gesture),
-        onMoveShouldSetPanResponderCapture: (_evt, gesture) => !disabled && isHorizontalSwipe(gesture),
+    () => {
+      const shouldSet = (_evt: any, gesture: PanResponderGestureState) => !disabled && isHorizontalSwipe(gesture)
+      const handleEnd = (_evt: any, gesture: PanResponderGestureState) => {
+        translateX.stopAnimation(value => {
+          const decided = decideTarget(value, gesture)
+          animateTo(decided.target, decided.position)
+        })
+      }
+
+      return PanResponder.create({
+        onMoveShouldSetPanResponder: shouldSet,
+        onMoveShouldSetPanResponderCapture: shouldSet,
         onPanResponderGrant: () => {
           translateX.stopAnimation(value => {
             startXRef.current = value
           })
         },
         onPanResponderMove: (_evt, gesture) => {
-          const next = startXRef.current + gesture.dx
-          const clamped = clamp(next, -rightWidth, leftWidth)
-          translateX.setValue(clamped)
+          translateX.setValue(clamp(startXRef.current + gesture.dx, -rightWidth, leftWidth))
         },
-        onPanResponderRelease: (_evt, gesture) => {
-          translateX.stopAnimation(value => {
-            const decided = decideTarget(value, gesture)
-            animateTo(decided.target, decided.position)
-          })
-        },
-        onPanResponderTerminate: (_evt, gesture) => {
-          translateX.stopAnimation(value => {
-            const decided = decideTarget(value, gesture)
-            animateTo(decided.target, decided.position)
-          })
-        },
+        onPanResponderRelease: handleEnd,
+        onPanResponderTerminate: handleEnd,
         onPanResponderTerminationRequest: () => false,
         onShouldBlockNativeResponder: () => false,
-      }),
+      })
+    },
     [animateTo, decideTarget, disabled, leftWidth, rightWidth, translateX]
   )
 

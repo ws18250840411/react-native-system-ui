@@ -26,33 +26,17 @@ export interface NavBarTokens {
   }
 }
 
-const createTokens = (foundations: Foundations): NavBarTokens => {
-  const { palette, spacing, fontSize } = foundations
-  const surface = palette.default[50]
-  return {
-    defaults: {
-      fixed: false,
-      placeholder: false,
-      border: true,
-      safeAreaInsetTop: false,
-    },
-    colors: {
-      background: surface,
-      text: palette.default[900],
-      description: palette.default[500],
-      border: palette.default[200],
-      icon: palette.default[700],
-    },
-    layout: {
-      height: 52,
-      paddingHorizontal: spacing.md,
-    },
-    typography: {
-      titleSize: fontSize.lg,
-      titleWeight: '600',
-      descriptionSize: fontSize.sm,
-    },
-  }
-}
+const createTokens = ({ palette, spacing, fontSize }: Foundations): NavBarTokens => ({
+  defaults: { fixed: false, placeholder: false, border: true, safeAreaInsetTop: false },
+  colors: {
+    background: palette.default[50],
+    text: palette.default[900],
+    description: palette.default[500],
+    border: palette.default[200],
+    icon: palette.default[700],
+  },
+  layout: { height: 52, paddingHorizontal: spacing.md },
+  typography: { titleSize: fontSize.lg, titleWeight: '600', descriptionSize: fontSize.sm },
+})
 
 export const useNavBarTokens = createComponentTokensHook('navBar', createTokens)

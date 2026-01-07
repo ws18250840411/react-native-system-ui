@@ -1,36 +1,9 @@
 import React from 'react'
 import { Animated, LayoutChangeEvent, Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
+import { clamp, parseNumberLike, parsePercentage } from '../../utils/number'
 import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'
-
-const clampPercentage = (value: number) => {
-  if (Number.isNaN(value)) return 0
-  if (value < 0) return 0
-  if (value > 100) return 100
-  return value
-}
-
-const parseStrokeWidth = (value: number | string | undefined, fallback: number) => {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
-  }
-  if (typeof value === 'string') {
-    const parsed = parseFloat(value)
-    return Number.isFinite(parsed) ? parsed : fallback
-  }
-  return fallback
-}
-
-const parsePercentage = (percentage?: number | string) => {
-  if (typeof percentage === 'number') return percentage
-  if (typeof percentage === 'string') {
-    const normalized = percentage.trim().replace('%', '')
-    const parsed = Number(normalized)
-    return Number.isNaN(parsed) ? 0 : parsed
-  }
-  return 0
-}
 
 const isGradientColor = (color?: string) => {
   if (typeof color !== 'string') return false
@@ -86,11 +59,8 @@ export const Progress: React.FC<ProgressProps> = props => {
     ...rest
   } = props
 
-  const percentage = clampPercentage(parsePercentage(percentageProp))
-  const resolvedStrokeWidth = React.useMemo(
-    () => parseStrokeWidth(strokeWidth, tokens.sizes.height),
-    [strokeWidth, tokens.sizes.height],
-  )
+  const percentage = clamp(parsePercentage(percentageProp), 0, 100)
+  const resolvedStrokeWidth = parseNumberLike(strokeWidth, tokens.sizes.height) ?? tokens.sizes.height
   const isGradient = isGradientColor(color)
   const useGradient = isGradient && Platform.OS === 'web'
 
@@ -107,29 +77,17 @@ export const Progress: React.FC<ProgressProps> = props => {
 
   const shouldShowPivot = showPivot && pivotContent !== null && pivotContent !== false
 
-  const shouldAnimateWidth =
-    ((typeof animated === 'boolean' ? animated : undefined) ?? transition ?? true) && !useGradient
+  const shouldAnimateWidth = (animated ?? transition ?? true) && !useGradient
 
-  const indicatorBaseStyle = React.useMemo(
-    () =>
-      StyleSheet.flatten([
-        {
-          position: 'absolute' as const,
-          left: 0,
-          top: 0,
-          height: resolvedStrokeWidth,
-          backgroundColor: useGradient ? undefined : resolvedIndicatorColor,
-          borderRadius: resolvedStrokeWidth / 2,
-        },
-        useGradient
-          ? {
-              backgroundImage: color as any,
-            }
-          : null,
-        indicatorStyle,
-      ]) as ViewStyle,
-    [color, indicatorStyle, resolvedIndicatorColor, resolvedStrokeWidth, useGradient],
-  )
+  const indicatorBaseStyle: ViewStyle = {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: resolvedStrokeWidth,
+    backgroundColor: useGradient ? undefined : resolvedIndicatorColor,
+    borderRadius: resolvedStrokeWidth / 2,
+  }
+  const gradientStyle = useGradient ? ({ backgroundImage: color as any } as any) : null
 
   const [trackWidth, setTrackWidth] = React.useState(0)
   const [pivotWidth, setPivotWidth] = React.useState(0)
@@ -143,11 +101,7 @@ export const Progress: React.FC<ProgressProps> = props => {
 
   const handleTrackLayout = (event: LayoutChangeEvent) => {
     const { width } = event.nativeEvent.layout
-    if (width === trackWidth) return
-    setTrackWidth(width)
-    if (!shouldAnimateWidth) {
-      animatedWidth.setValue((percentage / 100) * width)
-    }
+    if (width !== trackWidth) setTrackWidth(width)
   }
 
   const pivotBaseStyle = React.useMemo(
@@ -217,9 +171,9 @@ export const Progress: React.FC<ProgressProps> = props => {
 
   const renderIndicator = () => {
     if (trackWidth > 0 && !useGradient) {
-      return <Animated.View style={[indicatorBaseStyle, { width: animatedWidth }]} />
+      return <Animated.View style={[indicatorBaseStyle, gradientStyle, indicatorStyle, { width: animatedWidth }]} />
     }
-    return <View style={[indicatorBaseStyle, { width: `${percentage}%` }]} />
+    return <View style={[indicatorBaseStyle, gradientStyle, indicatorStyle, { width: `${percentage}%` }]} />
   }
 
   return (

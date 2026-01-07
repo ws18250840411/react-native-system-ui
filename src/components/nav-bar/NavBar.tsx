@@ -7,7 +7,7 @@ import { createHairlineBorderBottom } from '../../utils/hairline'
 import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
 
-const isRenderableNode = (node: React.ReactNode) => node !== null && node !== undefined && node !== false
+const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 const isTextLikeNode = (node: React.ReactNode): node is string | number =>
   typeof node === 'string' || typeof node === 'number'
 
@@ -48,10 +48,6 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const resolvedColor = tintColor ?? tokens.colors.text
   const sideColor = tintColor ?? tokens.colors.icon
 
-  const hasLeftArrow = leftArrow !== false && leftArrow !== null && leftArrow !== undefined
-  const hasLeftAction = Boolean(handlePressLeft) || hasLeftArrow || isRenderableNode(leftText) || isRenderableNode(leftIcon)
-  const hasRightAction = Boolean(handlePressRight) || isRenderableNode(rightText) || isRenderableNode(rightIcon)
-
   const leftPress = useAriaPress({
     disabled: !handlePressLeft,
     onPress: handlePressLeft,
@@ -71,14 +67,16 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   })
 
   const renderLeft = () => {
-    const arrowNode =
-      leftArrow === false || leftArrow === null || leftArrow === undefined
-        ? null
-        : typeof leftArrow === 'boolean'
-          ? <ArrowLeft size={18} fill={sideColor} color={sideColor} />
-          : leftArrow
+    const arrowNode = leftArrow === true
+      ? <ArrowLeft size={18} fill={sideColor} color={sideColor} />
+      : (isRenderableNode(leftArrow) ? leftArrow : null)
 
-    if (!hasLeftAction) {
+    const hasAction = !!handlePressLeft
+      || isRenderableNode(arrowNode)
+      || isRenderableNode(leftText)
+      || isRenderableNode(leftIcon)
+
+    if (!hasAction) {
       return <View style={styles.sidePlaceholder} />
     }
 
@@ -101,7 +99,8 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   }
 
   const renderRight = () => {
-    if (!hasRightAction) {
+    const hasAction = !!handlePressRight || isRenderableNode(rightText) || isRenderableNode(rightIcon)
+    if (!hasAction) {
       return <View style={styles.sidePlaceholder} />
     }
     return (
