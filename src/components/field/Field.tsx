@@ -12,7 +12,7 @@ import { Clear, QuestionO } from 'react-native-system-icon'
 
 import Cell from '../cell'
 import Dialog from '../dialog'
-import { isDef, isRenderable, isText } from '../../utils/validate'
+import { isDef, isRenderable, isText, isObject } from '../../utils/validate'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 
@@ -241,7 +241,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const describedBy = describedByIds.length ? describedByIds : undefined
 
   const lineHeight = tokens.defaults.textareaLineHeight
-  const autoSizeConfig = autoSize && typeof autoSize === 'object' ? autoSize : undefined
+  const autoSizeConfig = autoSize && isObject(autoSize) ? autoSize : undefined
   const minRows = !isTextarea
     ? 1
     : autoSizeConfig && isDef(autoSizeConfig.minRows)
@@ -377,20 +377,20 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     return (
       <View style={styles.labelRow}>
         {content}
-        {isRenderable(tooltip as any) ? renderTooltip() : null}
+        {isRenderable(tooltip) ? renderTooltip() : null}
       </View>
     )
   }
 
   const renderTooltip = () => {
-    if (!isRenderable(tooltip as any)) return null
+    if (!isRenderable(tooltip)) return null
     const defaultIcon = (
       <QuestionO size={tokens.sizes.icon} fill={tokens.colors.tooltip} color={tokens.colors.tooltip} />
     )
     let icon: React.ReactNode = defaultIcon
     let dialogProps: FieldTooltipProps | { message: React.ReactNode } = { message: tooltip as React.ReactNode }
 
-    if (!React.isValidElement(tooltip) && !isText(tooltip as any)) {
+    if (!React.isValidElement(tooltip) && !isText(tooltip)) {
       const { icon: customIcon, ...rest } = tooltip as FieldTooltipProps
       icon = customIcon ?? defaultIcon
       dialogProps = rest as FieldTooltipProps
@@ -482,7 +482,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }
 
   const renderControl = () => {
-    if (isDef(children)) {
+    if (isRenderable(children)) {
       return <View style={[styles.children, { minHeight: tokens.sizes.controlMinHeight }]}>{children}</View>
     }
 

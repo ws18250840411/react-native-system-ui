@@ -1,14 +1,21 @@
 import React from 'react'
-import type { DimensionValue, StyleProp, ViewStyle } from 'react-native'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native'
 import { Arrow } from 'react-native-system-icon'
-import { useAriaPress } from '../../hooks'
-import { createHairlineView } from '../../utils/hairline'
+
+import { useAriaPress, useHairline } from '../../hooks'
 import { isRenderable, isText } from '../../utils/validate'
 
 import { CellGroupContext } from './CellContext'
+import { useCellTokens, type CellTokens } from './tokens'
 import type { CellProps } from './types'
-import { useCellTokens } from './tokens'
 
 const styles = StyleSheet.create({
   container: {
@@ -26,9 +33,6 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  titleText: {
-    display: 'flex',
   },
   value: {
     textAlign: 'right',
@@ -77,6 +81,29 @@ const arrowTransforms: Record<'left' | 'right' | 'up' | 'down', ViewStyle> = {
   down: { transform: [{ rotate: '90deg' }] },
 }
 
+interface TextOrViewProps {
+  children: React.ReactNode
+  textStyle?: StyleProp<TextStyle>
+  viewStyle?: StyleProp<ViewStyle>
+  numberOfLines?: number
+}
+
+const TextOrView = ({
+  children,
+  textStyle,
+  viewStyle,
+  numberOfLines,
+}: TextOrViewProps) => {
+  if (isText(children)) {
+    return (
+      <Text style={textStyle} numberOfLines={numberOfLines}>
+        {children}
+      </Text>
+    )
+  }
+  return <View style={viewStyle}>{children}</View>
+}
+
 export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellProps>(
   (props, ref) => {
     const {
@@ -119,10 +146,8 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
     const hasRightIcon = isRenderable(rightIcon)
 
     const onlyValue = !hasTitle && !hasChildren
-
     const showBorder = border && group.border && !group.isLast
     const showArrow = !!isLink || !!clickable
-
     const isInteractive =
       !disabled &&
       (clickable ||
@@ -147,42 +172,13 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       style,
     ]
 
-    let hairline: React.ReactNode = null
-    if (showBorder) {
-      const flattened = StyleSheet.flatten(containerStyles) as any
-      const paddingHorizontal =
-        typeof flattened?.paddingHorizontal === 'number'
-          ? flattened.paddingHorizontal
-          : undefined
-      const resolveInset = (primary?: DimensionValue, secondary?: DimensionValue) =>
-        typeof primary === 'number'
-          ? primary
-          : typeof secondary === 'number'
-            ? secondary
-            : typeof paddingHorizontal === 'number'
-              ? paddingHorizontal
-              : tokens.container.paddingHorizontal
-      const resolvedPadding = {
-        left: resolveInset(flattened?.paddingLeft, flattened?.paddingStart),
-        right: resolveInset(flattened?.paddingRight, flattened?.paddingEnd),
-      }
-
-      hairline = (
-        <View
-          style={[
-            styles.hairline,
-            createHairlineView({
-              position: 'bottom',
-              color: tokens.border.color,
-              left: resolvedPadding.left,
-              right: resolvedPadding.right,
-              enabled: tokens.border.width > 0,
-              width: tokens.border.width,
-            }),
-          ]}
-        />
-      )
-    }
+    const hairline = useHairline({
+      show: showBorder,
+      containerStyle: containerStyles,
+      color: tokens.border.color,
+      width: tokens.border.width,
+      defaultPaddingHorizontal: tokens.container.paddingHorizontal,
+    })
 
     const customContentStyle = [
       styles.customContent,
@@ -190,62 +186,9 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       contentStyle,
     ]
 
-    const renderValue = () => {
-      if (hasValue) {
-        if (isText(value)) {
-          return (
-            <Text
-              style={[
-                styles.value,
-                onlyValue && styles.valueOnly,
-                {
-                  color: tokens.typography.valueColor,
-                  fontSize:
-                    size === 'large'
-                      ? tokens.typography.largeValueSize
-                      : tokens.typography.valueSize,
-                },
-                valueStyle,
-              ]}
-              numberOfLines={1}
-            >
-              {value}
-            </Text>
-          )
-        }
-        return <View style={customContentStyle}>{value}</View>
-      }
-      if (hasChildren) {
-        return <View style={customContentStyle}>{children}</View>
-      }
-      return null
-    }
-
-    const renderExtra = () => {
-      if (!hasExtra) return null
-      const marginLeft = tokens.spacing.extraGap
-      if (isText(extra)) {
-        return (
-          <Text
-            style={{
-              marginLeft,
-              color: tokens.typography.valueColor,
-              fontSize:
-                size === 'large'
-                  ? tokens.typography.largeValueSize
-                  : tokens.typography.valueSize,
-            }}
-          >
-            {extra}
-          </Text>
-        )
-      }
-      return <View style={{ marginLeft }}>{extra}</View>
-    }
-
-    const renderBody = () => (
+    const bodyContent = (
       <>
-        {hasIcon ? (
+        {hasIcon && (
           <View
             style={[
               styles.iconWrapper,
@@ -258,13 +201,12 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
           >
             {icon}
           </View>
-        ) : null}
+        )}
+
         <View style={styles.body}>
           {(hasTitle || required) && (
-            <View
-              style={[styles.titleRow, { minHeight: lineHeight }]}
-            >
-              {required ? (
+            <View style={[styles.titleRow, { minHeight: lineHeight }]}>
+              {required && (
                 <Text
                   style={{
                     color: tokens.typography.requiredColor,
@@ -273,68 +215,53 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
                 >
                   *
                 </Text>
-              ) : null}
-              {hasTitle
-                ? isText(title)
-                  ? (
-                    <Text
-                      style={[
-                        styles.titleText,
-                        {
-                          color: tokens.typography.titleColor,
-                          fontSize:
-                            size === 'large'
-                              ? tokens.typography.largeTitleSize
-                              : tokens.typography.titleSize,
-                          fontWeight: tokens.typography.titleWeight,
-                        },
-                        titleStyle,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {title}
-                    </Text>
-                  )
-                  : (
-                    <View style={titleStyle as StyleProp<ViewStyle>}>
-                      {title}
-                    </View>
-                  )
-                : null}
-            </View>
-          )}
-          {hasLabel
-            ? isText(label)
-              ? (
-                <Text
-                  style={[
+              )}
+              {hasTitle && (
+                <TextOrView
+                  textStyle={[
                     {
-                      marginTop: tokens.spacing.labelMarginTop,
-                      color: tokens.typography.labelColor,
+                      color: tokens.typography.titleColor,
                       fontSize:
                         size === 'large'
-                          ? tokens.typography.largeLabelSize
-                          : tokens.typography.labelSize,
+                          ? tokens.typography.largeTitleSize
+                          : tokens.typography.titleSize,
+                      fontWeight: tokens.typography.titleWeight,
                     },
-                    labelStyle,
+                    titleStyle,
                   ]}
-                  numberOfLines={2}
+                  viewStyle={titleStyle as StyleProp<ViewStyle>}
+                  numberOfLines={1}
                 >
-                  {label}
-                </Text>
-              )
-              : (
-                <View
-                  style={[
-                    { marginTop: tokens.spacing.labelMarginTop },
-                    labelStyle as StyleProp<ViewStyle>,
-                  ]}
-                >
-                  {label}
-                </View>
-              )
-            : null}
+                  {title}
+                </TextOrView>
+              )}
+            </View>
+          )}
+
+          {hasLabel && (
+            <TextOrView
+              textStyle={[
+                {
+                  marginTop: tokens.spacing.labelMarginTop,
+                  color: tokens.typography.labelColor,
+                  fontSize:
+                    size === 'large'
+                      ? tokens.typography.largeLabelSize
+                      : tokens.typography.labelSize,
+                },
+                labelStyle,
+              ]}
+              viewStyle={[
+                { marginTop: tokens.spacing.labelMarginTop },
+                labelStyle as StyleProp<ViewStyle>,
+              ]}
+              numberOfLines={2}
+            >
+              {label}
+            </TextOrView>
+          )}
         </View>
+
         <View
           style={[
             styles.valueContainer,
@@ -343,48 +270,84 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
             center && styles.valueCenter,
           ]}
         >
-          {renderValue()}
+          {hasValue ? (
+            <TextOrView
+              textStyle={[
+                styles.value,
+                onlyValue && styles.valueOnly,
+                {
+                  color: tokens.typography.valueColor,
+                  fontSize:
+                    size === 'large'
+                      ? tokens.typography.largeValueSize
+                      : tokens.typography.valueSize,
+                },
+                valueStyle,
+              ]}
+              viewStyle={customContentStyle}
+              numberOfLines={1}
+            >
+              {value}
+            </TextOrView>
+          ) : hasChildren ? (
+            <View style={customContentStyle}>{children}</View>
+          ) : null}
         </View>
-        {renderExtra()}
-        {hasRightIcon
-          ? rightIcon
-          : showArrow && (
-            <View style={[styles.rightIconWrapper, arrowTransforms[arrowDirection]]}>
-              <Arrow size={tokens.arrow.size} fill={tokens.arrow.color} />
-            </View>
-          )}
+
+        {hasExtra && (
+          <TextOrView
+            textStyle={{
+              marginLeft: tokens.spacing.extraGap,
+              color: tokens.typography.valueColor,
+              fontSize:
+                size === 'large'
+                  ? tokens.typography.largeValueSize
+                  : tokens.typography.valueSize,
+            }}
+            viewStyle={{ marginLeft: tokens.spacing.extraGap }}
+          >
+            {extra}
+          </TextOrView>
+        )}
+
+        {hasRightIcon ? (
+          rightIcon
+        ) : showArrow ? (
+          <View style={[styles.rightIconWrapper, arrowTransforms[arrowDirection]]}>
+            <Arrow size={tokens.arrow.size} fill={tokens.arrow.color} />
+          </View>
+        ) : null}
       </>
     )
 
-    if (!isInteractive) {
-      return (
-        <View style={containerStyles} {...rest}>
-          {renderBody()}
-          {hairline}
-        </View>
-      )
-    }
-
-    const viewProps = rest
-
     const resolvedOnPress = onPress ?? undefined
     const { interactionProps, states } = useAriaPress({
-      disabled: false,
+      disabled: !isInteractive,
       onPress: resolvedOnPress,
     })
 
+    const Component = isInteractive ? Pressable : View
+    const componentProps = isInteractive
+      ? {
+        android_ripple: android_ripple ?? { color: tokens.container.rippleColor },
+        accessibilityRole: 'button' as const,
+        ...interactionProps,
+      }
+      : {}
+
     return (
-      <Pressable
+      <Component
         ref={ref}
-        style={[containerStyles, { opacity: states.pressed ? tokens.container.activeOpacity : 1 }]}
-        android_ripple={android_ripple ?? { color: tokens.container.rippleColor }}
-        accessibilityRole="button"
-        {...interactionProps}
-        {...viewProps}
+        style={[
+          containerStyles,
+          isInteractive && states.pressed && { opacity: tokens.container.activeOpacity },
+        ]}
+        {...componentProps}
+        {...rest}
       >
-        {renderBody()}
+        {bodyContent}
         {hairline}
-      </Pressable>
+      </Component>
     )
   }
 )

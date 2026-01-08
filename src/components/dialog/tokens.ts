@@ -1,5 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
+import type { TextStyle } from 'react-native'
 
 export interface DialogTokens {
   colors: {
@@ -36,11 +37,11 @@ export interface DialogTokens {
   typography: {
     titleSize: number
     titleLineHeight: number
-    titleWeight: string
+    titleWeight: TextStyle['fontWeight']
     messageSize: number
     messageLineHeight: number
     actionSize: number
-    actionWeight: string
+    actionWeight: TextStyle['fontWeight']
   }
 }
 
@@ -84,11 +85,11 @@ export const createDialogTokens = (foundations: Foundations): DialogTokens => {
     typography: {
       titleSize: fontSize.md,
       titleLineHeight: fontSize.md * typography.lineHeightMultiplier,
-      titleWeight: String(typography.weight.semiBold),
+      titleWeight: typography.weight.semiBold,
       messageSize: fontSize.sm,
       messageLineHeight: fontSize.sm * typography.lineHeightMultiplier,
       actionSize: fontSize.md,
-      actionWeight: String(typography.weight.medium),
+      actionWeight: typography.weight.medium,
     },
   }
 }

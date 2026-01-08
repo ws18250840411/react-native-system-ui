@@ -121,7 +121,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
     ) : null
 
     const imageSource = isString(src) ? { uri: src } : src
-    const imageStyle = [styles.image, { borderRadius }] as const
+    const imageStyle = [styles.image, { borderRadius }]
 
     const content = src ? (
       <Image

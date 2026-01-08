@@ -2,7 +2,7 @@ import React from 'react'
 import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SvgUri } from 'react-native-svg'
 
-import { isText } from '../../utils/validate'
+import { isNumber, isString, isText } from '../../utils/validate'
 import { useImageTokens } from './tokens'
 import type { ImageProps } from './types'
 
@@ -164,7 +164,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
 
   const mergedBorderRadiusStyle = React.useMemo(() => {
     if (round) return { borderRadius: 9999 } as Record<string, any>
-    if (typeof radius === 'number') return { borderRadius: radius } as Record<string, any>
+    if (isNumber(radius)) return { borderRadius: radius } as Record<string, any>
 
     const { borderRadius: containerBorderRadius } = splitImageStyle(containerStyle)
 
@@ -176,12 +176,12 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   }, [containerStyle, radius, round, styleBorderRadius])
 
   const uri = (actualSource as any)?.uri
-  const normalizedUri = typeof uri === 'string' ? uri.toLowerCase() : undefined
+  const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
   const isSvg =
-    typeof normalizedUri === 'string' &&
+    isString(normalizedUri) &&
     (normalizedUri.endsWith('.svg') || normalizedUri.includes('.svg?') || normalizedUri.includes('/svg?'))
 
-  const resolvedLoadingSize = typeof loadingSize === 'number' ? loadingSize : 20
+  const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : 20
   const resolvedErrorIconSize = iconSize ?? 20
   const Container = (onPress ? Pressable : View) as any
   const imageCommonStyle = React.useMemo(
@@ -215,7 +215,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
           {loadingIcon || (
             <ActivityIndicator
               color={tokens.colors.text}
-              size={typeof loadingSize === 'string' ? loadingSize : 'small'}
+              size={isString(loadingSize) ? loadingSize : 'small'}
               style={activityIndicatorStyle}
             />
           )}

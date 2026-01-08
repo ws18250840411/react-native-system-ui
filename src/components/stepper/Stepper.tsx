@@ -10,53 +10,21 @@ import {
 } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
-import { parseNumber } from '../../utils/number'
+import {
+  parseNumber,
+  addNumber as add,
+  clampValue,
+  formatNumber as formatValue,
+  numberToString as valueToString,
+  parseDecimalLength,
+} from '../../utils/number'
+import { isNumber } from '../../utils/validate'
 import { isPromiseLike } from '../../utils/promise'
 import { useStepperTokens } from './tokens'
 import type { StepperInstance, StepperProps } from './types'
 
 const LONG_PRESS_DELAY = 600
 const LONG_PRESS_INTERVAL = 100
-
-const add = (num1: number, num2: number) => {
-  const cardinal = 10 ** 10
-  return Math.round((num1 + num2) * cardinal) / cardinal
-}
-
-const parseDecimalLength = (value: number | string | undefined) => {
-  if (value === undefined) return undefined
-  const parsed =
-    typeof value === 'number' ? value : Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed)) return undefined
-  return Math.max(0, Math.floor(parsed))
-}
-
-const valueToString = (value: number | null | undefined, decimalLength?: number) => {
-  if (value === null || value === undefined || !Number.isFinite(value)) return ''
-  if (decimalLength !== undefined) return value.toFixed(decimalLength)
-  return String(value)
-}
-
-const formatValue = (value: number, integer: boolean, decimalLength?: number) => {
-  let next = value
-  if (integer) next = Math.trunc(next)
-  if (decimalLength !== undefined) {
-    const factor = 10 ** decimalLength
-    next = Math.round(next * factor) / factor
-  }
-  return next
-}
-
-const clampValue = (value: number, min?: number, max?: number) => {
-  let next = value
-  if (typeof min === 'number' && Number.isFinite(min)) {
-    next = Math.max(next, min)
-  }
-  if (typeof max === 'number' && Number.isFinite(max)) {
-    next = Math.min(next, max)
-  }
-  return next
-}
 
 export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) => {
   const tokens = useStepperTokens(p.tokensOverride)
@@ -110,7 +78,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const resolvedDefaultValue = (() => {
     const raw = p.defaultValue
     if (raw === null) return null
-    const base = typeof raw === 'number' && Number.isFinite(raw) ? raw : 0
+    const base = isNumber(raw) && Number.isFinite(raw) ? raw : 0
     const formatted = formatValue(base, integer, decimalLength)
     return autoFixed ? clampValue(formatted, min, max) : formatted
   })()

@@ -2,6 +2,7 @@ import React from 'react'
 import { View } from 'react-native'
 
 import { isPromiseLike } from '../../utils/promise'
+import { isNumber, isString as isStringType } from '../../utils/validate'
 import { FormContext } from './FormContext'
 import type {
   FormInstance,
@@ -19,8 +20,8 @@ const runRuleValidation = (
   values: Record<string, any>,
 ): string | null | Promise<string | null> => {
   const message = rule.message ?? '表单验证未通过'
-  const isString = typeof value === 'string'
-  const empty = value == null || value === ''
+  const isString = isStringType(value)
+  const empty = value == null || value === '' || (Array.isArray(value) && value.length === 0)
 
   if (rule.required && (empty || (rule.whitespace && isString && value.trim().length === 0))) {
     return message
@@ -30,7 +31,7 @@ const runRuleValidation = (
 
   if (rule.len !== undefined || rule.min !== undefined || rule.max !== undefined) {
     const length =
-      typeof value === 'number'
+      isNumber(value)
         ? value
         : isString || Array.isArray(value)
           ? value.length
@@ -42,7 +43,7 @@ const runRuleValidation = (
 
   if (!rule.validator) return null
   const handle = (result: any) =>
-    typeof result === 'string' ? result : result === false ? message : null
+    isStringType(result) ? result : result === false ? message : null
   const result = rule.validator(value, values)
   return isPromiseLike(result) ? result.then(handle) : handle(result)
 }

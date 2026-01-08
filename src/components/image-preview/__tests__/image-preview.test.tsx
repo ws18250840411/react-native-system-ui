@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Text, Image } from 'react-native'
+import { Pressable, Text, Image } from 'react-native'
 
 import ImagePreview from '..'
 import type { ImagePreviewRef } from '../types'
@@ -120,6 +120,62 @@ describe('ImagePreview', () => {
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(1)
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('calls onClose when content tapped', async () => {
+    const handleClose = jest.fn()
+    let tree!: renderer.ReactTestRenderer
+
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <ImagePreview visible images={['https://a.png']} onClose={handleClose} />
+        </PortalHost>
+      )
+    })
+
+    const slide = tree.root.findByProps({ testID: 'rv-image-preview-slide-0' })
+    const pressable = slide.findByType(Pressable)
+
+    await act(async () => {
+      pressable.props.onTouchStart?.({ nativeEvent: { pageX: 10, pageY: 10 } })
+      pressable.props.onTouchEnd?.({ nativeEvent: { pageX: 10, pageY: 10 } })
+      await Promise.resolve()
+    })
+
+    expect(handleClose).toHaveBeenCalledWith({ index: 0, image: 'https://a.png' })
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('passes correct reason to beforeClose when content tapped', async () => {
+    const beforeClose = jest.fn(() => true)
+    let tree!: renderer.ReactTestRenderer
+
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <ImagePreview visible images={['https://a.png']} beforeClose={beforeClose} />
+        </PortalHost>
+      )
+    })
+
+    const slide = tree.root.findByProps({ testID: 'rv-image-preview-slide-0' })
+    const pressable = slide.findByType(Pressable)
+
+    await act(async () => {
+      pressable.props.onTouchStart?.({ nativeEvent: { pageX: 10, pageY: 10 } })
+      pressable.props.onTouchEnd?.({ nativeEvent: { pageX: 10, pageY: 10 } })
+      await Promise.resolve()
+    })
+
+    expect(beforeClose).toHaveBeenCalledWith({ reason: 'content', index: 0, image: 'https://a.png' })
 
     act(() => {
       tree.unmount()

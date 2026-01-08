@@ -50,3 +50,11 @@ export const ensureRgba = (color: string, alpha: number) => {
   if (trimmed.startsWith('rgba')) return color
   return withAlpha(color, alpha)
 }
+
+const gradientColorRegex = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\))/i
+
+export const extractFirstColorToken = (input?: string | null) => {
+  if (!input) return undefined
+  const match = input.match(gradientColorRegex)
+  return match ? match[0] : undefined
+}

@@ -8,7 +8,6 @@ export const toNamePath = (name?: NamePath): (string | number)[] => {
   if (Array.isArray(name)) return name
   if (typeof name === 'number') return [name]
   if (typeof name === 'string') {
-    // 支持简单的 a.b.c 形式，保持与 react-vant 兼容
     return name.split('.')
   }
   return [String(name)]

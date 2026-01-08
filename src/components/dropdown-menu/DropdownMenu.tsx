@@ -13,6 +13,11 @@ import { useDropdownMenuTokens } from './tokens'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
+const isSameFrame = (
+  prev: { y: number; height: number } | null,
+  next: { y: number; height: number }
+) => prev != null && Math.abs(prev.y - next.y) < 0.5 && Math.abs(prev.height - next.height) < 0.5
+
 const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((props, ref) => {
   const {
     children,
@@ -26,9 +31,6 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     closeOnClickOverlay = true,
     closeOnClickOutside = true,
     swipeThreshold,
-    value,
-    defaultValue,
-    onChange,
     onOpen,
     onClose,
     onOpened,
@@ -132,30 +134,25 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     [closeMenu, showItem, toggleItem],
   )
 
-  const requestMeasure = React.useCallback(() => {
+  const requestMeasure = React.useCallback((fallbackHeight?: number) => {
     const node = barRef.current as any
+
+    if (!node) {
+      const fallback = { y: 0, height: fallbackHeight ?? barHeight }
+      setBarFrame(prev => (isSameFrame(prev, fallback) ? prev : fallback))
+      return
+    }
 
     measureInWindow(node, rect => {
       if (rect) {
-        const y = rect.y
-        const height = rect.height
-        if (!Number.isFinite(y) || !Number.isFinite(height)) return
-        setBarFrame(prev => {
-          if (prev && Math.abs(prev.y - y) < 0.5 && Math.abs(prev.height - height) < 0.5) {
-            return prev
-          }
-          return { y, height }
-        })
+        const next = { y: rect.y, height: rect.height }
+        if (!Number.isFinite(next.y) || !Number.isFinite(next.height)) return
+        setBarFrame(prev => (isSameFrame(prev, next) ? prev : next))
         return
       }
 
-      setBarFrame(prev => {
-        const fallback = { y: 0, height: barHeight }
-        if (prev && Math.abs(prev.y - fallback.y) < 0.5 && Math.abs(prev.height - fallback.height) < 0.5) {
-          return prev
-        }
-        return fallback
-      })
+      const fallback = { y: 0, height: fallbackHeight ?? barHeight }
+      setBarFrame(prev => (isSameFrame(prev, fallback) ? prev : fallback))
     })
   }, [barHeight])
 
@@ -186,6 +183,13 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     if (!mounted) return
     requestMeasure()
   }, [mounted, requestMeasure, windowHeight])
+
+  React.useEffect(
+    () => () => {
+      animationRef.current?.stop()
+    },
+    [],
+  )
 
   const barScrollable = threshold !== undefined && React.Children.count(children) > threshold
 
@@ -272,8 +276,9 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
           collapsable={false}
           style={barStyle}
           onLayout={event => {
-            setBarHeight(event.nativeEvent.layout.height)
-            requestMeasure()
+            const { height } = event.nativeEvent.layout
+            setBarHeight(height)
+            requestMeasure(height)
           }}
         >
           {barScrollable ? (

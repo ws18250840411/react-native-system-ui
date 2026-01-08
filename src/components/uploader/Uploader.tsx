@@ -22,8 +22,8 @@ import { useControllableValue } from '../../hooks'
 import Image from '../image'
 import ImagePreview from '../image-preview'
 import { parseNumber } from '../../utils/number'
-
-const IMAGE_REGEXP = /\.(jpeg|jpg|gif|png|svg|webp|jfif|bmp|dpg)/i
+import { toArray } from '../../utils/array'
+import { isImageUrlString, isFunction, isUndefined } from '../../utils/validate'
 
 const statusDefaults: Record<UploaderItemStatus, string> = {
   pending: '上传中',
@@ -36,11 +36,6 @@ type InternalTask = {
   file: File
   url?: string
 }
-
-const toArray = <T,>(value: T | T[] | undefined | null): T[] =>
-  value == null ? [] : Array.isArray(value) ? value : [value]
-
-const isImageUrlString = (url: string) => IMAGE_REGEXP.test(url)
 
 const isImageFile = (item: UploaderValueItem, forced?: boolean) => {
   if (forced !== undefined) return forced
@@ -58,7 +53,7 @@ const resolveSource = (item: UploaderValueItem, isImage: boolean) => {
 type NormalizedMaxSize = Exclude<UploaderMaxSize, string>
 
 const normalizeMaxSize = (maxSize: UploaderMaxSize | undefined, fallback: number): NormalizedMaxSize => {
-  if (typeof maxSize === 'function') return maxSize
+  if (isFunction(maxSize)) return maxSize
   return parseNumber(maxSize, fallback)
 }
 
@@ -66,7 +61,7 @@ const filterFiles = (files: File[], maxSize: NormalizedMaxSize) => {
   const valid: File[] = []
   const invalid: File[] = []
   files.forEach(file => {
-    ;((typeof maxSize === 'function' ? maxSize(file) : file.size > maxSize) ? invalid : valid).push(file)
+    ; ((isFunction(maxSize) ? maxSize(file) : file.size > maxSize) ? invalid : valid).push(file)
   })
   return { valid, invalid }
 }
@@ -81,7 +76,7 @@ const readFileContent = async (
   }
   if (resultType === 'file') return undefined
 
-  if (typeof FileReader === 'undefined') {
+  if (isUndefined(FileReader)) {
     return undefined
   }
 
@@ -322,7 +317,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   }
 
   const webInputRef = React.useRef<HTMLInputElement | null>(null)
-  const webHandlerRef = React.useRef<(files: File[]) => void>(() => {})
+  const webHandlerRef = React.useRef<(files: File[]) => void>(() => { })
   webHandlerRef.current = handleWebFiles
 
   React.useEffect(() => {
@@ -392,7 +387,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
           return [...prev, ...next.slice(0, available).map(item => normalizeItem(item))]
         })
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 
   const closeImagePreview = () => setPreviewVisible(false)

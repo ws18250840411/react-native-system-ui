@@ -31,8 +31,8 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
   const scrollRef = React.useRef<ScrollView>(null)
   const scrollYRef = React.useRef(0)
   const anchorLayouts = React.useRef<Map<IndexBarValue, number>>(new Map())
-  const indexListRef = React.useRef<View>(null)
-  const indexListLayout = React.useRef<{ pageY: number; height: number } | null>(null)
+  const indexListHeightRef = React.useRef(0)
+  const draggingIndexRef = React.useRef<IndexBarValue | null>(null)
   const pendingScrollToValueRef = React.useRef<IndexBarValue | null>(null)
   const [stickyVisible, setStickyVisible] = React.useState(false)
   const [indicator, setIndicator] = React.useState<{ visible: boolean; label?: string }>({ visible: false })
@@ -129,10 +129,14 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     scrollRef.current?.scrollTo({ y: targetY, animated: true })
   }, [stickyOffsetTop, value])
 
-  const handlePressIn = (index: IndexBarValue) => {
+  const selectIndex = (index: IndexBarValue, animated: boolean) => {
     showIndicatorNow(String(index))
     onSelect?.(index)
-    scrollToIndex(index, true)
+    scrollToIndex(index, animated)
+  }
+
+  const handlePressIn = (index: IndexBarValue) => {
+    selectIndex(index, true)
   }
 
   const handlePressOut = () => {
@@ -184,33 +188,46 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
   ) : null
 
   const pickIndexFromEvent = (evt: any): IndexBarValue | null => {
-    const layout = indexListLayout.current
-    if (!layout || !navItems.length) return null
-    const itemHeight = layout.height / navItems.length
+    const height = indexListHeightRef.current
+    if (!height || !navItems.length) return null
+    const paddingY = layout.paddingVertical
+    const contentHeight = Math.max(0, height - paddingY * 2)
+    const itemHeight = contentHeight / navItems.length
     if (itemHeight <= 0) return null
-    const y = evt.nativeEvent.pageY - layout.pageY
+    const locationY = evt?.nativeEvent?.locationY
+    if (!Number.isFinite(locationY)) return null
+    const y = locationY - paddingY
     const idx = Math.max(0, Math.min(navItems.length - 1, Math.floor(y / itemHeight)))
     return navItems[idx] ?? null
   }
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponderCapture: () => true,
     onMoveShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponderCapture: () => true,
     onPanResponderGrant: evt => {
       const picked = pickIndexFromEvent(evt)
-      if (picked !== null) handlePressIn(picked)
+      draggingIndexRef.current = picked
+      if (picked !== null) {
+        selectIndex(picked, true)
+      }
     },
     onPanResponderMove: evt => {
       const picked = pickIndexFromEvent(evt)
       if (picked === null) return
-      showIndicatorNow(String(picked))
-      onSelect?.(picked)
-      if (picked !== currentIndex) {
-        scrollToIndex(picked, false)
-      }
+      if (picked === draggingIndexRef.current) return
+      draggingIndexRef.current = picked
+      selectIndex(picked, false)
     },
-    onPanResponderRelease: () => hideIndicatorNow(),
-    onPanResponderTerminate: () => hideIndicatorNow(),
+    onPanResponderRelease: () => {
+      draggingIndexRef.current = null
+      hideIndicatorNow()
+    },
+    onPanResponderTerminate: () => {
+      draggingIndexRef.current = null
+      hideIndicatorNow()
+    },
   })
 
   const StickyWrapper = safeAreaInsetTop ? SafeAreaView : View
@@ -243,12 +260,9 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
             zIndex,
           },
         ]}
-        ref={indexListRef}
         onLayout={e => {
           const { height } = e.nativeEvent.layout
-          indexListRef.current?.measureInWindow((_, pageY, __, measuredHeight) => {
-            indexListLayout.current = { pageY, height: measuredHeight || height }
-          })
+          indexListHeightRef.current = height
         }}
         {...panResponder.panHandlers}
       >

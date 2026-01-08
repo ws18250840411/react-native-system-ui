@@ -1,5 +1,5 @@
 import React from 'react'
-import { Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Image as RNImage, Platform, Pressable, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native'
 
 import Popup from '../popup'
 import Swiper, { type SwiperInstance } from '../swiper'
@@ -10,6 +10,40 @@ const clampIndex = (index: number, total: number) =>
   total <= 0 ? 0 : Math.max(0, Math.min(total - 1, index))
 
 const IS_WEB = Platform.OS === 'web'
+const TAP_MOVE_THRESHOLD_PX = 8
+const TAP_MOVE_THRESHOLD_SQ = TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX
+
+type PressableHandlers = Pick<
+  React.ComponentProps<typeof Pressable>,
+  'onTouchStart' | 'onTouchMove' | 'onTouchEnd' | 'onTouchCancel'
+> & {
+  onMouseDown?: (event: any) => void
+  onMouseMove?: (event: any) => void
+  onMouseUp?: (event: any) => void
+}
+
+const SlideContent = React.memo(
+  (props: {
+    source: ImageSourcePropType
+    rendered: boolean
+    pressableHandlers: PressableHandlers
+  }) => {
+    const { source, rendered, pressableHandlers } = props
+    return (
+      <Pressable style={styles.slidePressable} {...pressableHandlers}>
+        {rendered ? (
+          <RNImage source={source} resizeMode="contain" style={styles.image} />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
+      </Pressable>
+    )
+  },
+  (prev, next) =>
+    prev.source === next.source &&
+    prev.rendered === next.rendered &&
+    prev.pressableHandlers === next.pressableHandlers,
+)
 
 const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props, ref) => {
   const {
@@ -46,9 +80,21 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
   const tapMovedRef = React.useRef(false)
   const [active, setActive] = React.useState(() => clampIndex(startPosition, images.length))
   const safeActive = clampIndex(active, images.length)
+  const latestRef = React.useRef({
+    images,
+    index: safeActive,
+    beforeClose,
+    onClose,
+  })
+  latestRef.current = {
+    images,
+    index: safeActive,
+    beforeClose,
+    onClose,
+  }
 
   const resolvedImages = React.useMemo(
-    () => images.map(img => (typeof img === 'string' ? { uri: img } : img)),
+    () => images.map(img => (typeof img === 'string' ? { uri: img } : img)) as ImageSourcePropType[],
     [images]
   )
 
@@ -66,30 +112,38 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     return () => cancelAnimationFrame(raf)
   }, [images.length, startPosition, visible])
 
-  const runBeforeClose = async (reason: ImagePreviewCloseReason) => {
-    if (!beforeClose) return true
-    const result = await beforeClose({ reason, index: safeActive, image: images[safeActive] })
+  const runBeforeClose = React.useCallback(async (reason: ImagePreviewCloseReason) => {
+    const { beforeClose: currentBeforeClose, images: currentImages, index } = latestRef.current
+    if (!currentBeforeClose) return true
+    const result = await currentBeforeClose({ reason, index, image: currentImages[index] })
     return result !== false
-  }
+  }, [])
 
-  const requestClose = async (reason: ImagePreviewCloseReason, bypassCheck = false) => {
-    if (!bypassCheck) {
-      const allow = await runBeforeClose(reason)
-      if (!allow) return
-    }
-    onClose?.({ index: safeActive, image: images[safeActive] })
-  }
+  const emitClose = React.useCallback(
+    async (reason: ImagePreviewCloseReason, bypassCheck = false) => {
+      const { onClose: currentOnClose, images: currentImages, index } = latestRef.current
+      if (!bypassCheck) {
+        const allow = await runBeforeClose(reason)
+        if (!allow) return
+      }
+      currentOnClose?.({ index, image: currentImages[index] })
+    },
+    [runBeforeClose],
+  )
 
-  const handlePopupBeforeClose = async (reason: 'close-icon' | 'overlay' | 'close') => {
-    const mapped: ImagePreviewCloseReason =
-      reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
-    popupCloseReason.current = mapped
-    return runBeforeClose(mapped)
-  }
+  const handlePopupBeforeClose = React.useCallback(
+    async (reason: 'close-icon' | 'overlay' | 'close') => {
+      const mapped: ImagePreviewCloseReason =
+        reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
+      popupCloseReason.current = mapped
+      return runBeforeClose(mapped)
+    },
+    [runBeforeClose],
+  )
 
-  const handlePopupClose = () => {
-    void requestClose(popupCloseReason.current, true)
-  }
+  const handlePopupClose = React.useCallback(() => {
+    void emitClose(popupCloseReason.current, true)
+  }, [emitClose])
 
   React.useImperativeHandle(ref, () => ({
     swipeTo: (index: number, animated = true) => {
@@ -99,12 +153,6 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     },
   }))
 
-  const shouldRenderImage = (index: number) => {
-    if (!lazyRender) return true
-    const buffer = Math.max(0, lazyRenderBuffer | 0)
-    return Math.abs(index - safeActive) <= buffer
-  }
-
   const handleSwiperChange = (idx: number) => {
     if (safeActive === idx) return
     setActive(idx)
@@ -113,69 +161,75 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
 
   const handleImagePress = () => {
     if (closeOnlyClickCloseIcon) return
-    void requestClose('content')
+    void emitClose('content')
   }
 
-  const TAP_MOVE_THRESHOLD_PX = 8
-  const resetTap = () => {
+  const resetTap = React.useCallback(() => {
     tapStartRef.current = null
     tapMovedRef.current = false
-  }
-  const markTapStart = (x: number, y: number) => {
+  }, [])
+
+  const markTapStart = React.useCallback((x: number, y: number) => {
     tapStartRef.current = { x, y }
     tapMovedRef.current = false
-  }
-  const markTapMove = (x: number, y: number) => {
+  }, [])
+
+  const markTapMove = React.useCallback((x: number, y: number) => {
     const start = tapStartRef.current
     if (!start) return
     const dx = x - start.x
     const dy = y - start.y
-    if (dx * dx + dy * dy >= TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX) {
+    if (dx * dx + dy * dy >= TAP_MOVE_THRESHOLD_SQ) {
       tapMovedRef.current = true
     }
-  }
-  const tryTapEnd = (x: number, y: number) => {
+  }, [])
+
+  const tryTapEnd = React.useCallback((x: number, y: number) => {
     const start = tapStartRef.current
     const moved = tapMovedRef.current
     resetTap()
     if (!start || moved) return
     const dx = x - start.x
     const dy = y - start.y
-    if (dx * dx + dy * dy >= TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX) return
+    if (dx * dx + dy * dy >= TAP_MOVE_THRESHOLD_SQ) return
     handleImagePress()
-  }
+  }, [handleImagePress, resetTap])
 
-  const slidePressableHandlers: any = {
-    onTouchStart: (e: any) => {
-      const ne = e?.nativeEvent
-      if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
-    },
-    onTouchMove: (e: any) => {
-      const ne = e?.nativeEvent
-      if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
-    },
-    onTouchEnd: (e: any) => {
-      const ne = e?.nativeEvent
-      if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
-    },
-    onTouchCancel: resetTap,
-  }
+  const pressableHandlers = React.useMemo<PressableHandlers>(() => {
+    const handlers: PressableHandlers = {
+      onTouchStart: e => {
+        const ne = (e as any)?.nativeEvent
+        if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
+      },
+      onTouchMove: e => {
+        const ne = (e as any)?.nativeEvent
+        if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
+      },
+      onTouchEnd: e => {
+        const ne = (e as any)?.nativeEvent
+        if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
+      },
+      onTouchCancel: resetTap,
+    }
 
-  if (IS_WEB) {
-    slidePressableHandlers.onMouseDown = (e: any) => {
-      const ne = e?.nativeEvent
-      if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
+    if (IS_WEB) {
+      handlers.onMouseDown = (e: any) => {
+        const ne = e?.nativeEvent
+        if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
+      }
+      handlers.onMouseMove = (e: any) => {
+        const ne = e?.nativeEvent
+        if (ne?.buttons !== 1) return
+        if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
+      }
+      handlers.onMouseUp = (e: any) => {
+        const ne = e?.nativeEvent
+        if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
+      }
     }
-    slidePressableHandlers.onMouseMove = (e: any) => {
-      const ne = e?.nativeEvent
-      if (ne?.buttons !== 1) return
-      if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
-    }
-    slidePressableHandlers.onMouseUp = (e: any) => {
-      const ne = e?.nativeEvent
-      if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
-    }
-  }
+
+    return handlers
+  }, [markTapMove, markTapStart, resetTap, tryTapEnd])
 
   const indexNode =
     showIndex && images.length ? (
@@ -189,6 +243,8 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
         </View>
       </View>
     ) : null
+
+  const lazyBuffer = lazyRender ? Math.max(0, lazyRenderBuffer | 0) : 0
 
   const indicatorsNode =
     showIndicators && images.length > 1 ? (
@@ -243,20 +299,11 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
           >
             {resolvedImages.map((source, idx) => (
               <Swiper.Item key={idx} style={styles.slide} testID={`rv-image-preview-slide-${idx}`}>
-                <Pressable
-                  style={styles.slidePressable}
-                  {...slidePressableHandlers}
-                >
-                  {shouldRenderImage(idx) ? (
-                    <RNImage
-                      source={source as any}
-                      resizeMode="contain"
-                      style={styles.image}
-                    />
-                  ) : (
-                    <View style={styles.imagePlaceholder} />
-                  )}
-                </Pressable>
+                <SlideContent
+                  source={source}
+                  rendered={!lazyRender || Math.abs(idx - safeActive) <= lazyBuffer}
+                  pressableHandlers={pressableHandlers}
+                />
               </Swiper.Item>
             ))}
           </Swiper>

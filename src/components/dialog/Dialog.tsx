@@ -5,6 +5,7 @@ import { useLocale } from '../config-provider/useLocale'
 import { nativeDriverEnabled } from '../../platform'
 import { createHairlineView } from '../../utils/hairline'
 import { isPromiseLike } from '../../utils/promise'
+import { isValidNode } from '../../utils/validate'
 import { Close } from 'react-native-system-icon'
 import Button from '../button'
 import Popup from '../popup'
@@ -63,7 +64,7 @@ const ActionButton = (props: ActionButtonProps) => {
           style={{
             color: textColor,
             fontSize: tokens.typography.actionSize,
-            fontWeight: tokens.typography.actionWeight as any,
+            fontWeight: tokens.typography.actionWeight,
           }}
         >
           {text ?? ''}
@@ -116,10 +117,9 @@ export const Dialog: React.FC<DialogProps> = props => {
   } = props
 
   const tokens = useDialogTokens(tokensOverride)
-  const notEmpty = (value: unknown) => value !== undefined && value !== null && value !== false && value !== ''
-  const hasTitle = notEmpty(title)
-  const hasMessage = notEmpty(message)
-  const hasChildren = notEmpty(children)
+  const hasTitle = isValidNode(title)
+  const hasMessage = isValidNode(message)
+  const hasChildren = isValidNode(children)
 
   const runBeforeClose = (action: 'confirm' | 'cancel' | 'close') => {
     if (!beforeClose) return true
@@ -207,7 +207,7 @@ export const Dialog: React.FC<DialogProps> = props => {
           color: tokens.colors.title,
           fontSize: tokens.typography.titleSize,
           lineHeight: tokens.typography.titleLineHeight,
-          fontWeight: tokens.typography.titleWeight as any,
+          fontWeight: tokens.typography.titleWeight,
         },
         titleStyle,
       ]

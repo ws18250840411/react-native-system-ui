@@ -9,9 +9,10 @@ import {
 } from 'react-native'
 
 import { useTheme } from '../../design-system'
-import { withAlpha } from '../../utils/color'
+import { withAlpha, extractFirstColorToken } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
-import { isNumber, isString, isText } from '../../utils/validate'
+import { isNumber, isString, isText, isTwoCNChar } from '../../utils/validate'
+import { ensureSpace } from '../../utils/string'
 import Loading from '../loading'
 import { useAriaPress } from '../../hooks'
 import type {
@@ -21,28 +22,10 @@ import type {
 import { ButtonGroupContext } from './ButtonContext'
 import { useButtonTokens } from './tokens'
 
-const isTwoCNChar = (value: string) => /^(?:[\u4e00-\u9fa5]){2}$/.test(value)
-
-const ensureSpace = (value: string, autoInsertSpace: boolean) => {
-  if (!autoInsertSpace) {
-    return value
-  }
-  return isTwoCNChar(value) ? value.split('').join(' ') : value
-}
-
 const clampShadowLevel = (level: number): ButtonShadowLevel => {
   if (level <= 1) return 1
   if (level >= 3) return 3
   return level as ButtonShadowLevel
-}
-
-const gradientColorRegex =
-  /(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\))/i
-
-const extractFirstColorToken = (input?: string | null) => {
-  if (!input) return undefined
-  const match = input.match(gradientColorRegex)
-  return match ? match[0] : undefined
 }
 
 const resolveSpinnerSize = (
