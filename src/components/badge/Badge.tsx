@@ -1,27 +1,12 @@
 import React from 'react'
-import type {
-  LayoutChangeEvent,
-  PressableStateCallbackType,
-  TextStyle,
-  ViewStyle,
-} from 'react-native'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 
-import type { BadgeProps } from './types'
+import { isNumericLike } from '../../utils/number'
+import { isRenderable } from '../../utils/validate'
 import { useBadgeTokens } from './tokens'
+import type { BadgeProps } from './types'
 
-const isRenderable = (value: React.ReactNode) =>
-  value != null &&
-  typeof value !== 'boolean' &&
-  (typeof value !== 'string' || value.length > 0)
-
-const isNumericLike = (value: React.ReactNode): value is number | string =>
-  typeof value === 'number' ||
-  (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value)))
-
-export const Badge: React.FC<BadgeProps> = props => {
-  const { tokensOverride } = props
-  const tokens = useBadgeTokens(tokensOverride)
+export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   const {
     children,
     content,
@@ -30,198 +15,219 @@ export const Badge: React.FC<BadgeProps> = props => {
     dot = false,
     max,
     offset,
-    showZero = tokens.defaults.showZero,
+    showZero,
     badgeStyle,
-    textStyle,
+    textStyle: userTextStyle,
     onPress,
     style,
-    tokensOverride: _tokensOverride,
+    tokensOverride,
     ...rest
   } = props
 
+  const tokens = useBadgeTokens(tokensOverride)
+  const resolvedShowZero = showZero ?? tokens.defaults.showZero
   const hasChildren = React.Children.count(children) > 0
-  const [badgeSize, setBadgeSize] = React.useState({ width: 0, height: 0 })
 
-  const numericContent = isNumericLike(content) ? Number(content) : null
-  const numericMax = isNumericLike(max) ? Number(max) : null
-  const shouldHideForZero =
-    numericContent !== null && numericContent === 0 && !showZero
+  const { visible, formattedContent } = React.useMemo(() => {
+    const numericContent = isNumericLike(content) ? Number(content) : null
+    const shouldHide = numericContent === 0 && !resolvedShowZero
+    const isVisible = dot || (isRenderable(content) && !shouldHide)
 
-  const visible = dot || (isRenderable(content) && !shouldHideForZero)
+    if (!isVisible || dot) return { visible: isVisible, formattedContent: null }
 
-  const formattedContent = React.useMemo<React.ReactNode>(() => {
-    if (!visible || dot) return undefined
-    if (
-      numericContent !== null &&
-      numericMax !== null &&
-      numericContent > numericMax
-    ) {
-      return `${numericMax}+`
-    }
-    return content
-  }, [content, dot, numericContent, numericMax, visible])
+    const numericMax = isNumericLike(max) ? Number(max) : null
+    const finalContent =
+      numericContent !== null && numericMax !== null && numericContent > numericMax
+        ? `${numericMax}+`
+        : content
 
-  const handleBadgeLayout = React.useCallback(
-    (event: LayoutChangeEvent) => {
-      if (!hasChildren) return
-      const { width, height } = event.nativeEvent.layout
-      setBadgeSize(prev => {
-        if (prev.width === width && prev.height === height) {
-          return prev
-        }
-        return { width, height }
-      })
+    return { visible: true, formattedContent: finalContent }
+  }, [content, dot, max, resolvedShowZero])
+
+  const [size, setSize] = React.useState({ width: 0, height: 0 })
+
+  const handleLayout = React.useCallback(
+    (e: LayoutChangeEvent) => {
+      const { width, height } = e.nativeEvent.layout
+      if (width !== size.width || height !== size.height) {
+        setSize({ width, height })
+      }
     },
-    [hasChildren]
+    [size.width, size.height]
   )
 
-  const fixedTransformStyle = React.useMemo<ViewStyle | undefined>(() => {
+  const transformStyle = React.useMemo(() => {
     if (!hasChildren) return undefined
-    if (badgeSize.width === 0 && badgeSize.height === 0) return undefined
+    if (dot) {
+      const half = tokens.sizes.dotSize / 2
+      return { transform: [{ translateX: half }, { translateY: -half }] }
+    }
+    if (size.width === 0) return { opacity: 0 }
     return {
       transform: [
-        { translateX: badgeSize.width / 2 },
-        { translateY: -badgeSize.height / 2 },
+        { translateX: size.width / 2 },
+        { translateY: -size.height / 2 },
       ],
     }
-  }, [badgeSize.height, badgeSize.width, hasChildren])
+  }, [hasChildren, dot, tokens.sizes.dotSize, size.width, size.height])
 
-  const renderContentNode = () => {
-    if (!visible || dot) return null
-
-    if (React.isValidElement(formattedContent)) {
-      return formattedContent
+  const baseBadgeStyle = React.useMemo(() => {
+    if (dot) {
+      return {
+        width: tokens.sizes.dotSize,
+        height: tokens.sizes.dotSize,
+        borderRadius: tokens.sizes.dotSize / 2,
+        backgroundColor: color ?? tokens.colors.dot,
+      }
     }
+    return {
+      minWidth: tokens.sizes.minWidth,
+      minHeight: tokens.sizes.height,
+      paddingHorizontal: tokens.sizes.paddingHorizontal,
+      paddingVertical: tokens.sizes.paddingVertical,
+      borderRadius: tokens.sizes.borderRadius,
+      borderWidth: tokens.sizes.borderWidth,
+      borderColor: tokens.colors.border,
+      backgroundColor: color ?? tokens.colors.background,
+    }
+  }, [dot, color, tokens])
 
-    return (
-      <Text
-        style={[
-          styles.text,
-          {
-            color: textColor ?? tokens.colors.text,
-            fontSize: tokens.typography.fontSize,
-            lineHeight: tokens.typography.lineHeight,
-            fontFamily: tokens.typography.fontFamily,
-            fontWeight: tokens.typography.fontWeight,
-          },
-          textStyle,
-        ]}
-      >
-        {formattedContent}
-      </Text>
-    )
-  }
+  const mergedTextStyle = React.useMemo(
+    () => [
+      styles.text,
+      {
+        color: textColor ?? tokens.colors.text,
+        fontSize: tokens.typography.fontSize,
+        lineHeight: tokens.typography.lineHeight,
+        fontFamily: tokens.typography.fontFamily,
+        fontWeight: tokens.typography.fontWeight,
+      },
+      userTextStyle,
+    ],
+    [textColor, tokens, userTextStyle]
+  )
 
-  const renderBadgeNode = (standalone: boolean) => {
+  const offsetStyle = React.useMemo(() => {
+    if (!offset) return undefined
+    const [x, y] = offset
+    return (hasChildren
+      ? { right: x, top: y }
+      : { marginLeft: x, marginTop: y }) as ViewStyle
+  }, [offset, hasChildren])
+
+  const badgeElement = React.useMemo(() => {
     if (!visible) return null
-    const pointerEvents = standalone ? 'auto' : 'none'
-    const onLayout = !standalone && hasChildren ? handleBadgeLayout : undefined
-
-    const offsetStyle: ViewStyle | undefined = offset
-      ? standalone
-        ? { marginLeft: offset[0] as any, marginTop: offset[1] as any }
-        : { right: offset[0] as any, top: offset[1] as any }
-      : undefined
-
-    const shape: ViewStyle = dot
-      ? {
-          width: tokens.sizes.dotSize,
-          height: tokens.sizes.dotSize,
-          borderRadius: tokens.sizes.dotSize / 2,
-          backgroundColor: color ?? tokens.colors.dot,
-        }
-      : {
-          minWidth: tokens.sizes.minWidth,
-          minHeight: tokens.sizes.height,
-          paddingHorizontal: tokens.sizes.paddingHorizontal,
-          paddingVertical: tokens.sizes.paddingVertical,
-          borderRadius: tokens.sizes.borderRadius,
-          borderWidth: tokens.sizes.borderWidth,
-          borderColor: tokens.colors.border,
-          backgroundColor: color ?? tokens.colors.background,
-        }
 
     return (
       <View
-        pointerEvents={pointerEvents}
-        onLayout={onLayout}
+        pointerEvents={hasChildren ? 'none' : 'auto'}
+        onLayout={hasChildren && !dot ? handleLayout : undefined}
         style={[
-          standalone ? styles.standalone : styles.badge,
-          shape,
-          !standalone ? fixedTransformStyle : null,
+          hasChildren ? styles.badgeAbsolute : styles.badgeStandalone,
+          baseBadgeStyle,
+          transformStyle,
           offsetStyle,
           badgeStyle,
-          standalone ? style : null,
+          !hasChildren ? style : undefined,
         ]}
       >
-        {dot ? null : renderContentNode()}
+        {!dot &&
+          (React.isValidElement(formattedContent) ? (
+            formattedContent
+          ) : (
+            <Text style={mergedTextStyle}>{formattedContent}</Text>
+          ))}
       </View>
     )
-  }
+  }, [
+    visible,
+    hasChildren,
+    dot,
+    handleLayout,
+    baseBadgeStyle,
+    transformStyle,
+    offsetStyle,
+    badgeStyle,
+    style,
+    formattedContent,
+    mergedTextStyle,
+  ])
 
   if (hasChildren) {
-    const badgeNode = visible ? renderBadgeNode(false) : null
-
     if (onPress) {
-      const pressableStyle = ({ pressed }: PressableStateCallbackType) => [
-        styles.wrapper,
-        style,
-        { opacity: pressed ? 0.9 : 1 },
-      ]
-
       return (
-        <Pressable style={pressableStyle} onPress={onPress} {...rest}>
+        <Pressable
+          ref={ref}
+          onPress={onPress}
+          style={({ pressed }) => [
+            styles.wrapper,
+            style,
+            pressed && { opacity: 0.9 },
+          ]}
+          {...rest}
+        >
           {children}
-          {badgeNode}
+          {badgeElement}
         </Pressable>
       )
     }
 
     return (
-      <View style={[styles.wrapper, style]} {...rest}>
+      <View ref={ref} style={[styles.wrapper, style]} {...rest}>
         {children}
-        {badgeNode}
+        {badgeElement}
       </View>
     )
   }
 
   if (!visible) return null
 
-  const badgeNode = renderBadgeNode(true)
-
   if (onPress) {
-    const standaloneStyle = ({ pressed }: PressableStateCallbackType) => [
-      { alignSelf: 'flex-start' as const, opacity: pressed ? 0.9 : 1 },
-    ]
     return (
-      <Pressable style={standaloneStyle} onPress={onPress} {...rest}>
-        {badgeNode}
+      <Pressable
+        ref={ref}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.pressableStandalone,
+          pressed && { opacity: 0.9 },
+        ]}
+        {...rest}
+      >
+        {badgeElement}
       </Pressable>
     )
   }
 
-  return React.cloneElement(badgeNode as React.ReactElement, { ...rest })
-}
+  return React.cloneElement(badgeElement as React.ReactElement<any>, { ref, ...rest })
+})
 
 const styles = StyleSheet.create({
   wrapper: {
     position: 'relative',
+    alignSelf: 'flex-start', // Ensure wrapper shrinks to children
   },
-  badge: {
+  badgeAbsolute: {
     position: 'absolute',
     top: 0,
     right: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 1,
   },
-  standalone: {
+  badgeStandalone: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pressableStandalone: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+  },
   text: {
     textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
 })
 

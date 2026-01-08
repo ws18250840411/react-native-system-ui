@@ -13,9 +13,7 @@ import type { RadioProps } from './types'
 import { RadioGroupContext } from './RadioContext'
 import { useRadioTokens } from './tokens'
 import { parseNumber } from '../../utils/number'
-
-const isTextLikeNode = (val: any): val is string | number =>
-  typeof val === 'string' || typeof val === 'number'
+import { isText } from '../../utils/validate'
 
 export const Radio: React.FC<RadioProps> = props => {
   const {
@@ -55,7 +53,7 @@ export const Radio: React.FC<RadioProps> = props => {
   const resolvedAccessibilityLabel =
     (props as any).accessibilityLabel ??
     (props as any)['aria-label'] ??
-    (isTextLikeNode(children) ? String(children) : undefined) ??
+    (isText(children) ? String(children) : undefined) ??
     serializedValue ??
     'radio'
 
@@ -106,28 +104,28 @@ export const Radio: React.FC<RadioProps> = props => {
 
   const mergedInputProps = inputProps
     ? {
-        ...inputProps,
-        onPress: (e: GestureResponderEvent) => {
-          onClick?.(e)
+      ...inputProps,
+      onPress: (e: GestureResponderEvent) => {
+        onClick?.(e)
 
-          if (isGroup && group && serializedValue !== undefined) {
-            if (!isChecked) group.state.setSelectedValue(serializedValue)
-            return
-          }
+        if (isGroup && group && serializedValue !== undefined) {
+          if (!isChecked) group.state.setSelectedValue(serializedValue)
+          return
+        }
 
-          if (props.checked !== undefined) {
-            props.onChange?.(!props.checked)
-            return
-          }
+        if (props.checked !== undefined) {
+          props.onChange?.(!props.checked)
+          return
+        }
 
-          if (props.onChange) {
-            setStandaloneSelected(!standaloneSelected)
-            return
-          }
+        if (props.onChange) {
+          setStandaloneSelected(!standaloneSelected)
+          return
+        }
 
-          inputProps.onPress?.(e)
-        },
-      }
+        inputProps.onPress?.(e)
+      },
+    }
     : {}
 
   const borderColor = resolvedDisabled
@@ -154,7 +152,7 @@ export const Radio: React.FC<RadioProps> = props => {
         pointerEvents="none"
         accessible={false}
       >
-        {isTextLikeNode(children) ? (
+        {isText(children) ? (
           <Text
             accessible={false}
             style={[

@@ -11,6 +11,7 @@ import {
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import { useControllableValue } from '../../hooks'
+import { isText } from '../../utils/validate'
 
 import type { PasswordInputProps, PasswordInputRef } from './types'
 
@@ -385,7 +386,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
         </Pressable>
         {tip ? (
           <View style={styles.infoWrapper}>
-            {typeof tip === 'string' || typeof tip === 'number' ? (
+            {isText(tip) ? (
               <Text style={[styles.infoText, { color: tipColor }]}>{tip}</Text>
             ) : (
               tip

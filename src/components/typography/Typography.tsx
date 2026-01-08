@@ -1,6 +1,7 @@
 import React from 'react'
 import { Linking, Platform, Text, View } from 'react-native'
 import type { NativeSyntheticEvent, StyleProp, TextLayoutEventData, TextProps, TextStyle, ViewStyle } from 'react-native'
+import { isBoolean, isNumber, isPlainObject } from '../../utils/validate'
 
 import type {
   EllipsisConfig,
@@ -13,14 +14,14 @@ import { useTypographyTokens } from './tokens'
 
 const resolveEllipsisRows = (ellipsis?: TypographyTextProps['ellipsis']) => {
   if (!ellipsis) return undefined
-  if (typeof ellipsis === 'boolean') return ellipsis ? 1 : undefined
-  if (typeof ellipsis === 'number') return ellipsis
+  if (isBoolean(ellipsis)) return ellipsis ? 1 : undefined
+  if (isNumber(ellipsis)) return ellipsis
   return ellipsis.rows ?? 1
 }
 
 const isEllipsisObject = (
   ellipsis?: TypographyTextProps['ellipsis'],
-): ellipsis is EllipsisConfig => typeof ellipsis === 'object' && !!ellipsis
+): ellipsis is EllipsisConfig => isPlainObject(ellipsis)
 
 const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, ref) => {
   const {
@@ -59,11 +60,8 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
 
   let resolvedColor = tokens.colors[type] ?? tokens.colors.default
   if (colorProp !== undefined && colorProp !== null) {
-    if (Object.keys(tokens.colors).includes(colorProp as string)) {
-      resolvedColor = tokens.colors[colorProp as TypographyType]
-    } else {
-      resolvedColor = String(colorProp)
-    }
+    const colorKey = String(colorProp) as TypographyType
+    resolvedColor = tokens.colors[colorKey] ?? String(colorProp)
   }
   const fontSize = level ? tokens.titles[level].fontSize : tokens.sizes[size]
   const lineHeight = level ? tokens.titles[level].lineHeight : fontSize * 1.3
@@ -186,7 +184,9 @@ const TypographyLink = React.forwardRef<Text, TypographyLinkProps>((props, ref) 
       try {
         await Linking.openURL(href)
       } catch (error) {
-        console.warn('Failed to open url', error)
+        if (typeof __DEV__ !== 'undefined' && __DEV__) {
+          console.warn('[Typography.Link] Failed to open url', error)
+        }
       }
     }
   }, [onPress, href])

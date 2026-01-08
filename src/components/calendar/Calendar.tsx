@@ -2,6 +2,7 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View, type TextStyle } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
+import { isText } from '../../utils/validate'
 import Popup from '../popup'
 import { useCalendarTokens } from './tokens'
 import type { CalendarProps, CalendarType } from './types'
@@ -29,9 +30,6 @@ const DEFAULT_MIN = new Date(new Date().getFullYear() - 10, 0, 1)
 const DEFAULT_MAX = new Date(new Date().getFullYear() + 10, 11, 31)
 
 const defaultWeekDays = ['日', '一', '二', '三', '四', '五', '六']
-
-const isTextLike = (node: React.ReactNode): node is string | number =>
-  typeof node === "string" || typeof node === "number"
 
 const Calendar: React.FC<CalendarProps> = props => {
   const {
@@ -353,7 +351,7 @@ const Calendar: React.FC<CalendarProps> = props => {
           </Pressable>
           <View style={styles.headerCenter}>
             {title !== undefined && title !== null && title !== false
-              ? isTextLike(title)
+              ? isText(title)
                 ? (
                   <Text
                     style={[
@@ -371,7 +369,7 @@ const Calendar: React.FC<CalendarProps> = props => {
                 : title
               : null}
             {showSubtitle ? (
-              isTextLike(monthLabel)
+              isText(monthLabel)
                 ? (
                   <Text
                     style={[
@@ -411,7 +409,7 @@ const Calendar: React.FC<CalendarProps> = props => {
       <View style={[styles.weekRow, { marginBottom: tokens.spacing.weekRowMarginBottom }]}>
         {weekLabels.map((label, index) => (
           <View key={`weekday-${index}`} style={styles.weekLabelItem}>
-            {isTextLike(label)
+            {isText(label)
               ? (
                 <Text style={{ textAlign: 'center', color: tokens.colors.text }}>
                   {label}
@@ -439,7 +437,7 @@ const Calendar: React.FC<CalendarProps> = props => {
           onPress={handleConfirm}
           disabled={confirmDisabled}
         >
-          {isTextLike(confirmText)
+          {isText(confirmText)
             ? (
               <Text
                 style={[

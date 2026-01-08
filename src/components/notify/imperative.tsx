@@ -1,6 +1,7 @@
 import React from 'react'
 
 import Portal from '../portal/Portal'
+import { isText } from '../../utils/validate'
 import Notify, { type NotifyProps, type NotifyType } from './Notify'
 
 export type NotifyShowOptions = Omit<NotifyProps, 'visible'> & { message?: React.ReactNode }
@@ -31,10 +32,9 @@ const typeDefaults = new Map<NotifyType, NotifyShowOptions>()
 const parseOptions = (input?: NotifyInput): NotifyShowOptions => {
   if (
     React.isValidElement(input) ||
-    typeof input === 'string' ||
-    typeof input === 'number'
+    isText(input)
   ) {
-    return { message: input }
+    return { message: input as React.ReactNode }
   }
   return (input ?? {}) as NotifyShowOptions
 }

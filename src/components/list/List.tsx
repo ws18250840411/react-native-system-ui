@@ -3,11 +3,10 @@ import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
+import { isRenderable, isText } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'
 import Loading from '../loading'
 import type { ListProps, ListRef, ListTokens } from './types'
-
-const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
 const createListTokens = (foundations: Foundations): ListTokens => {
   return {
@@ -137,7 +136,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
         testID="rv-list-footer"
       >
         {mergedLoading ? (
-          typeof loadingText === 'string' || typeof loadingText === 'number'
+          isText(loadingText)
             ? (
               <Loading size={16} testID="rv-list-loading">
                 {loadingText}
@@ -156,8 +155,8 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
         {mergedError ? (
           typeof errorText === 'function' ? (
             errorText(retry)
-          ) : isRenderableNode(errorText) ? (
-            typeof errorText === 'string' || typeof errorText === 'number' ? (
+          ) : isRenderable(errorText) ? (
+            isText(errorText) ? (
               <Text
                 testID="rv-list-error"
                 onPress={retry}
@@ -172,8 +171,8 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
             )
           ) : null
         ) : null}
-        {finished && !mergedLoading && !mergedError && isRenderableNode(finishedText) ? (
-          typeof finishedText === 'string' || typeof finishedText === 'number' ? (
+        {finished && !mergedLoading && !mergedError && isRenderable(finishedText) ? (
+          isText(finishedText) ? (
             <Text testID="rv-list-finished" style={{ color: tokens.colors.finishedText }}>
               {finishedText}
             </Text>

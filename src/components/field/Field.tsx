@@ -12,13 +12,9 @@ import { Clear, QuestionO } from 'react-native-system-icon'
 
 import Cell from '../cell'
 import Dialog from '../dialog'
+import { isDef, isRenderable, isText } from '../../utils/validate'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
-
-const isDef = (val: any) => val != null
-const isRenderableNode = (val: any) => val != null && val !== false
-const isTextLikeNode = (val: unknown): val is string | number =>
-  typeof val === 'string' || typeof val === 'number'
 
 const trimExtraChar = (value: string, char: string, regExp: RegExp) => {
   const index = value.indexOf(char)
@@ -239,8 +235,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const introId = React.useId()
   const errorId = React.useId()
   const describedByIds = [
-    isRenderableNode(errorMessage) ? errorId : null,
-    isRenderableNode(resolvedDescription) ? introId : null,
+    isRenderable(errorMessage) ? errorId : null,
+    isRenderable(resolvedDescription) ? introId : null,
   ].filter(Boolean) as string[]
   const describedBy = describedByIds.length ? describedByIds : undefined
 
@@ -356,8 +352,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }
 
   const renderLabel = () => {
-    if (!isRenderableNode(label)) return null
-    const isPlain = isTextLikeNode(label)
+    if (!isRenderable(label)) return null
+    const isPlain = isText(label)
 
     const content = isPlain ? (
       <Text
@@ -381,20 +377,20 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     return (
       <View style={styles.labelRow}>
         {content}
-        {isRenderableNode(tooltip) ? renderTooltip() : null}
+        {isRenderable(tooltip as any) ? renderTooltip() : null}
       </View>
     )
   }
 
   const renderTooltip = () => {
-    if (!isRenderableNode(tooltip)) return null
+    if (!isRenderable(tooltip as any)) return null
     const defaultIcon = (
       <QuestionO size={tokens.sizes.icon} fill={tokens.colors.tooltip} color={tokens.colors.tooltip} />
     )
     let icon: React.ReactNode = defaultIcon
     let dialogProps: FieldTooltipProps | { message: React.ReactNode } = { message: tooltip as React.ReactNode }
 
-    if (!React.isValidElement(tooltip) && !isTextLikeNode(tooltip)) {
+    if (!React.isValidElement(tooltip) && !isText(tooltip as any)) {
       const { icon: customIcon, ...rest } = tooltip as FieldTooltipProps
       icon = customIcon ?? defaultIcon
       dialogProps = rest as FieldTooltipProps
@@ -545,7 +541,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
     if (content === null || content === false) return null
 
-    if (typeof content === 'string' || typeof content === 'number') {
+    if (isText(content)) {
       return (
         <Text
           style={[
@@ -568,8 +564,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }
 
   const renderMessage = () => {
-    if (!isRenderableNode(errorMessage)) return null
-    if (isTextLikeNode(errorMessage)) {
+    if (!isRenderable(errorMessage)) return null
+    if (isText(errorMessage)) {
       return (
         <Text
           nativeID={errorId}
@@ -607,8 +603,8 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }
 
   const renderIntro = () => {
-    if (!isRenderableNode(resolvedDescription)) return null
-    if (isTextLikeNode(resolvedDescription)) {
+    if (!isRenderable(resolvedDescription)) return null
+    if (isText(resolvedDescription)) {
       return (
         <Text
           nativeID={introId}
@@ -643,7 +639,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   ]
 
   const renderAffix = (node: React.ReactNode) => {
-    if (typeof node === 'string' || typeof node === 'number') {
+    if (isText(node)) {
       return (
         <Text
           style={[
@@ -678,7 +674,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       style={style}
       contentStyle={contentWrapperStyle}
       accessibilityState={error ? ({ invalid: true } as any) : undefined}
-      accessibilityLabel={isTextLikeNode(label) ? String(label) : undefined}
+      accessibilityLabel={isText(label) ? String(label) : undefined}
       onPress={onClick}
       android_ripple={androidRipple}
     >

@@ -2,9 +2,12 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Image from '../image'
+import { isNumber, isString } from '../../utils/validate'
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { AvatarProps, AvatarTokens } from './types'
+
+const transparentContainerStyle = { backgroundColor: 'transparent' } as const
 
 const createAvatarTokens = (foundations: Foundations): AvatarTokens => ({
   defaults: {
@@ -79,77 +82,51 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
     const tokens = useAvatarTokens(tokensOverride)
     const resolvedSize = size ?? tokens.defaults.size
     const resolvedShape = shape ?? tokens.defaults.shape
-    const baseSize = typeof resolvedSize === 'number' ? resolvedSize : tokens.sizing.sizes[resolvedSize]
+    const baseSize = isNumber(resolvedSize) ? resolvedSize : tokens.sizing.sizes[resolvedSize]
     const avatarWidth = width ?? baseSize
     const avatarHeight = height ?? baseSize
     const borderRadius = resolvedShape === 'circle'
       ? Math.min(avatarWidth, avatarHeight) / 2
       : Math.max(tokens.radii.squareMin, Math.min(avatarWidth, avatarHeight) / tokens.radii.squareDivisor)
 
-    const fallbackText = React.useMemo(() => {
-      return text ? text.trim().slice(0, 2).toUpperCase() : undefined
-    }, [text])
+    const fallbackText = text ? text.trim().slice(0, 2).toUpperCase() : undefined
+    const fallbackContent = icon ? (
+      <View
+        style={[
+          styles.iconWrapper,
+          {
+            width: Math.min(avatarWidth, tokens.sizing.iconMaxSize),
+            height: Math.min(avatarHeight, tokens.sizing.iconMaxSize),
+          },
+          contentStyle,
+        ]}
+      >
+        {icon}
+      </View>
+    ) : fallbackText ? (
+      <Text
+        style={[
+          styles.text,
+          {
+            color: color ?? tokens.colors.text,
+            fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
+            fontWeight: tokens.typography.fontWeight,
+          },
+          textStyle,
+        ]}
+        numberOfLines={1}
+      >
+        {fallbackText}
+      </Text>
+    ) : null
 
-    const fallbackContent = React.useMemo(() => {
-      if (icon) {
-        return (
-          <View
-            style={[
-              styles.iconWrapper,
-              {
-                width: Math.min(avatarWidth, tokens.sizing.iconMaxSize),
-                height: Math.min(avatarHeight, tokens.sizing.iconMaxSize),
-              },
-              contentStyle,
-            ]}
-          >
-            {icon}
-          </View>
-        )
-      }
-      if (fallbackText) {
-        return (
-          <Text
-            style={[
-              styles.text,
-              {
-                color: color ?? tokens.colors.text,
-                fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              textStyle,
-            ]}
-            numberOfLines={1}
-          >
-            {fallbackText}
-          </Text>
-        )
-      }
-      return null
-    }, [
-      icon,
-      fallbackText,
-      avatarWidth,
-      avatarHeight,
-      tokens,
-      contentStyle,
-      color,
-      textStyle,
-    ])
-
-    const imageSource = React.useMemo(() => {
-      if (typeof src === 'string') return { uri: src }
-      return src
-    }, [src])
-
-    const imageContainerStyle = React.useMemo(() => ({ backgroundColor: 'transparent' }), [])
-
-    const imageStyle = React.useMemo(() => [styles.image, { borderRadius }], [borderRadius])
+    const imageSource = isString(src) ? { uri: src } : src
+    const imageStyle = [styles.image, { borderRadius }] as const
 
     const content = src ? (
       <Image
         source={imageSource}
-        containerStyle={imageContainerStyle}
+        containerStyle={transparentContainerStyle}
         style={imageStyle}
         fit={fit ?? 'cover'}
         loadingText={null}

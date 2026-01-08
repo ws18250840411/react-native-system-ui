@@ -2,12 +2,11 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
+import { isRenderable, isText } from '../../utils/validate'
 import Badge from '../badge'
-import type { SidebarItemProps } from './types'
 import { useSidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
-
-const isRenderable = (value: React.ReactNode) => value !== undefined && value !== null && value !== false
+import type { SidebarItemProps } from './types'
 
 const SidebarItem: React.FC<SidebarItemProps> = props => {
   const {
@@ -78,7 +77,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
       <View style={styles.content}>
         <View style={styles.titleRow}>
           {isRenderable(title)
-            ? typeof title === 'string' || typeof title === 'number'
+            ? isText(title)
               ? (
                 <Text
                   style={[
@@ -97,7 +96,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
             : null}
           {isRenderable(badge) ? (
             <View style={[styles.badge, badgeStyle]}>
-              {typeof badge === 'string' || typeof badge === 'number' ? (
+              {isText(badge) ? (
                 <Badge content={badge} />
               ) : (
                 badge

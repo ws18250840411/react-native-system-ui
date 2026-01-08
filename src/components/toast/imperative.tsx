@@ -1,6 +1,7 @@
 import React from 'react'
 
 import Portal from '../portal/Portal'
+import { isText } from '../../utils/validate'
 import Toast, { type ToastProps, type ToastType } from './Toast'
 
 export type ToastShowOptions = Omit<ToastProps, 'visible'> & { message?: React.ReactNode }
@@ -30,10 +31,9 @@ const typeDefaults = new Map<ToastType, ToastShowOptions>()
 const parseOptions = (input?: ToastInput): ToastShowOptions => {
   if (
     React.isValidElement(input) ||
-    typeof input === 'string' ||
-    typeof input === 'number'
+    isText(input)
   ) {
-    return { message: input }
+    return { message: input as React.ReactNode }
   }
   return (input ?? {}) as ToastShowOptions
 }

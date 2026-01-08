@@ -6,9 +6,7 @@ import { useToggleState } from '@react-stately/toggle'
 import type { CheckboxProps } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
-
-const isTextLikeNode = (val: any): val is string | number =>
-  typeof val === 'string' || typeof val === 'number'
+import { isText } from '../../utils/validate'
 
 export const Checkbox: React.FC<CheckboxProps> = props => {
   const {
@@ -66,7 +64,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   const resolvedAccessibilityLabel =
     (props as any).accessibilityLabel ??
     (props as any)['aria-label'] ??
-    (isTextLikeNode(children) ? String(children) : undefined) ??
+    (isText(children) ? String(children) : undefined) ??
     serializedValue ??
     'checkbox'
 
@@ -130,45 +128,45 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   const originalOnPress = inputProps?.onPress
   const mergedInputProps = inputProps
     ? {
-        ...inputProps,
-        onPress: (e: GestureResponderEvent) => {
-          props.onClick?.(e)
+      ...inputProps,
+      onPress: (e: GestureResponderEvent) => {
+        props.onClick?.(e)
 
-          if (
-            isGroup &&
-            group?.max &&
-            !isChecked &&
-            group.state.value.length >= group.max
-          ) {
-            return
-          }
+        if (
+          isGroup &&
+          group?.max &&
+          !isChecked &&
+          group.state.value.length >= group.max
+        ) {
+          return
+        }
 
-          if (originalOnPress) {
-            originalOnPress(e)
-            return
-          }
+        if (originalOnPress) {
+          originalOnPress(e)
+          return
+        }
 
-          // Fallback: should be rare, but keeps behavior predictable.
-          if (isGroup && group && serializedValue !== undefined) {
-            if (isChecked) group.state.removeValue(serializedValue)
-            else group.state.addValue(serializedValue)
-            return
-          }
-          if (props.checked !== undefined) {
-            props.onChange?.(!props.checked)
-            return
-          }
-          if (props.onChange) {
-            standaloneState.setSelected(!standaloneState.isSelected)
-          }
-        },
-      }
+        // Fallback: should be rare, but keeps behavior predictable.
+        if (isGroup && group && serializedValue !== undefined) {
+          if (isChecked) group.state.removeValue(serializedValue)
+          else group.state.addValue(serializedValue)
+          return
+        }
+        if (props.checked !== undefined) {
+          props.onChange?.(!props.checked)
+          return
+        }
+        if (props.onChange) {
+          standaloneState.setSelected(!standaloneState.isSelected)
+        }
+      },
+    }
     : {}
 
   const labelNode =
     children === null || children === undefined || children === false
       ? null
-      : isTextLikeNode(children)
+      : isText(children)
         ? (
           <Text
             accessible={false}

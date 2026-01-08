@@ -11,6 +11,7 @@ import {
 import { useTheme } from '../../design-system'
 import { withAlpha } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import { isNumber, isString, isText } from '../../utils/validate'
 import Loading from '../loading'
 import { useAriaPress } from '../../hooks'
 import type {
@@ -48,7 +49,7 @@ const resolveSpinnerSize = (
   loadingSize: ButtonProps['loadingSize'],
   iconSize: number
 ) => {
-  if (typeof loadingSize === 'number') {
+  if (isNumber(loadingSize)) {
     return loadingSize
   }
   const base = Math.max(iconSize, 16)
@@ -224,12 +225,12 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const shadowStyle =
       shouldShowShadow && shadowTokens
         ? createPlatformShadow({
-            color: shadowTokens.color,
-            opacity: shadowTokens.opacity,
-            radius: shadowTokens.radius,
-            offsetY: shadowTokens.offsetY,
-            elevation: shadowTokens.elevation,
-          })
+          color: shadowTokens.color,
+          opacity: shadowTokens.opacity,
+          radius: shadowTokens.radius,
+          offsetY: shadowTokens.offsetY,
+          elevation: shadowTokens.elevation,
+        })
         : undefined
 
     const gradientWebStyle =
@@ -307,9 +308,9 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         textTransform: uppercase ? 'uppercase' : undefined,
       }
 
-      if (typeof label === 'string' || typeof label === 'number') {
+      if (isText(label)) {
         const content =
-          typeof label === 'string' ? ensureSpace(label, autoInsertSpace) : String(label)
+          isString(label) ? ensureSpace(label, autoInsertSpace) : String(label)
 
         return (
           <Text
@@ -357,11 +358,9 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
     const resolvedAccessibilityLabel =
       accessibilityLabel ??
-      (typeof label === 'string'
-        ? label
-        : typeof label === 'number'
-          ? String(label)
-          : undefined)
+      (isText(label)
+        ? String(label)
+        : undefined)
 
     const { interactionProps, states } = useAriaPress({
       disabled: isDisabled,
@@ -406,7 +405,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         ? resolvedTextColor
         : type === 'default' && !normalizedColor
           ? withAlpha(resolvedTextColor, 0.15)
-        : buttonTokens.colors.ripple)
+          : buttonTokens.colors.ripple)
     const resolvedAndroidRipple =
       Platform.OS === 'android'
         ? androidRippleProp ?? { color: defaultRippleColor, borderless: false }

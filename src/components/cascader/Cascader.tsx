@@ -12,6 +12,7 @@ import {
 import { Checked, Cross } from "react-native-system-icon"
 
 import { useControllableValue } from "../../hooks"
+import { isText } from "../../utils/validate"
 import Popup from "../popup"
 import Tabs from "../tabs"
 import type { TabsValue } from "../tabs"
@@ -28,9 +29,6 @@ import { useCascaderExtend } from "./useCascaderExtend"
 import { resolveSelectedRows } from "./utils"
 
 const DEFAULT_PLACEHOLDER = "请选择"
-
-const isTextLike = (node: React.ReactNode): node is string | number =>
-  typeof node === "string" || typeof node === "number"
 
 const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
   textKey: fieldNames?.text ?? "text",
@@ -156,10 +154,7 @@ const Cascader: React.FC<CascaderProps> = props => {
       const index = typeof event.index === "number" ? event.index : Number(event.name)
       if (Number.isNaN(index)) return
       const titleNode = items[index]?.[keys.textKey] as React.ReactNode
-      const titleText =
-        typeof titleNode === "string" || typeof titleNode === "number"
-          ? String(titleNode)
-          : placeholder
+      const titleText = isText(titleNode) ? String(titleNode) : placeholder
       onClickTab?.(index, titleText)
     },
     [items, keys.textKey, onClickTab, placeholder],
@@ -309,7 +304,7 @@ const Cascader: React.FC<CascaderProps> = props => {
             const selectedOption = items[index]
             const labelValue = selectedOption?.[keys.textKey]
             const labelText =
-              isTextLike(labelValue) && String(labelValue) !== "" ? String(labelValue) : ""
+              isText(labelValue) && String(labelValue) !== "" ? String(labelValue) : ""
             const unselected = !labelText
             const titleNode = (_active: boolean) => (
               <Text
@@ -352,7 +347,7 @@ const Cascader: React.FC<CascaderProps> = props => {
             },
           ]}
         >
-          {isTextLike(title) ? (
+          {isText(title) ? (
             <Text style={[styles.title, { color: tokens.colors.headerText }]}>{title}</Text>
           ) : (
             title
@@ -477,7 +472,7 @@ const CascaderOptionItem = React.memo(
 
     const content = optionRender
       ? optionRender({ option, selected })
-      : isTextLike(label)
+      : isText(label)
         ? (
           <Text style={[styles.optionText, selected && styles.optionTextActive, { color: textColor }]}>
             {label}

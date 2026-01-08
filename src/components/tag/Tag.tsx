@@ -5,6 +5,7 @@ import { Close } from 'react-native-system-icon'
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import { getHairlineWidth } from '../../utils/hairline'
+import { isText } from '../../utils/validate'
 import type { TagProps, TagTokens } from './types'
 
 const buildTone = (
@@ -140,7 +141,7 @@ export const Tag: React.FC<TagProps> = props => {
   ]
 
   const label =
-    children == null || children === false ? null : typeof children === 'string' || typeof children === 'number' ? (
+    children == null || children === false ? null : isText(children) ? (
       <Text
         style={[
           {

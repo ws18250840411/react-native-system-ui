@@ -2,6 +2,7 @@ import React from 'react'
 import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SvgUri } from 'react-native-svg'
 
+import { isText } from '../../utils/validate'
 import { useImageTokens } from './tokens'
 import type { ImageProps } from './types'
 
@@ -77,7 +78,7 @@ const splitImageStyle = (style: any) => {
 
 const renderOverlayLabel = (node: React.ReactNode, color: string, marginTop?: number) => {
   if (node == null || node === false) return null
-  if (typeof node === 'string' || typeof node === 'number') {
+  if (isText(node)) {
     return <Text style={[styles.text, { color }, marginTop ? { marginTop } : null]}>{node}</Text>
   }
   return marginTop ? <View style={{ marginTop }}>{node}</View> : node

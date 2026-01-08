@@ -2,6 +2,7 @@ import React from 'react'
 import { Text, View } from 'react-native'
 
 import { useCountDown } from '../../hooks'
+import { isText } from '../../utils/validate'
 import type { CountDownInstance, CountDownProps } from './types'
 import { parseFormat } from './utils'
 import { useCountDownTokens } from './tokens'
@@ -21,7 +22,7 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     ...rest
   } = props
 
-  const parsed = typeof time === 'number' ? time : typeof time === 'string' ? Number(time) : 0
+  const parsed = isText(time) ? Number(time) : 0
   const normalizedTime = Math.max(0, Number.isFinite(parsed) ? parsed : 0)
 
   const { start, pause, reset, current } = useCountDown({
@@ -47,22 +48,13 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
 
   React.useImperativeHandle(ref, () => ({ start, pause, reset: resetTime }))
 
-  const defaultTextStyle: any = tokens.text
-  const content =
-    typeof children === 'function'
-      ? (() => {
-        const rendered = children(current)
-        return typeof rendered === 'string' || typeof rendered === 'number' ? (
-          <Text style={defaultTextStyle}>{rendered}</Text>
-        ) : (
-          rendered
-        )
-      })()
-      : <Text style={defaultTextStyle}>{parseFormat(format, current)}</Text>
+  const defaultTextStyle = tokens.text
+  const content = typeof children === 'function' ? children(current) : parseFormat(format, current)
+  const contentNode = isText(content) ? <Text style={defaultTextStyle}>{content}</Text> : content
 
   return (
     <View style={style} {...rest}>
-      {content}
+      {contentNode}
     </View>
   )
 })

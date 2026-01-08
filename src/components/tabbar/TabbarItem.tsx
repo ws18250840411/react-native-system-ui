@@ -2,20 +2,12 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
+import { isPlainObject, isRenderable, isText } from '../../utils/validate'
 import Badge from '../badge'
-import { useTabbarTokens } from './tokens'
 import { useTabbarContext } from './TabbarContext'
-import type { BadgeProps } from '../badge/types'
+import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarValue } from './types'
-
-const isRenderable = (value: unknown) =>
-  value != null && value !== false
-
-const isBadgeProps = (value: unknown): value is BadgeProps =>
-  Boolean(value) &&
-  typeof value === 'object' &&
-  !React.isValidElement(value) &&
-  !Array.isArray(value)
+import type { BadgeProps } from '../badge/types'
 
 const TabbarItem: React.FC<TabbarItemProps> = props => {
   const {
@@ -96,11 +88,12 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
 
   const renderBadge = () => {
     if (isRenderable(badge)) {
-      if (typeof badge === 'string' || typeof badge === 'number') {
+      if (isText(badge)) {
         return <Badge content={badge} />
       }
-      if (isBadgeProps(badge)) {
-        return <Badge {...badge} dot={dot || badge.dot} />
+      if (isPlainObject(badge)) {
+        const badgeProps = badge as BadgeProps
+        return <Badge {...badgeProps} dot={dot || badgeProps.dot} />
       }
       return badge as React.ReactNode
     }

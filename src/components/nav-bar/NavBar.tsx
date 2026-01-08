@@ -4,12 +4,9 @@ import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineBorderBottom } from '../../utils/hairline'
+import { isRenderable, isText } from '../../utils/validate'
 import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
-
-const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
-const isTextLikeNode = (node: React.ReactNode): node is string | number =>
-  typeof node === 'string' || typeof node === 'number'
 
 const NavBarBase: React.FC<NavBarProps> = props => {
   const tokens = useNavBarTokens(props.tokensOverride)
@@ -47,8 +44,8 @@ const NavBarBase: React.FC<NavBarProps> = props => {
 
   const resolvedColor = tintColor ?? tokens.colors.text
   const sideColor = tintColor ?? tokens.colors.icon
-  const leftAccessibilityLabel = isTextLikeNode(leftText) ? String(leftText) : '返回'
-  const rightAccessibilityLabel = isTextLikeNode(rightText) ? String(rightText) : '操作'
+  const leftAccessibilityLabel = isText(leftText) ? String(leftText) : '返回'
+  const rightAccessibilityLabel = isText(rightText) ? String(rightText) : '操作'
 
   const leftPress = useAriaPress({
     disabled: !handlePressLeft,
@@ -71,12 +68,12 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const renderLeft = () => {
     const arrowNode = leftArrow === true
       ? <ArrowLeft size={18} fill={sideColor} color={sideColor} />
-      : (isRenderableNode(leftArrow) ? leftArrow : null)
+      : (isRenderable(leftArrow) ? leftArrow : null)
 
     const hasAction = !!handlePressLeft
-      || isRenderableNode(arrowNode)
-      || isRenderableNode(leftText)
-      || isRenderableNode(leftIcon)
+      || isRenderable(arrowNode)
+      || isRenderable(leftText)
+      || isRenderable(leftIcon)
 
     if (!hasAction) {
       return <View style={styles.sidePlaceholder} />
@@ -91,8 +88,8 @@ const NavBarBase: React.FC<NavBarProps> = props => {
       >
         {arrowNode}
         {leftIcon}
-        {isRenderableNode(leftText)
-          ? isTextLikeNode(leftText)
+        {isRenderable(leftText)
+          ? isText(leftText)
             ? <Text style={[styles.sideText, { color: sideColor }]}>{leftText}</Text>
             : leftText
           : null}
@@ -101,7 +98,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   }
 
   const renderRight = () => {
-    const hasAction = !!handlePressRight || isRenderableNode(rightText) || isRenderableNode(rightIcon)
+    const hasAction = !!handlePressRight || isRenderable(rightText) || isRenderable(rightIcon)
     if (!hasAction) {
       return <View style={styles.sidePlaceholder} />
     }
@@ -112,8 +109,8 @@ const NavBarBase: React.FC<NavBarProps> = props => {
         style={[styles.side, styles.rightAlign, sideStyle]}
         {...(handlePressRight ? rightPress.interactionProps : {})}
       >
-        {isRenderableNode(rightText)
-          ? isTextLikeNode(rightText)
+        {isRenderable(rightText)
+          ? isText(rightText)
             ? <Text style={[styles.sideText, { color: sideColor }]}>{rightText}</Text>
             : rightText
           : null}
@@ -122,47 +119,47 @@ const NavBarBase: React.FC<NavBarProps> = props => {
     )
   }
 
-  const centerContent = isRenderableNode(children) ? (
+  const centerContent = isRenderable(children) ? (
     children
   ) : (
     <View style={styles.titleWrapper}>
-      {isRenderableNode(title)
-        ? isTextLikeNode(title)
+      {isRenderable(title)
+        ? isText(title)
           ? (
-              <Text
-                style={[
-                  styles.title,
-                  {
-                    color: resolvedColor,
-                    fontSize: tokens.typography.titleSize,
-                    fontWeight: tokens.typography.titleWeight as TextStyle['fontWeight'],
-                  },
-                  titleStyle,
-                ]}
-                numberOfLines={1}
-              >
-                {title}
-              </Text>
-            )
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: resolvedColor,
+                  fontSize: tokens.typography.titleSize,
+                  fontWeight: tokens.typography.titleWeight as TextStyle['fontWeight'],
+                },
+                titleStyle,
+              ]}
+              numberOfLines={1}
+            >
+              {title}
+            </Text>
+          )
           : title
         : null}
-      {isRenderableNode(description)
-        ? isTextLikeNode(description)
+      {isRenderable(description)
+        ? isText(description)
           ? (
-              <Text
-                style={[
-                  styles.description,
-                  {
-                    color: tintColor ?? tokens.colors.description,
-                    fontSize: tokens.typography.descriptionSize,
-                  },
-                  descriptionStyle,
-                ]}
-                numberOfLines={1}
-              >
-                {description}
-              </Text>
-            )
+            <Text
+              style={[
+                styles.description,
+                {
+                  color: tintColor ?? tokens.colors.description,
+                  fontSize: tokens.typography.descriptionSize,
+                },
+                descriptionStyle,
+              ]}
+              numberOfLines={1}
+            >
+              {description}
+            </Text>
+          )
           : description
         : null}
     </View>

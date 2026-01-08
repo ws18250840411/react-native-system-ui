@@ -19,6 +19,7 @@ import { Checked, Close } from 'react-native-system-icon'
 import { useOverlayStack } from '../overlay'
 import type { LoadingType } from '../loading'
 import type { DeepPartial } from '../../types'
+import { isText } from '../../utils/validate'
 import { useToastTokens } from './tokens'
 import type { ToastTokens } from './tokens'
 
@@ -128,7 +129,7 @@ export const Toast: React.FC<ToastProps> = props => {
       onClosed?.()
     }
   }, [mounted, onClosed])
-  
+
   const handleClose = () => {
     onClose?.()
   }
@@ -219,7 +220,7 @@ export const Toast: React.FC<ToastProps> = props => {
               <View style={{ marginBottom: tokens.gap }}>{iconNode}</View>
             ) : null}
             {hasMessage
-              ? typeof message === 'string' || typeof message === 'number'
+              ? isText(message)
                 ? (
                   <Text
                     style={[

@@ -63,10 +63,7 @@ export const Grid: React.FC<GridProps> = props => {
   } = props
 
   const childArray = React.useMemo(
-    () =>
-      React.Children.toArray(children).filter(
-        child => child !== null && child !== undefined,
-      ),
+    () => React.Children.toArray(children).filter((child): child is React.ReactElement<any> => React.isValidElement(child)),
     [children]
   )
 
@@ -138,13 +135,12 @@ export const Grid: React.FC<GridProps> = props => {
     <GridContext.Provider value={contextValue}>
       <View style={containerStyle} {...rest}>
         {renderBorder('top')}
-        {childArray.map((child, index) => {
-          if (!React.isValidElement(child)) return null
-          return React.cloneElement(child as React.ReactElement<any>, {
+        {childArray.map((child, index) =>
+          React.cloneElement(child, {
             gridItemIndex: index,
             key: child.key ?? index,
           })
-        })}
+        )}
         {renderBorder('bottom')}
       </View>
     </GridContext.Provider>

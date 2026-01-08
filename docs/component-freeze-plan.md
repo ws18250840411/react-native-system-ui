@@ -63,9 +63,9 @@
 | rate | 已冻结 ✅ | 触控交互与精度/只读等边界 |
 | selector | 已冻结 ✅ | 选择态/布局/无障碍与多端一致性 |
 | sidebar | 已冻结 ✅ | 滚动/受控联动，交互边界较多 |
-| space | 复核后冻结 | Web gap / Native padding 模拟差异 |
-| switch | 复核后冻结 | 动画与交互细节（禁用/受控） |
-| typography | 复核后冻结 | Text 渲染安全与多端样式细节 |
+| space | 已冻结 ✅ | Web gap / Native padding 模拟差异 |
+| switch | 已冻结 ✅ | 动画与交互细节（禁用/受控） |
+| typography | 已冻结 ✅ | Text 渲染安全与多端样式细节 |
 
 ### C 组（持续优化）
 

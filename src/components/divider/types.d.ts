@@ -20,7 +20,7 @@ export interface DividerTokens {
     fontSize: number
     lineHeight: number
     fontFamily: string
-    fontWeight: string
+    fontWeight: TextStyle['fontWeight']
   }
   spacing: {
     vertical: number

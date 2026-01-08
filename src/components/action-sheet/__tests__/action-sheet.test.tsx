@@ -47,6 +47,52 @@ describe('ActionSheet', () => {
     })
   })
 
+  it('does not trigger onCancel when closing via action/overlay', async () => {
+    const onClose = jest.fn()
+    const onCancel = jest.fn()
+    const tree = renderInHost(
+      <ActionSheet
+        visible
+        title="标题"
+        actions={[{ name: 'Edit' }]}
+        closeOnClickAction
+        onClose={onClose}
+        onCancel={onCancel}
+      />
+    )
+
+    const action = tree.root.findByProps({ testID: 'rv-action-sheet-item-0' })
+    await act(async () => {
+      action.props.onPress?.({})
+      await Promise.resolve()
+    })
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onCancel).not.toHaveBeenCalled()
+
+    const overlay = tree.root.findByProps({ testID: 'popup-overlay' })
+    await act(async () => {
+      overlay.props.onPress?.({})
+      await Promise.resolve()
+    })
+    expect(onClose).toHaveBeenCalledTimes(2)
+    expect(onCancel).not.toHaveBeenCalled()
+  })
+
+  it('respects closeOnClickOverlay={false}', async () => {
+    const onClose = jest.fn()
+    const tree = renderInHost(
+      <ActionSheet visible closeOnClickOverlay={false} onClose={onClose} />
+    )
+
+    const overlay = tree.root.findByProps({ testID: 'popup-overlay' })
+    await act(async () => {
+      overlay.props.onPress?.({})
+      await Promise.resolve()
+    })
+
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
   it('does not close by default when selecting action', () => {
     const onSelect = jest.fn()
     const onClose = jest.fn()

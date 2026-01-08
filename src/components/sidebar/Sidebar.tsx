@@ -6,6 +6,7 @@ import { useControllableValue } from '../../hooks'
 import type { SidebarItemProps, SidebarProps } from './types'
 import { SidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
+import { isText } from '../../utils/validate'
 
 const SidebarBase: React.FC<SidebarProps> = props => {
   const { children, value, defaultValue, sideStyle, onChange, style, tokensOverride, ...rest } = props
@@ -57,7 +58,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
   const activeContentNode =
     activeContent == null || activeContent === false
       ? null
-      : typeof activeContent === 'string' || typeof activeContent === 'number'
+      : isText(activeContent)
         ? <Text>{activeContent}</Text>
         : activeContent
 

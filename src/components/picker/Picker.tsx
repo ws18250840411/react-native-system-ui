@@ -3,6 +3,7 @@ import { Pressable, Text, type TextStyle, View, Platform } from 'react-native'
 
 import Loading from '../loading'
 import { withAlpha } from '../../utils/color'
+import { isText } from '../../utils/validate'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
 import styles from './styles'
@@ -92,10 +93,10 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
       return findEnabledIndex(options, idx >= 0 ? idx : 0)
     }, [options, value])
 
-      const handleChange = React.useCallback(
-        (index: number) => {
-          const target = findEnabledIndex(options, index)
-          const option = options[target]
+    const handleChange = React.useCallback(
+      (index: number) => {
+        const target = findEnabledIndex(options, index)
+        const option = options[target]
         if (!option || option.disabled) return
         onSelect(option, columnIndex, target)
       },
@@ -134,7 +135,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
                 accessible={!!a11yLabel}
                 accessibilityLabel={a11yLabel}
               >
-                {typeof content === 'string' || typeof content === 'number' ? (
+                {isText(content) ? (
                   <Text
                     numberOfLines={1}
                     style={[
@@ -218,7 +219,7 @@ const Picker: React.FC<PickerProps> = props => {
         </View>
       )
     }
-    if (typeof content === 'string' || typeof content === 'number') {
+    if (isText(content)) {
       return (
         <Text
           numberOfLines={1}

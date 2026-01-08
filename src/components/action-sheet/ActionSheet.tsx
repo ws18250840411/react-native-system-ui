@@ -4,13 +4,13 @@ import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineBorderBottom } from '../../utils/hairline'
+import { isRenderable, isText } from '../../utils/validate'
 import Loading from '../loading'
 import Popup from '../popup'
 import type { ActionSheetAction, ActionSheetCloseAction, ActionSheetProps } from './types'
 import { useActionSheetTokens, type ActionSheetTokens } from './tokens'
 
 const defaultCloseIcon = <Close size={18} />
-const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
 const ActionSheetHeader: React.FC<{
   title: React.ReactNode
@@ -27,7 +27,7 @@ const ActionSheetHeader: React.FC<{
   return (
     <View style={styles.header}>
       <View style={styles.titleContainer}>
-        {typeof title === 'string' || typeof title === 'number' ? (
+        {isText(title) ? (
           <Text style={[styles.title, { color: colors.title, fontSize: typography.title }]}>{title}</Text>
         ) : (
           <View style={styles.titleNode}>{title}</View>
@@ -70,8 +70,8 @@ const ActionSheetItem: React.FC<{
   const subname = action.subname
   const hasIcon = !!action.icon
 
-  const hasName = isRenderableNode(name)
-  const hasSubname = isRenderableNode(subname)
+  const hasName = isRenderable(name)
+  const hasSubname = isRenderable(subname)
 
   return (
     <Pressable
@@ -92,7 +92,7 @@ const ActionSheetItem: React.FC<{
         <Loading size={20} />
       ) : hasName ? (
         <View style={styles.itemTextWrapper}>
-          {typeof name === 'string' || typeof name === 'number' ? (
+          {isText(name) ? (
             <Text
               style={[
                 styles.itemText,
@@ -108,7 +108,7 @@ const ActionSheetItem: React.FC<{
             name
           )}
           {hasSubname ? (
-            typeof subname === 'string' || typeof subname === 'number' ? (
+            isText(subname) ? (
               <Text style={[styles.subname, { color: colors.subitem }]}>{subname}</Text>
             ) : (
               <View style={styles.subnameNode}>{subname}</View>
@@ -147,7 +147,7 @@ const ActionSheetCancel: React.FC<{
         ]}
         {...cancelPress.interactionProps}
       >
-        {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
+        {isText(cancelText) ? (
           <Text style={[styles.cancelText, { color: colors.cancel, fontSize: typography.item }]}>{cancelText}</Text>
         ) : (
           cancelText
@@ -179,7 +179,6 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     safeAreaInsetBottom = true,
     overlay = true,
     lockScroll = true,
-    closeOnClickOverlay = true,
     tokensOverride,
     style: popupStyle,
     ...popupProps
@@ -187,9 +186,9 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
 
   const tokens = useActionSheetTokens(tokensOverride)
   const shouldCloseOnClickAction = closeOnClickAction ?? closeOnSelect ?? false
-  const hasTitle = isRenderableNode(title)
-  const hasDescription = isRenderableNode(description)
-  const hasCancelText = isRenderableNode(cancelText)
+  const hasTitle = isRenderable(title)
+  const hasDescription = isRenderable(description)
+  const hasCancelText = isRenderable(cancelText)
 
   const runBeforeClose = React.useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
@@ -223,21 +222,14 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     [beforeClose, runBeforeClose]
   )
 
-  const handleClose = React.useCallback(
-    (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
-      onCancel?.()
-      void requestClose(action)
-    },
-    [onCancel, requestClose],
-  )
-
   const handleCancel = React.useCallback(() => {
-    handleClose('cancel')
-  }, [handleClose])
+    onCancel?.()
+    void requestClose('cancel')
+  }, [onCancel, requestClose])
 
   const handleCloseIcon = React.useCallback(() => {
-    handleClose('close-icon')
-  }, [handleClose])
+    void requestClose('close-icon')
+  }, [requestClose])
 
   const handleActionPress = React.useCallback(
     (action: ActionSheetAction, index: number) => {
@@ -248,10 +240,10 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       action.callback?.(action)
       onSelect?.(action, index)
       if (shouldCloseOnClickAction) {
-        handleClose('action')
+        void requestClose('action')
       }
     },
-    [onSelect, handleClose, shouldCloseOnClickAction]
+    [onSelect, requestClose, shouldCloseOnClickAction]
   )
 
   return (
@@ -263,7 +255,6 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       overlay={overlay}
       lockScroll={lockScroll}
       beforeClose={handlePopupBeforeClose}
-      onClickOverlay={() => closeOnClickOverlay && handleClose('overlay')}
       onClose={onClose}
       style={[
         { paddingLeft: 0, paddingRight: 0, paddingBottom: 0 },
@@ -283,7 +274,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
         ) : null}
         {hasDescription ? (
           <View style={[styles.descriptionContainer, createHairlineBorderBottom(tokens.colors.border)]}>
-            {typeof description === 'string' || typeof description === 'number' ? (
+            {isText(description) ? (
               <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
                 {description}
               </Text>

@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
+import { isText } from '../../utils/validate'
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { LoadingProps, LoadingTokens } from './types'
@@ -141,7 +142,7 @@ export const Loading: React.FC<LoadingProps> = props => {
     marginTop: vertical ? tokens.spacing.gap : 0,
   }
   const textNode = hasChildren ? (
-    typeof children === 'string' || typeof children === 'number' ? (
+    isText(children) ? (
       <Text
         style={[
           textSpacingStyle,

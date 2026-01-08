@@ -3,12 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineView } from '../../utils/hairline'
+import { isText, isValidNode } from '../../utils/validate'
 import Popup from '../popup'
 import type { ShareSheetOption, ShareSheetOptions, ShareSheetProps } from './types'
 import { useShareSheetTokens, type ShareSheetTokens } from './tokens'
-
-const isValidNode = (node: React.ReactNode) =>
-  node != null && node !== false && (typeof node !== 'string' || node.length > 0)
 
 const normalizeOptions = (options?: ShareSheetOptions): ShareSheetOption[][] => {
   if (!options || options.length === 0) return []
@@ -45,16 +43,16 @@ const ShareSheetOptionItem: React.FC<{
         {option.icon}
       </View>
       {isValidNode(option.name)
-        ? typeof option.name === 'string' || typeof option.name === 'number'
+        ? isText(option.name)
           ? (
-              <Text style={[styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]}>
-                {option.name}
-              </Text>
-            )
+            <Text style={[styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]}>
+              {option.name}
+            </Text>
+          )
           : option.name
         : null}
       {isValidNode(option.description) ? (
-        typeof option.description === 'string' || typeof option.description === 'number' ? (
+        isText(option.description) ? (
           <Text
             style={[
               styles.optionDesc,
@@ -90,7 +88,7 @@ const ShareSheetCancel: React.FC<{
   return (
     <View style={{ backgroundColor: tokens.colors.divider }}>
       <Pressable style={[styles.cancel, { backgroundColor: tokens.colors.background }]} {...cancelPress.interactionProps}>
-        {typeof cancelText === 'string' || typeof cancelText === 'number' ? (
+        {isText(cancelText) ? (
           <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
         ) : (
           cancelText
@@ -193,7 +191,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
         {(hasTitle || hasDescription) ? (
           <View style={styles.header}>
             {hasTitle
-              ? typeof title === 'string' || typeof title === 'number'
+              ? isText(title)
                 ? (
                   <Text
                     style={[
@@ -209,7 +207,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
                 )
               : null}
             {hasDescription
-              ? typeof description === 'string' || typeof description === 'number'
+              ? isText(description)
                 ? (
                   <Text
                     style={[

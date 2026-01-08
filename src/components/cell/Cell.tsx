@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { Arrow } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 import { createHairlineView } from '../../utils/hairline'
+import { isRenderable, isText } from '../../utils/validate'
 
 import { CellGroupContext } from './CellContext'
 import type { CellProps } from './types'
@@ -76,10 +77,6 @@ const arrowTransforms: Record<'left' | 'right' | 'up' | 'down', ViewStyle> = {
   down: { transform: [{ rotate: '90deg' }] },
 }
 
-const isRenderableNode = (val: any) => val != null && val !== false
-const isTextLikeNode = (val: any): val is string | number =>
-  typeof val === 'string' || typeof val === 'number'
-
 export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellProps>(
   (props, ref) => {
     const {
@@ -113,13 +110,13 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
     const group = React.useContext(CellGroupContext)
     const lineHeight = tokens.typography.lineHeight
 
-    const hasTitle = isRenderableNode(title)
-    const hasValue = isRenderableNode(value)
-    const hasLabel = isRenderableNode(label)
-    const hasExtra = isRenderableNode(extra)
-    const hasChildren = isRenderableNode(children)
-    const hasIcon = isRenderableNode(icon)
-    const hasRightIcon = isRenderableNode(rightIcon)
+    const hasTitle = isRenderable(title)
+    const hasValue = isRenderable(value)
+    const hasLabel = isRenderable(label)
+    const hasExtra = isRenderable(extra)
+    const hasChildren = isRenderable(children)
+    const hasIcon = isRenderable(icon)
+    const hasRightIcon = isRenderable(rightIcon)
 
     const onlyValue = !hasTitle && !hasChildren
 
@@ -195,7 +192,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
 
     const renderValue = () => {
       if (hasValue) {
-        if (isTextLikeNode(value)) {
+        if (isText(value)) {
           return (
             <Text
               style={[
@@ -227,7 +224,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
     const renderExtra = () => {
       if (!hasExtra) return null
       const marginLeft = tokens.spacing.extraGap
-      if (isTextLikeNode(extra)) {
+      if (isText(extra)) {
         return (
           <Text
             style={{
@@ -278,7 +275,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
                 </Text>
               ) : null}
               {hasTitle
-                ? isTextLikeNode(title)
+                ? isText(title)
                   ? (
                     <Text
                       style={[
@@ -307,7 +304,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
             </View>
           )}
           {hasLabel
-            ? isTextLikeNode(label)
+            ? isText(label)
               ? (
                 <Text
                   style={[

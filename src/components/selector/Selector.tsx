@@ -4,6 +4,7 @@ import { Platform, Pressable, StyleSheet, Text, type TextStyle, View } from 'rea
 import type { SelectorProps, SelectorValue } from './types'
 import { useSelectorTokens } from './tokens'
 import { useControllableValue } from '../../hooks'
+import { isText } from '../../utils/validate'
 
 const CHECK_MARK = '✓'
 const CHECK_MARK_CORNER_HEIGHT = 8
@@ -78,11 +79,11 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
         const descriptionContent = option.description
         const hasDescription = descriptionContent !== undefined && descriptionContent !== null
         const accessibilityLabel =
-          typeof labelContent === 'string' || typeof labelContent === 'number'
+          isText(labelContent)
             ? String(labelContent)
             : String(option.value)
         const accessibilityHint =
-          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
+          isText(descriptionContent)
             ? String(descriptionContent)
             : undefined
 
@@ -118,7 +119,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                 itemStyle,
               ]}
             >
-              {typeof labelContent === 'string' || typeof labelContent === 'number' ? (
+              {isText(labelContent) ? (
                 <Text
                   style={[
                     styles.label,
@@ -139,7 +140,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
               )}
 
               {hasDescription ? (
-                typeof descriptionContent === 'string' || typeof descriptionContent === 'number' ? (
+                isText(descriptionContent) ? (
                   <Text
                     style={[
                       styles.description,

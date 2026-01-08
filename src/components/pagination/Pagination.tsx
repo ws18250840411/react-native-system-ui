@@ -5,9 +5,7 @@ import { usePaginationTokens } from './tokens'
 import type { PaginationProps, PaginationPageItem } from './types'
 import { useControllableValue } from '../../hooks'
 import { clamp } from '../../utils/number'
-
-const isTextLike = (value: React.ReactNode): value is string | number =>
-  typeof value === 'string' || typeof value === 'number'
+import { isText } from '../../utils/validate'
 
 const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
   const {
@@ -94,7 +92,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         ]}
         testID={`rv-pagination-page-${index}`}
       >
-        {isTextLike(node) ? (
+        {isText(node) ? (
           <Text style={{ color: textColor, fontWeight: item.active ? '600' : '400' }}>
             {node}
           </Text>
@@ -127,7 +125,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         ]}
         testID={`rv-pagination-${type}`}
       >
-        {isTextLike(label) ? (
+        {isText(label) ? (
           <Text style={{ color: disabled ? tokens.colors.disabled : tokens.colors.text }}>
             {label}
           </Text>
@@ -148,7 +146,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
           {pages.map(renderPage)}
         </View>
       ) : null}
-      {descNode == null ? null : isTextLike(descNode) ? (
+      {descNode == null ? null : isText(descNode) ? (
         <Text style={[styles.desc, { color: tokens.colors.text }]} testID="rv-pagination-desc">
           {descNode}
         </Text>

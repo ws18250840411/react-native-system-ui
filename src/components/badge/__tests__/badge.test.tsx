@@ -30,6 +30,36 @@ describe('Badge', () => {
     expect(style.width).toBe(style.height)
   })
 
+  it('renders dot badge in wrapper mode with immediate transform', () => {
+    const tree = renderer.create(
+      <Badge dot>
+        <View />
+      </Badge>
+    )
+    const badgeView = tree.root.findAllByProps({ pointerEvents: 'none' })[0]
+    const style = StyleSheet.flatten(badgeView.props.style)
+
+    // Dot should have transform applied immediately without layout
+    // Half of dotSize (8) is 4
+    expect(style.transform).toEqual([{ translateX: 4 }, { translateY: -4 }])
+  })
+
+  it('renders wrapper as View when onPress is not provided', () => {
+    const tree = renderer.create(
+      <Badge content={1}>
+        <View testID="child" />
+      </Badge>
+    )
+
+    const wrapper = tree.root.findAllByType(View).find(node => {
+      const style = StyleSheet.flatten(node.props.style)
+      return style?.position === 'relative'
+    })
+
+    expect(wrapper).toBeDefined()
+    expect(typeof wrapper!.props.style).not.toBe('function')
+  })
+
   it('applies offset styles when wrapping children', () => {
     const tree = renderer.create(
       <Badge content={5} offset={[12, 4]}>
@@ -70,7 +100,7 @@ describe('Badge', () => {
     const tree = renderer.create(<Badge content={5} offset={[10, 20]} />)
     const view = tree.root.findByType(View)
     const style = StyleSheet.flatten(view.props.style)
-    
+
     // Standalone offset uses marginLeft/marginTop
     expect(style.marginLeft).toBe(10)
     expect(style.marginTop).toBe(20)
@@ -93,20 +123,20 @@ describe('Badge', () => {
     // Badge returns cloneElement if no children and no onPress?
     // If onPress, it returns Pressable -> View
     // Let's check implementation
-    
+
     // Code:
     // if (!visible && !dot) return null
     // const badgeNode = renderBadgeNode(true)
     // if (onPress) return <Pressable>{badgeNode}</Pressable>
-    
+
     // badgeNode is a View
-    
+
     // In test renderer, Pressable might be mocked or we look for onPress prop
-    
+
     // Let's just find element with onPress
     const node = tree.root.findByProps({ onPress })
     act(() => {
-        node.props.onPress()
+      node.props.onPress()
     })
     expect(onPress).toHaveBeenCalledTimes(1)
   })

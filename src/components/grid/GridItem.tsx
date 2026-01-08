@@ -4,14 +4,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Badge from '../badge'
 import { createHairlineView } from '../../utils/hairline'
+import { isRenderable, isText } from '../../utils/validate'
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
 type GridItemInternalProps = GridItemProps & {
   gridItemIndex?: number
 }
-
-const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
 export const GridItem: React.FC<GridItemProps> = props => {
   const context = React.useContext(GridContext)
@@ -124,7 +123,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
       return null
     }
 
-    const hasText = isRenderableNode(text)
+    const hasText = isRenderable(text)
     const iconNode = icon
       ? typeof icon === 'function'
         ? icon(iconSize, resolvedIconColor)
@@ -157,11 +156,11 @@ export const GridItem: React.FC<GridItemProps> = props => {
   }
 
   const renderText = () => {
-    if (!isRenderableNode(text)) {
+    if (!isRenderable(text)) {
       return null
     }
 
-    if (typeof text === 'string' || typeof text === 'number') {
+    if (isText(text)) {
       const textStyles: TextStyle = {
         color: tokens.colors.text,
         fontSize: tokens.typography.fontSize,

@@ -15,6 +15,7 @@ import {
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
+import { isText } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
@@ -246,7 +247,7 @@ export const Notify: React.FC<NotifyProps> = props => {
               ]}
             >
               {hasMessage
-                ? typeof message === 'string' || typeof message === 'number'
+                ? isText(message)
                   ? (
                     <Text
                       style={[

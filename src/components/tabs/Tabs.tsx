@@ -13,6 +13,7 @@ import {
 
 import { useAriaPress, useControllableValue } from '../../hooks'
 import { parseNumberLike } from '../../utils/number'
+import { isRenderable, isText } from '../../utils/validate'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
 
@@ -20,10 +21,6 @@ const requestFrame =
   typeof requestAnimationFrame === 'function'
     ? requestAnimationFrame
     : (cb: (time?: number) => void) => setTimeout(cb, 16)
-
-const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
-const isTextLikeNode = (node: React.ReactNode): node is string | number =>
-  typeof node === 'string' || typeof node === 'number'
 
 interface ParsedPane extends TabPaneProps {
   key: React.Key
@@ -186,8 +183,8 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
         >
           {renderTitle}
         </Text>
-        {isRenderableNode(renderDescription)
-          ? isTextLikeNode(renderDescription)
+        {isRenderable(renderDescription)
+          ? isText(renderDescription)
             ? (
               <Text
                 style={[
@@ -242,9 +239,9 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
               </View>
             )
           : null}
-        {isRenderableNode(pane.badge) ? (
+        {isRenderable(pane.badge) ? (
           <View style={styles.badge}>
-            {typeof pane.badge === 'string' || typeof pane.badge === 'number' ? (
+            {isText(pane.badge) ? (
               <Text style={[styles.badgeText, { color: tokens.colors.badgeText }]}>{pane.badge}</Text>
             ) : (
               pane.badge
@@ -303,9 +300,9 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     ? undefined
     : typeof swipeable === 'object'
       ? {
-          autoHeight: swipeable.autoHeight ?? true,
-          preventScroll: swipeable.preventScroll ?? true,
-        }
+        autoHeight: swipeable.autoHeight ?? true,
+        preventScroll: swipeable.preventScroll ?? true,
+      }
       : { autoHeight: true, preventScroll: true }
   const isSwipeable = !!swipeableConfig
 

@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
+import { isRenderable, isText } from '../../utils/validate'
 
 import { nativeDriverEnabled } from '../../platform'
 import type { NoticeBarProps } from './types'
@@ -18,7 +19,6 @@ import { useNoticeBarTokens } from './tokens'
 
 const AnimatedText = Animated.createAnimatedComponent(Text)
 const IS_WEB = Platform.OS === 'web'
-const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
 if (IS_WEB) {
   const globalObj = typeof globalThis !== 'undefined' ? globalThis : (window as any)
@@ -57,7 +57,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const resolvedColor = color ?? tokens.colors.text
   const resolvedBackground = background ?? tokens.colors.background
   const content = text ?? children
-  const isTextContent = typeof content === 'string' || typeof content === 'number'
+  const isTextContent = isText(content)
   const isVertical = direction === 'vertical'
   const [visible, setVisible] = React.useState(true)
 
@@ -205,7 +205,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   }
 
   const rightNode = renderRight()
-  const hasLeft = isRenderableNode(leftIcon)
+  const hasLeft = isRenderable(leftIcon)
   const hasRight = Boolean(rightNode)
 
   const handleItemLayout = (event: LayoutChangeEvent) => {
@@ -225,7 +225,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
 
     if (!hasVerticalLoop) {
       const single = verticalTrackItems[0]
-      if (typeof single === 'string' || typeof single === 'number') {
+      if (isText(single)) {
         return (
           <Text
             onLayout={textOnLayout}
@@ -258,7 +258,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
               onLayout={index === 0 ? handleItemLayout : undefined}
               style={styles.verticalItem}
             >
-              {typeof item === 'string' || typeof item === 'number' ? (
+              {isText(item) ? (
                 <Text
                   onLayout={textOnLayout}
                   style={[

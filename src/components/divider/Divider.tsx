@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import { createHairlineView } from '../../utils/hairline'
+import { isRenderable, isText } from '../../utils/validate'
 import type { DividerProps, DividerTokens } from './types'
 
 const createDividerTokens = (foundations: Foundations): DividerTokens => {
@@ -24,7 +25,7 @@ const createDividerTokens = (foundations: Foundations): DividerTokens => {
       fontSize: fontSize.sm,
       lineHeight: fontSize.sm * typography.lineHeightMultiplier,
       fontFamily: typography.fontFamily,
-      fontWeight: String(typography.weight.medium),
+      fontWeight: typography.weight.medium,
     },
     spacing: {
       vertical: spacing.md,
@@ -61,9 +62,9 @@ export const Divider: React.FC<DividerProps> = props => {
   const resolvedColor = lineColor ?? tokens.colors.line
   const borderStyle = dashed ? 'dashed' : 'solid'
 
-  const hasContent = children !== null && children !== undefined && children !== false
+  const hasContent = isRenderable(children)
   const content =
-    !hasContent ? null : typeof children === 'string' || typeof children === 'number' ? (
+    !hasContent ? null : isText(children) ? (
       <Text
         style={[
           styles.text,
@@ -72,7 +73,7 @@ export const Divider: React.FC<DividerProps> = props => {
             fontSize: tokens.typography.fontSize,
             lineHeight: tokens.typography.lineHeight,
             fontFamily: tokens.typography.fontFamily,
-            fontWeight: tokens.typography.fontWeight as any,
+            fontWeight: tokens.typography.fontWeight,
           },
           textStyle,
         ]}

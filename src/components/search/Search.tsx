@@ -9,6 +9,7 @@ import {
 import { Search as SearchIcon } from 'react-native-system-icon'
 
 import { useAriaPress, useControllableValue } from '../../hooks'
+import { isText } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'
 import Field, { type FieldInstance, type FieldProps } from '../field'
 import { useSearchTokens } from './tokens'
@@ -128,7 +129,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
 
   const renderLabel = () => {
     if (!label) return null
-    if (typeof label === 'string' || typeof label === 'number') {
+    if (isText(label)) {
       return (
         <Text
           style={{

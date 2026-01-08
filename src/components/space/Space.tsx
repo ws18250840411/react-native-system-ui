@@ -4,6 +4,7 @@ import { Platform, Pressable, Text, View } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
 import { resolveGapInput, useSpaceTokens } from './tokens'
+import { isText } from '../../utils/validate'
 
 const alignMap = {
   start: 'flex-start',
@@ -107,7 +108,7 @@ export const Space: React.FC<SpaceProps> = props => {
     containerBaseStyle.marginVertical = verticalGap ? -verticalGap / 2 : undefined
   }
 
-  const childArray = React.Children.toArray(children).filter(child => child != null && child !== false)
+  const childArray = React.Children.toArray(children).filter(child => child != null && typeof child !== 'boolean')
   const content: React.ReactNode[] = []
   childArray.forEach((child, index) => {
     const key = React.isValidElement(child) && child.key !== null ? child.key : index
@@ -116,7 +117,7 @@ export const Space: React.FC<SpaceProps> = props => {
       : !isHorizontal && (fill || shouldBlock)
         ? { width: '100%' }
         : null
-    const node = typeof child === 'string' || typeof child === 'number' ? <Text>{child}</Text> : child
+    const node = isText(child) ? <Text>{child}</Text> : child
     content.push(
       <View key={key as any} style={[spacingStyle, fillStyle]}>
         {node}
@@ -125,7 +126,7 @@ export const Space: React.FC<SpaceProps> = props => {
 
     if (divider && index < childArray.length - 1) {
       const dividerNode =
-        typeof divider === 'string' || typeof divider === 'number' ? <Text>{divider}</Text> : divider
+        isText(divider) ? <Text>{divider}</Text> : divider
       content.push(
         <View key={`divider-${String(key)}`} style={spacingStyle}>
           {dividerNode}

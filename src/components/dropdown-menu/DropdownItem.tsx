@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import { createHairlineBorderBottom } from '../../utils/hairline'
+import { isText } from '../../utils/validate'
 import type { DropdownItemInstance, DropdownItemProps, DropdownOption } from './types'
 import { useDropdownMenuContext } from './DropdownMenuContext'
 import { useDropdownMenuTokens } from './tokens'
@@ -83,7 +84,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
             ? React.cloneElement(activeIcon as any, { fill: color, color })
             : activeIcon
         }
-        if (typeof activeIcon === 'string' || typeof activeIcon === 'number') {
+        if (isText(activeIcon)) {
           return <Text style={[styles.indicator, { color }]}>{activeIcon}</Text>
         }
         return <View style={styles.indicator}>{activeIcon}</View>
@@ -94,7 +95,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     const renderOptionIcon = (optionIcon: DropdownOption['icon']) => {
       if (!optionIcon) return null
       if (React.isValidElement(optionIcon)) return optionIcon
-      if (typeof optionIcon === 'string' || typeof optionIcon === 'number') {
+      if (isText(optionIcon)) {
         return <Text style={styles.optionIconText}>{optionIcon}</Text>
       }
       return optionIcon
@@ -136,7 +137,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
                     {renderOptionIcon(option.icon)}
                   </View>
                 ) : null}
-                {typeof optionText === 'string' || typeof optionText === 'number' ? (
+                {isText(optionText) ? (
                   <Text style={[styles.optionText, { color: optionColor }]}>{optionText}</Text>
                 ) : (
                   <View style={styles.optionTextNode}>{optionText}</View>
@@ -231,7 +232,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
       testID={`rv-dropdown-trigger-${index}`}
       disabled={itemDisabled}
     >
-      {typeof displayLabel === 'string' || typeof displayLabel === 'number' ? (
+      {isText(displayLabel) ? (
         <Text
           style={titleStyle}
           numberOfLines={1}

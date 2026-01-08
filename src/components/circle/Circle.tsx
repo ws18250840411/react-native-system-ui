@@ -13,6 +13,7 @@ import Svg, { Circle as SvgCircle } from 'react-native-svg'
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
+import { isText } from '../../utils/validate'
 import { clamp, parseNumber, parsePercentage } from '../../utils/number'
 
 export type CircleStartPosition = 'top' | 'right' | 'bottom' | 'left'
@@ -176,7 +177,7 @@ export const Circle: React.FC<CircleProps> = props => {
   const renderContent = () => {
     if (children == null || children === false) return null
     const childArray = React.Children.toArray(children)
-    if (childArray.every(item => typeof item === 'string' || typeof item === 'number')) {
+    if (childArray.every(item => isText(item))) {
       return (
         <Text
           style={[
@@ -209,13 +210,13 @@ export const Circle: React.FC<CircleProps> = props => {
         : undefined
     const webMaskStyle = webMask
       ? ({
-          WebkitMaskImage: webMask,
-          maskImage: webMask,
-          WebkitMaskRepeat: 'no-repeat',
-          maskRepeat: 'no-repeat',
-          WebkitMaskSize: '100% 100%',
-          maskSize: '100% 100%',
-        } as any)
+        WebkitMaskImage: webMask,
+        maskImage: webMask,
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskSize: '100% 100%',
+        maskSize: '100% 100%',
+      } as any)
       : null
 
     return (

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Text, View } from 'react-native'
+import { isRenderable, isString, isText } from '../../utils/validate'
 
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -54,7 +55,7 @@ export const Empty: React.FC<EmptyProps> = props => {
   } = props
 
   const resolvedImageSize = imageSize ?? tokens.sizes.image
-  const hasChildren = children !== null && children !== undefined && children !== false
+  const hasChildren = isRenderable(children)
 
   const renderImage = () => {
     if (React.isValidElement(image)) {
@@ -75,7 +76,7 @@ export const Empty: React.FC<EmptyProps> = props => {
       )
     }
 
-    if (typeof image === 'string') {
+    if (isString(image)) {
       const preset = PRESET_IMAGES.includes(image as EmptyImage) ? (image as EmptyImage) : 'default'
       const resolvedSrc = /^https?:/.test(image) ? image : resolvePresetImage(preset)
 
@@ -96,9 +97,9 @@ export const Empty: React.FC<EmptyProps> = props => {
   }
 
   const renderDescription = () => {
-    if (description === null || description === undefined || description === false) return null
+    if (!isRenderable(description)) return null
 
-    if (typeof description === 'string' || typeof description === 'number') {
+    if (isText(description)) {
       return (
         <Text
           style={[
@@ -144,7 +145,7 @@ export const Empty: React.FC<EmptyProps> = props => {
       {renderDescription()}
       {hasChildren ? (
         <View style={{ marginTop: tokens.spacing.footerMargin }}>
-          {typeof children === 'string' || typeof children === 'number' ? <Text>{children}</Text> : children}
+          {isText(children) ? <Text>{children}</Text> : children}
         </View>
       ) : null}
     </View>

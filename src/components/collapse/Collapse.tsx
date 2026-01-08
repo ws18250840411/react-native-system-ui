@@ -16,6 +16,7 @@ import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { createHairlineView } from '../../utils/hairline'
+import { isRenderable, isText } from '../../utils/validate'
 
 export type CollapseValue = string | string[]
 
@@ -113,7 +114,6 @@ const createCollapseTokens = (foundations: Foundations): CollapseTokens => {
 }
 
 const useCollapseTokens = createComponentTokensHook('collapse', createCollapseTokens)
-const isRenderableNode = (node: React.ReactNode) => node != null && node !== false
 
 interface CollapseContextValue {
   activeKeys: string[]
@@ -369,7 +369,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   }
 
   const renderChildren = () => {
-    if (typeof children === 'string' || typeof children === 'number') {
+    if (isText(children)) {
       return (
         <Text
           style={{
@@ -392,7 +392,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
 
   const headerIcon =
     iconPosition === 'left'
-      ? showExpandIcon || isRenderableNode(icon)
+      ? showExpandIcon || isRenderable(icon)
         ? (
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             {showExpandIcon ? <View style={{ marginRight: icon ? 8 : 0 }}>{renderExpandIcon()}</View> : null}

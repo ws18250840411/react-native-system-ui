@@ -17,6 +17,7 @@ import {
 import type { DeepPartial } from '../../types'
 import { addPopStateListener, nativeDriverEnabled } from '../../platform'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import { isRenderable, isText } from '../../utils/validate'
 import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
@@ -111,14 +112,12 @@ const buildRadius = (round: boolean | undefined, placement: PopupPlacement, radi
   }
 }
 
-const isRenderable = (node: React.ReactNode) => node != null && node !== false
-
 const renderHeaderNode = (
   node: React.ReactNode,
   options: { textStyle: StyleProp<TextStyle>; wrapperStyle: StyleProp<ViewStyle> },
 ) => {
   if (!isRenderable(node)) return null
-  if (typeof node === 'string' || typeof node === 'number') {
+  if (isText(node)) {
     return <Text style={options.textStyle}>{node}</Text>
   }
   return <View style={options.wrapperStyle}>{node}</View>
@@ -199,7 +198,7 @@ export const Popup: React.FC<PopupProps> = props => {
   const safeAreaInsetBottom = safeAreaInsetBottomProp ?? false
 
   const tokens = usePopupTokens(tokensOverride)
-  
+
   // Dynamic styles derived from tokens
   const dynamicStyles = React.useMemo(() => {
     const shadow = createPlatformShadow({

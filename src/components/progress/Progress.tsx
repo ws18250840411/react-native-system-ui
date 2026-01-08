@@ -1,12 +1,13 @@
 import React from 'react'
 import { Animated, LayoutChangeEvent, Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
+import { isString, isText } from '../../utils/validate'
 import { clamp, parseNumberLike, parsePercentage } from '../../utils/number'
 import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'
 
 const isGradientColor = (color?: string) => {
-  if (typeof color !== 'string') return false
+  if (!isString(color)) return false
   const lower = color.toLowerCase()
   return ['linear-gradient', 'radial-gradient', 'conic-gradient'].some(key => lower.includes(key))
 }
@@ -121,7 +122,7 @@ export const Progress: React.FC<ProgressProps> = props => {
   )
 
   const renderPivotContent = () =>
-    typeof pivotContent === 'string' || typeof pivotContent === 'number' ? (
+    isText(pivotContent) ? (
       <Text
         style={[
           styles.pivotText,

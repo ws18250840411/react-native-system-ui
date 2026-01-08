@@ -3,6 +3,7 @@ import { Animated, PanResponder, Platform, RefreshControl, ScrollView, StyleShee
 
 import { nativeDriverEnabled } from '../../platform'
 import { parseNumberLike } from '../../utils/number'
+import { isText } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'
 import { usePullRefreshTokens } from './tokens'
 import type { PullRefreshProps, PullRefreshStatus, PullRefreshStatusText } from './types'
@@ -324,7 +325,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
           ]}
         >
           <Animated.View style={{ opacity }}>
-            {typeof statusNode === 'string' || typeof statusNode === 'number' ? (
+            {isText(statusNode) ? (
               <Text style={{ color: status === 'success' ? colors.success : colors.text }}>
                 {statusNode}
               </Text>

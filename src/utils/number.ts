@@ -24,3 +24,7 @@ export const parsePercentage = (percentage: unknown) => {
   }
   return 0
 }
+
+export const isNumericLike = (value: unknown): value is number | string =>
+  typeof value === 'number' ||
+  (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value)))
