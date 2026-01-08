@@ -66,4 +66,24 @@ describe('Skeleton', () => {
     expect(style1.width).toBe('50%')
     expect(style2.width).toBe('20%')
   })
+
+  it('trims rowWidth and applies lastRowWidth rule', () => {
+    const tree = renderer.create(<Skeleton row={2} rowWidth="100% " />)
+    const rows = tree.root.findAll(node => node.props.testID?.startsWith('rv-skeleton-row-'))
+    const uniqueRows = Array.from(new Set(rows.map(r => r.props.testID)))
+      .sort()
+      .map(id => rows.find(r => r.props.testID === id)!)
+
+    const style0 = StyleSheet.flatten(uniqueRows[0].props.style)
+    const style1 = StyleSheet.flatten(uniqueRows[1].props.style)
+
+    expect(style0.width).toBe('100%')
+    expect(style1.width).toBe('60%')
+  })
+
+  it('handles non-finite row safely', () => {
+    const tree = renderer.create(<Skeleton row={Number.POSITIVE_INFINITY as any} />)
+    const rows = tree.root.findAll(node => node.props.testID?.startsWith('rv-skeleton-row-'))
+    expect(rows.length).toBe(0)
+  })
 })

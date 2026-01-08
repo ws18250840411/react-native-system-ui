@@ -40,17 +40,6 @@ describe('Divider', () => {
     expect(style.borderStyle).toBe('dashed')
   })
 
-  it('renders vertical divider respecting thickness', () => {
-    const tree = renderer.create(<Divider type="vertical" hairline={false} />)
-    const lineView = tree.root.findAll(node => {
-        const style = StyleSheet.flatten(node.props.style)
-        return style?.borderLeftWidth !== undefined
-    })[0]
-    
-    const style = StyleSheet.flatten(lineView.props.style)
-    expect(style.borderLeftWidth).toBeGreaterThanOrEqual(1)
-  })
-
   it('respects left content position ratios', () => {
     const tree = renderer.create(<Divider contentPosition="left">Label</Divider>)
     // Structure: Root -> [LeftFlex, Content, RightFlex]

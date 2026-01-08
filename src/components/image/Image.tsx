@@ -14,13 +14,8 @@ const resolveFitMode = (fit: string): FitMode => {
   return (fit as FitMode) ?? 'cover'
 }
 
-type RNImageOnLoadEvent = Parameters<
-  NonNullable<React.ComponentProps<typeof RNImage>['onLoad']>
->[0]
-
-type RNImageOnErrorEvent = Parameters<
-  NonNullable<React.ComponentProps<typeof RNImage>['onError']>
->[0]
+type RNImageOnLoadEvent = Parameters<NonNullable<React.ComponentProps<typeof RNImage>['onLoad']>>[0]
+type RNImageOnErrorEvent = Parameters<NonNullable<React.ComponentProps<typeof RNImage>['onError']>>[0]
 
 const LAYOUT_STYLE_KEYS = new Set([
   'width',
@@ -42,27 +37,29 @@ const LAYOUT_STYLE_KEYS = new Set([
   'left',
   'start',
   'end',
+  'opacity',
+  'borderRadius',
 ])
 
 const isLayoutStyleKey = (key: string) =>
-  LAYOUT_STYLE_KEYS.has(key) || key.startsWith('margin') || key.startsWith('padding') || key.startsWith('border')
-const isBorderRadiusStyleKey = (key: string) => key === 'borderRadius' || (key.startsWith('border') && key.endsWith('Radius'))
+  LAYOUT_STYLE_KEYS.has(key) ||
+  key.startsWith('margin') ||
+  key.startsWith('padding') ||
+  key.startsWith('border') ||
+  key.endsWith('Radius')
 
 const splitImageStyle = (style: any) => {
-  if (!style) return { container: undefined, image: undefined, borderRadius: undefined }
+  if (!style) return { container: undefined, image: undefined }
 
   const flattened = StyleSheet.flatten(style)
   const container: Record<string, any> = {}
   const image: Record<string, any> = {}
-  const borderRadius: Record<string, any> = {}
 
   Object.keys(flattened).forEach(key => {
     const value = (flattened as any)[key]
     if (value === undefined) return
 
-    if (isBorderRadiusStyleKey(key)) {
-      borderRadius[key] = value
-    } else if (isLayoutStyleKey(key)) {
+    if (isLayoutStyleKey(key)) {
       container[key] = value
     } else {
       image[key] = value
@@ -72,23 +69,14 @@ const splitImageStyle = (style: any) => {
   return {
     container: Object.keys(container).length ? container : undefined,
     image: Object.keys(image).length ? image : undefined,
-    borderRadius: Object.keys(borderRadius).length ? borderRadius : undefined,
   }
-}
-
-const renderOverlayLabel = (node: React.ReactNode, color: string, marginTop?: number) => {
-  if (node == null || node === false) return null
-  if (isText(node)) {
-    return <Text style={[styles.text, { color }, marginTop ? { marginTop } : null]}>{node}</Text>
-  }
-  return marginTop ? <View style={{ marginTop }}>{node}</View> : node
 }
 
 const resolvePreserveAspectRatio = (fit: string): string => {
   if (fit === 'contain' || fit === 'scale-down') return 'xMidYMid meet'
   if (fit === 'stretch' || fit === 'fill') return 'none'
-  if (fit === 'none' || fit === 'center') return 'xMidYMid meet' // SVG doesn't strictly support 'center' without viewBox manipulation, meet is closest safe default
-  return 'xMidYMid slice' // default for 'cover'
+  if (fit === 'none' || fit === 'center') return 'xMidYMid meet'
+  return 'xMidYMid slice'
 }
 
 const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((props, ref) => {
@@ -121,8 +109,10 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   } = props
 
   const tokens = useImageTokens(tokensOverride)
-  const { container: containerLayoutStyle, image: imageStyleWithoutLayout, borderRadius: styleBorderRadius } =
-    React.useMemo(() => splitImageStyle(style), [style])
+  const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = React.useMemo(
+    () => splitImageStyle(style),
+    [style]
+  )
 
   const actualSource = React.useMemo(() => {
     if (source) return source
@@ -130,7 +120,10 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     return undefined
   }, [source, src])
 
-  const [status, setStatus] = React.useState<'idle' | 'loading' | 'loaded' | 'error'>(() => (actualSource ? 'loading' : 'idle'))
+  const [status, setStatus] = React.useState<'idle' | 'loading' | 'loaded' | 'error'>(() =>
+    actualSource ? 'loading' : 'idle'
+  )
+
   React.useEffect(() => {
     setStatus(actualSource ? 'loading' : 'idle')
   }, [actualSource])
@@ -162,19 +155,6 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     [handleError]
   )
 
-  const mergedBorderRadiusStyle = React.useMemo(() => {
-    if (round) return { borderRadius: 9999 } as Record<string, any>
-    if (isNumber(radius)) return { borderRadius: radius } as Record<string, any>
-
-    const { borderRadius: containerBorderRadius } = splitImageStyle(containerStyle)
-
-    const merged = {
-      ...(containerBorderRadius ?? {}),
-      ...(styleBorderRadius ?? {}),
-    }
-    return Object.keys(merged).length ? merged : undefined
-  }, [containerStyle, radius, round, styleBorderRadius])
-
   const uri = (actualSource as any)?.uri
   const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
   const isSvg =
@@ -184,15 +164,18 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : 20
   const resolvedErrorIconSize = iconSize ?? 20
   const Container = (onPress ? Pressable : View) as any
-  const imageCommonStyle = React.useMemo(
-    () => [
-      StyleSheet.absoluteFill,
-      ...(mergedBorderRadiusStyle ? [mergedBorderRadiusStyle] : []),
-      imageStyleWithoutLayout,
-    ],
-    [mergedBorderRadiusStyle, imageStyleWithoutLayout]
-  )
-  const activityIndicatorStyle = React.useMemo(() => ({ transform: [{ scale: resolvedLoadingSize / 20 }] }), [resolvedLoadingSize])
+
+  const renderLabel = (node: React.ReactNode, color: string, marginTop?: number) => {
+    if (node == null || node === false) return null
+    if (isText(node)) {
+      return (
+        <Text style={[styles.text, { color }, marginTop ? { marginTop } : null]}>
+          {node}
+        </Text>
+      )
+    }
+    return marginTop ? <View style={{ marginTop }}>{node}</View> : node
+  }
 
   return (
     <Container
@@ -204,10 +187,11 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
           backgroundColor: tokens.colors.background,
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
         },
-        containerLayoutStyle,
+        round ? { borderRadius: 9999 } : isNumber(radius) ? { borderRadius: radius } : undefined,
         containerStyle,
-        mergedBorderRadiusStyle ? { ...mergedBorderRadiusStyle, overflow: 'hidden' as const } : {},
+        containerLayoutStyle,
       ]}
     >
       {status === 'loading' && showLoading ? (
@@ -216,10 +200,10 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             <ActivityIndicator
               color={tokens.colors.text}
               size={isString(loadingSize) ? loadingSize : 'small'}
-              style={activityIndicatorStyle}
+              style={{ transform: [{ scale: resolvedLoadingSize / 20 }] }}
             />
           )}
-          {renderOverlayLabel(loadingText, tokens.colors.text, 4)}
+          {renderLabel(loadingText, tokens.colors.text, 4)}
         </View>
       ) : null}
       {actualSource ? (
@@ -231,7 +215,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             preserveAspectRatio={resolvePreserveAspectRatio(fit)}
             accessibilityLabel={alt}
             {...rest}
-            style={imageCommonStyle}
+            style={[StyleSheet.absoluteFill, imageStyleWithoutLayout]}
             onLoad={handleSvgLoad}
             onError={handleSvgError}
           />
@@ -241,7 +225,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             accessibilityLabel={alt}
             {...rest}
             source={actualSource}
-            style={imageCommonStyle}
+            style={[StyleSheet.absoluteFill, imageStyleWithoutLayout]}
             resizeMode={resolveFitMode(fit)}
             onLoad={handleLoad}
             onError={handleError}
@@ -251,13 +235,20 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
       {status === 'error' && showError ? (
         <View style={styles.overlay} pointerEvents="none" testID="rv-image-error">
           {errorIcon ? (
-            <View style={{ width: resolvedErrorIconSize, height: resolvedErrorIconSize, alignItems: 'center', justifyContent: 'center' }}>
+            <View
+              style={{
+                width: resolvedErrorIconSize,
+                height: resolvedErrorIconSize,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               {errorIcon}
             </View>
           ) : null}
           {fallback !== undefined && fallback !== null && fallback !== false
-            ? renderOverlayLabel(fallback, tokens.colors.error)
-            : renderOverlayLabel(errorText, tokens.colors.error)}
+            ? renderLabel(fallback, tokens.colors.error)
+            : renderLabel(errorText, tokens.colors.error)}
         </View>
       ) : null}
       {children}

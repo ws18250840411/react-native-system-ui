@@ -77,12 +77,12 @@
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
-| Avatar 头像 | ✅ | 三审通过：图片/文本/icon 渲染与尺寸策略三端一致性复核通过；二次审计通过：修正 Image `source` 类型断言并精简；其余实现复核无改动（图片/文本/icon/尺寸），示例与 Ant Design Mobile 对齐 |
+| Avatar 头像 | ✅ | 极致精简版：分离 src/source 属性，移除运行时判断与多余逻辑，代码结构最小化；单测覆盖所有场景 |
 | Badge 徽标 | ✅ | 三审通过：定位/测量/偏移在 Web/iOS/Android 一致性复核通过；二次审计通过：`max` 为字符串时的展示值改用解析后的数值（避免空格等导致 `${max}+` 格式异常）；其余实现复核无改动（定位/测量/偏移/独立展示） |
 | Circle 环形进度条 | ✅ | 三审通过：Web 禁用 native driver 动画，三端动画/渲染差异收敛；二次审计通过：Web 使用 conic-gradient，Native 端依赖 react-native-svg；支持顺/逆时针、起始位置与动画 |
 | Collapse 折叠面板 | ✅ | 三审通过：折叠测量/展开动画（Web driver 策略保持）三端一致性复核通过；二次审计通过：修正外边框/内边框语义并补齐 `border/isLink/size/readOnly`、`ref.toggle`；箭头旋转与内容测量动画优化，新增“禁用状态” demo（文案统一） |
 | CountDown 倒计时 | ✅ | 三审通过：倒计时 tick/reset/onChange 语义与三端渲染一致性复核通过；二次审计通过：补齐“自定义格式/自定义样式/手动控制” demo 并统一标题；默认文字样式 tokens 化；倒计时 tick 与 reset/onChange 语义对齐，文档补齐 format/events/类型/方法说明 |
-| Divider 分割线 | ✅ | 三审通过：hairline 与文本渲染三端一致性复核通过；二次审计通过：实现/文档复核通过；demo 文案统一为“文字”，标题命名与结构对齐并补齐单测验证 |
+| Divider 分割线 | ✅ | 极致精简版：仅保留水平分割线，移除 Vertical/多余嵌套/无用样式，代码行数与结构最小化；单测已覆盖所有场景 |
 | Empty 空状态 | ✅ | 三审通过：默认插画/自定义 image 节点三端一致性复核通过；二次审计通过：预置 `default/error/network/search` 使用官方插画 URL，`image` 支持图片 URL/ReactNode 且自定义图片应用 `imageSize/imageStyle`；描述支持非文本节点，demo 结构与文案统一并补齐单测 |
 | Field 输入项 | ✅ | 三审通过：修正文档默认值与对齐类型（`labelWidth=72`、`rows=2`、`controlAlign=left|center|right`）并复核三端输入/清除逻辑；二次审计通过：onBlur 格式化、可达性 aria-describedby/invalid、样式 useMemo，清除/对齐逻辑已对齐官方 |
 | ImagePreview 图片预览 | ✅ | 三审通过：Portal 承载/关闭链路/页码指示三端一致性复核通过；二次审计通过：支持受控与静态 API（`open/clear/Host`），补齐页码/指示器/关闭控制与 `beforeClose`；暂未实现缩放/拖拽等高级手势 |

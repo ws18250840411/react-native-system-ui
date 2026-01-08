@@ -39,6 +39,13 @@ describe('Avatar', () => {
     expect(image.props.source).toEqual({ uri: 'https://example.com/avatar.png' })
   })
 
+  it('renders image source', () => {
+    const source = { uri: 'https://example.com/avatar.png' }
+    const tree = renderer.create(<Avatar source={source} />)
+    const image = tree.root.findByType(Image)
+    expect(image.props.source).toEqual(source)
+  })
+
   it('applies shape styles', () => {
     // Square should have smaller border radius
     const tree = renderer.create(<Avatar text="A" shape="square" size={60} />)

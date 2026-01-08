@@ -117,11 +117,6 @@ describe('Image', () => {
     expect(style.overflow).toBe('hidden')
     expect(style.borderTopLeftRadius).toBe(8)
     expect(style.borderTopRightRadius).toBe(6)
-
-    const rnImage = tree.root.findByType(RNImage)
-    const imageStyle = StyleSheet.flatten(rnImage.props.style)
-    expect(imageStyle.borderTopLeftRadius).toBe(8)
-    expect(imageStyle.borderTopRightRadius).toBe(6)
   })
 
   it('clips when corner radius is provided via style', () => {
@@ -137,11 +132,6 @@ describe('Image', () => {
     expect(style.overflow).toBe('hidden')
     expect(style.borderBottomLeftRadius).toBe(10)
     expect(style.borderBottomRightRadius).toBe(12)
-
-    const rnImage = tree.root.findByType(RNImage)
-    const imageStyle = StyleSheet.flatten(rnImage.props.style)
-    expect(imageStyle.borderBottomLeftRadius).toBe(10)
-    expect(imageStyle.borderBottomRightRadius).toBe(12)
   })
 
   it('maps fit prop to resizeMode', () => {

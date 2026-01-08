@@ -217,4 +217,30 @@ describe('SwipeCell', () => {
     
     jest.useRealTimers()
   })
+
+  it('falls back when duration is non-finite', () => {
+    jest.useFakeTimers()
+    const ref = React.createRef<SwipeCellRef>()
+    const onOpen = jest.fn()
+
+    renderer.create(
+      <SwipeCell
+        ref={ref}
+        rightWidth={100}
+        right={<View />}
+        duration={Number.NaN as any}
+        onOpen={onOpen}
+      >
+        <Text>content</Text>
+      </SwipeCell>,
+    )
+
+    act(() => {
+      ref.current?.open('right')
+      jest.advanceTimersByTime(200)
+    })
+
+    expect(onOpen).toHaveBeenCalledWith('right')
+    jest.useRealTimers()
+  })
 })

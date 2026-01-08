@@ -108,6 +108,7 @@ describe('Search', () => {
 
     expect(handleCancel).toHaveBeenCalled()
     expect(handleChange).toHaveBeenCalledWith('')
+    expect(handleChange).toHaveBeenCalledTimes(1)
 
     const input = tree.root.findByType(TextInput)
     expect(input.props.value).toBe('')

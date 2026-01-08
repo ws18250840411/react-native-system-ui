@@ -2,7 +2,7 @@ import React from 'react'
 import { Animated, StyleSheet, View } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
-import { isNumber, isString } from '../../utils/validate'
+import { isFiniteNumber, isString } from '../../utils/validate'
 import type { SkeletonProps } from './types'
 import { useSkeletonTokens } from './tokens'
 
@@ -10,7 +10,11 @@ const normalize = (
   value: number | string | undefined,
   fallback: number | string,
 ): number | string =>
-  isNumber(value) || (isString(value) && value) ? value : fallback
+  isFiniteNumber(value)
+    ? Math.max(0, value)
+    : isString(value) && value.trim()
+      ? value.trim()
+      : fallback
 
 const resolveSeries = (
   count: number,
@@ -41,11 +45,15 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
     ...rest
   } = props
 
-  const rows = Math.max(0, row ?? 0)
+  const rows = isFiniteNumber(row) ? Math.max(0, Math.floor(row)) : 0
   const rowWidths = resolveSeries(rows, rowWidth, tokens.defaults.rowWidth)
   const rowHeights = resolveSeries(rows, rowHeight, tokens.defaults.rowHeight)
 
-  if (!Array.isArray(rowWidth) && rows > 1 && (props.rowWidth === undefined || props.rowWidth === '100%')) {
+  if (
+    !Array.isArray(rowWidth) &&
+    rows > 1 &&
+    (props.rowWidth === undefined || (isString(props.rowWidth) && props.rowWidth.trim() === '100%'))
+  ) {
     rowWidths[rows - 1] = tokens.defaults.lastRowWidth
   }
 

@@ -4,6 +4,7 @@ import { Text, View } from 'react-native'
 
 import ShareSheet from '..'
 import { Portal, PortalHost } from '../../portal'
+import Popup from '../../popup'
 
 describe('ShareSheet', () => {
   const roots: renderer.ReactTestRenderer[] = []
@@ -124,5 +125,17 @@ describe('ShareSheet', () => {
     
     expect(item0.length).toBeGreaterThan(0)
     expect(item1.length).toBeGreaterThan(0)
+  })
+
+  it('forces popup placement and merges popup style', () => {
+    const tree = render(
+      <PortalHost>
+        <ShareSheet visible placement="top" style={{ padding: 123 }} />
+      </PortalHost>,
+    )
+
+    const popup = tree.root.findByType(Popup)
+    expect(popup.props.placement).toBe('bottom')
+    expect(Array.isArray(popup.props.style)).toBe(true)
   })
 })

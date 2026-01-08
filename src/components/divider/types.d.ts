@@ -2,12 +2,10 @@ import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
 
-export type DividerType = 'horizontal' | 'vertical'
 export type DividerContentPosition = 'left' | 'center' | 'right'
 
 export interface DividerTokens {
   defaults: {
-    type: DividerType
     dashed: boolean
     hairline: boolean
     contentPosition: DividerContentPosition
@@ -31,14 +29,10 @@ export interface DividerTokens {
     thickness: number
     sideMinFlex: number
   }
-  vertical: {
-    minHeight: number
-  }
 }
 
 export interface DividerProps extends ViewProps {
   children?: React.ReactNode
-  type?: DividerType
   dashed?: boolean
   hairline?: boolean
   contentPosition?: DividerContentPosition

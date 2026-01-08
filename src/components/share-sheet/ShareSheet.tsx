@@ -116,6 +116,9 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
     lockScroll = true,
     overlay = true,
     round = true,
+    style: popupStyle,
+    placement: _placement,
+    position: _position,
     ...popupProps
   } = props
 
@@ -177,6 +180,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
 
   return (
     <Popup
+      {...popupProps}
       visible={visible}
       placement="bottom"
       round={round}
@@ -184,8 +188,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
       overlay={overlay}
       lockScroll={lockScroll}
       onClose={() => close(true)}
-      style={[styles.popupOverride, popupProps.style]}
-      {...popupProps}
+      style={[styles.popupOverride, popupStyle]}
     >
       <View style={[styles.wrapper, { backgroundColor: tokens.colors.background }]}>
         {(hasTitle || hasDescription) ? (

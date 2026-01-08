@@ -56,9 +56,8 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     (next: string) => {
       triggerChange(next)
       onChangeText?.(next)
-      onChange?.(next)
     },
-    [onChange, onChangeText, triggerChange],
+    [onChangeText, triggerChange],
   )
 
   const handleCancel = React.useCallback(() => {

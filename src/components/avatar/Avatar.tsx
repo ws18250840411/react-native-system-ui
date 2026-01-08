@@ -2,7 +2,7 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Image from '../image'
-import { isNumber, isString } from '../../utils/validate'
+import { isNumber } from '../../utils/validate'
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { AvatarProps, AvatarTokens } from './types'
@@ -63,6 +63,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
   (props, ref) => {
     const {
       src,
+      source,
       icon,
       text,
       size,
@@ -120,14 +121,12 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       </Text>
     ) : null
 
-    const imageSource = isString(src) ? { uri: src } : src
-    const imageStyle = [styles.image, { borderRadius }]
-
-    const content = src ? (
+    const content = src || source ? (
       <Image
-        source={imageSource}
+        src={src}
+        source={source}
         containerStyle={transparentContainerStyle}
-        style={imageStyle}
+        style={styles.image}
         fit={fit ?? 'cover'}
         loadingText={null}
         loadingSize={tokens.sizing.loadingSize}

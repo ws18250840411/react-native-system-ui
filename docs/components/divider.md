@@ -41,12 +41,6 @@ import { Divider } from 'react-native-system-ui'
 
 <code title="虚线" src="./divider/demo/dashed.tsx"></code>
 
-### 垂直分割线
-
-设置 `type="vertical"` 可以在行内使用竖直分割线。
-
-<code title="垂直分割线" src="./divider/demo/vertical.tsx"></code>
-
 ### 自定义样式
 
 可以通过 `style`、`textStyle` 与 `lineColor` 来自定义配色与间距。
@@ -59,12 +53,10 @@ import { Divider } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 分割线方向，可选 `horizontal` `vertical` | `DividerType` | `'horizontal'` |
+| `type` | 分割线方向，可选 `horizontal` | `DividerType` | `'horizontal'` |
 | `dashed` | 是否为虚线 | `boolean` | `false` |
 | `hairline` | 是否使用 0.5px 线条 | `boolean` | `true` |
 | `contentPosition` | 文本位置，可选 `left` `center` `right` | `DividerContentPosition` | `'center'` |
 | `lineColor` | 线条颜色 | `string` | `tokens.colors.line` |
 | `textStyle` | 文本样式 | `StyleProp<TextStyle>` | - |
 | `style` | 容器样式 | `StyleProp<ViewStyle>` | - |
-
-> React Native 没有 DOM `orientation` 属性，若要调整垂直分割线高度，可直接通过 `style` 传入 `height`。

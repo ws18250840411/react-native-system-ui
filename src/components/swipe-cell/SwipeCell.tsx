@@ -15,7 +15,7 @@ import {
 
 import { nativeDriverEnabled } from '../../platform'
 import { clamp } from '../../utils/number'
-import { isFunction, isNumber } from '../../utils/validate'
+import { isFiniteNumber, isFunction, isNumber } from '../../utils/validate'
 
 export type SwipeCellSide = 'left' | 'right'
 export type SwipeCellPosition = SwipeCellSide | 'closed'
@@ -107,8 +107,9 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   const dragRafIdRef = React.useRef<number | null>(null)
   const dragPendingRef = React.useRef<number | null>(null)
 
-  const leftWidth = Math.max(0, leftWidthProp ?? measuredLeftWidth)
-  const rightWidth = Math.max(0, rightWidthProp ?? measuredRightWidth)
+  const leftWidth = isFiniteNumber(leftWidthProp) ? Math.max(0, leftWidthProp) : measuredLeftWidth
+  const rightWidth = isFiniteNumber(rightWidthProp) ? Math.max(0, rightWidthProp) : measuredRightWidth
+  const durationMs = isFiniteNumber(duration) ? Math.max(0, Math.round(duration)) : 180
 
   const clearCloseFromActionTimer = React.useCallback(() => {
     if (closeFromActionTimerRef.current != null) {
@@ -173,7 +174,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
       translateX.stopAnimation()
       Animated.timing(translateX, {
         toValue: target,
-        duration: Math.max(0, duration),
+        duration: durationMs,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: nativeDriverEnabled,
       }).start(({ finished }) => {
@@ -187,7 +188,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
         emitPositionChange(nextPosition)
       })
     },
-    [cancelDragRaf, duration, emitPositionChange, onClose, onOpen, translateX]
+    [cancelDragRaf, durationMs, emitPositionChange, onClose, onOpen, translateX]
   )
 
   const open = React.useCallback(
@@ -269,27 +270,29 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
     (event: LayoutChangeEvent) => {
       if (leftWidthProp != null) return
       const width = event.nativeEvent.layout.width
-      if (width && width !== measuredLeftWidth) setMeasuredLeftWidth(width)
+      if (!isFiniteNumber(width) || width <= 0) return
+      setMeasuredLeftWidth(prev => (Math.abs(prev - width) < 0.5 ? prev : width))
     },
-    [leftWidthProp, measuredLeftWidth]
+    [leftWidthProp]
   )
 
   const handleRightLayout = React.useCallback(
     (event: LayoutChangeEvent) => {
       if (rightWidthProp != null) return
       const width = event.nativeEvent.layout.width
-      if (width && width !== measuredRightWidth) setMeasuredRightWidth(width)
+      if (!isFiniteNumber(width) || width <= 0) return
+      setMeasuredRightWidth(prev => (Math.abs(prev - width) < 0.5 ? prev : width))
     },
-    [measuredRightWidth, rightWidthProp]
+    [rightWidthProp]
   )
 
   const decideTarget = React.useCallback(
     (current: number, gesture: PanResponderGestureState) => {
-      const velocityX = gesture.vx ?? 0
+      const velocityX = isFiniteNumber(gesture.vx) ? gesture.vx : 0
       const hasLeft = leftWidth > 0 && !!left
       const hasRight = rightWidth > 0 && !!right
 
-      const safeThreshold = clamp(threshold, 0, 1)
+      const safeThreshold = isFiniteNumber(threshold) ? clamp(threshold, 0, 1) : 0.3
       const leftThreshold = leftWidth * safeThreshold
       const rightThreshold = rightWidth * safeThreshold
       const leftCloseThreshold = leftWidth * (1 - safeThreshold)
