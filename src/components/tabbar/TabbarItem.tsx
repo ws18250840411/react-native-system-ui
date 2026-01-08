@@ -2,7 +2,7 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
-import { isPlainObject, isRenderable, isText } from '../../utils/validate'
+import { isFunction, isPlainObject, isRenderable, isText } from '../../utils/validate'
 import Badge from '../badge'
 import { useTabbarContext } from './TabbarContext'
 import { useTabbarTokens } from './tokens'
@@ -61,12 +61,12 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
 
   const renderIcon = () => {
     if (!icon) return null
-    const raw = typeof icon === 'function' ? icon(isActive) : icon
+    const raw = isFunction(icon) ? icon(isActive) : icon
     return applyIconTheme(raw)
   }
 
   const renderLabel = () => {
-    return typeof children === 'function' ? children(isActive) : children
+    return isFunction(children) ? children(isActive) : children
   }
 
   const ariaPress = useAriaPress({

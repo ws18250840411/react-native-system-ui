@@ -19,6 +19,64 @@ const getTranslateOutputRange = (style: any, key: 'translateX' | 'translateY') =
 }
 
 describe('Popup', () => {
+  it('does not call onClosed on initial hidden mount', () => {
+    const onClosed = jest.fn()
+
+    let tree: renderer.ReactTestRenderer = renderer.create(<></>)
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <Popup visible={false} onClosed={onClosed}>
+            <></>
+          </Popup>
+        </PortalHost>,
+      )
+    })
+
+    expect(onClosed).not.toHaveBeenCalled()
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('only enables overlay a11y when it can close', () => {
+    let tree1: renderer.ReactTestRenderer = renderer.create(<></>)
+    act(() => {
+      tree1 = renderer.create(
+        <PortalHost>
+          <Popup visible overlay overlayTestID="overlay-a11y-1">
+            <></>
+          </Popup>
+        </PortalHost>,
+      )
+    })
+    const overlay1 = tree1.root.findAll(
+      node => node.type === Pressable && node.props.testID === 'overlay-a11y-1'
+    )[0]
+    expect(overlay1.props.accessible).toBe(false)
+    act(() => {
+      tree1.unmount()
+    })
+
+    let tree2: renderer.ReactTestRenderer = renderer.create(<></>)
+    act(() => {
+      tree2 = renderer.create(
+        <PortalHost>
+          <Popup visible overlay overlayTestID="overlay-a11y-2" onClose={() => { }}>
+            <></>
+          </Popup>
+        </PortalHost>,
+      )
+    })
+    const overlay2 = tree2.root.findAll(
+      node => node.type === Pressable && node.props.testID === 'overlay-a11y-2'
+    )[0]
+    expect(overlay2.props.accessibilityRole).toBe('button')
+    act(() => {
+      tree2.unmount()
+    })
+  })
+
   it('calls onClose when overlay is pressed', () => {
     const handleClose = jest.fn()
     let tree: renderer.ReactTestRenderer = renderer.create(<></>)

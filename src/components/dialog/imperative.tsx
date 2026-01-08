@@ -2,6 +2,7 @@ import React from 'react'
 
 import { Portal } from '../portal/Portal'
 import { deepMerge } from '../../utils/deepMerge'
+import { isString, isUndefined } from '../../utils/validate'
 import type {
   DialogAlertOptions,
   DialogConfirmOptions,
@@ -190,7 +191,7 @@ const normalizeOptions = (mode: ImperativeMode, options: DialogShowOptions = {})
     ...merged,
     visible: true,
   } as DialogProps
-  if (typeof normalized.showConfirmButton === 'undefined') {
+  if (isUndefined(normalized.showConfirmButton)) {
     normalized.showConfirmButton = true
   }
   return normalized
@@ -200,7 +201,7 @@ const setDefaultOptions = (
   targetOrOptions: ImperativeMode | DialogShowOptions,
   maybeOptions?: DialogShowOptions
 ) => {
-  if (typeof targetOrOptions === 'string') {
+  if (isString(targetOrOptions)) {
     defaultOptionsStore[targetOrOptions] = deepMerge(defaultOptionsStore[targetOrOptions], maybeOptions ?? {})
     return
   }

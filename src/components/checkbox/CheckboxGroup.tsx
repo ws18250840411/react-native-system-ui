@@ -9,6 +9,7 @@ import type {
 } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
+import { isBoolean } from '../../utils/validate'
 
 const serialize = (value: CheckboxValue) => String(value)
 
@@ -88,7 +89,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
 
   const toggleAll = React.useCallback(
     (options: boolean | { checked?: boolean; skipDisabled?: boolean } = {}) => {
-      const opts = typeof options === 'boolean' ? { checked: options } : options
+      const opts = isBoolean(options) ? { checked: options } : options
       const { checked: targetChecked, skipDisabled } = opts
       const current = new Set(state.value ?? [])
 

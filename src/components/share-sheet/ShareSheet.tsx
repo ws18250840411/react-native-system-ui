@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineView } from '../../utils/hairline'
-import { isText, isValidNode } from '../../utils/validate'
+import { isFiniteNumber, isText, isValidNode } from '../../utils/validate'
 import Popup from '../popup'
 import type { ShareSheetOption, ShareSheetOptions, ShareSheetProps } from './types'
 import { useShareSheetTokens, type ShareSheetTokens } from './tokens'
@@ -122,7 +122,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   const tokens = useShareSheetTokens(tokensOverride)
   const groups = normalizeOptions(options)
   const resolvedColumns =
-    typeof columns === 'number' && Number.isFinite(columns) ? Math.max(1, Math.floor(columns)) : 4
+    isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4
 
   const hasTitle = isValidNode(title)
   const hasDescription = isValidNode(description)

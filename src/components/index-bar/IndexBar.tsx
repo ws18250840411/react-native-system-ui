@@ -2,6 +2,7 @@ import React from 'react'
 import { PanResponder, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
+import { isFiniteNumber, isUndefined } from '../../utils/validate'
 import type { IndexAnchorProps, IndexBarInstance, IndexBarProps, IndexBarValue } from './types'
 import { useIndexBarTokens } from './tokens'
 
@@ -47,7 +48,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
 
   const firstIndex = navItems[0]
   const [activeIndex, setActiveIndex] = useControllableValue<IndexBarValue>(props, {
-    defaultValue: typeof firstIndex === 'undefined' ? anchors[0]?.props.index : firstIndex,
+    defaultValue: isUndefined(firstIndex) ? anchors[0]?.props.index : firstIndex,
     valuePropName: 'value',
     defaultValuePropName: 'defaultValue',
     trigger: 'onChange',
@@ -195,7 +196,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     const itemHeight = contentHeight / navItems.length
     if (itemHeight <= 0) return null
     const locationY = evt?.nativeEvent?.locationY
-    if (!Number.isFinite(locationY)) return null
+    if (!isFiniteNumber(locationY)) return null
     const y = locationY - paddingY
     const idx = Math.max(0, Math.min(navItems.length - 1, Math.floor(y / itemHeight)))
     return navItems[idx] ?? null

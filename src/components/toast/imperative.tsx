@@ -1,7 +1,7 @@
 import React from 'react'
 
 import Portal from '../portal/Portal'
-import { isText } from '../../utils/validate'
+import { isFunction, isString, isText } from '../../utils/validate'
 import Toast, { type ToastProps, type ToastType } from './Toast'
 
 export type ToastShowOptions = Omit<ToastProps, 'visible'> & { message?: React.ReactNode }
@@ -117,7 +117,7 @@ const showToast = (input?: ToastInput, fallbackType: ToastType = 'info'): ToastR
   const config: ToastReturnType['config'] = next => {
     const prev = toastOptions.get(key)
     if (!prev) return
-    const nextInput = typeof next === 'function' ? next(prev) : next
+    const nextInput = isFunction(next) ? next(prev) : next
     const parsed = parseOptions(nextInput)
     const nextType = parsed.type ?? prev.type ?? fallbackType
 
@@ -156,7 +156,7 @@ export const ToastImperative = {
     allowMultiple = value
   },
   setDefaultOptions: (typeOrOptions: ToastType | ToastShowOptions, options?: ToastShowOptions) => {
-    if (typeof typeOrOptions === 'string') {
+    if (isString(typeOrOptions)) {
       typeDefaults.set(typeOrOptions, options ?? {})
     } else {
       currentOptions = { ...currentOptions, ...typeOrOptions }

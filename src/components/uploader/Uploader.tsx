@@ -23,7 +23,7 @@ import Image from '../image'
 import ImagePreview from '../image-preview'
 import { parseNumber } from '../../utils/number'
 import { toArray } from '../../utils/array'
-import { isImageUrlString, isFunction, isUndefined } from '../../utils/validate'
+import { isImageUrlString, isFunction, isUndefined, isString } from '../../utils/validate'
 
 const statusDefaults: Record<UploaderItemStatus, string> = {
   pending: '上传中',
@@ -161,7 +161,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
 
   const objectUrlsRef = React.useRef(new Set<string>())
   const createObjectUrl = (file: File) => {
-    if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') return undefined
+    if (typeof URL === 'undefined' || !isFunction(URL.createObjectURL)) return undefined
     const url = URL.createObjectURL(file)
     objectUrlsRef.current.add(url)
     return url
@@ -170,7 +170,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   const revokeObjectUrl = (url: string | undefined) => {
     if (!url) return
     if (!objectUrlsRef.current.has(url)) return
-    if (typeof URL === 'undefined' || typeof URL.revokeObjectURL !== 'function') return
+    if (typeof URL === 'undefined' || !isFunction(URL.revokeObjectURL)) return
     URL.revokeObjectURL(url)
     objectUrlsRef.current.delete(url)
   }
@@ -179,7 +179,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   React.useEffect(() => {
     const current = new Set<string>()
     items.forEach(item => {
-      if (typeof item.url === 'string') {
+      if (isString(item.url)) {
         current.add(item.url)
       }
     })
@@ -196,7 +196,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   React.useEffect(() => {
     return () => {
       objectUrlsRef.current.forEach(url => {
-        if (typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
+        if (typeof URL !== 'undefined' && isFunction(URL.revokeObjectURL)) {
           URL.revokeObjectURL(url)
         }
       })

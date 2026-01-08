@@ -12,7 +12,7 @@ import {
 import { Checked, Cross } from "react-native-system-icon"
 
 import { useControllableValue } from "../../hooks"
-import { isText } from "../../utils/validate"
+import { isFunction, isNumber, isText } from "../../utils/validate"
 import Popup from "../popup"
 import Tabs from "../tabs"
 import type { TabsValue } from "../tabs"
@@ -147,11 +147,11 @@ const Cascader: React.FC<CascaderProps> = props => {
     popupVisible ? closePopup(true) : openPopup()
   }, [closePopup, openPopup, poppable, popupVisible])
 
-  const renderProp = React.useMemo(() => (typeof children === "function" ? (children as CascaderRenderProps) : null), [children])
+  const renderProp = React.useMemo(() => (isFunction(children) ? (children as CascaderRenderProps) : null), [children])
 
   const handleClickTab = React.useCallback(
     (event: TabsClickEvent) => {
-      const index = typeof event.index === "number" ? event.index : Number(event.name)
+      const index = isNumber(event.index) ? event.index : Number(event.name)
       if (Number.isNaN(index)) return
       const titleNode = items[index]?.[keys.textKey] as React.ReactNode
       const titleText = isText(titleNode) ? String(titleNode) : placeholder
@@ -162,7 +162,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const handleTabChange = React.useCallback(
     (tabValue: TabsValue, indexFromEvent?: number) => {
-      const index = typeof indexFromEvent === "number" ? indexFromEvent : Number(tabValue)
+      const index = isNumber(indexFromEvent) ? indexFromEvent : Number(tabValue)
       if (Number.isNaN(index)) return
       setActiveTab(index)
       onTabChange?.(index)
@@ -329,7 +329,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     )
   }
 
-  const inlineChildren = !poppable && typeof children !== "function" ? children : null
+  const inlineChildren = !poppable && !isFunction(children) ? children : null
 
   const content = (
     <View
@@ -411,7 +411,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const triggerNode = renderProp
     ? renderProp(cascaderValue, confirmedRows, cascaderActions)
-    : (typeof children === "function" ? null : children ?? null)
+    : (isFunction(children) ? null : children ?? null)
 
   return (
     <>

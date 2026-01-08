@@ -5,7 +5,7 @@ import { Close } from 'react-native-system-icon'
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import { getHairlineWidth } from '../../utils/hairline'
-import { isText } from '../../utils/validate'
+import { isFunction, isText } from '../../utils/validate'
 import type { TagProps, TagTokens } from './types'
 
 const buildTone = (
@@ -171,7 +171,7 @@ export const Tag: React.FC<TagProps> = props => {
           onClose?.()
         }}
       >
-        {typeof closeIcon === 'function'
+        {isFunction(closeIcon)
           ? closeIcon(resolvedTextColor, tokens.close.size)
           : closeIcon ?? <Close size={tokens.close.size} fill={resolvedTextColor} color={resolvedTextColor} />}
       </Pressable>

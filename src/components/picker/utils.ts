@@ -1,4 +1,5 @@
 import type { PickerColumn, PickerColumns, PickerOption, PickerValue } from './types'
+import { isObject } from '../../utils/validate'
 
 export interface NormalizedPickerResult {
   columns: PickerOption[][]
@@ -20,7 +21,7 @@ export const toArrayValue = (value?: PickerValue[] | PickerValue | null): Picker
 }
 
 const isColumnWithOptions = (col: PickerColumn | PickerOption): col is { options: PickerOption[]; defaultValue?: PickerValue } =>
-  !!col && typeof col === 'object' && 'options' in col && Array.isArray((col as any).options)
+  !!col && isObject(col) && 'options' in col && Array.isArray((col as any).options)
 
 const hasChildren = (option: PickerOption) =>
   !!option && Array.isArray(option.children) && (option.children as PickerOption[]).length > 0

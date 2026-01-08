@@ -12,6 +12,7 @@ import {
 import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 import { isRenderable, isText } from '../../utils/validate'
+import { parseNumber } from '../../utils/number'
 
 import { nativeDriverEnabled } from '../../platform'
 import type { NoticeBarProps } from './types'
@@ -66,7 +67,11 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const [contentWidth, setContentWidth] = React.useState(0)
   const [containerWidth, setContainerWidth] = React.useState(0)
   const translateX = React.useRef(new Animated.Value(0)).current
-  const shouldScroll = !isVertical && !wrapable && (scrollable ?? contentWidth > containerWidth)
+
+  const resolvedDelay = Math.max(0, parseNumber(delay, 1))
+  const resolvedSpeed = parseNumber(speed, 60)
+  const resolvedVerticalInterval = Math.max(0, parseNumber(verticalInterval, 3000))
+  const resolvedVerticalDuration = Math.max(0, parseNumber(verticalDuration, 300))
 
   const verticalItems = React.useMemo(() => {
     if (!isVertical) return []
@@ -84,84 +89,13 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const verticalTranslateY = React.useRef(new Animated.Value(0)).current
   const [itemHeight, setItemHeight] = React.useState(0)
 
-  React.useEffect(() => {
-    if (isVertical) {
-      translateX.stopAnimation()
-      return
-    }
-    if (!shouldScroll || contentWidth === 0 || containerWidth === 0) {
-      translateX.setValue(0)
-      return
-    }
-    let cancelled = false
-    const duration = ((contentWidth + containerWidth) / speed) * 1000
+  const setContentWidthSafe = React.useCallback((next: number) => {
+    setContentWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next))
+  }, [])
 
-    const run = (initial: boolean) => {
-      translateX.setValue(initial ? 0 : containerWidth)
-      Animated.sequence([
-        Animated.delay(delay * 1000),
-        Animated.timing(translateX, {
-          toValue: -contentWidth,
-          duration,
-          easing: Easing.linear,
-          useNativeDriver: nativeDriverEnabled,
-        }),
-      ]).start(({ finished }) => {
-        if (finished && !cancelled) {
-          onReplay?.()
-          run(false)
-        }
-      })
-    }
-
-    run(true)
-
-    return () => {
-      cancelled = true
-      translateX.stopAnimation()
-    }
-  }, [shouldScroll, translateX, delay, speed, contentWidth, containerWidth, onReplay, isVertical])
-
-  React.useEffect(() => {
-    if (!hasVerticalLoop || itemHeight === 0) {
-      verticalTranslateY.setValue(0)
-      return
-    }
-    let cancelled = false
-    let timeout: ReturnType<typeof setTimeout> | null = null
-    let nextIndex = 1
-
-    const schedule = () => {
-      timeout = setTimeout(() => {
-        Animated.timing(verticalTranslateY, {
-          toValue: -itemHeight * nextIndex,
-          duration: verticalDuration,
-          easing: Easing.linear,
-          useNativeDriver: nativeDriverEnabled,
-        }).start(({ finished }) => {
-          if (cancelled || !finished) {
-            return
-          }
-          nextIndex += 1
-          if (nextIndex > verticalItems.length) {
-            verticalTranslateY.setValue(0)
-            nextIndex = 1
-          }
-          schedule()
-        })
-      }, verticalInterval)
-    }
-
-    schedule()
-
-    return () => {
-      cancelled = true
-      if (timeout) {
-        clearTimeout(timeout)
-      }
-      verticalTranslateY.stopAnimation()
-    }
-  }, [hasVerticalLoop, itemHeight, verticalDuration, verticalInterval, verticalItems, verticalTranslateY])
+  const setContainerWidthSafe = React.useCallback((next: number) => {
+    setContainerWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next))
+  }, [])
 
   const handleClose = () => {
     setVisible(false)
@@ -200,21 +134,135 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     return null
   }
 
-  if (!visible) {
-    return null
-  }
-
   const rightNode = renderRight()
   const hasLeft = isRenderable(leftIcon)
   const hasRight = Boolean(rightNode)
 
-  const handleItemLayout = (event: LayoutChangeEvent) => {
-    if (itemHeight === 0) {
-      const height = event?.nativeEvent?.layout?.height
-      if (height) {
-        setItemHeight(height)
-      }
+  const effectiveContainerWidth = Math.max(
+    0,
+    containerWidth -
+      (hasLeft ? tokens.spacing.sidePadding : 0) -
+      (hasRight ? tokens.spacing.sidePadding : 0),
+  )
+  const shouldScroll = !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth)
+
+  React.useEffect(() => {
+    if (!visible) {
+      translateX.stopAnimation()
+      return
     }
+    if (isVertical) {
+      translateX.stopAnimation()
+      return
+    }
+    if (!shouldScroll || contentWidth === 0 || containerWidth === 0) {
+      translateX.setValue(0)
+      return
+    }
+    if (resolvedSpeed <= 0 || !Number.isFinite(resolvedSpeed)) {
+      translateX.setValue(0)
+      return
+    }
+    let cancelled = false
+    const duration = ((contentWidth + containerWidth) / resolvedSpeed) * 1000
+
+    const run = (initial: boolean) => {
+      translateX.setValue(initial ? 0 : containerWidth)
+      Animated.sequence([
+        Animated.delay(resolvedDelay * 1000),
+        Animated.timing(translateX, {
+          toValue: -contentWidth,
+          duration,
+          easing: Easing.linear,
+          useNativeDriver: nativeDriverEnabled,
+        }),
+      ]).start(({ finished }) => {
+        if (finished && !cancelled) {
+          onReplay?.()
+          run(false)
+        }
+      })
+    }
+
+    run(true)
+
+    return () => {
+      cancelled = true
+      translateX.stopAnimation()
+    }
+  }, [
+    shouldScroll,
+    translateX,
+    visible,
+    resolvedDelay,
+    resolvedSpeed,
+    contentWidth,
+    containerWidth,
+    onReplay,
+    isVertical,
+  ])
+
+  React.useEffect(() => {
+    if (!visible) {
+      verticalTranslateY.stopAnimation()
+      return
+    }
+    if (!hasVerticalLoop || itemHeight === 0) {
+      verticalTranslateY.setValue(0)
+      return
+    }
+    let cancelled = false
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    let nextIndex = 1
+
+    const schedule = () => {
+      timeout = setTimeout(() => {
+        Animated.timing(verticalTranslateY, {
+          toValue: -itemHeight * nextIndex,
+          duration: resolvedVerticalDuration,
+          easing: Easing.linear,
+          useNativeDriver: nativeDriverEnabled,
+        }).start(({ finished }) => {
+          if (cancelled || !finished) {
+            return
+          }
+          nextIndex += 1
+          if (nextIndex > verticalItems.length) {
+            verticalTranslateY.setValue(0)
+            nextIndex = 1
+          }
+          schedule()
+        })
+      }, resolvedVerticalInterval)
+    }
+
+    schedule()
+
+    return () => {
+      cancelled = true
+      if (timeout) {
+        clearTimeout(timeout)
+      }
+      verticalTranslateY.stopAnimation()
+    }
+  }, [
+    visible,
+    hasVerticalLoop,
+    itemHeight,
+    resolvedVerticalDuration,
+    resolvedVerticalInterval,
+    verticalItems,
+    verticalTranslateY,
+  ])
+
+  if (!visible) {
+    return null
+  }
+
+  const handleItemLayout = (event: LayoutChangeEvent) => {
+    const height = event?.nativeEvent?.layout?.height
+    if (!height) return
+    setItemHeight(prev => (prev === 0 || Math.abs(prev - height) >= 0.5 ? height : prev))
   }
 
   const renderVerticalContent = () => {
@@ -304,7 +352,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         </View>
       ) : null}
       <View
-        onLayout={event => setContainerWidth(event.nativeEvent.layout.width)}
+        onLayout={event => setContainerWidthSafe(event.nativeEvent.layout.width)}
         style={[
           styles.content,
           wrapable && styles.contentWrap,
@@ -319,7 +367,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
           isTextContent ? (
             <AnimatedText
               onLayout={event => {
-                setContentWidth(event.nativeEvent.layout.width)
+                setContentWidthSafe(event.nativeEvent.layout.width)
                 textOnLayout?.(event)
               }}
               style={[
@@ -353,7 +401,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
           isTextContent ? (
             <Text
               onLayout={event => {
-                setContentWidth(event.nativeEvent.layout.width)
+                setContentWidthSafe(event.nativeEvent.layout.width)
                 textOnLayout?.(event)
               }}
               style={[
@@ -369,7 +417,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
             </Text>
           ) : (
             <View
-              onLayout={event => setContentWidth(event.nativeEvent.layout.width)}
+              onLayout={event => setContentWidthSafe(event.nativeEvent.layout.width)}
               style={[
                 styles.text,
                 wrapable && styles.wrapText,

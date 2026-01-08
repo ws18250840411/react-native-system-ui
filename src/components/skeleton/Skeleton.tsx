@@ -2,6 +2,7 @@ import React from 'react'
 import { Animated, StyleSheet, View } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
+import { isNumber, isString } from '../../utils/validate'
 import type { SkeletonProps } from './types'
 import { useSkeletonTokens } from './tokens'
 
@@ -9,7 +10,7 @@ const normalize = (
   value: number | string | undefined,
   fallback: number | string,
 ): number | string =>
-  typeof value === 'number' || (typeof value === 'string' && value) ? value : fallback
+  isNumber(value) || (isString(value) && value) ? value : fallback
 
 const resolveSeries = (
   count: number,

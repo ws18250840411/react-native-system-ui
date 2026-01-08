@@ -2,6 +2,7 @@ import React from 'react'
 import { Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 
 import type { WaterMarkProps } from './types'
+import { isFiniteNumber, isString } from '../../utils/validate'
 import { useWaterMarkTokens } from './tokens'
 
 const DEFAULT_MARK_WIDTH = 120
@@ -40,10 +41,10 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
   const resolvedOpacity = Math.max(0, Math.min(1, opacity ?? tokens.opacity))
 
   const fontSizeFromFont =
-    typeof font?.size === 'number'
-      ? font.size
-      : typeof font?.size === 'string'
-        ? Number.parseFloat(font.size)
+    isFiniteNumber(font?.size)
+      ? font?.size
+      : isString(font?.size)
+        ? Number.parseFloat(font?.size as string)
         : undefined
   const resolvedFontSize =
     (Number.isFinite(fontSizeFromFont ?? Number.NaN) ? fontSizeFromFont : undefined) ??

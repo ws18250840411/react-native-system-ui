@@ -20,6 +20,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native'
 import { clamp } from '../../utils/number'
+import { isNumber } from '../../utils/validate'
 import type { SwiperProps, SwiperInstance } from './types'
 import SwiperItem from './SwiperItem'
 import SwiperPagIndicator from './SwiperPagIndicator'
@@ -629,7 +630,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       return
     }
 
-    const interval = typeof autoplay === 'boolean' ? 5000 : autoplay
+    const interval = isNumber(autoplay) ? autoplay : 5000
     const tick = () => {
       if (!isDraggingRef.current && !isScrollingRef.current) {
         swipeNext()

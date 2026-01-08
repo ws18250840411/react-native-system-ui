@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Badge from '../badge'
 import { createHairlineView } from '../../utils/hairline'
-import { isRenderable, isText } from '../../utils/validate'
+import { isFunction, isRenderable, isText } from '../../utils/validate'
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
@@ -125,7 +125,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
 
     const hasText = isRenderable(text)
     const iconNode = icon
-      ? typeof icon === 'function'
+      ? isFunction(icon)
         ? icon(iconSize, resolvedIconColor)
         : icon
       : null
@@ -179,7 +179,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
     return text
   }
 
-  const isInteractive = clickable || typeof onPress === 'function'
+  const isInteractive = clickable || isFunction(onPress)
   const contentBody = children ?? (
     <>
       {renderIcon()}

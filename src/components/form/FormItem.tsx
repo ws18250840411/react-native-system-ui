@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { isFunction, isString } from '../../utils/validate'
 import { FormContext } from './FormContext'
 import type { FormItemProps, FormItemRule } from './types'
 import { normalizeTrigger } from './utils'
@@ -25,7 +26,7 @@ export const FormItem: React.FC<FormItemProps> = ({
   initialValue,
   children,
 }) => {
-  const renderProps = typeof children === 'function'
+  const renderProps = isFunction(children)
   const context = React.useContext(FormContext)
 
   if (!context) {
@@ -95,13 +96,13 @@ export const FormItem: React.FC<FormItemProps> = ({
   const handleChange = (next: any) => {
     context.setFieldValue(name, next, trigger)
     const original = child.props[trigger]
-    if (typeof original === 'function') {
+    if (isFunction(original)) {
       original(next)
     }
   }
 
   const isFieldLike =
-    typeof (child as any)?.type?.displayName === 'string' &&
+    isString((child as any)?.type?.displayName) &&
     ((child as any).type.displayName.includes('Field') || (child as any).type.displayName.includes('Input'))
 
   const resolveValue = () => {
@@ -120,7 +121,7 @@ export const FormItem: React.FC<FormItemProps> = ({
     if (!eventName || eventName === trigger) return
     const original = child.props[eventName]
     injectedProps[eventName] = (...args: any[]) => {
-      if (typeof original === 'function') {
+      if (isFunction(original)) {
         original(...args)
       }
       context.validateField(name, eventName)

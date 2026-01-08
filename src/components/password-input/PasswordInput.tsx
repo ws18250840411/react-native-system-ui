@@ -11,7 +11,8 @@ import {
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import { useControllableValue } from '../../hooks'
-import { isText } from '../../utils/validate'
+import { parseNumberLike } from '../../utils/number'
+import { isString, isText } from '../../utils/validate'
 
 import type { PasswordInputProps, PasswordInputRef } from './types'
 
@@ -128,9 +129,10 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       ...rest
     } = props
 
-    const lengthSafe = Number.isFinite(length)
-      ? Math.max(1, Math.floor(length))
-      : 1
+    const lengthSafe = Math.max(
+      1,
+      Math.floor(parseNumberLike(length, 6) ?? 6),
+    )
     const tokens = usePasswordInputTokens(tokensOverride)
     const { colors, radii, sizing, typography, opacity } = tokens
 
@@ -146,11 +148,13 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       props,
       { defaultValue: '' }
     )
-    const normalizeValue = (nextValue: string) => {
-      let next = nextValue ?? ''
-      if (typeof next !== 'string') {
-        next = String(next ?? '')
-      }
+    const normalizeValue = (nextValue: unknown) => {
+      let next =
+        nextValue === null || nextValue === undefined
+          ? ''
+          : isString(nextValue)
+            ? nextValue
+            : String(nextValue)
       if (type === 'number') {
         next = sanitizeNumber(next)
       }
@@ -159,11 +163,11 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       }
       return next
     }
-    const normalizedCode = normalizeValue(code ?? '')
+    const normalizedCode = normalizeValue(code)
 
     const updateValue = (nextValue: string) => {
       const normalized = normalizeValue(nextValue)
-      if (normalized === code) return
+      if (normalized === normalizedCode) return
       if (validator && !validator(normalized)) return
       setCode(normalized)
     }
@@ -210,11 +214,22 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       onBlur?.()
     }
 
+    const prevSubmitRef = React.useRef({
+      value: normalizedCode,
+      length: lengthSafe,
+    })
+
     React.useEffect(() => {
-      if (normalizedCode?.length === lengthSafe && lengthSafe > 0) {
-        onSubmit?.(normalizedCode)
-        blurInput()
-      }
+      const prev = prevSubmitRef.current
+      prevSubmitRef.current = { value: normalizedCode, length: lengthSafe }
+
+      if (!onSubmit) return
+      if (prev.length !== lengthSafe) return
+      if (lengthSafe <= 0 || normalizedCode.length !== lengthSafe) return
+      if (prev.value === normalizedCode) return
+
+      onSubmit(normalizedCode)
+      inputRef.current?.blur()
     }, [lengthSafe, normalizedCode, onSubmit])
 
     React.useEffect(() => {
@@ -253,8 +268,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       return { key: index, char, isFilled, showBlink }
     })
 
-    const gutterValue =
-      typeof gutter === 'number' ? gutter : Number(gutter) || 0
+    const gutterValue = Math.max(0, parseNumberLike(gutter, 0) ?? 0)
     const hasGutter = gutterValue > 0
 
     const tip = errorInfo ?? info

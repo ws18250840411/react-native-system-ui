@@ -3,7 +3,7 @@ import { Animated, PanResponder, Platform, RefreshControl, ScrollView, StyleShee
 
 import { nativeDriverEnabled } from '../../platform'
 import { parseNumberLike } from '../../utils/number'
-import { isText } from '../../utils/validate'
+import { isFunction, isNumber, isText, isUndefined } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'
 import { usePullRefreshTokens } from './tokens'
 import type { PullRefreshProps, PullRefreshStatus, PullRefreshStatusText } from './types'
@@ -42,7 +42,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const successDurationMs = parseNumberLike(successDuration, DEFAULT_SUCCESS_DURATION) ?? DEFAULT_SUCCESS_DURATION
   const animationDurationMs = parseNumberLike(animationDuration, 300) ?? 300
 
-  const isControlled = refreshing !== undefined
+  const isControlled = !isUndefined(refreshing)
   const [innerRefreshing, setInnerRefreshing] = React.useState(!!defaultRefreshing)
   const mergedRefreshing = isControlled ? !!refreshing : innerRefreshing
 
@@ -93,8 +93,8 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   }, [mergedRefreshing])
 
   const resolveStatusText = (text: PullRefreshStatusText | undefined, fallback: React.ReactNode) => {
-    const resolved = typeof text === 'undefined' ? fallback : text
-    return typeof resolved === 'function' ? resolved({ distance }) : resolved
+    const resolved = isUndefined(text) ? fallback : text
+    return isFunction(resolved) ? resolved({ distance }) : resolved
   }
 
   const triggerSuccess = React.useCallback(() => {
@@ -120,7 +120,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       refreshSucceededRef.current = true
     } finally {
       setRefreshing(false)
-      if (typeof onRefreshEnd === 'function') setTimeout(onRefreshEnd, 0)
+      if (isFunction(onRefreshEnd)) setTimeout(onRefreshEnd, 0)
 
       if (refreshTriggeredRef.current && refreshSucceededRef.current && !mergedRefreshingRef.current) {
         triggerSuccess()
@@ -204,7 +204,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
 
   const shouldReserveHead = (status === 'loading' || status === 'success') && distance === 0
   const flattenedContainerStyle = StyleSheet.flatten(scrollProps.contentContainerStyle) as any
-  const basePaddingTop = typeof flattenedContainerStyle?.paddingTop === 'number' ? flattenedContainerStyle.paddingTop : 0
+  const basePaddingTop = isNumber(flattenedContainerStyle?.paddingTop) ? flattenedContainerStyle.paddingTop : 0
   const contentContainerStyle = shouldReserveHead
     ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
     : scrollProps.contentContainerStyle
@@ -258,7 +258,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         const raw = Math.max(0, gestureState.dy ?? 0)
         setDistanceValue(easeDistance(raw))
 
-        if (typeof (event as any)?.preventDefault === 'function') {
+        if (isFunction((event as any)?.preventDefault)) {
           ; (event as any).preventDefault()
         }
       },

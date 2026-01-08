@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import { isRenderable, isText } from '../../utils/validate'
+import { isFunction, isRenderable, isText, isUndefined } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'
 import Loading from '../loading'
 import type { ListProps, ListRef, ListTokens } from './types'
@@ -48,10 +48,10 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
 
   const tokens = useListTokens(tokensOverride)
 
-  const loadingText = loadingTextProp === undefined ? locale.loading : loadingTextProp
+  const loadingText = isUndefined(loadingTextProp) ? locale.loading : loadingTextProp
 
-  const loadingControlled = typeof loading !== 'undefined'
-  const errorControlled = typeof error !== 'undefined'
+  const loadingControlled = !isUndefined(loading)
+  const errorControlled = !isUndefined(error)
   const [innerLoading, setInnerLoading] = React.useState(false)
   const [innerError, setInnerError] = React.useState(false)
   const mergedLoading = loadingControlled ? !!loading : innerLoading
@@ -153,7 +153,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
             )
         ) : null}
         {mergedError ? (
-          typeof errorText === 'function' ? (
+          isFunction(errorText) ? (
             errorText(retry)
           ) : isRenderable(errorText) ? (
             isText(errorText) ? (

@@ -18,7 +18,7 @@ import {
   numberToString as valueToString,
   parseDecimalLength,
 } from '../../utils/number'
-import { isNumber } from '../../utils/validate'
+import { isFiniteNumber, isNumber } from '../../utils/validate'
 import { isPromiseLike } from '../../utils/promise'
 import { useStepperTokens } from './tokens'
 import type { StepperInstance, StepperProps } from './types'
@@ -70,7 +70,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const decimalLength = parseDecimalLength(decimalLengthProp)
 
   const resolvedStepRaw = Number(step ?? 1)
-  const resolvedStep = Number.isFinite(resolvedStepRaw) && resolvedStepRaw > 0 ? resolvedStepRaw : 1
+  const resolvedStep = isFiniteNumber(resolvedStepRaw) && resolvedStepRaw > 0 ? resolvedStepRaw : 1
 
   const resolvedButtonSize = Math.max(0, parseNumber(buttonSize, tokens.defaults.buttonSize))
   const resolvedInputWidth = Math.max(0, parseNumber(inputWidth, tokens.defaults.inputWidth))
@@ -78,7 +78,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const resolvedDefaultValue = (() => {
     const raw = p.defaultValue
     if (raw === null) return null
-    const base = isNumber(raw) && Number.isFinite(raw) ? raw : 0
+    const base = isFiniteNumber(raw) ? raw : 0
     const formatted = formatValue(base, integer, decimalLength)
     return autoFixed ? clampValue(formatted, min, max) : formatted
   })()
@@ -116,7 +116,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
 
   const getCurrentNumber = () => {
     const current = valueRef.current
-    return typeof current === 'number' && Number.isFinite(current) ? current : 0
+    return isFiniteNumber(current) ? current : 0
   }
 
   const isActionDisabled = (type: 'plus' | 'minus') => {
@@ -125,10 +125,10 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     if (type === 'minus' && disableMinus) return true
 
     const current = getCurrentNumber()
-    if (type === 'plus' && typeof max === 'number' && Number.isFinite(max) && current >= max) {
+    if (type === 'plus' && isFiniteNumber(max) && current >= max) {
       return true
     }
-    if (type === 'minus' && typeof min === 'number' && Number.isFinite(min) && current <= min) {
+    if (type === 'minus' && isFiniteNumber(min) && current <= min) {
       return true
     }
     return false
@@ -302,9 +302,9 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     stepOnce(type, event, { emitOverlimit: true, emitButtonCallbacks: true })
   }
 
-  const currentForCompare = typeof value === 'number' && Number.isFinite(value) ? value : 0
-  const minNumber = typeof min === 'number' && Number.isFinite(min) ? min : undefined
-  const maxNumber = typeof max === 'number' && Number.isFinite(max) ? max : undefined
+  const currentForCompare = isFiniteNumber(value) ? value : 0
+  const minNumber = isFiniteNumber(min) ? min : undefined
+  const maxNumber = isFiniteNumber(max) ? max : undefined
   const disabledForAll = disabled || changing
   const minusDisabled = disabledForAll || disableMinus || (minNumber !== undefined && currentForCompare <= minNumber)
   const plusDisabled = disabledForAll || disablePlus || (maxNumber !== undefined && currentForCompare >= maxNumber)

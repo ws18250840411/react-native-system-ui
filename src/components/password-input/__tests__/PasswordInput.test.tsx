@@ -1,5 +1,5 @@
 import React from 'react'
-import renderer, { ReactTestInstance } from 'react-test-renderer'
+import renderer from 'react-test-renderer'
 import { StyleSheet, TextInput, Text, View } from 'react-native'
 
 import PasswordInput from '../index'
@@ -104,7 +104,7 @@ describe('PasswordInput', () => {
     expect(getCursorOpacity()).toBe(0)
   })
 
-  it('triggers onSubmit when length is reached', async () => {
+  it('triggers onSubmit when length is reached', () => {
     const onSubmit = jest.fn()
     const onChange = jest.fn()
     const tree = renderer.create(
@@ -113,13 +113,40 @@ describe('PasswordInput', () => {
 
     const input = tree.root.findByType(TextInput)
 
-    await renderer.act(async () => {
+    renderer.act(() => {
       input.props.onChangeText?.('1234')
-      await Promise.resolve()
     })
 
     expect(onChange).toHaveBeenCalledWith('1234')
-    // expect(onSubmit).toHaveBeenCalledWith('1234') // Flaky test in environment
+    expect(onSubmit).toHaveBeenCalledWith('1234')
+  })
+
+  it('does not trigger onSubmit on mount when already complete', () => {
+    const onSubmit = jest.fn()
+
+    renderer.act(() => {
+      renderer.create(
+        <PasswordInput length={4} value="1234" onSubmit={onSubmit} />
+      )
+    })
+
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('triggers onSubmit when controlled value becomes complete', () => {
+    const onSubmit = jest.fn()
+
+    const tree = renderer.create(
+      <PasswordInput length={4} value="123" onSubmit={onSubmit} />
+    )
+
+    renderer.act(() => {
+      tree.update(
+        <PasswordInput length={4} value="1234" onSubmit={onSubmit} />
+      )
+    })
+
+    expect(onSubmit).toHaveBeenCalledWith('1234')
   })
 
   it('toggles mask visibility', () => {

@@ -2,7 +2,7 @@ import React from 'react'
 import { View } from 'react-native'
 
 import { isPromiseLike } from '../../utils/promise'
-import { isNumber, isString as isStringType } from '../../utils/validate'
+import { isNumber, isString, isText } from '../../utils/validate'
 import { FormContext } from './FormContext'
 import type {
   FormInstance,
@@ -20,20 +20,19 @@ const runRuleValidation = (
   values: Record<string, any>,
 ): string | null | Promise<string | null> => {
   const message = rule.message ?? '表单验证未通过'
-  const isString = isStringType(value)
   const empty = value == null || value === '' || (Array.isArray(value) && value.length === 0)
 
-  if (rule.required && (empty || (rule.whitespace && isString && value.trim().length === 0))) {
+  if (rule.required && (empty || (rule.whitespace && isString(value) && value.trim().length === 0))) {
     return message
   }
   if (empty) return null
-  if (rule.pattern && isString && !rule.pattern.test(value)) return message
+  if (rule.pattern && isString(value) && !rule.pattern.test(value)) return message
 
   if (rule.len !== undefined || rule.min !== undefined || rule.max !== undefined) {
     const length =
       isNumber(value)
         ? value
-        : isString || Array.isArray(value)
+        : isString(value) || Array.isArray(value)
           ? value.length
           : 0
     if (rule.len !== undefined && length !== rule.len) return message
@@ -43,7 +42,7 @@ const runRuleValidation = (
 
   if (!rule.validator) return null
   const handle = (result: any) =>
-    isStringType(result) ? result : result === false ? message : null
+    isString(result) ? result : result === false ? message : null
   const result = rule.validator(value, values)
   return isPromiseLike(result) ? result.then(handle) : handle(result)
 }
@@ -340,7 +339,7 @@ export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRe
   const names = React.useMemo(() => {
     if (name === undefined) return undefined
     if (!Array.isArray(name)) return [name]
-    return name.length && (typeof name[0] === 'string' || typeof name[0] === 'number')
+    return name.length && isText(name[0])
       ? [name as NamePath]
       : (name as NamePath[])
   }, [name])

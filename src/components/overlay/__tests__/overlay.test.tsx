@@ -36,6 +36,40 @@ describe('Overlay', () => {
     expect(onPress).toHaveBeenCalled()
   })
 
+  it('supports onClick as alias of onPress', () => {
+    const onClick = jest.fn()
+    const tree = render(
+      <PortalHost>
+        <Overlay visible onClick={onClick} />
+      </PortalHost>
+    )
+
+    const pressable = tree.root.findByProps({ testID: 'rv-overlay' }) as renderer.ReactTestInstance
+    act(() => {
+      pressable.props.onPress()
+    })
+
+    expect(onClick).toHaveBeenCalled()
+  })
+
+  it('prefers onPress when both onPress and onClick are provided', () => {
+    const onPress = jest.fn()
+    const onClick = jest.fn()
+    const tree = render(
+      <PortalHost>
+        <Overlay visible onPress={onPress} onClick={onClick} />
+      </PortalHost>
+    )
+
+    const pressable = tree.root.findByProps({ testID: 'rv-overlay' }) as renderer.ReactTestInstance
+    act(() => {
+      pressable.props.onPress()
+    })
+
+    expect(onPress).toHaveBeenCalledTimes(1)
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
   it('renders nothing when not visible', () => {
     const tree = render(
       <PortalHost>

@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { isNumber } from '../utils/validate'
+
 export interface CountDownCurrentTime {
   total: number
   days: number
@@ -95,7 +97,7 @@ const useCountDown = (options: UseCountDownOptions) => {
 
   const reset = React.useCallback((newTime?: number) => {
     pause()
-    const next = Math.max(0, typeof newTime === 'number' ? newTime : timeRef.current)
+    const next = Math.max(0, isNumber(newTime) ? newTime : timeRef.current)
     remainRef.current = next
     endTimeRef.current = Date.now() + next
     setCurrent(parseTime(next))

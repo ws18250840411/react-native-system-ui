@@ -1,7 +1,7 @@
 import React from 'react'
 
 import Portal from '../portal/Portal'
-import { isText } from '../../utils/validate'
+import { isFunction, isString, isText } from '../../utils/validate'
 import Notify, { type NotifyProps, type NotifyType } from './Notify'
 
 export type NotifyShowOptions = Omit<NotifyProps, 'visible'> & { message?: React.ReactNode }
@@ -106,7 +106,7 @@ const showNotify = (input?: NotifyInput, fallbackType: NotifyType = 'primary'): 
   const config: NotifyReturnType['config'] = next => {
     const prev = notifyOptions.get(key)
     if (!prev) return
-    const nextInput = typeof next === 'function' ? next(prev) : next
+    const nextInput = isFunction(next) ? next(prev) : next
     const parsed = parseOptions(nextInput)
     const nextType = parsed.type ?? prev.type ?? fallbackType
 
@@ -144,7 +144,7 @@ export const NotifyImperative = {
     allowMultiple = value
   },
   setDefaultOptions: (typeOrOptions: NotifyType | NotifyShowOptions, options?: NotifyShowOptions) => {
-    if (typeof typeOrOptions === 'string') {
+    if (isString(typeOrOptions)) {
       typeDefaults.set(typeOrOptions, options ?? {})
     } else {
       currentOptions = { ...currentOptions, ...typeOrOptions }

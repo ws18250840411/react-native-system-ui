@@ -132,8 +132,10 @@ describe('Input', () => {
     expect(field.props.keyboardType).toBe('decimal-pad')
 
     act(() => {
+      handleChange.mockClear()
       ref.current?.clear()
     })
+    expect(handleChange).toHaveBeenCalledTimes(1)
     expect(handleChange).toHaveBeenLastCalledWith('')
     const nativeElement = tree.root.findByType(TextInput).instance
     expect(ref.current?.nativeElement).toBe(nativeElement)

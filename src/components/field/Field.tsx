@@ -12,36 +12,10 @@ import { Clear, QuestionO } from 'react-native-system-icon'
 
 import Cell from '../cell'
 import Dialog from '../dialog'
-import { isDef, isRenderable, isText, isObject } from '../../utils/validate'
+import { isDef, isFiniteNumber, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
+import { formatNumberInput } from '../../utils/string'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
-
-const trimExtraChar = (value: string, char: string, regExp: RegExp) => {
-  const index = value.indexOf(char)
-  if (index === -1) return value
-  if (char === '-' && index !== 0) {
-    return value.slice(0, index)
-  }
-  return value.slice(0, index + 1) + value.slice(index).replace(regExp, '')
-}
-
-const formatNumber = (value: string, allowDot = true, allowMinus = true) => {
-  let next = value
-  if (allowDot) {
-    next = trimExtraChar(next, '.', /\./g)
-  } else {
-    next = next.split('.')[0]
-  }
-
-  if (allowMinus) {
-    next = trimExtraChar(next, '-', /-/g)
-  } else {
-    next = next.replace(/-/g, '')
-  }
-
-  const regExp = allowDot ? /[^-0-9.]/g : /[^-0-9]/g
-  return next.replace(regExp, '')
-}
 
 const styles = StyleSheet.create({
   body: {
@@ -297,10 +271,10 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
     if (type === 'number' || type === 'digit') {
       const allowDot = type === 'number'
-      next = formatNumber(next, allowDot, allowDot)
+      next = formatNumberInput(next, allowDot, allowDot)
     }
 
-    if (typeof maxLength === 'number' && maxLength >= 0 && next.length > maxLength) {
+    if (isFiniteNumber(maxLength) && maxLength >= 0 && next.length > maxLength) {
       onOverlimit?.(next)
       next = next.slice(0, maxLength)
     }
@@ -534,10 +508,9 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       return null
     }
     const currentCount = (value ?? '').length
-    const content =
-      typeof showWordLimit === 'function'
-        ? showWordLimit({ currentCount, maxLength })
-        : `${currentCount}/${maxLength}`
+    const content = isFunction(showWordLimit)
+      ? showWordLimit({ currentCount, maxLength })
+      : `${currentCount}/${maxLength}`
 
     if (content === null || content === false) return null
 

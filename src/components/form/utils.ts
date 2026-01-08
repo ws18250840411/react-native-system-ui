@@ -1,3 +1,4 @@
+import { isNumber, isString } from '../../utils/validate'
 import type { NamePath } from './types'
 
 export const normalizeTrigger = (trigger?: string | string[]) =>
@@ -6,8 +7,8 @@ export const normalizeTrigger = (trigger?: string | string[]) =>
 export const toNamePath = (name?: NamePath): (string | number)[] => {
   if (name === undefined || name === null) return []
   if (Array.isArray(name)) return name
-  if (typeof name === 'number') return [name]
-  if (typeof name === 'string') {
+  if (isNumber(name)) return [name]
+  if (isString(name)) {
     return name.split('.')
   }
   return [String(name)]
@@ -36,7 +37,7 @@ export const setValueByName = (source: any, name: NamePath, value: any) => {
     const nextVal = cursor[key]
     const nextContainer =
       nextVal === undefined || nextVal === null
-        ? typeof path[index + 1] === 'number'
+        ? isNumber(path[index + 1])
           ? []
           : {}
         : Array.isArray(nextVal)

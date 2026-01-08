@@ -3,9 +3,11 @@ import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type
 
 import { useControllableValue } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
+import { parseNumberLike } from '../../utils/number'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
+import { isText } from '../../utils/validate'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
 
@@ -47,9 +49,9 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     onBlur,
     onHide,
     onShow,
-    value: valueProp,
-    defaultValue = '',
-    maxlength,
+    value: _value,
+    defaultValue: _defaultValue,
+    maxlength: maxlengthProp,
     blurOnClose = true,
     safeAreaInsetBottom = true,
     transition = true,
@@ -71,6 +73,11 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     trigger: 'onChange',
   })
   const value = mergedValue ?? ''
+  const maxlength = React.useMemo(() => {
+    const parsed = parseNumberLike(maxlengthProp, undefined)
+    if (parsed === undefined || !Number.isFinite(parsed) || parsed < 0) return undefined
+    return Math.floor(parsed)
+  }, [maxlengthProp])
 
   const resolvedCloseText = theme === 'custom' ? closeButtonText ?? '完成' : closeButtonText
 
@@ -256,12 +263,12 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
             >
               {isClose && closeButtonLoading ? (
                 <Loading size={18} color={textColor} />
-              ) : React.isValidElement(contentNode) ? (
-                contentNode
-              ) : (
+              ) : isText(contentNode) ? (
                 <Text style={[styles.keyText, { color: textColor, fontSize: sizing.fontSize }]}>
-                  {contentNode as any}
+                  {contentNode}
                 </Text>
+              ) : contentNode == null || contentNode === false ? null : (
+                contentNode
               )}
             </View>
           )
@@ -271,6 +278,7 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
   }
 
   const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
+  const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
   const [contentHeight, setContentHeight] = React.useState(0)
   const [shouldRender, setShouldRender] = React.useState(visible)
 
@@ -280,16 +288,23 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     if (visible) {
       setShouldRender(true)
     }
-    Animated.timing(animated, {
+    animationRef.current?.stop()
+    const animation = Animated.timing(animated, {
       toValue: visible ? 1 : 0,
       duration: effectiveDuration,
       useNativeDriver: nativeDriverEnabled,
       easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
-    }).start(({ finished }) => {
+    })
+    animationRef.current = animation
+    animation.start(({ finished }) => {
       if (finished && !visible) {
         setShouldRender(false)
       }
     })
+    return () => {
+      animationRef.current?.stop()
+      animationRef.current = null
+    }
   }, [animated, visible, effectiveDuration])
 
   const translateY = animated.interpolate({

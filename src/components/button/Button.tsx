@@ -11,7 +11,7 @@ import {
 import { useTheme } from '../../design-system'
 import { withAlpha, extractFirstColorToken } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
-import { isNumber, isString, isText, isTwoCNChar } from '../../utils/validate'
+import { isFiniteNumber, isFunction, isNumber, isString, isText, isTwoCNChar } from '../../utils/validate'
 import { ensureSpace } from '../../utils/string'
 import Loading from '../loading'
 import { useAriaPress } from '../../hooks'
@@ -110,7 +110,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const sizeTokens = buttonTokens.sizes[size]
 
     const gradientString =
-      typeof buttonColorOverride === 'string' ? buttonColorOverride : undefined
+      isString(buttonColorOverride) ? buttonColorOverride : undefined
     const hasGradientSyntax =
       gradientString?.toLowerCase().includes('gradient') ?? false
     const normalizedColor = hasGradientSyntax
@@ -191,7 +191,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const isDisabled = disabled || loading
 
     let resolvedShadowLevel: ButtonShadowLevel | undefined
-    if (typeof shadowValue === 'number') {
+    if (isFiniteNumber(shadowValue)) {
       resolvedShadowLevel = clampShadowLevel(shadowValue)
     } else if (shadowValue === true) {
       resolvedShadowLevel = clampShadowLevel(2)
@@ -229,7 +229,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const renderIcon = () => {
       if (!icon) return null
       try {
-        const iconElement = typeof icon === 'function'
+        const iconElement = isFunction(icon)
           ? icon(resolvedTextColor, sizeTokens.iconSize)
           : icon
 

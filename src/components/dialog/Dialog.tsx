@@ -5,7 +5,7 @@ import { useLocale } from '../config-provider/useLocale'
 import { nativeDriverEnabled } from '../../platform'
 import { createHairlineView } from '../../utils/hairline'
 import { isPromiseLike } from '../../utils/promise'
-import { isValidNode } from '../../utils/validate'
+import { isNumber, isValidNode } from '../../utils/validate'
 import { Close } from 'react-native-system-icon'
 import Button from '../button'
 import Popup from '../popup'
@@ -30,16 +30,16 @@ const ActionButton = (props: ActionButtonProps) => {
     dividerPosition === 'none'
       ? null
       : [
-          styles.actionButtonDivider,
-          { width: 0 },
-          createHairlineView({
-            position: dividerPosition,
-            color: tokens.colors.divider,
-            top: 0,
-            bottom: 0,
-            [dividerPosition]: 0,
-          }),
-        ]
+        styles.actionButtonDivider,
+        { width: 0 },
+        createHairlineView({
+          position: dividerPosition,
+          color: tokens.colors.divider,
+          top: 0,
+          bottom: 0,
+          [dividerPosition]: 0,
+        }),
+      ]
 
   return (
     <Pressable
@@ -180,37 +180,37 @@ export const Dialog: React.FC<DialogProps> = props => {
   }, [scaleAnim, visible])
 
   const widthStyle = width
-    ? typeof width === 'number'
+    ? isNumber(width)
       ? { width }
       : { width: String(width) as any }
     : { width: '90%' as any, maxWidth: tokens.sizes.maxWidth }
 
   const titleWrapperStyle = hasTitle
     ? [
-        styles.titleWrapper,
-        {
-          paddingTop:
-            hasMessage || hasChildren
-              ? tokens.spacing.titlePaddingTop
-              : tokens.spacing.titleIsolatedPadding,
-          paddingBottom: hasMessage || hasChildren ? 0 : tokens.spacing.titleIsolatedPadding,
-          paddingHorizontal: hasMessage || hasChildren ? tokens.spacing.paddingHorizontal : 0,
-          marginBottom: hasMessage || hasChildren ? tokens.spacing.titleGap : 0,
-        },
-      ]
+      styles.titleWrapper,
+      {
+        paddingTop:
+          hasMessage || hasChildren
+            ? tokens.spacing.titlePaddingTop
+            : tokens.spacing.titleIsolatedPadding,
+        paddingBottom: hasMessage || hasChildren ? 0 : tokens.spacing.titleIsolatedPadding,
+        paddingHorizontal: hasMessage || hasChildren ? tokens.spacing.paddingHorizontal : 0,
+        marginBottom: hasMessage || hasChildren ? tokens.spacing.titleGap : 0,
+      },
+    ]
     : null
 
   const titleTextStyle = hasTitle
     ? [
-        styles.title,
-        {
-          color: tokens.colors.title,
-          fontSize: tokens.typography.titleSize,
-          lineHeight: tokens.typography.titleLineHeight,
-          fontWeight: tokens.typography.titleWeight,
-        },
-        titleStyle,
-      ]
+      styles.title,
+      {
+        color: tokens.colors.title,
+        fontSize: tokens.typography.titleSize,
+        lineHeight: tokens.typography.titleLineHeight,
+        fontWeight: tokens.typography.titleWeight,
+      },
+      titleStyle,
+    ]
     : null
 
   const messageTextStyle = [
@@ -226,13 +226,13 @@ export const Dialog: React.FC<DialogProps> = props => {
 
   const messageContentStyle = !hasChildren
     ? {
-        alignItems:
-          messageAlign === 'center'
-            ? ('center' as const)
-            : messageAlign === 'left'
-              ? ('flex-start' as const)
-              : ('flex-end' as const),
-      }
+      alignItems:
+        messageAlign === 'center'
+          ? ('center' as const)
+          : messageAlign === 'left'
+            ? ('flex-start' as const)
+            : ('flex-end' as const),
+    }
     : null
 
   const messageWrapperStyle = [
@@ -328,87 +328,87 @@ export const Dialog: React.FC<DialogProps> = props => {
         : theme === 'round-button'
           ? showCancelButton || showConfirmButton
             ? (
-                <View
-                  style={[
-                    styles.roundFooter,
-                    {
-                      paddingTop: tokens.spacing.messagePaddingTop,
-                      paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
-                      paddingBottom: tokens.spacing.roundFooterPadding,
-                    },
-                  ]}
-                >
-                  {showCancelButton ? (
-                    <View
-                      style={[
-                        styles.roundButtonWrapper,
-                        showConfirmButton ? { marginRight: tokens.spacing.roundFooterGap } : null,
-                      ]}
-                    >
-                      <Button
-                        block
-                        round
-                        type="warning"
-                        text={cancelButtonText ?? locale.cancel}
-                        color={cancelButtonColor}
-                        loading={cancelProps?.loading}
-                        disabled={cancelProps?.disabled}
-                        onPress={handleCancel}
-                        style={{ minHeight: tokens.sizes.roundButtonHeight }}
-                      />
-                    </View>
-                  ) : null}
-                  {showConfirmButton ? (
-                    <View
-                      style={[
-                        styles.roundButtonWrapper,
-                        showCancelButton ? { marginLeft: tokens.spacing.roundFooterGap } : null,
-                      ]}
-                    >
-                      <Button
-                        block
-                        round
-                        type="danger"
-                        text={confirmButtonText ?? locale.confirm}
-                        color={confirmButtonColor}
-                        loading={confirmProps?.loading}
-                        disabled={confirmProps?.disabled}
-                        onPress={handleConfirm}
-                        style={{ minHeight: tokens.sizes.roundButtonHeight }}
-                      />
-                    </View>
-                  ) : null}
-                </View>
-              )
-            : null
-          : showCancelButton || showConfirmButton
-            ? (
-                <View style={styles.footer}>
-                  <View style={footerBorderTopStyle} pointerEvents="none" />
-                  {showCancelButton ? (
-                    <ActionButton
-                      tokens={tokens}
+              <View
+                style={[
+                  styles.roundFooter,
+                  {
+                    paddingTop: tokens.spacing.messagePaddingTop,
+                    paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
+                    paddingBottom: tokens.spacing.roundFooterPadding,
+                  },
+                ]}
+              >
+                {showCancelButton ? (
+                  <View
+                    style={[
+                      styles.roundButtonWrapper,
+                      showConfirmButton ? { marginRight: tokens.spacing.roundFooterGap } : null,
+                    ]}
+                  >
+                    <Button
+                      block
+                      round
+                      type="warning"
                       text={cancelButtonText ?? locale.cancel}
-                      color={cancelButtonColor ?? tokens.colors.cancel}
-                      dividerPosition="none"
+                      color={cancelButtonColor}
                       loading={cancelProps?.loading}
                       disabled={cancelProps?.disabled}
                       onPress={handleCancel}
+                      style={{ minHeight: tokens.sizes.roundButtonHeight }}
                     />
-                  ) : null}
-                  {showConfirmButton ? (
-                    <ActionButton
-                      tokens={tokens}
+                  </View>
+                ) : null}
+                {showConfirmButton ? (
+                  <View
+                    style={[
+                      styles.roundButtonWrapper,
+                      showCancelButton ? { marginLeft: tokens.spacing.roundFooterGap } : null,
+                    ]}
+                  >
+                    <Button
+                      block
+                      round
+                      type="danger"
                       text={confirmButtonText ?? locale.confirm}
-                      color={confirmButtonColor ?? tokens.colors.confirm}
-                      dividerPosition={showCancelButton ? 'left' : 'none'}
+                      color={confirmButtonColor}
                       loading={confirmProps?.loading}
                       disabled={confirmProps?.disabled}
                       onPress={handleConfirm}
+                      style={{ minHeight: tokens.sizes.roundButtonHeight }}
                     />
-                  ) : null}
-                </View>
-              )
+                  </View>
+                ) : null}
+              </View>
+            )
+            : null
+          : showCancelButton || showConfirmButton
+            ? (
+              <View style={styles.footer}>
+                <View style={footerBorderTopStyle} pointerEvents="none" />
+                {showCancelButton ? (
+                  <ActionButton
+                    tokens={tokens}
+                    text={cancelButtonText ?? locale.cancel}
+                    color={cancelButtonColor ?? tokens.colors.cancel}
+                    dividerPosition="none"
+                    loading={cancelProps?.loading}
+                    disabled={cancelProps?.disabled}
+                    onPress={handleCancel}
+                  />
+                ) : null}
+                {showConfirmButton ? (
+                  <ActionButton
+                    tokens={tokens}
+                    text={confirmButtonText ?? locale.confirm}
+                    color={confirmButtonColor ?? tokens.colors.confirm}
+                    dividerPosition={showCancelButton ? 'left' : 'none'}
+                    loading={confirmProps?.loading}
+                    disabled={confirmProps?.disabled}
+                    onPress={handleConfirm}
+                  />
+                ) : null}
+              </View>
+            )
             : null}
     </Popup>
   )

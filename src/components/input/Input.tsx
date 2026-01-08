@@ -1,10 +1,11 @@
 import React from 'react'
 
+import { isBoolean, isFiniteNumber } from '../../utils/validate'
 import Field from '../field'
 import { useFieldTokens } from '../field/tokens'
 import type { FieldAutosizeConfig } from '../field/types'
-import type { InputInstance, InputProps, InputTextAreaProps } from './types'
 import { useInputTokens } from './tokens'
+import type { InputInstance, InputProps, InputTextAreaProps } from './types'
 
 const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) => {
   const {
@@ -34,7 +35,6 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
     focus: () => inputRef.current?.focus?.(),
     blur: () => inputRef.current?.blur?.(),
     clear: () => {
-      handleChangeText('')
       inputRef.current?.clear?.()
     },
     get nativeElement() {
@@ -80,12 +80,12 @@ const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref
 
   const lineHeight = fieldTokens.defaults.textareaLineHeight
   const toRows = (height?: number) => {
-    if (typeof height !== "number" || height <= 0 || !Number.isFinite(height)) return undefined
+    if (!isFiniteNumber(height) || height <= 0) return undefined
     return Math.max(1, Math.round(height / lineHeight))
   }
 
   let resolvedAutoSize: boolean | FieldAutosizeConfig | undefined
-  if (!autoSize || typeof autoSize === "boolean") {
+  if (!autoSize || isBoolean(autoSize)) {
     resolvedAutoSize = autoSize
   } else {
     const minRows = toRows(autoSize.minHeight)

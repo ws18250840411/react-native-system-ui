@@ -1,4 +1,5 @@
 import React from 'react'
+import { isFunction } from '../utils/validate'
 
 export interface UseControllableValueOptions<T> {
   defaultValue?: T
@@ -49,7 +50,7 @@ function useControllableValue<T = any>(
         setInternalValue(nextValue)
       }
       const handler = handlerRef.current
-      if (typeof handler === 'function') {
+      if (isFunction(handler)) {
         handler(nextValue, ...args)
       }
     },

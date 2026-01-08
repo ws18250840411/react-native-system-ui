@@ -13,12 +13,12 @@ import {
 
 import { useAriaPress, useControllableValue } from '../../hooks'
 import { parseNumberLike } from '../../utils/number'
-import { isRenderable, isText } from '../../utils/validate'
+import { isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
 
 const requestFrame =
-  typeof requestAnimationFrame === 'function'
+  isFunction(requestAnimationFrame)
     ? requestAnimationFrame
     : (cb: (time?: number) => void) => setTimeout(cb, 16)
 
@@ -81,10 +81,10 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const isCapsule = type === 'capsule'
   const isJumbo = type === 'jumbo'
   const isCard = type === 'card'
-  const renderTitle =
-    typeof pane.title === 'function' ? pane.title(isActive) : pane.title ?? pane.name
-  const renderDescription =
-    typeof pane.description === 'function' ? pane.description(isActive) : pane.description
+  const renderTitle = isFunction(pane.title) ? pane.title(isActive) : pane.title ?? pane.name
+  const renderDescription = isFunction(pane.description)
+    ? pane.description(isActive)
+    : pane.description
 
   const activeTitleColor = titleActiveColor ?? (isCard ? tokens.colors.cardActiveText : isCapsule ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive)
   const inactiveTitleColor = titleInactiveColor ?? (isCard ? color ?? tokens.colors.cardBorder : isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
@@ -298,7 +298,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const resolvedSwipeThreshold = parseNumberLike(swipeThreshold) ?? tokens.defaults.swipeThreshold
   const swipeableConfig = !swipeable
     ? undefined
-    : typeof swipeable === 'object'
+    : isObject(swipeable)
       ? {
         autoHeight: swipeable.autoHeight ?? true,
         preventScroll: swipeable.preventScroll ?? true,
@@ -410,7 +410,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
 
   const scrollable = React.useMemo(() => {
-    if (typeof scrollableProp === 'boolean') {
+    if (isBoolean(scrollableProp)) {
       return scrollableProp
     }
     return panes.length > resolvedSwipeThreshold || ellipsis === false

@@ -80,7 +80,7 @@
 | calendar | 持续优化 | 日期逻辑+渲染复杂度高，边界多 |
 | cascader | 持续优化 | 多级联动与性能/状态复杂 |
 | circle | 持续优化 | Web/Native 渲染方案差异（svg/gradient）+动画 |
-| collapse | 持续优化 | 测量+展开动画+性能敏感 |
+| collapse | 持续优化 ✅ | 测量+展开动画+性能敏感 |
 | config-provider | 持续优化 | 全局基础设施，影响面大 |
 | datetime-picker | 持续优化 | Picker+日期逻辑，三端细节多 |
 | dialog | 持续优化 ✅ | 弹层/Portal/动画/关闭链路 |
@@ -89,20 +89,19 @@
 | form | 持续优化 ✅ | 校验/依赖/异步校验与边界多 |
 | image-preview | 持续优化 ✅ | Portal+Swiper+手势/关闭链路 |
 | index-bar | 持续优化 ✅ | 手势/滚动/定位，三端一致性敏感 |
-| input | 持续优化 | TextInput/autoSize/composition 等差异 |
-| notice-bar | 持续优化 | 动画/滚动/重播，差异点多 |
-| number-keyboard | 持续优化 | 弹层+输入联动+交互细节 |
-| overlay | 持续优化 | 弹层基础设施（栈/zIndex/遮罩） |
-| password-input | 持续优化 | 输入+自绘 UI+动画/光标等 |
-| picker | 持续优化 | WheelPicker 三端实现差异明显 |
-| popover | 持续优化 | 定位测量/弹层/交互关闭链路 |
-| popup | 持续优化 | 弹层基础设施（承载/动画/安全区） |
+| input | 持续优化 ✅ | TextInput/autoSize/composition 等差异 |
+| notice-bar | 持续优化 ✅ | 动画/滚动/重播，差异点多 |
+| number-keyboard | 持续优化 ✅ | 弹层+输入联动+交互细节 |
+| overlay | 持续优化 ✅ | 弹层基础设施（栈/zIndex/遮罩） |
+| password-input | 持续优化 ✅ | 输入+自绘 UI+动画/光标等 |
+| picker | 持续优化 ✅ | WheelPicker 三端实现差异明显 |
+| popup | 持续优化 ✅ | 弹层基础设施（承载/动画/安全区） |
 | portal | 持续优化 | 基础设施（承载与 Host 机制） |
 | pull-refresh | 持续优化 | 手势/滚动冲突，差异点多 |
 | search | 持续优化 | 基于 Field/Input，输入链路复杂 |
 | share-sheet | 持续优化 | 弹层+复杂内容布局 |
 | skeleton | 持续优化 | 动画/driver/性能敏感 |
-| slider | 持续优化 | 拖拽手势与滚动冲突，高风险 |
+| slider | 持续优化 ✅ | 拖拽手势与滚动冲突，高风险 |
 | stepper | 持续优化 ✅ | TextInput+长按/边界与交互多 |
 | swipe-cell | 持续优化 | 滑动手势/点击回收/滚动冲突，高风险 |
 | swiper | 持续优化 | 滑动/循环/指示器/虚拟化，多端差异 |

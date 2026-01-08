@@ -16,7 +16,7 @@ import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { createHairlineView } from '../../utils/hairline'
-import { isRenderable, isText } from '../../utils/validate'
+import { isFunction, isNumber, isObject, isRenderable, isText } from '../../utils/validate'
 
 export type CollapseValue = string | string[]
 
@@ -226,7 +226,7 @@ export const Collapse = ((props: CollapseProps) => {
 
   const renderedChildren = items.map((child, index) => {
     if (!React.isValidElement(child)) return child
-    if (typeof child.type !== 'function' && typeof child.type !== 'object') {
+    if (!isFunction(child.type) && !isObject(child.type)) {
       return child
     }
     const name = (child.props as CollapsePanelProps).name ?? String(index)
@@ -334,7 +334,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
 
   const handleContentLayout = (event: LayoutChangeEvent) => {
     const nextHeight = event.nativeEvent.layout.height
-    if (typeof nextHeight === 'number' && Number.isFinite(nextHeight) && nextHeight !== contentHeight) {
+    if (isNumber(nextHeight) && Number.isFinite(nextHeight) && nextHeight !== contentHeight) {
       setContentHeight(nextHeight)
     }
   }
@@ -347,7 +347,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   }
 
   const renderExpandIcon = () => {
-    if (typeof expandIcon === 'function') {
+    if (isFunction(expandIcon)) {
       return expandIcon(isActive)
     }
     if (expandIcon) {

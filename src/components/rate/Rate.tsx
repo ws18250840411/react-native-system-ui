@@ -11,6 +11,7 @@ import type { RateProps } from './types'
 import { useRateTokens } from './tokens'
 import { useControllableValue } from '../../hooks'
 import { clamp, parseNumber } from '../../utils/number'
+import { isFiniteNumber, isFunction } from '../../utils/validate'
 
 const DEFAULT_CHARACTER = '★'
 
@@ -70,22 +71,21 @@ export const Rate: React.FC<RateProps> = props => {
   const resolveEventPosition = (event: GestureResponderEvent): { x?: number; width?: number } => {
     const nativeEvent = event.nativeEvent as any
     const locationX = nativeEvent?.locationX
-    if (typeof locationX === 'number' && Number.isFinite(locationX)) return { x: locationX }
+    if (isFiniteNumber(locationX)) return { x: locationX }
 
     const clientX = nativeEvent?.clientX
     const currentTarget = (event as any)?.currentTarget
     if (
-      typeof clientX === 'number' &&
-      Number.isFinite(clientX) &&
+      isFiniteNumber(clientX) &&
       currentTarget &&
-      typeof currentTarget.getBoundingClientRect === 'function'
+      isFunction(currentTarget.getBoundingClientRect)
     ) {
       const rect = currentTarget.getBoundingClientRect()
       if (rect) return { x: clientX - rect.left, width: rect.width }
     }
 
     const offsetX = nativeEvent?.offsetX
-    if (typeof offsetX === 'number' && Number.isFinite(offsetX)) return { x: offsetX }
+    if (isFiniteNumber(offsetX)) return { x: offsetX }
 
     return {}
   }
@@ -98,7 +98,7 @@ export const Rate: React.FC<RateProps> = props => {
     if (allowHalf && event) {
       const { x, width } = resolveEventPosition(event)
       const threshold = (width ?? resolvedSize) / 2
-      if (typeof x === 'number' && x <= threshold) {
+      if (isFiniteNumber(x) && x <= threshold) {
         nextScore = baseScore - 0.5
       }
     }
@@ -172,7 +172,7 @@ export const Rate: React.FC<RateProps> = props => {
   const handleResponderMove = (event: GestureResponderEvent) => {
     if (!interactive || !touchable) return
     if (gestureDirectionRef.current !== 'horizontal') return
-    ;(event as any)?.preventDefault?.()
+      ; (event as any)?.preventDefault?.()
     const nextScore = valueFromLocationX(event.nativeEvent.locationX)
     if (lastMoveValueRef.current === nextScore) return
     lastMoveValueRef.current = nextScore

@@ -4,6 +4,7 @@ import Picker from '../picker'
 import { Popup } from '../popup/Popup'
 import { clamp } from '../../utils/number'
 import { getMonthEndDay, getTrueValue, isValidDate, padZero, times } from '../../utils/date'
+import { isString } from '../../utils/validate'
 import type {
   DatetimePickerColumnType,
   DatetimePickerDateProps,
@@ -285,7 +286,7 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
   })
 
   React.useEffect(() => {
-    const next = typeof value === 'string' ? formatTime(value) : formatTime(timeRef.current)
+    const next = isString(value) ? formatTime(value) : formatTime(timeRef.current)
     if (next !== timeRef.current) {
       timeRef.current = next
       setCurrentTime(next)

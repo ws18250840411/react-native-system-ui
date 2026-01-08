@@ -75,13 +75,13 @@ export interface PopupProps extends ViewProps {
 
 const placementConfig: Record<
   PopupPlacement,
-  { container: ViewStyle; axis: 'x' | 'y'; scale?: boolean }
+  { container: ViewStyle; axis: 'x' | 'y' }
 > = {
   top: { container: { justifyContent: 'flex-start', alignItems: 'center' }, axis: 'y' },
   bottom: { container: { justifyContent: 'flex-end', alignItems: 'center' }, axis: 'y' },
   left: { container: { justifyContent: 'center', alignItems: 'flex-start' }, axis: 'x' },
   right: { container: { justifyContent: 'center', alignItems: 'flex-end' }, axis: 'x' },
-  center: { container: { justifyContent: 'center', alignItems: 'center' }, axis: 'y', scale: true },
+  center: { container: { justifyContent: 'center', alignItems: 'center' }, axis: 'y' },
 }
 
 const buildRadius = (round: boolean | undefined, placement: PopupPlacement, radius: number) => {
@@ -256,7 +256,7 @@ export const Popup: React.FC<PopupProps> = props => {
   const [mounted, setMounted] = React.useState(visible)
   const [interactionVisible, setInteractionVisible] = React.useState(visible)
   const [contentDistance, setContentDistance] = React.useState(0)
-  const progress = React.useRef(new Animated.Value(visible ? 1 : 0)).current
+  const progress = React.useRef(new Animated.Value(0)).current
   const animatingRef = React.useRef(false)
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
   const distanceRef = React.useRef(0)
@@ -282,9 +282,6 @@ export const Popup: React.FC<PopupProps> = props => {
       if (show) {
         setMounted(true)
         setInteractionVisible(true)
-        progress.setValue(0)
-      } else {
-        progress.setValue(1)
       }
       // 对齐 react-vant：进入使用 ease-out，退出使用 ease-in（近似 CSS cubic-bezier 0.25,0.1,0.25,1 / 0.42,0,1,1）
       const easing = show ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic)
@@ -317,14 +314,13 @@ export const Popup: React.FC<PopupProps> = props => {
         }
       })
     },
-    [destroyOnClose, duration, isVertical, onClosed, onOpened, progress]
+    [destroyOnClose, duration, onClosed, onOpened, progress]
   )
 
   React.useEffect(() => {
     if (visible) {
       setMounted(true)
       setInteractionVisible(true)
-      progress.setValue(0)
       clearOpenFallbackTimer()
       const needWaitForLayout = shouldTranslate && distanceRef.current === 0
       if (needWaitForLayout) {
@@ -342,9 +338,10 @@ export const Popup: React.FC<PopupProps> = props => {
     } else {
       pendingShowRef.current = false
       clearOpenFallbackTimer()
+      if (!prevVisible.current) return
       runAnimation(false)
     }
-  }, [clearOpenFallbackTimer, progress, runAnimation, shouldTranslate, visible])
+  }, [clearOpenFallbackTimer, runAnimation, shouldTranslate, visible])
 
   React.useEffect(() => {
     if (visible && !prevVisible.current) {
@@ -580,12 +577,14 @@ export const Popup: React.FC<PopupProps> = props => {
                 { backgroundColor: tokens.colors.overlay, opacity: overlayOpacity },
                 overlayStyle,
               ]}
-              pointerEvents={visible ? 'auto' : 'none'}
-              accessibilityRole="button"
-              accessibilityLabel={overlayAccessibilityLabel}
-              accessibilityHint={
-                shouldCloseOnOverlay ? '双击即可关闭弹层' : undefined
-              }
+              pointerEvents={visible || interactionVisible ? 'auto' : 'none'}
+              {...(shouldCloseOnOverlay && (onClose || beforeClose)
+                ? {
+                  accessibilityRole: 'button' as const,
+                  accessibilityLabel: overlayAccessibilityLabel,
+                  accessibilityHint: '双击即可关闭弹层',
+                }
+                : { accessible: false })}
               onPress={() => {
                 onClickOverlay?.()
                 if (shouldCloseOnOverlay) {

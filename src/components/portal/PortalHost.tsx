@@ -1,11 +1,13 @@
 import React from 'react'
 import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
 
+import { isFunction, isNumber } from '../../utils/validate'
 import { PortalContext, type PortalManager } from './PortalContext'
 
 interface PortalEntry {
   key: number
   children: React.ReactNode
+  zIndex?: number
 }
 
 interface PortalLayerProps {
@@ -41,7 +43,7 @@ class PortalLayer extends React.PureComponent<PortalLayerProps, PortalLayerState
             collapsable={false}
             style={[
               styles.portalEntry,
-              resolveEntryZIndex(entry.children),
+              isNumber(entry.zIndex) ? { zIndex: entry.zIndex } : null,
             ]}
           >
             {entry.children}
@@ -52,19 +54,14 @@ class PortalLayer extends React.PureComponent<PortalLayerProps, PortalLayerState
   }
 }
 
-const resolveEntryZIndex = (children: React.ReactNode) => {
-  const zIndex = getMaxZIndex(children)
-  return typeof zIndex === 'number' ? { zIndex } : null
-}
-
 const getMaxZIndex = (node: React.ReactNode): number | undefined => {
   if (!node) return undefined
   if (Array.isArray(node)) {
     let max: number | undefined
     node.forEach(child => {
       const value = getMaxZIndex(child)
-      if (typeof value === 'number') {
-        max = typeof max === 'number' ? Math.max(max, value) : value
+      if (isNumber(value)) {
+        max = isNumber(max) ? Math.max(max, value) : value
       }
     })
     return max
@@ -72,10 +69,10 @@ const getMaxZIndex = (node: React.ReactNode): number | undefined => {
 
   if (React.isValidElement(node)) {
     const style = (node.props as any)?.style
-    if (style && typeof style !== 'function') {
+    if (style && !isFunction(style)) {
       const flattened = StyleSheet.flatten(style)
       const zIndex = flattened?.zIndex
-      if (typeof zIndex === 'number') {
+      if (isNumber(zIndex)) {
         return zIndex
       }
     }
@@ -88,15 +85,16 @@ const getMaxZIndex = (node: React.ReactNode): number | undefined => {
 }
 
 const hostStack: PortalLayer[] = []
-const portalEntries = new Map<number, React.ReactNode>()
+const portalEntries = new Map<number, { children: React.ReactNode; zIndex?: number }>()
 let nextPortalKey = 1
 let warnedNative = false
 let autoHostTeardownScheduled = false
 
 const getEntriesSnapshot = (): PortalEntry[] =>
-  Array.from(portalEntries.entries()).map(([key, children]) => ({
+  Array.from(portalEntries.entries()).map(([key, entry]) => ({
     key,
-    children,
+    children: entry.children,
+    zIndex: entry.zIndex,
   }))
 
 const notifyCurrentHost = () => {
@@ -127,13 +125,13 @@ const unregisterHost = (host: PortalLayer) => {
 
 const mountPortal = (children: React.ReactNode, key?: number) => {
   const resolvedKey = key ?? nextPortalKey++
-  portalEntries.set(resolvedKey, children)
+  portalEntries.set(resolvedKey, { children, zIndex: getMaxZIndex(children) })
   notifyCurrentHost()
   return resolvedKey
 }
 
 const updatePortal = (key: number, children: React.ReactNode) => {
-  portalEntries.set(key, children)
+  portalEntries.set(key, { children, zIndex: getMaxZIndex(children) })
   notifyCurrentHost()
 }
 

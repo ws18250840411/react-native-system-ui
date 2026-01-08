@@ -6,7 +6,9 @@ export const isRenderable = (node: unknown): boolean => node != null && typeof n
 
 export const isText = (node: unknown): node is string | number => typeof node === 'string' || typeof node === 'number'
 
-export const isNumber = (val: unknown): val is number => typeof val === 'number'
+export const isNumber = (val: unknown): val is number => typeof val === 'number' && !Number.isNaN(val)
+
+export const isFiniteNumber = (val: unknown): val is number => isNumber(val) && Number.isFinite(val)
 
 export const isString = (val: unknown): val is string => typeof val === 'string'
 

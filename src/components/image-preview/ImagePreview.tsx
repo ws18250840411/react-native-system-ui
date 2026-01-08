@@ -5,6 +5,7 @@ import Popup from '../popup'
 import Swiper, { type SwiperInstance } from '../swiper'
 import type { ImagePreviewProps, ImagePreviewRef, ImagePreviewCloseReason } from './types'
 import { useImagePreviewTokens } from './tokens'
+import { isString } from '../../utils/validate'
 
 const clampIndex = (index: number, total: number) =>
   total <= 0 ? 0 : Math.max(0, Math.min(total - 1, index))
@@ -94,7 +95,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
   }
 
   const resolvedImages = React.useMemo(
-    () => images.map(img => (typeof img === 'string' ? { uri: img } : img)) as ImageSourcePropType[],
+    () => images.map(img => (isString(img) ? { uri: img } : img)) as ImageSourcePropType[],
     [images]
   )
 

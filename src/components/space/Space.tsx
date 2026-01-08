@@ -4,7 +4,7 @@ import { Platform, Pressable, Text, View } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
 import { resolveGapInput, useSpaceTokens } from './tokens'
-import { isText } from '../../utils/validate'
+import { isBoolean, isFiniteNumber, isFunction, isText } from '../../utils/validate'
 
 const alignMap = {
   start: 'flex-start',
@@ -28,12 +28,12 @@ const parseValue = (
   presets: Record<SpaceSizePreset, number>
 ) => {
   if (value === undefined) return presets.normal
-  if (typeof value === 'number') return value
+  if (isFiniteNumber(value)) return value
 
   const presetValue = presets[value as SpaceSizePreset]
   if (presetValue !== undefined) return presetValue
 
-  const parsed = parseFloat(value)
+  const parsed = parseFloat(value as string)
   return Number.isNaN(parsed) ? presets.normal : parsed
 }
 
@@ -108,7 +108,7 @@ export const Space: React.FC<SpaceProps> = props => {
     containerBaseStyle.marginVertical = verticalGap ? -verticalGap / 2 : undefined
   }
 
-  const childArray = React.Children.toArray(children).filter(child => child != null && typeof child !== 'boolean')
+  const childArray = React.Children.toArray(children).filter(child => child != null && !isBoolean(child))
   const content: React.ReactNode[] = []
   childArray.forEach((child, index) => {
     const key = React.isValidElement(child) && child.key !== null ? child.key : index
@@ -135,7 +135,7 @@ export const Space: React.FC<SpaceProps> = props => {
     }
   })
 
-  const interactive = typeof onClick === 'function'
+  const interactive = isFunction(onClick)
   const { interactionProps, states } = useAriaPress({
     disabled: !interactive,
     onPress: onClick,

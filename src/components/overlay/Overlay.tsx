@@ -52,6 +52,8 @@ export const Overlay: React.FC<OverlayProps> = props => {
     children,
   } = props
 
+  const hasAction = !!onPress || !!onClick
+
   const tokens = useOverlayTokens(tokensOverride)
   const resolvedDuration = Math.max(
     0,
@@ -60,14 +62,17 @@ export const Overlay: React.FC<OverlayProps> = props => {
   const { mounted, animated } = usePresenceAnimation(visible, { duration: resolvedDuration })
 
   const handlePress = React.useCallback(() => {
-    onPress?.()
+    if (onPress) {
+      onPress()
+      return
+    }
     onClick?.()
   }, [onClick, onPress])
 
   const { zIndex: stackZIndex } = useOverlayStack({
     visible: mounted,
-    onClose: handlePress,
-    closeOnBack: closeOnBackPress,
+    onClose: hasAction ? handlePress : undefined,
+    closeOnBack: hasAction ? closeOnBackPress : false,
     lockScroll,
     zIndex: parseNumberLike(zIndex),
     type: 'overlay',
@@ -102,9 +107,10 @@ export const Overlay: React.FC<OverlayProps> = props => {
             } as any,
           ]}
           pointerEvents={mounted ? 'auto' : 'none'}
-          accessibilityRole="button"
-          accessibilityLabel={accessibilityLabel}
-          accessibilityHint={onPress || onClick ? '双击即可关闭遮罩' : undefined}
+          accessible={hasAction}
+          accessibilityRole={hasAction ? 'button' : undefined}
+          accessibilityLabel={hasAction ? accessibilityLabel : undefined}
+          accessibilityHint={hasAction ? '双击即可关闭遮罩' : undefined}
           onPress={handlePress}
         />
         {children}

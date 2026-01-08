@@ -7,17 +7,16 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
 import type { SliderProps, SliderValue } from './types'
 import { useSliderTokens } from './tokens'
-import { parseNumber } from '../../utils/number'
+import { clamp, parseNumber } from '../../utils/number'
+import { isFiniteNumber, isFunction } from '../../utils/validate'
 
 type TrackLayout = { width: number; height: number; x: number; y: number }
 
 const clampValue = (value: number | undefined, min: number, max: number) => {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
+  if (!isFiniteNumber(value)) {
     return min
   }
-  if (value < min) return min
-  if (value > max) return max
-  return value
+  return clamp(value, min, max)
 }
 
 const isSameLayout = (a: TrackLayout, b: TrackLayout) =>
@@ -32,7 +31,7 @@ const normalizeValue = (
   if (range) {
     const raw = Array.isArray(value)
       ? value
-      : typeof value === 'number'
+      : isFiniteNumber(value)
         ? [min, value]
         : [min, min]
 
@@ -75,7 +74,7 @@ const createAccessibilityProps = (inputProps: any) => {
 }
 
 const defaultNumberFormatter =
-  typeof Intl !== 'undefined' && typeof Intl.NumberFormat === 'function'
+  typeof Intl !== 'undefined' && isFunction(Intl.NumberFormat)
     ? new Intl.NumberFormat()
     : ({ format: (val: number) => String(val) } as any)
 
@@ -262,7 +261,7 @@ export const Slider: React.FC<SliderProps> = props => {
 
     requestAnimationFrame(() => {
       const node = trackRef.current as any
-      if (!node || typeof node.measureInWindow !== 'function') return
+      if (!node || !isFunction(node.measureInWindow)) return
       node.measureInWindow((x: number, y: number, width: number, height: number) => {
         const measured = {
           width: Math.max(width, 1),
@@ -300,18 +299,16 @@ export const Slider: React.FC<SliderProps> = props => {
     const pageX = nativeEvent?.pageX
     const pageY = nativeEvent?.pageY
 
-    const localX =
-      typeof locationX === 'number'
-        ? locationX
-        : typeof pageX === 'number'
-          ? pageX - (trackLayout.x ?? 0)
-          : 0
-    const localY =
-      typeof locationY === 'number'
-        ? locationY
-        : typeof pageY === 'number'
-          ? pageY - (trackLayout.y ?? 0)
-          : 0
+    const localX = isFiniteNumber(locationX)
+      ? locationX
+      : isFiniteNumber(pageX)
+        ? pageX - (trackLayout.x ?? 0)
+        : 0
+    const localY = isFiniteNumber(locationY)
+      ? locationY
+      : isFiniteNumber(pageY)
+        ? pageY - (trackLayout.y ?? 0)
+        : 0
 
     const size = orientation === 'vertical' ? trackLayout.height : trackLayout.width
     const local = orientation === 'vertical' ? localY : localX
@@ -365,9 +362,9 @@ export const Slider: React.FC<SliderProps> = props => {
       ]
 
       const hasAny =
-        startKeys.some(k => typeof handlers[k] === 'function') ||
-        moveKeys.some(k => typeof handlers[k] === 'function') ||
-        endKeys.some(k => typeof handlers[k] === 'function')
+        startKeys.some(k => isFunction(handlers[k])) ||
+        moveKeys.some(k => isFunction(handlers[k])) ||
+        endKeys.some(k => isFunction(handlers[k]))
 
       if (!hasAny) return handlers
 
@@ -375,7 +372,7 @@ export const Slider: React.FC<SliderProps> = props => {
 
       for (const key of moveKeys) {
         const original = wrapped[key]
-        if (typeof original !== 'function') continue
+        if (!isFunction(original)) continue
         wrapped[key] = (...args: any[]) => {
           movePendingArgsRef.current[index] = args
           if (moveRafIdRef.current[index] != null) return
@@ -493,7 +490,7 @@ export const Slider: React.FC<SliderProps> = props => {
       ]
       : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }]
 
-  const isButtonFunction = typeof button === 'function'
+  const isButtonFunction = isFunction(button)
   const sharedThumb = isButtonFunction ? (button as any)({ value: currentValue }) : button ?? thumb
   const leftThumbContent = leftButton ?? leftThumb ?? sharedThumb
   const rightThumbContent = rightButton ?? rightThumb ?? sharedThumb

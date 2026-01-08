@@ -15,6 +15,7 @@ import {
 
 import { nativeDriverEnabled } from '../../platform'
 import { clamp } from '../../utils/number'
+import { isFunction, isNumber } from '../../utils/validate'
 
 export type SwipeCellSide = 'left' | 'right'
 export type SwipeCellPosition = SwipeCellSide | 'closed'
@@ -117,7 +118,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   }, [])
 
   const cancelDragRaf = React.useCallback(() => {
-    if (dragRafIdRef.current != null && typeof cancelAnimationFrame === 'function') {
+    if (dragRafIdRef.current != null && isFunction(cancelAnimationFrame)) {
       cancelAnimationFrame(dragRafIdRef.current)
     }
     dragRafIdRef.current = null
@@ -133,7 +134,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
 
   const scheduleDrag = React.useCallback(
     (next: number) => {
-      if (typeof requestAnimationFrame !== 'function') {
+      if (!isFunction(requestAnimationFrame)) {
         translateX.setValue(next)
         return
       }
@@ -220,7 +221,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
       if (positionRef.current !== side) return
       const x = event?.nativeEvent?.pageX
       const y = event?.nativeEvent?.pageY
-      if (typeof x !== 'number' || typeof y !== 'number') return
+      if (!isNumber(x) || !isNumber(y)) return
       actionTapStartRef.current = { side, x, y }
     },
     [closeOnActionPress]
@@ -238,7 +239,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
 
       const x = event?.nativeEvent?.pageX
       const y = event?.nativeEvent?.pageY
-      if (typeof x !== 'number' || typeof y !== 'number') return
+      if (!isNumber(x) || !isNumber(y)) return
 
       const TAP_SLOP = 8
       if (Math.abs(x - start.x) > TAP_SLOP || Math.abs(y - start.y) > TAP_SLOP) return

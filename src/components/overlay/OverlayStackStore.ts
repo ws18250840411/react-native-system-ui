@@ -1,6 +1,7 @@
 import { BackHandler, Platform } from 'react-native'
 
 import { setBodyScrollLocked } from '../../platform'
+import { isNumber } from '../../utils/validate'
 
 export interface OverlayStackEntry {
   key: number
@@ -36,7 +37,7 @@ export class OverlayStackStore {
   constructor(
     private readonly baseZIndex: number = DEFAULT_BASE_Z_INDEX,
     private readonly zIndexStep: number = DEFAULT_Z_INDEX_STEP
-  ) {}
+  ) { }
 
   subscribe = (listener: Listener) => {
     this.listeners.add(listener)
@@ -73,7 +74,7 @@ export class OverlayStackStore {
     const next: OverlayStackEntry = {
       ...prev,
       ...options,
-      zIndex: typeof options.zIndex === 'number' ? this.resolveZIndex(options.zIndex) : prev.zIndex,
+      zIndex: isNumber(options.zIndex) ? this.resolveZIndex(options.zIndex) : prev.zIndex,
     }
     this.entries = [...this.entries.slice(0, index), next, ...this.entries.slice(index + 1)]
     this.emit()
@@ -96,7 +97,7 @@ export class OverlayStackStore {
   getBaseZIndex = () => this.baseZIndex
 
   private resolveZIndex = (provided?: number) => {
-    if (typeof provided === 'number') {
+    if (isNumber(provided)) {
       if (!Number.isFinite(provided)) {
         return this.baseZIndex
       }

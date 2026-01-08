@@ -3,6 +3,7 @@ import React from 'react'
 import type { DeepPartial } from '../types'
 import { ThemeContext, type ThemeComponents } from './ThemeContext'
 import { createTokens, type ThemeTokens } from './tokens'
+import { isObject } from '../utils/validate'
 
 export interface ThemeConfig {
   foundations?: DeepPartial<ThemeTokens>
@@ -18,7 +19,7 @@ export interface ThemeProviderProps {
 
 const isThemeTokens = (value?: ThemeProviderValue): value is ThemeTokens => {
   return Boolean(
-    value && typeof value === 'object' && 'palette' in value && 'spacing' in value
+    isObject(value) && 'palette' in value && 'spacing' in value
   )
 }
 

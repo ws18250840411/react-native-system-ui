@@ -1,3 +1,5 @@
+import { isFunction } from '../utils/validate'
+
 export interface WindowRect {
   x: number
   y: number
@@ -12,7 +14,7 @@ export const measureInWindow = (node: any, callback: (rect: WindowRect | null) =
   }
 
   try {
-    if (typeof node.measureInWindow === 'function') {
+    if (isFunction(node.measureInWindow)) {
       node.measureInWindow((x: number, y: number, width: number, height: number) => {
         if (![x, y, width, height].every(Number.isFinite)) {
           callback(null)
@@ -23,7 +25,7 @@ export const measureInWindow = (node: any, callback: (rect: WindowRect | null) =
       return
     }
 
-    if (typeof node.getBoundingClientRect === 'function') {
+    if (isFunction(node.getBoundingClientRect)) {
       const rect = node.getBoundingClientRect()
       const x = rect?.left
       const y = rect?.top

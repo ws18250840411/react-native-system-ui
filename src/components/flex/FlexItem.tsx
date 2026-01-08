@@ -3,6 +3,7 @@ import { View } from 'react-native'
 
 import { FlexContext } from './FlexContext'
 import type { FlexItemProps } from './types'
+import { isNumber } from '../../utils/validate'
 
 type FlexStyle = {
   flex?: number
@@ -30,7 +31,7 @@ const parseFlex = (value?: number | string): FlexStyle | undefined => {
     return undefined
   }
 
-  if (typeof value === 'number') {
+  if (isNumber(value)) {
     return { flex: value }
   }
 
@@ -78,12 +79,12 @@ export const FlexItem: React.FC<FlexItemProps> = ({
 }) => {
   const { horizontalGap, verticalGap, columns } = React.useContext(FlexContext)
 
-  if (typeof span === 'number' && span <= 0) {
+  if (isNumber(span) && span <= 0) {
     return null
   }
 
   const widthStyle: any = {}
-  if (typeof span === 'number') {
+  if (isNumber(span)) {
     const resolvedColumns = columns > 0 ? columns : 1
     const percent = Math.min(Math.max(span, 0), resolvedColumns) / resolvedColumns
     widthStyle.width = `${percent * 100}%`

@@ -3,7 +3,7 @@ import { Pressable, Text, type TextStyle, View, Platform } from 'react-native'
 
 import Loading from '../loading'
 import { withAlpha } from '../../utils/color'
-import { isText } from '../../utils/validate'
+import { isFiniteNumber, isText } from '../../utils/validate'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
 import styles from './styles'
@@ -12,7 +12,7 @@ import type { PickerColumnProps, PickerOption, PickerProps } from './types'
 import { findEnabledIndex } from './utils'
 
 const getVisibleCount = (count: number) => {
-  const normalized = Number.isFinite(count) ? Math.max(3, Math.floor(count)) : 5
+  const normalized = isFiniteNumber(count) ? Math.max(3, Math.floor(count)) : 5
   return normalized % 2 === 0 ? normalized + 1 : normalized
 }
 

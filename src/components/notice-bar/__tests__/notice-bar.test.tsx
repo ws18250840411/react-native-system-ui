@@ -88,4 +88,35 @@ describe('NoticeBar', () => {
     expect(text).toBeDefined()
     expect(text?.props.ellipsizeMode).toBe('tail')
   })
+
+  it('auto scroll considers side padding', () => {
+    const tree = renderer.create(
+      <NoticeBar
+        text="hello"
+        leftIcon={<View />}
+        mode="link"
+        speed={0}
+      />
+    )
+
+    const contentWrapper = tree.root.findAll(
+      node => node.type === View && node.props.pointerEvents === 'none' && typeof node.props.onLayout === 'function'
+    )[0]
+    const textNode = tree.root.findAll(
+      node => node.props.children === 'hello' && typeof node.props.onLayout === 'function'
+    )[0]
+
+    act(() => {
+      contentWrapper.props.onLayout({ nativeEvent: { layout: { width: 100 } } })
+      textNode.props.onLayout({ nativeEvent: { layout: { width: 100 } } })
+    })
+
+    const scrollingNode = tree.root.findAll(
+      node =>
+        node.props.children === 'hello' &&
+        Array.isArray(node.props.style) &&
+        node.props.style.some((s: any) => s && s.transform)
+    )[0]
+    expect(scrollingNode).toBeDefined()
+  })
 })
