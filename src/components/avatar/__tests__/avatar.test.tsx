@@ -59,4 +59,37 @@ describe('Avatar', () => {
       : pressable.props.style
     expect(style.backgroundColor).toBe('#123456')
   })
+
+  it('renders fallback content when image fails to load', () => {
+    const tree = renderer.create(
+      <Avatar
+        src="https://example.com/bad.png"
+        text="Fail"
+      />
+    )
+    const rnImage = tree.root.findByType(Image)
+    act(() => {
+      rnImage.props.onError?.({})
+    })
+    // Fallback text logic: "Fail" -> "FA"
+    const text = tree.root.findByType(Text)
+    expect(text.props.children).toBe('FA')
+  })
+
+  it('passes fit prop to Image', () => {
+    const tree = renderer.create(<Avatar src="https://example.com/a.png" fit="contain" />)
+    const rnImage = tree.root.findByType(Image)
+    expect(rnImage.props.resizeMode).toBe('contain')
+  })
+
+  it('applies textStyle', () => {
+    const tree = renderer.create(<Avatar text="TS" textStyle={{ color: 'red' }} />)
+    const text = tree.root.findByType(Text)
+    // textStyle might be array or object, StyleSheet.flatten handles it if imported
+    // But we need to import StyleSheet first
+    const flattened = Array.isArray(text.props.style) 
+      ? Object.assign({}, ...text.props.style) 
+      : text.props.style
+    expect(flattened.color).toBe('red')
+  })
 })

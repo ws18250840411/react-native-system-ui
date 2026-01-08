@@ -85,7 +85,6 @@ export const Empty: React.FC<EmptyProps> = props => {
           width={resolvedImageSize}
           height={resolvedImageSize}
           fit="contain"
-          radius={0}
           showLoading={false}
           showError={false}
           containerStyle={[{ backgroundColor: 'transparent' }, imageStyle]}

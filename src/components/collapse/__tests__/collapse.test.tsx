@@ -82,12 +82,8 @@ describe('Collapse', () => {
         <Collapse.Item name="a" title="A" />
       </Collapse>
     )
-    
-    const pressable = tree.root.findByType(Pressable)
-    await act(async () => {
-      pressable.props.onPress()
-    })
-    
+
+    expect(tree.root.findAllByType(Pressable)).toHaveLength(0)
     expect(handleChange).not.toHaveBeenCalled()
   })
 
@@ -98,12 +94,8 @@ describe('Collapse', () => {
         <Collapse.Item name="a" title="A" disabled />
       </Collapse>
     )
-    
-    const pressable = tree.root.findByType(Pressable)
-    await act(async () => {
-      pressable.props.onPress()
-    })
-    
+
+    expect(tree.root.findAllByType(Pressable)).toHaveLength(0)
     expect(handleChange).not.toHaveBeenCalled()
   })
 })

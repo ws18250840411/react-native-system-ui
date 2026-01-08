@@ -11,6 +11,22 @@ const options = [
 ]
 
 describe('Selector', () => {
+  it('derives accessibility props from label/description', () => {
+    const tree = renderer.create(
+      <Selector
+        options={[
+          { label: '杭州', description: '描述', value: 'hz' },
+          { label: <View />, value: 'custom' },
+        ]}
+      />
+    )
+
+    const pressables = tree.root.findAllByType(Pressable)
+    expect(pressables[0].props.accessibilityLabel).toBe('杭州')
+    expect(pressables[0].props.accessibilityHint).toBe('描述')
+    expect(pressables[1].props.accessibilityLabel).toBe('custom')
+  })
+
   it('supports single selection toggle', () => {
     const handleChange = jest.fn()
     const tree = renderer.create(

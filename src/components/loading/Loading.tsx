@@ -99,7 +99,7 @@ export const Loading: React.FC<LoadingProps> = props => {
           ],
         }}
       >
-        {Array.from({ length: tokens.spinner.itemCount }, (_, index) => index).map(index => {
+        {Array.from({ length: tokens.spinner.itemCount }, (_, index) => {
           const angle = (index * 360) / tokens.spinner.itemCount
           const opacity = 0.2 + (index / tokens.spinner.itemCount) * 0.8
           return (

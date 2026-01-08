@@ -56,17 +56,23 @@ describe('Cell.Group', () => {
     )
 
     const views = tree.root.findAllByType(View)
-    const groupBody = views.find(view => {
+    const topBorder = views.find(view => {
       const style = getFlattenedStyle(view)
-      return style?.borderTopWidth != null && style?.borderBottomWidth != null
+      return style?.borderTopWidth != null
+    })
+    const bottomBorder = views.find(view => {
+      const style = getFlattenedStyle(view)
+      return style?.borderBottomWidth != null
     })
 
-    expect(groupBody).toBeTruthy()
-    const flattened = getFlattenedStyle(groupBody!)
-    expect(typeof flattened.borderTopWidth).toBe('number')
-    expect(typeof flattened.borderBottomWidth).toBe('number')
-    expect((flattened.borderTopWidth as number) > 0).toBe(true)
-    expect((flattened.borderBottomWidth as number) > 0).toBe(true)
+    expect(topBorder).toBeTruthy()
+    expect(bottomBorder).toBeTruthy()
+
+    const topStyle = getFlattenedStyle(topBorder!)
+    const bottomStyle = getFlattenedStyle(bottomBorder!)
+    expect(typeof topStyle.borderTopWidth).toBe('number')
+    expect(typeof bottomStyle.borderBottomWidth).toBe('number')
+    expect((topStyle.borderTopWidth as number) > 0).toBe(true)
+    expect((bottomStyle.borderBottomWidth as number) > 0).toBe(true)
   })
 })
-

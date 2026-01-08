@@ -17,12 +17,39 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
   direction = 'horizontal',
   spacing,
   style,
-  ...contextValue
+  type,
+  size,
+  plain,
+  block,
+  round,
+  square,
+  shadow,
+  disabled,
+  iconPosition,
+  hairline,
+  mode,
 }) => {
   const { foundations } = useTheme()
   const gap = spacing ?? foundations.spacing.xs
 
-  const childArray = React.Children.toArray(children)
+  const groupValue = React.useMemo(
+    () => ({
+      type,
+      size,
+      plain,
+      block,
+      round,
+      square,
+      shadow,
+      disabled,
+      iconPosition,
+      hairline,
+      mode,
+    }),
+    [type, size, plain, block, round, square, shadow, disabled, iconPosition, hairline, mode]
+  )
+
+  const childArray = React.Children.toArray(children).filter(child => child != null)
   const wrapped = childArray.map((child, index) => {
     const key = React.isValidElement(child) && child.key !== null ? child.key : index
     const isLast = index === childArray.length - 1
@@ -39,7 +66,7 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
   })
 
   return (
-    <ButtonGroupContext.Provider value={contextValue}>
+    <ButtonGroupContext.Provider value={groupValue}>
       <View
         style={[
           {

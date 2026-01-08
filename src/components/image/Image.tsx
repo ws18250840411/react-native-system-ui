@@ -150,6 +150,17 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     [onError]
   )
 
+  const handleSvgLoad = React.useCallback(() => {
+    handleLoad({ nativeEvent: {} } as any)
+  }, [handleLoad])
+
+  const handleSvgError = React.useCallback(
+    (error: Error) => {
+      handleError({ nativeEvent: { error } } as any)
+    },
+    [handleError]
+  )
+
   const mergedBorderRadiusStyle = React.useMemo(() => {
     if (round) return { borderRadius: 9999 } as Record<string, any>
     if (typeof radius === 'number') return { borderRadius: radius } as Record<string, any>
@@ -172,11 +183,15 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   const resolvedLoadingSize = typeof loadingSize === 'number' ? loadingSize : 20
   const resolvedErrorIconSize = iconSize ?? 20
   const Container = (onPress ? Pressable : View) as any
-  const imageCommonStyle = [
-    StyleSheet.absoluteFill,
-    ...(mergedBorderRadiusStyle ? [mergedBorderRadiusStyle] : []),
-    imageStyleWithoutLayout,
-  ]
+  const imageCommonStyle = React.useMemo(
+    () => [
+      StyleSheet.absoluteFill,
+      ...(mergedBorderRadiusStyle ? [mergedBorderRadiusStyle] : []),
+      imageStyleWithoutLayout,
+    ],
+    [mergedBorderRadiusStyle, imageStyleWithoutLayout]
+  )
+  const activityIndicatorStyle = React.useMemo(() => ({ transform: [{ scale: resolvedLoadingSize / 20 }] }), [resolvedLoadingSize])
 
   return (
     <Container
@@ -185,13 +200,13 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
         {
           width,
           height,
-          ...(mergedBorderRadiusStyle ? { ...mergedBorderRadiusStyle, overflow: 'hidden' as const } : {}),
           backgroundColor: tokens.colors.background,
           alignItems: 'center',
           justifyContent: 'center',
         },
         containerLayoutStyle,
         containerStyle,
+        mergedBorderRadiusStyle ? { ...mergedBorderRadiusStyle, overflow: 'hidden' as const } : {},
       ]}
     >
       {status === 'loading' && showLoading ? (
@@ -200,7 +215,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             <ActivityIndicator
               color={tokens.colors.text}
               size={typeof loadingSize === 'string' ? loadingSize : 'small'}
-              style={{ transform: [{ scale: resolvedLoadingSize / 20 }] }}
+              style={activityIndicatorStyle}
             />
           )}
           {renderOverlayLabel(loadingText, tokens.colors.text, 4)}
@@ -216,8 +231,8 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             accessibilityLabel={alt}
             {...rest}
             style={imageCommonStyle}
-            onLoad={() => handleLoad({ nativeEvent: {} } as any)}
-            onError={(error) => handleError({ nativeEvent: { error } } as any)}
+            onLoad={handleSvgLoad}
+            onError={handleSvgError}
           />
         ) : (
           <RNImage

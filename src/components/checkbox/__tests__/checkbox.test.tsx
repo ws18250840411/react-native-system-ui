@@ -18,6 +18,12 @@ describe('Checkbox', () => {
     expect(iconText).toBeTruthy()
   })
 
+  it('defaults accessibilityLabel to text content', () => {
+    const tree = renderer.create(<Checkbox>选项A</Checkbox>)
+    const pressable = tree.root.findByType(Pressable)
+    expect(pressable.props.accessibilityLabel).toBe('选项A')
+  })
+
   it('respects controlled checked prop', () => {
     const tree = renderer.create(<Checkbox checked>受控</Checkbox>)
     const iconText = tree.root.findAllByType(Text).find(node => node.props.children === '✓')

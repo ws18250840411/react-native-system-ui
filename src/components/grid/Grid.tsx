@@ -62,34 +62,58 @@ export const Grid: React.FC<GridProps> = props => {
     ...rest
   } = props
 
-  const childArray = React.Children.toArray(children).filter(
-    child => child !== null && child !== undefined,
+  const childArray = React.useMemo(
+    () =>
+      React.Children.toArray(children).filter(
+        child => child !== null && child !== undefined,
+      ),
+    [children]
   )
 
   const showBorder = border && !gutter
   const borderColor = tokens.colors.border
 
-  const containerStyle = [
-    styles.container,
-    gutter ? { paddingLeft: gutter } : null,
-    showBorder ? styles.containerWithBorder : null,
-    style,
-  ] as any
+  const containerStyle = React.useMemo(
+    () =>
+      [
+        styles.container,
+        gutter ? { paddingLeft: gutter } : null,
+        showBorder ? styles.containerWithBorder : null,
+        style,
+      ] as any,
+    [gutter, showBorder, style]
+  )
 
-  const contextValue = {
-    columnNum,
-    gutter,
-    border,
-    center,
-    square,
-    direction,
-    reverse,
-    clickable,
-    iconSize,
-    iconColor,
-    count: childArray.length,
-    tokens,
-  }
+  const contextValue = React.useMemo(
+    () => ({
+      columnNum,
+      gutter,
+      border,
+      center,
+      square,
+      direction,
+      reverse,
+      clickable,
+      iconSize,
+      iconColor,
+      count: childArray.length,
+      tokens,
+    }),
+    [
+      border,
+      center,
+      childArray.length,
+      clickable,
+      columnNum,
+      direction,
+      gutter,
+      iconColor,
+      iconSize,
+      reverse,
+      square,
+      tokens,
+    ]
+  )
 
   const renderBorder = (position: 'top' | 'bottom') => {
     if (!showBorder) return null

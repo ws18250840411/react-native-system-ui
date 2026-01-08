@@ -72,12 +72,14 @@ describe('Sidebar', () => {
     expect(onChange).toHaveBeenCalledWith(0)
     
     // Rerender with new value
-    tree.update(
-      <Sidebar value={0} onChange={onChange}>
-        <Item title="A" />
-        <Item title="B" />
-      </Sidebar>
-    )
+    act(() => {
+      tree.update(
+        <Sidebar value={0} onChange={onChange}>
+          <Item title="A" />
+          <Item title="B" />
+        </Sidebar>
+      )
+    })
     // Should update visually
   })
 })

@@ -86,16 +86,6 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       ? Math.min(avatarWidth, avatarHeight) / 2
       : Math.max(tokens.radii.squareMin, Math.min(avatarWidth, avatarHeight) / tokens.radii.squareDivisor)
 
-    const [isImageError, setIsImageError] = React.useState(false)
-
-    React.useEffect(() => {
-      setIsImageError(false)
-    }, [src])
-
-    const handleImageError = React.useCallback(() => {
-      setIsImageError(true)
-    }, [])
-
     const fallbackText = React.useMemo(() => {
       return text ? text.trim().slice(0, 2).toUpperCase() : undefined
     }, [text])
@@ -147,19 +137,29 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       textStyle,
     ])
 
-    const content = src && !isImageError
-      ? (
-        <Image
-          source={typeof src === 'string' ? { uri: src } : src}
-          style={[styles.image, { borderRadius }]}
-          fit={fit ?? 'cover'}
-          loadingText={null}
-          loadingSize={tokens.sizing.loadingSize}
-          showError={false}
-          onError={handleImageError}
-        />
-      )
-      : fallbackContent
+    const imageSource = React.useMemo(() => {
+      if (typeof src === 'string') return { uri: src }
+      return src
+    }, [src])
+
+    const imageContainerStyle = React.useMemo(() => ({ backgroundColor: 'transparent' }), [])
+
+    const imageStyle = React.useMemo(() => [styles.image, { borderRadius }], [borderRadius])
+
+    const content = src ? (
+      <Image
+        source={imageSource}
+        containerStyle={imageContainerStyle}
+        style={imageStyle}
+        fit={fit ?? 'cover'}
+        loadingText={null}
+        loadingSize={tokens.sizing.loadingSize}
+        showError
+        fallback={fallbackContent}
+      />
+    ) : (
+      fallbackContent
+    )
 
     return (
       <Pressable

@@ -71,6 +71,35 @@ describe('CountDown', () => {
     expect(text.props.children).toBe('500')
   })
 
+  it('does not reset when onChange callback changes', () => {
+    const onChangeA = jest.fn()
+    const onChangeB = jest.fn()
+    const tree = renderer.create(<CountDown time={2000} onChange={onChangeA} />)
+
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    const textBefore = tree.root.findByType(Text)
+    expect(textBefore.props.children).toBe('00:00:01')
+
+    const calledA = onChangeA.mock.calls.length
+    act(() => {
+      tree.update(<CountDown time={2000} onChange={onChangeB} />)
+    })
+    const textAfter = tree.root.findByType(Text)
+    expect(textAfter.props.children).toBe('00:00:01')
+
+    act(() => {
+      jest.advanceTimersByTime(200)
+    })
+    expect(onChangeA.mock.calls.length).toBe(calledA)
+    expect(onChangeB.mock.calls.length).toBeGreaterThan(0)
+
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+  })
+
   it('does not start when autoStart is false', () => {
     const onChange = jest.fn()
     renderer.create(

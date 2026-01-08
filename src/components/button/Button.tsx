@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 
 import { useTheme } from '../../design-system'
+import { withAlpha } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Loading from '../loading'
 import { useAriaPress } from '../../hooks'
@@ -355,7 +356,12 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     } = pressableProps
 
     const resolvedAccessibilityLabel =
-      accessibilityLabel ?? (typeof label === 'string' ? label : undefined)
+      accessibilityLabel ??
+      (typeof label === 'string'
+        ? label
+        : typeof label === 'number'
+          ? String(label)
+          : undefined)
 
     const { interactionProps, states } = useAriaPress({
       disabled: isDisabled,
@@ -390,14 +396,16 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     ]
 
     const mergedAccessibilityState = {
+      ...accessibilityState,
       disabled: isDisabled,
       busy: loading,
-      ...accessibilityState,
     }
     const defaultRippleColor =
       rippleColorProp ??
       (derivedMode === 'text' || derivedMode === 'outlined' || legacyPlain
         ? resolvedTextColor
+        : type === 'default' && !normalizedColor
+          ? withAlpha(resolvedTextColor, 0.15)
         : buttonTokens.colors.ripple)
     const resolvedAndroidRipple =
       Platform.OS === 'android'

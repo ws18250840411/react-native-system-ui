@@ -26,7 +26,6 @@ const useListTokens = createComponentTokensHook('list', createListTokens)
 
 const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const locale = useLocale()
-  const tokens = useListTokens(props.tokensOverride)
 
   const {
     onLoad,
@@ -40,8 +39,15 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     errorText,
     children,
     contentContainerStyle,
+    tokensOverride,
+    onScroll,
+    onContentSizeChange,
+    onLayout,
+    scrollEventThrottle: scrollEventThrottleProp,
     ...scrollProps
   } = props
+
+  const tokens = useListTokens(tokensOverride)
 
   const loadingText = loadingTextProp === undefined ? locale.loading : loadingTextProp
 
@@ -76,28 +82,32 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
 
   const check = () => {
     if (mergedLoading || mergedError) return
+    if (!containerHeightRef.current) return
     if (contentHeightRef.current <= containerHeightRef.current && !finished) {
       triggerLoad(false)
     }
   }
 
-  React.useImperativeHandle(ref, () => ({ check }))
+  const checkRef = React.useRef(check)
+  checkRef.current = check
+
+  React.useImperativeHandle(ref, () => ({ check }), [check])
 
   const handleScroll = (event: any) => {
-    props.onScroll?.(event)
+    onScroll?.(event)
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent
     const distance = contentSize.height - (layoutMeasurement.height + contentOffset.y)
     if (distance <= offset) triggerLoad(false)
   }
 
   const handleContentSizeChange = (width: number, height: number) => {
-    props.onContentSizeChange?.(width, height)
+    onContentSizeChange?.(width, height)
     contentHeightRef.current = height
     if (immediateCheck) check()
   }
 
   const handleLayout = (event: any) => {
-    props.onLayout?.(event)
+    onLayout?.(event)
     containerHeightRef.current = event.nativeEvent.layout.height
     if (immediateCheck) check()
   }
@@ -107,16 +117,16 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   React.useEffect(() => {
     if (!immediateCheck) return
     const timer = setTimeout(() => {
-      check()
+      checkRef.current()
     }, 0)
     return () => clearTimeout(timer)
-  }, [check, immediateCheck])
+  }, [immediateCheck])
 
   return (
     <ScrollView
       {...scrollProps}
       onScroll={handleScroll}
-      scrollEventThrottle={16}
+      scrollEventThrottle={scrollEventThrottleProp ?? 16}
       contentContainerStyle={contentContainerStyle}
       onContentSizeChange={handleContentSizeChange}
       onLayout={handleLayout}

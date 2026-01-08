@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
   type LayoutChangeEvent,
   type StyleProp,
   type TextStyle,
@@ -91,8 +90,6 @@ const createNotifyTokens = (foundations: Foundations): NotifyTokens => ({
 
 const useNotifyTokens = createComponentTokensHook('notify', createNotifyTokens)
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
-
 export const Notify: React.FC<NotifyProps> = props => {
   const {
     visible,
@@ -121,7 +118,6 @@ export const Notify: React.FC<NotifyProps> = props => {
   const resolvedBackground = background ?? variant.background
   const resolvedTextColor = color ?? variant.text
   const resolvedDuration = duration ?? tokens.defaultDuration
-  const { width: windowWidth } = useWindowDimensions()
 
   // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
   const { mounted, animated } = usePresenceAnimation(visible, {
@@ -169,15 +165,16 @@ export const Notify: React.FC<NotifyProps> = props => {
     }
   }, [onClose, resolvedDuration, visible])
 
+  const interactive = closeOnClick || typeof onClick === 'function'
   const handlePress = () => {
     onClick?.()
     if (closeOnClick) onClose?.()
   }
   const press = useAriaPress({
-    disabled: !onClick && !closeOnClick,
+    disabled: !interactive,
     onPress: handlePress,
     extraProps: {
-      accessibilityRole: closeOnClick || !!onClick ? 'button' : 'alert',
+      accessibilityRole: interactive ? 'button' : 'alert',
       accessibilityLiveRegion: 'assertive',
     },
   })
@@ -185,7 +182,8 @@ export const Notify: React.FC<NotifyProps> = props => {
   const [barHeight, setBarHeight] = React.useState(0)
   const handleLayout = (event: LayoutChangeEvent) => {
     const height = event.nativeEvent.layout.height
-    if (height && height !== barHeight) setBarHeight(height)
+    if (!height) return
+    setBarHeight(prev => (prev === height ? prev : height))
   }
 
   const translateDistance = barHeight || tokens.minHeight
@@ -209,7 +207,8 @@ export const Notify: React.FC<NotifyProps> = props => {
   return (
     <Portal>
       <View
-        pointerEvents="box-none"
+        testID="rv-notify"
+        pointerEvents={interactive ? 'box-none' : 'none'}
         style={[
           styles.portal,
           position === 'bottom' ? { bottom: 0 } : { top: 0 },
@@ -218,55 +217,59 @@ export const Notify: React.FC<NotifyProps> = props => {
             : null,
         ]}
       >
-        <AnimatedPressable
+        <Pressable
           {...press.interactionProps}
-          onLayout={handleLayout}
-          style={[
-            styles.container,
-            {
-              width: windowWidth || '100%',
-              backgroundColor: resolvedBackground,
-              opacity: animated,
-              transform: [{ translateY }],
-            },
-            style,
-          ]}
+          disabled={!interactive}
         >
-          {safeAreaInsetTop ? <SafeAreaView style={styles.safeArea} /> : null}
-          <View
+          <Animated.View
+            testID="rv-notify-bar"
+            onLayout={handleLayout}
             style={[
-              styles.content,
+              styles.container,
               {
-                paddingHorizontal: tokens.paddingHorizontal,
-                paddingVertical: tokens.paddingVertical,
-                minHeight: tokens.minHeight,
+                backgroundColor: resolvedBackground,
+                opacity: animated,
+                transform: [{ translateY }],
               },
+              style,
             ]}
           >
-            {hasMessage
-              ? typeof message === 'string' || typeof message === 'number'
-                ? (
-                  <Text
-                    style={[
-                      styles.text,
-                      {
-                        color: resolvedTextColor,
-                        fontSize: tokens.fontSize,
-                        lineHeight: tokens.lineHeight,
-                      },
-                      textStyle,
-                    ]}
-                  >
-                    {message}
-                  </Text>
-                )
-                : (
-                  message
-                )
-              : null}
-          </View>
-          {safeAreaInsetBottom ? <SafeAreaView style={styles.safeArea} /> : null}
-        </AnimatedPressable>
+            {safeAreaInsetTop ? <SafeAreaView style={styles.safeArea} /> : null}
+            <View
+              style={[
+                styles.content,
+                {
+                  paddingHorizontal: tokens.paddingHorizontal,
+                  paddingVertical: tokens.paddingVertical,
+                  minHeight: tokens.minHeight,
+                },
+              ]}
+            >
+              {hasMessage
+                ? typeof message === 'string' || typeof message === 'number'
+                  ? (
+                    <Text
+                      style={[
+                        styles.text,
+                        {
+                          color: resolvedTextColor,
+                          fontSize: tokens.fontSize,
+                          lineHeight: tokens.lineHeight,
+                        },
+                        textStyle,
+                      ]}
+                    >
+                      {message}
+                    </Text>
+                  )
+                  : (
+                    message
+                  )
+                : null}
+            </View>
+            {safeAreaInsetBottom ? <SafeAreaView style={styles.safeArea} /> : null}
+          </Animated.View>
+        </Pressable>
       </View>
     </Portal>
   )

@@ -107,7 +107,7 @@ export const Space: React.FC<SpaceProps> = props => {
     containerBaseStyle.marginVertical = verticalGap ? -verticalGap / 2 : undefined
   }
 
-  const childArray = React.Children.toArray(children).filter(child => child != null)
+  const childArray = React.Children.toArray(children).filter(child => child != null && child !== false)
   const content: React.ReactNode[] = []
   childArray.forEach((child, index) => {
     const key = React.isValidElement(child) && child.key !== null ? child.key : index

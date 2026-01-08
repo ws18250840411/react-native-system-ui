@@ -9,6 +9,8 @@ simulator:
 
 在页面顶部/底部展示通知文案，常用于全局消息提醒。
 
+> 默认情况下 Notify 不会阻止页面交互（不拦截点击/滚动）；当设置 `onClick` 或 `closeOnClick` 时才会响应点击。
+
 ## 引入
 
 ```js
@@ -82,4 +84,3 @@ notify.config({ type: 'success', message: '完成', duration: 1500 })
 | `Notify.allowMultiple(value)` | 是否允许多个 Notify 同时存在，默认单例 |
 | `Notify.setDefaultOptions(options)` | 设置全局默认配置，或针对某个 `type` 设置默认项 |
 | `Notify.resetDefaultOptions(type?)` | 重置默认配置，`type` 为空时清空所有默认项 |
-

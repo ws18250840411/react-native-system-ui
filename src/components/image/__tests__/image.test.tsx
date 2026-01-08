@@ -4,9 +4,16 @@ import { Image as RNImage, StyleSheet, Text, View } from 'react-native'
 
 import Image from '..'
 
+jest.mock('react-native-svg', () => {
+  const { View } = require('react-native')
+  return {
+    SvgUri: (props: any) => <View {...props} testID="mock-svg-uri" />,
+  }
+})
+
 beforeAll(() => {
-  ;(global as any).window = (global as any).window ?? {}
-  ;(global as any).window.Image = (global as any).window.Image ?? function () {}
+  ; (global as any).window = (global as any).window ?? {}
+    ; (global as any).window.Image = (global as any).window.Image ?? function () { }
 })
 
 describe('Image', () => {
@@ -162,5 +169,78 @@ describe('Image', () => {
       rnImage.props.onLoad?.({ nativeEvent: {} })
     })
     expect(onLoad).toHaveBeenCalled()
+  })
+
+  it('renders SvgUri for .svg source', () => {
+    const { Platform } = require('react-native')
+    const originalOS = Platform.OS
+    Object.defineProperty(Platform, 'OS', { get: () => 'ios', configurable: true })
+
+    const tree = renderer.create(<Image src="https://example.com/icon.svg" />)
+    const svgUri = tree.root.findByProps({ testID: 'mock-svg-uri' })
+    expect(svgUri.props.uri).toBe('https://example.com/icon.svg')
+
+    Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
+  })
+
+  it('hides loading when showLoading is false', () => {
+    const tree = renderer.create(<Image src="https://example.com/a.png" showLoading={false} />)
+    const overlay = tree.root.findAllByProps({ testID: 'rv-image-loading' })
+    expect(overlay.length).toBe(0)
+  })
+
+  it('hides error when showError is false', () => {
+    const tree = renderer.create(
+      <Image src="https://example.com/a.png" showError={false} />
+    )
+    const rnImage = tree.root.findByType(RNImage)
+    act(() => {
+      rnImage.props.onError?.({})
+    })
+    const overlay = tree.root.findAllByProps({ testID: 'rv-image-error' })
+    expect(overlay.length).toBe(0)
+  })
+
+  it('renders as Pressable when onPress is provided', () => {
+    const onPress = jest.fn()
+    const { Pressable } = require('react-native')
+    const tree = renderer.create(<Image src="https://example.com/a.png" onPress={onPress} />)
+    const pressable = tree.root.findByType(Pressable)
+    expect(pressable).toBeDefined()
+    pressable.props.onPress()
+    expect(onPress).toHaveBeenCalled()
+  })
+
+  it('merges padding and border styles into container', () => {
+    const tree = renderer.create(
+      <Image
+        src="https://example.com/a.png"
+        style={{ padding: 10, borderWidth: 2, borderColor: 'red' }}
+      />
+    )
+    const view = tree.root.findByType(View) // Container is View (no onPress)
+    const style = StyleSheet.flatten(view.props.style)
+    expect(style.padding).toBe(10)
+    expect(style.borderWidth).toBe(2)
+    expect(style.borderColor).toBe('red')
+
+    // Image should NOT have these styles
+    const rnImage = tree.root.findByType(RNImage)
+    const imageStyle = StyleSheet.flatten(rnImage.props.style)
+    expect(imageStyle.padding).toBeUndefined()
+    expect(imageStyle.borderWidth).toBeUndefined()
+  })
+
+  it('prioritizes style over containerStyle for borderRadius', () => {
+    const tree = renderer.create(
+      <Image
+        src="https://example.com/a.png"
+        containerStyle={{ borderRadius: 10 }}
+        style={{ borderRadius: 20 }}
+      />
+    )
+    const view = tree.root.findByType(View)
+    const style = StyleSheet.flatten(view.props.style)
+    expect(style.borderRadius).toBe(20)
   })
 })

@@ -30,7 +30,14 @@ if (typeof crypto.hash !== 'function') {
 }
 
 const originalSetTimeout = globalThis.setTimeout
-if (typeof originalSetTimeout === 'function') {
+const isJest =
+  Array.isArray(process.argv) &&
+  process.argv.some(
+    arg =>
+      typeof arg === 'string' &&
+      (arg.includes('/jest/bin/jest.js') || arg.includes('\\jest\\bin\\jest.js'))
+  )
+if (typeof originalSetTimeout === 'function' && !isJest) {
   globalThis.setTimeout = (callback, delay, ...args) => {
     const timer = originalSetTimeout(callback, delay, ...args)
     if (timer && typeof timer.unref === 'function') {
@@ -41,7 +48,7 @@ if (typeof originalSetTimeout === 'function') {
 }
 
 const originalSetInterval = globalThis.setInterval
-if (typeof originalSetInterval === 'function') {
+if (typeof originalSetInterval === 'function' && !isJest) {
   globalThis.setInterval = (callback, delay, ...args) => {
     const timer = originalSetInterval(callback, delay, ...args)
     if (timer && typeof timer.unref === 'function') {

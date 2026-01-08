@@ -31,12 +31,13 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
   const tokens = useWaterMarkTokens(tokensOverride)
   const window = useWindowDimensions()
   const [layoutSize, setLayoutSize] = React.useState({ width: 0, height: 0 })
+  const lastLayoutRef = React.useRef({ width: 0, height: 0 })
   const size = fullPage ? window : layoutSize
 
-  const resolvedGapX = gapX ?? tokens.gapX
-  const resolvedGapY = gapY ?? tokens.gapY
+  const resolvedGapX = Math.max(0, gapX ?? tokens.gapX)
+  const resolvedGapY = Math.max(0, gapY ?? tokens.gapY)
   const resolvedRotate = rotate ?? tokens.rotate
-  const resolvedOpacity = opacity ?? tokens.opacity
+  const resolvedOpacity = Math.max(0, Math.min(1, opacity ?? tokens.opacity))
 
   const fontSizeFromFont =
     typeof font?.size === 'number'
@@ -48,10 +49,11 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     (Number.isFinite(fontSizeFromFont ?? Number.NaN) ? fontSizeFromFont : undefined) ??
     fontSize ??
     tokens.fontSize
+  const normalizedFontSize = Math.max(0, resolvedFontSize)
   const resolvedColor = font?.color ?? color ?? tokens.color
 
-  const markWidth = image?.width ?? width ?? DEFAULT_MARK_WIDTH
-  const markHeight = image?.height ?? height ?? DEFAULT_MARK_HEIGHT
+  const markWidth = Math.max(1, image?.width ?? width ?? DEFAULT_MARK_WIDTH)
+  const markHeight = Math.max(1, image?.height ?? height ?? DEFAULT_MARK_HEIGHT)
   const cellWidth = Math.max(1, markWidth + resolvedGapX)
   const cellHeight = Math.max(1, markHeight + resolvedGapY)
 
@@ -61,6 +63,8 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
   const handleLayout = (event: any) => {
     if (fullPage) return
     const { width, height } = event.nativeEvent.layout
+    if (lastLayoutRef.current.width === width && lastLayoutRef.current.height === height) return
+    lastLayoutRef.current = { width, height }
     setLayoutSize({ width, height })
     onLayoutCalculated?.({ width, height })
   }
@@ -124,7 +128,7 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
                       allowFontScaling={false}
                       style={[
                         {
-                          fontSize: resolvedFontSize,
+                          fontSize: normalizedFontSize,
                           color: resolvedColor,
                           opacity: resolvedOpacity,
                           fontFamily: font?.family,

@@ -234,19 +234,22 @@ describe('Button', () => {
   })
 
   it('catches errors in custom icon render function', () => {
-    // @ts-ignore
-    global.__DEV__ = true
+    const previousDev = (global as any).__DEV__
+    ;(global as any).__DEV__ = true
     const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
     const ThrowingIcon = () => {
       throw new Error('Icon render failed')
     }
     
-    renderWithProvider(<Button text="Error Icon" icon={ThrowingIcon} />)
-    
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[Button] Failed to render icon:',
-      expect.any(Error)
-    )
-    consoleSpy.mockRestore()
+    try {
+      renderWithProvider(<Button text="Error Icon" icon={ThrowingIcon} />)
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[Button] Failed to render icon:',
+        expect.any(Error)
+      )
+    } finally {
+      consoleSpy.mockRestore()
+      ;(global as any).__DEV__ = previousDev
+    }
   })
 })

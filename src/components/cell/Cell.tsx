@@ -150,38 +150,42 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       style,
     ]
 
-    const flattened = StyleSheet.flatten(containerStyles) as any
-    const paddingHorizontal =
-      typeof flattened?.paddingHorizontal === 'number'
-        ? flattened.paddingHorizontal
-        : undefined
-    const resolveInset = (primary?: DimensionValue, secondary?: DimensionValue) =>
-      typeof primary === 'number'
-        ? primary
-        : typeof secondary === 'number'
-          ? secondary
-          : typeof paddingHorizontal === 'number'
-            ? paddingHorizontal
-            : tokens.container.paddingHorizontal
-    const resolvedPadding = {
-      left: resolveInset(flattened?.paddingLeft, flattened?.paddingStart),
-      right: resolveInset(flattened?.paddingRight, flattened?.paddingEnd),
+    let hairline: React.ReactNode = null
+    if (showBorder) {
+      const flattened = StyleSheet.flatten(containerStyles) as any
+      const paddingHorizontal =
+        typeof flattened?.paddingHorizontal === 'number'
+          ? flattened.paddingHorizontal
+          : undefined
+      const resolveInset = (primary?: DimensionValue, secondary?: DimensionValue) =>
+        typeof primary === 'number'
+          ? primary
+          : typeof secondary === 'number'
+            ? secondary
+            : typeof paddingHorizontal === 'number'
+              ? paddingHorizontal
+              : tokens.container.paddingHorizontal
+      const resolvedPadding = {
+        left: resolveInset(flattened?.paddingLeft, flattened?.paddingStart),
+        right: resolveInset(flattened?.paddingRight, flattened?.paddingEnd),
+      }
+
+      hairline = (
+        <View
+          style={[
+            styles.hairline,
+            createHairlineView({
+              position: 'bottom',
+              color: tokens.border.color,
+              left: resolvedPadding.left,
+              right: resolvedPadding.right,
+              enabled: tokens.border.width > 0,
+              width: tokens.border.width,
+            }),
+          ]}
+        />
+      )
     }
-    const hairline = showBorder ? (
-      <View
-        style={[
-          styles.hairline,
-          createHairlineView({
-            position: 'bottom',
-            color: tokens.border.color,
-            left: resolvedPadding.left,
-            right: resolvedPadding.right,
-            enabled: tokens.border.width > 0,
-            width: tokens.border.width,
-          }),
-        ]}
-      />
-    ) : null
 
     const customContentStyle = [
       styles.customContent,

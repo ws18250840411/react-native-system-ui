@@ -209,7 +209,9 @@ export const Radio: React.FC<RadioProps> = props => {
     try {
       iconVisual = iconRender({ checked: Boolean(isChecked), disabled: Boolean(resolvedDisabled) }) ?? null
     } catch (error) {
-      console.warn('Radio iconRender error:', error)
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.warn('[Radio] iconRender error:', error)
+      }
       iconVisual = defaultIcon
     }
   }

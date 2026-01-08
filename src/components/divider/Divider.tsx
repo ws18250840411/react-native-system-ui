@@ -101,13 +101,16 @@ export const Divider: React.FC<DividerProps> = props => {
         >
           {hairline ? (
             <View
-              style={createHairlineView({
-                position: 'left',
-                color: resolvedColor,
-                top: 0,
-                bottom: 0,
-                left: 0,
-              })}
+              style={[
+                createHairlineView({
+                  position: 'left',
+                  color: resolvedColor,
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                }),
+                { borderStyle },
+              ]}
             />
           ) : (
             <View
@@ -134,13 +137,16 @@ export const Divider: React.FC<DividerProps> = props => {
     <View style={[styles.line, { height: hairline ? 1 : tokens.line.thickness }]}>
       {hairline ? (
         <View
-          style={createHairlineView({
-            position: 'bottom',
-            color: resolvedColor,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          })}
+          style={[
+            createHairlineView({
+              position: 'bottom',
+              color: resolvedColor,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }),
+            { borderStyle },
+          ]}
         />
       ) : (
         <View

@@ -9,6 +9,8 @@ simulator:
 
 用于在选中和未选中状态之间切换，可单独使用，也可通过 `Checkbox.Group` 组合成列表，基于 `@react-native-aria/checkbox` 提供可访问能力。
 
+> 当 `children` 为自定义节点（非纯文本）时，建议额外传入 `accessibilityLabel`（或 Web 下的 `aria-label`），以获得更好的无障碍体验。
+
 ## 引入
 
 ```js

@@ -28,6 +28,16 @@ const parseTime = (time: number): CountDownCurrentTime => {
 
 const useCountDown = (options: UseCountDownOptions) => {
   const { time, millisecond = false, onChange, onFinish } = options
+  const timeRef = React.useRef(time)
+  const millisecondRef = React.useRef(millisecond)
+  const onChangeRef = React.useRef(onChange)
+  const onFinishRef = React.useRef(onFinish)
+
+  timeRef.current = time
+  millisecondRef.current = millisecond
+  onChangeRef.current = onChange
+  onFinishRef.current = onFinish
+
   const remainRef = React.useRef(Math.max(0, time))
   const endTimeRef = React.useRef(Date.now() + remainRef.current)
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -45,13 +55,13 @@ const useCountDown = (options: UseCountDownOptions) => {
     remainRef.current = remain
     const next = parseTime(remain)
     setCurrent(next)
-    onChange?.(next)
+    onChangeRef.current?.(next)
     if (remain === 0) {
       countingRef.current = false
       clearTimer()
-      onFinish?.()
+      onFinishRef.current?.()
     }
-  }, [clearTimer, onChange, onFinish])
+  }, [clearTimer])
 
   const tick = React.useCallback(() => {
     if (!countingRef.current) return
@@ -60,21 +70,21 @@ const useCountDown = (options: UseCountDownOptions) => {
     update(remain)
     if (remain <= 0) return
 
-    const delay = millisecond
+    const delay = millisecondRef.current
       ? Math.max(1, Math.min(30, remain))
       : Math.max(1, Math.min(remain, (remain % 1000) + 1))
 
     timerRef.current = setTimeout(() => {
       tick()
     }, delay)
-  }, [clearTimer, millisecond, update])
+  }, [clearTimer, update])
 
   const start = React.useCallback(() => {
     if (countingRef.current || remainRef.current <= 0) return
     countingRef.current = true
     endTimeRef.current = Date.now() + remainRef.current
     tick()
-  }, [tick, update])
+  }, [tick])
 
   const pause = React.useCallback(() => {
     if (!countingRef.current) return
@@ -85,11 +95,11 @@ const useCountDown = (options: UseCountDownOptions) => {
 
   const reset = React.useCallback((newTime?: number) => {
     pause()
-    const next = Math.max(0, typeof newTime === 'number' ? newTime : time)
+    const next = Math.max(0, typeof newTime === 'number' ? newTime : timeRef.current)
     remainRef.current = next
     endTimeRef.current = Date.now() + next
     setCurrent(parseTime(next))
-  }, [pause, time])
+  }, [pause])
 
   React.useEffect(() => () => clearTimer(), [clearTimer])
 

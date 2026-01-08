@@ -77,11 +77,21 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
         const labelContent = option.label
         const descriptionContent = option.description
         const hasDescription = descriptionContent !== undefined && descriptionContent !== null
+        const accessibilityLabel =
+          typeof labelContent === 'string' || typeof labelContent === 'number'
+            ? String(labelContent)
+            : String(option.value)
+        const accessibilityHint =
+          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
+            ? String(descriptionContent)
+            : undefined
 
         return (
           <Pressable
             key={String(option.value)}
             accessibilityRole={multiple ? 'checkbox' : 'radio'}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
             accessibilityState={
               multiple
                 ? { checked: active, disabled: isDisabled }

@@ -101,7 +101,7 @@ export const Progress: React.FC<ProgressProps> = props => {
 
   const handleTrackLayout = (event: LayoutChangeEvent) => {
     const { width } = event.nativeEvent.layout
-    if (width !== trackWidth) setTrackWidth(width)
+    setTrackWidth(prev => (prev === width ? prev : width))
   }
 
   const pivotBaseStyle = React.useMemo(
@@ -161,7 +161,7 @@ export const Progress: React.FC<ProgressProps> = props => {
         pointerEvents="none"
         onLayout={event => {
           const nextWidth = event.nativeEvent.layout.width
-          if (nextWidth !== pivotWidth) setPivotWidth(nextWidth)
+          setPivotWidth(prev => (prev === nextWidth ? prev : nextWidth))
         }}
       >
         {renderPivotContent()}

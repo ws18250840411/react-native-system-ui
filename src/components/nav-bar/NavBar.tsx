@@ -47,13 +47,15 @@ const NavBarBase: React.FC<NavBarProps> = props => {
 
   const resolvedColor = tintColor ?? tokens.colors.text
   const sideColor = tintColor ?? tokens.colors.icon
+  const leftAccessibilityLabel = isTextLikeNode(leftText) ? String(leftText) : '返回'
+  const rightAccessibilityLabel = isTextLikeNode(rightText) ? String(rightText) : '操作'
 
   const leftPress = useAriaPress({
     disabled: !handlePressLeft,
     onPress: handlePressLeft,
     extraProps: {
       accessibilityRole: 'button',
-      accessibilityLabel: '返回',
+      accessibilityLabel: leftAccessibilityLabel,
     },
   })
 
@@ -62,7 +64,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
     onPress: handlePressRight,
     extraProps: {
       accessibilityRole: 'button',
-      accessibilityLabel: '操作',
+      accessibilityLabel: rightAccessibilityLabel,
     },
   })
 
@@ -176,7 +178,10 @@ const NavBarBase: React.FC<NavBarProps> = props => {
         },
         border ? createHairlineBorderBottom(tokens.colors.border) : null,
       ]}
-      onLayout={event => setHeight(event.nativeEvent.layout.height)}
+      onLayout={event => {
+        const nextHeight = event.nativeEvent.layout.height
+        setHeight(prev => (prev === nextHeight ? prev : nextHeight))
+      }}
     >
       {renderLeft()}
       <View style={styles.center}>{centerContent}</View>

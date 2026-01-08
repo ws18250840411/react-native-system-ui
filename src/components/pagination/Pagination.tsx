@@ -141,7 +141,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
   const descNode = mode === 'multi' ? null : pageDesc ?? `${currentPage}/${count}`
 
   return (
-    <View ref={ref} style={[styles.container, style]} {...rest}>
+    <View ref={ref} style={[styles.container, { gap: tokens.spacing.gap }, style]} {...rest}>
       {renderControl('prev')}
       {mode === 'multi' ? (
         <View style={[styles.pages, { gap: tokens.spacing.gap }]}>
@@ -166,7 +166,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   pages: {
     flexDirection: 'row',

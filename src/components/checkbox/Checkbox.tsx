@@ -38,7 +38,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   const resolvedIconRender = iconRender ?? group?.iconRender
   const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
   const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? false
-  const resolvedDisabled = disabled || group?.state.isDisabled
+  const resolvedDisabled = Boolean(disabled || group?.state.isDisabled)
 
   const rawValue = value ?? name
   const serializedValue = rawValue == null ? undefined : String(rawValue)
@@ -63,10 +63,12 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     return undefined
   }, [bindGroup, group, serializedValue, rawValue, resolvedDisabled])
 
-  const ariaLabel =
-    typeof children === 'string' || typeof children === 'number'
-      ? String(children)
-      : (props as any)['aria-label']
+  const resolvedAccessibilityLabel =
+    (props as any).accessibilityLabel ??
+    (props as any)['aria-label'] ??
+    (isTextLikeNode(children) ? String(children) : undefined) ??
+    serializedValue ??
+    'checkbox'
 
   let inputProps: any
   let isChecked: boolean
@@ -74,10 +76,11 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   if (isGroup && group) {
     const { inputProps: groupInputProps } = useCheckboxGroupItem(
       {
+        ...compatibleRest,
         value: serializedValue!,
         isDisabled: resolvedDisabled,
-        'aria-label': ariaLabel,
-        ...compatibleRest,
+        'aria-label': resolvedAccessibilityLabel,
+        accessibilityLabel: resolvedAccessibilityLabel,
       },
       group.state,
       inputRef as any
@@ -91,7 +94,8 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
         ...compatibleRest,
         isDisabled: resolvedDisabled,
         value: serializedValue,
-        'aria-label': ariaLabel,
+        'aria-label': resolvedAccessibilityLabel,
+        accessibilityLabel: resolvedAccessibilityLabel,
       },
       standaloneState,
       inputRef as any
@@ -221,7 +225,9 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
         disabled: Boolean(resolvedDisabled),
       }) ?? null
     } catch (error) {
-      console.warn('Checkbox iconRender error:', error)
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.warn('[Checkbox] iconRender error:', error)
+      }
       iconVisual = defaultIcon
     }
   }
@@ -252,6 +258,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
       {...mergedInputProps}
       ref={inputRef}
       disabled={resolvedDisabled}
+      accessibilityLabel={resolvedAccessibilityLabel}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
       style={iconWrapperStyle}
@@ -278,6 +285,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
         {...mergedInputProps}
         ref={inputRef}
         disabled={resolvedDisabled}
+        accessibilityLabel={resolvedAccessibilityLabel}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
         style={[styles.container, style]}

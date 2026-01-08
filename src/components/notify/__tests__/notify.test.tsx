@@ -121,5 +121,26 @@ describe('Notify', () => {
     const text = tree.root.findByType(Text)
     expect(text.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: 'red' })]))
   })
-})
 
+  it('does not block touches when not interactive', () => {
+    const tree = render(
+      <PortalHost>
+        <Notify visible message="hello" />
+      </PortalHost>
+    )
+
+    const wrapper = tree.root.findByProps({ testID: 'rv-notify' })
+    expect(wrapper.props.pointerEvents).toBe('none')
+  })
+
+  it('enables interaction when closeOnClick is true', () => {
+    const tree = render(
+      <PortalHost>
+        <Notify visible message="hello" closeOnClick />
+      </PortalHost>
+    )
+
+    const wrapper = tree.root.findByProps({ testID: 'rv-notify' })
+    expect(wrapper.props.pointerEvents).toBe('box-none')
+  })
+})

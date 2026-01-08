@@ -28,6 +28,18 @@ describe('Divider', () => {
     expect(style.borderStyle).toBe('dashed')
   })
 
+  it('applies dashed style in hairline mode', () => {
+    const tree = renderer.create(<Divider dashed lineColor="#123456" hairline />)
+    const lineView = tree.root.findAll(node => {
+        const style = StyleSheet.flatten(node.props.style)
+        return style?.borderBottomColor === '#123456'
+    })[0]
+
+    const style = StyleSheet.flatten(lineView.props.style)
+    expect(style.borderBottomColor).toBe('#123456')
+    expect(style.borderStyle).toBe('dashed')
+  })
+
   it('renders vertical divider respecting thickness', () => {
     const tree = renderer.create(<Divider type="vertical" hairline={false} />)
     const lineView = tree.root.findAll(node => {

@@ -2,6 +2,7 @@ import React from 'react'
 import { Text, View } from 'react-native'
 
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import { createHairlineView } from '../../utils/hairline'
 import { Cell as CellBase } from './Cell'
 import { CellGroupContext } from './CellContext'
 import type { CellGroupProps } from './types'
@@ -23,6 +24,7 @@ export const CellGroup: React.FC<CellGroupProps> = ({
   const resolvedCard = card ?? tokens.defaults.groupCard
 
   const showInset = resolvedInset || resolvedCard
+  const showOuterBorder = resolvedBorder && !showInset
   const childArray = React.Children.toArray(children)
   const isCellElement = (child: any) =>
     React.isValidElement(child) && child.type === CellBase
@@ -78,6 +80,30 @@ export const CellGroup: React.FC<CellGroupProps> = ({
             </CellGroupContext.Provider>
           )
         })}
+        {showOuterBorder ? (
+          <>
+            <View
+              style={createHairlineView({
+                position: 'top',
+                color: tokens.border.color,
+                left: 0,
+                right: 0,
+                enabled: tokens.border.width > 0,
+                width: tokens.border.width,
+              })}
+            />
+            <View
+              style={createHairlineView({
+                position: 'bottom',
+                color: tokens.border.color,
+                left: 0,
+                right: 0,
+                enabled: tokens.border.width > 0,
+                width: tokens.border.width,
+              })}
+            />
+          </>
+        ) : null}
       </View>
     </View>
   )

@@ -16,6 +16,9 @@ describe('NavBar', () => {
     const left = tree.root.findByProps({ testID: 'rv-navbar-left' })
     const right = tree.root.findByProps({ testID: 'rv-navbar-right' })
 
+    expect(left.props.accessibilityLabel).toBe('返回')
+    expect(right.props.accessibilityLabel).toBe('完成')
+
     act(() => {
       left.props.onPress?.({})
       right.props.onPress?.({})
