@@ -1,11 +1,12 @@
 import React from 'react'
 import { Text, View } from 'react-native'
-import { isRenderable, isString, isText } from '../../utils/validate'
+import { Description, Fail, Search } from 'react-native-system-icon'
 
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
+import { isRenderable, isString, isText } from '../../utils/validate'
 import Image from '../image'
-import type { EmptyImage, EmptyProps, EmptyTokens } from './types'
+import type { EmptyProps, EmptyTokens } from './types'
 
 const createEmptyTokens = (foundations: Foundations): EmptyTokens => {
   return {
@@ -18,12 +19,10 @@ const createEmptyTokens = (foundations: Foundations): EmptyTokens => {
     },
     colors: {
       description: foundations.palette.default[500],
-      iconBackground: foundations.palette.default[50],
-      iconColor: foundations.palette.default[400],
+      icon: foundations.palette.default[300],
     },
     sizes: {
       image: 160,
-      fontSize: foundations.fontSize.lg,
     },
     typography: {
       descriptionSize: foundations.fontSize.sm,
@@ -36,13 +35,16 @@ const createEmptyTokens = (foundations: Foundations): EmptyTokens => {
 
 const useEmptyTokens = createComponentTokensHook('empty', createEmptyTokens)
 
-const PRESET_IMAGES: EmptyImage[] = ['default', 'error', 'network', 'search']
-const resolvePresetImage = (value: EmptyImage) => `https://img.yzcdn.cn/vant/empty-image-${value}.png`
+const PRESET_ICONS = {
+  default: Description,
+  error: Fail,
+  network: Fail,
+  search: Search,
+}
 
 export const Empty: React.FC<EmptyProps> = props => {
   const tokens = useEmptyTokens(props.tokensOverride)
   const {
-    tokensOverride: _tokensOverride,
     image = 'default',
     imageSize,
     imageStyle,
@@ -55,7 +57,6 @@ export const Empty: React.FC<EmptyProps> = props => {
   } = props
 
   const resolvedImageSize = imageSize ?? tokens.sizes.image
-  const hasChildren = isRenderable(children)
 
   const renderImage = () => {
     if (React.isValidElement(image)) {
@@ -77,19 +78,37 @@ export const Empty: React.FC<EmptyProps> = props => {
     }
 
     if (isString(image)) {
-      const preset = PRESET_IMAGES.includes(image as EmptyImage) ? (image as EmptyImage) : 'default'
-      const resolvedSrc = /^https?:/.test(image) ? image : resolvePresetImage(preset)
+      if (/^https?:/.test(image)) {
+        return (
+          <Image
+            src={image}
+            width={resolvedImageSize}
+            height={resolvedImageSize}
+            fit="contain"
+            showLoading={false}
+            showError={false}
+            containerStyle={[{ backgroundColor: 'transparent' }, imageStyle]}
+          />
+        )
+      }
+
+      const IconComponent = PRESET_ICONS[image as keyof typeof PRESET_ICONS] || PRESET_ICONS.default
+      const iconSize = resolvedImageSize * 0.6 // Scale icon to 60% of container
 
       return (
-        <Image
-          src={resolvedSrc}
-          width={resolvedImageSize}
-          height={resolvedImageSize}
-          fit="contain"
-          showLoading={false}
-          showError={false}
-          containerStyle={[{ backgroundColor: 'transparent' }, imageStyle]}
-        />
+        <View
+          style={[
+            {
+              width: resolvedImageSize,
+              height: resolvedImageSize,
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+            imageStyle,
+          ]}
+        >
+          <IconComponent size={iconSize} color={tokens.colors.icon} />
+        </View>
       )
     }
 
@@ -143,7 +162,7 @@ export const Empty: React.FC<EmptyProps> = props => {
     >
       {renderImage()}
       {renderDescription()}
-      {hasChildren ? (
+      {isRenderable(children) ? (
         <View style={{ marginTop: tokens.spacing.footerMargin }}>
           {isText(children) ? <Text>{children}</Text> : children}
         </View>

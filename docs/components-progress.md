@@ -83,7 +83,7 @@
 | Collapse 折叠面板 | ✅ | 三审通过：折叠测量/展开动画（Web driver 策略保持）三端一致性复核通过；二次审计通过：修正外边框/内边框语义并补齐 `border/isLink/size/readOnly`、`ref.toggle`；箭头旋转与内容测量动画优化，新增“禁用状态” demo（文案统一） |
 | CountDown 倒计时 | ✅ | 三审通过：倒计时 tick/reset/onChange 语义与三端渲染一致性复核通过；二次审计通过：补齐“自定义格式/自定义样式/手动控制” demo 并统一标题；默认文字样式 tokens 化；倒计时 tick 与 reset/onChange 语义对齐，文档补齐 format/events/类型/方法说明 |
 | Divider 分割线 | ✅ | 极致精简版：仅保留水平分割线，移除 Vertical/多余嵌套/无用样式，代码行数与结构最小化；单测已覆盖所有场景 |
-| Empty 空状态 | ✅ | 三审通过：默认插画/自定义 image 节点三端一致性复核通过；二次审计通过：预置 `default/error/network/search` 使用官方插画 URL，`image` 支持图片 URL/ReactNode 且自定义图片应用 `imageSize/imageStyle`；描述支持非文本节点，demo 结构与文案统一并补齐单测 |
+| Empty 空状态 | ✅ | 极致精简版：移除硬编码 CDN 链接与冗余 Tokens，改为内置 System Icon；代码结构最小化；单测覆盖所有场景 |
 | Field 输入项 | ✅ | 三审通过：修正文档默认值与对齐类型（`labelWidth=72`、`rows=2`、`controlAlign=left|center|right`）并复核三端输入/清除逻辑；二次审计通过：onBlur 格式化、可达性 aria-describedby/invalid、样式 useMemo，清除/对齐逻辑已对齐官方 |
 | ImagePreview 图片预览 | ✅ | 三审通过：Portal 承载/关闭链路/页码指示三端一致性复核通过；二次审计通过：支持受控与静态 API（`open/clear/Host`），补齐页码/指示器/关闭控制与 `beforeClose`；暂未实现缩放/拖拽等高级手势 |
 | List 列表 | ✅ | 三审通过：加载更多/错误重试/刷新组合在三端一致性复核通过；二次审计通过：默认 `offset=300`、内部防并发与错误重试（error 状态阻止自动加载，点击 `errorText` 重试），补齐错误/下拉刷新 demo 与单测；因基于 `ScrollView`，下拉刷新建议用 `refreshControl` 组合 |

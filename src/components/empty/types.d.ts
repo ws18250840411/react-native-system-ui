@@ -14,12 +14,10 @@ export interface EmptyTokens {
   }
   colors: {
     description: string
-    iconBackground: string
-    iconColor: string
+    icon: string
   }
   sizes: {
     image: number
-    fontSize: number
   }
   typography: {
     descriptionSize: number

@@ -20,7 +20,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native'
 import { clamp } from '../../utils/number'
-import { isNumber } from '../../utils/validate'
+import { isFiniteNumber } from '../../utils/validate'
 import type { SwiperProps, SwiperInstance } from './types'
 import SwiperItem from './SwiperItem'
 import SwiperPagIndicator from './SwiperPagIndicator'
@@ -57,12 +57,19 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     slideSize = 100,
     trackOffset = 0,
     autoHeight = false,
+    stuckAtBoundary = false,
+    preventScroll = true,
     style,
     children,
     data,
     renderItem,
     testID,
   } = props
+
+  const initialSwipeValue = isFiniteNumber(initialSwipe) ? initialSwipe : 0
+  const durationMs = isFiniteNumber(duration) ? Math.max(0, duration) : 0
+  const slideSizePct = isFiniteNumber(slideSize) ? clamp(slideSize, 1, 100) : 100
+  const trackOffsetPct = isFiniteNumber(trackOffset) ? clamp(trackOffset, 0, 100) : 0
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const viewportWidth = windowWidth || FALLBACK_WIDTH
@@ -77,8 +84,8 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   const isDraggingRef = useRef(false)
   const isScrollingRef = useRef(false)
   const nativeMomentumRef = useRef(false)
-  const prevIndexRef = useRef<number>(initialSwipe)
-  const currentDisplayIndexRef = useRef<number>(initialSwipe)
+  const prevIndexRef = useRef<number>(initialSwipeValue)
+  const currentDisplayIndexRef = useRef<number>(initialSwipeValue)
   const isWeb = Platform.OS === 'web'
   const nativeQueuedScrollRef = useRef<{ index: number; animated: boolean } | null>(null)
 
@@ -103,8 +110,8 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   }, [data, validChildren])
 
   const count = itemsData.length
-  const slideRatio = slideSize / 100
-  const offsetRatio = trackOffset / 100
+  const slideRatio = slideSizePct / 100
+  const offsetRatio = trackOffsetPct / 100
 
   const shouldLoop = loop && count > 1 && slideRatio * (count - 1) >= 1
 
@@ -165,16 +172,33 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       ? { paddingTop: trackOffsetPx, paddingBottom: trackOffsetPx }
       : { paddingLeft: trackOffsetPx, paddingRight: trackOffsetPx }
 
+  const stuckAtBoundaryEnabled = !!stuckAtBoundary && !shouldLoop && count > 1 && slideRatio < 1
+  const mainAxisSize = vertical ? containerHeight : containerWidth
+  const nonLoopMinOffset = stuckAtBoundaryEnabled ? trackOffsetPx : 0
+  const nonLoopMaxOffset = stuckAtBoundaryEnabled
+    ? Math.max(nonLoopMinOffset, trackOffsetPx + count * slideSizeValue - mainAxisSize, 0)
+    : Math.max(0, (count - 1) * slideSizeValue)
+  const nonLoopSnapOffsets = useMemo(() => {
+    if (!stuckAtBoundaryEnabled || count <= 1) return null
+    const offsets = new Array<number>(count)
+    for (let i = 0; i < count; i += 1) {
+      if (i === 0) offsets[i] = nonLoopMinOffset
+      else if (i === count - 1) offsets[i] = nonLoopMaxOffset
+      else offsets[i] = slideSizeValue * i
+    }
+    return offsets
+  }, [count, nonLoopMaxOffset, nonLoopMinOffset, slideSizeValue, stuckAtBoundaryEnabled])
+
   const getInitialIndex = useCallback(() => {
-    const initial = clamp(initialSwipe, 0, count - 1)
+    const initial = clamp(initialSwipeValue, 0, count - 1)
     return shouldLoop ? initial + 1 : initial // +1 因为循环模式下第一个是复制的末尾
-  }, [initialSwipe, count, shouldLoop])
+  }, [initialSwipeValue, count, shouldLoop])
 
   const [current, setCurrent] = useState(() => getInitialIndex())
   const [indicatorIndex, setIndicatorIndex] = useState(() => getDisplayIndex(getInitialIndex()))
-  const setCurrentSafe = (next: number) => {
+  const setCurrentSafe = useCallback((next: number) => {
     setCurrent((prev) => (prev === next ? prev : next))
-  }
+  }, [])
   const [enabledState, setEnabledState] = useState(enabled)
   const autoHeightEnabled = autoHeight && !vertical
   const [autoHeightValue, setAutoHeightValue] = useState<number | undefined>(undefined)
@@ -194,10 +218,11 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     shouldLoop,
     displayCount,
     slideSizeValue,
-    maxOffsetNonLoop: Math.max(0, count - 1) * slideSizeValue,
+    nonLoopMinOffset,
+    nonLoopMaxOffset,
     maxOffsetLoop: Math.max(0, displayCount - 1) * slideSizeValue,
-    duration,
-    onChange,
+    duration: durationMs,
+    preventScroll,
   })
   panLatestRef.current = {
     enabledState,
@@ -207,10 +232,11 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
     shouldLoop,
     displayCount,
     slideSizeValue,
-    maxOffsetNonLoop: Math.max(0, count - 1) * slideSizeValue,
+    nonLoopMinOffset,
+    nonLoopMaxOffset,
     maxOffsetLoop: Math.max(0, displayCount - 1) * slideSizeValue,
-    duration,
-    onChange,
+    duration: durationMs,
+    preventScroll,
   }
 
   const webRafIdRef = useRef<number | null>(null)
@@ -248,8 +274,16 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       anim.stop()
       webSnapAnimRef.current = null
     }
-    webTranslateXAnim.stopAnimation()
-    webTranslateYAnim.stopAnimation()
+    const latest = panLatestRef.current
+    const activeAnim = latest.vertical ? webTranslateYAnim : webTranslateXAnim
+    let nextOffset = webOffsetRef.current
+    activeAnim.stopAnimation((value) => {
+      if (typeof value === 'number') {
+        nextOffset = value
+      }
+    })
+    ;(latest.vertical ? webTranslateXAnim : webTranslateYAnim).stopAnimation()
+    webOffsetRef.current = nextOffset
   }
 
   useEffect(() => {
@@ -372,7 +406,9 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
       if (isWeb) {
         stopWebSnapAnim()
-        const offset = -targetIndex * slideSizeValue
+        const offset = shouldLoop
+          ? -targetIndex * slideSizeValue
+          : -1 * (nonLoopSnapOffsets?.[targetIndex] ?? slideSizeValue * targetIndex)
         webOffsetRef.current = offset
 
         if (needsJump) {
@@ -380,14 +416,14 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
             const animValue = vertical ? webTranslateYAnim : webTranslateXAnim
             const anim = Animated.timing(animValue, {
               toValue: offset,
-              duration,
+              duration: durationMs,
               easing: Easing.out(Easing.cubic),
               useNativeDriver: false,
             })
             webSnapAnimRef.current = anim
-            anim.start((finished) => {
+            anim.start(({ finished }) => {
               webSnapAnimRef.current = null
-              if (!finished || !shouldLoop || jumpOffset === null || jumpDisplayIndex === null) return
+              if (!finished || jumpOffset === null || jumpDisplayIndex === null) return
 
               webOffsetRef.current = jumpOffset
               if (vertical) {
@@ -412,7 +448,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
           if (animated) {
             const anim = Animated.timing(animValue, {
               toValue: offset,
-              duration,
+              duration: durationMs,
               easing: Easing.out(Easing.cubic),
               useNativeDriver: false,
             })
@@ -462,7 +498,21 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         }
       }
     },
-    [count, shouldLoop, isWeb, slideSizeValue, vertical, webTranslateXAnim, getDisplayIndex, displayCount, stopWebSnapAnim, setCurrentSafe]
+    [
+      count,
+      shouldLoop,
+      isWeb,
+      slideSizeValue,
+      vertical,
+      webTranslateXAnim,
+      webTranslateYAnim,
+      nonLoopSnapOffsets,
+      getDisplayIndex,
+      displayCount,
+      stopWebSnapAnim,
+      setCurrentSafe,
+      durationMs,
+    ]
   )
 
   const swipeToRef = useRef(swipeTo)
@@ -630,7 +680,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       return
     }
 
-    const interval = isNumber(autoplay) ? autoplay : 5000
+    const interval = isFiniteNumber(autoplay) ? Math.max(0, autoplay) : 5000
     const tick = () => {
       if (!isDraggingRef.current && !isScrollingRef.current) {
         swipeNext()
@@ -765,22 +815,28 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
   const getItemLayout = useCallback(
     (_: any, index: number) => {
-      const offset = slideSizeValue * index
+      const offset =
+        !shouldLoop && nonLoopSnapOffsets
+          ? nonLoopSnapOffsets[index] ?? slideSizeValue * index
+          : slideSizeValue * index
       return {
         length: slideSizeValue,
         offset,
         index,
       }
     },
-    [slideSizeValue]
+    [nonLoopSnapOffsets, shouldLoop, slideSizeValue]
   )
 
   const snapToOffsets = useMemo(() => {
-    if (slideSize === 100 && trackOffset === 0) {
+    if (slideSizePct === 100 && trackOffsetPct === 0) {
       return undefined // 使用 snapToInterval
     }
+    if (!shouldLoop && nonLoopSnapOffsets) {
+      return nonLoopSnapOffsets
+    }
     return displayData.map((_, index) => slideSizeValue * index)
-  }, [displayData, slideSizeValue, slideSize, trackOffset])
+  }, [displayData, nonLoopSnapOffsets, shouldLoop, slideSizePct, slideSizeValue, trackOffsetPct])
 
   const panResponder = useMemo(() => {
     if (!isWeb) return null
@@ -802,19 +858,25 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         const latest = panLatestRef.current
         if (!latest.enabledState || !latest.touchable || latest.count <= 1) return
         panLockRef.current = true
-        startOffsetRef.current = webOffsetRef.current
         isDraggingRef.current = true
         cancelWebRaf()
         stopWebSnapAnim()
+        startOffsetRef.current = webOffsetRef.current
       },
-      onPanResponderMove: (_, gestureState) => {
+      onPanResponderMove: (event, gestureState) => {
         if (!panLockRef.current) return
         const latest = panLatestRef.current
+        if (latest.preventScroll) {
+          ;(event as any).preventDefault?.()
+          ;(event as any).stopPropagation?.()
+          ;(event.nativeEvent as any)?.preventDefault?.()
+          ;(event.nativeEvent as any)?.stopPropagation?.()
+        }
         const delta = latest.vertical ? gestureState.dy : gestureState.dx
         const nextRaw = startOffsetRef.current + delta
         const next = latest.shouldLoop
           ? clamp(nextRaw, -latest.maxOffsetLoop, 0)
-          : clamp(nextRaw, -latest.maxOffsetNonLoop, 0)
+          : clamp(nextRaw, -latest.nonLoopMaxOffset, -latest.nonLoopMinOffset)
         webOffsetRef.current = next
         scheduleWebTranslate(next)
       },
@@ -833,7 +895,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
 
         targetOffset = latest.shouldLoop
           ? clamp(targetOffset, -latest.maxOffsetLoop, 0)
-          : clamp(targetOffset, -latest.maxOffsetNonLoop, 0)
+          : clamp(targetOffset, -latest.nonLoopMaxOffset, -latest.nonLoopMinOffset)
 
         const targetIndex = Math.round(-targetOffset / latest.slideSizeValue)
         const displayIndex = latest.shouldLoop
@@ -863,26 +925,30 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   useEffect(() => {
     if (!isWeb) return
     const initialIndex = getInitialIndex()
-    const initialOffset = -initialIndex * slideSizeValue
+    const initialOffset = shouldLoop
+      ? -initialIndex * slideSizeValue
+      : -1 * (nonLoopSnapOffsets?.[initialIndex] ?? slideSizeValue * initialIndex)
     webOffsetRef.current = initialOffset
     if (vertical) {
       webTranslateYAnim.setValue(initialOffset)
     } else {
       webTranslateXAnim.setValue(initialOffset)
     }
-  }, [isWeb, getInitialIndex, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
+  }, [isWeb, getInitialIndex, nonLoopSnapOffsets, shouldLoop, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
 
   useEffect(() => {
     if (!isWeb) return
     if (count === 0) return
-    const offset = -currentRef.current * slideSizeValue
+    const offset = shouldLoop
+      ? -currentRef.current * slideSizeValue
+      : -1 * (nonLoopSnapOffsets?.[currentRef.current] ?? slideSizeValue * currentRef.current)
     webOffsetRef.current = offset
     if (vertical) {
       webTranslateYAnim.setValue(offset)
     } else {
       webTranslateXAnim.setValue(offset)
     }
-  }, [isWeb, count, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
+  }, [isWeb, count, nonLoopSnapOffsets, shouldLoop, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
 
   if (count === 0) {
     return null
@@ -947,13 +1013,14 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         maxToRenderPerBatch={3}
         windowSize={5}
         updateCellsBatchingPeriod={16}
-        snapToInterval={slideSize === 100 && trackOffset === 0 ? slideSizeValue : undefined}
+        snapToInterval={slideSizePct === 100 && trackOffsetPct === 0 ? slideSizeValue : undefined}
         snapToOffsets={snapToOffsets}
         snapToAlignment="start"
         decelerationRate="fast"
         scrollEnabled={enabledState && touchable && count > 1}
         pagingEnabled={false}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled={preventScroll === false}
+        directionalLockEnabled={preventScroll !== false}
         collapsable={false}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
