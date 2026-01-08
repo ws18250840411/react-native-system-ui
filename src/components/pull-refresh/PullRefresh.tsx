@@ -37,16 +37,27 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const { colors, sizing } = tokens
 
   const translateY = React.useRef(new Animated.Value(0)).current
-  const headHeightNumber = parseNumberLike(headHeight, sizing.headHeight) ?? sizing.headHeight
-  const pullDistanceNumber = parseNumberLike(pullDistance, headHeightNumber) ?? headHeightNumber
-  const successDurationMs = parseNumberLike(successDuration, DEFAULT_SUCCESS_DURATION) ?? DEFAULT_SUCCESS_DURATION
-  const animationDurationMs = parseNumberLike(animationDuration, 300) ?? 300
+  const headHeightNumber = Math.max(
+    0,
+    parseNumberLike(headHeight, sizing.headHeight) ?? sizing.headHeight
+  )
+  const pullDistanceNumber = Math.max(
+    0,
+    parseNumberLike(pullDistance, headHeightNumber) ?? headHeightNumber
+  )
+  const successDurationMs = Math.max(
+    0,
+    parseNumberLike(successDuration, DEFAULT_SUCCESS_DURATION) ?? DEFAULT_SUCCESS_DURATION
+  )
+  const animationDurationMs = Math.max(
+    0,
+    parseNumberLike(animationDuration, 300) ?? 300
+  )
 
   const isControlled = !isUndefined(refreshing)
   const [innerRefreshing, setInnerRefreshing] = React.useState(!!defaultRefreshing)
   const mergedRefreshing = isControlled ? !!refreshing : innerRefreshing
 
-  const distanceRef = React.useRef(0)
   const scrollTopRef = React.useRef(0)
   const draggingRef = React.useRef(false)
   const [distance, setDistance] = React.useState(0)
@@ -58,7 +69,6 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
 
   const setDistanceValue = React.useCallback((nextDistance: number, animate = false) => {
     const normalized = Math.max(0, Math.round(nextDistance))
-    distanceRef.current = normalized
 
     if (isWeb) {
       translateY.stopAnimation()
@@ -111,12 +121,13 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
 
   const handleRefresh = React.useCallback(async () => {
     if (disabled || mergedRefreshing) return
+    if (!isFunction(onRefresh)) return
     setShowSuccess(false)
     refreshTriggeredRef.current = true
     refreshSucceededRef.current = false
     setRefreshing(true)
     try {
-      await onRefresh?.()
+      await onRefresh()
       refreshSucceededRef.current = true
     } finally {
       setRefreshing(false)
@@ -147,6 +158,12 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
 
     setDistanceValue(0, true)
   }, [disabled, headHeightNumber, isWeb, mergedRefreshing, setDistanceValue, showSuccess])
+
+  React.useEffect(() => {
+    if (isWeb) return
+    if (!mergedRefreshing && !showSuccess) return
+    setDistanceValue(0)
+  }, [isWeb, mergedRefreshing, setDistanceValue, showSuccess])
 
   React.useEffect(() => {
     if (!refreshTriggeredRef.current) return
@@ -180,6 +197,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const opacity = React.useRef(new Animated.Value(status === 'normal' ? 0 : 1)).current
   React.useEffect(() => {
     const toValue = status === 'normal' ? 0 : 1
+    opacity.stopAnimation()
     if (animationDurationMs <= 0) {
       opacity.setValue(toValue)
       return
@@ -217,11 +235,15 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       return
     }
     if (disabled) return
+    if (!isFunction(onRefresh) || mergedRefreshing || showSuccess) {
+      setDistanceValue(0)
+      return
+    }
     setDistanceValue(offset < 0 ? -offset : 0)
   }
 
   const panResponder = React.useMemo(() => {
-    if (!isWeb) return null
+    if (!isWeb || !isFunction(onRefresh)) return null
     const easeDistance = (raw: number) => {
       const pullDistance = pullDistanceNumber
       let eased = raw
@@ -304,7 +326,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         <RefreshControl
           refreshing={!!mergedRefreshing}
           onRefresh={handleRefresh}
-          enabled={!disabled}
+          enabled={!disabled && isFunction(onRefresh)}
         />
       }
       onScroll={handleScroll}

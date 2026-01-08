@@ -5,6 +5,16 @@ import { ScrollView, Text } from 'react-native'
 import PullRefresh from '..'
 
 describe('PullRefresh', () => {
+  it('disables refresh control when onRefresh is not provided', () => {
+    const tree = renderer.create(
+      <PullRefresh>
+        <Text>Content</Text>
+      </PullRefresh>
+    )
+    const scroll = tree.root.findByType(ScrollView)
+    expect(scroll.props.refreshControl.props.enabled).toBe(false)
+  })
+
   it('calls onRefresh when triggered', async () => {
     const onRefresh = jest.fn()
     const tree = renderer.create(

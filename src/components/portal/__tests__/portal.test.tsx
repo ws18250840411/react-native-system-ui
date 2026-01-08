@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Text } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 
 import Portal from '../Portal'
 import { PortalContext } from '../PortalContext'
@@ -72,6 +72,37 @@ describe('Portal', () => {
       tree.update(<PortalHost />)
     })
     expect(getTexts().length).toBe(0)
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('propagates zIndex from portal content to wrapper', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <Portal>
+          <View testID="z-10" style={{ zIndex: 10 }}>
+            <Text>10</Text>
+          </View>
+        </Portal>
+        <Portal>
+          <View testID="z-30">
+            <View style={{ zIndex: 30 }}>
+              <Text>30</Text>
+            </View>
+          </View>
+        </Portal>
+      </PortalHost>
+    )
+
+    const item10 = tree.root.findByProps({ testID: 'z-10' })
+    const item10WrapperStyle = StyleSheet.flatten(item10.parent?.props.style)
+    expect(item10WrapperStyle?.zIndex).toBe(10)
+
+    const item30 = tree.root.findByProps({ testID: 'z-30' })
+    const item30WrapperStyle = StyleSheet.flatten(item30.parent?.props.style)
+    expect(item30WrapperStyle?.zIndex).toBe(30)
 
     act(() => {
       tree.unmount()

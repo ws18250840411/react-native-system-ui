@@ -96,8 +96,8 @@
 | password-input | 持续优化 ✅ | 输入+自绘 UI+动画/光标等 |
 | picker | 持续优化 ✅ | WheelPicker 三端实现差异明显 |
 | popup | 持续优化 ✅ | 弹层基础设施（承载/动画/安全区） |
-| portal | 持续优化 | 基础设施（承载与 Host 机制） |
-| pull-refresh | 持续优化 | 手势/滚动冲突，差异点多 |
+| portal | 持续优化 ✅ | 基础设施（承载与 Host 机制） |
+| pull-refresh | 持续优化 ✅ | 手势/滚动冲突，差异点多 |
 | search | 持续优化 | 基于 Field/Input，输入链路复杂 |
 | share-sheet | 持续优化 | 弹层+复杂内容布局 |
 | skeleton | 持续优化 | 动画/driver/性能敏感 |
