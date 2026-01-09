@@ -16,34 +16,43 @@ import { isFiniteNumber, isFunction } from '../../utils/validate'
 const DEFAULT_CHARACTER = '★'
 
 export const Rate: React.FC<RateProps> = props => {
-  const tokens = useRateTokens(props.tokensOverride)
   const {
-    count: countProp = tokens.defaults.count,
-    allowHalf = tokens.defaults.allowHalf,
-    size: sizeProp = tokens.defaults.size,
-    gutter: gutterProp = tokens.defaults.gutter,
+    tokensOverride,
+    count: countProp,
+    allowHalf: allowHalfProp,
+    size: sizeProp,
+    gutter: gutterProp,
     color,
     voidColor,
     disabledColor,
     icon,
     voidIcon,
     character,
-    disabled = false,
-    readOnly = false,
-    touchable = tokens.defaults.touchable,
+    disabled: disabledProp,
+    readOnly: readOnlyProp,
+    touchable: touchableProp,
     onIconPress,
     iconStyle,
     itemStyle,
     style,
     ...rest
   } = props
+  const tokens = useRateTokens(tokensOverride)
+  const count = countProp ?? tokens.defaults.count
+  const allowHalf = allowHalfProp ?? tokens.defaults.allowHalf
+  const size = sizeProp ?? tokens.defaults.size
+  const gutter = gutterProp ?? tokens.defaults.gutter
+  const disabled = disabledProp ?? tokens.defaults.disabled
+  const readOnly = readOnlyProp ?? tokens.defaults.readOnly
+  const touchable = touchableProp ?? tokens.defaults.touchable
 
   const resolvedCount = Math.max(
     1,
-    Math.floor(parseNumber(countProp, tokens.defaults.count)),
+    Math.floor(parseNumber(count, tokens.defaults.count)),
   )
-  const resolvedSize = Math.max(0, parseNumber(sizeProp, tokens.defaults.size))
-  const resolvedGutter = Math.max(0, parseNumber(gutterProp, tokens.defaults.gutter))
+  const resolvedSize = Math.max(0, parseNumber(size, tokens.defaults.size))
+  const resolvedGutter = Math.max(0, parseNumber(gutter, tokens.defaults.gutter))
+
 
   const [rawValue, triggerChange] = useControllableValue<number>(props, {
     defaultValue: 0,
@@ -205,7 +214,7 @@ export const Rate: React.FC<RateProps> = props => {
     return (
       <Text
         style={[
-          styles.character,
+          tokens.layout.character,
           iconStyle,
           {
             color: tintColor,
@@ -233,13 +242,13 @@ export const Rate: React.FC<RateProps> = props => {
     const marginRight = index === resolvedCount - 1 ? 0 : resolvedGutter
 
     const iconContent = (
-      <View style={[styles.iconBox, { width: resolvedSize, height: resolvedSize }]}>
+      <View style={[tokens.layout.iconBox, { width: resolvedSize, height: resolvedSize }]}>
         {fill < 1 ? renderIconNode(resolvedVoidIcon, voidTint) : null}
         {fill > 0 ? (
           <View
             pointerEvents="none"
             style={[
-              styles.fill,
+              tokens.layout.fill,
               {
                 width: fill * resolvedSize,
                 height: resolvedSize,
@@ -257,7 +266,7 @@ export const Rate: React.FC<RateProps> = props => {
         <View
           key={score}
           style={[
-            styles.item,
+            tokens.layout.item,
             { marginRight },
             itemStyle,
           ]}
@@ -276,10 +285,10 @@ export const Rate: React.FC<RateProps> = props => {
         accessibilityLabel={`评${allowHalf ? '半' : ''}分 ${score}`}
         onPress={event => evaluatePress(index, event)}
         style={({ pressed }) => [
-          styles.item,
+          tokens.layout.item,
           { marginRight },
           itemStyle,
-          pressed ? { opacity: 0.75 } : null,
+          pressed ? { opacity: tokens.states.pressedOpacity } : null,
         ]}
       >
         {iconContent}
@@ -290,7 +299,7 @@ export const Rate: React.FC<RateProps> = props => {
   return (
     <View
       {...rest}
-      style={[styles.container, style]}
+      style={[tokens.layout.container, style]}
       accessibilityRole="radiogroup"
       onStartShouldSetResponderCapture={onStartShouldSetResponderCapture}
       onMoveShouldSetResponderCapture={onMoveShouldSetResponderCapture}
@@ -302,34 +311,6 @@ export const Rate: React.FC<RateProps> = props => {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  item: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconBox: {
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexShrink: 0,
-  },
-  character: {
-    includeFontPadding: false,
-  },
-  fill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-})
 
 Rate.displayName = 'Rate'
 

@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Pressable,
-  StyleSheet,
   Text,
   View,
   type GestureResponderEvent,
@@ -23,7 +22,7 @@ export const Radio: React.FC<RadioProps> = props => {
     iconSize,
     checkedColor,
     iconRender,
-    shape = 'round',
+    shape: shapeProp,
     labelPosition,
     labelDisabled,
     disabled,
@@ -44,8 +43,11 @@ export const Radio: React.FC<RadioProps> = props => {
   const resolvedIconSize = parseNumber(iconSize ?? group?.iconSize, tokens.defaults.iconSize)
   const resolvedCheckedColor = checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
   const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
-  const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? false
+  const resolvedLabelDisabled =
+    labelDisabled ?? group?.labelDisabled ?? tokens.defaults.labelDisabled
   const resolvedDisabled = Boolean(disabled || group?.state.isDisabled)
+
+  const shape = shapeProp ?? tokens.defaults.shape
 
   const standaloneKey = serializedValue ?? 'standalone'
 
@@ -142,13 +144,13 @@ export const Radio: React.FC<RadioProps> = props => {
   const labelColor = resolvedDisabled ? tokens.colors.labelDisabled : tokens.colors.label
 
   const borderRadius =
-    shape === 'square' ? tokens.shape.squareRadius : tokens.shape.roundRadius
+    shape === 'square' ? tokens.radii.square : tokens.radii.round
 
   const labelNode =
     children === null || children === undefined || children === false ? null : (
       <View
         key="radio-label"
-        style={[styles.labelWrapper, spacingStyle]}
+        style={[tokens.layout.labelWrapper, spacingStyle]}
         pointerEvents="none"
         accessible={false}
       >
@@ -156,7 +158,7 @@ export const Radio: React.FC<RadioProps> = props => {
           <Text
             accessible={false}
             style={[
-              styles.label,
+              tokens.layout.label,
               {
                 color: labelColor,
                 fontSize: tokens.typography.fontSize,
@@ -180,11 +182,12 @@ export const Radio: React.FC<RadioProps> = props => {
   const defaultIcon = (
     <View
       style={[
-        styles.icon,
+        tokens.layout.icon,
         {
           width: resolvedIconSize,
           height: resolvedIconSize,
           borderRadius,
+          borderWidth: tokens.borders.width,
           borderColor,
           backgroundColor,
         },
@@ -193,8 +196,8 @@ export const Radio: React.FC<RadioProps> = props => {
       {isChecked ? (
         <View
           style={{
-            width: resolvedIconSize * tokens.icon.dotScale,
-            height: resolvedIconSize * tokens.icon.dotScale,
+            width: resolvedIconSize * tokens.sizing.dotScale,
+            height: resolvedIconSize * tokens.sizing.dotScale,
             borderRadius,
             backgroundColor: resolvedCheckedColor,
           }}
@@ -215,7 +218,7 @@ export const Radio: React.FC<RadioProps> = props => {
   }
 
   const iconNode = interactive ? (
-    <View key="radio-icon" style={styles.iconWrapper}>
+    <View key="radio-icon" style={tokens.layout.iconWrapper}>
       {iconVisual}
     </View>
   ) : (
@@ -227,7 +230,7 @@ export const Radio: React.FC<RadioProps> = props => {
       disabled={resolvedDisabled}
       accessibilityRole="radio"
       accessibilityState={{ selected: isChecked, disabled: resolvedDisabled }}
-      style={styles.iconWrapper}
+      style={tokens.layout.iconWrapper}
     >
       {iconVisual}
     </Pressable>
@@ -246,34 +249,12 @@ export const Radio: React.FC<RadioProps> = props => {
         disabled={resolvedDisabled}
         accessibilityRole="radio"
         accessibilityState={{ selected: isChecked, disabled: resolvedDisabled }}
-        style={[styles.container, style]}
+        style={[tokens.layout.container, style]}
       >
         {nodes.filter(Boolean)}
       </Pressable>
     )
   }
 
-  return <View style={[styles.container, style]}>{nodes.filter(Boolean)}</View>
+  return <View style={[tokens.layout.container, style]}>{nodes.filter(Boolean)}</View>
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconWrapper: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  labelWrapper: {
-    flexShrink: 1,
-  },
-  icon: {
-    borderWidth: StyleSheet.hairlineWidth,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  label: {
-    includeFontPadding: false,
-  },
-})

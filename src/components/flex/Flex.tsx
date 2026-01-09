@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View } from 'react-native'
+import { View } from 'react-native'
 
 import { FlexContext } from './FlexContext'
 import { useFlexTokens } from './tokens'
@@ -21,53 +21,42 @@ const justifyMap = {
   between: 'space-between',
 } as const
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-})
+export const Flex: React.FC<FlexProps> = props => {
+  const {
+    tokensOverride,
+    children,
+    direction: directionProp,
+    wrap: wrapProp,
+    gutter: gutterProp,
+    align: alignProp,
+    justify: justifyProp,
+    style,
+    columns: columnsProp,
+  } = props
 
-export const Flex: React.FC<FlexProps> = ({
-  children,
-  direction,
-  wrap,
-  gutter,
-  align,
-  justify,
-  style,
-  columns,
-  tokensOverride,
-}) => {
   const tokens = useFlexTokens(tokensOverride)
-  const resolvedDirection = direction ?? tokens.defaults.direction
-  const resolvedWrap = wrap ?? tokens.defaults.wrap
-  const resolvedAlign = align ?? tokens.defaults.align
-  const resolvedJustify = justify ?? tokens.defaults.justify
-  const resolvedColumns = Math.max(1, columns ?? tokens.defaults.columns)
-  const gutterInput = gutter ?? tokens.defaults.gutter
+  const direction = directionProp ?? tokens.defaults.direction
+  const wrap = wrapProp ?? tokens.defaults.wrap
+  const gutter = gutterProp ?? tokens.defaults.gutter
+  const align = alignProp ?? tokens.defaults.align
+  const justify = justifyProp ?? tokens.defaults.justify
+  const columns = columnsProp ?? tokens.defaults.columns
 
-  let horizontalGap = 0
-  let verticalGap = 0
-  if (Array.isArray(gutterInput)) {
-    horizontalGap = gutterInput[0] ?? 0
-    verticalGap = gutterInput[1] ?? 0
-  } else {
-    horizontalGap = gutterInput
-  }
-  horizontalGap = Math.max(0, horizontalGap)
-  verticalGap = Math.max(0, verticalGap)
+  const resolvedColumns = Math.max(1, columns)
+  const [hRaw, vRaw] = Array.isArray(gutter) ? gutter : [gutter, 0]
+  const horizontalGap = Math.max(0, hRaw ?? 0)
+  const verticalGap = Math.max(0, vRaw ?? 0)
 
   return (
     <FlexContext.Provider value={{ horizontalGap, verticalGap, columns: resolvedColumns }}>
       <View
         style={[
-          styles.container,
+          tokens.layout.container,
           {
-            flexDirection: resolvedDirection,
-            flexWrap: resolvedWrap,
-            alignItems: alignMap[resolvedAlign],
-            justifyContent: justifyMap[resolvedJustify],
+            flexDirection: direction,
+            flexWrap: wrap,
+            alignItems: alignMap[align],
+            justifyContent: justifyMap[justify],
             marginHorizontal: horizontalGap ? -horizontalGap / 2 : undefined,
             marginVertical: verticalGap ? -verticalGap / 2 : undefined,
           },

@@ -1,16 +1,13 @@
 import React from 'react'
-import { Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import { Image, Text, View, useWindowDimensions } from 'react-native'
 
 import type { WaterMarkProps } from './types'
 import { isFiniteNumber, isString } from '../../utils/validate'
 import { useWaterMarkTokens } from './tokens'
 
-const DEFAULT_MARK_WIDTH = 120
-const DEFAULT_MARK_HEIGHT = 64
-
 const WaterMark: React.FC<WaterMarkProps> = props => {
   const {
-    content = 'WaterMark',
+    content: contentProp,
     width,
     height,
     gapX,
@@ -21,8 +18,8 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     fontSize,
     color,
     opacity,
-    zIndex = 2000,
-    fullPage = true,
+    zIndex: zIndexProp,
+    fullPage: fullPageProp,
     tokensOverride,
     style,
     onLayoutCalculated,
@@ -30,15 +27,18 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     ...rest
   } = props
   const tokens = useWaterMarkTokens(tokensOverride)
+  const content = contentProp ?? tokens.defaults.content
+  const zIndex = zIndexProp ?? tokens.defaults.zIndex
+  const fullPage = fullPageProp ?? tokens.defaults.fullPage
   const window = useWindowDimensions()
   const [layoutSize, setLayoutSize] = React.useState({ width: 0, height: 0 })
   const lastLayoutRef = React.useRef({ width: 0, height: 0 })
   const size = fullPage ? window : layoutSize
 
-  const resolvedGapX = Math.max(0, gapX ?? tokens.gapX)
-  const resolvedGapY = Math.max(0, gapY ?? tokens.gapY)
-  const resolvedRotate = rotate ?? tokens.rotate
-  const resolvedOpacity = Math.max(0, Math.min(1, opacity ?? tokens.opacity))
+  const resolvedGapX = Math.max(0, gapX ?? tokens.defaults.gapX)
+  const resolvedGapY = Math.max(0, gapY ?? tokens.defaults.gapY)
+  const resolvedRotate = rotate ?? tokens.defaults.rotate
+  const resolvedOpacity = Math.max(0, Math.min(1, opacity ?? tokens.defaults.opacity))
 
   const fontSizeFromFont =
     isFiniteNumber(font?.size)
@@ -49,12 +49,12 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
   const resolvedFontSize =
     (Number.isFinite(fontSizeFromFont ?? Number.NaN) ? fontSizeFromFont : undefined) ??
     fontSize ??
-    tokens.fontSize
+    tokens.defaults.fontSize
   const normalizedFontSize = Math.max(0, resolvedFontSize)
-  const resolvedColor = font?.color ?? color ?? tokens.color
+  const resolvedColor = font?.color ?? color ?? tokens.colors.mark
 
-  const markWidth = Math.max(1, image?.width ?? width ?? DEFAULT_MARK_WIDTH)
-  const markHeight = Math.max(1, image?.height ?? height ?? DEFAULT_MARK_HEIGHT)
+  const markWidth = Math.max(1, image?.width ?? width ?? tokens.defaults.width)
+  const markHeight = Math.max(1, image?.height ?? height ?? tokens.defaults.height)
   const cellWidth = Math.max(1, markWidth + resolvedGapX)
   const cellHeight = Math.max(1, markHeight + resolvedGapY)
 
@@ -79,40 +79,33 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     <View
       pointerEvents="none"
       style={[
-        fullPage ? StyleSheet.absoluteFill : null,
+        fullPage ? tokens.layout.absoluteFill : null,
         { zIndex },
         style,
       ]}
       onLayout={handleLayout}
       {...rest}
     >
-      <View style={styles.wrapper}>
+      <View style={tokens.layout.wrapper}>
         {Array.from({ length: rows }).map((_, rowIndex) => (
           <View
             key={`row-${rowIndex}`}
-            style={{
-              flexDirection: 'row',
-              paddingLeft: rowIndex % 2 === 0 ? 0 : cellWidth / 2,
-            }}
+            style={[tokens.layout.row, { paddingLeft: rowIndex % 2 === 0 ? 0 : cellWidth / 2 }]}
           >
             {Array.from({ length: cols }).map((_, colIndex) => (
               <View
                 key={`col-${rowIndex}-${colIndex}`}
-                style={{
-                  width: cellWidth,
-                  height: cellHeight,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                style={[tokens.layout.cell, { width: cellWidth, height: cellHeight }]}
               >
                 <View
-                  style={{
-                    width: markWidth,
-                    height: markHeight,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transform: [{ rotate: `${resolvedRotate}deg` }],
-                  }}
+                  style={[
+                    tokens.layout.mark,
+                    {
+                      width: markWidth,
+                      height: markHeight,
+                      transform: [{ rotate: `${resolvedRotate}deg` }],
+                    },
+                  ]}
                 >
                   {image ? (
                     <Image
@@ -150,10 +143,6 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  wrapper: { flex: 1 },
-})
 
 WaterMark.displayName = 'WaterMark'
 

@@ -10,11 +10,16 @@ const createSpaceTokens = (foundations: Foundations): SpaceTokens => {
       wrap: false,
       gapPreset: 'normal',
     },
-    presets: {
-      mini: spacing.xxs ?? spacing.xs ?? 4,
-      small: spacing.xs,
-      normal: spacing.sm,
-      large: spacing.md,
+    layout: {
+      container: {},
+    },
+    sizing: {
+      presets: {
+        mini: spacing.xxs ?? spacing.xs ?? 4,
+        small: spacing.xs,
+        normal: spacing.sm,
+        large: spacing.md,
+      },
     },
   }
 }

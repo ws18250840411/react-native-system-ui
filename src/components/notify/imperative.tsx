@@ -2,7 +2,8 @@ import React from 'react'
 
 import Portal from '../portal/Portal'
 import { isFunction, isString, isText } from '../../utils/validate'
-import Notify, { type NotifyProps, type NotifyType } from './Notify'
+import Notify from './Notify'
+import type { NotifyProps, NotifyType } from './types'
 
 export type NotifyShowOptions = Omit<NotifyProps, 'visible'> & { message?: React.ReactNode }
 export type NotifyInput = NotifyShowOptions | React.ReactNode

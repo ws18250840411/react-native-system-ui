@@ -3,107 +3,32 @@ import {
   Animated,
   Pressable,
   SafeAreaView,
-  StyleSheet,
   Text,
   View,
   type LayoutChangeEvent,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
 } from 'react-native'
 
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
 import { isFunction, isText } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
+import type { NotifyProps, NotifyPosition } from './types'
+import { useNotifyTokens } from './tokens'
 
-export type NotifyType = 'primary' | 'success' | 'danger' | 'warning'
-export type NotifyPosition = 'top' | 'bottom'
-
-export interface NotifyProps {
-  visible: boolean
-  message?: React.ReactNode
-  type?: NotifyType
-  duration?: number
-  position?: NotifyPosition
-  color?: string
-  background?: string
-  safeAreaInsetTop?: boolean
-  safeAreaInsetBottom?: boolean
-  zIndex?: number
-  closeOnClick?: boolean
-  style?: StyleProp<ViewStyle>
-  textStyle?: StyleProp<TextStyle>
-  tokensOverride?: DeepPartial<NotifyTokens>
-  onClick?: () => void
-  onClose?: () => void
-  onOpen?: () => void
-  onOpened?: () => void
-  onClosed?: () => void
-}
-
-export interface NotifyTokens {
-  colors: {
-    variants: Record<NotifyType, { background: string; text: string }>
-  }
-  fontSize: number
-  lineHeight: number
-  paddingVertical: number
-  paddingHorizontal: number
-  minHeight: number
-  animationDuration: number
-  defaultDuration: number
-}
-
-const createNotifyTokens = (foundations: Foundations): NotifyTokens => ({
-  colors: {
-    variants: {
-      primary: {
-        background: foundations.palette.primary[500],
-        text: foundations.palette.primary.foreground ?? '#ffffff',
-      },
-      success: {
-        background: foundations.palette.success[500],
-        text: foundations.palette.success.foreground ?? '#ffffff',
-      },
-      danger: {
-        background: foundations.palette.danger[500],
-        text: foundations.palette.danger.foreground ?? '#ffffff',
-      },
-      warning: {
-        background: foundations.palette.warning[500],
-        text: foundations.palette.warning.foreground ?? '#261400',
-      },
-    },
-  },
-  fontSize: foundations.fontSize.sm,
-  lineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
-  paddingVertical: foundations.spacing.sm,
-  paddingHorizontal: foundations.spacing.md,
-  minHeight: 40,
-  animationDuration: 180,
-  defaultDuration: 3000,
-})
-
-const useNotifyTokens = createComponentTokensHook('notify', createNotifyTokens)
+export type { NotifyProps, NotifyPosition, NotifyType, NotifyTokens } from './types'
 
 export const Notify: React.FC<NotifyProps> = props => {
   const {
     visible,
     message,
-    type = 'primary',
-    duration,
-    position = 'top',
+    type: typeProp,
+    duration: durationProp,
+    position: positionProp,
     color,
     background,
-    safeAreaInsetTop = position === 'top',
-    safeAreaInsetBottom = position === 'bottom',
     zIndex,
-    closeOnClick = false,
+    closeOnClick: closeOnClickProp,
     style,
     textStyle,
     tokensOverride,
@@ -115,14 +40,24 @@ export const Notify: React.FC<NotifyProps> = props => {
   } = props
 
   const tokens = useNotifyTokens(tokensOverride)
+  const type = typeProp ?? tokens.defaults.type
+  const position: NotifyPosition = positionProp ?? tokens.defaults.position
+  const closeOnClick = closeOnClickProp ?? tokens.defaults.closeOnClick
+  const safeAreaInsetTop =
+    props.safeAreaInsetTop ??
+    (position === 'top' ? tokens.defaults.safeAreaInsetTop : false)
+  const safeAreaInsetBottom =
+    props.safeAreaInsetBottom ??
+    (position === 'bottom' ? tokens.defaults.safeAreaInsetBottom : false)
+
   const variant = tokens.colors.variants[type]
   const resolvedBackground = background ?? variant.background
   const resolvedTextColor = color ?? variant.text
-  const resolvedDuration = duration ?? tokens.defaultDuration
+  const resolvedDuration = durationProp ?? tokens.defaults.duration
 
   // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
   const { mounted, animated } = usePresenceAnimation(visible, {
-    duration: tokens.animationDuration,
+    duration: tokens.defaults.animationDuration,
     appear: true,
   })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'notify', zIndex })
@@ -136,7 +71,7 @@ export const Notify: React.FC<NotifyProps> = props => {
       closingRef.current = false
       if (!prevVisibleRef.current) {
         onOpen?.()
-        if (onOpened) openedTimer = setTimeout(onOpened, tokens.animationDuration)
+        if (onOpened) openedTimer = setTimeout(onOpened, tokens.defaults.animationDuration)
       }
     } else if (prevVisibleRef.current) {
       closingRef.current = true
@@ -145,7 +80,7 @@ export const Notify: React.FC<NotifyProps> = props => {
     return () => {
       if (openedTimer) clearTimeout(openedTimer)
     }
-  }, [onOpen, onOpened, tokens.animationDuration, visible])
+  }, [onOpen, onOpened, tokens.defaults.animationDuration, visible])
 
   React.useEffect(() => {
     if (!mounted && closingRef.current) {
@@ -187,7 +122,7 @@ export const Notify: React.FC<NotifyProps> = props => {
     setBarHeight(prev => (prev === height ? prev : height))
   }
 
-  const translateDistance = barHeight || tokens.minHeight
+  const translateDistance = barHeight || tokens.sizing.minHeight
   const translateY =
     position === 'bottom'
       ? animated.interpolate({
@@ -211,7 +146,7 @@ export const Notify: React.FC<NotifyProps> = props => {
         testID="rv-notify"
         pointerEvents={interactive ? 'box-none' : 'none'}
         style={[
-          styles.portal,
+          tokens.layout.portal,
           position === 'bottom' ? { bottom: 0 } : { top: 0 },
           resolvedZIndex !== undefined && resolvedZIndex !== null
             ? { zIndex: resolvedZIndex }
@@ -226,7 +161,7 @@ export const Notify: React.FC<NotifyProps> = props => {
             testID="rv-notify-bar"
             onLayout={handleLayout}
             style={[
-              styles.container,
+              tokens.layout.container,
               {
                 backgroundColor: resolvedBackground,
                 opacity: animated,
@@ -235,14 +170,14 @@ export const Notify: React.FC<NotifyProps> = props => {
               style,
             ]}
           >
-            {safeAreaInsetTop ? <SafeAreaView style={styles.safeArea} /> : null}
+            {safeAreaInsetTop ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
             <View
               style={[
-                styles.content,
+                tokens.layout.content,
                 {
-                  paddingHorizontal: tokens.paddingHorizontal,
-                  paddingVertical: tokens.paddingVertical,
-                  minHeight: tokens.minHeight,
+                  paddingHorizontal: tokens.spacing.paddingHorizontal,
+                  paddingVertical: tokens.spacing.paddingVertical,
+                  minHeight: tokens.sizing.minHeight,
                 },
               ]}
             >
@@ -251,11 +186,11 @@ export const Notify: React.FC<NotifyProps> = props => {
                   ? (
                     <Text
                       style={[
-                        styles.text,
+                        tokens.layout.text,
                         {
                           color: resolvedTextColor,
-                          fontSize: tokens.fontSize,
-                          lineHeight: tokens.lineHeight,
+                          fontSize: tokens.typography.fontSize,
+                          lineHeight: tokens.typography.lineHeight,
                         },
                         textStyle,
                       ]}
@@ -268,34 +203,13 @@ export const Notify: React.FC<NotifyProps> = props => {
                   )
                 : null}
             </View>
-            {safeAreaInsetBottom ? <SafeAreaView style={styles.safeArea} /> : null}
+            {safeAreaInsetBottom ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
           </Animated.View>
         </Pressable>
       </View>
     </Portal>
   )
 }
-
-const styles = StyleSheet.create({
-  portal: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-  },
-  container: {
-    width: '100%',
-  },
-  safeArea: {
-    width: '100%',
-  },
-  content: {
-    width: '100%',
-    justifyContent: 'center',
-  },
-  text: {
-    textAlign: 'center',
-  },
-})
 
 Notify.displayName = 'Notify'
 

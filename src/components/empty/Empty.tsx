@@ -2,38 +2,10 @@ import React from 'react'
 import { Text, View } from 'react-native'
 import { Description, Fail, Search } from 'react-native-system-icon'
 
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
 import { isRenderable, isString, isText } from '../../utils/validate'
 import Image from '../image'
-import type { EmptyProps, EmptyTokens } from './types'
-
-const createEmptyTokens = (foundations: Foundations): EmptyTokens => {
-  return {
-    spacing: {
-      paddingVertical: foundations.spacing.xl,
-      paddingHorizontal: 0,
-      descriptionMargin: foundations.spacing.lg,
-      descriptionPaddingHorizontal: 60,
-      footerMargin: 24,
-    },
-    colors: {
-      description: foundations.palette.default[500],
-      icon: foundations.palette.default[300],
-    },
-    sizes: {
-      image: 160,
-    },
-    typography: {
-      descriptionSize: foundations.fontSize.sm,
-      descriptionLineHeight: 20,
-      descriptionFontFamily: foundations.typography.fontFamily,
-      descriptionFontWeight: foundations.typography.weight.regular,
-    },
-  }
-}
-
-const useEmptyTokens = createComponentTokensHook('empty', createEmptyTokens)
+import { useEmptyTokens } from './tokens'
+import type { EmptyProps } from './types'
 
 const PRESET_ICONS = {
   default: Description,
@@ -43,32 +15,31 @@ const PRESET_ICONS = {
 }
 
 export const Empty: React.FC<EmptyProps> = props => {
-  const tokens = useEmptyTokens(props.tokensOverride)
   const {
-    image = 'default',
+    tokensOverride,
+    image: imageProp,
     imageSize,
     imageStyle,
     description,
     descriptionStyle,
     children,
     style,
-    gap = tokens.spacing.descriptionMargin,
+    gap: gapProp,
     ...rest
   } = props
 
-  const resolvedImageSize = imageSize ?? tokens.sizes.image
+  const tokens = useEmptyTokens(tokensOverride)
+  const image = imageProp ?? tokens.defaults.image
+  const gap = gapProp ?? tokens.defaults.gap
+  const resolvedImageSize = imageSize ?? tokens.sizing.image
 
   const renderImage = () => {
     if (React.isValidElement(image)) {
       return (
         <View
           style={[
-            {
-              width: resolvedImageSize,
-              height: resolvedImageSize,
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
+            tokens.layout.imageWrapper,
+            { width: resolvedImageSize, height: resolvedImageSize },
             imageStyle,
           ]}
         >
@@ -84,26 +55,22 @@ export const Empty: React.FC<EmptyProps> = props => {
             src={image}
             width={resolvedImageSize}
             height={resolvedImageSize}
-            fit="contain"
-            showLoading={false}
-            showError={false}
-            containerStyle={[{ backgroundColor: 'transparent' }, imageStyle]}
-          />
-        )
-      }
+              fit="contain"
+              showLoading={false}
+              showError={false}
+              containerStyle={[{ backgroundColor: tokens.colors.imageBackground }, imageStyle]}
+            />
+          )
+        }
 
       const IconComponent = PRESET_ICONS[image as keyof typeof PRESET_ICONS] || PRESET_ICONS.default
-      const iconSize = resolvedImageSize * 0.6 // Scale icon to 60% of container
+      const iconSize = resolvedImageSize * tokens.sizing.iconScale
 
       return (
         <View
           style={[
-            {
-              width: resolvedImageSize,
-              height: resolvedImageSize,
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
+            tokens.layout.imageWrapper,
+            { width: resolvedImageSize, height: resolvedImageSize },
             imageStyle,
           ]}
         >
@@ -122,10 +89,10 @@ export const Empty: React.FC<EmptyProps> = props => {
       return (
         <Text
           style={[
+            tokens.layout.descriptionText,
             {
               marginTop: gap,
               paddingHorizontal: tokens.spacing.descriptionPaddingHorizontal,
-              textAlign: 'center',
               color: tokens.colors.description,
               fontSize: tokens.typography.descriptionSize,
               lineHeight: tokens.typography.descriptionLineHeight,
@@ -150,12 +117,7 @@ export const Empty: React.FC<EmptyProps> = props => {
   return (
     <View
       style={[
-        {
-          width: '100%',
-          paddingVertical: tokens.spacing.paddingVertical,
-          paddingHorizontal: tokens.spacing.paddingHorizontal,
-          alignItems: 'center',
-        },
+        tokens.layout.container,
         style,
       ]}
       {...rest}
@@ -163,7 +125,7 @@ export const Empty: React.FC<EmptyProps> = props => {
       {renderImage()}
       {renderDescription()}
       {isRenderable(children) ? (
-        <View style={{ marginTop: tokens.spacing.footerMargin }}>
+        <View style={{ marginTop: tokens.spacing.footerMarginTop }}>
           {isText(children) ? <Text>{children}</Text> : children}
         </View>
       ) : null}

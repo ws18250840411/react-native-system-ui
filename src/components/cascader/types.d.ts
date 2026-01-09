@@ -1,9 +1,93 @@
 import type React from "react"
-import type { ViewProps } from "react-native"
+import type { TextStyle, ViewProps, ViewStyle } from "react-native"
 
 import type { DeepPartial } from "../../types"
 import type { PopupPlacement, PopupProps } from "../popup"
-import type { CascaderTokens } from "./tokens"
+
+export interface CascaderTokens {
+  defaults: {
+    placeholder: string
+    title: React.ReactNode
+    showHeader: boolean
+    closeable: boolean
+    swipeable: boolean
+    poppable: boolean
+    closeOnClickOverlay: boolean
+    closeOnFinish: boolean
+    popupPlacement: PopupPlacement
+    popupRound: boolean
+    loadingText: string
+  }
+  layout: {
+    container: ViewStyle
+    header: ViewStyle
+    title: TextStyle
+    closeButton: ViewStyle
+    tabsWrapper: ViewStyle
+    tabsContentStatic: ViewStyle
+    tabsItem: ViewStyle
+    tabsTitle: TextStyle
+    tabTitleNode: TextStyle
+    optionList: ViewStyle
+    option: ViewStyle
+    optionContent: ViewStyle
+    optionText: TextStyle
+    optionTextActive: TextStyle
+    optionLabel: ViewStyle
+    empty: TextStyle
+    inlineChildren: ViewStyle
+  }
+  colors: {
+    background: string
+    headerText: string
+    placeholder: string
+    closeIcon: string
+    closeIconActive: string
+    tabText: string
+    tabActive: string
+    tabInactive: string
+    optionText: string
+    optionDisabled: string
+    optionActiveBackground: string
+    optionActiveText: string
+    divider: string
+  }
+  typography: {
+    titleSize: number
+    titleWeight: TextStyle['fontWeight']
+    tabsTitleSize: number
+    tabTitlePlaceholderWeight: TextStyle['fontWeight']
+    tabTitleWeight: TextStyle['fontWeight']
+    optionTextSize: number
+    optionTextActiveWeight: TextStyle['fontWeight']
+    emptyTextSize: number
+  }
+  sizing: {
+    indicatorHeight: number
+    optionMinHeight: number
+    optionListHeight: number
+    headerHeight: number
+    closeIconSize: number
+    selectedIconSize: number
+  }
+  radii: {
+    option: number
+  }
+  spacing: {
+    headerPaddingHorizontal: number
+    tabNavPaddingHorizontal: number
+    tabNavPaddingVertical: number
+    tabPaddingHorizontal: number
+    optionPaddingVertical: number
+    optionPaddingHorizontal: number
+    optionListPaddingTop: number
+    optionListPaddingBottom: number
+    closeButtonMarginLeft: number
+    optionLabelMarginRight: number
+    emptyPaddingVertical: number
+    inlineChildrenPaddingVertical: number
+  }
+}
 
 export type CascaderValue = string | number
 

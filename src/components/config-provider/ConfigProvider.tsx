@@ -11,14 +11,11 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({
   children,
 }) => {
   const parentLocale = React.useContext(LocaleContext)
-  const localeValue = locale ?? parentLocale
 
   return (
     <ThemeProvider value={theme}>
-      <LocaleContext.Provider value={localeValue}>
-        <PortalHost>
-          {children}
-        </PortalHost>
+      <LocaleContext.Provider value={locale ?? parentLocale}>
+        <PortalHost>{children}</PortalHost>
       </LocaleContext.Provider>
     </ThemeProvider>
   )

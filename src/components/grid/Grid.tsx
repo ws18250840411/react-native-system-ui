@@ -1,84 +1,63 @@
 import React from 'react'
-import { StyleSheet, View } from 'react-native'
+import { View } from 'react-native'
 
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
 import { createHairlineView } from '../../utils/hairline'
-import { GridContext, type GridTokens } from './GridContext'
+import { GridContext } from './GridContext'
+import { useGridTokens } from './tokens'
 import type { GridProps } from './types'
 
-const createGridTokens = (foundations: Foundations): GridTokens => {
-  const { palette, spacing, fontSize, typography } = foundations
-
-  return {
-    defaults: {
-      columnNum: 4,
-      gutter: 0,
-      border: true,
-      center: true,
-      square: false,
-      direction: 'vertical',
-      reverse: false,
-      clickable: false,
-      iconSize: 28,
-    },
-    colors: {
-      border: palette.default[200],
-      text: palette.default[600],
-      background: '#ffffff',
-      active: palette.default[100],
-    },
-    spacing: {
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.md,
-    },
-    typography: {
-      fontSize: fontSize.sm,
-      fontFamily: typography.fontFamily,
-      lineHeight: Math.round(fontSize.sm * typography.lineHeightMultiplier),
-      fontWeight: String(typography.weight.regular),
-    },
-  }
-}
-
-const useGridTokens = createComponentTokensHook('grid', createGridTokens)
-
 export const Grid: React.FC<GridProps> = props => {
-  const tokens = useGridTokens(props.tokensOverride)
   const {
-    tokensOverride: _tokensOverride,
+    tokensOverride,
     children,
-    columnNum = tokens.defaults.columnNum,
-    gutter = tokens.defaults.gutter,
-    border = tokens.defaults.border,
-    center = tokens.defaults.center,
-    square = tokens.defaults.square,
-    direction = tokens.defaults.direction,
-    reverse = tokens.defaults.reverse,
-    clickable = tokens.defaults.clickable,
-    iconSize = tokens.defaults.iconSize,
+    columnNum: columnNumProp,
+    gutter: gutterProp,
+    border: borderProp,
+    center: centerProp,
+    square: squareProp,
+    direction: directionProp,
+    reverse: reverseProp,
+    clickable: clickableProp,
+    iconSize: iconSizeProp,
     iconColor,
     style,
     ...rest
   } = props
 
-  const childArray = React.useMemo(
-    () => React.Children.toArray(children).filter((child): child is React.ReactElement<any> => React.isValidElement(child)),
-    [children]
-  )
+  const tokens = useGridTokens(tokensOverride)
 
+  const columnNum = columnNumProp ?? tokens.defaults.columnNum
+  const gutter = gutterProp ?? tokens.defaults.gutter
+  const border = borderProp ?? tokens.defaults.border
+  const center = centerProp ?? tokens.defaults.center
+  const square = squareProp ?? tokens.defaults.square
+  const direction = directionProp ?? tokens.defaults.direction
+  const reverse = reverseProp ?? tokens.defaults.reverse
+  const clickable = clickableProp ?? tokens.defaults.clickable
+  const iconSize = iconSizeProp ?? tokens.defaults.iconSize
+
+  const childArray = React.Children.toArray(children).filter((child): child is React.ReactElement<any> => React.isValidElement(child))
   const showBorder = border && !gutter
   const borderColor = tokens.colors.border
 
-  const containerStyle = React.useMemo(
-    () =>
-      [
-        styles.container,
-        gutter ? { paddingLeft: gutter } : null,
-        showBorder ? styles.containerWithBorder : null,
-        style,
-      ] as any,
-    [gutter, showBorder, style]
+  const topBorder = showBorder && (
+    <View
+      style={[
+        tokens.layout.border,
+        tokens.layout.borderTop,
+        createHairlineView({ position: 'top', color: borderColor, left: 0, right: 0, top: 0 }),
+      ]}
+    />
+  )
+
+  const bottomBorder = showBorder && (
+    <View
+      style={[
+        tokens.layout.border,
+        tokens.layout.borderBottom,
+        createHairlineView({ position: 'bottom', color: borderColor, left: 0, right: 0, bottom: 0 }),
+      ]}
+    />
   )
 
   const contextValue = React.useMemo(
@@ -112,62 +91,27 @@ export const Grid: React.FC<GridProps> = props => {
     ]
   )
 
-  const renderBorder = (position: 'top' | 'bottom') => {
-    if (!showBorder) return null
-    return (
-      <View
-        style={[
-          styles.border,
-          position === 'top' ? styles.borderTop : styles.borderBottom,
-          createHairlineView({
-            position,
-            color: borderColor,
-            left: 0,
-            right: 0,
-            [position]: 0,
-          }),
-        ]}
-      />
-    )
-  }
-
   return (
     <GridContext.Provider value={contextValue}>
-      <View style={containerStyle} {...rest}>
-        {renderBorder('top')}
+      <View
+        style={[
+          tokens.layout.container,
+          gutter ? { paddingLeft: gutter } : null,
+          style,
+        ]}
+        {...rest}
+      >
+        {topBorder}
         {childArray.map((child, index) =>
           React.cloneElement(child, {
             gridItemIndex: index,
             key: child.key ?? index,
           })
         )}
-        {renderBorder('bottom')}
+        {bottomBorder}
       </View>
     </GridContext.Provider>
   )
 }
 
 Grid.displayName = 'Grid'
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  containerWithBorder: {
-    position: 'relative',
-  },
-  border: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
-    zIndex: 1,
-  },
-  borderTop: {
-    top: 0,
-  },
-  borderBottom: {
-    bottom: 0,
-  },
-})

@@ -5,6 +5,7 @@ import type {
   TextStyle,
   ViewStyle,
   ImageSourcePropType,
+  ImageStyle,
 } from 'react-native'
 
 import type { DeepPartial } from '../../types'
@@ -17,10 +18,11 @@ export interface AvatarTokens {
     size: AvatarSize
     shape: AvatarShape
   }
-  sizing: {
-    sizes: Record<AvatarSize, number>
-    iconMaxSize: number
-    loadingSize: number
+  layout: {
+    container: ViewStyle
+    text: TextStyle
+    image: ImageStyle
+    iconWrapper: ViewStyle
   }
   colors: {
     background: string
@@ -29,6 +31,11 @@ export interface AvatarTokens {
   typography: {
     fontWeight: TextStyle['fontWeight']
     fallbackTextScale: number
+  }
+  sizing: {
+    sizes: Record<AvatarSize, number>
+    iconMaxSize: number
+    loadingSize: number
   }
   radii: {
     squareMin: number

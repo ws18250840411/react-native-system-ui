@@ -1,63 +1,12 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import Image from '../image'
 import { isNumber } from '../../utils/validate'
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { AvatarProps, AvatarTokens } from './types'
+import { useAvatarTokens } from './tokens'
+import type { AvatarProps } from './types'
 
 const transparentContainerStyle = { backgroundColor: 'transparent' } as const
-
-const createAvatarTokens = (foundations: Foundations): AvatarTokens => ({
-  defaults: {
-    size: 'medium',
-    shape: 'circle',
-  },
-  sizing: {
-    sizes: {
-      small: 24,
-      medium: 32,
-      large: 40,
-    },
-    iconMaxSize: 32,
-    loadingSize: 12,
-  },
-  colors: {
-    background: foundations.palette.default[100],
-    text: foundations.palette.default[800],
-  },
-  typography: {
-    fontWeight: '600',
-    fallbackTextScale: 0.5,
-  },
-  radii: {
-    squareMin: 6,
-    squareDivisor: 6,
-  },
-})
-
-const useAvatarTokens = createComponentTokensHook('avatar', createAvatarTokens)
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  text: {
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  iconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-})
 
 export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, AvatarProps>(
   (props, ref) => {
@@ -94,7 +43,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
     const fallbackContent = icon ? (
       <View
         style={[
-          styles.iconWrapper,
+          tokens.layout.iconWrapper,
           {
             width: Math.min(avatarWidth, tokens.sizing.iconMaxSize),
             height: Math.min(avatarHeight, tokens.sizing.iconMaxSize),
@@ -107,7 +56,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
     ) : fallbackText ? (
       <Text
         style={[
-          styles.text,
+          tokens.layout.text,
           {
             color: color ?? tokens.colors.text,
             fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
@@ -126,7 +75,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
         src={src}
         source={source}
         containerStyle={transparentContainerStyle}
-        style={styles.image}
+        style={tokens.layout.image}
         fit={fit ?? 'cover'}
         loadingText={null}
         loadingSize={tokens.sizing.loadingSize}
@@ -141,7 +90,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       <Pressable
         ref={ref}
         style={[
-          styles.container,
+          tokens.layout.container,
           {
             width: avatarWidth,
             height: avatarHeight,

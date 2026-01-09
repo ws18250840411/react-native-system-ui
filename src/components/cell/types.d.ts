@@ -2,10 +2,85 @@ import type React from 'react'
 import type { PressableProps, StyleProp, TextStyle, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { CellTokens } from './tokens'
 
 export type CellArrowDirection = 'left' | 'right' | 'up' | 'down'
 export type CellSize = 'normal' | 'large'
+
+export interface CellTokens {
+  defaults: {
+    border: boolean
+    size: CellSize
+    arrowDirection: CellArrowDirection
+    activeOpacity: number
+    groupBorder: boolean
+    groupInset: boolean
+    groupCard: boolean
+  }
+  layout: {
+    container: ViewStyle
+    containerLarge: ViewStyle
+    center: ViewStyle
+    body: ViewStyle
+    titleRow: ViewStyle
+    value: TextStyle
+    valueOnly: TextStyle
+    valueContainer: ViewStyle
+    valueOnlyContainer: ViewStyle
+    valueCenter: ViewStyle
+    customContent: ViewStyle
+    iconWrapper: ViewStyle
+    rightIconWrapper: ViewStyle
+    hairline: ViewStyle
+    groupCardShadow: ViewStyle
+    arrowTransforms: Record<CellArrowDirection, ViewStyle>
+  }
+  colors: {
+    background: string
+    ripple: string
+    title: string
+    label: string
+    value: string
+    required: string
+    border: string
+    arrow: string
+    groupTitle: string
+    groupBodyBackground: string
+  }
+  typography: {
+    titleSize: number
+    lineHeight: number
+    titleWeight: TextStyle['fontWeight']
+    largeTitleSize: number
+    labelSize: number
+    largeLabelSize: number
+    valueSize: number
+    largeValueSize: number
+    groupTitleSize: number
+  }
+  sizing: {
+    paddingVertical: number
+    paddingHorizontal: number
+    largePaddingVertical: number
+    arrowSize: number
+    iconSize: number
+    groupMarginBottom: number
+    groupTitlePaddingHorizontal: number
+    groupTitlePaddingVertical: number
+    groupInsetMarginHorizontal: number
+  }
+  radii: {
+    groupInset: number
+  }
+  borders: {
+    width: number
+  }
+  spacing: {
+    iconGap: number
+    valueGap: number
+    extraGap: number
+    labelMarginTop: number
+  }
+}
 
 export interface CellProps extends Omit<PressableProps, 'style' | 'children'> {
   title?: React.ReactNode

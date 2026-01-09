@@ -10,6 +10,12 @@ export interface DividerTokens {
     hairline: boolean
     contentPosition: DividerContentPosition
   }
+  layout: {
+    container: ViewStyle
+    contentWrapper: ViewStyle
+    text: TextStyle
+    hairlineWrapper: ViewStyle
+  }
   colors: {
     line: string
     text: string
@@ -20,14 +26,15 @@ export interface DividerTokens {
     fontFamily: string
     fontWeight: TextStyle['fontWeight']
   }
+  sizing: {
+    sideMinFlex: number
+  }
+  borders: {
+    thickness: number
+  }
   spacing: {
     vertical: number
-    horizontal: number
     contentPadding: number
-  }
-  line: {
-    thickness: number
-    sideMinFlex: number
   }
 }
 

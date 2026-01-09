@@ -2,12 +2,12 @@ import React from "react"
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
   type LayoutChangeEvent,
   type PressableStateCallbackType,
+  type TextStyle,
 } from "react-native"
 import { Checked, Cross } from "react-native-system-icon"
 
@@ -23,12 +23,17 @@ import type {
   CascaderOption,
   CascaderProps,
   CascaderRenderProps,
+  CascaderTokens,
   CascaderValue,
 } from "./types"
 import { useCascaderExtend } from "./useCascaderExtend"
 import { resolveSelectedRows } from "./utils"
 
-const DEFAULT_PLACEHOLDER = "请选择"
+type FieldKeys = {
+  textKey: string
+  valueKey: string
+  childrenKey: string
+}
 
 const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
   textKey: fieldNames?.text ?? "text",
@@ -37,21 +42,15 @@ const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
 })
 
 const Cascader: React.FC<CascaderProps> = props => {
-  const { tokensOverride } = props
-  const tokens = useCascaderTokens(tokensOverride)
-  const [value, setValue] = useControllableValue<CascaderValue[]>(props, {
-    defaultValue: [],
-    trigger: "onChange",
-  })
-
   const {
+    tokensOverride,
     options = [],
-    title = DEFAULT_PLACEHOLDER,
-    placeholder = DEFAULT_PLACEHOLDER,
-    activeColor = tokens.colors.tabActive,
+    title: titleProp,
+    placeholder: placeholderProp,
+    activeColor: activeColorProp,
     fieldNames,
     optionRender,
-    showHeader = true,
+    showHeader: showHeaderProp,
     closeable,
     closeIcon,
     onChange,
@@ -59,28 +58,47 @@ const Cascader: React.FC<CascaderProps> = props => {
     onFinish,
     onClickTab,
     onTabChange,
-    swipeable = true,
+    swipeable: swipeableProp,
     style,
     testID,
     children,
-    poppable = false,
+    poppable: poppableProp,
     visible: _visible,
     defaultVisible: _defaultVisible,
     onVisibleChange: _onVisibleChange,
-    closeOnClickOverlay = true,
-    closeOnFinish = true,
-    popupPlacement = "bottom",
-    popupRound = true,
+    closeOnClickOverlay: closeOnClickOverlayProp,
+    closeOnFinish: closeOnFinishProp,
+    popupPlacement: popupPlacementProp,
+    popupRound: popupRoundProp,
     popupProps: popupPropsOverrides,
-    loadingText = "加载中...",
+    loadingText: loadingTextProp,
     ...rest
   } = props
+
+  const tokens = useCascaderTokens(tokensOverride)
+  const title = titleProp ?? tokens.defaults.title
+  const placeholder = placeholderProp ?? tokens.defaults.placeholder
+  const activeColor = activeColorProp ?? tokens.colors.tabActive
+  const showHeader = showHeaderProp ?? tokens.defaults.showHeader
+  const swipeable = swipeableProp ?? tokens.defaults.swipeable
+  const poppable = poppableProp ?? tokens.defaults.poppable
+  const closeOnClickOverlay = closeOnClickOverlayProp ?? tokens.defaults.closeOnClickOverlay
+  const closeOnFinish = closeOnFinishProp ?? tokens.defaults.closeOnFinish
+  const popupPlacement = popupPlacementProp ?? tokens.defaults.popupPlacement
+  const popupRound = popupRoundProp ?? tokens.defaults.popupRound
+  const loadingText = loadingTextProp ?? tokens.defaults.loadingText
+
+  const [value, setValue] = useControllableValue<CascaderValue[]>(props, {
+    defaultValue: [],
+    trigger: "onChange",
+  })
+
 
   const keys = React.useMemo(() => getFieldKeys(fieldNames), [fieldNames])
 
   const cascaderValue = React.useMemo(() => (Array.isArray(value) ? value : []), [value])
   const [panelValue, setPanelValue] = React.useState<CascaderValue[]>(cascaderValue)
-  const resolvedCloseable = closeable ?? true
+  const resolvedCloseable = closeable ?? tokens.defaults.closeable
 
   const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
     defaultValue: false,
@@ -91,18 +109,14 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const currentValue = poppable ? panelValue : cascaderValue
   const { tabs, items, depth } = useCascaderExtend(options, keys, currentValue)
-  const window = useWindowDimensions()
+  const { width: windowWidth } = useWindowDimensions()
   const [measuredWidth, setMeasuredWidth] = React.useState(0)
 
-  const selectedRows = React.useMemo(() => resolveSelectedRows(options, keys, currentValue), [currentValue, keys, options])
-
-  const selectedValues = React.useMemo(
-    () =>
-      selectedRows
-        .map(row => row?.[keys.valueKey] as CascaderValue | undefined)
-        .filter((v): v is CascaderValue => v !== undefined && v !== null),
-    [keys.valueKey, selectedRows],
-  )
+  const handleTabsLayout = React.useCallback((e: LayoutChangeEvent) => {
+    const width = e.nativeEvent.layout.width
+    if (!width) return
+    setMeasuredWidth(prev => (prev === width ? prev : width))
+  }, [])
 
   const confirmedRows = React.useMemo(
     () => resolveSelectedRows(options, keys, cascaderValue),
@@ -232,7 +246,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const renderOptionsList = (optionList: CascaderOption[], tabIndex: number) => (
     <ScrollView
-      style={[styles.optionList, { height: tokens.sizing.optionListHeight }]}
+      style={[tokens.layout.optionList, { height: tokens.sizing.optionListHeight }]}
       contentContainerStyle={{
         paddingTop: tokens.spacing.optionListPaddingTop,
         paddingBottom: tokens.spacing.optionListPaddingBottom,
@@ -240,13 +254,12 @@ const Cascader: React.FC<CascaderProps> = props => {
       showsVerticalScrollIndicator={false}
     >
       {optionList.length
-        ? optionList.map((item, idx) => (
+        ? optionList.map((item) => (
           <CascaderOptionItem
             key={String(item[keys.valueKey])}
             option={item}
             tabIndex={tabIndex}
-            isLast={idx === optionList.length - 1}
-            selected={selectedValues[tabIndex] === item[keys.valueKey]}
+            selected={currentValue[tabIndex] === item[keys.valueKey]}
             activeColor={activeColor}
             keys={keys}
             optionRender={optionRender}
@@ -254,32 +267,36 @@ const Cascader: React.FC<CascaderProps> = props => {
             tokens={tokens}
           />
         ))
-        : <Text style={[styles.empty, { color: tokens.colors.placeholder }]}>{getEmptyText(tabIndex)}</Text>}
+        : (
+          <Text
+            style={[
+              tokens.layout.empty,
+              {
+                color: tokens.colors.placeholder,
+                paddingVertical: tokens.spacing.emptyPaddingVertical,
+                fontSize: tokens.typography.emptyTextSize,
+              },
+            ]}
+          >
+            {getEmptyText(tabIndex)}
+          </Text>
+        )}
     </ScrollView>
   )
 
   const renderTabs = () => {
     if (!tabs.length) return renderOptionsList([], 0)
     const swipeableEnabled = !!swipeable
-    const resolvedTabsWidth = measuredWidth || window.width || undefined
-    const tabBarStyle = [
-      styles.tabsNav,
-      {
-        height: tokens.sizing.headerHeight,
-        paddingHorizontal: tokens.spacing.tabNavPaddingHorizontal,
-        paddingVertical: tokens.spacing.tabNavPaddingVertical,
-        backgroundColor: tokens.colors.background,
-      },
-    ]
+    const resolvedTabsWidth = measuredWidth || windowWidth || undefined
+    const tabBarStyle = {
+      height: tokens.sizing.headerHeight,
+      paddingHorizontal: tokens.spacing.tabNavPaddingHorizontal,
+      paddingVertical: tokens.spacing.tabNavPaddingVertical,
+      backgroundColor: tokens.colors.background,
+    }
 
     return (
-      <View
-        style={styles.tabsWrapper}
-        onLayout={(e: LayoutChangeEvent) => {
-          const w = e.nativeEvent.layout.width
-          if (w && w !== measuredWidth) setMeasuredWidth(w)
-        }}
-      >
+      <View style={tokens.layout.tabsWrapper} onLayout={handleTabsLayout}>
         <Tabs
           style={resolvedTabsWidth ? { width: resolvedTabsWidth } : undefined}
           active={activeTab}
@@ -296,30 +313,33 @@ const Cascader: React.FC<CascaderProps> = props => {
           titleActiveColor={tokens.colors.tabText}
           titleInactiveColor={tokens.colors.tabInactive}
           tabBarStyle={tabBarStyle}
-          tabStyle={[styles.tabsItem, { paddingHorizontal: tokens.spacing.tabPaddingHorizontal }]}
-          titleStyle={styles.tabsTitle}
-          contentStyle={!swipeableEnabled ? styles.tabsContentStatic : undefined}
+          tabStyle={[tokens.layout.tabsItem, { paddingHorizontal: tokens.spacing.tabPaddingHorizontal }]}
+          titleStyle={[tokens.layout.tabsTitle, { fontSize: tokens.typography.tabsTitleSize }]}
+          contentStyle={!swipeableEnabled ? tokens.layout.tabsContentStatic : undefined}
         >
           {tabs.map((optionList, index) => {
             const selectedOption = items[index]
             const labelValue = selectedOption?.[keys.textKey]
-            const labelText =
-              isText(labelValue) && String(labelValue) !== "" ? String(labelValue) : ""
+            const labelText = isText(labelValue) ? String(labelValue) : ""
             const unselected = !labelText
             const titleNode = (_active: boolean) => (
               <Text
-                style={{
-                  color: unselected ? tokens.colors.tabInactive : tokens.colors.tabText,
-                  fontWeight: unselected ? "400" : "500",
-                  includeFontPadding: false,
-                }}
+                style={[
+                  tokens.layout.tabTitleNode,
+                  {
+                    color: unselected ? tokens.colors.tabInactive : tokens.colors.tabText,
+                    fontWeight: unselected
+                      ? tokens.typography.tabTitlePlaceholderWeight
+                      : tokens.typography.tabTitleWeight,
+                  },
+                ]}
               >
                 {unselected ? placeholder : labelText}
               </Text>
             )
 
             return (
-              <Tabs.TabPane key={index} name={index} title={titleNode ?? placeholder}>
+              <Tabs.TabPane key={index} name={index} title={titleNode}>
                 {renderOptionsList(optionList, index)}
               </Tabs.TabPane>
             )
@@ -334,13 +354,13 @@ const Cascader: React.FC<CascaderProps> = props => {
   const content = (
     <View
       testID={testID}
-      style={[styles.container, { backgroundColor: tokens.colors.background }, style]}
+      style={[tokens.layout.container, { backgroundColor: tokens.colors.background }, style]}
       {...rest}
     >
       {showHeader ? (
         <View
           style={[
-            styles.header,
+            tokens.layout.header,
             {
               height: tokens.sizing.headerHeight,
               paddingHorizontal: tokens.spacing.headerPaddingHorizontal,
@@ -348,7 +368,18 @@ const Cascader: React.FC<CascaderProps> = props => {
           ]}
         >
           {isText(title) ? (
-            <Text style={[styles.title, { color: tokens.colors.headerText }]}>{title}</Text>
+            <Text
+              style={[
+                tokens.layout.title,
+                {
+                  color: tokens.colors.headerText,
+                  fontSize: tokens.typography.titleSize,
+                  fontWeight: tokens.typography.titleWeight,
+                },
+              ]}
+            >
+              {title}
+            </Text>
           ) : (
             title
           )}
@@ -362,7 +393,7 @@ const Cascader: React.FC<CascaderProps> = props => {
                   onClose?.()
                 }
               }}
-              style={styles.closeButton}
+              style={[tokens.layout.closeButton, { marginLeft: tokens.spacing.closeButtonMarginLeft }]}
               accessibilityRole="button"
               accessibilityLabel="关闭"
             >
@@ -380,7 +411,17 @@ const Cascader: React.FC<CascaderProps> = props => {
       ) : null}
       {renderTabs()}
       {inlineChildren ? (
-        <View style={[styles.inlineChildren, { paddingHorizontal: tokens.spacing.headerPaddingHorizontal }]}>{inlineChildren}</View>
+        <View
+          style={[
+            tokens.layout.inlineChildren,
+            {
+              paddingVertical: tokens.spacing.inlineChildrenPaddingVertical,
+              paddingHorizontal: tokens.spacing.headerPaddingHorizontal,
+            },
+          ]}
+        >
+          {inlineChildren}
+        </View>
       ) : null}
     </View>
   )
@@ -442,7 +483,6 @@ const CascaderOptionItem = React.memo(
   ({
     option,
     tabIndex,
-    isLast,
     selected,
     activeColor,
     keys,
@@ -452,13 +492,12 @@ const CascaderOptionItem = React.memo(
   }: {
     option: CascaderOption
     tabIndex: number
-    isLast: boolean
     selected: boolean
     activeColor: string
-    keys: { textKey: string; valueKey: string; childrenKey: string }
+    keys: FieldKeys
     optionRender?: CascaderProps['optionRender']
     onSelect: (option: CascaderOption, tabIndex: number) => void
-    tokens: any
+    tokens: CascaderTokens
   }) => {
     const optionValue = option[keys.valueKey]
     const label = option[keys.textKey]
@@ -474,7 +513,13 @@ const CascaderOptionItem = React.memo(
       ? optionRender({ option, selected })
       : isText(label)
         ? (
-          <Text style={[styles.optionText, selected && styles.optionTextActive, { color: textColor }]}>
+          <Text
+            style={[
+              tokens.layout.optionText,
+              { color: textColor, fontSize: tokens.typography.optionTextSize },
+              selected && { fontWeight: tokens.typography.optionTextActiveWeight },
+            ]}
+          >
             {label}
           </Text>
         )
@@ -484,7 +529,7 @@ const CascaderOptionItem = React.memo(
       <Pressable
         testID={`cascader-option-${tabIndex}-${String(optionValue)}`}
         style={({ pressed }) => [
-          styles.option,
+          tokens.layout.option,
           {
             minHeight: tokens.sizing.optionMinHeight,
             paddingVertical: tokens.spacing.optionPaddingVertical,
@@ -495,8 +540,10 @@ const CascaderOptionItem = React.memo(
         onPress={() => onSelect(option, tabIndex)}
         disabled={disabled}
       >
-        <View style={styles.optionContent}>
-          <View style={styles.optionLabel}>{content}</View>
+        <View style={tokens.layout.optionContent}>
+          <View style={[tokens.layout.optionLabel, { marginRight: tokens.spacing.optionLabelMarginRight }]}>
+            {content}
+          </View>
           {selected ? (
             <Checked size={tokens.sizing.selectedIconSize} fill={activeColor} color={activeColor} />
           ) : null}
@@ -505,73 +552,5 @@ const CascaderOptionItem = React.memo(
     )
   }
 )
-
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 0,
-    width: "100%",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 0,
-  },
-  title: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontWeight: "500",
-    includeFontPadding: false,
-  },
-  closeButton: {
-    marginLeft: 8,
-  },
-  tabsNav: {
-  },
-  tabsWrapper: {
-    width: "100%",
-  },
-  tabsContentStatic: {
-    width: "100%",
-  },
-  tabsItem: {
-    alignItems: "center",
-  },
-  tabsTitle: {
-    fontSize: 14,
-    includeFontPadding: false,
-  },
-  optionList: {
-    flexGrow: 0,
-  },
-  option: {
-    justifyContent: "center",
-  },
-  optionContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  optionText: {
-    fontSize: 14,
-    lineHeight: 20,
-    includeFontPadding: false,
-  },
-  optionTextActive: {
-    fontWeight: "500",
-  },
-  optionLabel: {
-    flex: 1,
-    marginRight: 12,
-  },
-  empty: {
-    textAlign: "center",
-    paddingVertical: 24,
-    fontSize: 14,
-  },
-  inlineChildren: {
-    paddingVertical: 12,
-  },
-})
 
 export default Cascader

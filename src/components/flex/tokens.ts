@@ -11,6 +11,9 @@ const createFlexTokens = (_foundations: Foundations): FlexTokens => ({
     justify: 'start',
     columns: 24,
   },
+  layout: {
+    container: {},
+  },
 })
 
 export const useFlexTokens = createComponentTokensHook('flex', createFlexTokens)

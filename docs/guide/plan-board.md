@@ -46,7 +46,7 @@
 | Stepper/Rate/Selector/NumberKeyboard | 数值/评分/多选 | Stepper/Rate/Selector + NumberKeyboard 全面交付（补齐 Portal/文档 demo） | 前置组件 | ✅ 完成（2025-11-30） |
 | Search | Search 组件（键盘搜索 + 取消按钮 + 自定义操作） | 依赖 Field | Field | ✅ 完成（2025-11-29） |
 | Tabs/Tabbar/NavBar/Sidebar/IndexBar | 导航体系（useGestureScroll + Tabs/Tabbar/NavBar/Sidebar/IndexBar 首版已交付；Sticky 组件 2025-12-04 下线） | 依赖手势 & Scroll 监听 | gesture kit | ✅ 完成（2025-12-01） |
-| ActionSheet/ShareSheet/DropdownMenu/Popover | 弹层扩展（ActionSheet + ShareSheet + DropdownMenu + Popover 全部交付） | 依赖 Overlay 栈 | overlay | ✅ 完成（2025-12-01） |
+| ActionSheet/ShareSheet/DropdownMenu | 弹层扩展（ActionSheet + ShareSheet + DropdownMenu 全部交付） | 依赖 Overlay 栈 | overlay | ✅ 完成（2025-12-01） |
 | Picker/DatetimePicker/Calendar/Cascader/Area | 数据选择组件 | Picker、DatetimePicker、Calendar、Cascader、Area 全部交付（多列/联动/时间/级联/省市区） | aria hooks | ✅ 完成 |
 | List/PullRefresh | 滚动与手势组件（List + PullRefresh 已交付） | 依赖 gesture kit | gesture kit | ⏳ 进行中（2025-12-01） |
 | Image/ImagePreview/Uploader/Skeleton | 媒体与加载态（Image、ImagePreview、Uploader、Skeleton ✅） | 依赖动画 + 占位策略 | infra | ✅ 完成（2025-12-01，Skeleton 首版交付） |

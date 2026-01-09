@@ -99,4 +99,42 @@ describe('Avatar', () => {
       : text.props.style
     expect(flattened.color).toBe('red')
   })
+
+  it('overrides layout styles via tokensOverride', () => {
+    const tree = renderer.create(
+      <Avatar
+        text="TO"
+        tokensOverride={{
+          layout: {
+            container: {
+              justifyContent: 'flex-start',
+            },
+          },
+        }}
+      />
+    )
+    const pressable = tree.root.findByType(Pressable)
+    const flattened = Array.isArray(pressable.props.style)
+      ? Object.assign({}, ...pressable.props.style)
+      : pressable.props.style
+    expect(flattened.justifyContent).toBe('flex-start')
+  })
+
+  it('overrides styles via style prop', () => {
+    const tree = renderer.create(
+      <Avatar
+        text="SP"
+        style={{
+          borderWidth: 5,
+          borderColor: 'red',
+        }}
+      />
+    )
+    const pressable = tree.root.findByType(Pressable)
+    const flattened = Array.isArray(pressable.props.style)
+      ? Object.assign({}, ...pressable.props.style)
+      : pressable.props.style
+    expect(flattened.borderWidth).toBe(5)
+    expect(flattened.borderColor).toBe('red')
+  })
 })

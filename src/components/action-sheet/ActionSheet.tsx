@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
@@ -8,7 +8,8 @@ import { isRenderable, isText } from '../../utils/validate'
 import Loading from '../loading'
 import Popup from '../popup'
 import type { ActionSheetAction, ActionSheetCloseAction, ActionSheetProps } from './types'
-import { useActionSheetTokens, type ActionSheetTokens } from './tokens'
+import type { ActionSheetTokens } from './types'
+import { useActionSheetTokens } from './tokens'
 
 const defaultCloseIcon = <Close size={18} />
 
@@ -25,16 +26,28 @@ const ActionSheetHeader: React.FC<{
 
   const { colors, typography } = tokens
   return (
-    <View style={styles.header}>
-      <View style={styles.titleContainer}>
+    <View style={tokens.layout.header}>
+      <View style={tokens.layout.titleContainer}>
         {isText(title) ? (
-          <Text style={[styles.title, { color: colors.title, fontSize: typography.title }]}>{title}</Text>
+          <Text
+            style={[
+              tokens.layout.title,
+              { color: colors.title, fontSize: typography.title },
+            ]}
+          >
+            {title}
+          </Text>
         ) : (
-          <View style={styles.titleNode}>{title}</View>
+          <View style={tokens.layout.titleNode}>{title}</View>
         )}
       </View>
       {closeable ? (
-        <Pressable style={styles.closeButton} accessibilityRole="button" hitSlop={8} {...closePress.interactionProps}>
+        <Pressable
+          style={tokens.layout.closeButton}
+          accessibilityRole="button"
+          hitSlop={8}
+          {...closePress.interactionProps}
+        >
           {React.isValidElement(closeIcon)
             ? React.cloneElement(closeIcon, { fill: colors.description, color: colors.description } as any)
             : closeIcon}
@@ -76,8 +89,8 @@ const ActionSheetItem: React.FC<{
   return (
     <Pressable
       style={({ pressed }) => [
-        styles.item,
-        hasIcon && styles.itemWithIcon,
+        tokens.layout.item,
+        hasIcon && tokens.layout.itemWithIcon,
         {
           paddingVertical: spacing.vertical,
           paddingHorizontal: spacing.horizontal,
@@ -87,15 +100,15 @@ const ActionSheetItem: React.FC<{
       ]}
       {...actionPress.interactionProps}
     >
-      {hasIcon ? <View style={styles.icon}>{action.icon}</View> : null}
+      {hasIcon ? <View style={tokens.layout.icon}>{action.icon}</View> : null}
       {loading ? (
         <Loading size={20} />
       ) : hasName ? (
-        <View style={styles.itemTextWrapper}>
+        <View style={tokens.layout.itemTextWrapper}>
           {isText(name) ? (
             <Text
               style={[
-                styles.itemText,
+                tokens.layout.itemText,
                 {
                   color: disabled ? colors.disabled : color,
                   fontSize: typography.item,
@@ -109,9 +122,11 @@ const ActionSheetItem: React.FC<{
           )}
           {hasSubname ? (
             isText(subname) ? (
-              <Text style={[styles.subname, { color: colors.subitem }]}>{subname}</Text>
+              <Text style={[tokens.layout.subname, { color: colors.subitem }]}>
+                {subname}
+              </Text>
             ) : (
-              <View style={styles.subnameNode}>{subname}</View>
+              <View style={tokens.layout.subnameNode}>{subname}</View>
             )
           ) : null}
         </View>
@@ -135,10 +150,15 @@ const ActionSheetCancel: React.FC<{
 
   return (
     <>
-      <View style={[styles.cancelGap, { height: spacing.cancelGap, backgroundColor: colors.cancelGapBackground }]} />
+      <View
+        style={[
+          tokens.layout.cancelGap,
+          { height: spacing.cancelGap, backgroundColor: colors.cancelGapBackground },
+        ]}
+      />
       <Pressable
         style={[
-          styles.cancel,
+          tokens.layout.cancel,
           {
             paddingVertical: spacing.vertical,
             paddingHorizontal: spacing.horizontal,
@@ -148,7 +168,14 @@ const ActionSheetCancel: React.FC<{
         {...cancelPress.interactionProps}
       >
         {isText(cancelText) ? (
-          <Text style={[styles.cancelText, { color: colors.cancel, fontSize: typography.item }]}>{cancelText}</Text>
+          <Text
+            style={[
+              tokens.layout.cancelText,
+              { color: colors.cancel, fontSize: typography.item },
+            ]}
+          >
+            {cancelText}
+          </Text>
         ) : (
           cancelText
         )}
@@ -161,31 +188,38 @@ ActionSheetCancel.displayName = 'ActionSheetCancel'
 
 const ActionSheet: React.FC<ActionSheetProps> = props => {
   const {
+    tokensOverride,
     visible,
     title,
     description,
     cancelText,
     actions = [],
-    closeOnClickAction,
+    closeOnClickAction: closeOnClickActionProp,
     closeOnSelect,
-    closeable = true,
+    closeable: closeableProp,
     closeIcon = defaultCloseIcon,
     beforeClose,
     onSelect,
     onCancel,
     onClose,
     children,
-    round = true,
-    safeAreaInsetBottom = true,
-    overlay = true,
-    lockScroll = true,
-    tokensOverride,
+    round: roundProp,
+    safeAreaInsetBottom: safeAreaInsetBottomProp,
+    overlay: overlayProp,
+    lockScroll: lockScrollProp,
     style: popupStyle,
     ...popupProps
   } = props
 
   const tokens = useActionSheetTokens(tokensOverride)
-  const shouldCloseOnClickAction = closeOnClickAction ?? closeOnSelect ?? false
+  const closeable = closeableProp ?? tokens.defaults.closeable
+  const round = roundProp ?? tokens.defaults.round
+  const safeAreaInsetBottom = safeAreaInsetBottomProp ?? tokens.defaults.safeAreaInsetBottom
+  const overlay = overlayProp ?? tokens.defaults.overlay
+  const lockScroll = lockScrollProp ?? tokens.defaults.lockScroll
+  const shouldCloseOnClickAction =
+    closeOnClickActionProp ?? closeOnSelect ?? tokens.defaults.closeOnClickAction
+
   const hasTitle = isRenderable(title)
   const hasDescription = isRenderable(description)
   const hasCancelText = isRenderable(cancelText)
@@ -213,13 +247,12 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
   )
 
   const handlePopupBeforeClose = React.useCallback(
-    async (reason: 'close-icon' | 'overlay' | 'close') => {
-      if (!beforeClose) return true
+    (reason: 'close-icon' | 'overlay' | 'close') => {
       const action: ActionSheetCloseAction =
         reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
       return runBeforeClose(action)
     },
-    [beforeClose, runBeforeClose]
+    [runBeforeClose]
   )
 
   const handleCancel = React.useCallback(() => {
@@ -257,12 +290,14 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       beforeClose={handlePopupBeforeClose}
       onClose={onClose}
       style={[
-        { paddingLeft: 0, paddingRight: 0, paddingBottom: 0 },
+        tokens.layout.popup,
         popupStyle,
       ]}
       {...popupProps}
     >
-      <View style={[styles.panel, { backgroundColor: tokens.colors.background }]}>
+      <View
+        style={[tokens.layout.panel, { backgroundColor: tokens.colors.background }]}
+      >
         {hasTitle ? (
           <ActionSheetHeader
             title={title}
@@ -273,17 +308,30 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
           />
         ) : null}
         {hasDescription ? (
-          <View style={[styles.descriptionContainer, createHairlineBorderBottom(tokens.colors.border)]}>
+          <View
+            style={[
+              tokens.layout.descriptionContainer,
+              createHairlineBorderBottom(tokens.colors.border),
+            ]}
+          >
             {isText(description) ? (
-              <Text style={[styles.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]}>
+              <Text
+                style={[
+                  tokens.layout.description,
+                  {
+                    color: tokens.colors.description,
+                    fontSize: tokens.typography.description,
+                  },
+                ]}
+              >
                 {description}
               </Text>
             ) : (
-              <View style={styles.descriptionNode}>{description}</View>
+              <View style={tokens.layout.descriptionNode}>{description}</View>
             )}
           </View>
         ) : null}
-        <View style={styles.actions}>
+        <View style={tokens.layout.actions}>
           {actions.map((action, index) => (
             <ActionSheetItem
               key={action.key ?? index}
@@ -302,96 +350,6 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     </Popup>
   )
 }
-
-const styles = StyleSheet.create({
-  panel: {
-    width: '100%',
-    maxHeight: '80%',
-  },
-  header: {
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  titleContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  titleNode: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  descriptionContainer: {
-    paddingTop: 12,
-    paddingBottom: 20,
-    paddingHorizontal: 16,
-  },
-  description: {
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  descriptionNode: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actions: {
-    width: '100%',
-  },
-  item: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  itemWithIcon: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  itemTextWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  itemText: {
-    lineHeight: 24,
-  },
-  subname: {
-    marginTop: 4,
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  subnameNode: {
-    marginTop: 4,
-  },
-  icon: {
-    marginRight: 12,
-  },
-  cancelGap: {
-    width: '100%',
-    marginBottom: 0,
-  },
-  cancel: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelText: {
-    lineHeight: 24,
-  },
-})
 
 ActionSheet.displayName = 'ActionSheet'
 

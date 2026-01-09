@@ -73,7 +73,10 @@ export const Space: React.FC<SpaceProps> = props => {
   const wrap = wrapProp ?? tokens.defaults.wrap
 
   const gapInput = resolveGapInput(gap, size, tokens.defaults.gapPreset)
-  const [rawHorizontalGap, rawVerticalGap] = parseGap(gapInput, tokens.presets)
+  const [rawHorizontalGap, rawVerticalGap] = parseGap(
+    gapInput,
+    tokens.sizing.presets
+  )
   const horizontalGap = Math.max(0, rawHorizontalGap)
   const verticalGap = Math.max(0, rawVerticalGap)
 

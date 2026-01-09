@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, LayoutChangeEvent, Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native'
+import { Animated, LayoutChangeEvent, Platform, Text, View, type ViewStyle } from 'react-native'
 
 import { isString, isText } from '../../utils/validate'
 import { clamp, parseNumberLike, parsePercentage } from '../../utils/number'
@@ -40,28 +40,36 @@ const useAnimatedWidth = (
 }
 
 export const Progress: React.FC<ProgressProps> = props => {
-  const tokens = useProgressTokens(props.tokensOverride)
   const {
-    percentage: percentageProp = 0,
+    tokensOverride,
+    percentage: percentageProp,
     strokeWidth,
     color,
     trackColor,
     pivotText,
     pivotColor,
     textColor,
-    inactive = false,
-    showPivot = true,
+    inactive: inactiveProp,
+    showPivot: showPivotProp,
     animated,
-    transition = true,
-    animationDuration = 300,
+    transition: transitionProp,
+    animationDuration: animationDurationProp,
     style,
     pivotStyle,
     indicatorStyle,
     ...rest
   } = props
 
-  const percentage = clamp(parsePercentage(percentageProp), 0, 100)
-  const resolvedStrokeWidth = parseNumberLike(strokeWidth, tokens.sizes.height) ?? tokens.sizes.height
+  const tokens = useProgressTokens(tokensOverride)
+
+  const percentage = clamp(
+    parsePercentage(percentageProp ?? tokens.defaults.percentage),
+    0,
+    100
+  )
+  const resolvedStrokeWidth =
+    parseNumberLike(strokeWidth, tokens.sizing.height) ?? tokens.sizing.height
+  const inactive = inactiveProp ?? tokens.defaults.inactive
   const isGradient = isGradientColor(color)
   const useGradient = isGradient && Platform.OS === 'web'
 
@@ -74,16 +82,21 @@ export const Progress: React.FC<ProgressProps> = props => {
   const resolvedPivotBackground = pivotColor ?? resolvedIndicatorColor
   const resolvedPivotTextColor = textColor ?? tokens.colors.pivotText
   const pivotContent = pivotText ?? `${percentage}%`
-  const safeDuration = Math.max(0, animationDuration)
+  const safeDuration = Math.max(
+    0,
+    animationDurationProp ?? tokens.defaults.animationDuration
+  )
 
-  const shouldShowPivot = showPivot && pivotContent !== null && pivotContent !== false
+  const showPivot = showPivotProp ?? tokens.defaults.showPivot
+  const shouldShowPivot =
+    showPivot && pivotContent !== null && pivotContent !== false
 
-  const shouldAnimateWidth = (animated ?? transition ?? true) && !useGradient
+  const transition = transitionProp ?? tokens.defaults.transition
+  const shouldAnimateWidth =
+    (animated ?? transition ?? tokens.defaults.transition) && !useGradient
 
   const indicatorBaseStyle: ViewStyle = {
-    position: 'absolute',
-    left: 0,
-    top: 0,
+    ...tokens.layout.indicator,
     height: resolvedStrokeWidth,
     backgroundColor: useGradient ? undefined : resolvedIndicatorColor,
     borderRadius: resolvedStrokeWidth / 2,
@@ -107,17 +120,17 @@ export const Progress: React.FC<ProgressProps> = props => {
 
   const pivotBaseStyle = React.useMemo(
     () => ({
-      bottom: resolvedStrokeWidth + tokens.sizes.pivotPaddingVertical * 2,
+      bottom: resolvedStrokeWidth + tokens.sizing.pivotPaddingVertical * 2,
       backgroundColor: resolvedPivotBackground,
-      paddingHorizontal: tokens.sizes.pivotPaddingHorizontal,
-      paddingVertical: tokens.sizes.pivotPaddingVertical,
+      paddingHorizontal: tokens.sizing.pivotPaddingHorizontal,
+      paddingVertical: tokens.sizing.pivotPaddingVertical,
       borderRadius: resolvedStrokeWidth,
     }),
     [
       resolvedPivotBackground,
       resolvedStrokeWidth,
-      tokens.sizes.pivotPaddingHorizontal,
-      tokens.sizes.pivotPaddingVertical,
+      tokens.sizing.pivotPaddingHorizontal,
+      tokens.sizing.pivotPaddingVertical,
     ],
   )
 
@@ -125,10 +138,10 @@ export const Progress: React.FC<ProgressProps> = props => {
     isText(pivotContent) ? (
       <Text
         style={[
-          styles.pivotText,
+          tokens.layout.pivotText,
           {
             color: resolvedPivotTextColor,
-            fontSize: tokens.sizes.pivotFont,
+            fontSize: tokens.typography.pivotFontSize,
           },
           pivotStyle,
         ]}
@@ -144,7 +157,10 @@ export const Progress: React.FC<ProgressProps> = props => {
 
     if (!trackWidth) {
       return (
-        <View style={[styles.pivot, pivotBaseStyle, { right: 0 }]} pointerEvents="none">
+        <View
+          style={[tokens.layout.pivot, pivotBaseStyle, { right: 0 }]}
+          pointerEvents="none"
+        >
           {renderPivotContent()}
         </View>
       )
@@ -158,7 +174,11 @@ export const Progress: React.FC<ProgressProps> = props => {
 
     return (
       <Animated.View
-        style={[styles.pivot, pivotBaseStyle, { transform: [{ translateX }] }]}
+        style={[
+          tokens.layout.pivot,
+          pivotBaseStyle,
+          { transform: [{ translateX }] },
+        ]}
         pointerEvents="none"
         onLayout={event => {
           const nextWidth = event.nativeEvent.layout.width
@@ -185,12 +205,14 @@ export const Progress: React.FC<ProgressProps> = props => {
       {...rest}
     >
       <View
-        style={{
-          height: resolvedStrokeWidth,
-          backgroundColor: resolvedTrackColor,
-          borderRadius: resolvedStrokeWidth / 2,
-          overflow: 'hidden',
-        }}
+        style={[
+          tokens.layout.track,
+          {
+            height: resolvedStrokeWidth,
+            backgroundColor: resolvedTrackColor,
+            borderRadius: resolvedStrokeWidth / 2,
+          },
+        ]}
         onLayout={handleTrackLayout}
       >
         {renderIndicator()}
@@ -199,15 +221,6 @@ export const Progress: React.FC<ProgressProps> = props => {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  pivot: {
-    position: 'absolute',
-  },
-  pivotText: {
-    textAlign: 'center',
-  },
-})
 
 Progress.displayName = 'Progress'
 

@@ -3,12 +3,10 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from 'react-native'
 
-import { useTheme } from '../../design-system'
 import { withAlpha, extractFirstColorToken } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { isFiniteNumber, isFunction, isNumber, isString, isText, isTwoCNChar } from '../../utils/validate'
@@ -44,7 +42,6 @@ const resolveSpinnerSize = (
 
 export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
   (props, forwardedRef) => {
-    const { foundations } = useTheme()
     const group = React.useContext(ButtonGroupContext)
 
     const {
@@ -65,15 +62,15 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       square: squareProp,
       hairline: hairlineProp,
       shadow: shadowProp,
-      loading = false,
+      loading: loadingProp,
       loadingText,
       loadingIndicator,
-      loadingType = 'circular',
-      loadingSize = 'small',
+      loadingType: loadingTypeProp,
+      loadingSize: loadingSizeProp,
       disabled: disabledProp,
-      autoInsertSpace = true,
-      uppercase = false,
-      allowFontScaling = true,
+      autoInsertSpace: autoInsertSpaceProp,
+      uppercase: uppercaseProp,
+      allowFontScaling: allowFontScalingProp,
       maxFontSizeMultiplier,
       rippleColor: rippleColorProp,
       contentStyle,
@@ -90,13 +87,19 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const block = blockProp ?? group?.block ?? buttonTokens.defaults.block
     const round = roundProp ?? group?.round ?? buttonTokens.defaults.round
     const square = squareProp ?? group?.square ?? buttonTokens.defaults.square
-    const hairline = hairlineProp ?? group?.hairline ?? false
+    const hairline = hairlineProp ?? group?.hairline ?? buttonTokens.defaults.hairline
     const iconPosition =
       iconPositionProp ?? group?.iconPosition ?? buttonTokens.defaults.iconPosition
     const groupShadow = group?.shadow
     const shadowValue = shadowProp ?? groupShadow
     const hasShadowOverride = shadowProp !== undefined || groupShadow !== undefined
-    const disabled = disabledProp ?? group?.disabled ?? false
+    const disabled = disabledProp ?? group?.disabled ?? buttonTokens.defaults.disabled
+    const loading = loadingProp ?? buttonTokens.defaults.loading
+    const loadingType = loadingTypeProp ?? buttonTokens.defaults.loadingType
+    const loadingSize = loadingSizeProp ?? buttonTokens.defaults.loadingSize
+    const autoInsertSpace = autoInsertSpaceProp ?? buttonTokens.defaults.autoInsertSpace
+    const uppercase = uppercaseProp ?? buttonTokens.defaults.uppercase
+    const allowFontScaling = allowFontScalingProp ?? buttonTokens.defaults.allowFontScaling
     const defaultMode = buttonTokens.defaults.mode ?? 'contained'
     const groupMode = group?.mode
     const shouldForcePlainTextMode = plain && !modeProp && !groupMode
@@ -106,8 +109,8 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const legacyPlain = shouldForcePlainTextMode
     const buttonColorOverride = buttonColorProp ?? color
 
-    const tone = buttonTokens.toneMap[type] ?? buttonTokens.toneMap.default
-    const sizeTokens = buttonTokens.sizes[size]
+    const tone = buttonTokens.colors.tones[type] ?? buttonTokens.colors.tones.default
+    const sizeTokens = buttonTokens.sizing.sizes[size]
 
     const gradientString =
       isString(buttonColorOverride) ? buttonColorOverride : undefined
@@ -182,8 +185,8 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         ? 0
         : shouldRenderBorder
           ? hairline
-            ? buttonTokens.border.hairlineWidth
-            : buttonTokens.border.width
+            ? buttonTokens.borders.hairlineWidth
+            : buttonTokens.borders.width
           : 0
 
     const borderRadius = square ? 0 : round ? sizeTokens.height / 2 : sizeTokens.radius
@@ -204,7 +207,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       derivedMode !== 'text' &&
       derivedMode !== 'outlined' &&
       !legacyPlain
-    const shadowTokens = resolvedShadowLevel ? buttonTokens.shadow[resolvedShadowLevel] : undefined
+    const shadowTokens = resolvedShadowLevel ? buttonTokens.shadows[resolvedShadowLevel] : undefined
     const shadowStyle =
       shouldShowShadow && shadowTokens
         ? createPlatformShadow({
@@ -234,7 +237,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           : icon
 
         return (
-          <View style={[buttonStyles.iconWrapper, iconWrapperStyle]}>
+          <View style={[buttonTokens.layout.iconWrapper, iconWrapperStyle]}>
             {iconElement}
           </View>
         )
@@ -264,7 +267,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         )
 
       return (
-        <View style={[buttonStyles.iconWrapper, { marginRight: buttonTokens.spacing.iconGap }]}>
+        <View style={[buttonTokens.layout.iconWrapper, { marginRight: buttonTokens.spacing.iconGap }]}>
           {loadingIndicator ?? defaultIndicator}
         </View>
       )
@@ -283,10 +286,10 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       }
 
       const sharedTextStyle: any = {
-        fontFamily: foundations.typography.fontFamily,
-        fontWeight: foundations.typography.weight.medium,
+        fontFamily: buttonTokens.typography.fontFamily,
+        fontWeight: buttonTokens.typography.fontWeight,
         fontSize: sizeTokens.fontSize,
-        lineHeight: sizeTokens.fontSize * foundations.typography.lineHeightMultiplier,
+        lineHeight: sizeTokens.fontSize * buttonTokens.typography.lineHeightMultiplier,
         color: resolvedTextColor,
         textTransform: uppercase ? 'uppercase' : undefined,
       }
@@ -297,7 +300,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
         return (
           <Text
-            style={[buttonStyles.text, sharedTextStyle, textStyle]}
+            style={[buttonTokens.layout.text, sharedTextStyle, textStyle]}
             numberOfLines={1}
             allowFontScaling={allowFontScaling}
             maxFontSizeMultiplier={maxFontSizeMultiplier}
@@ -311,7 +314,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     }
 
     const content = (
-      <View style={[buttonStyles.content, contentStyle]}>
+      <View style={[buttonTokens.layout.content, contentStyle]}>
         {loading ? (
           <>
             {renderLoading()}
@@ -361,7 +364,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           : 1
 
     const baseContainerStyle = [
-      buttonStyles.base,
+      buttonTokens.layout.base,
       {
         minHeight: sizeTokens.height,
         paddingHorizontal: sizeTokens.paddingHorizontal,
@@ -371,7 +374,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         borderWidth: resolvedBorderWidth,
         opacity: resolvedOpacity,
       },
-      block && buttonStyles.block,
+      block && buttonTokens.layout.block,
       shadowStyle,
       gradientWebStyle,
       style,
@@ -416,29 +419,3 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 Button.displayName = 'Button'
 
 export default Button
-
-const buttonStyles = StyleSheet.create({
-  base: {
-    borderStyle: 'solid',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    alignSelf: 'flex-start',
-  },
-  block: {
-    alignSelf: 'stretch',
-    width: '100%',
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    fontWeight: '400',
-  },
-})

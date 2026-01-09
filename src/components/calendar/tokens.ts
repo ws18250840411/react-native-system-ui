@@ -1,60 +1,109 @@
+import type { TextStyle } from 'react-native'
+
 import { createComponentTokensHook } from "../../design-system"
 import { type Foundations } from "../../design-system/tokens"
+import type { CalendarTokens } from "./types"
 
-export interface CalendarTokens {
-  colors: {
-    text: string
-    weekend: string
-    disabled: string
-    background: string
-    selectedBackground: string
-    selectedText: string
-    rangeBackground: string
-    headerSubtitle: string
-    confirmText: string
-  }
-  spacing: {
-    row: number
-    column: number
-    containerPadding: number
-    headerMarginBottom: number
-    weekRowMarginBottom: number
-    navPaddingHorizontal: number
-    dayPaddingVertical: number
-    confirmMarginTop: number
-    confirmPaddingVertical: number
-  }
-  radii: {
-    day: number
-    container: number
-    confirmButton: number
-  }
-  typography: {
-    headerTitleSize: number
-    headerTitleWeight: string
-    headerSubtitleSize: number
-    confirmTextWeight: string
-  }
-  sizing: {
-    dayMinWidth: number
-    navButtonSize: number
-  }
-}
-
-const createCalendarTokens = (foundations: Foundations): CalendarTokens => {
+export const createCalendarTokens = (foundations: Foundations): CalendarTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
   const onPrimary = palette.primary.foreground ?? "#ffffff"
   return {
+    defaults: {
+      type: "single",
+      title: "选择日期",
+      showSubtitle: true,
+      showHeader: true,
+      showConfirm: {
+        single: false,
+        range: true,
+        multiple: true,
+      },
+      confirmText: "确定",
+      weekStartsOn: 0,
+      weekdays: ["日", "一", "二", "三", "四", "五", "六"],
+      allowSameDay: false,
+      poppable: false,
+      closeOnClickOverlay: true,
+      closeOnConfirm: true,
+      popupPlacement: "bottom",
+      popupRound: true,
+    },
+    layout: {
+      header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+      },
+      headerCenter: {
+        alignItems: "center",
+        flex: 1,
+      },
+      navText: {
+        textAlign: "center",
+      },
+      headerTitle: {
+        textAlign: "center",
+      },
+      headerSubtitle: {
+        textAlign: "center",
+      },
+      weekRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+      },
+      weekLabelItem: {
+        width: `${100 / 7}%`,
+        alignItems: "center",
+      },
+      weekLabel: {
+        textAlign: "center",
+      },
+      days: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+      },
+      dayButton: {
+        width: `${100 / 7}%`,
+        alignItems: "center",
+      },
+      dayText: {
+        textAlign: "center",
+      },
+      dayPlaceholder: {
+        width: `${100 / 7}%`,
+      },
+      confirmButton: {
+        alignItems: "center",
+      },
+      confirmText: {
+        textAlign: "center",
+      },
+    },
     colors: {
       text: palette.default[800],
       weekend: palette.danger[500],
       disabled: palette.default[300],
-      background: '#ffffff',
+      background: "#ffffff",
       selectedBackground: palette.primary[500],
       selectedText: onPrimary,
       rangeBackground: palette.primary[100],
       headerSubtitle: palette.default[600],
       confirmText: onPrimary,
+    },
+    typography: {
+      headerTitleSize: fontSize.md,
+      headerTitleWeight: typography.weight.semiBold as TextStyle['fontWeight'],
+      headerSubtitleSize: fontSize.sm,
+      confirmTextWeight: typography.weight.semiBold as TextStyle['fontWeight'],
+    },
+    sizing: {
+      dayMinWidth: 32,
+      navButtonSize: fontSize.md,
+    },
+    radii: {
+      day: radii.sm,
+      container: radii.lg,
+      confirmButton: 20,
     },
     spacing: {
       row: spacing.xs,
@@ -66,21 +115,6 @@ const createCalendarTokens = (foundations: Foundations): CalendarTokens => {
       dayPaddingVertical: 6,
       confirmMarginTop: spacing.lg,
       confirmPaddingVertical: 10,
-    },
-    radii: {
-      day: radii.sm,
-      container: radii.lg,
-      confirmButton: 20,
-    },
-    typography: {
-      headerTitleSize: fontSize.md,
-      headerTitleWeight: String(typography.weight.semiBold),
-      headerSubtitleSize: fontSize.sm,
-      confirmTextWeight: String(typography.weight.semiBold),
-    },
-    sizing: {
-      dayMinWidth: 32,
-      navButtonSize: fontSize.md,
     },
   }
 }

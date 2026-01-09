@@ -1,5 +1,5 @@
 import React, { useImperativeHandle } from 'react'
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
+import { View, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState } from '@react-stately/checkbox'
 
@@ -20,8 +20,8 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     value,
     defaultValue,
     onChange,
-    disabled = false,
-    direction = 'vertical',
+    disabled: disabledProp,
+    direction: directionProp,
     shape,
     iconSize,
     checkedColor,
@@ -38,6 +38,8 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
   } = props
 
   const tokens = useCheckboxTokens(tokensOverride)
+  const disabled = disabledProp ?? tokens.defaults.groupDisabled
+  const direction = directionProp ?? tokens.defaults.groupDirection
   const gap = gapProp ?? tokens.spacing.groupGap
 
   const registryRef = React.useRef(new Map<string, RegistryItem>())
@@ -80,11 +82,11 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     const isLast = index === childrenArray.length - 1
     if (direction === 'horizontal') {
       return [
-        styles.item,
+        tokens.layout.groupItem,
         !isLast && { marginRight: gap },
       ]
     }
-    return isLast ? styles.item : [styles.item, { marginBottom: gap }]
+    return isLast ? tokens.layout.groupItem : [tokens.layout.groupItem, { marginBottom: gap }]
   }
 
   const toggleAll = React.useCallback(
@@ -146,7 +148,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
         style={[
-          direction === 'horizontal' ? styles.horizontal : styles.vertical,
+          direction === 'horizontal' ? tokens.layout.groupHorizontal : tokens.layout.groupVertical,
           style,
         ]}
       >
@@ -161,18 +163,4 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
       </View>
     </CheckboxGroupContext.Provider>
   )
-})
-
-const styles = StyleSheet.create({
-  horizontal: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-  },
-  vertical: {
-    flexDirection: 'column',
-  },
-  item: {
-    flexShrink: 0,
-  },
 })

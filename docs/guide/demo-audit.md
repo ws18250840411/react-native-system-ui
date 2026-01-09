@@ -5,7 +5,7 @@
 ## 处理顺序（约定）
 
 1. **P0**：Button / Cell / Popup / Form（高频且影响整体观感）
-2. **P1**：Picker/DatetimePicker/Calendar/Cascader/Area + Tabs/Tabbar/NavBar/IndexBar/Sidebar + DropdownMenu/Popover/ActionSheet/ShareSheet/Dialog
+2. **P1**：Picker/DatetimePicker/Calendar/Cascader/Area + Tabs/Tabbar/NavBar/IndexBar/Sidebar + DropdownMenu/ActionSheet/ShareSheet/Dialog
 3. **P2**：其余组件按“使用频率 + 差异大小”推进
 
 ## 进度表
@@ -27,7 +27,6 @@
 | P1 | IndexBar | ✅ | 受控/自定义 demo 文案收敛，并统一标题为“索引 *” |
 | P1 | Sidebar | ✅ | 已统一为“标签名*”并用 Toast 展示切换结果 |
 | P1 | DropdownMenu | ✅ | 受控 demo 用 Toast 提示值，文案已对齐 |
-| P1 | Popover | ✅ | demo 文案收敛为占位内容，并统一触发按钮文案 |
 | P1 | ActionSheet | ✅ | demo 入口文案统一为“展示面板”，描述文案收敛 |
 | P1 | ShareSheet | ✅ | demo 入口文案统一为“展示面板”，描述文案收敛 |
 | P1 | Dialog | ✅ | 文案去掉“当前”类表述，避免干扰对比 |

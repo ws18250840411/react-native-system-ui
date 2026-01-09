@@ -16,6 +16,7 @@ import { parseNumberLike } from '../../utils/number'
 import { isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
+import TabPane from './TabPane'
 
 const requestFrame =
   isFunction(requestAnimationFrame)
@@ -29,7 +30,7 @@ interface ParsedPane extends TabPaneProps {
 }
 
 const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> =>
-  React.isValidElement(child)
+  React.isValidElement(child) && child.type === TabPane
 
 interface TabItemProps {
   pane: ParsedPane
@@ -256,22 +257,21 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
 const TabBarItem = React.memo(TabBarItemInner)
 
 const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref) => {
-  const { tokensOverride } = props
-  const tokens = useTabsTokens(tokensOverride)
   const {
+    tokensOverride,
     children,
-    type = tokens.defaults.type,
-    align = tokens.defaults.align,
-    ellipsis = tokens.defaults.ellipsis,
-    swipeThreshold = tokens.defaults.swipeThreshold,
-    animated = tokens.defaults.animated,
-    duration = tokens.defaults.duration,
-    lazyRender = tokens.defaults.lazyRender,
+    type: typeProp,
+    align: alignProp,
+    ellipsis: ellipsisProp,
+    swipeThreshold: swipeThresholdProp,
+    animated: animatedProp,
+    duration: durationProp,
+    lazyRender: lazyRenderProp,
     lazyRenderPlaceholder,
     scrollable: scrollableProp,
     swipeable,
     color,
-    background = tokens.tabList.background,
+    background: backgroundProp,
     border,
     navLeft,
     navRight,
@@ -292,10 +292,22 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     ...rest
   } = props
 
-  const resolvedLineWidth = parseNumberLike(lineWidth ?? tokens.indicator.width)
-  const resolvedLineHeight = parseNumberLike(lineHeight) ?? tokens.indicator.height
-  const resolvedDuration = parseNumberLike(duration) ?? tokens.defaults.duration
-  const resolvedSwipeThreshold = parseNumberLike(swipeThreshold) ?? tokens.defaults.swipeThreshold
+  const tokens = useTabsTokens(tokensOverride)
+
+  const type = typeProp ?? tokens.defaults.type
+  const align = alignProp ?? tokens.defaults.align
+  const ellipsis = ellipsisProp ?? tokens.defaults.ellipsis
+  const swipeThreshold = swipeThresholdProp ?? tokens.defaults.swipeThreshold
+  const animated = animatedProp ?? tokens.defaults.animated
+  const duration = durationProp ?? tokens.defaults.duration
+  const lazyRender = lazyRenderProp ?? tokens.defaults.lazyRender
+  const background = backgroundProp ?? tokens.tabList.background
+
+  const parsedLineWidth = parseNumberLike(lineWidth ?? tokens.indicator.width)
+  const resolvedLineWidth = parsedLineWidth != null && parsedLineWidth < 0 ? undefined : parsedLineWidth
+  const resolvedLineHeight = Math.max(0, parseNumberLike(lineHeight) ?? tokens.indicator.height)
+  const resolvedDuration = Math.max(0, parseNumberLike(duration) ?? tokens.defaults.duration)
+  const resolvedSwipeThreshold = Math.max(0, parseNumberLike(swipeThreshold) ?? tokens.defaults.swipeThreshold)
   const swipeableConfig = !swipeable
     ? undefined
     : isObject(swipeable)
@@ -307,19 +319,41 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const isSwipeable = !!swipeableConfig
 
   const panes = React.useMemo<ParsedPane[]>(() => {
-    return React.Children.toArray(children)
-      .map((child, index) => {
-        if (!isTabPaneElement(child)) return null
-        const paneProps = child.props
-        const name = paneProps.name ?? index
-        return {
-          ...paneProps,
-          key: child.key ?? name,
-          name,
-          index,
+    const result: ParsedPane[] = []
+    let paneIndex = 0
+
+    const walk = (nodes: React.ReactNode) => {
+      React.Children.forEach(nodes, (node) => {
+        if (!React.isValidElement(node)) return
+        const element = node as React.ReactElement<any>
+        if (element.type === React.Fragment) {
+          walk(element.props.children)
+          return
         }
+        if (!isTabPaneElement(element)) {
+          if (__DEV__) {
+            const childName =
+              typeof element.type === 'string'
+                ? element.type
+                : (element.type as any)?.displayName ?? (element.type as any)?.name ?? 'Unknown'
+            console.warn('[Tabs] children 只能是 <Tabs.TabPane />，已忽略：', childName)
+          }
+          return
+        }
+        const paneProps = element.props
+        const name = paneProps.name ?? paneIndex
+        result.push({
+          ...paneProps,
+          key: element.key ?? name,
+          name,
+          index: paneIndex,
+        })
+        paneIndex += 1
       })
-      .filter(Boolean) as ParsedPane[]
+    }
+
+    walk(children)
+    return result
   }, [children])
 
   const firstPaneName = panes[0]?.name

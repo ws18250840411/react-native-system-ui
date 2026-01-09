@@ -1,128 +1,56 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
 import { getHairlineWidth } from '../../utils/hairline'
 import { isFunction, isText } from '../../utils/validate'
-import type { TagProps, TagTokens } from './types'
-
-const buildTone = (
-  palette: Foundations['palette'],
-  key: keyof Foundations['palette'],
-  fallbackText?: string
-) => ({
-  background: palette[key][500],
-  text: fallbackText ?? palette[key].foreground ?? '#ffffff',
-})
-
-const createTagTokens = (foundations: Foundations): TagTokens => {
-  const { palette, radii, typography } = foundations
-
-  return {
-    defaults: {
-      type: 'default',
-      size: 'small',
-      plain: false,
-      round: false,
-      mark: false,
-    },
-    toneMap: {
-      default: buildTone(palette, 'default', '#ffffff'),
-      primary: buildTone(palette, 'primary'),
-      success: buildTone(palette, 'success'),
-      warning: buildTone(palette, 'warning', palette.warning.foreground ?? palette.warning[900]),
-      danger: buildTone(palette, 'danger'),
-    },
-    sizes: {
-      mini: {
-        fontSize: 10,
-        paddingHorizontal: 4,
-        paddingVertical: 0,
-        borderRadius: 2,
-        lineHeight: 16,
-      },
-      small: {
-        fontSize: 12,
-        paddingHorizontal: 4,
-        paddingVertical: 0,
-        borderRadius: 2,
-        lineHeight: 16,
-      },
-      medium: {
-        fontSize: 12,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        lineHeight: 16,
-      },
-      large: {
-        fontSize: 14,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4,
-        lineHeight: 16,
-      },
-    },
-    radius: {
-      round: radii.pill,
-      markLeading: radii.none,
-    },
-    colors: {
-      plainBackground: '#ffffff',
-    },
-    close: {
-      size: 12,
-      gap: 2,
-    },
-    typography: {
-      fontFamily: typography.fontFamily,
-      lineHeightMultiplier: typography.lineHeightMultiplier,
-      fontWeight: typography.weight.medium,
-    },
-  }
-}
-
-const useTagTokens = createComponentTokensHook('tag', createTagTokens)
+import { useTagTokens } from './tokens'
+import type { TagProps } from './types'
 
 export const Tag: React.FC<TagProps> = props => {
-  const tokens = useTagTokens(props.tokensOverride)
   const {
+    tokensOverride,
     children,
-    type = tokens.defaults.type,
-    size = tokens.defaults.size,
-    plain = tokens.defaults.plain,
-    round = tokens.defaults.round,
-    mark = tokens.defaults.mark,
+    type: typeProp,
+    size: sizeProp,
+    plain: plainProp,
+    round: roundProp,
+    mark: markProp,
     color,
     textColor,
-    show = true,
+    show: showProp,
     closeable,
     closeIcon,
     onClose,
     onPress,
     textStyle,
     style,
-    tokensOverride: _tokensOverride,
     ...rest
   } = props
+  const tokens = useTagTokens(tokensOverride)
+
+  const type = typeProp ?? tokens.defaults.type
+  const size = sizeProp ?? tokens.defaults.size
+  const plain = plainProp ?? tokens.defaults.plain
+  const round = roundProp ?? tokens.defaults.round
+  const mark = markProp ?? tokens.defaults.mark
+  const show = showProp ?? tokens.defaults.show
 
   if (!show) {
     return null
   }
 
-  const tone = tokens.toneMap[type] ?? tokens.toneMap.default
-  const sizeTokens = tokens.sizes[size]
+  const tone = tokens.colors.toneMap[type] ?? tokens.colors.toneMap.default
+  const sizeTokens = tokens.sizing.sizes[size]
   const backgroundColor = plain ? tokens.colors.plainBackground : color ?? tone.background
   const resolvedTextColor = textColor ?? (plain ? color ?? tone.background : tone.text)
 
   const borderColor = plain ? color ?? tone.background : 'transparent'
   const borderWidth = plain ? getHairlineWidth() : 0
 
-  const borderRadius = round ? tokens.radius.round : sizeTokens.borderRadius
+  const borderRadius = round ? tokens.radii.round : sizeTokens.borderRadius
   const baseContainerStyle: any[] = [
-    styles.container,
+    tokens.layout.container,
     {
       backgroundColor,
       paddingHorizontal: sizeTokens.paddingHorizontal,
@@ -132,10 +60,10 @@ export const Tag: React.FC<TagProps> = props => {
       borderColor,
     },
     mark && {
-      borderTopLeftRadius: tokens.radius.markLeading,
-      borderBottomLeftRadius: tokens.radius.markLeading,
-      borderTopRightRadius: tokens.radius.round,
-      borderBottomRightRadius: tokens.radius.round,
+      borderTopLeftRadius: tokens.radii.markLeading,
+      borderBottomLeftRadius: tokens.radii.markLeading,
+      borderTopRightRadius: tokens.radii.round,
+      borderBottomRightRadius: tokens.radii.round,
     },
     style,
   ]
@@ -164,31 +92,23 @@ export const Tag: React.FC<TagProps> = props => {
     !closeable ? null : (
       <Pressable
         accessibilityRole="button"
-        hitSlop={8}
-        style={[styles.close, { marginLeft: tokens.close.gap }]}
+        hitSlop={tokens.spacing.closeHitSlop}
+        style={[tokens.layout.close, { marginLeft: tokens.spacing.closeGap }]}
         onPress={event => {
           event.stopPropagation?.()
           onClose?.()
         }}
       >
         {isFunction(closeIcon)
-          ? closeIcon(resolvedTextColor, tokens.close.size)
-          : closeIcon ?? <Close size={tokens.close.size} fill={resolvedTextColor} color={resolvedTextColor} />}
+          ? closeIcon(resolvedTextColor, tokens.sizing.closeIconSize)
+          : closeIcon ?? (
+            <Close
+              color={resolvedTextColor}
+              size={tokens.sizing.closeIconSize}
+            />
+          )}
       </Pressable>
     )
-
-  if (onPress) {
-    return (
-      <Pressable
-        style={({ pressed }) => [...baseContainerStyle, { opacity: pressed ? 0.85 : 1 }]}
-        onPress={onPress}
-        {...rest}
-      >
-        {label}
-        {close}
-      </Pressable>
-    )
-  }
 
   return (
     <View style={baseContainerStyle} {...rest}>
@@ -197,17 +117,3 @@ export const Tag: React.FC<TagProps> = props => {
     </View>
   )
 }
-
-Tag.displayName = 'Tag'
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-  },
-  close: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-})

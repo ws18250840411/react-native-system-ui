@@ -18,7 +18,7 @@
 | --- | --- | --- | --- |
 | M0 基建封装 | Week 0-1 | 统一 tokens、overlay、aria hooks，补充主题文档 | `useAria*` Hook 集合、Overlay 管理器、动画预设、`docs/guide/architecture.md` 增补 |
 | M1 表单与输入 | Week 1-3 | 完成 Field/Input/Form + Checkbox/Radio/Switch/Stepper/Rate/Search/Selector/NumberKeyboard | 组件实现 + 单测 + docs（≥3 demo） |
-| M2 导航 & 行为 | Week 3-5 | Tabs/Tabbar/NavBar/Sidebar/IndexBar/DropdownMenu/Popover/ActionSheet/ShareSheet | Overlay/手势复用验证；通知/弹层交互一致 |
+| M2 导航 & 行为 | Week 3-5 | Tabs/Tabbar/NavBar/Sidebar/IndexBar/DropdownMenu/ActionSheet/ShareSheet | Overlay/手势复用验证；通知/弹层交互一致 |
 | M3 数据选择 & 列表 | Week 5-7 | Picker/DatetimePicker/Calendar/Cascader/Area/List/PullRefresh/SwipeCell/Swiper/Image/ImagePreview/Uploader/Skeleton | 列表滚动、懒加载、图片占位策略 |
 | M4 业务组件 & 发行 | Week 7+ | SubmitBar/Sku/ProductCard/Coupon/FloatingPanel/Ball/WaterMark 等；准备 beta/GA | 业务 demo、性能调优、Release Note、主题示例 |
 
@@ -36,7 +36,7 @@
 | 数值控件 | Stepper, Rate, Selector, NumberKeyboard | ⏳ 计划中 | P1 | 输入控件 | Rate 依赖手势与动画 |
 | 搜索 | Search | ✅ 已完成 | P1 | Field | 2025-11-29 交付，支持键盘搜索、取消按钮与自定义操作 |
 | 导航 | Tabs, Tabbar, NavBar, Sidebar, IndexBar | ⏳ 计划中 | P1 | Gesture/Scroll | Sticky 单独组件已下线，优先保障 Scrollspy 与 Tabbar SafeArea |
-| 弹层扩展 | ActionSheet, ShareSheet, DropdownMenu, Popover | ⏳ 计划中 | P1 | OverlayStack | 与 Popup 保持 API 一致 |
+| 弹层扩展 | ActionSheet, ShareSheet, DropdownMenu | ⏳ 计划中 | P1 | OverlayStack | 与 Popup 保持 API 一致 |
 | 数据选择 | Picker, DatetimePicker, Calendar, Cascader, Area | ⏳ 计划中 | P1 | useAriaListBox | 大部分依赖列滚动 |
 | 列表/刷新 | List, PullRefresh, SwipeCell, Swiper | ⏳ 计划中 | P1 | Gesture | SwipeCell 需左右滑手势 |
 | 媒体 | Image, ImagePreview, Uploader, Skeleton | ⏳ 计划中 | P1 | 基础动画 | Image 需占位/失败态 |

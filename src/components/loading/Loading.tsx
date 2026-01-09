@@ -3,56 +3,38 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  StyleSheet,
   Text,
   View,
 } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
 import { isText } from '../../utils/validate'
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { LoadingProps, LoadingTokens } from './types'
-
-const createLoadingTokens = (foundations: Foundations): LoadingTokens => ({
-  defaults: {
-    type: 'circular',
-    size: 30,
-    textSize: foundations.fontSize.sm,
-    vertical: false,
-  },
-  colors: {
-    indicator: foundations.palette.default[400],
-    text: foundations.palette.default[500],
-  },
-  spinner: {
-    lineWidth: 2,
-    lineLength: 8,
-    itemCount: 12,
-    innerGapRatio: 0.25,
-  },
-  spacing: {
-    gap: foundations.spacing.sm,
-  },
-})
-
-const useLoadingTokens = createComponentTokensHook('loading', createLoadingTokens)
+import type { LoadingProps } from './types'
+import { useLoadingTokens } from './tokens'
 
 export const Loading: React.FC<LoadingProps> = props => {
-  const tokens = useLoadingTokens(props.tokensOverride)
   const {
-    color = tokens.colors.indicator,
-    size = tokens.defaults.size,
-    textSize = tokens.defaults.textSize,
-    textColor = tokens.colors.text,
-    type = tokens.defaults.type,
-    vertical = tokens.defaults.vertical,
+    tokensOverride,
+    color: colorProp,
+    size: sizeProp,
+    textSize: textSizeProp,
+    textColor: textColorProp,
+    type: typeProp,
+    vertical: verticalProp,
     style,
     textStyle,
     contentStyle,
     children,
     ...rest
   } = props
+
+  const tokens = useLoadingTokens(tokensOverride)
+  const color = colorProp ?? tokens.colors.indicator
+  const size = sizeProp ?? tokens.defaults.size
+  const textSize = textSizeProp ?? tokens.defaults.textSize
+  const textColor = textColorProp ?? tokens.colors.text
+  const type = typeProp ?? tokens.defaults.type
+  const vertical = verticalProp ?? tokens.defaults.vertical
 
   const spinValue = React.useRef(new Animated.Value(0)).current
 
@@ -75,14 +57,17 @@ export const Loading: React.FC<LoadingProps> = props => {
   const renderSpinner = () => {
     const innerGap = Math.min(
       size / 2 - 1,
-      Math.max(0, tokens.spinner.innerGapRatio * size)
+      Math.max(0, tokens.sizing.spinner.innerGapRatio * size)
     )
     const scaledLength =
-      (size / tokens.defaults.size) * tokens.spinner.lineLength
+      (size / tokens.defaults.size) * tokens.sizing.spinner.lineLength
     const maxLength = Math.max(2, size / 2 - innerGap)
     const lineLength = Math.max(
       2,
-      Math.min(maxLength, Math.max(tokens.spinner.lineLength, scaledLength))
+      Math.min(
+        maxLength,
+        Math.max(tokens.sizing.spinner.lineLength, scaledLength)
+      )
     )
 
     return (
@@ -100,15 +85,16 @@ export const Loading: React.FC<LoadingProps> = props => {
           ],
         }}
       >
-        {Array.from({ length: tokens.spinner.itemCount }, (_, index) => {
-          const angle = (index * 360) / tokens.spinner.itemCount
-          const opacity = 0.2 + (index / tokens.spinner.itemCount) * 0.8
+        {Array.from({ length: tokens.sizing.spinner.itemCount }, (_, index) => {
+          const angle = (index * 360) / tokens.sizing.spinner.itemCount
+          const opacity =
+            0.2 + (index / tokens.sizing.spinner.itemCount) * 0.8
           return (
             <View
               key={index}
               pointerEvents="none"
               style={[
-                styles.spinnerItem,
+                tokens.layout.spinnerItem,
                 {
                   transform: [{ rotate: `${angle}deg` }],
                 },
@@ -117,9 +103,9 @@ export const Loading: React.FC<LoadingProps> = props => {
               <View
                 style={[
                   {
-                    width: tokens.spinner.lineWidth,
+                    width: tokens.sizing.spinner.lineWidth,
                     height: lineLength,
-                    borderRadius: tokens.spinner.lineWidth / 2,
+                    borderRadius: tokens.sizing.spinner.lineWidth / 2,
                     backgroundColor: color,
                     opacity,
                     marginTop: size / 2 - lineLength - innerGap,
@@ -145,6 +131,7 @@ export const Loading: React.FC<LoadingProps> = props => {
     isText(children) ? (
       <Text
         style={[
+          tokens.layout.text,
           textSpacingStyle,
           {
             fontSize: textSize,
@@ -163,9 +150,9 @@ export const Loading: React.FC<LoadingProps> = props => {
   return (
     <View
       style={[
+        tokens.layout.container,
         {
           flexDirection: vertical ? 'column' : 'row',
-          alignItems: 'center',
           justifyContent: vertical ? 'center' : 'flex-start',
         },
         style,
@@ -179,11 +166,3 @@ export const Loading: React.FC<LoadingProps> = props => {
 }
 
 Loading.displayName = 'Loading'
-
-const styles = StyleSheet.create({
-  spinnerItem: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-})

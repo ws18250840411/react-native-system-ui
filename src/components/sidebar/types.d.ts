@@ -2,7 +2,45 @@ import type * as React from 'react'
 import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { SidebarTokens } from './tokens'
+
+export interface SidebarTokens {
+  defaults: {
+    disabled: boolean
+  }
+  layout: {
+    container: ViewStyle
+    side: ViewStyle
+    content: ViewStyle
+    item: ViewStyle
+    indicatorWrapper: ViewStyle
+    itemContent: ViewStyle
+    indicator: ViewStyle
+    titleRow: ViewStyle
+    badge: ViewStyle
+    dot: ViewStyle
+    title: TextStyle
+  }
+  colors: {
+    background: string
+    border: string
+    title: string
+    titleActive: string
+    disabled: string
+    indicator: string
+  }
+  typography: {
+    fontSize: number
+    fontWeight: string | number
+  }
+  sizing: {
+    width: number
+    itemHeight: number
+    indicatorWidth: number
+  }
+  borders: {
+    width: number
+  }
+}
 
 export interface SidebarProps extends Omit<ViewProps, 'children'> {
   value?: number

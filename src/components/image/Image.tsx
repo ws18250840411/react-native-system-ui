@@ -87,15 +87,15 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     height,
     radius,
     round,
-    fit = 'cover',
-    showLoading = true,
-    showError = true,
-    loadingText = '加载中…',
+    fit: fitProp,
+    showLoading: showLoadingProp,
+    showError: showErrorProp,
+    loadingText: loadingTextProp,
     loadingIcon,
     errorIcon,
-    iconSize,
+    iconSize: iconSizeProp,
     loadingSize,
-    errorText = '加载失败',
+    errorText: errorTextProp,
     fallback,
     onPress,
     alt,
@@ -109,6 +109,11 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   } = props
 
   const tokens = useImageTokens(tokensOverride)
+  const fit = fitProp ?? tokens.defaults.fit
+  const showLoading = showLoadingProp ?? tokens.defaults.showLoading
+  const showError = showErrorProp ?? tokens.defaults.showError
+  const loadingText = loadingTextProp ?? tokens.defaults.loadingText
+  const errorText = errorTextProp ?? tokens.defaults.errorText
   const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = React.useMemo(
     () => splitImageStyle(style),
     [style]
@@ -161,15 +166,15 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     isString(normalizedUri) &&
     (normalizedUri.endsWith('.svg') || normalizedUri.includes('.svg?') || normalizedUri.includes('/svg?'))
 
-  const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : 20
-  const resolvedErrorIconSize = iconSize ?? 20
+  const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize
+  const resolvedErrorIconSize = iconSizeProp ?? tokens.defaults.iconSize
   const Container = (onPress ? Pressable : View) as any
 
   const renderLabel = (node: React.ReactNode, color: string, marginTop?: number) => {
     if (node == null || node === false) return null
     if (isText(node)) {
       return (
-        <Text style={[styles.text, { color }, marginTop ? { marginTop } : null]}>
+        <Text style={[tokens.layout.label, { color }, marginTop ? { marginTop } : null]}>
           {node}
         </Text>
       )
@@ -181,29 +186,27 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     <Container
       onPress={onPress}
       style={[
+        tokens.layout.container,
         {
           width,
           height,
           backgroundColor: tokens.colors.background,
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
         },
-        round ? { borderRadius: 9999 } : isNumber(radius) ? { borderRadius: radius } : undefined,
+        round ? { borderRadius: tokens.defaults.roundRadius } : isNumber(radius) ? { borderRadius: radius } : undefined,
         containerStyle,
         containerLayoutStyle,
       ]}
     >
       {status === 'loading' && showLoading ? (
-        <View style={styles.overlay} pointerEvents="none" testID="rv-image-loading">
+        <View style={tokens.layout.overlay} pointerEvents="none" testID="rv-image-loading">
           {loadingIcon || (
             <ActivityIndicator
               color={tokens.colors.text}
               size={isString(loadingSize) ? loadingSize : 'small'}
-              style={{ transform: [{ scale: resolvedLoadingSize / 20 }] }}
+              style={{ transform: [{ scale: resolvedLoadingSize / tokens.defaults.loadingIndicatorBaseSize }] }}
             />
           )}
-          {renderLabel(loadingText, tokens.colors.text, 4)}
+          {renderLabel(loadingText, tokens.colors.text, tokens.defaults.loadingLabelMarginTop)}
         </View>
       ) : null}
       {actualSource ? (
@@ -215,7 +218,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             preserveAspectRatio={resolvePreserveAspectRatio(fit)}
             accessibilityLabel={alt}
             {...rest}
-            style={[StyleSheet.absoluteFill, imageStyleWithoutLayout]}
+            style={[tokens.layout.absoluteFill, imageStyleWithoutLayout]}
             onLoad={handleSvgLoad}
             onError={handleSvgError}
           />
@@ -225,7 +228,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             accessibilityLabel={alt}
             {...rest}
             source={actualSource}
-            style={[StyleSheet.absoluteFill, imageStyleWithoutLayout]}
+            style={[tokens.layout.absoluteFill, imageStyleWithoutLayout]}
             resizeMode={resolveFitMode(fit)}
             onLoad={handleLoad}
             onError={handleError}
@@ -233,15 +236,13 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
         )
       ) : null}
       {status === 'error' && showError ? (
-        <View style={styles.overlay} pointerEvents="none" testID="rv-image-error">
+        <View style={tokens.layout.overlay} pointerEvents="none" testID="rv-image-error">
           {errorIcon ? (
             <View
-              style={{
-                width: resolvedErrorIconSize,
-                height: resolvedErrorIconSize,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              style={[
+                tokens.layout.iconContainer,
+                { width: resolvedErrorIconSize, height: resolvedErrorIconSize },
+              ]}
             >
               {errorIcon}
             </View>
@@ -254,17 +255,6 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
       {children}
     </Container>
   )
-})
-
-const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    fontSize: 12,
-  },
 })
 
 Image.displayName = 'Image'

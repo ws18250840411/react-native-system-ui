@@ -1,10 +1,35 @@
 import type * as React from 'react'
-import type { ImageProps as RNImageProps, ImageSourcePropType, StyleProp, ViewStyle } from 'react-native'
+import type { ImageProps as RNImageProps, ImageSourcePropType, StyleProp, TextStyle, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { ImageTokens } from './tokens'
 
 export type ImageFit = 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
+
+export interface ImageTokens {
+  defaults: {
+    fit: ImageFit
+    showLoading: boolean
+    showError: boolean
+    loadingText: React.ReactNode
+    errorText: React.ReactNode
+    iconSize: number
+    loadingIndicatorBaseSize: number
+    loadingLabelMarginTop: number
+    roundRadius: number
+  }
+  layout: {
+    container: ViewStyle
+    overlay: ViewStyle
+    label: TextStyle
+    iconContainer: ViewStyle
+    absoluteFill: ViewStyle
+  }
+  colors: {
+    background: string
+    text: string
+    error: string
+  }
+}
 
 export interface ImageProps extends Omit<RNImageProps, 'source' | 'width' | 'height'> {
   src?: string

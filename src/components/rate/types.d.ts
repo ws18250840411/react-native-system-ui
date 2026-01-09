@@ -2,7 +2,33 @@ import type React from 'react'
 import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { RateTokens } from './tokens'
+
+export interface RateTokens {
+  defaults: {
+    count: number
+    allowHalf: boolean
+    size: number
+    gutter: number
+    touchable: boolean
+    disabled: boolean
+    readOnly: boolean
+  }
+  layout: {
+    container: ViewStyle
+    item: ViewStyle
+    iconBox: ViewStyle
+    character: TextStyle
+    fill: ViewStyle
+  }
+  colors: {
+    active: string
+    inactive: string
+    disabled: string
+  }
+  states: {
+    pressedOpacity: number
+  }
+}
 
 export interface RateProps extends Omit<ViewProps, 'onChange'> {
   value?: number

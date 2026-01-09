@@ -1,4 +1,4 @@
-import type { ViewProps } from 'react-native'
+import type { TextStyle, ViewProps, ViewStyle } from 'react-native'
 import React from 'react'
 
 import type { DeepPartial } from '../../types'
@@ -6,6 +6,26 @@ import type { DeepPartial } from '../../types'
 export type PaginationMode = 'multi' | 'simple'
 
 export interface PaginationTokens {
+  defaults: {
+    mode: PaginationMode
+    pageCount: number
+    totalItems: number
+    itemsPerPage: number
+    showPageSize: number
+    forceEllipses: boolean
+    prevText: React.ReactNode
+    nextText: React.ReactNode
+    defaultPage: number
+    pressedOpacity: number
+    disabledOpacity: number
+  }
+  layout: {
+    container: ViewStyle
+    pages: ViewStyle
+    item: ViewStyle
+    control: ViewStyle
+    desc: TextStyle
+  }
   colors: {
     text: string
     disabled: string
@@ -13,12 +33,22 @@ export interface PaginationTokens {
     activeBackground: string
     border: string
   }
+  typography: {
+    fontWeight: TextStyle['fontWeight']
+    activeFontWeight: TextStyle['fontWeight']
+  }
+  radii: {
+    item: number
+  }
+  borders: {
+    width: number
+  }
   spacing: {
     gap: number
     paddingX: number
     paddingY: number
+    descMarginHorizontal: number
   }
-  radius: number
 }
 
 export interface PaginationPageItem {

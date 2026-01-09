@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Pressable,
-  StyleSheet,
   Text,
   View,
   type StyleProp,
@@ -14,72 +13,8 @@ import { useAriaPress, useHairline } from '../../hooks'
 import { isRenderable, isText } from '../../utils/validate'
 
 import { CellGroupContext } from './CellContext'
-import { useCellTokens, type CellTokens } from './tokens'
+import { useCellTokens } from './tokens'
 import type { CellProps } from './types'
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  center: {
-    alignItems: 'center',
-  },
-  body: {
-    minWidth: 0,
-    flexDirection: 'column',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  value: {
-    textAlign: 'right',
-  },
-  valueOnly: {
-    textAlign: 'left',
-  },
-  valueContainer: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  valueOnlyContainer: {
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-  },
-  valueCenter: {
-    alignItems: 'center',
-  },
-  customContent: {
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  iconWrapper: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rightIconWrapper: {
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  hairline: {
-    position: 'absolute',
-    bottom: 0,
-  },
-})
-
-const arrowTransforms: Record<'left' | 'right' | 'up' | 'down', ViewStyle> = {
-  left: { transform: [{ rotate: '180deg' }] },
-  right: {},
-  up: { transform: [{ rotate: '-90deg' }] },
-  down: { transform: [{ rotate: '90deg' }] },
-}
 
 interface TextOrViewProps {
   children: React.ReactNode
@@ -113,13 +48,13 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       extra,
       icon,
       rightIcon,
-      border = true,
+      border: borderProp,
       clickable,
       isLink,
       required,
       center,
-      size = 'normal',
-      arrowDirection = 'right',
+      size: sizeProp,
+      arrowDirection: arrowDirectionProp,
       tokensOverride,
       children,
       style,
@@ -135,6 +70,9 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
 
     const tokens = useCellTokens(tokensOverride)
     const group = React.useContext(CellGroupContext)
+    const border = borderProp ?? tokens.defaults.border
+    const size = sizeProp ?? tokens.defaults.size
+    const arrowDirection = arrowDirectionProp ?? tokens.defaults.arrowDirection
     const lineHeight = tokens.typography.lineHeight
 
     const hasTitle = isRenderable(title)
@@ -156,32 +94,22 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
         !!rest.onPressIn ||
         !!rest.onPressOut)
 
-    const baseContainerStyle = {
-      backgroundColor: tokens.container.background,
-      paddingVertical:
-        size === 'large'
-          ? tokens.container.largePaddingVertical
-          : tokens.container.paddingVertical,
-      paddingHorizontal: tokens.container.paddingHorizontal,
-    }
-
     const containerStyles: StyleProp<ViewStyle> = [
-      styles.container,
-      baseContainerStyle,
-      center && styles.center,
+      size === 'large' ? tokens.layout.containerLarge : tokens.layout.container,
+      center && tokens.layout.center,
       style,
     ]
 
     const hairline = useHairline({
       show: showBorder,
       containerStyle: containerStyles,
-      color: tokens.border.color,
-      width: tokens.border.width,
-      defaultPaddingHorizontal: tokens.container.paddingHorizontal,
+      color: tokens.colors.border,
+      width: tokens.borders.width,
+      defaultPaddingHorizontal: tokens.sizing.paddingHorizontal,
     })
 
     const customContentStyle = [
-      styles.customContent,
+      tokens.layout.customContent,
       { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] },
       contentStyle,
     ]
@@ -191,11 +119,11 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
         {hasIcon && (
           <View
             style={[
-              styles.iconWrapper,
+              tokens.layout.iconWrapper,
               {
                 marginRight: tokens.spacing.iconGap,
-                minHeight: tokens.icon.size,
-                minWidth: tokens.icon.size,
+                minHeight: tokens.sizing.iconSize,
+                minWidth: tokens.sizing.iconSize,
               },
             ]}
           >
@@ -203,13 +131,13 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
           </View>
         )}
 
-        <View style={styles.body}>
+        <View style={tokens.layout.body}>
           {(hasTitle || required) && (
-            <View style={[styles.titleRow, { minHeight: lineHeight }]}>
+            <View style={[tokens.layout.titleRow, { minHeight: lineHeight }]}>
               {required && (
                 <Text
                   style={{
-                    color: tokens.typography.requiredColor,
+                    color: tokens.colors.required,
                     marginRight: tokens.spacing.iconGap / 2,
                   }}
                 >
@@ -220,7 +148,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
                 <TextOrView
                   textStyle={[
                     {
-                      color: tokens.typography.titleColor,
+                      color: tokens.colors.title,
                       fontSize:
                         size === 'large'
                           ? tokens.typography.largeTitleSize
@@ -243,7 +171,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
               textStyle={[
                 {
                   marginTop: tokens.spacing.labelMarginTop,
-                  color: tokens.typography.labelColor,
+                  color: tokens.colors.label,
                   fontSize:
                     size === 'large'
                       ? tokens.typography.largeLabelSize
@@ -264,19 +192,19 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
 
         <View
           style={[
-            styles.valueContainer,
+            tokens.layout.valueContainer,
             { minHeight: lineHeight, marginLeft: tokens.spacing.valueGap },
-            !center && onlyValue && styles.valueOnlyContainer,
-            center && styles.valueCenter,
+            !center && onlyValue && tokens.layout.valueOnlyContainer,
+            center && tokens.layout.valueCenter,
           ]}
         >
           {hasValue ? (
             <TextOrView
               textStyle={[
-                styles.value,
-                onlyValue && styles.valueOnly,
+                tokens.layout.value,
+                onlyValue && tokens.layout.valueOnly,
                 {
-                  color: tokens.typography.valueColor,
+                  color: tokens.colors.value,
                   fontSize:
                     size === 'large'
                       ? tokens.typography.largeValueSize
@@ -298,7 +226,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
           <TextOrView
             textStyle={{
               marginLeft: tokens.spacing.extraGap,
-              color: tokens.typography.valueColor,
+              color: tokens.colors.value,
               fontSize:
                 size === 'large'
                   ? tokens.typography.largeValueSize
@@ -313,8 +241,8 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
         {hasRightIcon ? (
           rightIcon
         ) : showArrow ? (
-          <View style={[styles.rightIconWrapper, arrowTransforms[arrowDirection]]}>
-            <Arrow size={tokens.arrow.size} fill={tokens.arrow.color} />
+          <View style={[tokens.layout.rightIconWrapper, tokens.layout.arrowTransforms[arrowDirection]]}>
+            <Arrow size={tokens.sizing.arrowSize} fill={tokens.colors.arrow} />
           </View>
         ) : null}
       </>
@@ -329,7 +257,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
     const Component = isInteractive ? Pressable : View
     const componentProps = isInteractive
       ? {
-        android_ripple: android_ripple ?? { color: tokens.container.rippleColor },
+        android_ripple: android_ripple ?? { color: tokens.colors.ripple },
         accessibilityRole: 'button' as const,
         ...interactionProps,
       }
@@ -340,7 +268,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
         ref={ref}
         style={[
           containerStyles,
-          isInteractive && states.pressed && { opacity: tokens.container.activeOpacity },
+          isInteractive && states.pressed && { opacity: tokens.defaults.activeOpacity },
         ]}
         {...componentProps}
         {...rest}

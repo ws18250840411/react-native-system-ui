@@ -2,6 +2,7 @@ import React from 'react'
 
 import Picker from '../picker'
 import { Popup } from '../popup/Popup'
+import { useControllableValue } from '../../hooks'
 import { clamp } from '../../utils/number'
 import { getMonthEndDay, getTrueValue, isValidDate, padZero, times } from '../../utils/date'
 import { isString } from '../../utils/validate'
@@ -17,28 +18,62 @@ const DEFAULT_MIN_DATE = new Date(currentYear - 10, 0, 1)
 const DEFAULT_MAX_DATE = new Date(currentYear + 10, 11, 31)
 
 const DatetimePicker: React.FC<DatetimePickerProps> = props => {
-  const {
-    popup,
-    popupVisible,
-    defaultPopupVisible,
-    popupProps,
-    onPopupVisibleChange,
-    onConfirm,
-    onCancel,
-    ...rest
-  } = props as any
+  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
+    defaultValue: false,
+    valuePropName: 'popupVisible',
+    defaultValuePropName: 'defaultPopupVisible',
+    trigger: 'onPopupVisibleChange',
+  })
 
-  const [innerVisible, setInnerVisible] = React.useState(defaultPopupVisible ?? false)
-  const mergedVisible = popupVisible ?? innerVisible
+  const close = () => setPopupVisible(false)
 
-  const setVisible = (visible: boolean) => {
-    if (popupVisible === undefined) setInnerVisible(visible)
-    onPopupVisibleChange?.(visible)
+  if (props.type === 'time') {
+    const {
+      popup,
+      popupVisible: _popupVisible,
+      defaultPopupVisible: _defaultPopupVisible,
+      popupProps,
+      onPopupVisibleChange: _onPopupVisibleChange,
+      onConfirm,
+      onCancel,
+      ...pickerProps
+    } = props
+
+    const handleConfirm = (value: string) => {
+      onConfirm?.(value)
+      if (popup) close()
+    }
+
+    const handleCancel = () => {
+      onCancel?.()
+      if (popup) close()
+    }
+
+    const pickerNode = (
+      <TimePicker {...pickerProps} onConfirm={handleConfirm} onCancel={handleCancel} />
+    )
+
+    if (!popup) return pickerNode
+
+    return (
+      <Popup visible={popupVisible} onClose={close} placement="bottom" round {...popupProps}>
+        {pickerNode}
+      </Popup>
+    )
   }
 
-  const close = () => setVisible(false)
+  const {
+    popup,
+    popupVisible: _popupVisible,
+    defaultPopupVisible: _defaultPopupVisible,
+    popupProps,
+    onPopupVisibleChange: _onPopupVisibleChange,
+    onConfirm,
+    onCancel,
+    ...pickerProps
+  } = props
 
-  const handleConfirm = (value: any) => {
+  const handleConfirm = (value: Date) => {
     onConfirm?.(value)
     if (popup) close()
   }
@@ -48,17 +83,14 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
     if (popup) close()
   }
 
-  const pickerNode =
-    props.type === 'time' ? (
-      <TimePicker {...(rest as any)} onConfirm={handleConfirm} onCancel={handleCancel} />
-    ) : (
-      <DatePicker {...(rest as any)} onConfirm={handleConfirm} onCancel={handleCancel} />
-    )
+  const pickerNode = (
+    <DatePicker {...pickerProps} onConfirm={handleConfirm} onCancel={handleCancel} />
+  )
 
   if (!popup) return pickerNode
 
   return (
-    <Popup visible={mergedVisible} onClose={close} placement="bottom" round {...popupProps}>
+    <Popup visible={popupVisible} onClose={close} placement="bottom" round {...popupProps}>
       {pickerNode}
     </Popup>
   )
@@ -66,7 +98,7 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
 
 const DatePicker: React.FC<DatetimePickerDateProps> = props => {
   const {
-    type = "datetime",
+    type = 'datetime',
     minDate = DEFAULT_MIN_DATE,
     maxDate = DEFAULT_MAX_DATE,
     formatter = (_type, value) => value,
@@ -258,8 +290,10 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
 
 const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
   const {
+    type: _type,
     formatter = (_type, value) => value,
     filter,
+    columnsOrder: _columnsOrder,
     minHour = 0,
     maxHour = 23,
     minMinute = 0,

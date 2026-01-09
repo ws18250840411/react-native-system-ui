@@ -116,15 +116,13 @@ const mapKeyboardType = (type: FieldProps['type']): TextInputProps['keyboardType
 }
 
 export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) => {
-  const tokens = useFieldTokens(props.tokensOverride)
-
   const {
-    tokensOverride: _tokensOverride,
+    tokensOverride,
     label,
-    labelWidth = tokens.defaults.labelWidth,
-    labelAlign = tokens.defaults.labelAlign,
-    inputAlign: inputAlignProp = tokens.defaults.inputAlign,
-    controlAlign = tokens.defaults.controlAlign,
+    labelWidth: labelWidthProp,
+    labelAlign: labelAlignProp,
+    inputAlign: inputAlignProp,
+    controlAlign: controlAlignProp,
     required = false,
     colon = false,
     intro,
@@ -136,7 +134,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     disabled = false,
     readOnly = false,
     clearable = false,
-    clearTrigger = tokens.defaults.clearTrigger,
+    clearTrigger: clearTriggerProp,
     clearIcon,
     leftIcon,
     rightIcon,
@@ -147,10 +145,10 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     value: valueProp,
     defaultValue = '',
     type = 'text',
-    rows = tokens.defaults.rows,
+    rows: rowsProp,
     autoSize = false,
     formatter,
-    formatTrigger = tokens.defaults.formatTrigger,
+    formatTrigger: formatTriggerProp,
     showWordLimit = false,
     onOverlimit,
     onClear,
@@ -181,6 +179,17 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     maxLength,
     ...restInputProps
   } = props
+
+  const tokens = useFieldTokens(tokensOverride)
+
+  const labelWidth = labelWidthProp ?? tokens.defaults.labelWidth
+  const labelAlign = labelAlignProp ?? tokens.defaults.labelAlign
+  const inputAlign = inputAlignProp ?? tokens.defaults.inputAlign
+  const controlAlign = controlAlignProp ?? tokens.defaults.controlAlign
+  const clearTrigger = clearTriggerProp ?? tokens.defaults.clearTrigger
+  const rows = rowsProp ?? tokens.defaults.rows
+  const formatTrigger = formatTriggerProp ?? tokens.defaults.formatTrigger
+
   const mergedTitleStyle = [
     {
       width: labelWidth,

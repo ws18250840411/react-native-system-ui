@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
+import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useRadioGroup } from '@react-native-aria/radio'
 import { useRadioGroupState } from '@react-stately/radio'
 
@@ -12,8 +12,8 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     value,
     defaultValue,
     onChange,
-    disabled = false,
-    direction = 'vertical',
+    disabled: disabledProp,
+    direction: directionProp,
     iconSize,
     checkedColor,
     labelDisabled,
@@ -28,6 +28,8 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   } = props
 
   const tokens = useRadioTokens(tokensOverride)
+  const disabled = disabledProp ?? tokens.defaults.groupDisabled
+  const direction = directionProp ?? tokens.defaults.groupDirection
   const gap = gapProp ?? tokens.spacing.groupGap
 
   const registryRef = React.useRef(new Map<string, RadioValue>())
@@ -67,16 +69,18 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   const supportsGap = Platform.OS === 'web'
   const childrenArray = React.Children.toArray(children).filter(Boolean)
   const itemStyleForIndex = (index: number): StyleProp<ViewStyle> => {
-    if (supportsGap) return styles.item
+    if (supportsGap) return tokens.layout.groupItem
 
     const isLast = index === childrenArray.length - 1
     if (direction === 'horizontal') {
       return [
-        styles.item,
+        tokens.layout.groupItem,
         !isLast && { marginRight: gap },
       ]
     }
-    return isLast ? styles.item : [styles.item, { marginBottom: gap }]
+    return isLast
+      ? tokens.layout.groupItem
+      : [tokens.layout.groupItem, { marginBottom: gap }]
   }
 
   const containerGapStyle: ViewStyle | null = supportsGap
@@ -109,7 +113,9 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
         style={[
-          direction === 'horizontal' ? styles.horizontal : styles.vertical,
+          direction === 'horizontal'
+            ? tokens.layout.groupHorizontal
+            : tokens.layout.groupVertical,
           containerGapStyle,
           style,
         ]}
@@ -123,17 +129,3 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     </RadioGroupContext.Provider>
   )
 }
-
-const styles = StyleSheet.create({
-  horizontal: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-  },
-  vertical: {
-    flexDirection: 'column',
-  },
-  item: {
-    flexShrink: 0,
-  },
-})

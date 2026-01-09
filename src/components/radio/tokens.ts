@@ -1,40 +1,8 @@
+import { StyleSheet } from 'react-native'
+
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
-import type { RadioLabelPosition } from './types'
-
-export interface RadioTokens {
-  defaults: {
-    iconSize: number
-    labelPosition: RadioLabelPosition
-  }
-  colors: {
-    border: string
-    background: string
-    checkedBackground: string
-    disabledBorder: string
-    disabledBackground: string
-    checkmark: string
-    label: string
-    labelDisabled: string
-  }
-  typography: {
-    fontSize: number
-    fontFamily: string
-    fontWeight: string
-    lineHeightMultiplier: number
-  }
-  spacing: {
-    gap: number
-    groupGap: number
-  }
-  shape: {
-    roundRadius: number
-    squareRadius: number
-  }
-  icon: {
-    dotScale: number
-  }
-}
+import type { RadioTokens } from './types'
 
 const createRadioTokens = (foundations: Foundations): RadioTokens => {
   const { palette, spacing, fontSize, typography } = foundations
@@ -43,6 +11,41 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
     defaults: {
       iconSize: 20,
       labelPosition: 'right',
+      shape: 'round',
+      labelDisabled: false,
+      groupDisabled: false,
+      groupDirection: 'vertical',
+    },
+    layout: {
+      container: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      iconWrapper: {
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      labelWrapper: {
+        flexShrink: 1,
+      },
+      icon: {
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      label: {
+        includeFontPadding: false,
+      },
+      groupHorizontal: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+      },
+      groupVertical: {
+        flexDirection: 'column',
+      },
+      groupItem: {
+        flexShrink: 0,
+      },
     },
     colors: {
       border: palette.default[400],
@@ -60,16 +63,19 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
       fontWeight: String(typography.weight.medium),
       lineHeightMultiplier: typography.lineHeightMultiplier,
     },
+    sizing: {
+      dotScale: 0.5,
+    },
+    radii: {
+      round: 999,
+      square: 2,
+    },
+    borders: {
+      width: StyleSheet.hairlineWidth,
+    },
     spacing: {
       gap: spacing.sm,
       groupGap: spacing.sm,
-    },
-    shape: {
-      roundRadius: 999,
-      squareRadius: 2,
-    },
-    icon: {
-      dotScale: 0.5,
     },
   }
 }

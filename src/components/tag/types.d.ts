@@ -12,27 +12,36 @@ export interface TagTokens {
     plain: boolean
     round: boolean
     mark: boolean
+    show: boolean
+    pressedOpacity: number
   }
-  toneMap: Record<TagType, { background: string; text: string }>
-  sizes: Record<
-    TagSize,
-    { fontSize: number; paddingHorizontal: number; paddingVertical: number; borderRadius: number; lineHeight: number }
-  >
-  radius: {
-    round: number
-    markLeading: number
+  layout: {
+    container: ViewStyle
+    close: ViewStyle
   }
   colors: {
     plainBackground: string
-  }
-  close: {
-    size: number
-    gap: number
+    toneMap: Record<TagType, { background: string; text: string }>
   }
   typography: {
     fontFamily: string
     lineHeightMultiplier: number
     fontWeight: TextStyle['fontWeight']
+  }
+  sizing: {
+    sizes: Record<
+      TagSize,
+      { fontSize: number; paddingHorizontal: number; paddingVertical: number; borderRadius: number; lineHeight: number }
+    >
+    closeIconSize: number
+  }
+  radii: {
+    round: number
+    markLeading: number
+  }
+  spacing: {
+    closeGap: number
+    closeHitSlop: number
   }
 }
 

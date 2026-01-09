@@ -4,7 +4,6 @@ import {
   Animated,
   Easing,
   Pressable,
-  StyleSheet,
   View,
 } from 'react-native'
 
@@ -22,13 +21,13 @@ export const Switch: React.FC<SwitchProps> = props => {
   const {
     checked,
     defaultChecked,
-    disabled = false,
-    loading = false,
+    disabled: disabledProp,
+    loading: loadingProp,
     size,
     activeColor,
     inactiveColor,
-    activeValue = true,
-    inactiveValue = false,
+    activeValue: activeValueProp,
+    inactiveValue: inactiveValueProp,
     tokensOverride,
     onClick,
     onChange,
@@ -37,6 +36,10 @@ export const Switch: React.FC<SwitchProps> = props => {
   } = props
 
   const tokens = useSwitchTokens(tokensOverride)
+  const disabled = disabledProp ?? tokens.defaults.disabled
+  const loading = loadingProp ?? tokens.defaults.loading
+  const activeValue = activeValueProp ?? tokens.defaults.activeValue
+  const inactiveValue = inactiveValueProp ?? tokens.defaults.inactiveValue
   const resolvedSize = Math.max(0, parseNumber(size, tokens.defaults.size))
 
   const padding = Math.max(2, Math.round(resolvedSize * 0.07))
@@ -110,7 +113,7 @@ export const Switch: React.FC<SwitchProps> = props => {
       accessibilityState={{ checked: isChecked, disabled }}
       disabled={disabled}
       style={({ pressed }: any) => [
-        styles.container,
+        tokens.layout.container,
         { opacity: disabled ? tokens.opacity.disabled : pressed ? tokens.opacity.pressed : 1 },
         style,
       ]}
@@ -118,13 +121,13 @@ export const Switch: React.FC<SwitchProps> = props => {
     >
       <Animated.View
         style={[
-          styles.track,
+          tokens.layout.track,
           {
             width: trackWidth,
             height: trackHeight,
             borderRadius: trackHeight / 2,
             backgroundColor: animatedTrackColor,
-            borderWidth: Math.max(1, StyleSheet.hairlineWidth),
+            borderWidth: tokens.borders.width,
             borderColor: tokens.colors.border,
           },
           { pointerEvents: 'none' },
@@ -132,7 +135,7 @@ export const Switch: React.FC<SwitchProps> = props => {
       >
         <AnimatedHandle
           style={[
-            styles.handleOuter,
+            tokens.layout.handleOuter,
             shadowOuter,
             {
               width: handleSize,
@@ -147,7 +150,7 @@ export const Switch: React.FC<SwitchProps> = props => {
         >
           <View
             style={[
-              styles.handleInner,
+              tokens.layout.handleInner,
               shadowInner,
               {
                 borderRadius: handleSize / 2,
@@ -164,24 +167,6 @@ export const Switch: React.FC<SwitchProps> = props => {
     </Pressable>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  track: {
-    position: 'relative',
-  },
-  handleOuter: {
-    position: 'absolute',
-  },
-  handleInner: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-})
 
 Switch.displayName = 'Switch'
 

@@ -9,26 +9,33 @@ import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarProps, TabbarValue } from './types'
 
 const TabbarBase: React.FC<TabbarProps> = props => {
-  const tokens = useTabbarTokens(props.tokensOverride)
   const {
     children,
     value,
     defaultValue,
-    fixed = tokens.defaults.fixed,
-    border = tokens.defaults.border,
+    fixed: fixedProp,
+    border: borderProp,
     zIndex = 1,
     activeColor,
     inactiveColor,
-    background = tokens.colors.background,
-    placeholder = tokens.defaults.placeholder,
+    background: backgroundProp,
+    placeholder: placeholderProp,
     safeAreaInsetBottom,
-    iconSize = tokens.icon.size,
+    iconSize: iconSizeProp,
     tokensOverride,
     style,
     contentStyle,
     onChange,
     ...rest
   } = props
+
+  const tokens = useTabbarTokens(tokensOverride)
+
+  const fixed = fixedProp ?? tokens.defaults.fixed
+  const border = borderProp ?? tokens.defaults.border
+  const background = backgroundProp ?? tokens.colors.background
+  const placeholder = placeholderProp ?? tokens.defaults.placeholder
+  const iconSize = iconSizeProp ?? tokens.icon.size
 
   // 与 Vant 行为对齐：fixed 时默认开启 safe-area-inset-bottom
   const enableSafeAreaInsetBottom = safeAreaInsetBottom ?? fixed

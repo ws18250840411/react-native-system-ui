@@ -7,7 +7,6 @@ import type {
 } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { ButtonTokens } from './tokens'
 
 export type ButtonType = 'default' | 'primary' | 'success' | 'info' | 'warning' | 'danger'
 export type ButtonSize = 'large' | 'normal' | 'small' | 'mini'
@@ -21,6 +20,92 @@ export type ButtonIconRender = (
 ) => React.ReactNode
 
 export type ButtonLoadingType = 'circular' | 'spinner'
+export type ButtonLoadingSize = number | 'small' | 'large'
+
+export interface ButtonTokens {
+  defaults: {
+    type: ButtonType
+    size: ButtonSize
+    plain: boolean
+    block: boolean
+    round: boolean
+    square: boolean
+    hairline: boolean
+    iconPosition: ButtonIconPosition
+    mode: ButtonMode
+    loading: boolean
+    loadingType: ButtonLoadingType
+    loadingSize: ButtonLoadingSize
+    disabled: boolean
+    autoInsertSpace: boolean
+    uppercase: boolean
+    allowFontScaling: boolean
+  }
+  layout: {
+    base: ViewStyle
+    block: ViewStyle
+    content: ViewStyle
+    iconWrapper: ViewStyle
+    text: TextStyle
+  }
+  colors: {
+    ripple: string
+    backgroundTransparent: string
+    backgroundPlain: string
+    textDark: string
+    textLight: string
+    tones: Record<
+      ButtonType,
+      {
+        background: string
+        border: string
+        text: string
+        tonalBackground: string
+        tonalBorder: string
+        tonalText: string
+      }
+    >
+  }
+  typography: {
+    fontFamily: string
+    lineHeightMultiplier: number
+    fontWeight: TextStyle['fontWeight']
+  }
+  sizing: {
+    sizes: Record<
+      ButtonSize,
+      {
+        height: number
+        fontSize: number
+        paddingHorizontal: number
+        iconSize: number
+        radius: number
+      }
+    >
+  }
+  borders: {
+    width: number
+    hairlineWidth: number
+  }
+  spacing: {
+    iconGap: number
+  }
+  states: {
+    disabledOpacity: number
+    loadingOpacity: number
+    pressedOpacity: number
+  }
+  shadows: Record<
+    ButtonShadowLevel,
+    {
+      color: string
+      opacity: number
+      radius: number
+      offsetY: number
+      elevation: number
+    }
+  >
+}
 
 export interface ButtonProps
   extends Omit<PressableProps, 'style' | 'children'> {
@@ -42,7 +127,7 @@ export interface ButtonProps
   loadingText?: React.ReactNode
   loadingIndicator?: React.ReactNode
   loadingType?: ButtonLoadingType
-  loadingSize?: number | 'small' | 'large'
+  loadingSize?: ButtonLoadingSize
   disabled?: boolean
   autoInsertSpace?: boolean
   mode?: ButtonMode

@@ -27,11 +27,11 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
   const {
     tokensOverride,
     children,
-    type = 'default',
+    type: typeProp,
     color: colorProp,
-    size = 'md',
+    size: sizeProp,
     level,
-    disabled = false,
+    disabled: disabledProp,
     delete: deleted,
     underline,
     center,
@@ -42,6 +42,10 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     ...textProps
   } = props
   const tokens = useTypographyTokens(tokensOverride)
+
+  const type = typeProp ?? tokens.defaults.type
+  const size = sizeProp ?? tokens.defaults.size
+  const disabled = disabledProp ?? tokens.defaults.disabled
 
   const ellipsisRows = resolveEllipsisRows(ellipsis)
   const ellipsisConfig = isEllipsisObject(ellipsis) ? ellipsis : undefined
@@ -63,8 +67,12 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     const colorKey = String(colorProp) as TypographyType
     resolvedColor = tokens.colors[colorKey] ?? String(colorProp)
   }
-  const fontSize = level ? tokens.titles[level].fontSize : tokens.sizes[size]
-  const lineHeight = level ? tokens.titles[level].lineHeight : fontSize * 1.3
+  const fontSize = level
+    ? tokens.sizing.titles[level].fontSize
+    : tokens.sizing.sizes[size]
+  const lineHeight = level
+    ? tokens.sizing.titles[level].lineHeight
+    : fontSize * tokens.sizing.lineHeightMultiplier
 
   const baseStyle = React.useMemo<StyleProp<TextStyle>>(() => {
     const decorationLine = [
@@ -139,20 +147,20 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
   )
 
   if (!shouldShowAction) {
-    return center ? <View style={{ alignItems: 'center' }}>{textNode}</View> : textNode
+    return center ? <View style={tokens.layout.centerWrapper}>{textNode}</View> : textNode
   }
 
   const actionNode = (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
+    <View style={tokens.layout.actionRow}>
       {textNode}
       <Text
         onPress={handleToggleEllipsis}
         suppressHighlighting
         style={{
           color: tokens.colors.primary,
-          fontSize: tokens.sizes.sm,
+          fontSize: tokens.sizing.sizes.sm,
           fontWeight: tokens.typography.weight.medium as TextStyle['fontWeight'],
-          marginLeft: 4,
+          marginLeft: tokens.sizing.actionMarginLeft,
         }}
       >
         {actionLabel}
@@ -160,7 +168,7 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     </View>
   )
 
-  return center ? <View style={{ alignItems: 'center' }}>{actionNode}</View> : actionNode
+  return center ? <View style={tokens.layout.centerWrapper}>{actionNode}</View> : actionNode
 })
 
 TypographyTextBase.displayName = 'TypographyText'

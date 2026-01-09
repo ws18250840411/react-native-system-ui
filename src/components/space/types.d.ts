@@ -23,7 +23,12 @@ export interface SpaceTokens {
     wrap: boolean
     gapPreset: SpaceSizePreset
   }
-  presets: Record<SpaceSizePreset, number>
+  layout: {
+    container: ViewStyle
+  }
+  sizing: {
+    presets: Record<SpaceSizePreset, number>
+  }
 }
 
 export interface SpaceProps extends ViewProps {

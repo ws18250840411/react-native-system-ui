@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
+import { Pressable, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 
 import { isNumericLike } from '../../utils/number'
 import { isRenderable } from '../../utils/validate'
@@ -12,7 +12,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     content,
     color,
     textColor,
-    dot = false,
+    dot: dotProp,
     max,
     offset,
     showZero,
@@ -25,6 +25,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   } = props
 
   const tokens = useBadgeTokens(tokensOverride)
+  const dot = dotProp ?? tokens.defaults.dot
   const resolvedShowZero = showZero ?? tokens.defaults.showZero
   const hasChildren = React.Children.count(children) > 0
 
@@ -59,7 +60,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   const transformStyle = React.useMemo(() => {
     if (!hasChildren) return undefined
     if (dot) {
-      const half = tokens.sizes.dotSize / 2
+      const half = tokens.sizing.dotSize / 2
       return { transform: [{ translateX: half }, { translateY: -half }] }
     }
     if (size.width === 0) return { opacity: 0 }
@@ -69,24 +70,24 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
         { translateY: -size.height / 2 },
       ],
     }
-  }, [hasChildren, dot, tokens.sizes.dotSize, size.width, size.height])
+  }, [hasChildren, dot, tokens.sizing.dotSize, size.width, size.height])
 
   const baseBadgeStyle = React.useMemo(() => {
     if (dot) {
       return {
-        width: tokens.sizes.dotSize,
-        height: tokens.sizes.dotSize,
-        borderRadius: tokens.sizes.dotSize / 2,
+        width: tokens.sizing.dotSize,
+        height: tokens.sizing.dotSize,
+        borderRadius: tokens.radii.dot,
         backgroundColor: color ?? tokens.colors.dot,
       }
     }
     return {
-      minWidth: tokens.sizes.minWidth,
-      minHeight: tokens.sizes.height,
-      paddingHorizontal: tokens.sizes.paddingHorizontal,
-      paddingVertical: tokens.sizes.paddingVertical,
-      borderRadius: tokens.sizes.borderRadius,
-      borderWidth: tokens.sizes.borderWidth,
+      minWidth: tokens.sizing.minWidth,
+      minHeight: tokens.sizing.height,
+      paddingHorizontal: tokens.sizing.paddingHorizontal,
+      paddingVertical: tokens.sizing.paddingVertical,
+      borderRadius: tokens.radii.badge,
+      borderWidth: tokens.borders.width,
       borderColor: tokens.colors.border,
       backgroundColor: color ?? tokens.colors.background,
     }
@@ -94,7 +95,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
 
   const mergedTextStyle = React.useMemo(
     () => [
-      styles.text,
+      tokens.layout.text,
       {
         color: textColor ?? tokens.colors.text,
         fontSize: tokens.typography.fontSize,
@@ -123,7 +124,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
         pointerEvents={hasChildren ? 'none' : 'auto'}
         onLayout={hasChildren && !dot ? handleLayout : undefined}
         style={[
-          hasChildren ? styles.badgeAbsolute : styles.badgeStandalone,
+          hasChildren ? tokens.layout.badgeAbsolute : tokens.layout.badgeStandalone,
           baseBadgeStyle,
           transformStyle,
           offsetStyle,
@@ -160,9 +161,9 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
           ref={ref}
           onPress={onPress}
           style={({ pressed }) => [
-            styles.wrapper,
+            tokens.layout.wrapper,
             style,
-            pressed && { opacity: 0.9 },
+            pressed && { opacity: tokens.defaults.pressedOpacity },
           ]}
           {...rest}
         >
@@ -173,7 +174,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     }
 
     return (
-      <View ref={ref} style={[styles.wrapper, style]} {...rest}>
+      <View ref={ref} style={[tokens.layout.wrapper, style]} {...rest}>
         {children}
         {badgeElement}
       </View>
@@ -188,8 +189,8 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
         ref={ref}
         onPress={onPress}
         style={({ pressed }) => [
-          styles.pressableStandalone,
-          pressed && { opacity: 0.9 },
+          tokens.layout.pressableStandalone,
+          pressed && { opacity: tokens.defaults.pressedOpacity },
         ]}
         {...rest}
       >
@@ -199,36 +200,6 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   }
 
   return React.cloneElement(badgeElement as React.ReactElement<any>, { ref, ...rest })
-})
-
-const styles = StyleSheet.create({
-  wrapper: {
-    position: 'relative',
-    alignSelf: 'flex-start', // Ensure wrapper shrinks to children
-  },
-  badgeAbsolute: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  badgeStandalone: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressableStandalone: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-  },
-  text: {
-    textAlign: 'center',
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-  },
 })
 
 Badge.displayName = 'Badge'

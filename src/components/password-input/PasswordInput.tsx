@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   type TextInputProps,
+  type TextStyle,
   View,
 } from 'react-native'
 
@@ -49,10 +50,10 @@ export interface PasswordInputTokens {
   }
   typography: {
     fontFamily: string
-    cellTextWeight: string
+    cellTextWeight: TextStyle['fontWeight']
     infoSize: number
     infoLineHeight: number
-    infoWeight: string
+    infoWeight: TextStyle['fontWeight']
   }
   opacity: {
     disabled: number
@@ -84,10 +85,10 @@ const createPasswordInputTokens = (foundations: Foundations): PasswordInputToken
   },
   typography: {
     fontFamily: foundations.typography.fontFamily,
-    cellTextWeight: String(foundations.typography.weight.semiBold),
+    cellTextWeight: foundations.typography.weight.semiBold,
     infoSize: foundations.fontSize.sm,
     infoLineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
-    infoWeight: String(foundations.typography.weight.regular),
+    infoWeight: foundations.typography.weight.regular,
   },
   opacity: {
     disabled: 0.6,
@@ -278,7 +279,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const cellTextBase = {
       color: colors.text,
       fontSize: sizing.cellTextSize,
-      fontWeight: typography.cellTextWeight as any,
+      fontWeight: typography.cellTextWeight,
       fontFamily: typography.fontFamily,
     }
 

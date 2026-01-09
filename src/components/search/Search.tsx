@@ -17,14 +17,13 @@ import type { SearchProps, SearchRef, SearchShape } from './types'
 
 const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const locale = useLocale()
-  const tokens = useSearchTokens(props.tokensOverride)
   const {
-    tokensOverride: _tokensOverride,
+    tokensOverride,
     label,
     action,
     actionText,
     showAction = false,
-    shape = tokens.defaults.shape,
+    shape: shapeProp,
     background,
     style: containerStyle,
     fieldStyle,
@@ -47,8 +46,11 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     inputAlign,
     ...restFieldProps
   } = props
+  const tokens = useSearchTokens(tokensOverride)
+  const shape = shapeProp ?? tokens.defaults.shape
 
   const [value, triggerChange] = useControllableValue<string>(props, { defaultValue: '' })
+
   const inputValue = value ?? ''
   const resolvedInputAlign = align ?? inputAlign
 
@@ -135,7 +137,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
             marginRight: tokens.spacing.labelGap,
             color: tokens.colors.label,
             fontSize: tokens.typography.label,
-            fontWeight: tokens.typography.labelWeight as TextStyle['fontWeight'],
+            fontWeight: tokens.typography.labelWeight,
           }}
         >
           {label}
@@ -180,7 +182,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
           style={{
             color: tokens.colors.action,
             fontSize: tokens.typography.action,
-            fontWeight: tokens.typography.actionWeight as TextStyle['fontWeight'],
+            fontWeight: tokens.typography.actionWeight,
           }}
         >
           {actionText ?? locale.cancel}

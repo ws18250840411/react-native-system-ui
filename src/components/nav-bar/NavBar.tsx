@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Pressable, SafeAreaView, StyleSheet, Text, View, type TextStyle } from 'react-native'
+import { Pressable, SafeAreaView, Text, View, type TextStyle } from 'react-native'
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
@@ -9,8 +9,8 @@ import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
 
 const NavBarBase: React.FC<NavBarProps> = props => {
-  const tokens = useNavBarTokens(props.tokensOverride)
   const {
+    tokensOverride,
     title,
     description,
     children,
@@ -18,13 +18,13 @@ const NavBarBase: React.FC<NavBarProps> = props => {
     rightText,
     leftIcon,
     rightIcon,
-    leftArrow = true,
-    fixed = tokens.defaults.fixed,
-    placeholder = tokens.defaults.placeholder,
-    zIndex = 1,
-    border = tokens.defaults.border,
-    safeAreaInsetTop = fixed ? tokens.defaults.safeAreaInsetTop : false,
-    background = tokens.colors.background,
+    leftArrow: leftArrowProp,
+    fixed: fixedProp,
+    placeholder: placeholderProp,
+    zIndex: zIndexProp,
+    border: borderProp,
+    safeAreaInsetTop: safeAreaInsetTopProp,
+    background: backgroundProp,
     tintColor,
     titleStyle,
     descriptionStyle,
@@ -37,10 +37,19 @@ const NavBarBase: React.FC<NavBarProps> = props => {
     ...rest
   } = props
 
+  const tokens = useNavBarTokens(tokensOverride)
+  const leftArrow = leftArrowProp ?? tokens.defaults.leftArrow
+  const fixed = fixedProp ?? tokens.defaults.fixed
+  const placeholder = placeholderProp ?? tokens.defaults.placeholder
+  const zIndex = zIndexProp ?? tokens.defaults.zIndex
+  const border = borderProp ?? tokens.defaults.border
+  const safeAreaInsetTop = safeAreaInsetTopProp ?? (fixed ? tokens.defaults.safeAreaInsetTop : false)
+  const background = backgroundProp ?? tokens.colors.background
+
   const handlePressLeft = onPressLeft ?? onClickLeft
   const handlePressRight = onPressRight ?? onClickRight
 
-  const [height, setHeight] = React.useState(tokens.layout.height)
+  const [height, setHeight] = React.useState(tokens.sizing.height)
 
   const resolvedColor = tintColor ?? tokens.colors.text
   const sideColor = tintColor ?? tokens.colors.icon
@@ -76,21 +85,21 @@ const NavBarBase: React.FC<NavBarProps> = props => {
       || isRenderable(leftIcon)
 
     if (!hasAction) {
-      return <View style={styles.sidePlaceholder} />
+      return <View style={tokens.layout.sidePlaceholder} />
     }
 
     return (
       <Pressable
         hitSlop={8}
         testID="rv-navbar-left"
-        style={[styles.side, sideStyle]}
+        style={[tokens.layout.side, sideStyle]}
         {...(handlePressLeft ? leftPress.interactionProps : {})}
       >
         {arrowNode}
         {leftIcon}
         {isRenderable(leftText)
           ? isText(leftText)
-            ? <Text style={[styles.sideText, { color: sideColor }]}>{leftText}</Text>
+            ? <Text style={[tokens.layout.sideText, { color: sideColor }]}>{leftText}</Text>
             : leftText
           : null}
       </Pressable>
@@ -100,18 +109,18 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const renderRight = () => {
     const hasAction = !!handlePressRight || isRenderable(rightText) || isRenderable(rightIcon)
     if (!hasAction) {
-      return <View style={styles.sidePlaceholder} />
+      return <View style={tokens.layout.sidePlaceholder} />
     }
     return (
       <Pressable
         hitSlop={8}
         testID="rv-navbar-right"
-        style={[styles.side, styles.rightAlign, sideStyle]}
+        style={[tokens.layout.side, tokens.layout.rightAlign, sideStyle]}
         {...(handlePressRight ? rightPress.interactionProps : {})}
       >
         {isRenderable(rightText)
           ? isText(rightText)
-            ? <Text style={[styles.sideText, { color: sideColor }]}>{rightText}</Text>
+            ? <Text style={[tokens.layout.sideText, { color: sideColor }]}>{rightText}</Text>
             : rightText
           : null}
         {rightIcon}
@@ -122,13 +131,13 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const centerContent = isRenderable(children) ? (
     children
   ) : (
-    <View style={styles.titleWrapper}>
+    <View style={tokens.layout.titleWrapper}>
       {isRenderable(title)
         ? isText(title)
           ? (
             <Text
               style={[
-                styles.title,
+                tokens.layout.title,
                 {
                   color: resolvedColor,
                   fontSize: tokens.typography.titleSize,
@@ -148,7 +157,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
           ? (
             <Text
               style={[
-                styles.description,
+                tokens.layout.description,
                 {
                   color: tintColor ?? tokens.colors.description,
                   fontSize: tokens.typography.descriptionSize,
@@ -168,10 +177,9 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const bar = (
     <View
       style={[
-        styles.bar,
+        tokens.layout.bar,
         {
           backgroundColor: background,
-          paddingHorizontal: tokens.layout.paddingHorizontal,
         },
         border ? createHairlineBorderBottom(tokens.colors.border) : null,
       ]}
@@ -181,7 +189,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
       }}
     >
       {renderLeft()}
-      <View style={styles.center}>{centerContent}</View>
+      <View style={tokens.layout.center}>{centerContent}</View>
       {renderRight()}
     </View>
   )
@@ -195,7 +203,11 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const navContent = (
     <View
       {...rest}
-      style={[styles.container, fixed && [styles.fixed, { zIndex }], style]}
+      style={[
+        tokens.layout.container,
+        fixed && [tokens.layout.fixed, { zIndex }],
+        style,
+      ]}
     >
       {wrapped}
     </View>
@@ -210,54 +222,6 @@ const NavBarBase: React.FC<NavBarProps> = props => {
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 48,
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  side: {
-    minWidth: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  rightAlign: {
-    justifyContent: 'flex-end',
-  },
-  sidePlaceholder: {
-    minWidth: 60,
-  },
-  sideText: {
-    fontSize: 16,
-  },
-  titleWrapper: {
-    alignItems: 'center',
-  },
-  title: {
-    includeFontPadding: false,
-  },
-  description: {
-    marginTop: 2,
-    includeFontPadding: false,
-  },
-  fixed: {
-    position: (Platform.OS === 'web' ? 'fixed' : 'absolute') as any,
-    top: 0,
-    left: 0,
-    right: 0,
-  },
-})
 
 NavBarBase.displayName = 'NavBar'
 

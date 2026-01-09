@@ -1,51 +1,57 @@
-import type { TextStyle } from 'react-native'
+import { StyleSheet } from 'react-native'
 
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
-import type { CheckboxShape } from './types'
-
-export interface CheckboxTokens {
-  defaults: {
-    shape: CheckboxShape
-    iconSize: number
-    labelPosition: 'left' | 'right'
-  }
-  colors: {
-    border: string
-    background: string
-    checkedBackground: string
-    disabledBorder: string
-    disabledBackground: string
-    checkmark: string
-    label: string
-    labelDisabled: string
-  }
-  typography: {
-    fontSize: number
-    fontFamily: string
-    fontWeight: TextStyle['fontWeight']
-    lineHeightMultiplier: number
-  }
-  spacing: {
-    gap: number
-    groupGap: number
-  }
-  radii: {
-    square: number
-  }
-  icon: {
-    scale: number
-  }
-}
+import type { CheckboxTokens } from './types'
 
 const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
   const onPrimary = palette.primary.foreground ?? '#ffffff'
+
   return {
     defaults: {
       shape: 'round',
       iconSize: 20,
       labelPosition: 'right',
+      labelDisabled: false,
+      bindGroup: true,
+      groupDisabled: false,
+      groupDirection: 'vertical',
+    },
+    layout: {
+      container: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      iconWrapper: {
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      icon: {
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      checkmark: {
+        textAlign: 'center',
+        includeFontPadding: false,
+      },
+      label: {
+        includeFontPadding: false,
+      },
+      labelWrapper: {
+        flexShrink: 1,
+      },
+      groupHorizontal: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+      },
+      groupVertical: {
+        flexDirection: 'column',
+      },
+      groupItem: {
+        flexShrink: 0,
+      },
     },
     colors: {
       border: palette.default[400],
@@ -70,6 +76,9 @@ const createCheckboxTokens = (foundations: Foundations): CheckboxTokens => {
     radii: {
       square: radii.xs,
     },
+    borders: {
+      width: StyleSheet.hairlineWidth,
+    },
     icon: {
       scale: 0.65,
     },
@@ -80,3 +89,4 @@ export const useCheckboxTokens = createComponentTokensHook(
   'checkbox',
   createCheckboxTokens
 )
+

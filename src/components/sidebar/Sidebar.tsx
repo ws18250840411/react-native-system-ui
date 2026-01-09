@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
@@ -65,13 +65,17 @@ const SidebarBase: React.FC<SidebarProps> = props => {
   return (
     <View
       {...rest}
-      style={[styles.container, { backgroundColor: tokens.colors.background }, style]}
+      style={[
+        tokens.layout.container,
+        { backgroundColor: tokens.colors.background },
+        style,
+      ]}
     >
       <View
         style={[
-          styles.side,
+          tokens.layout.side,
           {
-            width: tokens.layout.width,
+            width: tokens.sizing.width,
             borderRightColor: tokens.colors.border,
           },
           sideStyle,
@@ -81,25 +85,12 @@ const SidebarBase: React.FC<SidebarProps> = props => {
           {clonedItems}
         </SidebarContext.Provider>
       </View>
-      <View style={[styles.content, activeContentStyle]}>
+      <View style={[tokens.layout.content, activeContentStyle]}>
         {activeContentNode}
       </View>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-  },
-  side: {
-    borderRightWidth: StyleSheet.hairlineWidth,
-  },
-  content: {
-    flex: 1,
-    minWidth: 0,
-  },
-})
 
 SidebarBase.displayName = 'Sidebar'
 

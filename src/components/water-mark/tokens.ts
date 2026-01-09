@@ -5,12 +5,44 @@ import type { WaterMarkTokens } from './types'
 const createTokens = (foundations: Foundations): WaterMarkTokens => {
   const { palette } = foundations
   return {
-    gapX: 24,
-    gapY: 48,
-    rotate: -22,
-    fontSize: 14,
-    color: palette.default[500],
-    opacity: 0.15,
+    defaults: {
+      content: 'WaterMark',
+      width: 120,
+      height: 64,
+      gapX: 24,
+      gapY: 48,
+      rotate: -22,
+      fontSize: 14,
+      opacity: 0.15,
+      zIndex: 2000,
+      fullPage: true,
+    },
+    layout: {
+      absoluteFill: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+      },
+      wrapper: {
+        flex: 1,
+      },
+      row: {
+        flexDirection: 'row',
+      },
+      cell: {
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      mark: {
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+    },
+    colors: {
+      mark: palette.default[500],
+    },
   }
 }
 

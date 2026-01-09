@@ -6,12 +6,25 @@ import type { DeepPartial } from '../../types'
 export interface SwitchTokens {
   defaults: {
     size: number
+    disabled: boolean
+    loading: boolean
+    activeValue: any
+    inactiveValue: any
+  }
+  layout: {
+    container: ViewStyle
+    track: ViewStyle
+    handleOuter: ViewStyle
+    handleInner: ViewStyle
   }
   colors: {
     activeTrack: string
     inactiveTrack: string
     handle: string
     border: string
+  }
+  borders: {
+    width: number
   }
   opacity: {
     disabled: number

@@ -1,7 +1,6 @@
-import type { TextProps } from 'react-native'
+import type { TextProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { TypographyTokens } from './tokens'
 
 export type TypographyType =
   | 'default'
@@ -14,6 +13,36 @@ export type TypographyType =
 
 export type TypographySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'
 export type TypographyTitleLevel = 1 | 2 | 3 | 4 | 5 | 6
+
+export interface TypographyTokens {
+  defaults: {
+    type: TypographyType
+    size: TypographySize
+    disabled: boolean
+  }
+  layout: {
+    centerWrapper: ViewStyle
+    actionRow: ViewStyle
+  }
+  colors: Record<TypographyType, string>
+  sizing: {
+    sizes: Record<TypographySize, number>
+    titles: Record<TypographyTitleLevel, { fontSize: number; lineHeight: number }>
+    lineHeightMultiplier: number
+    actionMarginLeft: number
+  }
+  typography: {
+    fontFamily: string
+    weight: {
+      regular: string
+      medium: string
+      strong: string
+    }
+  }
+  opacity: {
+    disabled: number
+  }
+}
 
 export interface EllipsisConfig {
   rows?: number

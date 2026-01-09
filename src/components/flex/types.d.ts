@@ -17,6 +17,9 @@ export interface FlexTokens {
     justify: FlexJustify
     columns: number
   }
+  layout: {
+    container: ViewStyle
+  }
 }
 
 export interface FlexProps {

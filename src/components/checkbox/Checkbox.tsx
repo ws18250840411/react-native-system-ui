@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native'
+import { Pressable, Text, View, type GestureResponderEvent } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
 
@@ -14,7 +14,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     name,
     value,
     iconRender,
-    bindGroup = true,
+    bindGroup: bindGroupProp,
     shape,
     iconSize,
     checkedColor,
@@ -29,13 +29,14 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
 
   const tokens = useCheckboxTokens(tokensOverride)
   const group = React.useContext(CheckboxGroupContext)
+  const bindGroup = bindGroupProp ?? tokens.defaults.bindGroup
 
   const resolvedShape = shape ?? group?.shape ?? tokens.defaults.shape
   const resolvedIconSize = iconSize ?? group?.iconSize ?? tokens.defaults.iconSize
   const resolvedCheckedColor = checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
   const resolvedIconRender = iconRender ?? group?.iconRender
   const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
-  const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? false
+  const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? tokens.defaults.labelDisabled
   const resolvedDisabled = Boolean(disabled || group?.state.isDisabled)
 
   const rawValue = value ?? name
@@ -171,7 +172,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
           <Text
             accessible={false}
             style={[
-              styles.label,
+              tokens.layout.label,
               {
                 color: labelColor,
                 fontSize: tokens.typography.fontSize,
@@ -197,13 +198,14 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     borderRadius,
     borderColor,
     backgroundColor,
+    borderWidth: tokens.borders.width,
   }
   const defaultIcon = (
-    <View style={[styles.icon, iconBaseStyle]}>
+    <View style={[tokens.layout.icon, iconBaseStyle]}>
       {isChecked ? (
         <Text
           style={[
-            styles.checkmark,
+            tokens.layout.checkmark,
             {
               color: tokens.colors.checkmark,
               fontSize: resolvedIconSize * tokens.icon.scale,
@@ -234,7 +236,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
 
   const labelWrapper = labelNode ? (
     <View
-      style={[styles.labelWrapper, spacingStyle]}
+      style={[tokens.layout.labelWrapper, spacingStyle]}
       pointerEvents={resolvedLabelDisabled ? 'none' : undefined}
       accessible={false}
     >
@@ -243,7 +245,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   ) : null
 
   const iconWrapperStyle = [
-    styles.iconWrapper,
+    tokens.layout.iconWrapper,
     resolvedLabelPosition === 'left'
       ? { marginLeft: tokens.spacing.gap }
       : { marginRight: tokens.spacing.gap },
@@ -286,7 +288,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
         accessibilityLabel={resolvedAccessibilityLabel}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
-        style={[styles.container, style]}
+        style={[tokens.layout.container, style]}
       >
         {content}
       </Pressable>
@@ -294,37 +296,11 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   }
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[tokens.layout.container, style]}>
       {content}
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconWrapper: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  icon: {
-    borderWidth: StyleSheet.hairlineWidth,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkmark: {
-    textAlign: 'center',
-    includeFontPadding: false,
-  },
-  label: {
-    includeFontPadding: false,
-  },
-  labelWrapper: {
-    flexShrink: 1,
-  },
-})
 
 Checkbox.displayName = 'Checkbox'
 

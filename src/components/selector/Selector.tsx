@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native'
+import { Pressable, Text, type TextStyle, View } from 'react-native'
 
 import type { SelectorProps, SelectorValue } from './types'
 import { useSelectorTokens } from './tokens'
@@ -11,14 +11,13 @@ const CHECK_MARK_CORNER_HEIGHT = 8
 const CHECK_MARK_CORNER_WIDTH = 10
 
 export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
-  const { tokensOverride } = props
-  const tokens = useSelectorTokens(tokensOverride)
   const {
+    tokensOverride,
     options,
-    columns: columnsProp = tokens.defaults.columns,
-    multiple = tokens.defaults.multiple,
-    showCheckMark = tokens.defaults.showCheckMark,
-    disabled = false,
+    columns: columnsProp,
+    multiple: multipleProp,
+    showCheckMark: showCheckMarkProp,
+    disabled: disabledProp,
     onChange,
     itemStyle,
     labelStyle,
@@ -27,11 +26,18 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
     ...rest
   } = props
 
+  const tokens = useSelectorTokens(tokensOverride)
+
+  const columns = columnsProp ?? tokens.defaults.columns ?? 1
+  const multiple = multipleProp ?? tokens.defaults.multiple
+  const showCheckMark = showCheckMarkProp ?? tokens.defaults.showCheckMark
+  const disabled = disabledProp ?? tokens.defaults.disabled
+
   const [value = [], triggerChange] = useControllableValue<V[]>(props, {
     defaultValue: [],
   })
 
-  const resolvedColumns = Math.max(1, Math.floor(columnsProp))
+  const resolvedColumns = Math.max(1, Math.floor(columns))
   const basis = `${100 / resolvedColumns}%` as `${number}%`
   const itemMargin = tokens.spacing.gap / 2
   const selectedSet = React.useMemo(() => new Set(value), [value])
@@ -62,7 +68,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
     <View
       {...rest}
       style={[
-        styles.container,
+        tokens.layout.container,
         { marginHorizontal: -itemMargin, marginVertical: -itemMargin },
         style,
       ]}
@@ -100,11 +106,11 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
             }
             onPress={() => toggleOption(option)}
             disabled={isDisabled}
-            style={[styles.pressable, { width: basis }]}
+            style={[tokens.layout.pressable, { width: basis }]}
           >
             <View
               style={[
-                styles.item,
+                tokens.layout.item,
                 {
                   marginHorizontal: itemMargin,
                   marginVertical: itemMargin,
@@ -113,8 +119,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                   borderRadius: tokens.radii.item,
                   borderColor: active ? tokens.colors.borderActive : tokens.colors.border,
                   backgroundColor: active ? tokens.colors.backgroundActive : tokens.colors.background,
-                  flex: 1,
-                  opacity: isDisabled ? 0.45 : 1,
+                  opacity: isDisabled ? tokens.states.disabledOpacity : 1,
                 },
                 itemStyle,
               ]}
@@ -122,7 +127,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
               {isText(labelContent) ? (
                 <Text
                   style={[
-                    styles.label,
+                    tokens.layout.label,
                     {
                       color: labelColor,
                       fontSize: tokens.typography.fontSize,
@@ -143,7 +148,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                 isText(descriptionContent) ? (
                   <Text
                     style={[
-                      styles.description,
+                      tokens.layout.description,
                       {
                         marginTop: tokens.spacing.descriptionMarginTop,
                         color: descriptionColor,
@@ -164,7 +169,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                 <>
                   <View
                     style={[
-                      styles.checkMarkTriangle,
+                      tokens.layout.checkMarkTriangle,
                       {
                         borderTopWidth: CHECK_MARK_CORNER_HEIGHT,
                         borderBottomWidth: CHECK_MARK_CORNER_HEIGHT,
@@ -175,7 +180,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                       },
                     ]}
                   />
-                  <Text style={[styles.checkMark, { color: tokens.colors.checkForeground }]}>
+                  <Text style={[tokens.layout.checkMark, { color: tokens.colors.checkForeground }]}>
                     {CHECK_MARK}
                   </Text>
                 </>
@@ -187,46 +192,6 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  pressable: Platform.OS === 'web'
-    ? { outlineStyle: 'solid', outlineWidth: 0 }
-    : {},
-  item: {
-    borderWidth: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  label: {
-    includeFontPadding: false,
-    textAlign: 'center',
-  },
-  checkMark: {
-    position: 'absolute',
-    right: 1,
-    bottom: 1,
-    fontSize: 8,
-    includeFontPadding: false,
-  },
-  checkMarkTriangle: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    width: 0,
-    height: 0,
-    borderTopColor: 'transparent',
-    borderLeftColor: 'transparent',
-  },
-  description: {
-    includeFontPadding: false,
-    textAlign: 'center',
-  },
-})
 
 Selector.displayName = 'Selector'
 

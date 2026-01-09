@@ -2,7 +2,6 @@ import React from 'react'
 import {
   Animated,
   Easing,
-  StyleSheet,
   Text,
   View,
   type LayoutChangeEvent,
@@ -12,11 +11,11 @@ import {
 import { Arrow } from 'react-native-system-icon'
 
 import { Cell } from '../cell'
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 import { createHairlineView } from '../../utils/hairline'
 import { isFunction, isNumber, isObject, isRenderable, isText } from '../../utils/validate'
+import { useCollapseTokens } from './tokens'
+import type { CollapseTokens } from './types'
 
 export type CollapseValue = string | string[]
 
@@ -57,64 +56,6 @@ export type CollapsePanelInstance = {
   toggle: (expand?: boolean) => void
 }
 
-export interface CollapseTokens {
-  colors: {
-    border: string
-    title: string
-    description: string
-    background: string
-    active: string
-    arrow: string
-    disabled: string
-  }
-  spacing: {
-    paddingVertical: number
-    paddingHorizontal: number
-    descriptionTop: number
-  }
-  typography: {
-    titleSize: number
-    descriptionSize: number
-    fontFamily: string
-    titleWeight: string
-  }
-  panel: {
-    borderRadius: number
-  }
-}
-
-const createCollapseTokens = (foundations: Foundations): CollapseTokens => {
-  const { palette, spacing, fontSize, typography, radii } = foundations
-
-  return {
-    colors: {
-      border: palette.default[200],
-      title: palette.default[800],
-      description: palette.default[500],
-      background: '#ffffff',
-      active: palette.default[50],
-      arrow: palette.default[400],
-      disabled: palette.default[400],
-    },
-    spacing: {
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.lg,
-      descriptionTop: spacing.xs,
-    },
-    typography: {
-      titleSize: fontSize.md,
-      descriptionSize: fontSize.sm,
-      fontFamily: typography.fontFamily,
-      titleWeight: String(typography.weight.medium),
-    },
-    panel: {
-      borderRadius: radii.sm,
-    },
-  }
-}
-
-const useCollapseTokens = createComponentTokensHook('collapse', createCollapseTokens)
-
 interface CollapseContextValue {
   activeKeys: string[]
   toggle: (name: string, expand?: boolean) => void
@@ -149,21 +90,24 @@ type CollapseComponent = React.FC<CollapseProps> & {
 
 export const Collapse = ((props: CollapseProps) => {
   const {
-    children,
     tokensOverride,
-    accordion = false,
+    children,
+    accordion: accordionProp,
     value,
     defaultValue,
     onChange,
-    border = true,
-    iconPosition = 'right',
+    border: borderProp,
+    iconPosition: iconPositionProp,
     expandIcon,
     disabled,
     style,
     ...rest
   } = props
-
   const tokens = useCollapseTokens(tokensOverride)
+  const accordion = accordionProp ?? tokens.defaults.accordion
+  const border = borderProp ?? tokens.defaults.border
+  const iconPosition = iconPositionProp ?? tokens.defaults.iconPosition
+
   const { colors } = tokens
 
   const controlled = value !== undefined
@@ -235,9 +179,9 @@ export const Collapse = ((props: CollapseProps) => {
 
   return (
     <CollapseContext.Provider value={contextValue}>
-      <View style={[styles.container, border && { backgroundColor: colors.background }, style]} {...rest}>
-        {border ? <Hairline position="top" color={colors.border} /> : null}
-        {border ? <Hairline position="bottom" color={colors.border} /> : null}
+      <View style={[tokens.layout.container, border && { backgroundColor: colors.background }, style]} {...rest}>
+        {border ? <Hairline tokens={tokens} position="top" color={colors.border} /> : null}
+        {border ? <Hairline tokens={tokens} position="bottom" color={colors.border} /> : null}
         {renderedChildren}
       </View>
     </CollapseContext.Provider>
@@ -245,10 +189,11 @@ export const Collapse = ((props: CollapseProps) => {
 }) as CollapseComponent
 
 const Hairline: React.FC<{
+  tokens: CollapseTokens
   position: 'top' | 'bottom'
   color: string
   inset?: number
-}> = ({ position, color, inset = 0 }) => {
+}> = ({ tokens, position, color, inset = 0 }) => {
   const hairlineStyle = createHairlineView({
     position,
     color,
@@ -256,7 +201,7 @@ const Hairline: React.FC<{
     right: inset,
   })
 
-  return <View pointerEvents="none" style={[styles.hairline, hairlineStyle]} />
+  return <View pointerEvents="none" style={[tokens.layout.hairline, hairlineStyle]} />
 }
 
 const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps>((props, ref) => {
@@ -285,9 +230,9 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     icon,
     extra,
     value,
-    border: panelBorder = true,
-    isLink = true,
-    size = 'normal',
+    border: panelBorder = tokens.defaults.panelBorder,
+    isLink = tokens.defaults.panelIsLink,
+    size = tokens.defaults.panelSize,
     disabled,
     readOnly,
     children,
@@ -307,11 +252,11 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   React.useEffect(() => {
     Animated.timing(animation, {
       toValue: isActive ? 1 : 0,
-      duration: 200,
+      duration: tokens.defaults.animationDuration,
       easing: Easing.ease,
       useNativeDriver: false,
     }).start()
-  }, [animation, isActive])
+  }, [animation, isActive, tokens.defaults.animationDuration])
 
   const resolvedLabel = description ?? label
   const resolvedValue = extra ?? value
@@ -394,8 +339,12 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     iconPosition === 'left'
       ? showExpandIcon || isRenderable(icon)
         ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {showExpandIcon ? <View style={{ marginRight: icon ? 8 : 0 }}>{renderExpandIcon()}</View> : null}
+          <View style={tokens.layout.headerIconRow}>
+            {showExpandIcon ? (
+              <View style={{ marginRight: icon ? tokens.spacing.iconGap : 0 }}>
+                {renderExpandIcon()}
+              </View>
+            ) : null}
             {icon}
           </View>
         )
@@ -407,7 +356,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   return (
     <View
       style={[
-        styles.panel,
+        tokens.layout.panel,
         {
           backgroundColor: colors.background,
         },
@@ -415,8 +364,10 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
       ]}
       {...rest}
     >
-      {showTopBorder ? <Hairline position="top" color={colors.border} inset={spacing.paddingHorizontal} /> : null}
-      <View style={styles.headerWrapper}>
+      {showTopBorder ? (
+        <Hairline tokens={tokens} position="top" color={colors.border} inset={spacing.paddingHorizontal} />
+      ) : null}
+      <View style={tokens.layout.headerWrapper}>
         <Cell
           title={title}
           label={resolvedLabel}
@@ -432,21 +383,20 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
           rightIcon={headerRightIcon}
         />
         {showHeaderBottomBorder ? (
-          <Hairline position="bottom" color={colors.border} inset={spacing.paddingHorizontal} />
+          <Hairline tokens={tokens} position="bottom" color={colors.border} inset={spacing.paddingHorizontal} />
         ) : null}
       </View>
-      <Animated.View style={[styles.bodyWrapper, animatedStyle]}>
+      <Animated.View style={[tokens.layout.bodyWrapper, animatedStyle]}>
         <View
           onLayout={handleContentLayout}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            paddingVertical: spacing.paddingVertical,
-            paddingHorizontal: spacing.paddingHorizontal,
-            backgroundColor: colors.background,
-          }}
+          style={[
+            tokens.layout.bodyContent,
+            {
+              paddingVertical: spacing.paddingVertical,
+              paddingHorizontal: spacing.paddingHorizontal,
+              backgroundColor: colors.background,
+            },
+          ]}
         >
           {renderChildren()}
         </View>
@@ -457,25 +407,6 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
 
 Collapse.Panel = CollapsePanel
 Collapse.Item = CollapsePanel
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'relative',
-  },
-  panel: {
-    position: 'relative',
-  },
-  hairline: {
-    position: 'absolute',
-  },
-  headerWrapper: {
-    position: 'relative',
-  },
-  bodyWrapper: {
-    position: 'relative',
-    overflow: 'hidden',
-  },
-})
 
 Collapse.displayName = 'Collapse'
 

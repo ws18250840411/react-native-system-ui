@@ -100,9 +100,11 @@ describe('Button', () => {
       {
         components: {
           button: {
-            sizes: {
-              normal: {
-                height: 60,
+            sizing: {
+              sizes: {
+                normal: {
+                  height: 60,
+                },
               },
             },
           },

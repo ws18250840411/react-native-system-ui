@@ -16,7 +16,11 @@ const Area: React.FC<AreaProps> = props => {
     ...pickerProps
   } = props
 
-  const columns = React.useMemo(() => buildAreaColumns(areaList, columnsNum), [areaList, columnsNum])
+  const resolvedColumnsNum = columnsNum === 1 || columnsNum === 2 || columnsNum === 3 ? columnsNum : 3
+  const columns = React.useMemo(
+    () => buildAreaColumns(areaList, resolvedColumnsNum),
+    [areaList, resolvedColumnsNum]
+  )
 
   const handleChange = React.useCallback(
     (values: PickerValue[], options: (PickerOption | undefined)[]) => {

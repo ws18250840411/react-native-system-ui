@@ -181,7 +181,7 @@
   - [ ] 事件坐标：Web 端使用 `pageX/pageY`，Native 端使用 `nativeEvent`
 
 - [ ] **弹层与定位（高风险区域）**
-  - [ ] 所有弹层类组件（Popup/Overlay/Dialog/ActionSheet/Popover/DropdownMenu/Toast/ImagePreview…）必须走 **Portal**
+  - [ ] 所有弹层类组件（Popup/Overlay/Dialog/ActionSheet/DropdownMenu/Toast/ImagePreview…）必须走 **Portal**
   - [ ] zIndex 策略统一：OverlayStack 负责管理栈与"相对偏移"，避免小值污染全局层级
   - [ ] 定位必须覆盖非顶端场景：优先 `measureInWindow`；Web 需考虑布局/滚动导致的差异与兜底
   - [ ] Web 端 Portal 使用 `react-dom` 渲染，Native 端使用 PortalHost

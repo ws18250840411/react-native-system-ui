@@ -1,58 +1,29 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
 import { createHairlineView } from '../../utils/hairline'
 import { isRenderable, isText } from '../../utils/validate'
-import type { DividerProps, DividerTokens } from './types'
-
-const createDividerTokens = (foundations: Foundations): DividerTokens => {
-  const { palette, fontSize, typography, spacing } = foundations
-
-  return {
-    defaults: {
-      dashed: false,
-      hairline: true,
-      contentPosition: 'center',
-    },
-    colors: {
-      line: palette.default[200],
-      text: palette.default[600],
-    },
-    typography: {
-      fontSize: fontSize.sm,
-      lineHeight: fontSize.sm * typography.lineHeightMultiplier,
-      fontFamily: typography.fontFamily,
-      fontWeight: typography.weight.medium,
-    },
-    spacing: {
-      vertical: spacing.md,
-      horizontal: spacing.none,
-      contentPadding: spacing.sm,
-    },
-    line: {
-      thickness: 1,
-      sideMinFlex: 0.18,
-    },
-  }
-}
-
-const useDividerTokens = createComponentTokensHook('divider', createDividerTokens)
+import { useDividerTokens } from './tokens'
+import type { DividerProps } from './types'
 
 export const Divider: React.FC<DividerProps> = props => {
-  const tokens = useDividerTokens(props.tokensOverride)
   const {
+    tokensOverride,
     children,
-    dashed = tokens.defaults.dashed,
-    hairline = tokens.defaults.hairline,
-    contentPosition = tokens.defaults.contentPosition,
+    dashed: dashedProp,
+    hairline: hairlineProp,
+    contentPosition: contentPositionProp,
     textStyle,
     contentStyle,
     lineColor,
     style,
     ...rest
   } = props
+
+  const tokens = useDividerTokens(tokensOverride)
+  const dashed = dashedProp ?? tokens.defaults.dashed
+  const hairline = hairlineProp ?? tokens.defaults.hairline
+  const contentPosition = contentPositionProp ?? tokens.defaults.contentPosition
 
   const resolvedColor = lineColor ?? tokens.colors.line
   const borderStyle = dashed ? 'dashed' : 'solid'
@@ -62,7 +33,7 @@ export const Divider: React.FC<DividerProps> = props => {
     !hasContent ? null : isText(children) ? (
       <Text
         style={[
-          styles.text,
+          tokens.layout.text,
           {
             color: tokens.colors.text,
             fontSize: tokens.typography.fontSize,
@@ -79,13 +50,13 @@ export const Divider: React.FC<DividerProps> = props => {
       children
     )
 
-  const leftGrow = contentPosition === 'left' ? tokens.line.sideMinFlex : 1
-  const rightGrow = contentPosition === 'right' ? tokens.line.sideMinFlex : 1
+  const leftGrow = contentPosition === 'left' ? tokens.sizing.sideMinFlex : 1
+  const rightGrow = contentPosition === 'right' ? tokens.sizing.sideMinFlex : 1
 
   const renderLine = (grow: number) => {
     if (hairline) {
       return (
-        <View style={{ flexGrow: grow, flexShrink: 1, height: 1, position: 'relative' }}>
+        <View style={[tokens.layout.hairlineWrapper, { flexGrow: grow }]}>
           <View
             style={[
               createHairlineView({
@@ -107,8 +78,8 @@ export const Divider: React.FC<DividerProps> = props => {
         style={{
           flexGrow: grow,
           flexShrink: 1,
-          height: tokens.line.thickness,
-          borderBottomWidth: tokens.line.thickness,
+          height: tokens.borders.thickness,
+          borderBottomWidth: tokens.borders.thickness,
           borderBottomColor: resolvedColor,
           borderStyle,
         }}
@@ -119,7 +90,7 @@ export const Divider: React.FC<DividerProps> = props => {
   return (
     <View
       style={[
-        styles.horizontal,
+        tokens.layout.container,
         { marginVertical: tokens.spacing.vertical },
         style,
       ]}
@@ -130,7 +101,7 @@ export const Divider: React.FC<DividerProps> = props => {
         <>
           <View
             style={[
-              styles.contentWrapper,
+              tokens.layout.contentWrapper,
               { paddingHorizontal: tokens.spacing.contentPadding },
               contentStyle,
             ]}
@@ -145,17 +116,3 @@ export const Divider: React.FC<DividerProps> = props => {
 }
 
 Divider.displayName = 'Divider'
-
-const styles = StyleSheet.create({
-  horizontal: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  contentWrapper: {
-    justifyContent: 'center',
-  },
-  text: {
-    textAlign: 'center',
-  },
-})

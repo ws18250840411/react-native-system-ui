@@ -1,14 +1,30 @@
-import type { StyleProp, TextStyle, ViewProps } from 'react-native'
+import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
 
 export interface WaterMarkTokens {
-  gapX: number
-  gapY: number
-  rotate: number
-  fontSize: number
-  color: string
-  opacity: number
+  defaults: {
+    content: string
+    width: number
+    height: number
+    gapX: number
+    gapY: number
+    rotate: number
+    fontSize: number
+    opacity: number
+    zIndex: number
+    fullPage: boolean
+  }
+  layout: {
+    absoluteFill: ViewStyle
+    wrapper: ViewStyle
+    row: ViewStyle
+    cell: ViewStyle
+    mark: ViewStyle
+  }
+  colors: {
+    mark: string
+  }
 }
 
 export interface WaterMarkImage {

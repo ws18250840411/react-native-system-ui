@@ -1,40 +1,8 @@
+import { Platform } from 'react-native'
+
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
-
-export interface SelectorTokens {
-  defaults: {
-    columns: number
-    multiple: boolean
-    showCheckMark: boolean
-  }
-  colors: {
-    border: string
-    borderActive: string
-    background: string
-    backgroundActive: string
-    text: string
-    textActive: string
-    description: string
-    disabledText: string
-    check: string
-    checkForeground: string
-  }
-  spacing: {
-    gap: number
-    paddingVertical: number
-    paddingHorizontal: number
-    descriptionMarginTop: number
-  }
-  radii: {
-    item: number
-  }
-  typography: {
-    fontSize: number
-    descriptionSize: number
-    fontFamily: string
-    fontWeight: string
-  }
-}
+import type { SelectorTokens } from './types'
 
 const createSelectorTokens = ({
   palette,
@@ -43,7 +11,46 @@ const createSelectorTokens = ({
   typography,
   fontSize,
 }: Foundations): SelectorTokens => ({
-  defaults: { columns: 3, multiple: false, showCheckMark: true },
+  defaults: { columns: 3, multiple: false, showCheckMark: true, disabled: false },
+  layout: {
+    container: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    pressable:
+      Platform.OS === 'web' ? { outlineStyle: 'solid', outlineWidth: 0 } : {},
+    item: {
+      flex: 1,
+      borderWidth: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'hidden',
+    },
+    label: {
+      includeFontPadding: false,
+      textAlign: 'center',
+    },
+    description: {
+      includeFontPadding: false,
+      textAlign: 'center',
+    },
+    checkMark: {
+      position: 'absolute',
+      right: 1,
+      bottom: 1,
+      fontSize: 8,
+      includeFontPadding: false,
+    },
+    checkMarkTriangle: {
+      position: 'absolute',
+      right: 0,
+      bottom: 0,
+      width: 0,
+      height: 0,
+      borderTopColor: 'transparent',
+      borderLeftColor: 'transparent',
+    },
+  },
   colors: {
     border: 'transparent',
     borderActive: 'transparent',
@@ -56,18 +63,21 @@ const createSelectorTokens = ({
     check: palette.primary[600],
     checkForeground: palette.primary.foreground ?? '#fff',
   },
+  typography: {
+    fontSize: fontSize.md,
+    descriptionSize: fontSize.sm,
+    fontFamily: typography.fontFamily,
+    fontWeight: String(typography.weight.medium),
+  },
+  radii: { item: radii.xs },
   spacing: {
     gap: spacing.sm,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     descriptionMarginTop: spacing.xxs,
   },
-  radii: { item: radii.xs },
-  typography: {
-    fontSize: fontSize.md,
-    descriptionSize: fontSize.sm,
-    fontFamily: typography.fontFamily,
-    fontWeight: String(typography.weight.medium),
+  states: {
+    disabledOpacity: 0.45,
   },
 })
 

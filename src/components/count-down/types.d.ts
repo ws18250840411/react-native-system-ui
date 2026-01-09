@@ -10,12 +10,14 @@ export type CountDownInstance = {
 }
 
 export interface CountDownTokens {
-  text: {
-    color: string
-    fontSize: number
-    lineHeight: number
-    fontFamily: string
-    fontWeight: TextStyle['fontWeight']
+  defaults: {
+    autoStart: boolean
+    millisecond: boolean
+    time: number
+    format: string
+  }
+  layout: {
+    text: TextStyle
   }
 }
 

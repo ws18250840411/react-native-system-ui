@@ -5,25 +5,34 @@ import type { DeepPartial } from '../../types'
 export type EmptyImage = 'default' | 'error' | 'network' | 'search'
 
 export interface EmptyTokens {
-  spacing: {
-    paddingVertical: number
-    paddingHorizontal: number
-    descriptionMargin: number
-    descriptionPaddingHorizontal: number
-    footerMargin: number
+  defaults: {
+    image: EmptyImage
+    gap: number
+  }
+  layout: {
+    container: ViewStyle
+    imageWrapper: ViewStyle
+    descriptionText: TextStyle
+    footer: ViewStyle
   }
   colors: {
     description: string
     icon: string
-  }
-  sizes: {
-    image: number
+    imageBackground: string
   }
   typography: {
     descriptionSize: number
     descriptionLineHeight: number
     descriptionFontFamily: string
     descriptionFontWeight: TextStyle['fontWeight']
+  }
+  sizing: {
+    image: number
+    iconScale: number
+  }
+  spacing: {
+    descriptionPaddingHorizontal: number
+    footerMarginTop: number
   }
 }
 

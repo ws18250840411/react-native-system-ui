@@ -2,13 +2,63 @@ import type React from 'react'
 import type { GestureResponderEvent, StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { RadioTokens } from './tokens'
 
 export type RadioValue = string | number
 export type RadioLabelPosition = 'left' | 'right'
 export type RadioGroupDirection = 'horizontal' | 'vertical'
 export type RadioShape = 'round' | 'square'
 export type RadioIconRender = (params: { checked: boolean; disabled: boolean }) => React.ReactNode
+
+export interface RadioTokens {
+  defaults: {
+    iconSize: number
+    labelPosition: RadioLabelPosition
+    shape: RadioShape
+    labelDisabled: boolean
+    groupDisabled: boolean
+    groupDirection: RadioGroupDirection
+  }
+  layout: {
+    container: ViewStyle
+    iconWrapper: ViewStyle
+    labelWrapper: ViewStyle
+    icon: ViewStyle
+    label: TextStyle
+    groupHorizontal: ViewStyle
+    groupVertical: ViewStyle
+    groupItem: ViewStyle
+  }
+  colors: {
+    border: string
+    background: string
+    checkedBackground: string
+    disabledBorder: string
+    disabledBackground: string
+    checkmark: string
+    label: string
+    labelDisabled: string
+  }
+  typography: {
+    fontSize: number
+    fontFamily: string
+    fontWeight: string
+    lineHeightMultiplier: number
+  }
+  sizing: {
+    dotScale: number
+  }
+  radii: {
+    round: number
+    square: number
+  }
+  borders: {
+    width: number
+  }
+  spacing: {
+    gap: number
+    groupGap: number
+  }
+}
 
 export interface RadioProps extends Omit<ViewProps, 'children'> {
   name?: RadioValue

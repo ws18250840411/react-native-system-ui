@@ -144,7 +144,7 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
                         color: textColor,
                         fontSize: tokens.typography.optionSize,
                         fontFamily: tokens.typography.fontFamily,
-                        fontWeight: tokens.typography.optionWeight as TextStyle['fontWeight'],
+                        fontWeight: tokens.typography.optionWeight,
                       },
                     ]}
                   >
@@ -255,7 +255,7 @@ const Picker: React.FC<PickerProps> = props => {
             fontSize: tokens.typography.toolbarSize,
             fontFamily: tokens.typography.fontFamily,
             color: tokens.colors.text,
-            fontWeight: tokens.typography.toolbarWeight as TextStyle['fontWeight'],
+            fontWeight: tokens.typography.toolbarWeight,
           },
         ]}
         numberOfLines={1}

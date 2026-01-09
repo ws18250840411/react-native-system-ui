@@ -1,6 +1,7 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { PickerToolbarPosition } from './types'
+import type { TextStyle } from 'react-native'
 
 export interface PickerTokens {
   defaults: {
@@ -29,8 +30,8 @@ export interface PickerTokens {
     optionSize: number
     toolbarSize: number
     fontFamily: string
-    optionWeight: string | number
-    toolbarWeight: string | number
+    optionWeight: TextStyle['fontWeight']
+    toolbarWeight: TextStyle['fontWeight']
   }
   radius: {
     toolbar: number

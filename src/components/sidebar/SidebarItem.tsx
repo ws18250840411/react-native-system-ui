@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import { isRenderable, isText } from '../../utils/validate'
@@ -12,7 +12,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
   const {
     title,
     badge,
-    disabled = false,
+    disabled: disabledProp,
     dot,
     onClick,
     textStyle,
@@ -34,6 +34,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
     return null
   }
 
+  const disabled = disabledProp ?? tokens.defaults.disabled
   const isActive = context.activeIndex === index
   const titleColor = disabled
     ? tokens.colors.disabled
@@ -58,29 +59,30 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
     <Pressable
       {...rest}
       {...press.interactionProps}
-      style={[styles.item, { height: tokens.layout.itemHeight }, style]}
+      style={[tokens.layout.item, { height: tokens.sizing.itemHeight }, style]}
     >
-      <View style={styles.indicatorWrapper}>
+      <View style={tokens.layout.indicatorWrapper}>
         {isActive ? (
           <View
             style={[
-              styles.indicator,
+              tokens.layout.indicator,
               {
-                width: tokens.layout.indicatorWidth,
-                borderRadius: tokens.layout.indicatorWidth,
+                width: tokens.sizing.indicatorWidth,
+                borderRadius: tokens.sizing.indicatorWidth,
                 backgroundColor: tokens.colors.indicator,
               },
             ]}
           />
         ) : null}
       </View>
-      <View style={styles.content}>
-        <View style={styles.titleRow}>
+      <View style={tokens.layout.itemContent}>
+        <View style={tokens.layout.titleRow}>
           {isRenderable(title)
             ? isText(title)
               ? (
                 <Text
                   style={[
+                    tokens.layout.title,
                     {
                       color: titleColor,
                       fontSize: tokens.typography.fontSize,
@@ -95,7 +97,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
               : title
             : null}
           {isRenderable(badge) ? (
-            <View style={[styles.badge, badgeStyle]}>
+            <View style={[tokens.layout.badge, badgeStyle]}>
               {isText(badge) ? (
                 <Badge content={badge} />
               ) : (
@@ -104,45 +106,13 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
             </View>
           ) : null}
           {dot ? (
-            <View style={[styles.dot, { backgroundColor: tokens.colors.indicator }]} />
+            <View style={[tokens.layout.dot, { backgroundColor: tokens.colors.indicator }]} />
           ) : null}
         </View>
       </View>
     </Pressable>
   )
 }
-
-const styles = StyleSheet.create({
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  indicatorWrapper: {
-    width: 12,
-    alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-    paddingVertical: 12,
-  },
-  indicator: {
-    height: 20,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  badge: {
-    marginLeft: 4,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-})
 
 SidebarItem.displayName = 'Sidebar.Item'
 

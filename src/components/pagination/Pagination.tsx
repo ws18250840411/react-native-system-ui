@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import { usePaginationTokens } from './tokens'
 import type { PaginationProps, PaginationPageItem } from './types'
@@ -9,23 +9,33 @@ import { isText } from '../../utils/validate'
 
 const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
   const {
-    mode = 'multi',
-    pageCount = 0,
-    totalItems = 0,
-    itemsPerPage = 10,
-    showPageSize = 5,
-    forceEllipses = false,
-    prevText = '上一页',
-    nextText = '下一页',
+    tokensOverride,
+    mode: modeProp,
+    pageCount: pageCountProp,
+    totalItems: totalItemsProp,
+    itemsPerPage: itemsPerPageProp,
+    showPageSize: showPageSizeProp,
+    forceEllipses: forceEllipsesProp,
+    prevText: prevTextProp,
+    nextText: nextTextProp,
     pageDesc,
     pageRender,
     style,
     ...rest
   } = props
 
-  const tokens = usePaginationTokens(props.tokensOverride)
+  const tokens = usePaginationTokens(tokensOverride)
+
+  const mode = modeProp ?? tokens.defaults.mode
+  const pageCount = pageCountProp ?? tokens.defaults.pageCount
+  const totalItems = totalItemsProp ?? tokens.defaults.totalItems
+  const itemsPerPage = itemsPerPageProp ?? tokens.defaults.itemsPerPage
+  const showPageSize = showPageSizeProp ?? tokens.defaults.showPageSize
+  const forceEllipses = forceEllipsesProp ?? tokens.defaults.forceEllipses
+  const prevText = prevTextProp ?? tokens.defaults.prevText
+  const nextText = nextTextProp ?? tokens.defaults.nextText
   const [page, setPage] = useControllableValue<number>(props, {
-    defaultValue: 1,
+    defaultValue: tokens.defaults.defaultPage,
   })
 
   const count =
@@ -80,20 +90,26 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         key={`${item.number}-${index}`}
         onPress={() => handleSelect(item.number)}
         style={({ pressed }) => [
-          styles.item,
+          tokens.layout.item,
           {
+            borderWidth: tokens.borders.width,
             paddingHorizontal: tokens.spacing.paddingX,
             paddingVertical: tokens.spacing.paddingY,
             borderColor: tokens.colors.border,
-            borderRadius: tokens.radius,
+            borderRadius: tokens.radii.item,
             backgroundColor: item.active ? tokens.colors.activeBackground : 'transparent',
           },
-          pressed && !item.active ? { opacity: 0.7 } : null,
+          pressed && !item.active ? { opacity: tokens.defaults.pressedOpacity } : null,
         ]}
         testID={`rv-pagination-page-${index}`}
       >
         {isText(node) ? (
-          <Text style={{ color: textColor, fontWeight: item.active ? '600' : '400' }}>
+          <Text
+            style={{
+              color: textColor,
+              fontWeight: item.active ? tokens.typography.activeFontWeight : tokens.typography.fontWeight,
+            }}
+          >
             {node}
           </Text>
         ) : (
@@ -113,15 +129,16 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         onPress={() => handleSelect(target)}
         disabled={disabled}
         style={({ pressed }) => [
-          styles.control,
+          tokens.layout.control,
           {
+            borderWidth: tokens.borders.width,
             paddingHorizontal: tokens.spacing.paddingX,
             paddingVertical: tokens.spacing.paddingY,
             borderColor: tokens.colors.border,
-            borderRadius: tokens.radius,
-            opacity: disabled ? 0.5 : 1,
+            borderRadius: tokens.radii.item,
+            opacity: disabled ? tokens.defaults.disabledOpacity : 1,
           },
-          pressed && !disabled ? { opacity: 0.7 } : null,
+          pressed && !disabled ? { opacity: tokens.defaults.pressedOpacity } : null,
         ]}
         testID={`rv-pagination-${type}`}
       >
@@ -139,45 +156,34 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
   const descNode = mode === 'multi' ? null : pageDesc ?? `${currentPage}/${count}`
 
   return (
-    <View ref={ref} style={[styles.container, { gap: tokens.spacing.gap }, style]} {...rest}>
+    <View ref={ref} style={[tokens.layout.container, { gap: tokens.spacing.gap }, style]} {...rest}>
       {renderControl('prev')}
       {mode === 'multi' ? (
-        <View style={[styles.pages, { gap: tokens.spacing.gap }]}>
+        <View style={[tokens.layout.pages, { gap: tokens.spacing.gap }]}>
           {pages.map(renderPage)}
         </View>
       ) : null}
       {descNode == null ? null : isText(descNode) ? (
-        <Text style={[styles.desc, { color: tokens.colors.text }]} testID="rv-pagination-desc">
+        <Text
+          style={[
+            tokens.layout.desc,
+            { marginHorizontal: tokens.spacing.descMarginHorizontal, color: tokens.colors.text },
+          ]}
+          testID="rv-pagination-desc"
+        >
           {descNode}
         </Text>
       ) : (
-        <View style={styles.desc} testID="rv-pagination-desc">
+        <View
+          style={[tokens.layout.desc, { marginHorizontal: tokens.spacing.descMarginHorizontal }]}
+          testID="rv-pagination-desc"
+        >
           {descNode}
         </View>
       )}
       {renderControl('next')}
     </View>
   )
-})
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  pages: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  item: {
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  control: {
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  desc: {
-    marginHorizontal: 4,
-  },
 })
 
 Pagination.displayName = 'Pagination'

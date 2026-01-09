@@ -1,34 +1,6 @@
-import type { TextStyle } from 'react-native'
-
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-
-export interface BadgeTokens {
-  defaults: {
-    showZero: boolean
-  }
-  colors: {
-    background: string
-    dot: string
-    text: string
-    border: string
-  }
-  sizes: {
-    minWidth: number
-    height: number
-    paddingHorizontal: number
-    paddingVertical: number
-    dotSize: number
-    borderRadius: number
-    borderWidth: number
-  }
-  typography: {
-    fontSize: number
-    fontWeight: TextStyle['fontWeight']
-    fontFamily: string
-    lineHeight: number
-  }
-}
+import type { BadgeTokens } from './types'
 
 const createBadgeTokens = ({
   palette,
@@ -36,22 +8,48 @@ const createBadgeTokens = ({
   fontSize,
   radii,
   typography,
-}: Foundations): BadgeTokens => ({
-  defaults: { showZero: true },
+}: Foundations): BadgeTokens => {
+  const dotSize = 8
+  return {
+  defaults: {
+    dot: false,
+    showZero: true,
+    pressedOpacity: 0.9,
+  },
+  layout: {
+    wrapper: {
+      position: 'relative',
+      alignSelf: 'flex-start', // Ensure wrapper shrinks to children
+    },
+    badgeAbsolute: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1,
+    },
+    badgeStandalone: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pressableStandalone: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+    },
+    text: {
+      textAlign: 'center',
+      includeFontPadding: false,
+      textAlignVertical: 'center',
+    },
+  },
   colors: {
     background: palette.danger[500],
     dot: palette.danger[500],
     text: palette.danger.foreground ?? '#fff',
     border: '#fff',
-  },
-  sizes: {
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.xxs,
-    dotSize: 8,
-    borderRadius: radii.pill,
-    borderWidth: 1,
   },
   typography: {
     fontSize: fontSize.xs,
@@ -59,7 +57,21 @@ const createBadgeTokens = ({
     fontFamily: typography.fontFamily,
     lineHeight: fontSize.xs * typography.lineHeightMultiplier,
   },
-})
+  sizing: {
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xxs,
+    dotSize,
+  },
+  radii: {
+    badge: radii.pill,
+    dot: dotSize / 2,
+  },
+  borders: {
+    width: 1,
+  },
+  }
+}
 
 export const useBadgeTokens = createComponentTokensHook('badge', createBadgeTokens)
-

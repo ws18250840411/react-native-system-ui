@@ -1,107 +1,10 @@
 import React from 'react'
-import {
-  Animated,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
-} from 'react-native'
+import { Animated, Platform, Text, View } from 'react-native'
 import Svg, { Circle as SvgCircle } from 'react-native-svg'
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
-import type { DeepPartial } from '../../types'
 import { isText } from '../../utils/validate'
 import { clamp, parseNumber, parsePercentage } from '../../utils/number'
-
-export type CircleStartPosition = 'top' | 'right' | 'bottom' | 'left'
-export type CircleLineCap = 'round' | 'butt' | 'square'
-
-export interface CircleProps {
-  /**
-   * 进度百分比（0-100）
-   */
-  rate?: number | string
-  /**
-   * 圆环尺寸，默认 100
-   */
-  size?: number | string
-  /**
-   * 圆环宽度，默认 6
-   */
-  strokeWidth?: number | string
-  /**
-   * 进度条颜色
-   */
-  color?: string
-  /**
-   * 轨道颜色
-   */
-  layerColor?: string
-  /**
-   * 圆环内部填充色
-   */
-  fill?: string
-  /**
-   * 是否顺时针
-   * @default true
-   */
-  clockwise?: boolean
-  /**
-   * 起始位置
-   * @default 'top'
-   */
-  startPosition?: CircleStartPosition
-  /**
-   * 线帽
-   * @default 'round'
-   */
-  lineCap?: CircleLineCap
-  /**
-   * 是否开启过渡动画（Native 端生效）
-   * @default true
-   */
-  animated?: boolean
-  /**
-   * 动画时长（ms）
-   * @default 300
-   */
-  animationDuration?: number
-  style?: StyleProp<ViewStyle>
-  textStyle?: StyleProp<TextStyle>
-  children?: React.ReactNode
-  tokensOverride?: DeepPartial<CircleTokens>
-}
-
-export interface CircleTokens {
-  colors: {
-    color: string
-    layerColor: string
-    text: string
-  }
-  fontSize: number
-  lineHeight: number
-  size: number
-  strokeWidth: number
-  animationDuration: number
-}
-
-const createCircleTokens = (foundations: Foundations): CircleTokens => ({
-  colors: {
-    color: foundations.palette.primary[500],
-    layerColor: foundations.palette.default[200],
-    text: foundations.palette.default[800],
-  },
-  fontSize: foundations.fontSize.sm,
-  lineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
-  size: 100,
-  strokeWidth: 6,
-  animationDuration: 300,
-})
-
-const useCircleTokens = createComponentTokensHook('circle', createCircleTokens)
+import { useCircleTokens } from './tokens'
+import type { CircleProps, CircleStartPosition } from './types'
 
 const resolveSvgRotation = (position: CircleStartPosition) => {
   switch (position) {
@@ -149,49 +52,59 @@ const AnimatedSvgCircle = Animated.createAnimatedComponent(SvgCircle)
 
 export const Circle: React.FC<CircleProps> = props => {
   const {
-    rate: rateProp = 0,
+    tokensOverride,
+    rate: rateProp,
     size,
     strokeWidth,
     color,
     layerColor,
-    fill = 'transparent',
-    clockwise = true,
-    startPosition = 'top',
-    lineCap = 'round',
-    animated = true,
+    fill: fillProp,
+    clockwise: clockwiseProp,
+    startPosition: startPositionProp,
+    lineCap: lineCapProp,
+    animated: animatedProp,
     animationDuration,
     style,
     textStyle,
     children,
-    tokensOverride,
   } = props
-
   const tokens = useCircleTokens(tokensOverride)
-  const resolvedSize = Math.max(0, parseNumber(size, tokens.size))
-  const resolvedStrokeWidth = Math.max(0, parseNumber(strokeWidth, tokens.strokeWidth))
-  const rate = clamp(parsePercentage(rateProp) || 0, 0, 100)
+  const rateValue = rateProp ?? tokens.defaults.rate
+  const fill = fillProp ?? tokens.defaults.fill
+  const clockwise = clockwiseProp ?? tokens.defaults.clockwise
+  const startPosition = startPositionProp ?? tokens.defaults.startPosition
+  const lineCap = lineCapProp ?? tokens.defaults.lineCap
+  const animated = animatedProp ?? tokens.defaults.animated
+
+  const resolvedSize = Math.max(0, parseNumber(size, tokens.defaults.size))
+  const resolvedStrokeWidth = Math.max(0, parseNumber(strokeWidth, tokens.defaults.strokeWidth))
+  const rate = clamp(parsePercentage(rateValue), 0, 100)
 
   const resolvedColor = color ?? tokens.colors.color
   const resolvedLayerColor = layerColor ?? tokens.colors.layerColor
 
-  const renderContent = () => {
+  const content = React.useMemo(() => {
     if (children == null || children === false) return null
     const childArray = React.Children.toArray(children)
-    if (childArray.every(item => isText(item))) {
+    if (childArray.every(isText)) {
       return (
         <Text
           style={[
-            styles.text,
-            { color: tokens.colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight },
+            tokens.layout.text,
+            {
+              color: tokens.colors.text,
+              fontSize: tokens.typography.fontSize,
+              lineHeight: tokens.typography.lineHeight,
+            },
             textStyle,
           ]}
         >
-          {childArray.map(item => String(item)).join('')}
+          {childArray.map(String).join('')}
         </Text>
       )
     }
     return children
-  }
+  }, [children, textStyle, tokens.colors.text, tokens.layout.text, tokens.typography.fontSize, tokens.typography.lineHeight])
 
   if (Platform.OS === 'web') {
     const safeStroke = Math.min(resolvedStrokeWidth, resolvedSize / 2)
@@ -222,7 +135,7 @@ export const Circle: React.FC<CircleProps> = props => {
     return (
       <View
         style={[
-          styles.root,
+          tokens.layout.root,
           {
             width: resolvedSize,
             height: resolvedSize,
@@ -232,7 +145,7 @@ export const Circle: React.FC<CircleProps> = props => {
       >
         <View
           style={[
-            styles.webRing,
+            tokens.layout.webRing,
             {
               width: resolvedSize,
               height: resolvedSize,
@@ -245,7 +158,7 @@ export const Circle: React.FC<CircleProps> = props => {
         {shouldRenderInner ? (
           <View
             style={[
-              styles.webInner,
+              tokens.layout.webInner,
               {
                 width: innerSize,
                 height: innerSize,
@@ -257,8 +170,8 @@ export const Circle: React.FC<CircleProps> = props => {
             ]}
           />
         ) : null}
-        <View pointerEvents="box-none" style={[styles.content, { width: resolvedSize, height: resolvedSize }]}>
-          {renderContent()}
+        <View pointerEvents="box-none" style={[tokens.layout.content, { width: resolvedSize, height: resolvedSize }]}>
+          {content}
         </View>
       </View>
     )
@@ -267,7 +180,7 @@ export const Circle: React.FC<CircleProps> = props => {
   const radius = Math.max(0, (resolvedSize - resolvedStrokeWidth) / 2)
   const circumference = 2 * Math.PI * radius
   const rotation = resolveSvgRotation(startPosition)
-  const safeDuration = Math.max(0, animationDuration ?? tokens.animationDuration)
+  const safeDuration = Math.max(0, animationDuration ?? tokens.defaults.animationDuration)
   const dashOffsetTarget = (clockwise ? 1 : -1) * circumference * (1 - rate / 100)
 
   const dashOffset = React.useRef(new Animated.Value(dashOffsetTarget)).current
@@ -287,7 +200,7 @@ export const Circle: React.FC<CircleProps> = props => {
   }, [animated, dashOffset, dashOffsetTarget, safeDuration])
 
   return (
-    <View style={[styles.root, { width: resolvedSize, height: resolvedSize }, style]}>
+    <View style={[tokens.layout.root, { width: resolvedSize, height: resolvedSize }, style]}>
       <Svg width={resolvedSize} height={resolvedSize}>
         <SvgCircle
           cx={resolvedSize / 2}
@@ -312,38 +225,15 @@ export const Circle: React.FC<CircleProps> = props => {
           originY={resolvedSize / 2}
         />
       </Svg>
-      <View pointerEvents="box-none" style={[styles.content, { width: resolvedSize, height: resolvedSize }]}>
-        {renderContent()}
+      <View pointerEvents="box-none" style={[tokens.layout.content, { width: resolvedSize, height: resolvedSize }]}>
+        {content}
       </View>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
-  root: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    textAlign: 'center',
-  },
-  webRing: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-  },
-  webInner: {
-    position: 'absolute',
-  },
-})
-
 Circle.displayName = 'Circle'
+
+export type { CircleLineCap, CircleProps, CircleStartPosition, CircleTokens } from './types'
 
 export default Circle

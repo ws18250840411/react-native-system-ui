@@ -1,27 +1,11 @@
 import React from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
-import { createComponentTokensHook } from '../../design-system'
-import type { Foundations } from '../../design-system/tokens'
 import { isFunction, isRenderable, isText, isUndefined } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'
 import Loading from '../loading'
-import type { ListProps, ListRef, ListTokens } from './types'
-
-const createListTokens = (foundations: Foundations): ListTokens => {
-  return {
-    colors: {
-      errorText: '#ff5b05',
-      finishedText: '#999999',
-    },
-    spacing: {
-      footerPaddingVertical: foundations.spacing.lg,
-      inlineGap: foundations.spacing.sm,
-    },
-  }
-}
-
-const useListTokens = createComponentTokensHook('list', createListTokens)
+import type { ListProps, ListRef } from './types'
+import { useListTokens } from './tokens'
 
 const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const locale = useLocale()
@@ -30,9 +14,9 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     onLoad,
     loading,
     error,
-    finished = false,
-    offset = 300,
-    immediateCheck = true,
+    finished: finishedProp,
+    offset: offsetProp,
+    immediateCheck: immediateCheckProp,
     loadingText: loadingTextProp,
     finishedText,
     errorText,
@@ -47,6 +31,9 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   } = props
 
   const tokens = useListTokens(tokensOverride)
+  const finished = finishedProp ?? tokens.defaults.finished
+  const offset = offsetProp ?? tokens.defaults.offset
+  const immediateCheck = immediateCheckProp ?? tokens.defaults.immediateCheck
 
   const loadingText = isUndefined(loadingTextProp) ? locale.loading : loadingTextProp
 
@@ -125,29 +112,29 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     <ScrollView
       {...scrollProps}
       onScroll={handleScroll}
-      scrollEventThrottle={scrollEventThrottleProp ?? 16}
+      scrollEventThrottle={scrollEventThrottleProp ?? tokens.defaults.scrollEventThrottle}
       contentContainerStyle={contentContainerStyle}
       onContentSizeChange={handleContentSizeChange}
       onLayout={handleLayout}
     >
       {children}
       <View
-        style={{ paddingVertical: tokens.spacing.footerPaddingVertical, alignItems: 'center' }}
+        style={[tokens.layout.footer, { paddingVertical: tokens.spacing.footerPaddingVertical }]}
         testID="rv-list-footer"
       >
         {mergedLoading ? (
           isText(loadingText)
             ? (
-              <Loading size={16} testID="rv-list-loading">
+              <Loading size={tokens.sizing.loadingIndicator} testID="rv-list-loading">
                 {loadingText}
               </Loading>
             )
             : (
               <View
-                style={{ flexDirection: 'row', alignItems: 'center' }}
+                style={tokens.layout.loadingInline}
                 testID="rv-list-loading"
               >
-                <Loading size={16} />
+                <Loading size={tokens.sizing.loadingIndicator} />
                 {loadingText ? <View style={{ marginLeft: tokens.spacing.inlineGap }}>{loadingText}</View> : null}
               </View>
             )

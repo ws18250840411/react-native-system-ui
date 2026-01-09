@@ -19,7 +19,7 @@ import { Checked, Close } from 'react-native-system-icon'
 import { useOverlayStack } from '../overlay'
 import type { LoadingType } from '../loading'
 import type { DeepPartial } from '../../types'
-import { isText } from '../../utils/validate'
+import { isFiniteNumber, isText } from '../../utils/validate'
 import { useToastTokens } from './tokens'
 import type { ToastTokens } from './tokens'
 
@@ -78,6 +78,7 @@ export const Toast: React.FC<ToastProps> = props => {
   const tokens = useToastTokens(tokensOverride)
   const { colors } = tokens
   const { height: windowHeight } = useWindowDimensions()
+  const durationMs = isFiniteNumber(duration) ? Math.max(0, duration) : 0
   const { mounted, animated } = usePresenceAnimation(visible, { duration: tokens.animationDuration })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'toast' })
   const prevVisibleRef = React.useRef(visible)
@@ -93,16 +94,16 @@ export const Toast: React.FC<ToastProps> = props => {
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
     if (visible) {
-      if (duration > 0) {
+      if (durationMs > 0) {
         timer = setTimeout(() => {
           onClose?.()
-        }, duration)
+        }, durationMs)
       }
     }
     return () => {
       if (timer) clearTimeout(timer)
     }
-  }, [duration, onClose, visible])
+  }, [durationMs, onClose, visible])
 
   React.useEffect(() => {
     let openedTimer: ReturnType<typeof setTimeout> | null = null

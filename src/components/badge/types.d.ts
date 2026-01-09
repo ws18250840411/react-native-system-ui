@@ -1,7 +1,47 @@
 import type { PressableProps, StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { BadgeTokens } from './tokens'
+
+export interface BadgeTokens {
+  defaults: {
+    dot: boolean
+    showZero: boolean
+    pressedOpacity: number
+  }
+  layout: {
+    wrapper: ViewStyle
+    badgeAbsolute: ViewStyle
+    badgeStandalone: ViewStyle
+    pressableStandalone: ViewStyle
+    text: TextStyle
+  }
+  colors: {
+    background: string
+    dot: string
+    text: string
+    border: string
+  }
+  typography: {
+    fontSize: number
+    fontWeight: TextStyle['fontWeight']
+    fontFamily: string
+    lineHeight: number
+  }
+  sizing: {
+    minWidth: number
+    height: number
+    paddingHorizontal: number
+    paddingVertical: number
+    dotSize: number
+  }
+  radii: {
+    badge: number
+    dot: number
+  }
+  borders: {
+    width: number
+  }
+}
 
 export type BadgeOffset = [number | string, number | string]
 

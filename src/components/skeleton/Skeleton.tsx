@@ -27,23 +27,35 @@ const resolveSeries = (
 }
 
 const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
-  const tokens = useSkeletonTokens(props.tokensOverride)
   const {
-    loading = true,
-    animate = true,
-    avatar = false,
-    avatarSize = tokens.defaults.avatarSize,
-    avatarShape = 'round',
-    title = false,
-    titleWidth = tokens.defaults.titleWidth,
-    row = tokens.defaults.rowCount,
-    rowWidth = tokens.defaults.rowWidth,
+    tokensOverride,
+    loading: loadingProp,
+    animate: animateProp,
+    avatar: avatarProp,
+    avatarSize: avatarSizeProp,
+    avatarShape: avatarShapeProp,
+    title: titleProp,
+    titleWidth: titleWidthProp,
+    row: rowProp,
+    rowWidth: rowWidthProp,
     rowHeight,
-    round = false,
+    round: roundProp,
     style,
     children,
     ...rest
   } = props
+
+  const tokens = useSkeletonTokens(tokensOverride)
+  const loading = loadingProp ?? true
+  const animate = animateProp ?? true
+  const avatar = avatarProp ?? false
+  const avatarSize = avatarSizeProp ?? tokens.defaults.avatarSize
+  const avatarShape = avatarShapeProp ?? 'round'
+  const title = titleProp ?? false
+  const titleWidth = titleWidthProp ?? tokens.defaults.titleWidth
+  const row = rowProp ?? tokens.defaults.rowCount
+  const rowWidth = rowWidthProp ?? tokens.defaults.rowWidth
+  const round = roundProp ?? false
 
   const rows = isFiniteNumber(row) ? Math.max(0, Math.floor(row)) : 0
   const rowWidths = resolveSeries(rows, rowWidth, tokens.defaults.rowWidth)

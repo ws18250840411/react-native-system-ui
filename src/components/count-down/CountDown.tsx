@@ -8,19 +8,24 @@ import { useCountDownTokens } from './tokens'
 import type { CountDownInstance, CountDownProps } from './types'
 
 const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, ref) => {
-  const tokens = useCountDownTokens(props.tokensOverride)
   const {
-    tokensOverride: _tokensOverride,
-    autoStart = true,
-    millisecond = false,
-    time = 0,
-    format = 'HH:mm:ss',
+    tokensOverride,
+    autoStart: autoStartProp,
+    millisecond: millisecondProp,
+    time: timeProp,
+    format: formatProp,
     children,
     onChange,
     onFinish,
     style,
     ...rest
   } = props
+
+  const tokens = useCountDownTokens(tokensOverride)
+  const autoStart = autoStartProp ?? tokens.defaults.autoStart
+  const millisecond = millisecondProp ?? tokens.defaults.millisecond
+  const time = timeProp ?? tokens.defaults.time
+  const format = formatProp ?? tokens.defaults.format
 
   const normalizedTime = Math.max(0, Number(time) || 0)
 
@@ -47,7 +52,7 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
 
   React.useImperativeHandle(ref, () => ({ start, pause, reset: resetTime }))
 
-  const defaultTextStyle = tokens.text
+  const defaultTextStyle = tokens.layout.text
   const content = isFunction(children) ? children(current) : formatDuration(format, current)
   const contentNode = isText(content) ? (<Text style={defaultTextStyle}>{content}</Text>) : (content)
 

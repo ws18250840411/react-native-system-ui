@@ -1,6 +1,11 @@
 import React from 'react'
-import type { TextStyle, ViewStyle } from 'react-native'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  Pressable,
+  Text,
+  View,
+  type DimensionValue,
+  type ViewStyle,
+} from 'react-native'
 
 import Badge from '../badge'
 import { createHairlineView } from '../../utils/hairline'
@@ -8,15 +13,9 @@ import { isFunction, isRenderable, isText } from '../../utils/validate'
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
-type GridItemInternalProps = GridItemProps & {
-  gridItemIndex?: number
-}
-
 export const GridItem: React.FC<GridItemProps> = props => {
   const context = React.useContext(GridContext)
-  if (!context) {
-    throw new Error('GridItem must be used within Grid')
-  }
+  if (!context) throw new Error('GridItem must be used within Grid')
 
   const {
     gridItemIndex = 0,
@@ -31,206 +30,114 @@ export const GridItem: React.FC<GridItemProps> = props => {
     style,
     onPress,
     ...rest
-  } = props as GridItemInternalProps
+  } = props as GridItemProps & { gridItemIndex?: number }
 
-  const {
-    columnNum,
-    gutter,
-    border,
-    center,
-    square,
-    direction,
-    reverse,
-    clickable,
-    iconSize,
-    iconColor,
-    count,
-    tokens,
-  } = context
+  const { tokens, columnNum, gutter, border, center, square, direction, reverse, clickable, iconSize, iconColor, count } = context
 
-  const widthPercent = `${100 / columnNum}%`
+  const widthPercent = `${100 / columnNum}%` as DimensionValue
   const isLastColumn = (gridItemIndex + 1) % columnNum === 0
   const rowIndex = Math.floor(gridItemIndex / columnNum)
   const lastRowIndex = Math.floor((count - 1) / columnNum)
 
-  const baseItemStyle: ViewStyle = {
-    flexBasis: widthPercent as any,
-    width: widthPercent as any,
-    maxWidth: widthPercent as any,
-    borderColor: tokens.colors.border,
-  }
-
-  if (square) {
-    baseItemStyle.aspectRatio = 1
-  }
-
-  if (gutter) {
-    baseItemStyle.paddingRight = gutter
-    if (rowIndex > 0) {
-      baseItemStyle.marginTop = gutter
-    }
-  }
-
-  const contentOrientation = direction === 'horizontal' ? styles.horizontal : styles.vertical
-  const reverseStyle = reverse
-    ? direction === 'horizontal'
-      ? styles.reverseRow
-      : styles.reverseColumn
-    : null
-
-  const contentBaseStyle: ViewStyle = {
-    paddingHorizontal: tokens.spacing.paddingHorizontal,
-    paddingVertical: tokens.spacing.paddingVertical,
-    backgroundColor: tokens.colors.background,
-    // 需要相对定位，以便绝对定位的边框 View 能正确显示
-    position: 'relative',
-    // 确保边框 View 不会被裁剪
-    overflow: 'visible',
-  }
-
-  if (square) {
-    contentBaseStyle.position = 'absolute'
-    contentBaseStyle.top = 0
-    contentBaseStyle.right = 0
-    contentBaseStyle.left = 0
-    // 确保有完整的高度，以便边框能正确显示
-    contentBaseStyle.bottom = 0
-  }
-
-  if (square && gutter) {
-    contentBaseStyle.right = gutter
-    contentBaseStyle.bottom = gutter
-    contentBaseStyle.height = 'auto'
-  }
-
-  // 只有没有gutter时才显示边框，有gutter时不需要边框
-  const showRightBorder = border && !gutter && !isLastColumn
-  const showBottomBorder = border && !gutter && rowIndex < lastRowIndex
-
   const contentWrapperStyle = [
-    styles.contentBase,
-    contentOrientation,
-    center && styles.center,
-    reverseStyle,
-    contentBaseStyle,
+    tokens.layout.itemContentBase,
+    direction === 'horizontal' ? tokens.layout.itemHorizontal : tokens.layout.itemVertical,
+    center && tokens.layout.itemCenter,
+    reverse ? (direction === 'horizontal' ? tokens.layout.itemReverseRow : tokens.layout.itemReverseColumn) : null,
+    {
+      paddingHorizontal: tokens.spacing.paddingHorizontal,
+      paddingVertical: tokens.spacing.paddingVertical,
+      backgroundColor: tokens.colors.background,
+    },
+    square ? tokens.layout.itemContentSquare : null,
+    square && gutter ? { right: gutter, bottom: gutter, height: 'auto' as any } : null,
     contentStyle,
   ]
 
+  const hasText = isRenderable(text)
   const resolvedIconColor = iconColorProp ?? iconColor ?? tokens.colors.text
 
-  const renderIcon = () => {
-    if (!icon && !badge && !dot) {
-      return null
-    }
-
-    const hasText = isRenderable(text)
-    const iconNode = icon
-      ? isFunction(icon)
-        ? icon(iconSize, resolvedIconColor)
-        : icon
-      : null
+  let iconElement = null
+  if (icon || badge || dot) {
+    const marginKey = direction === 'vertical'
+      ? (reverse ? 'marginTop' : 'marginBottom')
+      : (reverse ? 'marginLeft' : 'marginRight')
 
     const iconWrapperStyle = [
-      styles.iconWrapper,
-      hasText && direction === 'vertical' && !reverse ? { marginBottom: 8 } : null, // 8px (var(--rv-padding-xs))
-      hasText && direction === 'vertical' && reverse ? { marginTop: 8 } : null,
-      hasText && direction === 'horizontal' && !reverse ? { marginRight: 8 } : null,
-      hasText && direction === 'horizontal' && reverse ? { marginLeft: 8 } : null,
+      tokens.layout.iconWrapper,
+      hasText && { [marginKey]: tokens.spacing.iconGap },
     ]
-
-    const content = iconNode ? (
-      <View style={iconWrapperStyle}>{iconNode}</View>
-    ) : (
-      <View style={iconWrapperStyle} />
-    )
-
-    if (badge || dot) {
-      return (
-        <Badge dot={dot} {...badge}>
-          {content}
-        </Badge>
-      )
-    }
-
-    return content
+    const iconNode = isFunction(icon) ? icon(iconSize, resolvedIconColor) : icon
+    const content = <View style={iconWrapperStyle}>{iconNode}</View>
+    iconElement = (badge || dot) ? <Badge dot={dot} {...badge}>{content}</Badge> : content
   }
 
-  const renderText = () => {
-    if (!isRenderable(text)) {
-      return null
-    }
+  const textElement = hasText ? (
+    isText(text) ? (
+      <Text
+        style={[
+          tokens.layout.text,
+          {
+            color: tokens.colors.text,
+            fontSize: tokens.typography.fontSize,
+            lineHeight: tokens.typography.lineHeight,
+            fontFamily: tokens.typography.fontFamily,
+            fontWeight: tokens.typography.fontWeight as any,
+          },
+          textStyle
+        ]}
+        numberOfLines={2}
+      >
+        {text}
+      </Text>
+    ) : text
+  ) : null
 
-    if (isText(text)) {
-      const textStyles: TextStyle = {
-        color: tokens.colors.text,
-        fontSize: tokens.typography.fontSize,
-        lineHeight: tokens.typography.lineHeight,
-        fontFamily: tokens.typography.fontFamily,
-        fontWeight: tokens.typography.fontWeight as any,
-      }
-
-      return (
-        <Text style={[styles.text, textStyles, textStyle]} numberOfLines={2}>
-          {text}
-        </Text>
-      )
-    }
-
-    return text
-  }
-
-  const isInteractive = clickable || isFunction(onPress)
-  const contentBody = children ?? (
-    <>
-      {renderIcon()}
-      {renderText()}
-    </>
+  const rightBorder = border && !gutter && !isLastColumn && (
+    <View
+      style={[
+        tokens.layout.itemBorderRight,
+        createHairlineView({ position: 'right', color: tokens.colors.border, top: 0, bottom: 0, right: 0 }),
+      ]}
+    />
   )
 
-  const renderBorders = () => (
-    <>
-      {showRightBorder && (
-        <View
-          style={[
-            styles.borderRight,
-            createHairlineView({
-              position: 'right',
-              color: tokens.colors.border,
-              top: 0,
-              bottom: 0,
-              right: 0,
-            }),
-          ]}
-        />
-      )}
-      {showBottomBorder && (
-        <View
-          style={[
-            styles.borderBottom,
-            createHairlineView({
-              position: 'bottom',
-              color: tokens.colors.border,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }),
-          ]}
-        />
-      )}
-    </>
+  const bottomBorder = border && !gutter && rowIndex < lastRowIndex && (
+    <View
+      style={[
+        tokens.layout.itemBorderBottom,
+        createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0, bottom: 0 }),
+      ]}
+    />
   )
 
   const content = (
     <View style={contentWrapperStyle}>
-      {contentBody}
-      {renderBorders()}
+      {children ?? <>{iconElement}{textElement}</>}
+      {rightBorder}
+      {bottomBorder}
     </View>
   )
+
+  const baseItemStyle: ViewStyle = {
+    flexBasis: widthPercent,
+    width: widthPercent,
+    maxWidth: widthPercent,
+    aspectRatio: square ? 1 : undefined,
+    paddingRight: gutter ? gutter : undefined,
+    marginTop: gutter && rowIndex > 0 ? gutter : undefined,
+  }
+
+  const isInteractive = clickable || isFunction(onPress)
 
   if (isInteractive) {
     return (
       <Pressable
-        style={({ pressed }) => [baseItemStyle, style as ViewStyle, { opacity: pressed ? 0.85 : 1 }]}
+        style={({ pressed }) => [
+          baseItemStyle,
+          style as ViewStyle,
+          { opacity: pressed ? tokens.defaults.pressedOpacity : 1 },
+        ]}
         android_ripple={{ color: tokens.colors.active }}
         onPress={onPress}
         {...rest}
@@ -248,39 +155,3 @@ export const GridItem: React.FC<GridItemProps> = props => {
 }
 
 GridItem.displayName = 'GridItem'
-
-const styles = StyleSheet.create({
-  contentBase: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  vertical: {
-    flexDirection: 'column',
-  },
-  horizontal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  center: {
-    alignItems: 'center',
-  },
-  reverseColumn: {
-    flexDirection: 'column-reverse',
-  },
-  reverseRow: {
-    flexDirection: 'row-reverse',
-  },
-  iconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    textAlign: 'center',
-  },
-  borderRight: {
-    width: 1,
-  },
-  borderBottom: {
-    height: 1,
-  },
-})

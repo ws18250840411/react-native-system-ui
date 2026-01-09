@@ -2,7 +2,35 @@ import type React from 'react'
 import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { ProgressTokens } from './tokens'
+
+export interface ProgressTokens {
+  defaults: {
+    percentage: number
+    inactive: boolean
+    showPivot: boolean
+    transition: boolean
+    animationDuration: number
+  }
+  layout: {
+    track: ViewStyle
+    indicator: ViewStyle
+    pivot: ViewStyle
+    pivotText: TextStyle
+  }
+  colors: {
+    track: string
+    indicator: string
+    pivotText: string
+  }
+  typography: {
+    pivotFontSize: number
+  }
+  sizing: {
+    height: number
+    pivotPaddingHorizontal: number
+    pivotPaddingVertical: number
+  }
+}
 
 export interface ProgressProps extends ViewProps {
   percentage?: number | string

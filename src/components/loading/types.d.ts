@@ -11,15 +11,22 @@ export interface LoadingTokens {
     textSize: number
     vertical: boolean
   }
+  layout: {
+    container: ViewStyle
+    spinnerItem: ViewStyle
+    text: TextStyle
+  }
   colors: {
     indicator: string
     text: string
   }
-  spinner: {
-    lineWidth: number
-    lineLength: number
-    itemCount: number
-    innerGapRatio: number
+  sizing: {
+    spinner: {
+      lineWidth: number
+      lineLength: number
+      itemCount: number
+      innerGapRatio: number
+    }
   }
   spacing: {
     gap: number

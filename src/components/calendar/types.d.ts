@@ -1,11 +1,82 @@
 import type React from "react"
-import type { ViewProps } from "react-native"
+import type { TextStyle, ViewProps, ViewStyle } from "react-native"
 
 import type { DeepPartial } from "../../types"
 import type { PopupPlacement, PopupProps } from "../popup"
-import type { CalendarTokens } from "./tokens"
 
 export type CalendarType = "single" | "range" | "multiple"
+
+export interface CalendarTokens {
+  defaults: {
+    type: CalendarType
+    title: React.ReactNode
+    showSubtitle: boolean
+    showHeader: boolean
+    showConfirm: Record<CalendarType, boolean>
+    confirmText: React.ReactNode
+    weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6
+    weekdays: React.ReactNode[]
+    allowSameDay: boolean
+    poppable: boolean
+    closeOnClickOverlay: boolean
+    closeOnConfirm: boolean
+    popupPlacement: PopupPlacement
+    popupRound: boolean
+  }
+  layout: {
+    header: ViewStyle
+    headerCenter: ViewStyle
+    navText: TextStyle
+    headerTitle: TextStyle
+    headerSubtitle: TextStyle
+    weekRow: ViewStyle
+    weekLabelItem: ViewStyle
+    weekLabel: TextStyle
+    days: ViewStyle
+    dayButton: ViewStyle
+    dayText: TextStyle
+    dayPlaceholder: ViewStyle
+    confirmButton: ViewStyle
+    confirmText: TextStyle
+  }
+  colors: {
+    text: string
+    weekend: string
+    disabled: string
+    background: string
+    selectedBackground: string
+    selectedText: string
+    rangeBackground: string
+    headerSubtitle: string
+    confirmText: string
+  }
+  typography: {
+    headerTitleSize: number
+    headerTitleWeight: TextStyle['fontWeight']
+    headerSubtitleSize: number
+    confirmTextWeight: TextStyle['fontWeight']
+  }
+  sizing: {
+    dayMinWidth: number
+    navButtonSize: number
+  }
+  radii: {
+    day: number
+    container: number
+    confirmButton: number
+  }
+  spacing: {
+    row: number
+    column: number
+    containerPadding: number
+    headerMarginBottom: number
+    weekRowMarginBottom: number
+    navPaddingHorizontal: number
+    dayPaddingVertical: number
+    confirmMarginTop: number
+    confirmPaddingVertical: number
+  }
+}
 
 export interface CalendarProps extends ViewProps {
   value?: Date | Date[] | null

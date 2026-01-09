@@ -9,13 +9,64 @@ import type {
 } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { CheckboxTokens } from './tokens'
 
 export type CheckboxShape = 'round' | 'square'
 export type CheckboxLabelPosition = 'left' | 'right'
 export type CheckboxGroupDirection = 'horizontal' | 'vertical'
 export type CheckboxValue = string | number
 export type CheckboxIconRender = (params: { checked: boolean; disabled: boolean }) => React.ReactNode
+
+export interface CheckboxTokens {
+  defaults: {
+    shape: CheckboxShape
+    iconSize: number
+    labelPosition: CheckboxLabelPosition
+    labelDisabled: boolean
+    bindGroup: boolean
+    groupDisabled: boolean
+    groupDirection: CheckboxGroupDirection
+  }
+  layout: {
+    container: ViewStyle
+    iconWrapper: ViewStyle
+    icon: ViewStyle
+    checkmark: TextStyle
+    label: TextStyle
+    labelWrapper: ViewStyle
+    groupHorizontal: ViewStyle
+    groupVertical: ViewStyle
+    groupItem: ViewStyle
+  }
+  colors: {
+    border: string
+    background: string
+    checkedBackground: string
+    disabledBorder: string
+    disabledBackground: string
+    checkmark: string
+    label: string
+    labelDisabled: string
+  }
+  typography: {
+    fontSize: number
+    fontFamily: string
+    fontWeight: TextStyle['fontWeight']
+    lineHeightMultiplier: number
+  }
+  spacing: {
+    gap: number
+    groupGap: number
+  }
+  radii: {
+    square: number
+  }
+  borders: {
+    width: number
+  }
+  icon: {
+    scale: number
+  }
+}
 
 export interface CheckboxProps extends Omit<PressableProps, 'onPress'> {
   name?: CheckboxValue

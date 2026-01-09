@@ -24,7 +24,7 @@
 - `style` 合并策略一致：容器/内容层级稳定，布局相关样式不丢失
 
 ### 3) 弹层/层级/定位（高风险区域）
-- 所有弹层类组件（Popup/Overlay/Dialog/ActionSheet/Popover/DropdownMenu/Toast/ImagePreview…）必须走 **Portal**
+- 所有弹层类组件（Popup/Overlay/Dialog/ActionSheet/DropdownMenu/Toast/ImagePreview…）必须走 **Portal**
 - zIndex 策略统一：OverlayStack 负责管理栈与“相对偏移”，避免小值污染全局层级
 - 定位必须覆盖非顶端场景：优先 `measureInWindow`；Web 需考虑布局/滚动导致的差异与兜底
 
@@ -53,4 +53,3 @@
 - `docs/components-progress.md`：更新三审状态（✅/⏳）与结论/阻塞
 - `docs/components/<component>.md`：补齐 demo 与差异说明（必要时）
 - `src/components/<component>`：实现修复与必要的单测（优先覆盖跨端差异点）
-

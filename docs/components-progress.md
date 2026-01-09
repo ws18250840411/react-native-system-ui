@@ -21,7 +21,7 @@
 
 | 组件 | 状态 | 备注 |
 | --- | --- | --- |
-| Flex 布局 | ✅ | 三审通过：实现为纯布局封装（负 margin + Item padding）三端一致；二次审计通过：去除无用 context 字段、`columns/gutter` 做健壮兜底并移除多余 `useMemo`（默认 `gutter=0`、示例样式已抽离 CSS，`Flex.Item` 支持数字与字符串 flex） |
+| Flex | ✅ | 极致精简 (With Tokens) |
 | Space 间距 | ✅ | 三审通过：Web 用 `rowGap/columnGap`，Native 用 padding+负 margin，交互/换行一致；二次审计通过：修复 `direction="vertical"` 默认 block 判定；原生端间距统一为 padding+负 margin（divider/wrap 无尾部空隙），并补齐单测（Web 端 gap 逻辑保持） |
 
 ## 基础组件
@@ -89,7 +89,6 @@
 | List 列表 | ✅ | 三审通过：加载更多/错误重试/刷新组合在三端一致性复核通过；二次审计通过：默认 `offset=300`、内部防并发与错误重试（error 状态阻止自动加载，点击 `errorText` 重试），补齐错误/下拉刷新 demo 与单测；因基于 `ScrollView`，下拉刷新建议用 `refreshControl` 组合 |
 | SwipeCell 滑动单元格 | ✅ | 三审通过：PanResponder 手势（Web/Native）一致性复核通过；二次审计通过：PanResponder 绑定到 root 并启用 move capture，支持从操作区继续拖拽回中间/另一侧（修复“双侧滑动” demo 不能回到中间的问题），单测补齐 |
 | NoticeBar 通知栏 | ✅ | 三审通过：Web 下统一关闭 `useNativeDriver`，滚动/重播行为三端一致性复核通过；二次审计通过：滚动/换行/模式/自定义样式与 `onReplay`；补齐 `onPress` 类型与文档，支持非文本 `children`（避免嵌套 Text 崩溃）并补齐单测 |
-| Popover 气泡卡片 | ✅ | 三审通过：动画在 Web 下关闭 native driver，弹层栈/遮罩/定位一致性复核通过；二次审计通过：demo 文案已统一为占位内容（按钮/内容/方向），便于对比展示效果 |
 | Progress 进度条 | ✅ | 三审通过：Web 动画 driver 关闭、渐变降级与 a11y 三端一致性复核通过；二次审计通过：渐变兼容（Web 背景图/原生回退纯色）、动画容错&去抖、a11y progressbar、百分比/行高解析完善并补单测 |
 | Skeleton 骨架屏 | ✅ | 三审通过：动画 driver 策略（Web 关闭）与渲染一致性复核通过；二次审计通过：默认最后一行 `60%`、title 高度跟随 `rowHeight`，avatar/title/row 动画一致；Web 下禁用 native driver，单测覆盖保持 |
 | Tag 标签 | ✅ | 三审通过：点击/关闭/自定义配色三端一致性复核通过；二次审计通过：默认灰底白字（自定义 `color` 时保持可读性），支持 `plain/round/mark/closeable` 与自定义配色，并补齐默认色单测 |

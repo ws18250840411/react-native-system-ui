@@ -2,7 +2,45 @@ import type * as React from 'react'
 import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { NavBarTokens } from './tokens'
+
+export interface NavBarTokens {
+  defaults: {
+    fixed: boolean
+    placeholder: boolean
+    border: boolean
+    safeAreaInsetTop: boolean
+    leftArrow: boolean
+    zIndex: number
+  }
+  layout: {
+    container: ViewStyle
+    bar: ViewStyle
+    center: ViewStyle
+    side: ViewStyle
+    rightAlign: ViewStyle
+    sidePlaceholder: ViewStyle
+    titleWrapper: ViewStyle
+    title: TextStyle
+    description: TextStyle
+    sideText: TextStyle
+    fixed: ViewStyle
+  }
+  colors: {
+    background: string
+    text: string
+    description: string
+    border: string
+    icon: string
+  }
+  typography: {
+    titleSize: number
+    titleWeight: string | number
+    descriptionSize: number
+  }
+  sizing: {
+    height: number
+  }
+}
 
 export interface NavBarProps extends Omit<ViewProps, 'children'> {
   title?: React.ReactNode

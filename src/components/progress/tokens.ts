@@ -1,31 +1,44 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
+import type { ProgressTokens } from './types'
 
-export interface ProgressTokens {
-  colors: {
-    track: string
-    indicator: string
-    pivotText: string
-  }
-  sizes: {
-    height: number
-    pivotFont: number
-    pivotPaddingHorizontal: number
-    pivotPaddingVertical: number
-  }
-}
-
-const createProgressTokens = (foundations: Foundations): ProgressTokens => {
+export const createProgressTokens = (foundations: Foundations): ProgressTokens => {
   const onPrimary = foundations.palette.primary.foreground ?? '#ffffff'
   return {
+    defaults: {
+      percentage: 0,
+      inactive: false,
+      showPivot: true,
+      transition: true,
+      animationDuration: 300,
+    },
+    layout: {
+      track: {
+        overflow: 'hidden',
+      },
+      indicator: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+      },
+      pivot: {
+        position: 'absolute',
+      },
+      pivotText: {
+        textAlign: 'center',
+        includeFontPadding: false,
+      },
+    },
     colors: {
       track: foundations.palette.default[100],
       indicator: foundations.palette.primary[500],
       pivotText: onPrimary,
     },
-    sizes: {
+    typography: {
+      pivotFontSize: foundations.fontSize.xs,
+    },
+    sizing: {
       height: 4,
-      pivotFont: foundations.fontSize.xs,
       pivotPaddingHorizontal: foundations.spacing.xs,
       pivotPaddingVertical: 2,
     },

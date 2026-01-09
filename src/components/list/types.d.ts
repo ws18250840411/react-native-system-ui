@@ -1,12 +1,25 @@
 import type * as React from 'react'
-import type { ScrollViewProps, ViewProps } from 'react-native'
+import type { ScrollViewProps, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
 
 export interface ListTokens {
+  defaults: {
+    finished: boolean
+    offset: number
+    immediateCheck: boolean
+    scrollEventThrottle: number
+  }
+  layout: {
+    footer: ViewStyle
+    loadingInline: ViewStyle
+  }
   colors: {
     errorText: string
     finishedText: string
+  }
+  sizing: {
+    loadingIndicator: number
   }
   spacing: {
     footerPaddingVertical: number

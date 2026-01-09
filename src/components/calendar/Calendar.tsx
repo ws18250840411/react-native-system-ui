@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View, type TextStyle } from 'react-native'
+import { Pressable, Text, View, type TextStyle } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import { isText } from '../../utils/validate'
@@ -29,8 +29,6 @@ const toArrayValue = (value?: Date | Date[] | null): Date[] => {
 const DEFAULT_MIN = new Date(new Date().getFullYear() - 10, 0, 1)
 const DEFAULT_MAX = new Date(new Date().getFullYear() + 10, 11, 31)
 
-const defaultWeekDays = ['日', '一', '二', '三', '四', '五', '六']
-
 const Calendar: React.FC<CalendarProps> = props => {
   const {
     tokensOverride,
@@ -38,26 +36,26 @@ const Calendar: React.FC<CalendarProps> = props => {
     defaultValue: _defaultValue,
     minDate = DEFAULT_MIN,
     maxDate = DEFAULT_MAX,
-    type = 'single',
-    title = '选择日期',
-    showSubtitle = true,
-    showHeader = true,
-    showConfirm = type !== 'single',
-    confirmText = '确定',
-    weekStartsOn = 0,
+    type: typeProp,
+    title: titleProp,
+    showSubtitle: showSubtitleProp,
+    showHeader: showHeaderProp,
+    showConfirm: showConfirmProp,
+    confirmText: confirmTextProp,
+    weekStartsOn: weekStartsOnProp,
     weekdays,
     formatMonthTitle,
-    allowSameDay = false,
+    allowSameDay: allowSameDayProp,
     maxRange,
     onOverRange,
-    poppable = false,
+    poppable: poppableProp,
     visible: _visible,
     defaultVisible: _defaultVisible,
     onVisibleChange: _onVisibleChange,
-    closeOnClickOverlay = true,
-    closeOnConfirm = true,
-    popupPlacement = 'bottom',
-    popupRound = true,
+    closeOnClickOverlay: closeOnClickOverlayProp,
+    closeOnConfirm: closeOnConfirmProp,
+    popupPlacement: popupPlacementProp,
+    popupRound: popupRoundProp,
     popupProps: popupPropsOverrides,
     onOpen,
     onOpened,
@@ -70,6 +68,19 @@ const Calendar: React.FC<CalendarProps> = props => {
     ...rest
   } = props
   const tokens = useCalendarTokens(tokensOverride)
+  const title = titleProp ?? tokens.defaults.title
+  const showSubtitle = showSubtitleProp ?? tokens.defaults.showSubtitle
+  const showHeader = showHeaderProp ?? tokens.defaults.showHeader
+  const confirmText = confirmTextProp ?? tokens.defaults.confirmText
+  const weekStartsOn = weekStartsOnProp ?? tokens.defaults.weekStartsOn
+  const allowSameDay = allowSameDayProp ?? tokens.defaults.allowSameDay
+  const poppable = poppableProp ?? tokens.defaults.poppable
+  const closeOnClickOverlay = closeOnClickOverlayProp ?? tokens.defaults.closeOnClickOverlay
+  const closeOnConfirm = closeOnConfirmProp ?? tokens.defaults.closeOnConfirm
+  const popupPlacement = popupPlacementProp ?? tokens.defaults.popupPlacement
+  const popupRound = popupRoundProp ?? tokens.defaults.popupRound
+  const type = typeProp ?? tokens.defaults.type
+  const showConfirm = showConfirmProp ?? tokens.defaults.showConfirm[type]
   const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
     defaultValue: false,
     valuePropName: 'visible',
@@ -122,7 +133,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     defaultValuePropName: 'defaultValue',
     trigger: 'onSelect',
   })
-  const value = toArrayValue(selectedValue)
+  const value = React.useMemo(() => toArrayValue(selectedValue), [selectedValue])
 
   const [currentMonth, setCurrentMonth] = React.useState(() => {
     const initial = value.length ? value[0] : new Date()
@@ -150,8 +161,8 @@ const Calendar: React.FC<CalendarProps> = props => {
   const maxDay = React.useMemo(() => startOfDay(maxDate).getTime(), [maxDate])
 
   const weekLabels = React.useMemo(
-    () => reorderWeekdays(weekdays ?? defaultWeekDays, weekStartsOn),
-    [weekdays, weekStartsOn]
+    () => reorderWeekdays(weekdays ?? tokens.defaults.weekdays, weekStartsOn, tokens.defaults.weekdays),
+    [tokens.defaults.weekdays, weekdays, weekStartsOn]
   )
 
   const monthLabel = React.useMemo(
@@ -264,7 +275,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     }
   }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelectedValue, showConfirm, maybeAutoConfirm])
 
-  const selectedMap = value.map(item => startOfDay(item).getTime())
+  const selectedSet = React.useMemo(() => new Set(value.map(item => startOfDay(item).getTime())), [value])
   const rangeBounds = type === 'range' && value.length === 2
     ? [startOfDay(value[0]).getTime(), startOfDay(value[1]).getTime()]
     : null
@@ -274,13 +285,13 @@ const Calendar: React.FC<CalendarProps> = props => {
       return (
         <View
           key={`placeholder-${index}`}
-          style={[styles.dayPlaceholder, { paddingVertical: tokens.spacing.dayPaddingVertical }]}
+          style={[tokens.layout.dayPlaceholder, { paddingVertical: tokens.spacing.dayPaddingVertical }]}
         />
       )
     }
     const timeValue = startOfDay(day).getTime()
     const isDisabled = timeValue < minDay || timeValue > maxDay
-    const isSelected = selectedMap.includes(timeValue)
+    const isSelected = selectedSet.has(timeValue)
     const inRange =
       type === 'range' &&
       rangeBounds &&
@@ -288,7 +299,7 @@ const Calendar: React.FC<CalendarProps> = props => {
       timeValue < rangeBounds[1]
 
     const dayStyle: TextStyle[] = [
-      styles.day,
+      tokens.layout.dayText,
       {
         borderRadius: tokens.radii.day,
         color: tokens.colors.text,
@@ -307,7 +318,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     return (
       <Pressable
         key={day.toISOString()}
-        style={[styles.dayButton, { paddingVertical: tokens.spacing.dayPaddingVertical }]}
+        style={[tokens.layout.dayButton, { paddingVertical: tokens.spacing.dayPaddingVertical }]}
         disabled={isDisabled}
         onPress={() => handleSelectDay(day)}
         testID={getCalendarDayTestId(day)}
@@ -315,7 +326,7 @@ const Calendar: React.FC<CalendarProps> = props => {
         <Text style={dayStyle}>{day.getDate()}</Text>
       </Pressable>
     )
-  }, [selectedMap, type, rangeBounds, minDay, maxDay, tokens, color, handleSelectDay])
+  }, [selectedSet, type, rangeBounds, minDay, maxDay, tokens, color, handleSelectDay])
 
   const content = (
     <View
@@ -330,7 +341,7 @@ const Calendar: React.FC<CalendarProps> = props => {
       {...rest}
     >
       {showHeader ? (
-        <View style={[styles.header, { marginBottom: tokens.spacing.headerMarginBottom }]}>
+        <View style={[tokens.layout.header, { marginBottom: tokens.spacing.headerMarginBottom }]}>
           <Pressable
             testID="calendar-nav-prev"
             onPress={() => canGoPrev && goToMonth(-1)}
@@ -338,8 +349,8 @@ const Calendar: React.FC<CalendarProps> = props => {
           >
             <Text
               style={[
+                tokens.layout.navText,
                 {
-                  textAlign: 'center',
                   fontSize: tokens.sizing.navButtonSize,
                   paddingHorizontal: tokens.spacing.navPaddingHorizontal,
                 },
@@ -349,14 +360,14 @@ const Calendar: React.FC<CalendarProps> = props => {
               {'<'}
             </Text>
           </Pressable>
-          <View style={styles.headerCenter}>
+          <View style={tokens.layout.headerCenter}>
             {title !== undefined && title !== null && title !== false
               ? isText(title)
                 ? (
                   <Text
                     style={[
+                      tokens.layout.headerTitle,
                       {
-                        textAlign: 'center',
                         color: tokens.colors.text,
                         fontSize: tokens.typography.headerTitleSize,
                         fontWeight: tokens.typography.headerTitleWeight as any,
@@ -373,8 +384,8 @@ const Calendar: React.FC<CalendarProps> = props => {
                 ? (
                   <Text
                     style={[
+                      tokens.layout.headerSubtitle,
                       {
-                        textAlign: 'center',
                         color: tokens.colors.headerSubtitle,
                         fontSize: tokens.typography.headerSubtitleSize,
                       },
@@ -393,8 +404,8 @@ const Calendar: React.FC<CalendarProps> = props => {
           >
             <Text
               style={[
+                tokens.layout.navText,
                 {
-                  textAlign: 'center',
                   fontSize: tokens.sizing.navButtonSize,
                   paddingHorizontal: tokens.spacing.navPaddingHorizontal,
                 },
@@ -406,12 +417,12 @@ const Calendar: React.FC<CalendarProps> = props => {
           </Pressable>
         </View>
       ) : null}
-      <View style={[styles.weekRow, { marginBottom: tokens.spacing.weekRowMarginBottom }]}>
+      <View style={[tokens.layout.weekRow, { marginBottom: tokens.spacing.weekRowMarginBottom }]}>
         {weekLabels.map((label, index) => (
-          <View key={`weekday-${index}`} style={styles.weekLabelItem}>
+          <View key={`weekday-${index}`} style={tokens.layout.weekLabelItem}>
             {isText(label)
               ? (
-                <Text style={{ textAlign: 'center', color: tokens.colors.text }}>
+                <Text style={[tokens.layout.weekLabel, { color: tokens.colors.text }]}>
                   {label}
                 </Text>
               )
@@ -419,13 +430,13 @@ const Calendar: React.FC<CalendarProps> = props => {
           </View>
         ))}
       </View>
-      <View style={[styles.days, { rowGap: tokens.spacing.row, columnGap: tokens.spacing.column }]}>
+      <View style={[tokens.layout.days, { rowGap: tokens.spacing.row, columnGap: tokens.spacing.column }]}>
         {monthDays.map((day, index) => renderDay(day, index))}
       </View>
       {showConfirm ? (
         <Pressable
           style={[
-            styles.confirmButton,
+            tokens.layout.confirmButton,
             {
               backgroundColor: color ?? tokens.colors.selectedBackground,
               opacity: confirmDisabled ? 0.5 : 1,
@@ -441,8 +452,8 @@ const Calendar: React.FC<CalendarProps> = props => {
             ? (
               <Text
                 style={[
+                  tokens.layout.confirmText,
                   {
-                    textAlign: 'center',
                     color: tokens.colors.confirmText,
                     fontWeight: tokens.typography.confirmTextWeight as any,
                   },
@@ -505,9 +516,9 @@ function formatMonth(date: Date) {
   return `${date.getFullYear()}年${date.getMonth() + 1}月`
 }
 
-function reorderWeekdays(labels: React.ReactNode[], start: number) {
+function reorderWeekdays(labels: React.ReactNode[], start: number, fallback: React.ReactNode[]) {
   const normalizedStart = ((start % 7) + 7) % 7
-  const source = labels.length === 7 ? [...labels] : defaultWeekDays
+  const source = labels.length === 7 ? [...labels] : fallback
   return [...source.slice(normalizedStart), ...source.slice(0, normalizedStart)]
 }
 
@@ -550,42 +561,5 @@ function clampMonth(date: Date, min: Date, max: Date) {
 function isSameMonth(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
 }
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerCenter: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  weekRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  weekLabelItem: {
-    width: `${100 / 7}%`,
-    alignItems: 'center',
-  },
-  days: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  dayButton: {
-    width: `${100 / 7}%`,
-    alignItems: 'center',
-  },
-  day: {
-    textAlign: 'center',
-  },
-  dayPlaceholder: {
-    width: `${100 / 7}%`,
-  },
-  confirmButton: {
-    alignItems: 'center',
-  },
-})
 
 export default Calendar

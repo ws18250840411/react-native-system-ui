@@ -1,3 +1,4 @@
+import { type TextStyle } from 'react-native'
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { StepperTheme } from './types'
@@ -30,7 +31,7 @@ export interface StepperTokens {
   }
   typography: {
     fontSize: number
-    fontWeight: string
+    fontWeight: TextStyle['fontWeight']
   }
   opacity: {
     disabled: number
@@ -73,7 +74,7 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
     },
     typography: {
       fontSize: fontSize.md,
-      fontWeight: String(typography.weight.semiBold),
+      fontWeight: typography.weight.semiBold as TextStyle['fontWeight'],
     },
     opacity: {
       disabled: opacity.disabled,
