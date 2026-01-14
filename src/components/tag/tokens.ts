@@ -1,5 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
+import { getHairlineWidth } from '../../utils/hairline'
 import type { TagTokens } from './types'
 
 const buildTone = (
@@ -86,6 +87,9 @@ export const createTagTokens = (foundations: Foundations): TagTokens => {
     radii: {
       round: radii.pill,
       markLeading: radii.none,
+    },
+    borders: {
+      width: getHairlineWidth(),
     },
     spacing: {
       closeGap: 2,

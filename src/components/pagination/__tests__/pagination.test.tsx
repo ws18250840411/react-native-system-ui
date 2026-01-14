@@ -21,6 +21,27 @@ describe('Pagination', () => {
     expect(handleChange).toHaveBeenCalledWith(4)
   })
 
+  it('clamps out-of-range controlled value and emits onChange', () => {
+    const handleChange = jest.fn()
+    act(() => {
+      renderer.create(<Pagination value={99} pageCount={5} onChange={handleChange} />)
+    })
+    expect(handleChange).toHaveBeenLastCalledWith(5)
+  })
+
+  it('jumps via ellipsis pages', () => {
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Pagination value={6} pageCount={10} showPageSize={3} forceEllipses onChange={handleChange} />
+    )
+
+    const prevEllipsis = tree.root.findByProps({ testID: 'rv-pagination-page-0' })
+    act(() => {
+      prevEllipsis.props.onPress?.({})
+    })
+    expect(handleChange).toHaveBeenLastCalledWith(4)
+  })
+
   it('disables prev button on first page', () => {
     const tree = renderer.create(
       <Pagination value={1} pageCount={5} />

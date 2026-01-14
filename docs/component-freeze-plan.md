@@ -48,10 +48,10 @@
 | divider | 已冻结 ✅ | 极致精简版：纯展示组件（已极致精简） |
 | empty | 已冻结 ✅ | 极致精简版：移除硬编码 CDN，改为 System Icon，代码最小化 |
 | flex | 已冻结 ✅ | 极致精简版：保留 Tokens 架构，逻辑优化 |
-| grid | 已冻结 ✅ | 纯布局组件（组合展示） |
-| pagination | 已冻结 ✅ | 逻辑相对独立，交互简单 |
-| tag | 已冻结 ✅ | 展示为主，交互简单 |
-| water-mark | 已冻结 ✅ | 纯展示为主，逻辑相对独立 |
+| grid | 已冻结 ✅ | 极致精简版：iOS 布局适配、图标/Badge居中修复、全 Tokens 驱动、逻辑最小化 |
+| pagination | 已冻结 ✅ | 极致精简版：受控/非受控、越界 clamp、多模式 multi/simple、ellipsis 跳转、非文本节点安全渲染 |
+| tag | 已冻结 ✅ | 极致精简版：tokens 驱动、支持点击与关闭且阻止冒泡、plain hairline 边框、非文本子节点安全渲染 |
+| water-mark | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、数值安全归一、Memo优化渲染、逻辑最小化 |
 
 ### M 组（复核后冻结）
 
@@ -59,7 +59,7 @@
 
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
-| button | 已冻结 ✅ | Press 交互/无障碍/平台反馈细节 |
+| button | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、真实 Hairline、Android 波纹裁剪、无障碍完善、ButtonGroup 协同优化 |
 | checkbox | 已冻结 ✅ | 组选逻辑+无障碍/交互一致性 |
 | image | 已冻结 ✅ | Web/Native source 差异已处理、加载/占位/Error/SVG 逻辑已完善 |
 | list | 已冻结 ✅ | 滚动/加载更多/刷新组合，易引入回归 |

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
 import { getHairlineWidth } from '../../utils/hairline'
@@ -46,10 +46,10 @@ export const Tag: React.FC<TagProps> = props => {
   const resolvedTextColor = textColor ?? (plain ? color ?? tone.background : tone.text)
 
   const borderColor = plain ? color ?? tone.background : 'transparent'
-  const borderWidth = plain ? getHairlineWidth() : 0
+  const borderWidth = plain ? tokens.borders.width : 0
 
   const borderRadius = round ? tokens.radii.round : sizeTokens.borderRadius
-  const baseContainerStyle: any[] = [
+  const containerStyle: StyleProp<ViewStyle> = [
     tokens.layout.container,
     {
       backgroundColor,
@@ -59,12 +59,14 @@ export const Tag: React.FC<TagProps> = props => {
       borderWidth,
       borderColor,
     },
-    mark && {
-      borderTopLeftRadius: tokens.radii.markLeading,
-      borderBottomLeftRadius: tokens.radii.markLeading,
-      borderTopRightRadius: tokens.radii.round,
-      borderBottomRightRadius: tokens.radii.round,
-    },
+    mark
+      ? {
+        borderTopLeftRadius: tokens.radii.markLeading,
+        borderBottomLeftRadius: tokens.radii.markLeading,
+        borderTopRightRadius: tokens.radii.round,
+        borderBottomRightRadius: tokens.radii.round,
+      }
+      : null,
     style,
   ]
 
@@ -110,10 +112,32 @@ export const Tag: React.FC<TagProps> = props => {
       </Pressable>
     )
 
-  return (
-    <View style={baseContainerStyle} {...rest}>
+  const content = (
+    <>
       {label}
       {close}
+    </>
+  )
+
+  if (onPress) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed }) => [
+          containerStyle,
+          pressed ? { opacity: tokens.defaults.pressedOpacity } : null,
+        ]}
+        {...rest}
+      >
+        {content}
+      </Pressable>
+    )
+  }
+
+  return (
+    <View style={containerStyle} {...rest}>
+      {content}
     </View>
   )
 }

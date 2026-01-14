@@ -89,6 +89,7 @@ export interface ButtonTokens {
   }
   spacing: {
     iconGap: number
+    groupGap: number
   }
   states: {
     disabledOpacity: number

@@ -38,17 +38,24 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     defaultValue: tokens.defaults.defaultPage,
   })
 
+  const pageCountNumber = Number.isFinite(pageCount) ? Math.floor(pageCount) : 0
+  const totalItemsNumber = Number.isFinite(totalItems) ? Math.floor(totalItems) : 0
+  const itemsPerPageNumber = Number.isFinite(itemsPerPage) ? Math.floor(itemsPerPage) : 0
+  const showPageSizeNumber = Number.isFinite(showPageSize) ? Math.floor(showPageSize) : 0
+
   const count =
-    pageCount > 0
-      ? pageCount
-      : totalItems && itemsPerPage
-        ? Math.max(1, Math.ceil(totalItems / itemsPerPage))
+    pageCountNumber > 0
+      ? pageCountNumber
+      : totalItemsNumber > 0 && itemsPerPageNumber > 0
+        ? Math.max(1, Math.ceil(totalItemsNumber / itemsPerPageNumber))
         : 1
   const currentPage = clamp(page, 1, count)
 
-  const pages: PaginationPageItem[] = []
-  if (mode === 'multi') {
-    const limit = Math.max(1, showPageSize)
+  const pages = React.useMemo(() => {
+    const items: PaginationPageItem[] = []
+    if (mode !== 'multi') return items
+
+    const limit = Math.max(1, showPageSizeNumber)
     let startPage = 1
     let endPage = count
     const maxSized = limit < count
@@ -63,14 +70,16 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     }
 
     for (let number = startPage; number <= endPage; number += 1) {
-      pages.push({ number, text: number, active: number === currentPage })
+      items.push({ number, text: number, active: number === currentPage })
     }
 
     if (maxSized && forceEllipses) {
-      if (startPage > 1) pages.unshift({ number: startPage - 1, text: '...' })
-      if (endPage < count) pages.push({ number: endPage + 1, text: '...' })
+      if (startPage > 1) items.unshift({ number: startPage - 1, text: '...' })
+      if (endPage < count) items.push({ number: endPage + 1, text: '...' })
     }
-  }
+
+    return items
+  }, [mode, count, showPageSizeNumber, currentPage, forceEllipses])
 
   React.useEffect(() => {
     if (page !== currentPage) {
@@ -91,14 +100,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         onPress={() => handleSelect(item.number)}
         style={({ pressed }) => [
           tokens.layout.item,
-          {
-            borderWidth: tokens.borders.width,
-            paddingHorizontal: tokens.spacing.paddingX,
-            paddingVertical: tokens.spacing.paddingY,
-            borderColor: tokens.colors.border,
-            borderRadius: tokens.radii.item,
-            backgroundColor: item.active ? tokens.colors.activeBackground : 'transparent',
-          },
+          item.active ? { backgroundColor: tokens.colors.activeBackground } : null,
           pressed && !item.active ? { opacity: tokens.defaults.pressedOpacity } : null,
         ]}
         testID={`rv-pagination-page-${index}`}
@@ -130,14 +132,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         disabled={disabled}
         style={({ pressed }) => [
           tokens.layout.control,
-          {
-            borderWidth: tokens.borders.width,
-            paddingHorizontal: tokens.spacing.paddingX,
-            paddingVertical: tokens.spacing.paddingY,
-            borderColor: tokens.colors.border,
-            borderRadius: tokens.radii.item,
-            opacity: disabled ? tokens.defaults.disabledOpacity : 1,
-          },
+          disabled ? { opacity: tokens.defaults.disabledOpacity } : null,
           pressed && !disabled ? { opacity: tokens.defaults.pressedOpacity } : null,
         ]}
         testID={`rv-pagination-${type}`}
@@ -156,26 +151,23 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
   const descNode = mode === 'multi' ? null : pageDesc ?? `${currentPage}/${count}`
 
   return (
-    <View ref={ref} style={[tokens.layout.container, { gap: tokens.spacing.gap }, style]} {...rest}>
+    <View ref={ref} style={[tokens.layout.container, style]} {...rest}>
       {renderControl('prev')}
       {mode === 'multi' ? (
-        <View style={[tokens.layout.pages, { gap: tokens.spacing.gap }]}>
+        <View style={tokens.layout.pages}>
           {pages.map(renderPage)}
         </View>
       ) : null}
       {descNode == null ? null : isText(descNode) ? (
         <Text
-          style={[
-            tokens.layout.desc,
-            { marginHorizontal: tokens.spacing.descMarginHorizontal, color: tokens.colors.text },
-          ]}
+          style={tokens.layout.desc}
           testID="rv-pagination-desc"
         >
           {descNode}
         </Text>
       ) : (
         <View
-          style={[tokens.layout.desc, { marginHorizontal: tokens.spacing.descMarginHorizontal }]}
+          style={tokens.layout.desc}
           testID="rv-pagination-desc"
         >
           {descNode}

@@ -1,3 +1,5 @@
+import { StyleSheet } from 'react-native'
+
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import { hexToRgb } from '../../utils/color'
@@ -136,10 +138,11 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
     },
     borders: {
       width: 1,
-      hairlineWidth: 0.5,
+      hairlineWidth: StyleSheet.hairlineWidth,
     },
     spacing: {
       iconGap: spacing.sm,
+      groupGap: spacing.xs,
     },
     states: {
       disabledOpacity: opacity.disabled,

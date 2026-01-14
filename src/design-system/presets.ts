@@ -66,7 +66,7 @@ const darkOverrides: DeepPartial<ThemeTokens> = {
       700: '#e78a3a',
       800: '#f5a85f',
       900: '#ffd9a8',
-      foreground: '#2a0f00',
+      foreground: '#ffffff',
     },
     danger: {
       50: '#2d090e',

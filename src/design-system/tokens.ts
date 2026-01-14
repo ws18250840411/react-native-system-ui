@@ -136,7 +136,7 @@ export const defaultFoundations: Foundations = {
       700: '#ad4905',
       800: '#7f3101',
       900: '#4d1c00',
-      foreground: '#261400',
+      foreground: '#ffffff',
     },
     danger: {
       50: '#fff1f2',

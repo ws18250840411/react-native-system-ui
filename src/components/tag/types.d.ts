@@ -39,6 +39,9 @@ export interface TagTokens {
     round: number
     markLeading: number
   }
+  borders: {
+    width: number
+  }
   spacing: {
     closeGap: number
     closeHitSlop: number

@@ -101,4 +101,35 @@ describe('WaterMark', () => {
     expect(style.fontSize).toBe(20)
     expect(style.fontWeight).toBe('bold')
   })
+
+  it('falls back when numeric props are NaN', () => {
+    const tree = renderer.create(
+      <WaterMark
+        rotate={Number.NaN}
+        opacity={Number.NaN}
+        width={Number.NaN}
+        height={Number.NaN}
+        gapX={Number.NaN}
+        gapY={Number.NaN}
+        fullPage={false}
+      />
+    )
+
+    act(() => {
+      tree.root.findByType(View).props.onLayout({
+        nativeEvent: { layout: { width: 100, height: 100 } },
+      })
+    })
+
+    const views = tree.root.findAllByType(View)
+    const rotatedView = views.find(v => {
+      const style = StyleSheet.flatten(v.props.style)
+      return style?.transform?.some((t: any) => t.rotate === '-22deg')
+    })
+    expect(rotatedView).toBeTruthy()
+
+    const text = tree.root.findAllByType(Text)[0]
+    const textStyle = StyleSheet.flatten(text.props.style)
+    expect(textStyle.opacity).toBe(0.15)
+  })
 })

@@ -120,7 +120,7 @@ describe('Button', () => {
 
   it('parses gradient color tokens on native platforms', () => {
     const originalOS = Platform.OS
-    ;(Platform as unknown as { OS: typeof Platform.OS }).OS = 'ios'
+      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = 'ios'
     try {
       const gradient = 'linear-gradient(90deg, #be99ff, #7232dd)'
       const tree = renderWithProvider(<Button text="Gradient" color={gradient} />)
@@ -130,7 +130,7 @@ describe('Button', () => {
       expect(flattened.backgroundColor).toBe('#be99ff')
       expect(flattened.borderWidth).toBe(0)
     } finally {
-      ;(Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
+      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
     }
   })
 
@@ -156,6 +156,25 @@ describe('Button', () => {
     expect(pressable.props.accessibilityLabel).toBe('提交')
   })
 
+  it('merges accessibilityState with disabled and busy', () => {
+    const tree = renderWithProvider(
+      <Button
+        text="提交"
+        loading
+        accessibilityState={{ selected: true }}
+      />
+    )
+    const pressable = tree.root.findByType(Pressable)
+    expect(pressable.props.accessibilityState).toEqual(
+      expect.objectContaining({
+        selected: true,
+        disabled: true,
+        busy: true,
+      })
+    )
+    expect(pressable.props.accessibilityRole).toBe('button')
+  })
+
   it('allows configuring font scaling props', () => {
     const tree = renderWithProvider(
       <Button text="Text" allowFontScaling={false} maxFontSizeMultiplier={2} />
@@ -167,7 +186,7 @@ describe('Button', () => {
 
   it('applies default ripple color on Android when not provided', () => {
     const originalOS = Platform.OS
-    ;(Platform as unknown as { OS: typeof Platform.OS }).OS = 'android'
+      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = 'android'
     try {
       const tree = renderWithProvider(<Button text="波纹" type="primary" />)
       const pressable = tree.root.findByType(Pressable)
@@ -175,7 +194,33 @@ describe('Button', () => {
         expect.objectContaining({ color: 'rgba(255,255,255,0.35)' })
       )
     } finally {
-      ;(Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
+      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
+    }
+  })
+
+  it('clips Android ripple when not showing shadow', () => {
+    const originalOS = Platform.OS
+      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = 'android'
+    try {
+      const tree = renderWithProvider(<Button text="默认" />)
+      const pressable = tree.root.findByType(Pressable)
+      const flattened = getStyleFromPressable(pressable)
+      expect(flattened.overflow).toBe('hidden')
+    } finally {
+      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
+    }
+  })
+
+  it('does not clip Android ripple when elevated shadow is enabled', () => {
+    const originalOS = Platform.OS
+      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = 'android'
+    try {
+      const tree = renderWithProvider(<Button text="Elevated" mode="elevated" type="primary" />)
+      const pressable = tree.root.findByType(Pressable)
+      const flattened = getStyleFromPressable(pressable)
+      expect(flattened.overflow).toBeUndefined()
+    } finally {
+      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
     }
   })
 
@@ -237,12 +282,12 @@ describe('Button', () => {
 
   it('catches errors in custom icon render function', () => {
     const previousDev = (global as any).__DEV__
-    ;(global as any).__DEV__ = true
-    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      ; (global as any).__DEV__ = true
+    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => { })
     const ThrowingIcon = () => {
       throw new Error('Icon render failed')
     }
-    
+
     try {
       renderWithProvider(<Button text="Error Icon" icon={ThrowingIcon} />)
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -251,7 +296,23 @@ describe('Button', () => {
       )
     } finally {
       consoleSpy.mockRestore()
-      ;(global as any).__DEV__ = previousDev
+        ; (global as any).__DEV__ = previousDev
     }
+  })
+
+  it('uses white text color for custom background colors', () => {
+    const tree = renderWithProvider(<Button text="Custom" color="#123456" />)
+    const label = tree.root.findByType(Text)
+    const style = StyleSheet.flatten(label.props.style)
+    expect(style.color).toBe('#ffffff')
+  })
+
+  it('respects textColor prop even with custom background color', () => {
+    const tree = renderWithProvider(
+      <Button text="Custom" color="#123456" textColor="#ff0000" />
+    )
+    const label = tree.root.findByType(Text)
+    const style = StyleSheet.flatten(label.props.style)
+    expect(style.color).toBe('#ff0000')
   })
 })

@@ -1,5 +1,5 @@
 import React from 'react'
-import renderer from 'react-test-renderer'
+import renderer, { act } from 'react-test-renderer'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Tag from '..'
@@ -53,6 +53,38 @@ describe('Tag', () => {
     const closeButton = tree.root.findByType(Pressable)
     closeButton.props.onPress({ stopPropagation: jest.fn() })
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('fires onPress when tag is pressed', () => {
+    const onPress = jest.fn()
+    const tree = renderer.create(<Tag onPress={onPress}>Press Me</Tag>)
+    const container = tree.root.findByType(Pressable)
+
+    act(() => {
+      container.props.onPress?.({})
+    })
+
+    expect(onPress).toHaveBeenCalled()
+  })
+
+  it('does not bubble press from close icon to tag', () => {
+    const onPress = jest.fn()
+    const onClose = jest.fn()
+    const tree = renderer.create(
+      <Tag closeable onPress={onPress} onClose={onClose}>
+        Both
+      </Tag>
+    )
+
+    const pressables = tree.root.findAllByType(Pressable)
+    const closeButton = pressables[1]
+
+    act(() => {
+      closeButton.props.onPress?.({ stopPropagation: jest.fn() })
+    })
+
+    expect(onClose).toHaveBeenCalled()
+    expect(onPress).not.toHaveBeenCalled()
   })
 
   it('renders mark style', () => {

@@ -7,6 +7,13 @@ import type { PaginationTokens } from './types'
 const createTokens = (foundations: Foundations): PaginationTokens => {
   const { palette, spacing, radii } = foundations
   const onPrimary = palette.primary.foreground ?? '#ffffff'
+  const borderWidth = StyleSheet.hairlineWidth
+  const borderColor = palette.default[200]
+  const textColor = palette.default[600]
+  const gap = spacing.xs
+  const paddingX = spacing.sm
+  const paddingY = spacing.xs
+  const itemRadius = radii.sm
   return {
     defaults: {
       mode: 'multi',
@@ -25,37 +32,59 @@ const createTokens = (foundations: Foundations): PaginationTokens => {
       container: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap,
       },
       pages: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap,
       },
-      item: {},
-      control: {},
-      desc: {},
+      item: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth,
+        paddingHorizontal: paddingX,
+        paddingVertical: paddingY,
+        borderColor,
+        borderRadius: itemRadius,
+      },
+      control: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth,
+        paddingHorizontal: paddingX,
+        paddingVertical: paddingY,
+        borderColor,
+        borderRadius: itemRadius,
+      },
+      desc: {
+        marginHorizontal: gap,
+        color: textColor,
+        textAlign: 'center',
+      },
     },
     colors: {
-      text: palette.default[600],
+      text: textColor,
       disabled: palette.default[300],
       activeText: onPrimary,
       activeBackground: palette.primary[500],
-      border: palette.default[200],
+      border: borderColor,
     },
     typography: {
       fontWeight: '400',
       activeFontWeight: '600',
     },
     radii: {
-      item: radii.sm,
+      item: itemRadius,
     },
     borders: {
-      width: StyleSheet.hairlineWidth,
+      width: borderWidth,
     },
     spacing: {
-      gap: spacing.xs,
-      paddingX: spacing.sm,
-      paddingY: spacing.xs,
-      descMarginHorizontal: spacing.xs,
+      gap,
+      paddingX,
+      paddingY,
+      descMarginHorizontal: gap,
     },
   }
 }

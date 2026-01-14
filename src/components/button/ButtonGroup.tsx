@@ -1,9 +1,9 @@
 import React from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
-import { View } from 'react-native'
+import { Platform, View } from 'react-native'
 
-import { useTheme } from '../../design-system'
 import { ButtonGroupContext, type ButtonGroupContextValue } from './ButtonContext'
+import { useButtonTokens } from './tokens'
 
 export interface ButtonGroupProps extends ButtonGroupContextValue {
   children: React.ReactNode
@@ -12,7 +12,7 @@ export interface ButtonGroupProps extends ButtonGroupContextValue {
   style?: StyleProp<ViewStyle>
 }
 
-export const ButtonGroup: React.FC<ButtonGroupProps> = ({
+export const ButtonGroup = React.memo<ButtonGroupProps>(({
   children,
   direction = 'horizontal',
   spacing,
@@ -29,8 +29,10 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
   hairline,
   mode,
 }) => {
-  const { foundations } = useTheme()
-  const gap = spacing ?? foundations.spacing.xs
+  const tokens = useButtonTokens()
+  const gap = spacing ?? tokens.spacing.groupGap
+  const isHorizontal = direction === 'horizontal'
+  const supportsGap = Platform.OS === 'web'
 
   const groupValue = React.useMemo(
     () => ({
@@ -49,35 +51,57 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
     [type, size, plain, block, round, square, shadow, disabled, iconPosition, hairline, mode]
   )
 
-  const childArray = React.Children.toArray(children).filter(child => child != null)
-  const wrapped = childArray.map((child, index) => {
-    const key = React.isValidElement(child) && child.key !== null ? child.key : index
-    const isLast = index === childArray.length - 1
-    const marginStyles: ViewStyle =
-      direction === 'horizontal'
+  const containerStyle = React.useMemo(() => {
+    const base: ViewStyle = {
+      flexDirection: isHorizontal ? 'row' : 'column',
+      alignItems: 'center',
+    }
+
+    if (block) {
+      base.width = '100%'
+    }
+
+    if (supportsGap) {
+      if (isHorizontal) {
+        base.columnGap = gap
+      } else {
+        base.rowGap = gap
+      }
+    }
+
+    return [base, style]
+  }, [isHorizontal, block, supportsGap, gap, style])
+
+  const content = React.useMemo(() => {
+    if (supportsGap) {
+      return children
+    }
+
+    const childArray = React.Children.toArray(children).filter(child => child != null)
+    return childArray.map((child, index) => {
+      if (!React.isValidElement(child)) return child
+
+      const element = child as React.ReactElement<{ style?: StyleProp<ViewStyle> }>
+
+      const isLast = index === childArray.length - 1
+      const marginStyle = isHorizontal
         ? { marginRight: isLast ? 0 : gap }
         : { marginBottom: isLast ? 0 : gap }
 
-    return (
-      <View key={key} style={marginStyles}>
-        {child}
-      </View>
-    )
-  })
+      return React.cloneElement(element, {
+        style: [element.props.style, marginStyle],
+        key: element.key ?? index,
+      })
+    })
+  }, [children, supportsGap, isHorizontal, gap])
 
   return (
     <ButtonGroupContext.Provider value={groupValue}>
-      <View
-        style={[
-          {
-            flexDirection: direction === 'horizontal' ? 'row' : 'column',
-            alignItems: 'center',
-          },
-          style,
-        ]}
-      >
-        {wrapped}
+      <View style={containerStyle}>
+        {content}
       </View>
     </ButtonGroupContext.Provider>
   )
-}
+})
+
+ButtonGroup.displayName = 'ButtonGroup'

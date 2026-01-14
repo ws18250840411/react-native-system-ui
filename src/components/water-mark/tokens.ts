@@ -1,3 +1,5 @@
+import { StyleSheet } from 'react-native'
+
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { WaterMarkTokens } from './types'
@@ -18,13 +20,7 @@ const createTokens = (foundations: Foundations): WaterMarkTokens => {
       fullPage: true,
     },
     layout: {
-      absoluteFill: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-      },
+      absoluteFill: StyleSheet.absoluteFillObject,
       wrapper: {
         flex: 1,
       },

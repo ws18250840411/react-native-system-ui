@@ -9,7 +9,7 @@ import {
 
 import { withAlpha, extractFirstColorToken } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
-import { isFiniteNumber, isFunction, isNumber, isString, isText, isTwoCNChar } from '../../utils/validate'
+import { isFiniteNumber, isFunction, isNumber, isString, isText } from '../../utils/validate'
 import { ensureSpace } from '../../utils/string'
 import Loading from '../loading'
 import { useAriaPress } from '../../hooks'
@@ -145,13 +145,25 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
             ? normalizedColor ?? tone.border
             : buttonTokens.colors.backgroundTransparent
 
+    // 解析文字颜色
     let resolvedTextColor = textColor
-      ? textColor
-      : derivedMode === 'contained-tonal'
-        ? tone.tonalText
-        : derivedMode === 'contained' || derivedMode === 'elevated'
-          ? tone.text
-          : normalizedColor ?? (type === 'default' ? tone.text : tone.border)
+
+    if (!resolvedTextColor) {
+      if (derivedMode === 'contained-tonal') {
+        resolvedTextColor = tone.tonalText
+      } else if (derivedMode === 'contained' || derivedMode === 'elevated') {
+        // 实心按钮逻辑：
+        // 1. 自定义背景色：默认为白色文字（假设自定义背景通常为深色/品牌色）
+        // 2. 预设类型：读取 token 配置（Primary/Danger 等默认为白色，Default 默认为深色）
+        resolvedTextColor = normalizedColor ? '#ffffff' : tone.text
+      } else {
+        // 文本/边框按钮逻辑：
+        // 1. 自定义颜色：跟随自定义颜色
+        // 2. Default 类型：使用深色文本
+        // 3. 其他类型：使用主题色（Primary/Danger 等）
+        resolvedTextColor = normalizedColor ?? (type === 'default' ? tone.text : tone.border)
+      }
+    }
 
     if (dark === true) {
       resolvedTextColor = buttonTokens.colors.textDark
@@ -224,10 +236,17 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         ? ({ backgroundImage: gradientString } as any)
         : undefined
 
-    const iconWrapperStyle =
-      iconPosition === 'left'
-        ? { marginRight: buttonTokens.spacing.iconGap }
-        : { marginLeft: buttonTokens.spacing.iconGap }
+    const iconWrapperStyle = React.useMemo(
+      () =>
+        iconPosition === 'left'
+          ? { marginRight: buttonTokens.spacing.iconGap }
+          : { marginLeft: buttonTokens.spacing.iconGap },
+      [buttonTokens.spacing.iconGap, iconPosition]
+    )
+    const loadingIconWrapperStyle = React.useMemo(
+      () => ({ marginRight: buttonTokens.spacing.iconGap }),
+      [buttonTokens.spacing.iconGap]
+    )
 
     const renderIcon = () => {
       if (!icon) return null
@@ -267,7 +286,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         )
 
       return (
-        <View style={[buttonTokens.layout.iconWrapper, { marginRight: buttonTokens.spacing.iconGap }]}>
+        <View style={[buttonTokens.layout.iconWrapper, loadingIconWrapperStyle]}>
           {loadingIndicator ?? defaultIndicator}
         </View>
       )
@@ -280,19 +299,31 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           ? text
           : children
 
-    const renderText = () => {
-      if (label === undefined || label === null) {
-        return null
-      }
-
-      const sharedTextStyle: any = {
+    const sharedLabelTextStyle = React.useMemo(
+      () => ({
         fontFamily: buttonTokens.typography.fontFamily,
         fontWeight: buttonTokens.typography.fontWeight,
         fontSize: sizeTokens.fontSize,
         lineHeight: sizeTokens.fontSize * buttonTokens.typography.lineHeightMultiplier,
         color: resolvedTextColor,
         textTransform: uppercase ? 'uppercase' : undefined,
+      }),
+      [
+        buttonTokens.typography.fontFamily,
+        buttonTokens.typography.fontWeight,
+        buttonTokens.typography.lineHeightMultiplier,
+        resolvedTextColor,
+        sizeTokens.fontSize,
+        uppercase,
+      ]
+    )
+
+    const renderText = () => {
+      if (label === undefined || label === null) {
+        return null
       }
+
+      const sharedTextStyle: any = sharedLabelTextStyle
 
       if (isText(label)) {
         const content =
@@ -363,9 +394,8 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           ? buttonTokens.states.pressedOpacity
           : 1
 
-    const baseContainerStyle = [
-      buttonTokens.layout.base,
-      {
+    const containerStyle = React.useMemo(
+      () => ({
         minHeight: sizeTokens.height,
         paddingHorizontal: sizeTokens.paddingHorizontal,
         borderRadius,
@@ -373,12 +403,45 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         borderColor,
         borderWidth: resolvedBorderWidth,
         opacity: resolvedOpacity,
-      },
-      block && buttonTokens.layout.block,
-      shadowStyle,
-      gradientWebStyle,
-      style,
-    ]
+      }),
+      [
+        backgroundColor,
+        borderColor,
+        borderRadius,
+        resolvedBorderWidth,
+        resolvedOpacity,
+        sizeTokens.height,
+        sizeTokens.paddingHorizontal,
+      ]
+    )
+    const rippleClipStyle = React.useMemo(
+      () =>
+        Platform.OS === 'android' && borderRadius > 0 && !shouldShowShadow
+          ? { overflow: 'hidden' as const }
+          : null,
+      [borderRadius, shouldShowShadow]
+    )
+    const baseContainerStyle = React.useMemo(
+      () => [
+        buttonTokens.layout.base,
+        containerStyle,
+        rippleClipStyle,
+        block ? buttonTokens.layout.block : null,
+        shadowStyle,
+        gradientWebStyle,
+        style,
+      ],
+      [
+        block,
+        buttonTokens.layout.base,
+        buttonTokens.layout.block,
+        containerStyle,
+        gradientWebStyle,
+        rippleClipStyle,
+        shadowStyle,
+        style,
+      ]
+    )
 
     const mergedAccessibilityState = {
       ...accessibilityState,
@@ -392,10 +455,13 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         : type === 'default' && !normalizedColor
           ? withAlpha(resolvedTextColor, 0.15)
           : buttonTokens.colors.ripple)
-    const resolvedAndroidRipple =
-      Platform.OS === 'android'
-        ? androidRippleProp ?? { color: defaultRippleColor, borderless: false }
-        : androidRippleProp
+    const resolvedAndroidRipple = React.useMemo(
+      () =>
+        Platform.OS === 'android'
+          ? androidRippleProp ?? { color: defaultRippleColor, borderless: false }
+          : androidRippleProp,
+      [androidRippleProp, defaultRippleColor]
+    )
 
     return (
       <Pressable
