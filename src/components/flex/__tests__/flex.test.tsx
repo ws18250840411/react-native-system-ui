@@ -1,11 +1,14 @@
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { StyleSheet, Text, View } from 'react-native'
+import { Platform, StyleSheet, Text, View } from 'react-native'
 
 import Flex from '..'
 
 describe('Flex', () => {
   it('applies gutter spacing to items', () => {
+    const originalOS = Platform.OS
+    Object.defineProperty(Platform, 'OS', { get: () => 'ios', configurable: true })
+
     const tree = renderer.create(
       <Flex gutter={16}>
         <Flex.Item>
@@ -21,6 +24,8 @@ describe('Flex', () => {
     const itemViews = views.slice(1)
     const style = StyleSheet.flatten(itemViews[0].props.style)
     expect(style.paddingHorizontal).toBe(8)
+
+    Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
   })
 
   it('calculates width based on span', () => {
@@ -115,5 +120,36 @@ describe('Flex', () => {
     expect(style.flex).toBeUndefined()
     expect(style.flexGrow).toBeUndefined()
     expect(style.flexShrink).toBeUndefined()
+  })
+
+  it('uses gap on web instead of padding/margins', () => {
+    const originalOS = Platform.OS
+    Object.defineProperty(Platform, 'OS', { get: () => 'web', configurable: true })
+
+    try {
+      const tree = renderer.create(
+        <Flex gutter={[16, 12]}>
+          <Flex.Item>
+            <Text>one</Text>
+          </Flex.Item>
+          <Flex.Item>
+            <Text>two</Text>
+          </Flex.Item>
+        </Flex>
+      )
+
+      const views = tree.root.findAllByType(View)
+      const containerStyle = StyleSheet.flatten(views[0].props.style)
+      expect(containerStyle.columnGap).toBe(16)
+      expect(containerStyle.rowGap).toBe(12)
+      expect(containerStyle.marginHorizontal).toBeUndefined()
+      expect(containerStyle.marginVertical).toBeUndefined()
+
+      const itemStyle = StyleSheet.flatten(views[1].props.style)
+      expect(itemStyle.paddingHorizontal).toBeUndefined()
+      expect(itemStyle.paddingVertical).toBeUndefined()
+    } finally {
+      Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
+    }
   })
 })

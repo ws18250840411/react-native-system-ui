@@ -191,14 +191,24 @@ describe('Image', () => {
     expect(overlay.length).toBe(0)
   })
 
-  it('renders as Pressable when onPress is provided', () => {
+  it('applies accessibility attributes to Pressable when onPress is provided', () => {
     const onPress = jest.fn()
     const { Pressable } = require('react-native')
-    const tree = renderer.create(<Image src="https://example.com/a.png" onPress={onPress} />)
+    const tree = renderer.create(<Image src="https://example.com/a.png" onPress={onPress} alt="Clickable Image" />)
     const pressable = tree.root.findByType(Pressable)
-    expect(pressable).toBeDefined()
-    pressable.props.onPress()
-    expect(onPress).toHaveBeenCalled()
+    expect(pressable.props.accessibilityRole).toBe('button')
+    expect(pressable.props.accessibilityLabel).toBe('Clickable Image')
+
+    // Image should not be accessible to avoid duplicate reading
+    const rnImage = tree.root.findByType(RNImage)
+    expect(rnImage.props.accessible).toBe(false)
+  })
+
+  it('applies accessibility attributes to Image when onPress is missing', () => {
+    const tree = renderer.create(<Image src="https://example.com/a.png" alt="Static Image" />)
+    const rnImage = tree.root.findByType(RNImage)
+    expect(rnImage.props.accessible).toBe(true)
+    expect(rnImage.props.accessibilityLabel).toBe('Static Image')
   })
 
   it('merges padding and border styles into container', () => {

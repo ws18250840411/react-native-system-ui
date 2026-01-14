@@ -1,5 +1,5 @@
 import React from 'react'
-import { View } from 'react-native'
+import { Platform, View } from 'react-native'
 
 import { FlexContext } from './FlexContext'
 import { useFlexTokens } from './tokens'
@@ -46,6 +46,7 @@ export const Flex: React.FC<FlexProps> = props => {
   const [hRaw, vRaw] = Array.isArray(gutter) ? gutter : [gutter, 0]
   const horizontalGap = Math.max(0, hRaw ?? 0)
   const verticalGap = Math.max(0, vRaw ?? 0)
+  const supportsGap = Platform.OS === 'web'
 
   return (
     <FlexContext.Provider value={{ horizontalGap, verticalGap, columns: resolvedColumns }}>
@@ -57,8 +58,10 @@ export const Flex: React.FC<FlexProps> = props => {
             flexWrap: wrap,
             alignItems: alignMap[align],
             justifyContent: justifyMap[justify],
-            marginHorizontal: horizontalGap ? -horizontalGap / 2 : undefined,
-            marginVertical: verticalGap ? -verticalGap / 2 : undefined,
+            marginHorizontal: !supportsGap && horizontalGap ? -horizontalGap / 2 : undefined,
+            marginVertical: !supportsGap && verticalGap ? -verticalGap / 2 : undefined,
+            columnGap: supportsGap ? horizontalGap : undefined,
+            rowGap: supportsGap ? verticalGap : undefined,
           },
           style,
         ]}

@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act, type ReactTestRenderer } from 'react-test-renderer'
-import { Pressable, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
 import { Radio } from '..'
 import { RadioGroup } from '../RadioGroup'
@@ -206,5 +206,66 @@ describe('RadioGroup', () => {
       return style && style.width === 30
     })
     expect(iconView).toBeDefined()
+  })
+
+  it('injects spacing into items on native platforms', () => {
+    const originalOS = Platform.OS
+    Object.defineProperty(Platform, 'OS', { get: () => 'ios', configurable: true })
+
+    try {
+      const tree = renderer.create(
+        <RadioGroup direction="horizontal" gap={8}>
+          <Radio name="a">A</Radio>
+          <Radio name="b">B</Radio>
+        </RadioGroup>
+      )
+
+      const containers = tree.root
+        .findAllByType(Pressable)
+        .filter(p => p.props.accessibilityRole === 'radio')
+        .filter(p => {
+          const style = StyleSheet.flatten(p.props.style)
+          return style?.flexDirection === 'row'
+        })
+
+      expect(containers.length).toBe(2)
+      const firstStyle = StyleSheet.flatten(containers[0].props.style)
+      expect(firstStyle.marginRight).toBe(8)
+    } finally {
+      Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
+    }
+  })
+
+  it('uses gap on web without injecting margins into items', () => {
+    const originalOS = Platform.OS
+    Object.defineProperty(Platform, 'OS', { get: () => 'web', configurable: true })
+
+    try {
+      const tree = renderer.create(
+        <RadioGroup direction="horizontal" gap={8} accessibilityLabel="选择项-web">
+          <Radio name="a">A</Radio>
+          <Radio name="b">B</Radio>
+        </RadioGroup>
+      )
+
+      const group = tree.root.findByProps({ role: 'radiogroup' })
+      const groupStyle = StyleSheet.flatten(group.props.style)
+      expect(groupStyle.columnGap).toBe(8)
+      expect(groupStyle.rowGap).toBe(8)
+
+      const containers = tree.root
+        .findAllByType(Pressable)
+        .filter(p => p.props.accessibilityRole === 'radio')
+        .filter(p => {
+          const style = StyleSheet.flatten(p.props.style)
+          return style?.flexDirection === 'row'
+        })
+
+      expect(containers.length).toBe(2)
+      const firstStyle = StyleSheet.flatten(containers[0].props.style)
+      expect(firstStyle.marginRight).toBeUndefined()
+    } finally {
+      Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
+    }
   })
 })

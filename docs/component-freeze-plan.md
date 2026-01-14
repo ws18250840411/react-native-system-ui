@@ -60,8 +60,8 @@
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
 | button | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、真实 Hairline、Android 波纹裁剪、无障碍完善、ButtonGroup 协同优化 |
-| checkbox | 已冻结 ✅ | 组选逻辑+无障碍/交互一致性 |
-| image | 已冻结 ✅ | Web/Native source 差异已处理、加载/占位/Error/SVG 逻辑已完善 |
+| checkbox | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、组选逻辑、Ref转发+无障碍/交互一致性 |
+| image | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、映射表优化、Web/Native SVG 统一、无障碍精修 |
 | list | 已冻结 ✅ | 滚动/加载更多/刷新组合，易引入回归 |
 | loading | 已冻结 ✅ | 动画 driver 与渲染一致性 |
 | nav-bar | 已冻结 ✅ | SafeArea/布局与交互细节 |

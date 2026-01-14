@@ -1,5 +1,5 @@
 import React, { useImperativeHandle } from 'react'
-import { View, type StyleProp, type ViewStyle } from 'react-native'
+import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState } from '@react-stately/checkbox'
 
@@ -40,7 +40,8 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
   const tokens = useCheckboxTokens(tokensOverride)
   const disabled = disabledProp ?? tokens.defaults.groupDisabled
   const direction = directionProp ?? tokens.defaults.groupDirection
-  const gap = gapProp ?? tokens.spacing.groupGap
+  const gap = Math.max(0, gapProp ?? tokens.spacing.groupGap)
+  const supportsGap = Platform.OS === 'web'
 
   const registryRef = React.useRef(new Map<string, RegistryItem>())
 
@@ -76,7 +77,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     registryRef.current.delete(key)
   }, [])
 
-  const childrenArray = React.Children.toArray(children).filter(Boolean)
+  const childrenArray = React.Children.toArray(children).filter(child => child != null && !isBoolean(child))
 
   const itemStyleForIndex = (index: number): StyleProp<ViewStyle> => {
     const isLast = index === childrenArray.length - 1
@@ -149,17 +150,35 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
         accessibilityHint={accessibilityHint}
         style={[
           direction === 'horizontal' ? tokens.layout.groupHorizontal : tokens.layout.groupVertical,
+          supportsGap
+            ? {
+              columnGap: direction === 'horizontal' ? gap : undefined,
+              rowGap: gap,
+            }
+            : null,
           style,
         ]}
       >
-        {childrenArray.map((child, index) => (
-          <View
-            style={itemStyleForIndex(index)}
-            key={(child as any)?.key ?? index}
-          >
-            {child}
-          </View>
-        ))}
+        {supportsGap
+          ? childrenArray
+          : childrenArray.map((child, index) => {
+            const key = React.isValidElement(child) && child.key !== null ? child.key : index
+            const itemStyle = itemStyleForIndex(index)
+
+            if (React.isValidElement(child) && child.type !== React.Fragment) {
+              const element = child as React.ReactElement<{ style?: StyleProp<ViewStyle> }>
+              return React.cloneElement(element, {
+                style: [element.props.style, itemStyle],
+                key,
+              })
+            }
+
+            return (
+              <View key={key as any} style={itemStyle}>
+                {child}
+              </View>
+            )
+          })}
       </View>
     </CheckboxGroupContext.Provider>
   )

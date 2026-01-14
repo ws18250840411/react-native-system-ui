@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { Checkbox } from '..'
 import { CheckboxGroup } from '../CheckboxGroup'
@@ -48,6 +48,45 @@ describe('Checkbox', () => {
         </Checkbox>
       )
     ).not.toThrow()
+  })
+
+  it('is a forwardRef component', () => {
+    // @ts-ignore
+    expect(Checkbox.$$typeof).toBe(Symbol.for('react.forward_ref'))
+  })
+
+  it('passes testID to the internal Pressable', () => {
+    const tree = renderer.create(<Checkbox testID="my-checkbox">TestID</Checkbox>)
+    const pressable = tree.root.findByType(Pressable)
+    expect(pressable.props.testID).toBe('my-checkbox')
+  })
+
+  it('supports custom hitSlop', () => {
+    const tree = renderer.create(<Checkbox hitSlop={12}>HitSlop Test</Checkbox>)
+    const pressable = tree.root.findByType(Pressable)
+    expect(pressable.props.hitSlop).toBe(12)
+  })
+
+  it('applies cursor pointer on web', () => {
+    const originalOS = Platform.OS
+    Object.defineProperty(Platform, 'OS', { get: () => 'web', configurable: true })
+
+    try {
+      const tree = renderer.create(<Checkbox>Web Cursor</Checkbox>)
+      const pressable = tree.root.findByType(Pressable)
+      const styleProp = pressable.props.style
+
+      let finalStyle = styleProp
+      if (typeof styleProp === 'function') {
+        finalStyle = styleProp({ pressed: false })
+      }
+
+      const flattened = StyleSheet.flatten(finalStyle)
+      // @ts-ignore
+      expect(flattened.cursor).toBe('pointer')
+    } finally {
+      Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
+    }
   })
 })
 
@@ -186,5 +225,30 @@ describe('CheckboxGroup', () => {
     expect(onChange).toHaveBeenLastCalledWith(['a', 'b'])
     // Expect 2 calls (A, B). C should not trigger change.
     expect(onChange).toHaveBeenCalledTimes(2)
+  })
+
+  it('uses gap styles on web without injecting margins', () => {
+    const originalOS = Platform.OS
+    Object.defineProperty(Platform, 'OS', { get: () => 'web', configurable: true })
+
+    try {
+      const tree = renderer.create(
+        <CheckboxGroup direction="horizontal" gap={8} accessibilityLabel="分组-web">
+          <Checkbox name="a">A</Checkbox>
+          <Checkbox name="b">B</Checkbox>
+        </CheckboxGroup>
+      )
+
+      const group = tree.root.findByProps({ 'aria-label': '分组-web' })
+      const groupStyle = StyleSheet.flatten(group.props.style)
+      expect(groupStyle.columnGap).toBe(8)
+      expect(groupStyle.rowGap).toBe(8)
+
+      const pressable = tree.root.findAllByType(Pressable)[0]
+      const pressableStyle = StyleSheet.flatten(pressable.props.style)
+      expect(pressableStyle.marginRight).not.toBe(8)
+    } finally {
+      Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
+    }
   })
 })

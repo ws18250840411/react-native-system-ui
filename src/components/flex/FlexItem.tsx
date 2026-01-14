@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, type ViewStyle } from 'react-native'
+import { Platform, View, type ViewStyle } from 'react-native'
 
 import { FlexContext } from './FlexContext'
 import type { FlexItemProps } from './types'
@@ -46,6 +46,7 @@ const parseFlex = (value?: number | string): FlexStyle | undefined => {
 
 export const FlexItem: React.FC<FlexItemProps> = ({ span, flex, style, children }) => {
   const { horizontalGap, verticalGap, columns } = React.useContext(FlexContext)
+  const supportsGap = Platform.OS === 'web'
 
   if (isNumber(span) && span <= 0) return null
 
@@ -61,7 +62,7 @@ export const FlexItem: React.FC<FlexItemProps> = ({ span, flex, style, children 
   return (
     <View
       style={[
-        { paddingHorizontal: horizontalGap / 2, paddingVertical: verticalGap / 2 },
+        supportsGap ? null : { paddingHorizontal: horizontalGap / 2, paddingVertical: verticalGap / 2 },
         widthStyle,
         parseFlex(flex),
         style,

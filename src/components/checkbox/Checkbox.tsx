@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, View, type GestureResponderEvent } from 'react-native'
+import { Platform, Pressable, Text, View, type GestureResponderEvent } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
 
@@ -8,7 +8,7 @@ import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
 import { isText } from '../../utils/validate'
 
-export const Checkbox: React.FC<CheckboxProps> = props => {
+export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   const {
     children,
     name,
@@ -24,6 +24,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     style,
     labelStyle,
     tokensOverride,
+    hitSlop = 8,
     ...rest
   } = props
 
@@ -42,7 +43,10 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   const rawValue = value ?? name
   const serializedValue = rawValue == null ? undefined : String(rawValue)
 
-  const inputRef = React.useRef<View>(null)
+  const internalRef = React.useRef<View>(null)
+
+  // Merge refs
+  React.useImperativeHandle(ref, () => internalRef.current!)
 
   const standaloneState = useToggleState({
     isSelected: props.checked,
@@ -82,7 +86,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
         accessibilityLabel: resolvedAccessibilityLabel,
       },
       group.state,
-      inputRef as any
+      internalRef as any
     )
 
     inputProps = groupInputProps
@@ -97,7 +101,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
         accessibilityLabel: resolvedAccessibilityLabel,
       },
       standaloneState,
-      inputRef as any
+      internalRef as any
     )
     inputProps = standaloneProps
     isChecked = props.checked !== undefined ? props.checked : standaloneState.isSelected
@@ -219,17 +223,10 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   )
   let iconVisual: React.ReactNode = defaultIcon
   if (resolvedIconRender) {
-    try {
-      iconVisual = resolvedIconRender({
-        checked: Boolean(isChecked),
-        disabled: Boolean(resolvedDisabled),
-      }) ?? null
-    } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.warn('[Checkbox] iconRender error:', error)
-      }
-      iconVisual = defaultIcon
-    }
+    iconVisual = resolvedIconRender({
+      checked: Boolean(isChecked),
+      disabled: Boolean(resolvedDisabled),
+    }) ?? null
   }
 
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
@@ -256,12 +253,13 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
   ) : (
     <Pressable
       {...mergedInputProps}
-      ref={inputRef}
+      ref={internalRef}
       disabled={resolvedDisabled}
       accessibilityLabel={resolvedAccessibilityLabel}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
       style={iconWrapperStyle}
+      hitSlop={hitSlop}
     >
       {iconVisual}
     </Pressable>
@@ -283,12 +281,18 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
     return (
       <Pressable
         {...mergedInputProps}
-        ref={inputRef}
+        ref={internalRef}
         disabled={resolvedDisabled}
         accessibilityLabel={resolvedAccessibilityLabel}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
-        style={[tokens.layout.container, style]}
+        style={({ pressed }) => [
+          tokens.layout.container,
+          style,
+          Platform.OS === 'web' && { cursor: 'pointer' } as any,
+          pressed && { opacity: 0.8 } // Optional: add simple feedback
+        ]}
+        hitSlop={hitSlop}
       >
         {content}
       </Pressable>
@@ -300,7 +304,7 @@ export const Checkbox: React.FC<CheckboxProps> = props => {
       {content}
     </View>
   )
-}
+})
 
 Checkbox.displayName = 'Checkbox'
 

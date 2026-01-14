@@ -6,6 +6,7 @@ import { useRadioGroupState } from '@react-stately/radio'
 import type { RadioGroupProps, RadioValue } from './types'
 import { RadioGroupContext } from './RadioContext'
 import { useRadioTokens } from './tokens'
+import { isBoolean } from '../../utils/validate'
 
 export const RadioGroup: React.FC<RadioGroupProps> = props => {
   const {
@@ -30,7 +31,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   const tokens = useRadioTokens(tokensOverride)
   const disabled = disabledProp ?? tokens.defaults.groupDisabled
   const direction = directionProp ?? tokens.defaults.groupDirection
-  const gap = gapProp ?? tokens.spacing.groupGap
+  const gap = Math.max(0, gapProp ?? tokens.spacing.groupGap)
 
   const registryRef = React.useRef(new Map<string, RadioValue>())
   const registerValue = React.useCallback((key: string, raw: RadioValue) => {
@@ -67,7 +68,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   }
 
   const supportsGap = Platform.OS === 'web'
-  const childrenArray = React.Children.toArray(children).filter(Boolean)
+  const childrenArray = React.Children.toArray(children).filter(child => child != null && !isBoolean(child))
   const itemStyleForIndex = (index: number): StyleProp<ViewStyle> => {
     if (supportsGap) return tokens.layout.groupItem
 
@@ -85,9 +86,9 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
 
   const containerGapStyle: ViewStyle | null = supportsGap
     ? {
-        columnGap: direction === 'horizontal' ? gap : undefined,
-        rowGap: gap,
-      }
+      columnGap: direction === 'horizontal' ? gap : undefined,
+      rowGap: gap,
+    }
     : null
 
   const contextValue = React.useMemo(
@@ -120,11 +121,26 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
           style,
         ]}
       >
-        {childrenArray.map((child, index) => (
-          <View style={itemStyleForIndex(index)} key={(child as any)?.key ?? index}>
-            {child}
-          </View>
-        ))}
+        {supportsGap
+          ? childrenArray
+          : childrenArray.map((child, index) => {
+            const key = React.isValidElement(child) && child.key !== null ? child.key : index
+            const itemStyle = itemStyleForIndex(index)
+
+            if (React.isValidElement(child) && child.type !== React.Fragment) {
+              const element = child as React.ReactElement<{ style?: StyleProp<ViewStyle> }>
+              return React.cloneElement(element, {
+                style: [element.props.style, itemStyle],
+                key,
+              })
+            }
+
+            return (
+              <View key={key as any} style={itemStyle}>
+                {child}
+              </View>
+            )
+          })}
       </View>
     </RadioGroupContext.Provider>
   )

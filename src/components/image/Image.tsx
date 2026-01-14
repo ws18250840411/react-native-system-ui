@@ -4,15 +4,16 @@ import { SvgUri } from 'react-native-svg'
 
 import { isNumber, isString, isText } from '../../utils/validate'
 import { useImageTokens } from './tokens'
-import type { ImageProps } from './types'
+import type { ImageFit, ImageProps } from './types'
 
 type FitMode = 'cover' | 'contain' | 'stretch' | 'center'
-const resolveFitMode = (fit: string): FitMode => {
-  if (fit === 'fill') return 'stretch'
-  if (fit === 'scale-down') return 'contain'
-  if (fit === 'none') return 'center'
-  return (fit as FitMode) ?? 'cover'
+const FIT_MODE_MAP: Record<string, FitMode> = {
+  fill: 'stretch',
+  'scale-down': 'contain',
+  none: 'center',
 }
+
+const resolveFitMode = (fit: string): FitMode => FIT_MODE_MAP[fit] || ((fit as FitMode) ?? 'cover')
 
 type RNImageOnLoadEvent = Parameters<NonNullable<React.ComponentProps<typeof RNImage>['onLoad']>>[0]
 type RNImageOnErrorEvent = Parameters<NonNullable<React.ComponentProps<typeof RNImage>['onError']>>[0]
@@ -43,6 +44,7 @@ const LAYOUT_STYLE_KEYS = new Set([
 
 const isLayoutStyleKey = (key: string) =>
   LAYOUT_STYLE_KEYS.has(key) ||
+  key === 'backgroundColor' ||
   key.startsWith('margin') ||
   key.startsWith('padding') ||
   key.startsWith('border') ||
@@ -72,12 +74,16 @@ const splitImageStyle = (style: any) => {
   }
 }
 
-const resolvePreserveAspectRatio = (fit: string): string => {
-  if (fit === 'contain' || fit === 'scale-down') return 'xMidYMid meet'
-  if (fit === 'stretch' || fit === 'fill') return 'none'
-  if (fit === 'none' || fit === 'center') return 'xMidYMid meet'
-  return 'xMidYMid slice'
+const PRESERVE_ASPECT_RATIO_MAP: Record<string, string> = {
+  contain: 'xMidYMid meet',
+  'scale-down': 'xMidYMid meet',
+  stretch: 'none',
+  fill: 'none',
+  none: 'xMidYMid meet',
+  center: 'xMidYMid meet',
 }
+const resolvePreserveAspectRatio = (fit: string): string =>
+  PRESERVE_ASPECT_RATIO_MAP[fit] || 'xMidYMid slice'
 
 const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((props, ref) => {
   const {
@@ -118,6 +124,9 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     () => splitImageStyle(style),
     [style]
   )
+
+  const resolvedAccessibilityLabel =
+    alt ?? (rest as any).accessibilityLabel ?? (rest as any)['aria-label']
 
   const actualSource = React.useMemo(() => {
     if (source) return source
@@ -161,14 +170,20 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   )
 
   const uri = (actualSource as any)?.uri
-  const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
-  const isSvg =
-    isString(normalizedUri) &&
-    (normalizedUri.endsWith('.svg') || normalizedUri.includes('.svg?') || normalizedUri.includes('/svg?'))
+  const isSvg = React.useMemo(() => {
+    const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
+    return (
+      isString(normalizedUri) &&
+      (normalizedUri.endsWith('.svg') ||
+        normalizedUri.includes('.svg?') ||
+        normalizedUri.includes('/svg?'))
+    )
+  }, [uri])
 
   const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize
   const resolvedErrorIconSize = iconSizeProp ?? tokens.defaults.iconSize
   const Container = (onPress ? Pressable : View) as any
+  const containerRole = onPress ? 'button' : undefined
 
   const renderLabel = (node: React.ReactNode, color: string, marginTop?: number) => {
     if (node == null || node === false) return null
@@ -185,6 +200,8 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   return (
     <Container
       onPress={onPress}
+      accessibilityRole={containerRole}
+      accessibilityLabel={alt}
       style={[
         tokens.layout.container,
         {
@@ -216,7 +233,8 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
             height="100%"
             uri={(actualSource as any).uri}
             preserveAspectRatio={resolvePreserveAspectRatio(fit)}
-            accessibilityLabel={alt}
+            accessible={!onPress}
+            accessibilityLabel={!onPress ? alt : undefined}
             {...rest}
             style={[tokens.layout.absoluteFill, imageStyleWithoutLayout]}
             onLoad={handleSvgLoad}
@@ -225,7 +243,8 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
         ) : (
           <RNImage
             ref={ref}
-            accessibilityLabel={alt}
+            accessible={!onPress}
+            accessibilityLabel={!onPress ? alt : undefined}
             {...rest}
             source={actualSource}
             style={[tokens.layout.absoluteFill, imageStyleWithoutLayout]}
