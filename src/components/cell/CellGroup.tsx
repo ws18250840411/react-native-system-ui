@@ -25,8 +25,11 @@ export const CellGroup: React.FC<CellGroupProps> = ({
   const showInset = resolvedInset || resolvedCard
   const showOuterBorder = resolvedBorder && !showInset
   const childArray = React.Children.toArray(children)
-  const isCellElement = (child: any) =>
-    React.isValidElement(child) && child.type === CellBase
+  const isCellElement = (child: any) => {
+    if (!React.isValidElement(child)) return false
+    const type = child.type as any
+    return type === CellBase || type?.displayName === 'Cell'
+  }
   const lastCellIndex = (() => {
     for (let i = childArray.length - 1; i >= 0; i--) {
       const child = childArray[i]

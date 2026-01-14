@@ -312,4 +312,34 @@ describe('Tabs', () => {
       tree.unmount()
     })
   })
+
+  it('recognizes children with correct displayName even if not TabPane class', () => {
+    const CustomPane = ({ title, children }: any) => (
+      <View testID="custom-pane-content">{children}</View>
+    )
+    CustomPane.displayName = 'Tabs.TabPane'
+
+    let tree: renderer.ReactTestRenderer
+
+    act(() => {
+      tree = renderer.create(
+        <Tabs defaultActive="1">
+          <CustomPane name="1" title="Tab 1">
+            <Text>Content 1</Text>
+          </CustomPane>
+          <CustomPane name="2" title="Tab 2">
+            <Text>Content 2</Text>
+          </CustomPane>
+        </Tabs>
+      )
+    })
+
+    const instance = tree!.root
+    const texts = instance.findAllByType(Text)
+    const textContents = texts.map(t => t.props.children)
+
+    expect(textContents).toContain('Tab 1')
+    expect(textContents).toContain('Tab 2')
+    expect(textContents).toContain('Content 1')
+  })
 })

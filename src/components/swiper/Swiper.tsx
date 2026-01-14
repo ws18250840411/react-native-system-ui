@@ -92,8 +92,11 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
   const validChildren = useMemo(() => {
     if (children) {
       return React.Children.toArray(children).filter(
-        (child): child is React.ReactElement =>
-          React.isValidElement(child) && child.type === SwiperItem
+        (child): child is React.ReactElement => {
+          if (!React.isValidElement(child)) return false
+          const type = child.type as any
+          return type === SwiperItem || type?.displayName === 'SwiperItem'
+        }
       )
     }
     return []

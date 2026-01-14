@@ -34,6 +34,31 @@ describe('List', () => {
     expect(onLoad).toHaveBeenCalled()
   })
 
+  it('triggers onLoad when scrolled to end in horizontal mode', async () => {
+    const onLoad = jest.fn(() => Promise.resolve())
+    const tree = renderer.create(
+      <List onLoad={onLoad} horizontal>
+        <></>
+      </List>
+    )
+
+    const scroll = tree.root.findByType(ScrollView)
+
+    await act(async () => {
+      scroll.props.onContentSizeChange?.(1200, 0)
+      scroll.props.onLayout?.({ nativeEvent: { layout: { width: 300, height: 0 } } })
+      scroll.props.onScroll?.({
+        nativeEvent: {
+          layoutMeasurement: { width: 300, height: 0 },
+          contentOffset: { x: 920, y: 0 },
+          contentSize: { width: 1200, height: 0 },
+        },
+      })
+    })
+
+    expect(onLoad).toHaveBeenCalled()
+  })
+
   it('prevents concurrent onLoad calls', async () => {
     const deferred = createDeferred()
     const onLoad = jest.fn(() => deferred.promise)
@@ -104,7 +129,7 @@ describe('List', () => {
 
     await act(async () => {
       deferred.reject(new Error('fail'))
-      await deferred.promise.catch(() => {})
+      await deferred.promise.catch(() => { })
     })
 
     await act(async () => {
@@ -126,6 +151,12 @@ describe('List', () => {
 
     expect(onLoad).toHaveBeenCalledTimes(2)
     expect(onLoad).toHaveBeenLastCalledWith(true)
+  })
+
+  it('sets accessibilityRole on retry node', () => {
+    const tree = renderer.create(<List error loading={false} errorText="重试" />)
+    const errorNode = tree.root.findByProps({ testID: 'rv-list-error' })
+    expect(errorNode.props.accessibilityRole).toBe('button')
   })
 
   it('renders errorText when it is 0', () => {
@@ -154,12 +185,33 @@ describe('List', () => {
         <></>
       </List>
     )
-    
+
     // Wait for effect
     await act(async () => {
-        await Promise.resolve()
+      await Promise.resolve()
     })
-    
+
     expect(onLoad).not.toHaveBeenCalled()
+  })
+
+  it('supports custom ScrollComponent', async () => {
+    const CustomScroll = (props: any) => <ScrollView {...props} testID="custom-scroll" />
+    const onLoad = jest.fn(() => Promise.resolve())
+    const tree = renderer.create(
+      <List onLoad={onLoad} ScrollComponent={CustomScroll}>
+        <></>
+      </List>
+    )
+
+    const scroll = tree.root.findByProps({ testID: 'custom-scroll' })
+    expect(scroll).toBeTruthy()
+
+    await act(async () => {
+      scroll.props.onContentSizeChange?.(0, 1200)
+      scroll.props.onLayout?.({ nativeEvent: { layout: { height: 300 } } })
+      scroll.props.onScroll?.({ nativeEvent: { layoutMeasurement: { height: 300 }, contentOffset: { y: 920 }, contentSize: { height: 1200 } } })
+    })
+
+    expect(onLoad).toHaveBeenCalled()
   })
 })

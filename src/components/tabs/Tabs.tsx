@@ -29,8 +29,11 @@ interface ParsedPane extends TabPaneProps {
   index: number
 }
 
-const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> =>
-  React.isValidElement(child) && child.type === TabPane
+const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> => {
+  if (!React.isValidElement(child)) return false
+  const type = child.type as any
+  return type === TabPane || type?.displayName === 'Tabs.TabPane'
+}
 
 interface TabItemProps {
   pane: ParsedPane
@@ -166,8 +169,6 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
                 fontSize: tokens.typography.titleSize,
                 fontWeight: (isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight) as any,
                 textAlign: 'center',
-                width: '100%',
-                height: '100%',
                 paddingVertical: tokens.capsule.paddingVertical,
               }
               : {
@@ -949,7 +950,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   labelWrapper: {
-    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',

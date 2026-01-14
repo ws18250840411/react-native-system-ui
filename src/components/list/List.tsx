@@ -27,6 +27,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     onContentSizeChange,
     onLayout,
     scrollEventThrottle: scrollEventThrottleProp,
+    ScrollComponent = ScrollView,
     ...scrollProps
   } = props
 
@@ -34,6 +35,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const finished = finishedProp ?? tokens.defaults.finished
   const offset = offsetProp ?? tokens.defaults.offset
   const immediateCheck = immediateCheckProp ?? tokens.defaults.immediateCheck
+  const horizontal = !!scrollProps.horizontal
 
   const loadingText = isUndefined(loadingTextProp) ? locale.loading : loadingTextProp
 
@@ -45,8 +47,8 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const mergedError = errorControlled ? !!error : innerError
 
   const loadingRef = React.useRef(false)
-  const containerHeightRef = React.useRef(0)
-  const contentHeightRef = React.useRef(0)
+  const containerMainSizeRef = React.useRef(0)
+  const contentMainSizeRef = React.useRef(0)
 
   const triggerLoad = async (isRetry: boolean) => {
     if (!onLoad || finished) return
@@ -68,48 +70,40 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
 
   const check = () => {
     if (mergedLoading || mergedError) return
-    if (!containerHeightRef.current) return
-    if (contentHeightRef.current <= containerHeightRef.current && !finished) {
+    if (!containerMainSizeRef.current) return
+    if (contentMainSizeRef.current <= containerMainSizeRef.current && !finished) {
       triggerLoad(false)
     }
   }
-
-  const checkRef = React.useRef(check)
-  checkRef.current = check
 
   React.useImperativeHandle(ref, () => ({ check }), [check])
 
   const handleScroll = (event: any) => {
     onScroll?.(event)
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent
-    const distance = contentSize.height - (layoutMeasurement.height + contentOffset.y)
+    const distance = horizontal
+      ? contentSize.width - (layoutMeasurement.width + contentOffset.x)
+      : contentSize.height - (layoutMeasurement.height + contentOffset.y)
     if (distance <= offset) triggerLoad(false)
   }
 
   const handleContentSizeChange = (width: number, height: number) => {
     onContentSizeChange?.(width, height)
-    contentHeightRef.current = height
+    contentMainSizeRef.current = horizontal ? width : height
     if (immediateCheck) check()
   }
 
   const handleLayout = (event: any) => {
     onLayout?.(event)
-    containerHeightRef.current = event.nativeEvent.layout.height
+    const { layout } = event.nativeEvent
+    containerMainSizeRef.current = horizontal ? layout.width : layout.height
     if (immediateCheck) check()
   }
 
   const retry = () => triggerLoad(true)
 
-  React.useEffect(() => {
-    if (!immediateCheck) return
-    const timer = setTimeout(() => {
-      checkRef.current()
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [immediateCheck])
-
   return (
-    <ScrollView
+    <ScrollComponent
       {...scrollProps}
       onScroll={handleScroll}
       scrollEventThrottle={scrollEventThrottleProp ?? tokens.defaults.scrollEventThrottle}
@@ -147,12 +141,13 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
               <Text
                 testID="rv-list-error"
                 onPress={retry}
+                accessibilityRole="button"
                 style={{ color: tokens.colors.errorText }}
               >
                 {errorText}
               </Text>
             ) : (
-              <Pressable testID="rv-list-error" onPress={retry}>
+              <Pressable testID="rv-list-error" onPress={retry} accessibilityRole="button">
                 {errorText}
               </Pressable>
             )
@@ -170,7 +165,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
           )
         ) : null}
       </View>
-    </ScrollView>
+    </ScrollComponent>
   )
 })
 

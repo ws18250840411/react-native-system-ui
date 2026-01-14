@@ -39,6 +39,7 @@ export interface ListProps extends ScrollViewProps {
   errorText?: React.ReactNode | ((retry: () => void) => React.ReactNode)
   children?: React.ReactNode
   contentContainerStyle?: ViewProps['style']
+  ScrollComponent?: React.ComponentType<any>
   tokensOverride?: DeepPartial<ListTokens>
 }
 
