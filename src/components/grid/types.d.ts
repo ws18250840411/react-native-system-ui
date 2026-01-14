@@ -17,6 +17,7 @@ export interface GridTokens {
     clickable: boolean
     iconSize: number
     pressedOpacity: number
+    textNumberOfLines: number
   }
   layout: {
     container: ViewStyle

@@ -26,15 +26,21 @@ export const Grid: React.FC<GridProps> = props => {
 
   const tokens = useGridTokens(tokensOverride)
 
-  const columnNum = columnNumProp ?? tokens.defaults.columnNum
-  const gutter = gutterProp ?? tokens.defaults.gutter
+  const columnNumValue = columnNumProp ?? tokens.defaults.columnNum
+  const columnNum = Number.isFinite(columnNumValue) && columnNumValue > 0
+    ? Math.floor(columnNumValue)
+    : tokens.defaults.columnNum
+
+  const gutterValue = gutterProp ?? tokens.defaults.gutter
+  const gutter = Number.isFinite(gutterValue) && gutterValue > 0 ? gutterValue : 0
   const border = borderProp ?? tokens.defaults.border
   const center = centerProp ?? tokens.defaults.center
   const square = squareProp ?? tokens.defaults.square
   const direction = directionProp ?? tokens.defaults.direction
   const reverse = reverseProp ?? tokens.defaults.reverse
   const clickable = clickableProp ?? tokens.defaults.clickable
-  const iconSize = iconSizeProp ?? tokens.defaults.iconSize
+  const iconSizeValue = iconSizeProp ?? tokens.defaults.iconSize
+  const iconSize = Number.isFinite(iconSizeValue) && iconSizeValue > 0 ? iconSizeValue : tokens.defaults.iconSize
 
   const childArray = React.Children.toArray(children).filter((child): child is React.ReactElement<any> => React.isValidElement(child))
   const showBorder = border && !gutter

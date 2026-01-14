@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type { ImageProps as RNImageProps, ImageSourcePropType, StyleProp, TextStyle, ViewStyle } from 'react-native'
+import type { ImageProps as RNImageProps, ImageSourcePropType, ImageStyle, StyleProp, TextStyle, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
 
@@ -22,7 +22,7 @@ export interface ImageTokens {
     overlay: ViewStyle
     label: TextStyle
     iconContainer: ViewStyle
-    absoluteFill: ViewStyle
+    absoluteFill: ImageStyle
   }
   colors: {
     background: string

@@ -91,7 +91,6 @@ import DividerDemoCustom from '../../docs/components/divider/demo/custom'
 import DividerDemoDashed from '../../docs/components/divider/demo/dashed'
 import DividerDemoPosition from '../../docs/components/divider/demo/position'
 import DividerDemoText from '../../docs/components/divider/demo/text'
-import DividerDemoVertical from '../../docs/components/divider/demo/vertical'
 import DropdownMenuDemoBasic from '../../docs/components/dropdown-menu/demo/basic'
 import DropdownMenuDemoColor from '../../docs/components/dropdown-menu/demo/color'
 import DropdownMenuDemoCustom from '../../docs/components/dropdown-menu/demo/custom'
@@ -1787,11 +1786,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "dashed",
         title: "虚线",
         Component: DividerDemoDashed,
-      },
-      {
-        id: "vertical",
-        title: "垂直分割线",
-        Component: DividerDemoVertical,
       },
       {
         id: "custom",

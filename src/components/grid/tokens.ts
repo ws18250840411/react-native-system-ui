@@ -17,6 +17,7 @@ export const createGridTokens = (foundations: Foundations): GridTokens => {
       clickable: false,
       iconSize: 28,
       pressedOpacity: opacity.pressed,
+      textNumberOfLines: 2,
     },
     layout: {
       container: {
@@ -37,7 +38,6 @@ export const createGridTokens = (foundations: Foundations): GridTokens => {
         bottom: 0,
       },
       itemContentBase: {
-        flex: 1,
         justifyContent: 'center',
       },
       itemVertical: {
@@ -70,11 +70,8 @@ export const createGridTokens = (foundations: Foundations): GridTokens => {
         height: 1,
       },
       itemContentSquare: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        left: 0,
-        bottom: 0,
+        width: '100%',
+        aspectRatio: 1,
       },
     },
     colors: {

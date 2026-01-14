@@ -44,54 +44,68 @@ export const GridItem: React.FC<GridItemProps> = props => {
     direction === 'horizontal' ? tokens.layout.itemHorizontal : tokens.layout.itemVertical,
     center && tokens.layout.itemCenter,
     reverse ? (direction === 'horizontal' ? tokens.layout.itemReverseRow : tokens.layout.itemReverseColumn) : null,
+    square ? tokens.layout.itemContentSquare : null,
     {
       paddingHorizontal: tokens.spacing.paddingHorizontal,
       paddingVertical: tokens.spacing.paddingVertical,
       backgroundColor: tokens.colors.background,
     },
-    square ? tokens.layout.itemContentSquare : null,
-    square && gutter ? { right: gutter, bottom: gutter, height: 'auto' as any } : null,
     contentStyle,
   ]
 
   const hasText = isRenderable(text)
   const resolvedIconColor = iconColorProp ?? iconColor ?? tokens.colors.text
 
-  let iconElement = null
-  if (icon || badge || dot) {
-    const marginKey = direction === 'vertical'
-      ? (reverse ? 'marginTop' : 'marginBottom')
-      : (reverse ? 'marginLeft' : 'marginRight')
+  let innerContent: React.ReactNode = children
 
-    const iconWrapperStyle = [
-      tokens.layout.iconWrapper,
-      hasText && { [marginKey]: tokens.spacing.iconGap },
-    ]
-    const iconNode = isFunction(icon) ? icon(iconSize, resolvedIconColor) : icon
-    const content = <View style={iconWrapperStyle}>{iconNode}</View>
-    iconElement = (badge || dot) ? <Badge dot={dot} {...badge}>{content}</Badge> : content
+  if (!innerContent) {
+    let iconElement = null
+    if (icon || badge || dot) {
+      const { style: badgeWrapperStyle, ...badgeRest } = badge ?? {}
+      const marginKey = direction === 'vertical'
+        ? (reverse ? 'marginTop' : 'marginBottom')
+        : (reverse ? 'marginLeft' : 'marginRight')
+
+      const iconWrapperStyle = [
+        tokens.layout.iconWrapper,
+        hasText && { [marginKey]: tokens.spacing.iconGap },
+      ]
+      const iconNode = isFunction(icon) ? icon(iconSize, resolvedIconColor) : icon
+      const content = <View style={iconWrapperStyle}>{iconNode}</View>
+      iconElement = (badge || dot) ? (
+        <Badge
+          dot={dot}
+          {...badgeRest}
+          style={center ? [badgeWrapperStyle, { alignSelf: 'center' }] : badgeWrapperStyle}
+        >
+          {content}
+        </Badge>
+      ) : content
+    }
+
+    const textElement = hasText ? (
+      isText(text) ? (
+        <Text
+          style={[
+            tokens.layout.text,
+            {
+              color: tokens.colors.text,
+              fontSize: tokens.typography.fontSize,
+              lineHeight: tokens.typography.lineHeight,
+              fontFamily: tokens.typography.fontFamily,
+              fontWeight: tokens.typography.fontWeight as any,
+            },
+            textStyle
+          ]}
+          numberOfLines={tokens.defaults.textNumberOfLines}
+        >
+          {text}
+        </Text>
+      ) : text
+    ) : null
+
+    innerContent = <>{iconElement}{textElement}</>
   }
-
-  const textElement = hasText ? (
-    isText(text) ? (
-      <Text
-        style={[
-          tokens.layout.text,
-          {
-            color: tokens.colors.text,
-            fontSize: tokens.typography.fontSize,
-            lineHeight: tokens.typography.lineHeight,
-            fontFamily: tokens.typography.fontFamily,
-            fontWeight: tokens.typography.fontWeight as any,
-          },
-          textStyle
-        ]}
-        numberOfLines={2}
-      >
-        {text}
-      </Text>
-    ) : text
-  ) : null
 
   const rightBorder = border && !gutter && !isLastColumn && (
     <View
@@ -113,17 +127,16 @@ export const GridItem: React.FC<GridItemProps> = props => {
 
   const content = (
     <View style={contentWrapperStyle}>
-      {children ?? <>{iconElement}{textElement}</>}
+      {innerContent}
       {rightBorder}
       {bottomBorder}
     </View>
   )
 
   const baseItemStyle: ViewStyle = {
-    flexBasis: widthPercent,
     width: widthPercent,
-    maxWidth: widthPercent,
-    aspectRatio: square ? 1 : undefined,
+    flexGrow: 0,
+    flexShrink: 0,
     paddingRight: gutter ? gutter : undefined,
     marginTop: gutter && rowIndex > 0 ? gutter : undefined,
   }
@@ -133,10 +146,10 @@ export const GridItem: React.FC<GridItemProps> = props => {
   if (isInteractive) {
     return (
       <Pressable
-        style={({ pressed }) => [
+        style={(pressableState) => [
           baseItemStyle,
-          style as ViewStyle,
-          { opacity: pressed ? tokens.defaults.pressedOpacity : 1 },
+          typeof style === 'function' ? style(pressableState) : style,
+          { opacity: pressableState.pressed ? tokens.defaults.pressedOpacity : 1 },
         ]}
         android_ripple={{ color: tokens.colors.active }}
         onPress={onPress}
@@ -148,7 +161,15 @@ export const GridItem: React.FC<GridItemProps> = props => {
   }
 
   return (
-    <View style={[baseItemStyle, style as ViewStyle]} {...rest}>
+    <View
+      style={[
+        baseItemStyle,
+        typeof style === 'function'
+          ? style({ pressed: false })
+          : style,
+      ]}
+      {...rest}
+    >
       {content}
     </View>
   )

@@ -66,21 +66,22 @@ import { Grid } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `columnNum` | 列数 | `number` | `4` |
-| `iconSize` | 图标大小，默认单位为`px` | `number \| string` | `28px` |
+| `iconSize` | 图标大小 | `number` | `28` |
 | `gutter` | 格子之间的间距，默认单位为`px` | `number` | `0` |
 | `border` | 是否显示边框 | `boolean` | `true` |
 | `center` | 是否将格子内容居中显示 | `boolean` | `true` |
 | `square` | 是否将格子固定为正方形 | `boolean` | `false` |
 | `direction` | 格子内容排列的方向，可选值为 `horizontal` \| `vertical` | `GridDirection` | `'vertical'` |
 | `reverse` | 是否调换图标和文本的位置 | `boolean` | `false` |
+| `clickable` | 是否开启整组可点击态 | `boolean` | `false` |
 | `iconColor` | 图标颜色 | `string` | - |
 
 ### GridItem Props
 
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `text` | 文字 | `string` | - |
-| `icon` | 图标 | `React.ReactNode` | - |
+| `text` | 文字 | `ReactNode` | - |
+| `icon` | 图标 | `ReactNode \| ((size: number, color: string) => ReactNode)` | - |
 | `iconColor` | 图标颜色，等同于 Icon 组件的 [color 属性](/components/icon#props) | `string` | - |
 | `badge` | 图标右上角徽标的内容 | `BadgeProps` | - |
 | `dot` | 是否展示小红点 | `boolean` | `false` |

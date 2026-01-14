@@ -51,6 +51,7 @@ describe('Grid', () => {
 
     const badge = tree.root.find(node => node.type === Badge)
     expect(badge.props.content).toBe(5)
+    expect(StyleSheet.flatten(badge.props.style)?.alignSelf).toBe('center')
   })
 
   it('handles item press events', () => {
