@@ -2,7 +2,7 @@ import type { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
 
-export type LoadingType = 'circular' | 'spinner'
+export type LoadingType = 'circular' | 'spinner' | 'ball'
 
 export interface LoadingTokens {
   defaults: {
@@ -26,6 +26,12 @@ export interface LoadingTokens {
       lineLength: number
       itemCount: number
       innerGapRatio: number
+    }
+    ball: {
+      itemCount: number
+      dotSizeRatio: number
+      dotScaleMin: number
+      gapRatio: number
     }
   }
   spacing: {

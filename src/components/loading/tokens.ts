@@ -38,6 +38,12 @@ export const createLoadingTokens = (foundations: Foundations): LoadingTokens => 
       itemCount: 12,
       innerGapRatio: 0.25,
     },
+    ball: {
+      itemCount: 3,
+      dotSizeRatio: 0.2,
+      dotScaleMin: 0.4,
+      gapRatio: 0.25,
+    },
   },
   spacing: {
     gap: foundations.spacing.sm,
@@ -48,4 +54,3 @@ export const useLoadingTokens = createComponentTokensHook(
   'loading',
   createLoadingTokens
 )
-

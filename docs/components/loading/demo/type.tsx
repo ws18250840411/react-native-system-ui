@@ -6,5 +6,6 @@ export default () => (
   <Space gap={24}>
     <Loading />
     <Loading type="spinner" />
+    <Loading type="ball" />
   </Space>
 )

@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-  ActivityIndicator,
   Animated,
   Easing,
   Text,
@@ -8,6 +7,7 @@ import {
 } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
+import { withAlpha } from '../../utils/color'
 import { isText } from '../../utils/validate'
 import type { LoadingProps } from './types'
 import { useLoadingTokens } from './tokens'
@@ -39,7 +39,8 @@ export const Loading: React.FC<LoadingProps> = props => {
   const spinValue = React.useRef(new Animated.Value(0)).current
 
   React.useEffect(() => {
-    if (type === 'spinner') {
+    if (type === 'spinner' || type === 'circular' || type === 'ball') {
+      spinValue.setValue(0)
       const animation = Animated.loop(
         Animated.timing(spinValue, {
           toValue: 1,
@@ -54,11 +55,44 @@ export const Loading: React.FC<LoadingProps> = props => {
     return undefined
   }, [type])
 
+  const rotateValue = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  })
+
+  const renderCircular = () => {
+    const thickness = Math.max(2, Math.min(size / 8, 6))
+    const trackColor = withAlpha(color, 0.2)
+    return (
+      <Animated.View
+        testID="rv-loading-circular"
+        style={{
+          width: size,
+          height: size,
+          transform: [{ rotate: rotateValue }],
+        }}
+      >
+        <View
+          pointerEvents="none"
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderWidth: thickness,
+            borderColor: trackColor,
+            borderTopColor: color,
+          }}
+        />
+      </Animated.View>
+    )
+  }
+
   const renderSpinner = () => {
     const innerGap = Math.min(
       size / 2 - 1,
       Math.max(0, tokens.sizing.spinner.innerGapRatio * size)
     )
+    const lineWidth = Math.max(1, Math.min(size / 3, (size / tokens.defaults.size) * tokens.sizing.spinner.lineWidth))
     const scaledLength =
       (size / tokens.defaults.size) * tokens.sizing.spinner.lineLength
     const maxLength = Math.max(2, size / 2 - innerGap)
@@ -72,15 +106,13 @@ export const Loading: React.FC<LoadingProps> = props => {
 
     return (
       <Animated.View
+        testID="rv-loading-spinner"
         style={{
           width: size,
           height: size,
           transform: [
             {
-              rotate: spinValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: ['0deg', '360deg'],
-              }),
+              rotate: rotateValue,
             },
           ],
         }}
@@ -103,9 +135,9 @@ export const Loading: React.FC<LoadingProps> = props => {
               <View
                 style={[
                   {
-                    width: tokens.sizing.spinner.lineWidth,
+                    width: lineWidth,
                     height: lineLength,
-                    borderRadius: tokens.sizing.spinner.lineWidth / 2,
+                    borderRadius: lineWidth / 2,
                     backgroundColor: color,
                     opacity,
                     marginTop: size / 2 - lineLength - innerGap,
@@ -119,8 +151,71 @@ export const Loading: React.FC<LoadingProps> = props => {
     )
   }
 
+  const renderBall = () => {
+    const itemCount = tokens.sizing.ball.itemCount
+    const dotSize = Math.max(
+      2,
+      Math.round(size * tokens.sizing.ball.dotSizeRatio)
+    )
+    const gap = Math.max(1, Math.round(size * tokens.sizing.ball.gapRatio))
+    const totalWidth = dotSize * itemCount + gap * (itemCount - 1)
+    const pulseWidth = 0.4 / itemCount
+
+    return (
+      <View
+        testID="rv-loading-ball"
+        style={{
+          width: totalWidth,
+          height: size,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {Array.from({ length: itemCount }, (_, index) => {
+            const center = (index + 0.5) / itemCount
+            const left = Math.max(0, center - pulseWidth)
+            const right = Math.min(1, center + pulseWidth)
+
+            const scale = spinValue.interpolate({
+              inputRange: [0, left, center, right, 1],
+              outputRange: [
+                tokens.sizing.ball.dotScaleMin,
+                tokens.sizing.ball.dotScaleMin,
+                1,
+                tokens.sizing.ball.dotScaleMin,
+                tokens.sizing.ball.dotScaleMin,
+              ],
+            })
+
+            const opacity = spinValue.interpolate({
+              inputRange: [0, left, center, right, 1],
+              outputRange: [0.4, 0.4, 1, 0.4, 0.4],
+            })
+
+            return (
+              <Animated.View
+                key={index}
+                pointerEvents="none"
+                style={{
+                  width: dotSize,
+                  height: dotSize,
+                  borderRadius: dotSize / 2,
+                  backgroundColor: color,
+                  marginRight: index === itemCount - 1 ? 0 : gap,
+                  opacity,
+                  transform: [{ scale }],
+                }}
+              />
+            )
+          })}
+        </View>
+      </View>
+    )
+  }
+
   const indicator =
-    type === 'spinner' ? renderSpinner() : <ActivityIndicator size={size} color={color} />
+    type === 'spinner' ? renderSpinner() : type === 'ball' ? renderBall() : renderCircular()
 
   const hasChildren = children !== undefined && children !== null && children !== false
   const textSpacingStyle = {

@@ -158,6 +158,16 @@ describe('Toast', () => {
     expect(loading.props.type).toBe('spinner')
   })
 
+  it('supports loadingType ball', () => {
+    const tree = render(
+      <PortalHost>
+        <Toast visible type="loading" iconSize={24} loadingType="ball" duration={0} />
+      </PortalHost>
+    )
+    const loading = tree.root.findByType(Loading)
+    expect(loading.props.type).toBe('ball')
+  })
+
   it('supports config alias on static handle', () => {
     const host = render(
       <PortalHost>
