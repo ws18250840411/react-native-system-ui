@@ -7,8 +7,6 @@ const workspaceRoot = path.resolve(projectRoot, '..')
 const config = getDefaultConfig(projectRoot)
 
 config.watchFolders = [workspaceRoot]
-config.resolver.disableHierarchicalLookup = true
-config.resolver.unstable_enableSymlinks = true
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   // 兼容 npm 安装下 react-native 将部分依赖安装在自身 node_modules 内的情况
@@ -20,6 +18,9 @@ config.resolver.nodeModulesPaths = [
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules || {}),
   'react-native-system-ui': path.resolve(workspaceRoot, 'src'),
+  'react': path.resolve(projectRoot, 'node_modules/react'),
+  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
+  'react-native-svg': path.resolve(projectRoot, 'node_modules/react-native-svg'),
 }
 
 module.exports = config

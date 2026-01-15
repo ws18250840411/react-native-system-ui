@@ -14,7 +14,7 @@ export const createNavBarTokens = ({
     placeholder: false,
     border: true,
     safeAreaInsetTop: false,
-    leftArrow: true,
+    leftArrow: false,
     zIndex: 1,
   },
   layout: {

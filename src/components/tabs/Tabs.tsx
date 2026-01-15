@@ -19,7 +19,7 @@ import { useTabsTokens } from './tokens'
 import TabPane from './TabPane'
 
 const requestFrame =
-  isFunction(requestAnimationFrame)
+  typeof requestAnimationFrame !== 'undefined' && isFunction(requestAnimationFrame)
     ? requestAnimationFrame
     : (cb: (time?: number) => void) => setTimeout(cb, 16)
 

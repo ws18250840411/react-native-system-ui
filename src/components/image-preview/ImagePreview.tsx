@@ -107,10 +107,12 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     if (!visible) return
     const next = clampIndex(startPosition, images.length)
     setActive(next)
-    const raf = requestAnimationFrame(() => {
-      swiperRef.current?.swipeTo(next, false)
-    })
-    return () => cancelAnimationFrame(raf)
+    if (typeof requestAnimationFrame !== 'undefined') {
+      const raf = requestAnimationFrame(() => {
+        swiperRef.current?.swipeTo(next, false)
+      })
+      return () => cancelAnimationFrame(raf)
+    }
   }, [images.length, startPosition, visible])
 
   const runBeforeClose = React.useCallback(async (reason: ImagePreviewCloseReason) => {

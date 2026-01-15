@@ -135,7 +135,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
 
   const scheduleDrag = React.useCallback(
     (next: number) => {
-      if (!isFunction(requestAnimationFrame)) {
+      if (typeof requestAnimationFrame === 'undefined' || !isFunction(requestAnimationFrame)) {
         translateX.setValue(next)
         return
       }

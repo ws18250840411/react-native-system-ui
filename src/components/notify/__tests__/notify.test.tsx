@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Text } from 'react-native'
+import { SafeAreaView, Text } from 'react-native'
 
 import Notify from '..'
 import { Portal, PortalHost } from '../../portal'
@@ -142,5 +142,15 @@ describe('Notify', () => {
 
     const wrapper = tree.root.findByProps({ testID: 'rv-notify' })
     expect(wrapper.props.pointerEvents).toBe('box-none')
+  })
+
+  it('does not add safe area by default when position is bottom', () => {
+    const tree = render(
+      <PortalHost>
+        <Notify visible message="hello" position="bottom" />
+      </PortalHost>
+    )
+
+    expect(tree.root.findAllByType(SafeAreaView)).toHaveLength(0)
   })
 })

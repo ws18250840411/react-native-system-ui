@@ -43,13 +43,22 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const placeholder = placeholderProp ?? tokens.defaults.placeholder
   const zIndex = zIndexProp ?? tokens.defaults.zIndex
   const border = borderProp ?? tokens.defaults.border
-  const safeAreaInsetTop = safeAreaInsetTopProp ?? (fixed ? tokens.defaults.safeAreaInsetTop : false)
+  const safeAreaInsetTop = safeAreaInsetTopProp ?? fixed
   const background = backgroundProp ?? tokens.colors.background
 
   const handlePressLeft = onPressLeft ?? onClickLeft
   const handlePressRight = onPressRight ?? onClickRight
 
   const [height, setHeight] = React.useState(tokens.sizing.height)
+  const enablePlaceholder = fixed && placeholder
+  const handleLayout = React.useCallback(
+    (event: any) => {
+      if (!enablePlaceholder) return
+      const nextHeight = event.nativeEvent.layout.height
+      setHeight(prev => (Math.abs(prev - nextHeight) < 0.5 ? prev : nextHeight))
+    },
+    [enablePlaceholder],
+  )
 
   const resolvedColor = tintColor ?? tokens.colors.text
   const sideColor = tintColor ?? tokens.colors.icon
@@ -88,20 +97,38 @@ const NavBarBase: React.FC<NavBarProps> = props => {
       return <View style={tokens.layout.sidePlaceholder} />
     }
 
-    return (
-      <Pressable
-        hitSlop={8}
-        testID="rv-navbar-left"
-        style={[tokens.layout.side, sideStyle]}
-        {...(handlePressLeft ? leftPress.interactionProps : {})}
-      >
+    const content = (
+      <>
         {arrowNode}
         {leftIcon}
         {isRenderable(leftText)
           ? isText(leftText)
-            ? <Text style={[tokens.layout.sideText, { color: sideColor }]}>{leftText}</Text>
+            ? (
+              <Text numberOfLines={1} style={[tokens.layout.sideText, { color: sideColor }]}>
+                {leftText}
+              </Text>
+            )
             : leftText
           : null}
+      </>
+    )
+
+    if (!handlePressLeft) {
+      return (
+        <View testID="rv-navbar-left" style={[tokens.layout.side, sideStyle]}>
+          {content}
+        </View>
+      )
+    }
+
+    return (
+      <Pressable
+        hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+        testID="rv-navbar-left"
+        style={[tokens.layout.side, sideStyle]}
+        {...leftPress.interactionProps}
+      >
+        {content}
       </Pressable>
     )
   }
@@ -111,19 +138,38 @@ const NavBarBase: React.FC<NavBarProps> = props => {
     if (!hasAction) {
       return <View style={tokens.layout.sidePlaceholder} />
     }
-    return (
-      <Pressable
-        hitSlop={8}
-        testID="rv-navbar-right"
-        style={[tokens.layout.side, tokens.layout.rightAlign, sideStyle]}
-        {...(handlePressRight ? rightPress.interactionProps : {})}
-      >
+
+    const content = (
+      <>
         {isRenderable(rightText)
           ? isText(rightText)
-            ? <Text style={[tokens.layout.sideText, { color: sideColor }]}>{rightText}</Text>
+            ? (
+              <Text numberOfLines={1} style={[tokens.layout.sideText, { color: sideColor }]}>
+                {rightText}
+              </Text>
+            )
             : rightText
           : null}
         {rightIcon}
+      </>
+    )
+
+    if (!handlePressRight) {
+      return (
+        <View testID="rv-navbar-right" style={[tokens.layout.side, tokens.layout.rightAlign, sideStyle]}>
+          {content}
+        </View>
+      )
+    }
+
+    return (
+      <Pressable
+        hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+        testID="rv-navbar-right"
+        style={[tokens.layout.side, tokens.layout.rightAlign, sideStyle]}
+        {...rightPress.interactionProps}
+      >
+        {content}
       </Pressable>
     )
   }
@@ -183,10 +229,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
         },
         border ? createHairlineBorderBottom(tokens.colors.border) : null,
       ]}
-      onLayout={event => {
-        const nextHeight = event.nativeEvent.layout.height
-        setHeight(prev => (prev === nextHeight ? prev : nextHeight))
-      }}
+      onLayout={safeAreaInsetTop ? undefined : handleLayout}
     >
       {renderLeft()}
       <View style={tokens.layout.center}>{centerContent}</View>
@@ -195,7 +238,9 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   )
 
   const wrapped = safeAreaInsetTop ? (
-    <SafeAreaView style={{ backgroundColor: background }}>{bar}</SafeAreaView>
+    <SafeAreaView onLayout={handleLayout} style={{ backgroundColor: background }}>
+      {bar}
+    </SafeAreaView>
   ) : (
     bar
   )
@@ -215,7 +260,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
 
   return (
     <>
-      {fixed && placeholder ? (
+      {enablePlaceholder ? (
         <View testID="rv-navbar-placeholder" style={{ height }} />
       ) : null}
       {navContent}

@@ -64,8 +64,8 @@
 | image | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、映射表优化、Web/Native SVG 统一、无障碍精修 |
 | list | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、横纵向支持、ScrollComponent 注入、无障碍精修、逻辑最小化 |
 | loading | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、Native Driver 动画、无 ActivityIndicator 依赖 |
-| nav-bar | 已冻结 ✅ | SafeArea/布局与交互细节 |
-| notify | 已冻结 ✅ | Overlay 承载与动画/队列管理 |
+| nav-bar | 已冻结 ✅ | 极致精简版：全 Tokens 驱动，自动处理 SafeArea，移除冗余交互分支，代码结构最小化 |
+| notify | 已冻结 ✅ | 极致精简版：全 Tokens 驱动，默认不拦截交互，OverlayStack+Portal 承载，静态 API 单例/多例，代码结构最小化 |
 | progress | 已冻结 ✅ | 动画/渐变/driver 差异与性能 |
 | radio | 已冻结 ✅ | 组选/交互一致性，细节需测试守护 |
 | rate | 已冻结 ✅ | 触控交互与精度/只读等边界 |

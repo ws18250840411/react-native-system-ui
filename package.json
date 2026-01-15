@@ -1,9 +1,10 @@
 {
-  "private": true,
   "name": "react-native-system-ui",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
-  "main": "dist/es/index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/es/index.js",
+  "types": "dist/cjs/index.d.ts",
   "scripts": {
     "dev": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc dev",
     "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build",
@@ -15,7 +16,10 @@
     "test:watch": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc test --watch"
   },
   "files": [
-    "dist"
+    "dist",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/**.md"
   ],
   "keywords": [],
   "author": "",

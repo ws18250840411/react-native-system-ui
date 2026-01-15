@@ -29,6 +29,7 @@ const FALLBACK_WIDTH = 375
 const FALLBACK_HEIGHT = 667
 
 const runAfterFrames = (frames: number, fn: () => void) => {
+  const raf = typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame : (cb: any) => setTimeout(cb, 16)
   let left = Math.max(1, frames)
   const step = () => {
     left -= 1
@@ -36,9 +37,9 @@ const runAfterFrames = (frames: number, fn: () => void) => {
       fn()
       return
     }
-    requestAnimationFrame(step)
+    raf(step)
   }
-  requestAnimationFrame(step)
+  raf(step)
 }
 
 const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) => {

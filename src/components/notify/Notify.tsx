@@ -106,11 +106,12 @@ export const Notify: React.FC<NotifyProps> = props => {
     onClick?.()
     if (closeOnClick) onClose?.()
   }
+  const accessibilityRole = interactive ? 'button' : 'alert'
   const press = useAriaPress({
     disabled: !interactive,
     onPress: handlePress,
     extraProps: {
-      accessibilityRole: interactive ? 'button' : 'alert',
+      accessibilityRole,
       accessibilityLiveRegion: 'assertive',
     },
   })
@@ -140,72 +141,79 @@ export const Notify: React.FC<NotifyProps> = props => {
 
   const resolvedZIndex = stackZIndex ?? zIndex
 
+  const bar = (
+    <Animated.View
+      testID="rv-notify-bar"
+      accessibilityRole={!interactive ? accessibilityRole : undefined}
+      accessibilityLiveRegion={!interactive ? 'assertive' : undefined}
+      onLayout={handleLayout}
+      style={[
+        tokens.layout.container,
+        {
+          backgroundColor: resolvedBackground,
+          opacity: animated,
+          transform: [{ translateY }],
+        },
+        style,
+      ]}
+    >
+      {safeAreaInsetTop ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
+      <View
+        style={[
+          tokens.layout.content,
+          {
+            paddingHorizontal: tokens.spacing.paddingHorizontal,
+            paddingVertical: tokens.spacing.paddingVertical,
+            minHeight: tokens.sizing.minHeight,
+          },
+        ]}
+      >
+        {hasMessage
+          ? isText(message)
+            ? (
+              <Text
+                style={[
+                  tokens.layout.text,
+                  {
+                    color: resolvedTextColor,
+                    fontSize: tokens.typography.fontSize,
+                    lineHeight: tokens.typography.lineHeight,
+                  },
+                  textStyle,
+                ]}
+              >
+                {message}
+              </Text>
+            )
+            : (
+              message
+            )
+          : null}
+      </View>
+      {safeAreaInsetBottom ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
+    </Animated.View>
+  )
+
   return (
     <Portal>
       <View
         testID="rv-notify"
-        pointerEvents={interactive ? 'box-none' : 'none'}
         style={[
           tokens.layout.portal,
           position === 'bottom' ? { bottom: 0 } : { top: 0 },
           resolvedZIndex !== undefined && resolvedZIndex !== null
             ? { zIndex: resolvedZIndex }
             : null,
+          { pointerEvents: interactive ? 'box-none' : 'none' },
         ]}
       >
-        <Pressable
-          {...press.interactionProps}
-          disabled={!interactive}
-        >
-          <Animated.View
-            testID="rv-notify-bar"
-            onLayout={handleLayout}
-            style={[
-              tokens.layout.container,
-              {
-                backgroundColor: resolvedBackground,
-                opacity: animated,
-                transform: [{ translateY }],
-              },
-              style,
-            ]}
-          >
-            {safeAreaInsetTop ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
-            <View
-              style={[
-                tokens.layout.content,
-                {
-                  paddingHorizontal: tokens.spacing.paddingHorizontal,
-                  paddingVertical: tokens.spacing.paddingVertical,
-                  minHeight: tokens.sizing.minHeight,
-                },
-              ]}
-            >
-              {hasMessage
-                ? isText(message)
-                  ? (
-                    <Text
-                      style={[
-                        tokens.layout.text,
-                        {
-                          color: resolvedTextColor,
-                          fontSize: tokens.typography.fontSize,
-                          lineHeight: tokens.typography.lineHeight,
-                        },
-                        textStyle,
-                      ]}
-                    >
-                      {message}
-                    </Text>
-                  )
-                  : (
-                    message
-                  )
-                : null}
-            </View>
-            {safeAreaInsetBottom ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
-          </Animated.View>
-        </Pressable>
+        {interactive ? (
+          <Pressable {...press.interactionProps} disabled={!interactive}>
+            {bar}
+          </Pressable>
+        ) : (
+          bar
+        )}
       </View>
     </Portal>
   )

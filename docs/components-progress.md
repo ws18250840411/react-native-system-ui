@@ -68,7 +68,7 @@
 | Dialog 弹窗 | ✅ | 三审通过：Web 下统一关闭 `useNativeDriver`，Portal/OverlayStack 行为一致；二次审计通过：title/message 支持 `0` 渲染并补齐 aria-label 兜底（数字/字符串），单测补齐；其余保持（受控/静态 API、OverlayStack 返回键与 a11y 映射） |
 | DropdownMenu 下拉菜单 | ✅ | 三审通过：遮罩/面板改为 Portal 渲染，基于 `measureInWindow` 定位适配非顶端场景（Web 动画 driver 关闭）；二次审计通过：title/placeholder/option text 支持非文本节点（避免嵌套 Text 崩溃），补齐 option.icon 渲染与自定义 activeIcon 兜底（单测补齐） |
 | Loading 加载 | ✅ | 三审通过：Web 下关闭 native driver 动画，指示器三端一致性复核通过；二次审计通过：children 支持非文本节点（避免嵌套 Text 崩溃）并补齐单测；其余保持（circular/spinner 兼容与 tokens 覆盖） |
-| Notify 消息提示 | ✅ | 三审通过：OverlayStack 层级与 Web 动画 driver 策略一致性复核通过；二次审计通过：补齐 `zIndex=0` 的样式兜底；实现复核无改动（受控/静态 API、自动关闭、safeArea、进入/退出动画） |
+| Notify 消息提示 | ✅ | 极致精简版：全 Tokens 驱动，默认不拦截交互，OverlayStack+Portal 承载，静态 API 单例/多例，代码结构最小化；单测覆盖关键场景 |
 | Overlay 遮罩层 | ✅ | 三审通过：OverlayStack 统一 zIndex 规则（`zIndex<base` 视为相对偏移），避免小值污染弹层栈；二次审计通过：补齐 `zIndex=0` 的样式兜底；其余实现复核无改动（Portal + OverlayStack、scroll lock、返回键关闭） |
 | PullRefresh 下拉刷新 | ✅ | 三审通过：Web 动画 driver 关闭，多端刷新/成功提示行为复核通过；二次审计通过：实现复核无改动（RefreshControl、成功态提示、受控/非受控） |
 | ShareSheet 分享面板 | ✅ | 三审通过：Popup 承载/安全区/多行分组展示三端一致性复核通过；二次审计通过：title/description/cancelText 与 option.name/description 支持非文本节点（避免嵌套 Text 崩溃），补齐 `option.onPress` 类型与 `columns` 兜底（单测补齐） |
@@ -100,7 +100,7 @@
 | --- | --- | --- |
 | Grid 宫格 | ✅ | 三审通过：布局/间距/边框与徽标组合三端一致性复核通过；二次审计通过：支持列数/间距/边框/正方形/图文方向与反转/徽标/自定义内容；修复 `direction="horizontal"` 与 `reverse` 下图文间距与对齐 |
 | IndexBar 索引栏 | ✅ | 三审通过：滚动锚点/触摸索引在 Web/iOS/Android 一致性复核通过；二次审计通过：侧边索引/吸顶标题/触摸指示器；修复 sticky 模式下跳转锚点需扣除吸顶高度（避免被标题遮挡），并补齐受控与自定义样式 demo |
-| NavBar 导航栏 | ✅ | 三审通过：安全区/返回/右侧操作区三端一致性复核通过；二次审计通过：demo 文案统一为“标题/描述信息/按钮/内容”，避免业务化描述干扰 |
+| NavBar 导航栏 | ✅ | 极致精简版：全 Tokens 驱动，自动处理 SafeArea（fixed 默认开启），移除冗余交互分支，代码结构最小化；单测覆盖所有场景 |
 | Pagination 分页 | ✅ | 三审通过：受控越界 clamp 与渲染一致性复核通过；二次审计通过：支持 `multi/simple`、受控/非受控、ellipsis 跳转；修复受控页码越界未被 clamp 的问题，并允许 `prevText/nextText/pageDesc/pageRender` 传非文本节点（避免 Text 嵌套崩溃） |
 | Sidebar 侧边栏 | ✅ | 三审通过：点击/滚动/禁用与徽标显示三端一致性复核通过；二次审计通过：受控/非受控、禁用态与徽标提示；修复 `badge=0`/`title=0` 等渲染判定并支持非文本标题节点，移除未使用的 `SidebarProps.contentStyle` 干扰 |
 | Tabs 选项卡 | ✅ | 三审通过：滑动切换（swipeable）与指示器动画三端一致性复核通过；二次审计通过：demo 文案已统一为“标签名/内容/描述信息”，移除滚动导航/粘性布局并按官方 Tabs 文档对齐 |

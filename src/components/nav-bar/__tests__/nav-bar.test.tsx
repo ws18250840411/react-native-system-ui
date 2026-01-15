@@ -57,4 +57,19 @@ describe('NavBar', () => {
     const flatStyle = Object.assign({}, ...[].concat(titleStyle))
     expect(flatStyle.color).toBe('red')
   })
+
+  it('wraps content with SafeAreaView when fixed by default', () => {
+    const tree = renderer.create(<NavBar fixed title="Nav" />)
+    expect(tree.root.findAllByType(SafeAreaView).length).toBe(1)
+  })
+
+  it('disables SafeAreaView when safeAreaInsetTop=false', () => {
+    const tree = renderer.create(<NavBar fixed safeAreaInsetTop={false} title="Nav" />)
+    expect(tree.root.findAllByType(SafeAreaView).length).toBe(0)
+  })
+
+  it('enables SafeAreaView when safeAreaInsetTop=true without fixed', () => {
+    const tree = renderer.create(<NavBar safeAreaInsetTop title="Nav" />)
+    expect(tree.root.findAllByType(SafeAreaView).length).toBe(1)
+  })
 })

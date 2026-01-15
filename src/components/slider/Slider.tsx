@@ -257,7 +257,7 @@ export const Slider: React.FC<SliderProps> = props => {
     }
     setTrackLayout(prev => (isSameLayout(prev, next) ? prev : next))
 
-    if (Platform.OS !== 'web') return
+    if (Platform.OS !== 'web' || typeof requestAnimationFrame === 'undefined') return
 
     requestAnimationFrame(() => {
       const node = trackRef.current as any
