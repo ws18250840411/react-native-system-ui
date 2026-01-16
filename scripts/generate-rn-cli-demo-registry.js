@@ -4,7 +4,7 @@ const path = require('path')
 const repoRoot = path.resolve(__dirname, '..')
 const rndocConfigPath = path.join(repoRoot, 'rndoc.config.ts')
 const docsComponentsDir = path.join(repoRoot, 'docs', 'components')
-const outputPath = path.join(repoRoot, 'RnSystemUi', 'demo', 'registry.ts')
+const outputPath = path.join(repoRoot, 'RnSystemUiCli', 'demo', 'registry.ts')
 
 const toPosixPath = value => value.split(path.sep).join('/')
 
@@ -69,12 +69,12 @@ const parseDocs = mdSource => {
 
 const rnDemoOverrides = {
   uploader: {
-    base: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'base.tsx'),
-    upload: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'upload.tsx'),
-    limit: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'limit.tsx'),
-    preview: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'preview.tsx'),
-    close: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'close.tsx'),
-    form: path.join(repoRoot, 'RnSystemUi', 'demo', 'overrides', 'uploader', 'form.tsx'),
+    base: path.join(repoRoot, 'RnSystemUiCli', 'demo', 'overrides', 'uploader', 'base.tsx'),
+    upload: path.join(repoRoot, 'RnSystemUiCli', 'demo', 'overrides', 'uploader', 'upload.tsx'),
+    limit: path.join(repoRoot, 'RnSystemUiCli', 'demo', 'overrides', 'uploader', 'limit.tsx'),
+    preview: path.join(repoRoot, 'RnSystemUiCli', 'demo', 'overrides', 'uploader', 'preview.tsx'),
+    close: path.join(repoRoot, 'RnSystemUiCli', 'demo', 'overrides', 'uploader', 'close.tsx'),
+    form: path.join(repoRoot, 'RnSystemUiCli', 'demo', 'overrides', 'uploader', 'form.tsx'),
   },
 }
 
@@ -96,9 +96,6 @@ if (!Array.isArray(groups)) {
 const componentRegistry = {}
 /** @type {Array<{ title: string, slugs: string[] }>} */
 const menuGroups = []
-/** @type {Array<{ varName: string, importPath: string }>} */
-const imports = []
-const usedImportNames = new Set()
 
 for (const group of groups) {
   if (!group || typeof group !== 'object') continue
@@ -126,20 +123,10 @@ for (const group of groups) {
       const overridePath = rnDemoOverrides[slug]?.[demo.id]
       const absDemoPath = overridePath ?? path.resolve(path.dirname(mdPath), demo.src)
       const importPath = buildImportPath(outputPath, absDemoPath)
-      const varBase = `${toPascalCase(slug)}Demo${toPascalCase(demo.id)}`
-      let varName = safeIdentifier(varBase)
-      if (usedImportNames.has(varName)) {
-        let i = 2
-        while (usedImportNames.has(`${varName}_${i}`)) i += 1
-        varName = `${varName}_${i}`
-      }
-      usedImportNames.add(varName)
-      imports.push({ varName, importPath })
-
       return {
         id: demo.id,
         title: demo.title,
-        varName,
+        importPath,
       }
     })
 
@@ -150,8 +137,6 @@ for (const group of groups) {
   }
 }
 
-imports.sort((a, b) => a.importPath.localeCompare(b.importPath))
-
 const lines = []
 lines.push('/* eslint-disable */')
 lines.push('// 此文件由 scripts/generate-rn-demo-registry.js 自动生成，请勿手改。')
@@ -159,15 +144,11 @@ lines.push('')
 lines.push("import type React from 'react'")
 lines.push('')
 
-for (const item of imports) {
-  lines.push(`import ${item.varName} from '${item.importPath}'`)
-}
-
 lines.push('')
 lines.push('export type DemoEntry = {')
 lines.push('  id: string')
 lines.push('  title: string')
-lines.push('  Component: React.ComponentType<any>')
+lines.push('  getComponent: () => React.ComponentType<any>')
 lines.push('}')
 lines.push('')
 lines.push('export type ComponentEntry = {')
@@ -194,7 +175,10 @@ for (const [slug, entry] of Object.entries(componentRegistry)) {
     lines.push('      {')
     lines.push(`        id: ${JSON.stringify(demo.id)},`)
     lines.push(`        title: ${JSON.stringify(demo.title)},`)
-    lines.push(`        Component: ${demo.varName},`)
+    lines.push('        getComponent: () => {')
+    lines.push(`          const mod = require(${JSON.stringify(demo.importPath)})`)
+    lines.push('          return mod?.default ?? mod')
+    lines.push('        },')
     lines.push('      },')
   }
   lines.push('    ],')

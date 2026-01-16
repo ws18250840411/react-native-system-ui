@@ -9,16 +9,18 @@ import { useSidebarTokens } from './tokens'
 import { isText } from '../../utils/validate'
 
 const SidebarBase: React.FC<SidebarProps> = props => {
-  const { children, value, defaultValue, sideStyle, onChange, style, tokensOverride, ...rest } = props
+  const { children, sideStyle, style, tokensOverride, ...rest } = props
   const tokens = useSidebarTokens(tokensOverride)
 
   const items = React.useMemo(() => {
-    return React.Children.toArray(children)
-      .map((child, index) => {
-        if (!React.isValidElement<SidebarItemProps>(child)) return null
-        return { element: child, index }
-      })
-      .filter(Boolean) as { element: React.ReactElement<SidebarItemProps>; index: number }[]
+    const out: { element: React.ReactElement<SidebarItemProps>; index: number }[] = []
+    const list = React.Children.toArray(children)
+    for (let i = 0; i < list.length; i++) {
+      const child = list[i]
+      if (!React.isValidElement<SidebarItemProps>(child)) continue
+      out.push({ element: child, index: i })
+    }
+    return out
   }, [children])
 
   const firstIndex = items[0]?.index ?? 0
@@ -29,7 +31,13 @@ const SidebarBase: React.FC<SidebarProps> = props => {
     trigger: 'onChange',
   })
 
-  const currentIndex = items.some(item => item.index === activeIndex) ? activeIndex : firstIndex
+  let currentIndex = firstIndex
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].index === activeIndex) {
+      currentIndex = activeIndex
+      break
+    }
+  }
 
   const contextValue = React.useMemo(
     () => ({
@@ -40,13 +48,11 @@ const SidebarBase: React.FC<SidebarProps> = props => {
   )
 
   const clonedItems = React.useMemo(() => {
-    return items.map(item =>
-      React.cloneElement(item.element, {
-        key: item.element.key ?? item.index,
-        index: item.index,
-        tokensOverride: mergeTokensOverride(tokensOverride, item.element.props.tokensOverride),
-      })
-    )
+    return items.map(item => {
+      const key = item.element.key ?? item.index
+      const merged = mergeTokensOverride(tokensOverride, item.element.props.tokensOverride)
+      return React.cloneElement(item.element, { key, index: item.index, tokensOverride: merged })
+    })
   }, [items, tokensOverride])
 
   const activeItem = React.useMemo(() => {

@@ -16,10 +16,13 @@
     "test:watch": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc test --watch"
   },
   "files": [
-    "dist",
+    "dist/cjs",
+    "dist/es",
     "!**/__tests__",
     "!**/__fixtures__",
-    "!**/**.md"
+    "!**/**.md",
+    "!dist/*.mjs",
+    "!dist/*.js"
   ],
   "keywords": [],
   "author": "",

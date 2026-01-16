@@ -55,10 +55,11 @@ import { ActionSheet } from 'react-native-system-ui'
 | `closeOnClickAction` | 点击选项后是否自动关闭（对齐 Vant `close-on-click-action`） | `boolean` | `false` |
 | `closeable` | 是否展示右上角关闭按钮 | `boolean` | `true` |
 | `overlay` | 是否展示蒙层（透传给 Popup） | `boolean` | `true` |
+| `closeOnClickOverlay` | 点击蒙层后是否关闭（透传给 Popup） | `boolean` | `true` |
 | `round` | 是否圆角（透传给 Popup） | `boolean` | `true` |
 | `safeAreaInsetBottom` | 是否适配底部安全区 | `boolean` | `true` |
 | `onSelect` | 点击操作项回调 | `(action, index) => void` | - |
-| `onCancel` | 点击取消按钮时触发 | `() => void` | - |
+| `onCancel` | 点击取消按钮时触发；未传 `onClose` 时作为关闭回调兜底 | `() => void` | - |
 | `beforeClose` | 关闭前拦截，返回 `false` 可阻止关闭（支持 Promise） | `(action) => boolean \| Promise<boolean>` | - |
 | `onClose` | 关闭回调（遮罩/返回键/关闭按钮/手动触发） | `() => void` | - |
 | 其余 | 支持 `Popup` 的全部属性 | - | - |

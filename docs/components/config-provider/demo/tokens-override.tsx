@@ -23,9 +23,11 @@ export default () => {
           <Space
             size="normal"
             tokensOverride={{
-              presets: {
-                normal: 24,
-              },
+              sizing: {
+                presets: {
+                  normal: 24,
+                },
+              }
             }}
           >
             <Button text="Item A" />

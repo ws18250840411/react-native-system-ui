@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View, type PressableStateCallbackType } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
@@ -12,6 +12,11 @@ import type { ActionSheetTokens } from './types'
 import { useActionSheetTokens } from './tokens'
 
 const defaultCloseIcon = <Close size={18} />
+
+type IconColorProps = {
+  fill?: string
+  color?: string
+}
 
 const ActionSheetHeader: React.FC<{
   title: React.ReactNode
@@ -49,7 +54,10 @@ const ActionSheetHeader: React.FC<{
           {...closePress.interactionProps}
         >
           {React.isValidElement(closeIcon)
-            ? React.cloneElement(closeIcon, { fill: colors.description, color: colors.description } as any)
+            ? React.cloneElement(closeIcon as React.ReactElement<IconColorProps>, {
+              fill: colors.description,
+              color: colors.description,
+            })
             : closeIcon}
         </Pressable>
       ) : null}
@@ -63,14 +71,15 @@ const ActionSheetItem: React.FC<{
   action: ActionSheetAction
   index: number
   tokens: ActionSheetTokens
-  onPress: () => void
-}> = React.memo(({ action, index, tokens, onPress }) => {
+  onActionPress: (action: ActionSheetAction, index: number) => void
+}> = React.memo(({ action, index, tokens, onActionPress }) => {
   const disabled = !!action.disabled
   const loading = !!action.loading
   const { colors, spacing, typography } = tokens
+  const handlePress = React.useCallback(() => onActionPress(action, index), [action, index, onActionPress])
   const actionPress = useAriaPress({
     disabled: disabled || loading,
-    onPress,
+    onPress: handlePress,
     extraProps: {
       accessibilityRole: 'button',
       accessibilityState: { disabled, busy: loading },
@@ -88,7 +97,7 @@ const ActionSheetItem: React.FC<{
 
   return (
     <Pressable
-      style={({ pressed }) => [
+      style={({ pressed }: PressableStateCallbackType) => [
         tokens.layout.item,
         hasIcon && tokens.layout.itemWithIcon,
         {
@@ -224,41 +233,60 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
   const hasDescription = isRenderable(description)
   const hasCancelText = isRenderable(cancelText)
 
+  const lastPopupCloseReasonRef = React.useRef<ActionSheetCloseAction>('close')
+
   const runBeforeClose = React.useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
       if (!beforeClose) return true
       try {
         return (await beforeClose(action)) !== false
       } catch (error) {
-        console.error(error)
         return true
       }
     },
     [beforeClose],
   )
 
+  const emitClose = React.useCallback(
+    (reason: ActionSheetCloseAction) => {
+      if (onClose) {
+        if (reason === 'cancel') {
+          onCancel?.()
+        }
+        onClose()
+        return
+      }
+      onCancel?.()
+    },
+    [onCancel, onClose]
+  )
+
   const requestClose = React.useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
       const allowed = await runBeforeClose(action)
       if (!allowed) return
-      onClose?.()
+      emitClose(action)
     },
-    [onClose, runBeforeClose],
+    [emitClose, runBeforeClose],
   )
 
   const handlePopupBeforeClose = React.useCallback(
     (reason: 'close-icon' | 'overlay' | 'close') => {
       const action: ActionSheetCloseAction =
         reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
+      lastPopupCloseReasonRef.current = action
       return runBeforeClose(action)
     },
     [runBeforeClose]
   )
 
+  const handlePopupClose = React.useCallback(() => {
+    emitClose(lastPopupCloseReasonRef.current)
+  }, [emitClose])
+
   const handleCancel = React.useCallback(() => {
-    onCancel?.()
     void requestClose('cancel')
-  }, [onCancel, requestClose])
+  }, [requestClose])
 
   const handleCloseIcon = React.useCallback(() => {
     void requestClose('close-icon')
@@ -288,7 +316,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       overlay={overlay}
       lockScroll={lockScroll}
       beforeClose={handlePopupBeforeClose}
-      onClose={onClose}
+      onClose={handlePopupClose}
       style={[
         tokens.layout.popup,
         popupStyle,
@@ -338,7 +366,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
               action={action}
               index={index}
               tokens={tokens}
-              onPress={() => handleActionPress(action, index)}
+              onActionPress={handleActionPress}
             />
           ))}
         </View>

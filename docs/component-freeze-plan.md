@@ -8,7 +8,7 @@
 > - 标准：组件内部应尽量减少硬编码样式，所有默认行为（如对齐、间距、布局模式）都应从 `tokens.defaults` 读取。
 >
 > 组件列表来源：`src/components/*` 与 `docs/component-audit-checklist.md`。
-> 优化要求：代码极致精简+性能好。至简即稳定的组件，才是“冻结”的基础。再次检查下代码 代码复用是否极致 是否足够精简 足够稳定可靠 性能好 没有冗余代码
+> 优化要求：代码极致精简+性能好。至简即稳定的组件，才是“冻结”的基础。再次检查下代码 代码复用是否极致 是否足够精简 足够稳定可靠 性能好 去掉注释没有冗余代码 达到生产级别水平 
 ## 术语
 
 - **全 Tokens 驱动**：指组件的 `Props 默认值` 和 `核心布局规则` 统一收敛到 Tokens 文件中。
@@ -59,6 +59,7 @@
 
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
+| action-sheet | 已冻结 ✅ | 极致精简版：默认蒙层可关闭且可关闭开关；onClose/onCancel 语义清晰；0 any；Item 回调稳定避免无谓重渲染 |
 | button | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、真实 Hairline、Android 波纹裁剪、无障碍完善、ButtonGroup 协同优化 |
 | checkbox | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、组选逻辑、Ref转发+无障碍/交互一致性 |
 | image | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、映射表优化、Web/Native SVG 统一、无障碍精修 |
@@ -66,13 +67,13 @@
 | loading | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、Native Driver 动画、无 ActivityIndicator 依赖 |
 | nav-bar | 已冻结 ✅ | 极致精简版：全 Tokens 驱动，自动处理 SafeArea，移除冗余交互分支，代码结构最小化 |
 | notify | 已冻结 ✅ | 极致精简版：全 Tokens 驱动，默认不拦截交互，OverlayStack+Portal 承载，静态 API 单例/多例，代码结构最小化 |
-| progress | 已冻结 ✅ | 动画/渐变/driver 差异与性能 |
-| radio | 已冻结 ✅ | 组选/交互一致性，细节需测试守护 |
-| rate | 已冻结 ✅ | 触控交互与精度/只读等边界 |
-| selector | 已冻结 ✅ | 选择态/布局/无障碍与多端一致性 |
-| sidebar | 已冻结 ✅ | 滚动/受控联动，交互边界较多 |
-| space | 已冻结 ✅ | Web gap / Native padding 模拟差异 |
-| switch | 已冻结 ✅ | 动画与交互细节（禁用/受控） |
+| progress | 已冻结 ✅ | 极致精简版：百分比动画；Pivot 仅在需要时测量；Web 渐变限定；动画 stop 清理 |
+| radio | 已冻结 ✅ | 极致精简版：Group 原始值回传（注册表映射）；labelDisabled 语义清晰；Web gap/Native margin 分支最小化；iconRender 异常兜底 |
+| rate | 已冻结 ✅ | 极致精简版：受控/非受控统一；半星点击与滑动只在 touchable 时启用；自定义图标无 StyleSheet.flatten；禁用/只读语义清晰 |
+| selector | 已冻结 ✅ | 极致精简版：Set/Map 驱动选择态；items 回传 O(k)；受控/非受控统一；无障碍与布局分支最小化 |
+| sidebar | 已冻结 ✅ | 极致精简版：children 扫描单次 for 循环；受控/非受控统一；无 any；onChange items 无多余分配 |
+| space | 已冻结 ✅ | 极致精简版：Web 使用 gap；Native 用 margin/padding 模拟；children 过滤+for 循环；0 any |
+| switch | 已冻结 ✅ | 极致精简版：泛型 value；0 any；动画 stop 清理；禁用/加载/受控语义清晰 |
 | typography | 已冻结 ✅ | Text 渲染安全与多端样式细节 |
 
 ### C 组（持续优化）
@@ -83,7 +84,6 @@
 
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
-| action-sheet | 持续优化 ✅ | 弹层类，依赖 Popup/Overlay/Portal，交互链路长 |
 | area | 持续优化 ✅ | 组合 Picker/Popup，数据联动与边界较多 |
 | calendar | 持续优化 ✅ | 日期逻辑+渲染复杂度高，边界多 |
 | cascader | 持续优化 ✅ | 多级联动与性能/状态复杂 |

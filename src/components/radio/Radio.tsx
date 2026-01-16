@@ -14,11 +14,13 @@ import { useRadioTokens } from './tokens'
 import { parseNumber } from '../../utils/number'
 import { isText } from '../../utils/validate'
 
-export const Radio: React.FC<RadioProps> = props => {
+export const Radio = React.memo((props: RadioProps) => {
   const {
     children,
     name,
     value,
+    checked,
+    defaultChecked,
     iconSize,
     checkedColor,
     iconRender,
@@ -30,6 +32,7 @@ export const Radio: React.FC<RadioProps> = props => {
     labelStyle,
     tokensOverride,
     onClick,
+    onChange,
     ...rest
   } = props
 
@@ -40,8 +43,12 @@ export const Radio: React.FC<RadioProps> = props => {
   const serializedValue = optionValue == null ? undefined : String(optionValue)
   const isGroup = !!group && serializedValue !== undefined
 
-  const resolvedIconSize = parseNumber(iconSize ?? group?.iconSize, tokens.defaults.iconSize)
-  const resolvedCheckedColor = checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
+  const resolvedIconSize = parseNumber(
+    iconSize ?? group?.iconSize,
+    tokens.defaults.iconSize
+  )
+  const resolvedCheckedColor =
+    checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
   const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
   const resolvedLabelDisabled =
     labelDisabled ?? group?.labelDisabled ?? tokens.defaults.labelDisabled
@@ -61,9 +68,9 @@ export const Radio: React.FC<RadioProps> = props => {
 
   const { isSelected: standaloneSelected, setSelected: setStandaloneSelected } =
     useToggleState({
-      isSelected: props.checked,
-      defaultSelected: props.defaultChecked,
-      onChange: next => props.onChange?.(next),
+      isSelected: checked,
+      defaultSelected: defaultChecked,
+      onChange: next => onChange?.(next),
     })
 
   const pseudoState = {
@@ -100,35 +107,50 @@ export const Radio: React.FC<RadioProps> = props => {
   const isChecked =
     isGroup && group && serializedValue !== undefined
       ? group.state.selectedValue === serializedValue
-      : props.checked !== undefined
-        ? props.checked
+      : checked !== undefined
+        ? checked
         : standaloneSelected
 
-  const mergedInputProps = inputProps
-    ? {
-      ...inputProps,
-      onPress: (e: GestureResponderEvent) => {
-        onClick?.(e)
+  const inputOnPress = inputProps?.onPress
 
-        if (isGroup && group && serializedValue !== undefined) {
-          if (!isChecked) group.state.setSelectedValue(serializedValue)
-          return
-        }
+  const handlePress = React.useCallback(
+    (e: GestureResponderEvent) => {
+      onClick?.(e)
+      if (resolvedDisabled) return
 
-        if (props.checked !== undefined) {
-          props.onChange?.(!props.checked)
-          return
-        }
+      if (isGroup && group && serializedValue !== undefined) {
+        if (!isChecked) group.state.setSelectedValue(serializedValue)
+        return
+      }
 
-        if (props.onChange) {
-          setStandaloneSelected(!standaloneSelected)
-          return
-        }
+      if (checked !== undefined) {
+        onChange?.(!checked)
+        return
+      }
 
-        inputProps.onPress?.(e)
-      },
-    }
-    : {}
+      if (onChange) {
+        setStandaloneSelected(!standaloneSelected)
+        return
+      }
+
+      inputOnPress?.(e)
+    },
+    [
+      checked,
+      group,
+      inputOnPress,
+      isChecked,
+      isGroup,
+      onChange,
+      onClick,
+      resolvedDisabled,
+      serializedValue,
+      setStandaloneSelected,
+      standaloneSelected,
+    ]
+  )
+
+  const mergedInputProps = inputProps ? { ...inputProps, onPress: handlePress } : {}
 
   const borderColor = resolvedDisabled
     ? tokens.colors.disabledBorder
@@ -149,7 +171,6 @@ export const Radio: React.FC<RadioProps> = props => {
   const labelNode =
     children === null || children === undefined || children === false ? null : (
       <View
-        key="radio-label"
         style={[tokens.layout.labelWrapper, spacingStyle]}
         pointerEvents="none"
         accessible={false}
@@ -205,26 +226,21 @@ export const Radio: React.FC<RadioProps> = props => {
       ) : null}
     </View>
   )
-  let iconVisual: React.ReactNode = defaultIcon
-  if (iconRender) {
-    try {
-      iconVisual = iconRender({ checked: Boolean(isChecked), disabled: Boolean(resolvedDisabled) }) ?? null
-    } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.warn('[Radio] iconRender error:', error)
-      }
-      iconVisual = defaultIcon
-    }
-  }
+  
+  const iconVisual = iconRender
+    ? iconRender({
+        checked: Boolean(isChecked),
+        disabled: Boolean(resolvedDisabled),
+      }) ?? null
+    : defaultIcon
 
   const iconNode = interactive ? (
-    <View key="radio-icon" style={tokens.layout.iconWrapper}>
+    <View style={tokens.layout.iconWrapper}>
       {iconVisual}
     </View>
   ) : (
     <Pressable
       {...mergedInputProps}
-      key="radio-icon"
       ref={inputRef}
       testID={serializedValue !== undefined ? `radio-icon-${serializedValue}` : undefined}
       disabled={resolvedDisabled}
@@ -236,9 +252,9 @@ export const Radio: React.FC<RadioProps> = props => {
     </Pressable>
   )
 
-  const nodes = resolvedLabelPosition === 'left'
-    ? [labelNode, iconNode]
-    : [iconNode, labelNode]
+  const left = resolvedLabelPosition === 'left'
+  const first = left ? labelNode : iconNode
+  const second = left ? iconNode : labelNode
 
   if (interactive) {
     return (
@@ -251,10 +267,18 @@ export const Radio: React.FC<RadioProps> = props => {
         accessibilityState={{ selected: isChecked, disabled: resolvedDisabled }}
         style={[tokens.layout.container, style]}
       >
-        {nodes.filter(Boolean)}
+        {first}
+        {second}
       </Pressable>
     )
   }
 
-  return <View style={[tokens.layout.container, style]}>{nodes.filter(Boolean)}</View>
-}
+  return (
+    <View style={[tokens.layout.container, style]}>
+      {first}
+      {second}
+    </View>
+  )
+})
+
+Radio.displayName = 'Radio'

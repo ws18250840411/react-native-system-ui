@@ -8,15 +8,15 @@ export interface UseControllableValueOptions<T> {
   trigger?: string
 }
 
-export type UseControllableValueProps = Record<string, any>
+export type UseControllableValueProps = object
 
-const hasProp = (obj: UseControllableValueProps, prop: string) =>
+const hasProp = (obj: object, prop: string) =>
   Object.prototype.hasOwnProperty.call(obj, prop)
 
-function useControllableValue<T = any>(
-  props: UseControllableValueProps = {},
+function useControllableValue<T = unknown, P extends object = UseControllableValueProps>(
+  props: P = {} as P,
   options: UseControllableValueOptions<T> = {},
-): [T, (value: T, ...args: any[]) => void] {
+): [T, (value: T, ...args: unknown[]) => void] {
   const {
     defaultValue,
     defaultValuePropName = 'defaultValue',
@@ -24,34 +24,35 @@ function useControllableValue<T = any>(
     trigger = 'onChange',
   } = options
 
+  const propsRecord = props as Record<string, unknown>
   const isControlled = hasProp(props, valuePropName)
-  const value = props[valuePropName] as T
+  const value = propsRecord[valuePropName] as T
 
   const [internalValue, setInternalValue] = React.useState<T>(() => {
     if (isControlled) {
       return value
     }
     if (hasProp(props, defaultValuePropName)) {
-      return props[defaultValuePropName]
+      return propsRecord[defaultValuePropName] as T
     }
     return defaultValue as T
   })
 
   const mergedValue = isControlled ? value : internalValue
 
-  const handlerRef = React.useRef(props[trigger])
+  const handlerRef = React.useRef(propsRecord[trigger])
   React.useEffect(() => {
-    handlerRef.current = props[trigger]
+    handlerRef.current = propsRecord[trigger]
   }, [props, trigger])
 
   const triggerChange = React.useCallback(
-    (nextValue: T, ...args: any[]) => {
+    (nextValue: T, ...args: unknown[]) => {
       if (!isControlled) {
         setInternalValue(nextValue)
       }
       const handler = handlerRef.current
       if (isFunction(handler)) {
-        handler(nextValue, ...args)
+        ; (handler as (value: T, ...rest: unknown[]) => void)(nextValue, ...args)
       }
     },
     [isControlled],

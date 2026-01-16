@@ -6,14 +6,30 @@ const workspaceRoot = path.resolve(projectRoot, '..')
 
 const config = getDefaultConfig(projectRoot)
 
-config.watchFolders = [workspaceRoot]
+config.watchFolders = [
+  path.resolve(workspaceRoot, 'src'),
+  path.resolve(workspaceRoot, 'docs'),
+]
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   // 兼容 npm 安装下 react-native 将部分依赖安装在自身 node_modules 内的情况
   path.resolve(projectRoot, 'node_modules/react-native/node_modules'),
-  // 兼容 monorepo/pnpm：当 demo 工程通过 extraNodeModules 引用工作区源码时，依赖可能位于工作区根目录 node_modules
-  path.resolve(workspaceRoot, 'node_modules'),
 ]
+
+const escapeRegExp = (value) => value.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
+const toPathRegexFragment = (absolutePath) =>
+  escapeRegExp(absolutePath).replaceAll('/', '[/\\\\]')
+
+config.resolver.blockList = new RegExp(
+  `^(${[
+    path.resolve(workspaceRoot, 'node_modules/react'),
+    path.resolve(workspaceRoot, 'node_modules/react-dom'),
+    path.resolve(workspaceRoot, 'node_modules/react-native'),
+    path.resolve(workspaceRoot, 'node_modules/react-native-svg'),
+  ]
+    .map(toPathRegexFragment)
+    .join('|')})(?:[/\\\\].*)?$`
+)
 
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules || {}),

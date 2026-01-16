@@ -6,13 +6,15 @@ import { Button, ConfigProvider, Rate, Slider, Space } from 'react-native-system
 const theme = {
   components: {
     button: {
-      toneMap: {
-        primary: {
-          background: '#8a46ff',
-          border: '#8a46ff',
-          text: '#ffffff',
+      colors: {
+        tones: {
+          primary: {
+            background: '#8a46ff',
+            border: '#8a46ff',
+            text: '#ffffff',
+          },
         },
-      },
+      }
     },
     slider: {
       track: {

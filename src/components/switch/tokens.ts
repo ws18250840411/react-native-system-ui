@@ -5,14 +5,17 @@ import type { SwitchTokens } from './types'
 
 const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
   const { palette, opacity } = foundations
-  const borderWidth = Math.max(1, StyleSheet.hairlineWidth)
+  const borderWidth = StyleSheet.hairlineWidth
   return {
     defaults: {
-      size: 30,
+      size: 28,
       disabled: false,
       loading: false,
       activeValue: true,
       inactiveValue: false,
+    },
+    spacing: {
+      inset: 1,
     },
     layout: {
       container: {
@@ -26,14 +29,13 @@ const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
         position: 'absolute',
       },
       handleInner: {
-        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
       },
     },
     colors: {
       activeTrack: palette.primary[500],
-      inactiveTrack: '#ffffff',
+      inactiveTrack: palette.default[200],
       handle: '#ffffff',
       border: palette.default[300],
     },
@@ -64,7 +66,7 @@ const createSwitchTokens = (foundations: Foundations): SwitchTokens => {
       },
     },
     loader: {
-      size: 13,
+      size: 12,
     },
   }
 }

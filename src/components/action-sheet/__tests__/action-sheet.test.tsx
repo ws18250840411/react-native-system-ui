@@ -116,13 +116,14 @@ describe('ActionSheet', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('triggers onCancel when cancel button pressed', () => {
+  it('triggers onCancel when cancel button pressed', async () => {
     const onCancel = jest.fn()
     const tree = renderInHost(<ActionSheet visible cancelText="取消" onCancel={onCancel} />)
 
     const cancel = tree.root.findByProps({ testID: 'rv-action-sheet-cancel' })
-    act(() => {
+    await act(async () => {
       cancel.props.onPress?.({})
+      await Promise.resolve()
     })
 
     expect(onCancel).toHaveBeenCalled()
@@ -190,12 +191,38 @@ describe('ActionSheet', () => {
     )
 
     const cancel = tree.root.findByProps({ testID: 'rv-action-sheet-cancel' })
-    
+
     await act(async () => {
       cancel.props.onPress?.({})
     })
 
     expect(beforeClose).toHaveBeenCalledWith('cancel')
     expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('closes via onCancel when onClose is not provided', async () => {
+    const onCancel = jest.fn()
+    const tree = renderInHost(
+      <ActionSheet
+        visible
+        actions={[{ name: 'Edit' }]}
+        closeOnClickAction
+        onCancel={onCancel}
+      />
+    )
+
+    const overlay = tree.root.findByProps({ testID: 'popup-overlay' })
+    await act(async () => {
+      overlay.props.onPress?.({})
+      await Promise.resolve()
+    })
+    expect(onCancel).toHaveBeenCalledTimes(1)
+
+    const action = tree.root.findByProps({ testID: 'rv-action-sheet-item-0' })
+    await act(async () => {
+      action.props.onPress?.({})
+      await Promise.resolve()
+    })
+    expect(onCancel).toHaveBeenCalledTimes(2)
   })
 })

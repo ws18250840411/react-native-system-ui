@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, StyleSheet } from 'react-native'
+import { Pressable, type GestureResponderEvent } from 'react-native'
 
 import Switch from '..'
 
@@ -11,14 +11,14 @@ describe('Switch', () => {
     let pressable = tree.root.findByType(Pressable)
 
     act(() => {
-      pressable.props.onPress?.({} as any)
+      pressable.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(false)
 
     pressable = tree.root.findByType(Pressable)
     act(() => {
-      pressable.props.onPress?.({} as any)
+      pressable.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(true)
@@ -30,7 +30,7 @@ describe('Switch', () => {
     const pressable = tree.root.findByType(Pressable)
 
     act(() => {
-      pressable.props.onPress?.({} as any)
+      pressable.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(onChange).toHaveBeenLastCalledWith(false)
@@ -45,7 +45,7 @@ describe('Switch', () => {
     const pressable = tree.root.findByType(Pressable)
 
     act(() => {
-      pressable.props.onPress?.({} as any)
+      pressable.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(handleClick).toHaveBeenCalledTimes(1)
@@ -61,7 +61,7 @@ describe('Switch', () => {
     const pressable = tree.root.findByType(Pressable)
 
     act(() => {
-      pressable.props.onPress?.({} as any)
+      pressable.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(pressable.props.disabled).toBe(true)
@@ -77,14 +77,14 @@ describe('Switch', () => {
     let pressable = tree.root.findByType(Pressable)
 
     act(() => {
-      pressable.props.onPress?.({} as any)
+      pressable.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(1)
 
     pressable = tree.root.findByType(Pressable)
     act(() => {
-      pressable.props.onPress?.({} as any)
+      pressable.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(handleChange).toHaveBeenLastCalledWith(0)
@@ -92,8 +92,15 @@ describe('Switch', () => {
 
   it('adjusts size based on prop', () => {
     const tree = renderer.create(<Switch size={30} />)
-    const json = tree.toJSON() as any
-    const trackStyle = json.children[0].props.style
+    const json = tree.toJSON()
+    if (!json || Array.isArray(json) || typeof json === 'string') {
+      throw new Error('Unexpected Switch render output')
+    }
+    const firstChild = json.children?.[0]
+    if (!firstChild || Array.isArray(firstChild) || typeof firstChild === 'string') {
+      throw new Error('Unexpected Switch track output')
+    }
+    const trackStyle = (firstChild as renderer.ReactTestRendererJSON).props.style
 
     // In test environment (likely web preset), styles are strings with 'px'
     expect(trackStyle.width).toBe('60px')

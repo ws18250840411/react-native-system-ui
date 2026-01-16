@@ -1,45 +1,20 @@
-import React from 'react'
-import { Animated, LayoutChangeEvent, Platform, Text, View, type ViewStyle } from 'react-native'
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Animated,
+  type LayoutChangeEvent,
+  Platform,
+  Text,
+  View,
+} from 'react-native'
 
-import { isString, isText } from '../../utils/validate'
 import { clamp, parseNumberLike, parsePercentage } from '../../utils/number'
+import { isString, isText } from '../../utils/validate'
 import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'
 
-const isGradientColor = (color?: string) => {
-  if (!isString(color)) return false
-  const lower = color.toLowerCase()
-  return ['linear-gradient', 'radial-gradient', 'conic-gradient'].some(key => lower.includes(key))
-}
+const GRADIENT_REGEX = /linear-gradient|radial-gradient|conic-gradient/i
 
-const useAnimatedWidth = (
-  percentage: number,
-  trackWidth: number,
-  animated: boolean,
-  duration: number,
-) => {
-  const value = React.useRef(new Animated.Value(0)).current
-
-  React.useEffect(() => {
-    if (!trackWidth) return
-    const target = (percentage / 100) * trackWidth
-    if (!animated || duration <= 0) {
-      value.setValue(target)
-      return
-    }
-    const animation = Animated.timing(value, {
-      toValue: target,
-      duration,
-      useNativeDriver: false,
-    })
-    animation.start()
-    return () => animation.stop()
-  }, [percentage, trackWidth, animated, duration, value])
-
-  return value
-}
-
-export const Progress: React.FC<ProgressProps> = props => {
+export const Progress = memo((props: ProgressProps) => {
   const {
     tokensOverride,
     percentage: percentageProp,
@@ -67,135 +42,150 @@ export const Progress: React.FC<ProgressProps> = props => {
     0,
     100
   )
-  const resolvedStrokeWidth =
+  const height =
     parseNumberLike(strokeWidth, tokens.sizing.height) ?? tokens.sizing.height
   const inactive = inactiveProp ?? tokens.defaults.inactive
-  const isGradient = isGradientColor(color)
-  const useGradient = isGradient && Platform.OS === 'web'
-
-  const resolvedTrackColor = trackColor ?? tokens.colors.track
-  const resolvedIndicatorColor = inactive
-    ? tokens.colors.track
-    : !useGradient && isGradient
-      ? tokens.colors.indicator
-      : color ?? tokens.colors.indicator
-  const resolvedPivotBackground = pivotColor ?? resolvedIndicatorColor
-  const resolvedPivotTextColor = textColor ?? tokens.colors.pivotText
-  const pivotContent = pivotText ?? `${percentage}%`
-  const safeDuration = Math.max(
+  const showPivot = showPivotProp ?? tokens.defaults.showPivot
+  const shouldAnimate =
+    (animated ?? transitionProp ?? tokens.defaults.transition) && !inactive
+  const duration = Math.max(
     0,
     animationDurationProp ?? tokens.defaults.animationDuration
   )
 
-  const showPivot = showPivotProp ?? tokens.defaults.showPivot
-  const shouldShowPivot =
-    showPivot && pivotContent !== null && pivotContent !== false
+  const isGradient = Platform.OS === 'web' && isString(color) && GRADIENT_REGEX.test(color)
 
-  const transition = transitionProp ?? tokens.defaults.transition
-  const shouldAnimateWidth =
-    (animated ?? transition ?? tokens.defaults.transition) && !useGradient
+  const resolvedTrackColor = trackColor ?? tokens.colors.track
+  const resolvedIndicatorColor = inactive
+    ? tokens.colors.track
+    : !isGradient
+      ? (color ?? tokens.colors.indicator)
+      : undefined
 
-  const indicatorBaseStyle: ViewStyle = {
-    ...tokens.layout.indicator,
-    height: resolvedStrokeWidth,
-    backgroundColor: useGradient ? undefined : resolvedIndicatorColor,
-    borderRadius: resolvedStrokeWidth / 2,
-  }
-  const gradientStyle = useGradient ? ({ backgroundImage: color as any } as any) : null
+  const resolvedPivotBg =
+    pivotColor ??
+    (isGradient
+      ? inactive
+        ? tokens.colors.track
+        : tokens.colors.indicator
+      : (resolvedIndicatorColor as string))
+  const resolvedPivotTextColor = textColor ?? tokens.colors.pivotText
 
-  const [trackWidth, setTrackWidth] = React.useState(0)
-  const [pivotWidth, setPivotWidth] = React.useState(0)
+  const pivotContent = pivotText ?? `${percentage}%`
+  const hasPivot = showPivot && pivotContent !== null && pivotContent !== false
 
-  const animatedWidth = useAnimatedWidth(
-    percentage,
-    trackWidth,
-    shouldAnimateWidth,
-    safeDuration,
+  const animatedValue = useRef(new Animated.Value(percentage)).current
+
+  useEffect(() => {
+    if (shouldAnimate && duration > 0) {
+      const animation = Animated.timing(animatedValue, {
+        toValue: percentage,
+        duration,
+        useNativeDriver: false,
+      })
+      animation.start()
+      return () => animation.stop()
+    } else {
+      animatedValue.setValue(percentage)
+    }
+  }, [percentage, shouldAnimate, duration, animatedValue])
+
+  const [layout, setLayout] = useState({ track: 0, pivot: 0 })
+
+  const onTrackLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      const width = e.nativeEvent.layout.width
+      setLayout(prev => (prev.track === width ? prev : { ...prev, track: width }))
+    },
+    []
   )
 
-  const handleTrackLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout
-    setTrackWidth(prev => (prev === width ? prev : width))
-  }
-
-  const pivotBaseStyle = React.useMemo(
-    () => ({
-      bottom: resolvedStrokeWidth + tokens.sizing.pivotPaddingVertical * 2,
-      backgroundColor: resolvedPivotBackground,
-      paddingHorizontal: tokens.sizing.pivotPaddingHorizontal,
-      paddingVertical: tokens.sizing.pivotPaddingVertical,
-      borderRadius: resolvedStrokeWidth,
-    }),
-    [
-      resolvedPivotBackground,
-      resolvedStrokeWidth,
-      tokens.sizing.pivotPaddingHorizontal,
-      tokens.sizing.pivotPaddingVertical,
-    ],
+  const onPivotLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      const width = e.nativeEvent.layout.width
+      setLayout(prev => (prev.pivot === width ? prev : { ...prev, pivot: width }))
+    },
+    []
   )
 
-  const renderPivotContent = () =>
-    isText(pivotContent) ? (
-      <Text
-        style={[
-          tokens.layout.pivotText,
-          {
-            color: resolvedPivotTextColor,
-            fontSize: tokens.typography.pivotFontSize,
-          },
-          pivotStyle,
-        ]}
-      >
-        {pivotContent}
-      </Text>
-    ) : (
-      pivotContent
-    )
+  const trackStyle = [
+    tokens.layout.track,
+    {
+      height,
+      backgroundColor: resolvedTrackColor,
+      borderRadius: height / 2,
+    },
+  ]
 
-  const renderPivot = () => {
-    if (!shouldShowPivot) return null
+  let pivotNode = null
+  if (hasPivot) {
+    const { track: trackW, pivot: pivotW } = layout
+    const pivotContainerStyle = [
+      tokens.layout.pivot,
+      {
+        bottom: height + tokens.sizing.pivotPaddingVertical * 2,
+        backgroundColor: resolvedPivotBg,
+        paddingHorizontal: tokens.sizing.pivotPaddingHorizontal,
+        paddingVertical: tokens.sizing.pivotPaddingVertical,
+        borderRadius: height,
+        opacity: trackW > 0 ? 1 : 0,
+      },
+    ]
 
-    if (!trackWidth) {
-      return (
-        <View
-          style={[tokens.layout.pivot, pivotBaseStyle, { right: 0 }]}
-          pointerEvents="none"
-        >
-          {renderPivotContent()}
-        </View>
-      )
+    let transformStyle = null
+    if (trackW > 0 && pivotW > 0) {
+      const p1 = (pivotW / 2 / trackW) * 100
+      const p2 = ((trackW - pivotW / 2) / trackW) * 100
+
+      if (p1 < p2) {
+        transformStyle = {
+          transform: [
+            {
+              translateX: animatedValue.interpolate({
+                inputRange: [0, p1, p2, 100],
+                outputRange: [0, 0, trackW - pivotW, trackW - pivotW],
+                extrapolate: 'clamp',
+              }),
+            },
+          ],
+        }
+      } else {
+        transformStyle = {
+          transform: [{ translateX: (trackW - pivotW) / 2 }],
+        }
+      }
     }
 
-    const translateX = Animated.diffClamp(
-      Animated.add(animatedWidth, -pivotWidth / 2),
-      0,
-      Math.max(trackWidth - pivotWidth, 0),
-    )
-
-    return (
+    pivotNode = (
       <Animated.View
-        style={[
-          tokens.layout.pivot,
-          pivotBaseStyle,
-          { transform: [{ translateX }] },
-        ]}
+        style={[pivotContainerStyle, transformStyle]}
         pointerEvents="none"
-        onLayout={event => {
-          const nextWidth = event.nativeEvent.layout.width
-          setPivotWidth(prev => (prev === nextWidth ? prev : nextWidth))
-        }}
+        onLayout={onPivotLayout}
       >
-        {renderPivotContent()}
+        {isText(pivotContent) ? (
+          <Text
+            style={[
+              tokens.layout.pivotText,
+              {
+                color: resolvedPivotTextColor,
+                fontSize: tokens.typography.pivotFontSize,
+              },
+              pivotStyle,
+            ]}
+          >
+            {pivotContent}
+          </Text>
+        ) : (
+          pivotContent
+        )}
       </Animated.View>
     )
   }
 
-  const renderIndicator = () => {
-    if (trackWidth > 0 && !useGradient) {
-      return <Animated.View style={[indicatorBaseStyle, gradientStyle, indicatorStyle, { width: animatedWidth }]} />
-    }
-    return <View style={[indicatorBaseStyle, gradientStyle, indicatorStyle, { width: `${percentage}%` }]} />
-  }
+  const indicatorWidth = animatedValue.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
 
   return (
     <View
@@ -205,22 +195,27 @@ export const Progress: React.FC<ProgressProps> = props => {
       {...rest}
     >
       <View
-        style={[
-          tokens.layout.track,
-          {
-            height: resolvedStrokeWidth,
-            backgroundColor: resolvedTrackColor,
-            borderRadius: resolvedStrokeWidth / 2,
-          },
-        ]}
-        onLayout={handleTrackLayout}
+        style={trackStyle}
+        onLayout={hasPivot ? onTrackLayout : undefined}
       >
-        {renderIndicator()}
+        <Animated.View
+          style={[
+            tokens.layout.indicator,
+            {
+              height,
+              backgroundColor: resolvedIndicatorColor,
+              borderRadius: height / 2,
+              ...(isGradient ? ({ backgroundImage: color } as any) : null),
+            },
+            indicatorStyle,
+            { width: indicatorWidth },
+          ]}
+        />
       </View>
-      {renderPivot()}
+      {pivotNode}
     </View>
   )
-}
+})
 
 Progress.displayName = 'Progress'
 

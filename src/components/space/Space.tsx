@@ -1,10 +1,11 @@
 import React from 'react'
-import { Platform, Pressable, Text, View } from 'react-native'
+import { Platform, Pressable, Text, View, type ViewStyle } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
 import { resolveGapInput, useSpaceTokens } from './tokens'
-import { isBoolean, isFiniteNumber, isFunction, isText } from '../../utils/validate'
+import { parseNumberLike } from '../../utils/number'
+import { isFiniteNumber, isFunction, isRenderable, isText } from '../../utils/validate'
 
 const alignMap = {
   start: 'flex-start',
@@ -23,18 +24,18 @@ const justifyMap = {
   evenly: 'space-evenly',
 } as const
 
-const parseValue = (
+type GapStyle = { rowGap?: number; columnGap?: number }
+
+const parseSpaceSize = (
   value: number | string | undefined,
   presets: Record<SpaceSizePreset, number>
 ) => {
   if (value === undefined) return presets.normal
   if (isFiniteNumber(value)) return value
-
-  const presetValue = presets[value as SpaceSizePreset]
-  if (presetValue !== undefined) return presetValue
-
-  const parsed = parseFloat(value as string)
-  return Number.isNaN(parsed) ? presets.normal : parsed
+  if (typeof value === 'string' && value in presets) {
+    return presets[value as SpaceSizePreset]
+  }
+  return parseNumberLike(value, presets.normal) ?? presets.normal
 }
 
 const parseGap = (
@@ -42,15 +43,16 @@ const parseGap = (
   presets: Record<SpaceSizePreset, number>
 ): [number, number] => {
   if (Array.isArray(value)) {
-    const verticalGap = parseValue(value[0], presets)
-    const horizontalGap = parseValue(value[1], presets)
-    return [horizontalGap, verticalGap]
+    return [
+      parseSpaceSize(value[1], presets),
+      parseSpaceSize(value[0], presets),
+    ]
   }
-  const parsed = parseValue(value, presets)
+  const parsed = parseSpaceSize(value, presets)
   return [parsed, parsed]
 }
 
-export const Space: React.FC<SpaceProps> = props => {
+export const Space = React.memo((props: SpaceProps) => {
   const {
     children,
     gap,
@@ -89,7 +91,7 @@ export const Space: React.FC<SpaceProps> = props => {
   const supportsGap = Platform.OS === 'web'
   const shouldFillMainAxis = isHorizontal && ((fill ?? false) || shouldStretchJustify)
 
-  const containerBaseStyle: any = {
+  const containerBaseStyle: ViewStyle & GapStyle = {
     flexDirection: isHorizontal ? 'row' : 'column',
     flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
     alignItems: alignMap[resolvedAlign],
@@ -97,7 +99,7 @@ export const Space: React.FC<SpaceProps> = props => {
     width: shouldBlock ? '100%' : undefined,
   }
 
-  const spacingStyle: any = supportsGap
+  const spacingStyle: ViewStyle | null = supportsGap
     ? null
     : isHorizontal
       ? { paddingHorizontal: horizontalGap / 2, paddingVertical: verticalGap / 2 }
@@ -111,32 +113,35 @@ export const Space: React.FC<SpaceProps> = props => {
     containerBaseStyle.marginVertical = verticalGap ? -verticalGap / 2 : undefined
   }
 
-  const childArray = React.Children.toArray(children).filter(child => child != null && !isBoolean(child))
+  const childArray = React.Children.toArray(children).filter(isRenderable)
   const content: React.ReactNode[] = []
-  childArray.forEach((child, index) => {
-    const key = React.isValidElement(child) && child.key !== null ? child.key : index
-    const fillStyle = shouldFillMainAxis
+  for (let i = 0; i < childArray.length; i++) {
+    const child = childArray[i]
+    const key: React.Key =
+      React.isValidElement(child) && child.key != null ? child.key : i
+
+    const fillStyle: ViewStyle | undefined = shouldFillMainAxis
       ? { flexGrow: 1, flexBasis: 0, minWidth: 0 }
       : !isHorizontal && (fill || shouldBlock)
         ? { width: '100%' }
-        : null
+        : undefined
+
     const node = isText(child) ? <Text>{child}</Text> : child
     content.push(
-      <View key={key as any} style={[spacingStyle, fillStyle]}>
+      <View key={key} style={[spacingStyle, fillStyle]}>
         {node}
       </View>,
     )
 
-    if (divider && index < childArray.length - 1) {
-      const dividerNode =
-        isText(divider) ? <Text>{divider}</Text> : divider
+    if (divider && i < childArray.length - 1) {
+      const dividerNode = isText(divider) ? <Text>{divider}</Text> : divider
       content.push(
         <View key={`divider-${String(key)}`} style={spacingStyle}>
           {dividerNode}
         </View>,
       )
     }
-  })
+  }
 
   const interactive = isFunction(onClick)
   const { interactionProps, states } = useAriaPress({
@@ -148,7 +153,12 @@ export const Space: React.FC<SpaceProps> = props => {
   if (interactive) {
     return (
       <Pressable
-        style={[containerBaseStyle, style, states.pressed ? { opacity: 0.85 } : null]}
+        style={[
+          tokens.layout.container,
+          containerBaseStyle,
+          style,
+          states.pressed ? { opacity: 0.85 } : null,
+        ]}
         {...interactionProps}
         {...rest}
       >
@@ -158,8 +168,13 @@ export const Space: React.FC<SpaceProps> = props => {
   }
 
   return (
-    <View style={[containerBaseStyle, style]} {...rest}>
+    <View
+      style={[tokens.layout.container, containerBaseStyle, style]}
+      {...rest}
+    >
       {content}
     </View>
   )
-}
+})
+
+Space.displayName = 'Space'

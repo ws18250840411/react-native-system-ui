@@ -6,7 +6,6 @@ import { useRadioGroupState } from '@react-stately/radio'
 import type { RadioGroupProps, RadioValue } from './types'
 import { RadioGroupContext } from './RadioContext'
 import { useRadioTokens } from './tokens'
-import { isBoolean } from '../../utils/validate'
 
 export const RadioGroup: React.FC<RadioGroupProps> = props => {
   const {
@@ -68,7 +67,9 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   }
 
   const supportsGap = Platform.OS === 'web'
-  const childrenArray = React.Children.toArray(children).filter(child => child != null && !isBoolean(child))
+  const childrenArray = React.Children.toArray(children).filter(
+    child => child != null && typeof child !== 'boolean'
+  )
   const itemStyleForIndex = (index: number): StyleProp<ViewStyle> => {
     if (supportsGap) return tokens.layout.groupItem
 

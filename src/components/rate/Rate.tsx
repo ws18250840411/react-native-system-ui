@@ -5,17 +5,18 @@ import {
   Text,
   View,
   type GestureResponderEvent,
+  type StyleProp,
 } from 'react-native'
 
 import type { RateProps } from './types'
 import { useRateTokens } from './tokens'
 import { useControllableValue } from '../../hooks'
 import { clamp, parseNumber } from '../../utils/number'
-import { isFiniteNumber, isFunction } from '../../utils/validate'
+import { isFiniteNumber } from '../../utils/validate'
 
 const DEFAULT_CHARACTER = '★'
 
-export const Rate: React.FC<RateProps> = props => {
+export const Rate = React.memo((props: RateProps) => {
   const {
     tokensOverride,
     count: countProp,
@@ -67,9 +68,12 @@ export const Rate: React.FC<RateProps> = props => {
   const interactive = !disabled && !readOnly
   const minScore = allowHalf ? 0.5 : 1
 
-  const effectiveColor = color ?? tokens.colors.active
-  const effectiveVoidColor = voidColor ?? tokens.colors.inactive
-  const effectiveDisabledColor = disabledColor ?? tokens.colors.disabled
+  const activeTint = disabled
+    ? (disabledColor ?? tokens.colors.disabled)
+    : (color ?? tokens.colors.active)
+  const voidTint = disabled
+    ? (disabledColor ?? tokens.colors.disabled)
+    : (voidColor ?? tokens.colors.inactive)
 
   const requestValueChange = (nextScore: number) => {
     if (nextScore === normalizedValue) return false
@@ -77,26 +81,12 @@ export const Rate: React.FC<RateProps> = props => {
     return true
   }
 
-  const resolveEventPosition = (event: GestureResponderEvent): { x?: number; width?: number } => {
-    const nativeEvent = event.nativeEvent as any
-    const locationX = nativeEvent?.locationX
-    if (isFiniteNumber(locationX)) return { x: locationX }
-
-    const clientX = nativeEvent?.clientX
-    const currentTarget = (event as any)?.currentTarget
-    if (
-      isFiniteNumber(clientX) &&
-      currentTarget &&
-      isFunction(currentTarget.getBoundingClientRect)
-    ) {
-      const rect = currentTarget.getBoundingClientRect()
-      if (rect) return { x: clientX - rect.left, width: rect.width }
+  type AnyStyle = Record<string, unknown>
+  type EventNative = { locationX?: unknown; clientX?: unknown; offsetX?: unknown }
+  type EventTarget = {
+    currentTarget?: {
+      getBoundingClientRect?: () => { left: number; width: number } | null
     }
-
-    const offsetX = nativeEvent?.offsetX
-    if (isFiniteNumber(offsetX)) return { x: offsetX }
-
-    return {}
   }
 
   const evaluatePress = (index: number, event?: GestureResponderEvent) => {
@@ -105,9 +95,29 @@ export const Rate: React.FC<RateProps> = props => {
     let nextScore = baseScore
 
     if (allowHalf && event) {
-      const { x, width } = resolveEventPosition(event)
+      const nativeEvent = event.nativeEvent as unknown as EventNative
+      let x: number | undefined
+      let width: number | undefined
+
+      const locationX = nativeEvent.locationX
+      if (isFiniteNumber(locationX)) {
+        x = locationX
+      } else {
+        const clientX = nativeEvent.clientX
+        if (isFiniteNumber(clientX)) {
+          const rect = (event as unknown as EventTarget).currentTarget?.getBoundingClientRect?.()
+          if (rect) {
+            x = clientX - rect.left
+            width = rect.width
+          }
+        } else {
+          const offsetX = nativeEvent.offsetX
+          if (isFiniteNumber(offsetX)) x = offsetX
+        }
+      }
+
       const threshold = (width ?? resolvedSize) / 2
-      if (isFiniteNumber(x) && x <= threshold) {
+      if (x !== undefined && x <= threshold) {
         nextScore = baseScore - 0.5
       }
     }
@@ -181,7 +191,7 @@ export const Rate: React.FC<RateProps> = props => {
   const handleResponderMove = (event: GestureResponderEvent) => {
     if (!interactive || !touchable) return
     if (gestureDirectionRef.current !== 'horizontal') return
-      ; (event as any)?.preventDefault?.()
+    ;(event as unknown as { preventDefault?: () => void }).preventDefault?.()
     const nextScore = valueFromLocationX(event.nativeEvent.locationX)
     if (lastMoveValueRef.current === nextScore) return
     lastMoveValueRef.current = nextScore
@@ -196,19 +206,20 @@ export const Rate: React.FC<RateProps> = props => {
 
   const renderIconNode = (renderValue: React.ReactNode, tintColor: string) => {
     if (React.isValidElement(renderValue)) {
-      const element = renderValue as React.ReactElement<any>
+      const element = renderValue as React.ReactElement<{ style?: StyleProp<AnyStyle> }>
+      const baseStyle: AnyStyle = {
+        color: tintColor,
+        fontSize: resolvedSize,
+        width: resolvedSize,
+        height: resolvedSize,
+        flexShrink: 0,
+      }
       return React.cloneElement(element, {
-        style: StyleSheet.flatten([
-          (element.props as any)?.style,
-          iconStyle,
-          {
-            color: tintColor,
-            fontSize: resolvedSize,
-            width: resolvedSize,
-            height: resolvedSize,
-            flexShrink: 0,
-          } as any,
-        ]) as any,
+        style: StyleSheet.flatten<AnyStyle>([
+          element.props.style,
+          iconStyle as unknown as StyleProp<AnyStyle>,
+          baseStyle,
+        ]),
       })
     }
     return (
@@ -237,8 +248,6 @@ export const Rate: React.FC<RateProps> = props => {
   const renderItem = (index: number) => {
     const score = index + 1
     const fill = clamp(displayValue - index, 0, 1)
-    const activeColor = disabled ? effectiveDisabledColor : effectiveColor
-    const voidTint = disabled ? effectiveDisabledColor : effectiveVoidColor
     const marginRight = index === resolvedCount - 1 ? 0 : resolvedGutter
 
     const iconContent = (
@@ -255,7 +264,7 @@ export const Rate: React.FC<RateProps> = props => {
               },
             ]}
           >
-            {renderIconNode(resolvedActiveIcon, activeColor)}
+            {renderIconNode(resolvedActiveIcon, activeTint)}
           </View>
         ) : null}
       </View>
@@ -296,6 +305,9 @@ export const Rate: React.FC<RateProps> = props => {
     )
   }
 
+  const items: React.ReactNode[] = []
+  for (let i = 0; i < resolvedCount; i++) items.push(renderItem(i))
+
   return (
     <View
       {...rest}
@@ -307,10 +319,10 @@ export const Rate: React.FC<RateProps> = props => {
       onResponderRelease={handleResponderEnd}
       onResponderTerminate={handleResponderEnd}
     >
-      {Array.from({ length: resolvedCount }).map((_, index) => renderItem(index))}
+      {items}
     </View>
   )
-}
+})
 
 Rate.displayName = 'Rate'
 

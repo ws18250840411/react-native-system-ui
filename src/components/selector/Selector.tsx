@@ -10,7 +10,11 @@ const CHECK_MARK = '✓'
 const CHECK_MARK_CORNER_HEIGHT = 8
 const CHECK_MARK_CORNER_WIDTH = 10
 
-export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
+type SelectorComponent = (<V extends SelectorValue>(
+  props: SelectorProps<V>
+) => React.ReactElement) & { displayName?: string }
+
+const SelectorImpl = <V extends SelectorValue>(props: SelectorProps<V>) => {
   const {
     tokensOverride,
     options,
@@ -37,31 +41,37 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
     defaultValue: [],
   })
 
+  const optionByValue = React.useMemo(() => {
+    const map = new Map<SelectorValue, (typeof options)[number]>()
+    for (const option of options) map.set(option.value, option)
+    return map
+  }, [options])
+
   const resolvedColumns = Math.max(1, Math.floor(columns))
   const basis = `${100 / resolvedColumns}%` as `${number}%`
   const itemMargin = tokens.spacing.gap / 2
   const selectedSet = React.useMemo(() => new Set(value), [value])
 
-  const triggerValueChange = React.useCallback(
-    (next: V[]) => triggerChange(next, { items: options.filter(o => next.includes(o.value)) }),
-    [options, triggerChange]
-  )
-
   const toggleOption = React.useCallback(
-    (option: typeof options[number]) => {
+    (option: (typeof options)[number]) => {
       if (disabled || option.disabled) return
+
       const active = selectedSet.has(option.value)
+      let next: V[]
       if (multiple) {
-        const next = active
+        next = active
           ? value.filter(item => item !== option.value)
           : [...value, option.value]
-        triggerValueChange(next)
       } else {
-        const next = active ? [] : [option.value]
-        triggerValueChange(next)
+        next = active ? [] : [option.value]
       }
+
+      const items = next
+        .map(v => optionByValue.get(v))
+        .filter(Boolean) as (typeof options)[number][]
+      triggerChange(next, { items })
     },
-    [disabled, multiple, selectedSet, triggerValueChange, value],
+    [disabled, multiple, optionByValue, selectedSet, triggerChange, value],
   )
 
   return (
@@ -77,13 +87,9 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
       {options.map(option => {
         const active = selectedSet.has(option.value)
         const isDisabled = disabled || option.disabled
-        const labelColor = active ? tokens.colors.textActive : tokens.colors.text
-        const descriptionColor = isDisabled
-          ? tokens.colors.disabledText
-          : tokens.colors.description
         const labelContent = option.label
         const descriptionContent = option.description
-        const hasDescription = descriptionContent !== undefined && descriptionContent !== null
+        const hasDescription = descriptionContent != null
         const accessibilityLabel =
           isText(labelContent)
             ? String(labelContent)
@@ -129,7 +135,7 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                   style={[
                     tokens.layout.label,
                     {
-                      color: labelColor,
+                      color: active ? tokens.colors.textActive : tokens.colors.text,
                       fontSize: tokens.typography.fontSize,
                       lineHeight: tokens.typography.fontSize * 1.4,
                       fontFamily: tokens.typography.fontFamily,
@@ -151,7 +157,9 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
                       tokens.layout.description,
                       {
                         marginTop: tokens.spacing.descriptionMarginTop,
-                        color: descriptionColor,
+                        color: isDisabled
+                          ? tokens.colors.disabledText
+                          : tokens.colors.description,
                         fontSize: tokens.typography.descriptionSize,
                         lineHeight: tokens.typography.descriptionSize * 1.4,
                       },
@@ -192,6 +200,8 @@ export const Selector = <V extends SelectorValue>(props: SelectorProps<V>) => {
     </View>
   )
 }
+
+export const Selector = React.memo(SelectorImpl) as unknown as SelectorComponent
 
 Selector.displayName = 'Selector'
 

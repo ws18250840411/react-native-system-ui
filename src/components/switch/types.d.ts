@@ -8,8 +8,11 @@ export interface SwitchTokens {
     size: number
     disabled: boolean
     loading: boolean
-    activeValue: any
-    inactiveValue: any
+    activeValue: unknown
+    inactiveValue: unknown
+  }
+  spacing: {
+    inset: number
   }
   layout: {
     container: ViewStyle
@@ -54,18 +57,18 @@ export interface SwitchTokens {
   }
 }
 
-export interface SwitchProps extends Omit<ViewProps, 'onChange'> {
-  checked?: any
-  defaultChecked?: any
+export interface SwitchProps<V = boolean> extends Omit<ViewProps, 'onChange'> {
+  checked?: V
+  defaultChecked?: V
   disabled?: boolean
   loading?: boolean
   size?: number | string
   activeColor?: string
   inactiveColor?: string
-  activeValue?: any
-  inactiveValue?: any
+  activeValue?: V
+  inactiveValue?: V
   tokensOverride?: DeepPartial<SwitchTokens>
-  onChange?: (val: any) => void
+  onChange?: (val: V) => void
   onClick?: (event: GestureResponderEvent) => void
   style?: StyleProp<ViewStyle>
 }
