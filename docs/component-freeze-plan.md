@@ -74,7 +74,7 @@
 | sidebar | 已冻结 ✅ | 极致精简版：children 扫描单次 for 循环；受控/非受控统一；无 any；onChange items 无多余分配 |
 | space | 已冻结 ✅ | 极致精简版：Web 使用 gap；Native 用 margin/padding 模拟；children 过滤+for 循环；0 any |
 | switch | 已冻结 ✅ | 极致精简版：泛型 value；0 any；动画 stop 清理；禁用/加载/受控语义清晰 |
-| typography | 已冻结 ✅ | Text 渲染安全与多端样式细节 |
+| typography | 已冻结 ✅ | 极致精简版：Text 渲染安全、ellipsis 展开/收起性能回归单测、无障碍角色、includeFontPadding 统一 |
 
 ### C 组（持续优化）
 

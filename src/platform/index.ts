@@ -1,4 +1,5 @@
 export * from './animation'
 export * from './history'
 export * from './measure'
+export * from './runtime'
 export * from './scrollLock'
