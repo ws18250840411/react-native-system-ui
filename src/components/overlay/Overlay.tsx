@@ -104,7 +104,7 @@ export const Overlay: React.FC<OverlayProps> = props => {
               backgroundColor: resolvedColor,
               opacity: animated,
               touchAction: lockScroll ? 'none' : undefined,
-            } as any,
+            } as unknown as ViewStyle,
           ]}
           pointerEvents={mounted ? 'auto' : 'none'}
           accessible={hasAction}

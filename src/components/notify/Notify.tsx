@@ -198,13 +198,13 @@ export const Notify: React.FC<NotifyProps> = props => {
     <Portal>
       <View
         testID="rv-notify"
+        pointerEvents={interactive ? 'box-none' : 'none'}
         style={[
           tokens.layout.portal,
           position === 'bottom' ? { bottom: 0 } : { top: 0 },
           resolvedZIndex !== undefined && resolvedZIndex !== null
             ? { zIndex: resolvedZIndex }
             : null,
-          { pointerEvents: interactive ? 'box-none' : 'none' },
         ]}
       >
         {interactive ? (

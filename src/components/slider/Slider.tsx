@@ -2,7 +2,7 @@ import { useSlider, useSliderThumb } from '@react-native-aria/slider'
 import { isRTL } from '@react-native-aria/utils'
 import { useSliderState } from '@react-stately/slider'
 import React from 'react'
-import type { GestureResponderEvent, LayoutChangeEvent, ViewStyle } from 'react-native'
+import type { GestureResponderEvent, LayoutChangeEvent, PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
 import type { SliderProps, SliderValue } from './types'
@@ -76,7 +76,11 @@ const createAccessibilityProps = (inputProps: any) => {
 const defaultNumberFormatter =
   typeof Intl !== 'undefined' && isFunction(Intl.NumberFormat)
     ? new Intl.NumberFormat()
-    : ({ format: (val: number) => String(val) } as any)
+    : ({ format: (val: number) => String(val) } as unknown as Intl.NumberFormat)
+
+type PressableLikeEvent = GestureResponderEvent & { preventDefault?: () => void }
+
+type HandlerBag = Record<string, unknown> & Partial<React.ComponentProps<typeof View>>
 
 interface ThumbNodeProps {
   index: number
@@ -93,8 +97,11 @@ interface ThumbNodeProps {
   thumbElevation: number
   indicatorSize: number
   indicatorColor: string
-  webGestureStyle?: any
-  enhanceHandlers: (handlers: Record<string, any> | undefined, index: number) => Record<string, any> | undefined
+  webGestureStyle?: ViewStyle
+  enhanceHandlers: (
+    handlers: HandlerBag | undefined,
+    index: number
+  ) => HandlerBag | undefined
 }
 
 const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
@@ -128,20 +135,27 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
     ariaReverse
   )
 
-  const handlers = enhanceHandlers(thumbProps, index) ?? thumbProps ?? {}
-  const axisKey = orientation === 'vertical' ? 'top' : 'left'
-  const crossAxisKey = orientation === 'vertical' ? 'left' : 'top'
+  const rawThumbViewProps = thumbProps as unknown as HandlerBag | undefined
+  const handlers = enhanceHandlers(rawThumbViewProps, index) ?? rawThumbViewProps ?? {}
   const translate = -size / 2
   const thumbStyle: ViewStyle = {
     width: size,
     height: size,
     borderRadius: size / 2,
     borderColor: activeColor,
-    [axisKey]: `${visualPercent}%`,
-    [crossAxisKey]: '50%',
     transform: [{ translateX: translate }, { translateY: translate }],
-    ...(content ? null : { backgroundColor: thumbBackgroundColor, elevation: thumbElevation }),
-  } as any
+  }
+  if (orientation === 'vertical') {
+    thumbStyle.top = `${visualPercent}%`
+    thumbStyle.left = '50%'
+  } else {
+    thumbStyle.left = `${visualPercent}%`
+    thumbStyle.top = '50%'
+  }
+  if (!content) {
+    thumbStyle.backgroundColor = thumbBackgroundColor
+    thumbStyle.elevation = thumbElevation
+  }
   const accessibilityProps = createAccessibilityProps(inputProps)
 
   return (
@@ -260,9 +274,11 @@ export const Slider: React.FC<SliderProps> = props => {
     if (Platform.OS !== 'web' || typeof requestAnimationFrame === 'undefined') return
 
     requestAnimationFrame(() => {
-      const node = trackRef.current as any
-      if (!node || !isFunction(node.measureInWindow)) return
-      node.measureInWindow((x: number, y: number, width: number, height: number) => {
+      const node = trackRef.current as unknown as {
+        measureInWindow?: (cb: (x: number, y: number, width: number, height: number) => void) => void
+      } | null
+      if (!node?.measureInWindow) return
+      node.measureInWindow((x, y, width, height) => {
         const measured = {
           width: Math.max(width, 1),
           height: Math.max(height, 1),
@@ -282,22 +298,19 @@ export const Slider: React.FC<SliderProps> = props => {
       orientation,
       isDisabled: ariaDisabled,
       'aria-label': ariaLabel ?? 'Slider',
-    } as any,
+    } as Parameters<typeof useSlider>[0],
     state,
     trackLayout,
     ariaReverse
   )
-  const { style: trackAriaStyle, onLayout: trackAriaOnLayout, ...restTrackProps } = trackProps as any
+  const trackPressableProps = trackProps as unknown as Partial<React.ComponentProps<typeof Pressable>>
+  const { style: trackAriaStyle, onLayout: trackAriaOnLayout, ...restTrackProps } = trackPressableProps
 
   const handleTrackPress = (event: GestureResponderEvent) => {
     if (ariaDisabled) return
     if (!state.values.every((_, i) => !state.isThumbDragging(i))) return
 
-    const nativeEvent: any = (event as any)?.nativeEvent
-    const locationX = nativeEvent?.locationX
-    const locationY = nativeEvent?.locationY
-    const pageX = nativeEvent?.pageX
-    const pageY = nativeEvent?.pageY
+    const { locationX, locationY, pageX, pageY } = event.nativeEvent
 
     const localX = isFiniteNumber(locationX)
       ? locationX
@@ -329,7 +342,7 @@ export const Slider: React.FC<SliderProps> = props => {
     )
 
     if (closestThumb >= 0 && state.isThumbEditable(closestThumb)) {
-      ; (event as any)?.preventDefault?.()
+      ; (event as unknown as PressableLikeEvent).preventDefault?.()
       state.setFocusedThumb(closestThumb)
       state.setThumbDragging(closestThumb, true)
       state.setThumbValue(closestThumb, value)
@@ -344,10 +357,10 @@ export const Slider: React.FC<SliderProps> = props => {
   const dragStartedRef = React.useRef<boolean[]>([])
   const dragStartValueRef = React.useRef<(SliderValue | undefined)[]>([])
   const moveRafIdRef = React.useRef<(number | null)[]>([])
-  const movePendingArgsRef = React.useRef<(any[] | null)[]>([])
+  const movePendingArgsRef = React.useRef<(unknown[] | null)[]>([])
 
   const enhanceHandlers = React.useCallback(
-    (handlers: Record<string, any> | undefined, index: number) => {
+    (handlers: HandlerBag | undefined, index: number) => {
       if (!handlers) return handlers
       if (!onDragStart && !onDragEnd) {
         return handlers
@@ -368,12 +381,13 @@ export const Slider: React.FC<SliderProps> = props => {
 
       if (!hasAny) return handlers
 
-      const wrapped = { ...handlers }
+      const wrapped: HandlerBag = { ...handlers }
 
       for (const key of moveKeys) {
         const original = wrapped[key]
         if (!isFunction(original)) continue
-        wrapped[key] = (...args: any[]) => {
+        const originalFn = original as (...args: unknown[]) => unknown
+        wrapped[key] = (...args: unknown[]) => {
           movePendingArgsRef.current[index] = args
           if (moveRafIdRef.current[index] != null) return
           moveRafIdRef.current[index] = requestAnimationFrame(() => {
@@ -381,7 +395,7 @@ export const Slider: React.FC<SliderProps> = props => {
             const pending = movePendingArgsRef.current[index]
             if (!pending) return
             movePendingArgsRef.current[index] = null
-            original(...pending)
+            originalFn(...pending)
           })
         }
       }
@@ -392,9 +406,11 @@ export const Slider: React.FC<SliderProps> = props => {
       ) => {
         if (!callback) return
         const original = wrapped[key]
-        wrapped[key] = (...args: any[]) => {
-          original?.(...args)
-          callback(args[0])
+        wrapped[key] = (...args: unknown[]) => {
+          if (isFunction(original)) {
+            ; (original as (...args: unknown[]) => unknown)(...args)
+          }
+          callback(args[0] as GestureResponderEvent)
         }
       }
 
@@ -404,9 +420,11 @@ export const Slider: React.FC<SliderProps> = props => {
       ) => {
         if (!callback) return
         const original = wrapped[key]
-        wrapped[key] = (...args: any[]) => {
-          callback(args[0])
-          original?.(...args)
+        wrapped[key] = (...args: unknown[]) => {
+          callback(args[0] as GestureResponderEvent)
+          if (isFunction(original)) {
+            ; (original as (...args: unknown[]) => unknown)(...args)
+          }
         }
       }
 
@@ -449,7 +467,7 @@ export const Slider: React.FC<SliderProps> = props => {
     [onDragStart, onDragEnd]
   )
 
-  const values = state.values as number[]
+  const values = state.values as readonly number[]
   const thumbPercents = values.map(value => (((value ?? resolvedMin) - resolvedMin) / scope) * 100)
   const thumbVisualPercents = thumbPercents.map(percent =>
     orientation === 'vertical'
@@ -471,12 +489,20 @@ export const Slider: React.FC<SliderProps> = props => {
         : { offset: first, size: 100 - first }
 
   const activeTrackStyle: ViewStyle = {
-    ...(orientation === 'vertical' ? { left: 0, width: '100%' } : { top: 0, height: '100%' }),
-    [orientation === 'vertical' ? 'height' : 'width']: `${Math.max(activeRange.size, 0)}%`,
-    [orientation === 'vertical' ? 'top' : 'left']: `${Math.max(activeRange.offset, 0)}%`,
     backgroundColor: resolvedActiveColor,
     borderRadius: tokens.track.radius,
-  } as any
+  }
+  if (orientation === 'vertical') {
+    activeTrackStyle.left = 0
+    activeTrackStyle.width = '100%'
+    activeTrackStyle.height = `${Math.max(activeRange.size, 0)}%`
+    activeTrackStyle.top = `${Math.max(activeRange.offset, 0)}%`
+  } else {
+    activeTrackStyle.top = 0
+    activeTrackStyle.height = '100%'
+    activeTrackStyle.width = `${Math.max(activeRange.size, 0)}%`
+    activeTrackStyle.left = `${Math.max(activeRange.offset, 0)}%`
+  }
 
   const trackBaseStyle =
     orientation === 'vertical'
@@ -491,16 +517,30 @@ export const Slider: React.FC<SliderProps> = props => {
       : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }]
 
   const isButtonFunction = isFunction(button)
-  const sharedThumb = isButtonFunction ? (button as any)({ value: currentValue }) : button ?? thumb
+  const sharedThumb = isButtonFunction
+    ? (button as ({ value }: { value: SliderValue }) => React.ReactNode)({ value: currentValue })
+    : button ?? thumb
   const leftThumbContent = leftButton ?? leftThumb ?? sharedThumb
   const rightThumbContent = rightButton ?? rightThumb ?? sharedThumb
   const resolveThumbContent = (index: number, total: number) =>
     total > 1 ? (index === 0 ? leftThumbContent : rightThumbContent) : sharedThumb
 
-  const webGestureStyle =
+  const webGestureStyle: ViewStyle | undefined =
     Platform.OS === 'web'
-      ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'none', userSelect: 'none' } as any)
+      ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'none', userSelect: 'none' } as unknown as ViewStyle)
       : undefined
+  const baseTrackPressableStyle: StyleProp<ViewStyle> = [
+    styles.trackPressable,
+    orientation === 'vertical' ? styles.trackPressableVertical : null,
+    webGestureStyle,
+  ]
+  const trackPressableStyle =
+    trackAriaStyle && isFunction(trackAriaStyle)
+      ? (state: PressableStateCallbackType) => [
+        baseTrackPressableStyle,
+        trackAriaStyle(state) as StyleProp<ViewStyle>,
+      ]
+      : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
 
   return (
     <View
@@ -527,12 +567,7 @@ export const Slider: React.FC<SliderProps> = props => {
             handleTrackLayout(event)
             trackAriaOnLayout?.(event)
           }}
-          style={[
-            styles.trackPressable,
-            orientation === 'vertical' && styles.trackPressableVertical,
-            webGestureStyle,
-            trackAriaStyle,
-          ]}
+          style={trackPressableStyle}
         >
           <View style={[styles.trackBase, { borderRadius: tokens.track.radius }, ...trackBaseStyle]}>
             <View style={[styles.active, activeTrackStyle]} />

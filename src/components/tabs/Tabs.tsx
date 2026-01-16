@@ -9,6 +9,7 @@ import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type ViewStyle,
 } from 'react-native'
 
 import { useAriaPress, useControllableValue } from '../../hooks'
@@ -31,8 +32,9 @@ interface ParsedPane extends TabPaneProps {
 
 const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> => {
   if (!React.isValidElement(child)) return false
-  const type = child.type as any
-  return type === TabPane || type?.displayName === 'Tabs.TabPane'
+  if (child.type === TabPane) return true
+  const type = child.type as unknown as { displayName?: string }
+  return type.displayName === 'Tabs.TabPane'
 }
 
 interface TabItemProps {
@@ -107,7 +109,7 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const shouldFlex = !scrollable && (align !== 'start' || isCard)
   const horizontalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingHorizontal
   const verticalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingVertical
-  const labelWrapperStyles: any[] = [styles.labelWrapper]
+  const labelWrapperStyles: ViewStyle[] = [styles.labelWrapper]
   if (isJumbo) {
     labelWrapperStyles.push(styles.labelWrapperJumbo)
   }
@@ -167,14 +169,14 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
                   : tokens.colors.capsuleBackground,
                 color: textColor,
                 fontSize: tokens.typography.titleSize,
-                fontWeight: (isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight) as any,
+                fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
                 textAlign: 'center',
                 paddingVertical: tokens.capsule.paddingVertical,
               }
               : {
                 color: textColor,
                 fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
-                fontWeight: (isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight) as any,
+                fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
                 lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
                 textAlign: 'center',
               },
@@ -326,17 +328,20 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     const walk = (nodes: React.ReactNode) => {
       React.Children.forEach(nodes, (node) => {
         if (!React.isValidElement(node)) return
-        const element = node as React.ReactElement<any>
+        const element = node as React.ReactElement<{ children?: React.ReactNode }>
         if (element.type === React.Fragment) {
           walk(element.props.children)
           return
         }
         if (!isTabPaneElement(element)) {
           if (__DEV__) {
+            const type = element.type
             const childName =
-              typeof element.type === 'string'
-                ? element.type
-                : (element.type as any)?.displayName ?? (element.type as any)?.name ?? 'Unknown'
+              typeof type === 'string'
+                ? type
+                : (type as { displayName?: string; name?: string }).displayName ??
+                (type as { displayName?: string; name?: string }).name ??
+                'Unknown'
             console.warn('[Tabs] children 只能是 <Tabs.TabPane />，已忽略：', childName)
           }
           return

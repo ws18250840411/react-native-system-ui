@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, StyleSheet, View } from 'react-native'
+import { Animated, StyleSheet, View, type ViewStyle } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
 import { isFiniteNumber, isString } from '../../utils/validate'
@@ -107,7 +107,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
           inputRange: [0, 1],
           outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
         }),
-      } as any)
+      } as unknown as ViewStyle)
 
   if (!loading) {
     return (
@@ -123,8 +123,8 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         <Animated.View
           style={[
             {
-              width: resolvedAvatarSize,
-              height: resolvedAvatarSize,
+              width: resolvedAvatarSize as ViewStyle['width'],
+              height: resolvedAvatarSize as ViewStyle['height'],
               borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
               backgroundColor: tokens.colors.block,
             },
@@ -137,8 +137,8 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
           <Animated.View
             style={[
               {
-                width: resolvedTitleWidth,
-                height: titleHeight,
+                width: resolvedTitleWidth as ViewStyle['width'],
+                height: titleHeight as ViewStyle['height'],
                 backgroundColor: tokens.colors.block,
                 borderRadius: round ? tokens.radius : 0,
               },
@@ -154,8 +154,8 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
                 testID={`rv-skeleton-row-${index}`}
                 style={[
                   {
-                    width,
-                    height: rowHeights[index],
+                    width: width as ViewStyle['width'],
+                    height: rowHeights[index] as ViewStyle['height'],
                     marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
                     backgroundColor: tokens.colors.block,
                     borderRadius: round ? tokens.radius : 0,

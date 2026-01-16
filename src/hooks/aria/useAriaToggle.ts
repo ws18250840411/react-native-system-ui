@@ -8,25 +8,25 @@ export interface UseAriaToggleOptions extends AriaToggleProps {
   /**
    * Ref to the internal pressable element
    */
-  inputRef?: React.RefObject<any>
+  inputRef?: React.RefObject<unknown>
 }
 
 export interface UseAriaToggleResult {
   state: ToggleState
-  inputProps: any
-  inputRef: React.RefObject<any>
+  inputProps: Record<string, unknown>
+  inputRef: React.RefObject<unknown>
 }
 
 export const useAriaToggle = (
   props: UseAriaToggleOptions
 ): UseAriaToggleResult => {
-  const inputRef = props.inputRef ?? React.useRef<any>(null)
+  const inputRef = props.inputRef ?? React.useRef<unknown>(null)
   const state = useToggleState(props)
-  const { inputProps } = useToggle(props, state, inputRef)
+  const { inputProps } = useToggle(props, state, inputRef as unknown as React.RefObject<HTMLInputElement>)
 
   return {
     state,
-    inputProps,
+    inputProps: inputProps as unknown as Record<string, unknown>,
     inputRef,
   }
 }

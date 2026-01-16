@@ -41,7 +41,7 @@ export interface RadioTokens {
   typography: {
     fontSize: number
     fontFamily: string
-    fontWeight: string
+    fontWeight: NonNullable<TextStyle['fontWeight']>
     lineHeightMultiplier: number
   }
   sizing: {
@@ -78,6 +78,7 @@ export interface RadioProps extends Omit<ViewProps, 'children'> {
   tokensOverride?: DeepPartial<RadioTokens>
   onClick?: (event: GestureResponderEvent) => void
   onChange?: (checked: boolean) => void
+  'aria-label'?: string
 }
 
 export interface RadioGroupProps extends ViewProps {

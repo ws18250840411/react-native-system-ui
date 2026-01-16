@@ -1,5 +1,13 @@
 import type * as React from 'react'
-import type { ImageProps as RNImageProps, ImageSourcePropType, ImageStyle, StyleProp, TextStyle, ViewStyle } from 'react-native'
+import type {
+  ImageProps as RNImageProps,
+  ImageSourcePropType,
+  ImageStyle,
+  PressableProps,
+  StyleProp,
+  TextStyle,
+  ViewStyle,
+} from 'react-native'
 
 import type { DeepPartial } from '../../types'
 
@@ -48,9 +56,10 @@ export interface ImageProps extends Omit<RNImageProps, 'source' | 'width' | 'hei
   loadingSize?: 'small' | 'large' | number
   errorText?: React.ReactNode
   fallback?: React.ReactNode
-  onPress?: (event: any) => void
+  onPress?: PressableProps['onPress']
   alt?: string
   containerStyle?: StyleProp<ViewStyle>
   children?: React.ReactNode
   tokensOverride?: DeepPartial<ImageTokens>
+  'aria-label'?: string
 }

@@ -82,7 +82,10 @@ const readFileContent = async (
 
   return await new Promise<string | undefined>(resolve => {
     const reader = new FileReader()
-    reader.onload = event => resolve((event.target as any)?.result as string)
+    reader.onload = (event: ProgressEvent<FileReader>) => {
+      const result = event.target?.result
+      resolve(typeof result === 'string' ? result : undefined)
+    }
     reader.onerror = () => resolve(undefined)
     if (resultType === 'dataUrl') {
       reader.readAsDataURL(file)
@@ -379,7 +382,8 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     if (!onUpload) return
     Promise.resolve(onUpload())
       .then(result => {
-        const next = toArray(result as any)
+        if (!result) return
+        const next = Array.isArray(result) ? result : [result]
         if (!next.length) return
         updateItems(prev => {
           const available = maxCountValue > 0 ? Math.max(0, maxCountValue - prev.length) : next.length

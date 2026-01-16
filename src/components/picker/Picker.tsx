@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, type TextStyle, View, Platform } from 'react-native'
+import { Pressable, Text, View, Platform, type ViewStyle } from 'react-native'
 
 import Loading from '../loading'
 import { withAlpha } from '../../utils/color'
@@ -50,7 +50,7 @@ const GradientMask: React.FC<{
           ({
             backgroundColor: overlayColor,
             backgroundImage: `linear-gradient(${angle}, ${gradientStart}, ${gradientEnd})`,
-          } as any),
+          } as unknown as ViewStyle),
         ]}
       />
     )
@@ -229,7 +229,7 @@ const Picker: React.FC<PickerProps> = props => {
               color,
               fontSize: tokens.typography.toolbarSize,
               fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.toolbarWeight as TextStyle['fontWeight'],
+              fontWeight: tokens.typography.toolbarWeight,
             },
           ]}
         >
@@ -260,7 +260,7 @@ const Picker: React.FC<PickerProps> = props => {
         ]}
         numberOfLines={1}
       >
-        {content as any}
+        {content}
       </Text>
     )
   }

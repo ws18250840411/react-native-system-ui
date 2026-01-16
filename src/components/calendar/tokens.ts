@@ -1,5 +1,3 @@
-import type { TextStyle } from 'react-native'
-
 import { createComponentTokensHook } from "../../design-system"
 import { type Foundations } from "../../design-system/tokens"
 import type { CalendarTokens } from "./types"
@@ -92,9 +90,9 @@ export const createCalendarTokens = (foundations: Foundations): CalendarTokens =
     },
     typography: {
       headerTitleSize: fontSize.md,
-      headerTitleWeight: typography.weight.semiBold as TextStyle['fontWeight'],
+      headerTitleWeight: typography.weight.semiBold,
       headerSubtitleSize: fontSize.sm,
-      confirmTextWeight: typography.weight.semiBold as TextStyle['fontWeight'],
+      confirmTextWeight: typography.weight.semiBold,
     },
     sizing: {
       dayMinWidth: 32,

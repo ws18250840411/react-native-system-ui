@@ -97,7 +97,7 @@ export const useGestureScroll = (
         ? [{ nativeEvent: { contentOffset: { x: scrollValue } } }]
         : [{ nativeEvent: { contentOffset: { y: scrollValue } } }]
 
-    return Animated.event(mapping as any, {
+    return Animated.event(mapping as unknown as Parameters<typeof Animated.event>[0], {
       useNativeDriver: false,
       listener: handleScroll,
     })

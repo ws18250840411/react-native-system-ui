@@ -55,9 +55,9 @@ const createTypographyTokens = ({
   typography: {
     fontFamily: typography.fontFamily,
     weight: {
-      regular: String(typography.weight.regular),
-      medium: String(typography.weight.medium),
-      strong: String(typography.weight.semiBold),
+      regular: typography.weight.regular,
+      medium: typography.weight.medium,
+      strong: typography.weight.semiBold,
     },
   },
   opacity: { disabled: opacity.disabled },

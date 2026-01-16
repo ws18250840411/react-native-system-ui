@@ -221,15 +221,17 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   })()
 
   const shouldReserveHead = (status === 'loading' || status === 'success') && distance === 0
-  const flattenedContainerStyle = StyleSheet.flatten(scrollProps.contentContainerStyle) as any
+  const flattenedContainerStyle = StyleSheet.flatten(scrollProps.contentContainerStyle) as { paddingTop?: unknown } | null
   const basePaddingTop = isNumber(flattenedContainerStyle?.paddingTop) ? flattenedContainerStyle.paddingTop : 0
   const contentContainerStyle = shouldReserveHead
     ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
     : scrollProps.contentContainerStyle
 
-  const handleScroll = (event: any) => {
+  const handleScroll = (
+    event: Parameters<NonNullable<React.ComponentProps<typeof ScrollView>['onScroll']>>[0]
+  ) => {
     scrollProps.onScroll?.(event)
-    const offset = event?.nativeEvent?.contentOffset?.y ?? 0
+    const offset = event.nativeEvent.contentOffset?.y ?? 0
     if (isWeb) {
       scrollTopRef.current = Math.max(0, offset)
       return
@@ -280,9 +282,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         const raw = Math.max(0, gestureState.dy ?? 0)
         setDistanceValue(easeDistance(raw))
 
-        if (isFunction((event as any)?.preventDefault)) {
-          ; (event as any).preventDefault()
-        }
+        ;(event as unknown as { preventDefault?: () => void }).preventDefault?.()
       },
       onPanResponderRelease: async (_event, gestureState) => {
         draggingRef.current = false

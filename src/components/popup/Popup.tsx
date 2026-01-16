@@ -520,7 +520,7 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const content = (
     <Animated.View
-      ref={overlayRef}
+      ref={overlayRef as unknown as React.Ref<React.ElementRef<typeof View>>}
       {...contentInteractionProps}
       onLayout={handleContentLayout}
       style={[

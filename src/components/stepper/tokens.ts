@@ -74,7 +74,7 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
     },
     typography: {
       fontSize: fontSize.md,
-      fontWeight: typography.weight.semiBold as TextStyle['fontWeight'],
+      fontWeight: typography.weight.semiBold,
     },
     opacity: {
       disabled: opacity.disabled,

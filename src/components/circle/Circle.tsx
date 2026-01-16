@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, Platform, Text, View } from 'react-native'
+import { Animated, Platform, Text, View, type ViewStyle } from 'react-native'
 import Svg, { Circle as SvgCircle } from 'react-native-svg'
 import { isText } from '../../utils/validate'
 import { clamp, parseNumber, parsePercentage } from '../../utils/number'
@@ -121,16 +121,24 @@ export const Circle: React.FC<CircleProps> = props => {
       safeStroke > 0
         ? `radial-gradient(farthest-side, transparent calc(100% - ${safeStroke}px), #000 calc(100% - ${safeStroke}px))`
         : undefined
-    const webMaskStyle = webMask
-      ? ({
+    const webMaskStyle: Record<string, string> | undefined = webMask
+      ? {
         WebkitMaskImage: webMask,
         maskImage: webMask,
         WebkitMaskRepeat: 'no-repeat',
         maskRepeat: 'no-repeat',
         WebkitMaskSize: '100% 100%',
         maskSize: '100% 100%',
-      } as any)
-      : null
+      }
+      : undefined
+
+    const webRingStyle = {
+      width: resolvedSize,
+      height: resolvedSize,
+      borderRadius: resolvedSize / 2,
+      backgroundImage: gradient,
+      ...(webMaskStyle ?? {}),
+    } as unknown as ViewStyle
 
     return (
       <View
@@ -146,13 +154,7 @@ export const Circle: React.FC<CircleProps> = props => {
         <View
           style={[
             tokens.layout.webRing,
-            {
-              width: resolvedSize,
-              height: resolvedSize,
-              borderRadius: resolvedSize / 2,
-              backgroundImage: gradient as any,
-              ...webMaskStyle,
-            },
+            webRingStyle,
           ]}
         />
         {shouldRenderInner ? (

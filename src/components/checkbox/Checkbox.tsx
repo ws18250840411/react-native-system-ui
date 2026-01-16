@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Pressable, Text, View, type GestureResponderEvent } from 'react-native'
+import { Platform, Pressable, Text, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
 
@@ -25,6 +25,10 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
     labelStyle,
     tokensOverride,
     hitSlop = 8,
+    accessibilityLabel,
+    ['aria-label']: ariaLabel,
+    onClick,
+    onChange,
     ...rest
   } = props
 
@@ -51,12 +55,12 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   const standaloneState = useToggleState({
     isSelected: props.checked,
     defaultSelected: props.defaultChecked,
-    onChange: props.onChange,
+    onChange,
   })
 
   const isGroup = !!group && serializedValue !== undefined && bindGroup
 
-  const { onBlur, onFocus, ...compatibleRest } = rest as any
+  const { onBlur, onFocus, ...compatibleRest } = rest
 
   React.useEffect(() => {
     if (group && bindGroup && serializedValue !== undefined && rawValue !== undefined) {
@@ -67,13 +71,13 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   }, [bindGroup, group, serializedValue, rawValue, resolvedDisabled])
 
   const resolvedAccessibilityLabel =
-    (props as any).accessibilityLabel ??
-    (props as any)['aria-label'] ??
+    accessibilityLabel ??
+    ariaLabel ??
     (isText(children) ? String(children) : undefined) ??
     serializedValue ??
     'checkbox'
 
-  let inputProps: any
+  let inputProps: Partial<React.ComponentProps<typeof Pressable>> | undefined
   let isChecked: boolean
 
   if (isGroup && group) {
@@ -83,13 +87,12 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
         value: serializedValue!,
         isDisabled: resolvedDisabled,
         'aria-label': resolvedAccessibilityLabel,
-        accessibilityLabel: resolvedAccessibilityLabel,
       },
       group.state,
-      internalRef as any
+      internalRef as unknown as React.RefObject<HTMLInputElement>
     )
 
-    inputProps = groupInputProps
+    inputProps = groupInputProps as unknown as Partial<React.ComponentProps<typeof Pressable>>
     isChecked = group.state.isSelected(serializedValue!)
   } else {
     const { inputProps: standaloneProps } = useCheckbox(
@@ -98,12 +101,11 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
         isDisabled: resolvedDisabled,
         value: serializedValue,
         'aria-label': resolvedAccessibilityLabel,
-        accessibilityLabel: resolvedAccessibilityLabel,
       },
       standaloneState,
-      internalRef as any
+      internalRef as unknown as React.RefObject<HTMLInputElement>
     )
-    inputProps = standaloneProps
+    inputProps = standaloneProps as unknown as Partial<React.ComponentProps<typeof Pressable>>
     isChecked = props.checked !== undefined ? props.checked : standaloneState.isSelected
   }
 
@@ -131,11 +133,11 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
       : { marginLeft: tokens.spacing.gap }
 
   const originalOnPress = inputProps?.onPress
-  const mergedInputProps = inputProps
+  const mergedInputProps: Partial<React.ComponentProps<typeof Pressable>> = inputProps
     ? {
       ...inputProps,
       onPress: (e: GestureResponderEvent) => {
-        props.onClick?.(e)
+        onClick?.(e)
 
         if (
           isGroup &&
@@ -158,10 +160,10 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
           return
         }
         if (props.checked !== undefined) {
-          props.onChange?.(!props.checked)
+          onChange?.(!props.checked)
           return
         }
-        if (props.onChange) {
+        if (onChange) {
           standaloneState.setSelected(!standaloneState.isSelected)
         }
       },
@@ -182,7 +184,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
                 fontSize: tokens.typography.fontSize,
                 lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
                 fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.fontWeight as any,
+                fontWeight: tokens.typography.fontWeight,
               },
               labelStyle,
             ]}
@@ -191,7 +193,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
           </Text>
         )
         : (
-          <View accessible={false} style={labelStyle as any}>
+          <View accessible={false} style={labelStyle as unknown as StyleProp<ViewStyle>}>
             {children}
           </View>
         )
@@ -289,7 +291,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
         style={({ pressed }) => [
           tokens.layout.container,
           style,
-          Platform.OS === 'web' && { cursor: 'pointer' } as any,
+          Platform.OS === 'web' && ({ cursor: 'pointer' } as unknown as ViewStyle),
           pressed && { opacity: 0.8 } // Optional: add simple feedback
         ]}
         hitSlop={hitSlop}

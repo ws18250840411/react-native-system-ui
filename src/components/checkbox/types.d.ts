@@ -87,6 +87,7 @@ export interface CheckboxProps extends Omit<PressableProps, 'onPress'> {
   bindGroup?: boolean
   onClick?: (event: GestureResponderEvent) => void
   onChange?: (checked: boolean) => void
+  'aria-label'?: string
 }
 
 export interface CheckboxGroupProps extends ViewProps {

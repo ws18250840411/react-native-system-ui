@@ -52,9 +52,9 @@ export interface CalendarTokens {
   }
   typography: {
     headerTitleSize: number
-    headerTitleWeight: TextStyle['fontWeight']
+    headerTitleWeight: NonNullable<TextStyle['fontWeight']>
     headerSubtitleSize: number
-    confirmTextWeight: TextStyle['fontWeight']
+    confirmTextWeight: NonNullable<TextStyle['fontWeight']>
   }
   sizing: {
     dayMinWidth: number

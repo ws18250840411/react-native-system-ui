@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, type TextStyle, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import { isRenderable, isText } from '../../utils/validate'
@@ -86,7 +86,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
                     {
                       color: titleColor,
                       fontSize: tokens.typography.fontSize,
-                      fontWeight: tokens.typography.fontWeight as TextStyle['fontWeight'],
+                      fontWeight: tokens.typography.fontWeight,
                     },
                     textStyle,
                   ]}

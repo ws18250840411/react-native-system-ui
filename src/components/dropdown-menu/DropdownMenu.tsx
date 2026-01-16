@@ -135,7 +135,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   )
 
   const requestMeasure = React.useCallback((fallbackHeight?: number) => {
-    const node = barRef.current as any
+    const node = barRef.current
 
     if (!node) {
       const fallback = { y: 0, height: fallbackHeight ?? barHeight }
@@ -252,9 +252,11 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const resolvedZIndex = stackZIndex ?? zIndex
 
-  const barChildren = React.Children.map(children, (child, index) =>
-    React.isValidElement(child) ? React.cloneElement(child as any, { index, barScrollable }) : child,
-  )
+  const barChildren = React.Children.map(children, (child, index) => {
+    if (!React.isValidElement(child)) return child
+    const element = child as React.ReactElement<Record<string, unknown>>
+    return React.cloneElement(element, { index, barScrollable })
+  })
 
   const barStyle = [
     styles.barWrapper,

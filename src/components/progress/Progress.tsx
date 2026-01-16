@@ -5,6 +5,7 @@ import {
   Platform,
   Text,
   View,
+  type ViewStyle,
 } from 'react-native'
 
 import { clamp, parseNumberLike, parsePercentage } from '../../utils/number'
@@ -205,7 +206,7 @@ export const Progress = memo((props: ProgressProps) => {
               height,
               backgroundColor: resolvedIndicatorColor,
               borderRadius: height / 2,
-              ...(isGradient ? ({ backgroundImage: color } as any) : null),
+              ...(isGradient ? ({ backgroundImage: color } as unknown as ViewStyle) : null),
             },
             indicatorStyle,
             { width: indicatorWidth },

@@ -370,7 +370,7 @@ const Calendar: React.FC<CalendarProps> = props => {
                       {
                         color: tokens.colors.text,
                         fontSize: tokens.typography.headerTitleSize,
-                        fontWeight: tokens.typography.headerTitleWeight as any,
+                        fontWeight: tokens.typography.headerTitleWeight,
                       },
                     ]}
                   >
@@ -455,7 +455,7 @@ const Calendar: React.FC<CalendarProps> = props => {
                   tokens.layout.confirmText,
                   {
                     color: tokens.colors.confirmText,
-                    fontWeight: tokens.typography.confirmTextWeight as any,
+                    fontWeight: tokens.typography.confirmTextWeight,
                   },
                 ]}
               >

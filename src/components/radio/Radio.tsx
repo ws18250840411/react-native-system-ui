@@ -33,6 +33,8 @@ export const Radio = React.memo((props: RadioProps) => {
     tokensOverride,
     onClick,
     onChange,
+    accessibilityLabel,
+    ['aria-label']: ariaLabel,
     ...rest
   } = props
 
@@ -60,8 +62,8 @@ export const Radio = React.memo((props: RadioProps) => {
 
   const inputRef = React.useRef<View>(null)
   const resolvedAccessibilityLabel =
-    (props as any).accessibilityLabel ??
-    (props as any)['aria-label'] ??
+    accessibilityLabel ??
+    ariaLabel ??
     (isText(children) ? String(children) : undefined) ??
     serializedValue ??
     'radio'
@@ -78,7 +80,7 @@ export const Radio = React.memo((props: RadioProps) => {
     setSelectedValue: (next: string | null) => {
       setStandaloneSelected(next === standaloneKey)
     },
-  } as any
+  } as unknown as Parameters<typeof useRadio>[1]
 
   React.useEffect(() => {
     if (isGroup && group && serializedValue !== undefined) {
@@ -91,7 +93,7 @@ export const Radio = React.memo((props: RadioProps) => {
   const state = isGroup && group ? group.state : pseudoState
   const radioValue = isGroup ? serializedValue! : standaloneKey
 
-  const { onBlur, onFocus, ...compatibleRest } = rest as any
+  const { onBlur, onFocus, ...compatibleRest } = rest
   const { inputProps } = useRadio(
     {
       value: radioValue,
@@ -101,7 +103,7 @@ export const Radio = React.memo((props: RadioProps) => {
       ...compatibleRest,
     },
     state,
-    inputRef as any
+    inputRef as unknown as React.RefObject<HTMLElement>
   )
 
   const isChecked =
@@ -185,7 +187,7 @@ export const Radio = React.memo((props: RadioProps) => {
                 fontSize: tokens.typography.fontSize,
                 lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
                 fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.fontWeight as any,
+                fontWeight: tokens.typography.fontWeight,
               },
               labelStyle,
             ]}
@@ -226,12 +228,12 @@ export const Radio = React.memo((props: RadioProps) => {
       ) : null}
     </View>
   )
-  
+
   const iconVisual = iconRender
     ? iconRender({
-        checked: Boolean(isChecked),
-        disabled: Boolean(resolvedDisabled),
-      }) ?? null
+      checked: Boolean(isChecked),
+      disabled: Boolean(resolvedDisabled),
+    }) ?? null
     : defaultIcon
 
   const iconNode = interactive ? (

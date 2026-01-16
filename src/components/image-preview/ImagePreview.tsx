@@ -18,9 +18,9 @@ type PressableHandlers = Pick<
   React.ComponentProps<typeof Pressable>,
   'onTouchStart' | 'onTouchMove' | 'onTouchEnd' | 'onTouchCancel'
 > & {
-  onMouseDown?: (event: any) => void
-  onMouseMove?: (event: any) => void
-  onMouseUp?: (event: any) => void
+  onMouseDown?: (event: { nativeEvent?: { pageX?: number; pageY?: number } }) => void
+  onMouseMove?: (event: { nativeEvent?: { pageX?: number; pageY?: number; buttons?: number } }) => void
+  onMouseUp?: (event: { nativeEvent?: { pageX?: number; pageY?: number } }) => void
 }
 
 const SlideContent = React.memo(
@@ -201,32 +201,32 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
   const pressableHandlers = React.useMemo<PressableHandlers>(() => {
     const handlers: PressableHandlers = {
       onTouchStart: e => {
-        const ne = (e as any)?.nativeEvent
-        if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
+        const { pageX, pageY } = e.nativeEvent
+        if (pageX != null && pageY != null) markTapStart(pageX, pageY)
       },
       onTouchMove: e => {
-        const ne = (e as any)?.nativeEvent
-        if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
+        const { pageX, pageY } = e.nativeEvent
+        if (pageX != null && pageY != null) markTapMove(pageX, pageY)
       },
       onTouchEnd: e => {
-        const ne = (e as any)?.nativeEvent
-        if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
+        const { pageX, pageY } = e.nativeEvent
+        if (pageX != null && pageY != null) tryTapEnd(pageX, pageY)
       },
       onTouchCancel: resetTap,
     }
 
     if (IS_WEB) {
-      handlers.onMouseDown = (e: any) => {
-        const ne = e?.nativeEvent
+      handlers.onMouseDown = e => {
+        const ne = e.nativeEvent
         if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
       }
-      handlers.onMouseMove = (e: any) => {
-        const ne = e?.nativeEvent
+      handlers.onMouseMove = e => {
+        const ne = e.nativeEvent
         if (ne?.buttons !== 1) return
         if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
       }
-      handlers.onMouseUp = (e: any) => {
-        const ne = e?.nativeEvent
+      handlers.onMouseUp = e => {
+        const ne = e.nativeEvent
         if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
       }
     }

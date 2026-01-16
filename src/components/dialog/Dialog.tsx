@@ -1,5 +1,5 @@
 import React from 'react'
-import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
 import { useLocale } from '../config-provider/useLocale'
 import { nativeDriverEnabled } from '../../platform'
@@ -182,8 +182,8 @@ export const Dialog: React.FC<DialogProps> = props => {
   const widthStyle = width
     ? isNumber(width)
       ? { width }
-      : { width: String(width) as any }
-    : { width: '90%' as any, maxWidth: tokens.sizes.maxWidth }
+      : { width: String(width) as ViewStyle['width'] }
+    : { width: '90%' as ViewStyle['width'], maxWidth: tokens.sizes.maxWidth }
 
   const titleWrapperStyle = hasTitle
     ? [
@@ -302,7 +302,7 @@ export const Dialog: React.FC<DialogProps> = props => {
           {React.isValidElement(title) ? (
             title
           ) : (
-            <Text style={titleTextStyle ?? undefined}>{title as any}</Text>
+            <Text style={titleTextStyle ?? undefined}>{title}</Text>
           )}
         </View>
       ) : null}
@@ -316,7 +316,7 @@ export const Dialog: React.FC<DialogProps> = props => {
               {React.isValidElement(message) ? (
                 message
               ) : (
-                <Text style={messageTextStyle}>{message as any}</Text>
+                <Text style={messageTextStyle}>{message}</Text>
               )}
             </View>
           )}

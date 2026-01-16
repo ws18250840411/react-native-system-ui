@@ -1,4 +1,4 @@
-import type { ViewStyle } from 'react-native'
+import type { TextStyle, ViewStyle } from 'react-native'
 
 export interface CollapseTokens {
   defaults: {
@@ -32,7 +32,7 @@ export interface CollapseTokens {
     titleSize: number
     descriptionSize: number
     fontFamily: string
-    titleWeight: string
+    titleWeight: NonNullable<TextStyle['fontWeight']>
   }
   panel: {
     borderRadius: number
@@ -44,4 +44,3 @@ export interface CollapseTokens {
     iconGap: number
   }
 }
-

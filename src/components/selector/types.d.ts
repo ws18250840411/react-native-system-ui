@@ -48,7 +48,7 @@ export interface SelectorTokens {
     fontSize: number
     descriptionSize: number
     fontFamily: string
-    fontWeight: string
+    fontWeight: NonNullable<TextStyle['fontWeight']>
   }
   radii: {
     item: number

@@ -49,12 +49,20 @@ export const useHairline = ({
   return React.useMemo(() => {
     if (!show) return null
 
-    const flattened = StyleSheet.flatten(containerStyle) as any
+    const flattened = StyleSheet.flatten(containerStyle) as
+      | {
+        paddingHorizontal?: unknown
+        paddingLeft?: unknown
+        paddingRight?: unknown
+        paddingStart?: unknown
+        paddingEnd?: unknown
+      }
+      | null
     const paddingHorizontal = isNumber(flattened?.paddingHorizontal)
       ? flattened.paddingHorizontal
       : undefined
 
-    const resolveInset = (primary?: DimensionValue, secondary?: DimensionValue) =>
+    const resolveInset = (primary?: unknown, secondary?: unknown) =>
       isNumber(primary)
         ? primary
         : isNumber(secondary)

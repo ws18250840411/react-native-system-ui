@@ -61,7 +61,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   )
 
   const resolvedRadioGroupProps = {
-    ...((radioGroupProps ?? {}) as any),
+    ...(radioGroupProps ?? {}),
     ...(accessibilityHint ? { 'aria-describedby': accessibilityHint } : null),
     'aria-disabled': disabled,
   }
@@ -125,7 +125,8 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
         {supportsGap
           ? childrenArray
           : childrenArray.map((child, index) => {
-            const key = React.isValidElement(child) && child.key !== null ? child.key : index
+            const key: React.Key =
+              React.isValidElement(child) && child.key !== null ? child.key : index
             const itemStyle = itemStyleForIndex(index)
 
             if (React.isValidElement(child) && child.type !== React.Fragment) {
@@ -137,7 +138,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
             }
 
             return (
-              <View key={key as any} style={itemStyle}>
+              <View key={key} style={itemStyle}>
                 {child}
               </View>
             )

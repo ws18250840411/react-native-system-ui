@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, type TextStyle, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import type { SelectorProps, SelectorValue } from './types'
 import { useSelectorTokens } from './tokens'
@@ -139,7 +139,7 @@ const SelectorImpl = <V extends SelectorValue>(props: SelectorProps<V>) => {
                       fontSize: tokens.typography.fontSize,
                       lineHeight: tokens.typography.fontSize * 1.4,
                       fontFamily: tokens.typography.fontFamily,
-                      fontWeight: tokens.typography.fontWeight as TextStyle['fontWeight'],
+                      fontWeight: tokens.typography.fontWeight,
                     },
                     labelStyle,
                   ]}

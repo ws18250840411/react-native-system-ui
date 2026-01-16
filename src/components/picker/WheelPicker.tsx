@@ -7,15 +7,17 @@ import {
   PanResponder,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type ViewStyle,
 } from 'react-native'
 
 import { clamp } from '../../utils/number'
 import { indexToOffset, offsetToIndex, shouldMomentum, momentumTarget } from './core'
 import styles from './styles'
+import type { PickerOption } from './types'
 
 type WheelPickerRender<T> = (item: T | null, index: number) => React.ReactNode
 
-export type WheelPickerProps<T> = {
+export type WheelPickerProps<T extends PickerOption = PickerOption> = {
   data: T[]
   selectedIndex: number
   onChange: (index: number) => void
@@ -29,7 +31,7 @@ export type WheelPickerProps<T> = {
   swipeDuration?: number
 }
 
-const WheelPickerInner = <T,>({
+const WheelPickerInner = <T extends PickerOption,>({
   data,
   selectedIndex,
   onChange,
@@ -63,7 +65,7 @@ const WheelPickerInner = <T,>({
   const emitIndexFromOffset = React.useCallback(
     (offsetY: number) => {
       if (readOnly) return
-      const { index } = offsetToIndex(-offsetY, itemHeight, total, data as any)
+      const { index } = offsetToIndex(-offsetY, itemHeight, total, data)
       if (index !== selectedIndex) onChange(index)
     },
     [data, itemHeight, onChange, readOnly, selectedIndex, total],
@@ -137,12 +139,12 @@ const WheelPickerInner = <T,>({
   )
 
   const handleWheel = React.useCallback(
-    (event: unknown) => {
+    (event: { nativeEvent?: { deltaY?: number } }) => {
       if (!isWeb || readOnly) return
-      const delta = (event as any)?.nativeEvent?.deltaY ?? 0
+      const delta = event.nativeEvent?.deltaY ?? 0
       if (!delta) return
       const direction = delta > 0 ? 1 : -1
-      const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data as any)
+      const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data)
       const nextIndex = clamp(index + direction, 0, total - 1)
       if (nextIndex === selectedIndex) return
       startWebSnap(nextIndex)
@@ -152,8 +154,8 @@ const WheelPickerInner = <T,>({
 
   const webTransform = { transform: [{ translateY: webOffset }] }
   const handleWebTransitionEnd = React.useCallback(
-    (event: any) => {
-      const propertyName = event?.nativeEvent?.propertyName ?? event?.propertyName
+    (event: { nativeEvent?: { propertyName?: string } } & { propertyName?: string }) => {
+      const propertyName = event.nativeEvent?.propertyName ?? event.propertyName
       if (propertyName && propertyName !== 'transform' && propertyName !== 'webkitTransform') return
       finalizePendingChange()
     },
@@ -202,7 +204,7 @@ const WheelPickerInner = <T,>({
           if (shouldMomentum(distance, duration)) {
             target = momentumTarget(distance, duration, startOffsetRef.current, itemHeight, -Math.max(0, total - 1) * itemHeight)
           }
-          const { index } = offsetToIndex(target, itemHeight, total, data as any)
+          const { index } = offsetToIndex(target, itemHeight, total, data)
           startWebSnap(index)
         },
         onPanResponderTerminationRequest: () => false,
@@ -233,21 +235,21 @@ const WheelPickerInner = <T,>({
           style={[
             webTransform,
             isWeb
-              ? {
+              ? ({
                 transitionProperty: webTransition ? 'transform' : 'none',
                 transitionDuration: `${webTransition}ms`,
                 transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
                 willChange: 'transform',
-              }
+              } as unknown as ViewStyle)
               : undefined,
           ]}
-          {...({ onTransitionEnd: handleWebTransitionEnd } as any)}
+          {...({ onTransitionEnd: handleWebTransitionEnd } as unknown as React.ComponentProps<typeof View>)}
         >
           <View style={{ height: spacerHeight }} />
           {data.map((item, index) => {
             const content = renderItem(item, index)
             return (
-              <View key={(item as any)?.value ?? index} style={[styles.option, { height: itemHeight }]}>
+              <View key={String(item.value ?? index)} style={[styles.option, { height: itemHeight }]}>
                 {content ?? null}
               </View>
             )
@@ -270,7 +272,7 @@ const WheelPickerInner = <T,>({
       <FlatList
         ref={listRef}
         data={data}
-        keyExtractor={(item, idx) => String((item as any)?.value ?? idx)}
+        keyExtractor={(item, idx) => String(item.value ?? idx)}
         renderItem={({ item, index }) => {
           const content = renderItem(item, index)
           return (
@@ -286,7 +288,7 @@ const WheelPickerInner = <T,>({
         })}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={scrollEventThrottle}
-        decelerationRate={decelerationRate as any}
+        decelerationRate={decelerationRate}
         snapToInterval={itemHeight}
         snapToAlignment="start"
         nestedScrollEnabled={true}
@@ -330,7 +332,7 @@ const webOnlyStyles = StyleSheet.create({
     cursor: 'pointer',
     userSelect: 'none',
     touchAction: 'none',
-  } as any),
+  } as unknown as ViewStyle),
 })
 
 export default WheelPicker

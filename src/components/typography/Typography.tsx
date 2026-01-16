@@ -1,6 +1,6 @@
 import React from 'react'
 import { Linking, Platform, Text, View } from 'react-native'
-import type { NativeSyntheticEvent, StyleProp, TextLayoutEventData, TextProps, TextStyle, ViewStyle } from 'react-native'
+import type { GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextLayoutEventData, TextProps, TextStyle } from 'react-native'
 import { isBoolean, isNumber, isPlainObject } from '../../utils/validate'
 
 import type {
@@ -75,30 +75,28 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
     : fontSize * tokens.sizing.lineHeightMultiplier
 
   const baseStyle = React.useMemo<StyleProp<TextStyle>>(() => {
-    const decorationLine = [
-      underline ? 'underline' : undefined,
-      deleted ? 'line-through' : undefined,
-    ]
-      .filter(Boolean)
-      .join(' ')
-
-    const textDecoration: TextStyle = decorationLine ? {
-      textDecorationLine: decorationLine as TextStyle['textDecorationLine']
-    } : {}
+    const textDecorationLine =
+      underline && deleted
+        ? 'underline line-through'
+        : underline
+          ? 'underline'
+          : deleted
+            ? 'line-through'
+            : undefined
 
     const computedStyle: TextStyle = {
       color: resolvedColor,
       fontSize,
       lineHeight,
       fontFamily: tokens.typography.fontFamily,
-      fontWeight: (strong ? tokens.typography.weight.strong : tokens.typography.weight.regular) as TextStyle['fontWeight'],
+      fontWeight: strong ? tokens.typography.weight.strong : tokens.typography.weight.regular,
+      textDecorationLine,
       textAlign: center ? 'center' : undefined,
       opacity: disabled ? tokens.opacity.disabled : 1,
     }
 
     return [
       computedStyle,
-      textDecoration,
       style,
     ]
   }, [
@@ -119,12 +117,12 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
   const hasActionText = !!ellipsisConfig && (ellipsisConfig.expandText || ellipsisConfig.collapseText)
   const shouldShowAction = hasActionText && (isTruncated || expanded || Platform.OS === 'web')
 
-  const handleToggleEllipsis = () => {
+  const handleToggleEllipsis = React.useCallback(() => {
     if (!ellipsisConfig) return
     const next = !expanded
     setExpanded(next)
     ellipsisConfig.onExpand?.(next)
-  }
+  }, [ellipsisConfig, expanded])
 
   const actionLabel = expanded
     ? ellipsisConfig?.collapseText ?? ellipsisConfig?.expandText
@@ -159,7 +157,7 @@ const TypographyTextBase = React.forwardRef<Text, TypographyTextProps>((props, r
         style={{
           color: tokens.colors.primary,
           fontSize: tokens.sizing.sizes.sm,
-          fontWeight: tokens.typography.weight.medium as TextStyle['fontWeight'],
+          fontWeight: tokens.typography.weight.medium,
           marginLeft: tokens.sizing.actionMarginLeft,
         }}
       >
@@ -183,7 +181,7 @@ TypographyTitle.displayName = 'TypographyTitle'
 const TypographyLink = React.forwardRef<Text, TypographyLinkProps>((props, ref) => {
   const { href, onPress, underline = true, type = 'primary', ...rest } = props
 
-  const handlePress: TextProps['onPress'] = React.useCallback(async (event: NativeSyntheticEvent<any>) => {
+  const handlePress: TextProps['onPress'] = React.useCallback(async (event: GestureResponderEvent) => {
     if (onPress) {
       onPress(event)
       return

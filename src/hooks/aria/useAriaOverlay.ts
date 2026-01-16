@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useOverlay } from '@react-native-aria/overlays'
+import type { ViewProps } from 'react-native'
 
 export interface UseAriaOverlayOptions {
   isOpen: boolean
@@ -12,16 +13,16 @@ export interface UseAriaOverlayOptions {
   /**
    * 自定义是否在交互外关闭
    */
-  shouldCloseOnInteractOutside?: (target: any) => boolean
+  shouldCloseOnInteractOutside?: (target: unknown) => boolean
   /**
    * 透传给 overlayProps 的其他属性
    */
-  overlayProps?: Record<string, any>
+  overlayProps?: Record<string, unknown>
 }
 
 export interface UseAriaOverlayResult {
-  overlayRef: React.RefObject<any>
-  overlayProps: Record<string, any>
+  overlayRef: React.RefObject<unknown>
+  overlayProps: Partial<ViewProps> & Record<string, unknown>
 }
 
 export const useAriaOverlay = ({
@@ -31,7 +32,7 @@ export const useAriaOverlay = ({
   shouldCloseOnInteractOutside,
   overlayProps: overlayPropOverrides,
 }: UseAriaOverlayOptions): UseAriaOverlayResult => {
-  const overlayRef = React.useRef<any>(null)
+  const overlayRef = React.useRef<unknown>(null)
 
   const { overlayProps } = useOverlay(
     {
@@ -40,14 +41,14 @@ export const useAriaOverlay = ({
       isDismissable,
       shouldCloseOnInteractOutside,
     },
-    overlayRef
+    overlayRef as unknown as React.RefObject<HTMLElement>
   )
 
   return {
     overlayRef,
-    overlayProps: {
+    overlayProps: ({
       ...(overlayProps ?? {}),
       ...(overlayPropOverrides ?? {}),
-    },
+    } as unknown as Partial<ViewProps> & Record<string, unknown>),
   }
 }

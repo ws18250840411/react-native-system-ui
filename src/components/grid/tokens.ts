@@ -84,7 +84,7 @@ export const createGridTokens = (foundations: Foundations): GridTokens => {
       fontSize: fontSize.sm,
       fontFamily: typography.fontFamily,
       lineHeight: Math.round(fontSize.sm * typography.lineHeightMultiplier),
-      fontWeight: String(typography.weight.regular),
+      fontWeight: typography.weight.regular,
     },
     spacing: {
       paddingHorizontal: spacing.sm,

@@ -60,7 +60,7 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
     typography: {
       fontSize: fontSize.md,
       fontFamily: typography.fontFamily,
-      fontWeight: String(typography.weight.medium),
+      fontWeight: typography.weight.medium,
       lineHeightMultiplier: typography.lineHeightMultiplier,
     },
     sizing: {

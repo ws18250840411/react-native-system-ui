@@ -18,6 +18,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type LayoutChangeEvent,
+  type ViewStyle,
 } from 'react-native'
 import { clamp } from '../../utils/number'
 import { isFiniteNumber } from '../../utils/validate'
@@ -29,7 +30,13 @@ const FALLBACK_WIDTH = 375
 const FALLBACK_HEIGHT = 667
 
 const runAfterFrames = (frames: number, fn: () => void) => {
-  const raf = typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame : (cb: any) => setTimeout(cb, 16)
+  const raf =
+    typeof requestAnimationFrame !== 'undefined'
+      ? requestAnimationFrame
+      : (cb: FrameRequestCallback) => {
+        setTimeout(() => cb(Date.now()), 16)
+        return 0
+      }
   let left = Math.max(1, frames)
   const step = () => {
     left -= 1
@@ -42,7 +49,27 @@ const runAfterFrames = (frames: number, fn: () => void) => {
   raf(step)
 }
 
-const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) => {
+type WebCancelableEvent = {
+  preventDefault?: () => void
+  stopPropagation?: () => void
+  nativeEvent?: {
+    preventDefault?: () => void
+    stopPropagation?: () => void
+  }
+}
+
+const stopWebEvent = (event: WebCancelableEvent) => {
+  event.preventDefault?.()
+  event.stopPropagation?.()
+  event.nativeEvent?.preventDefault?.()
+  event.nativeEvent?.stopPropagation?.()
+}
+
+type SwiperComponent = (<T>(
+  props: SwiperProps<T> & React.RefAttributes<SwiperInstance>
+) => React.ReactElement | null) & { displayName?: string }
+
+const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) => {
   const {
     initialSwipe = 0,
     touchable = true,
@@ -95,8 +122,9 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       return React.Children.toArray(children).filter(
         (child): child is React.ReactElement => {
           if (!React.isValidElement(child)) return false
-          const type = child.type as any
-          return type === SwiperItem || type?.displayName === 'SwiperItem'
+          if (child.type === SwiperItem) return true
+          const type = child.type as unknown as { displayName?: string }
+          return type.displayName === 'SwiperItem'
         }
       )
     }
@@ -286,7 +314,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         nextOffset = value
       }
     })
-    ;(latest.vertical ? webTranslateXAnim : webTranslateYAnim).stopAnimation()
+      ; (latest.vertical ? webTranslateXAnim : webTranslateYAnim).stopAnimation()
     webOffsetRef.current = nextOffset
   }
 
@@ -871,10 +899,7 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
         if (!panLockRef.current) return
         const latest = panLatestRef.current
         if (latest.preventScroll) {
-          ;(event as any).preventDefault?.()
-          ;(event as any).stopPropagation?.()
-          ;(event.nativeEvent as any)?.preventDefault?.()
-          ;(event.nativeEvent as any)?.stopPropagation?.()
+          stopWebEvent(event as unknown as WebCancelableEvent)
         }
         const delta = latest.vertical ? gestureState.dy : gestureState.dx
         const nextRaw = startOffsetRef.current + delta
@@ -1057,9 +1082,9 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
             }
           })
         }}
-        style={isWeb ? ({ cursor: 'grab' } as any) : undefined}
+        style={isWeb ? ({ cursor: 'grab' } as unknown as ViewStyle) : undefined}
         contentContainerStyle={[
-          isWeb ? ({ userSelect: 'none' } as any) : undefined,
+          isWeb ? ({ userSelect: 'none' } as unknown as ViewStyle) : undefined,
           !isWeb ? nativeTrackContentPaddingStyle : undefined,
         ]}
         testID={`${testID}-flatlist`}
@@ -1069,7 +1094,9 @@ const Swiper = React.forwardRef<SwiperInstance, SwiperProps<any>>((props, ref) =
       </View>
     </View>
   )
-})
+}
+
+const Swiper = React.forwardRef(SwiperImpl) as unknown as SwiperComponent
 
 Swiper.displayName = 'Swiper'
 
@@ -1102,7 +1129,7 @@ const webContainerStyle = Platform.OS === 'web'
     cursor: 'grab',
     userSelect: 'none',
     WebkitUserSelect: 'none',
-  } as any)
+  } as unknown as ViewStyle)
   : undefined
 
 export default Swiper

@@ -5,7 +5,7 @@ import { type Foundations } from '../../design-system/tokens'
 import type { SidebarTokens } from './types'
 
 export const createSidebarTokens = (foundations: Foundations): SidebarTokens => {
-  const { palette, fontSize } = foundations
+  const { palette, fontSize, typography } = foundations
   const borderWidth = StyleSheet.hairlineWidth
   return {
     defaults: {
@@ -65,7 +65,7 @@ export const createSidebarTokens = (foundations: Foundations): SidebarTokens => 
     },
     typography: {
       fontSize: fontSize.sm,
-      fontWeight: '500',
+      fontWeight: typography.weight.medium,
     },
     sizing: {
       width: 120,

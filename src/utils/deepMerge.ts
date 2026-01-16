@@ -1,37 +1,47 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DeepPartial } from '../types'
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return Object.prototype.toString.call(value) === '[object Object]'
 }
 
-export function deepMerge<T>(target: T, source?: DeepPartial<T>): T {
+export function deepMerge<T>(target: T, source?: DeepPartial<T>): T
+export function deepMerge<T>(target: DeepPartial<T>, source?: DeepPartial<T>): DeepPartial<T>
+export function deepMerge<T>(target: T, source?: DeepPartial<T>) {
   if (!source) {
     return target
   }
 
-  const output: any = Array.isArray(target) ? [...(target as any[])] : { ...(target as any) }
+  if (!Array.isArray(target) && !isPlainObject(target)) {
+    return source as unknown as T
+  }
+
+  const output: Record<string, unknown> | unknown[] = Array.isArray(target)
+    ? [...(target as unknown as unknown[])]
+    : { ...(target as unknown as Record<string, unknown>) }
 
   Object.keys(source).forEach(key => {
-    const sourceValue = (source as Record<string, unknown>)[key]
+    const sourceValue = (source as unknown as Record<string, unknown>)[key]
 
     if (sourceValue === undefined) {
       return
     }
 
-    const targetValue = (target as Record<string, unknown>)[key]
+    const targetValue = (target as unknown as Record<string, unknown>)[key]
 
     if (isPlainObject(targetValue) && isPlainObject(sourceValue)) {
-      output[key] = deepMerge(targetValue, sourceValue as DeepPartial<unknown>)
+      ; (output as Record<string, unknown>)[key] = deepMerge(
+        targetValue,
+        sourceValue as DeepPartial<Record<string, unknown>>
+      )
       return
     }
 
-    output[key] = Array.isArray(sourceValue)
+    ; (output as Record<string, unknown>)[key] = Array.isArray(sourceValue)
       ? [...sourceValue]
       : isPlainObject(sourceValue)
         ? { ...sourceValue }
         : sourceValue
   })
 
-  return output as T
+  return output as unknown as T
 }

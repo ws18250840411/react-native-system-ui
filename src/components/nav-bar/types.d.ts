@@ -34,7 +34,7 @@ export interface NavBarTokens {
   }
   typography: {
     titleSize: number
-    titleWeight: string | number
+    titleWeight: NonNullable<TextStyle['fontWeight']>
     descriptionSize: number
   }
   sizing: {

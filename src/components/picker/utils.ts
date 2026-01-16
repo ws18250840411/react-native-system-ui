@@ -21,7 +21,10 @@ export const toArrayValue = (value?: PickerValue[] | PickerValue | null): Picker
 }
 
 const isColumnWithOptions = (col: PickerColumn | PickerOption): col is { options: PickerOption[]; defaultValue?: PickerValue } =>
-  !!col && isObject(col) && 'options' in col && Array.isArray((col as any).options)
+  !!col &&
+  isObject(col) &&
+  'options' in col &&
+  Array.isArray((col as { options?: unknown }).options)
 
 const hasChildren = (option: PickerOption) =>
   !!option && Array.isArray(option.children) && (option.children as PickerOption[]).length > 0
@@ -102,7 +105,9 @@ export const prepareColumns = (columnsInput: PickerColumns = []): PreparedPicker
     return { type: 'single', columnsList: [], defaults: [], cascadeRoot: [] }
   }
 
-  const everyPlainOption = columnsInput.every(item => !Array.isArray(item) && !isColumnWithOptions(item as any))
+  const everyPlainOption = columnsInput.every(item =>
+    !Array.isArray(item) && !isColumnWithOptions(item as unknown as PickerColumn | PickerOption)
+  )
   const cascade = everyPlainOption && columnsInput.some(item => hasChildren(item as PickerOption))
 
   if (cascade) {
@@ -114,7 +119,7 @@ export const prepareColumns = (columnsInput: PickerColumns = []): PreparedPicker
     }
   }
 
-  const asArray = columnsInput as any[]
+  const asArray = columnsInput as unknown[]
   const columnsList: PickerOption[][] = []
   const defaults: (PickerValue | undefined)[] = []
 
@@ -125,11 +130,12 @@ export const prepareColumns = (columnsInput: PickerColumns = []): PreparedPicker
   } else {
     asArray.forEach(col => {
       if (Array.isArray(col)) {
-        columnsList.push(col)
+        columnsList.push(col as PickerOption[])
         defaults.push(undefined)
-      } else if (isColumnWithOptions(col)) {
-        columnsList.push(col.options ?? [])
-        defaults.push(col.defaultValue)
+      } else if (isColumnWithOptions(col as unknown as PickerColumn | PickerOption)) {
+        const column = col as unknown as { options: PickerOption[]; defaultValue?: PickerValue }
+        columnsList.push(column.options ?? [])
+        defaults.push(column.defaultValue)
       }
     })
   }

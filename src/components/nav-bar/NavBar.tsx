@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, SafeAreaView, Text, View, type TextStyle } from 'react-native'
+import { Pressable, SafeAreaView, Text, View, type LayoutChangeEvent } from 'react-native'
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
@@ -52,7 +52,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const [height, setHeight] = React.useState(tokens.sizing.height)
   const enablePlaceholder = fixed && placeholder
   const handleLayout = React.useCallback(
-    (event: any) => {
+    (event: LayoutChangeEvent) => {
       if (!enablePlaceholder) return
       const nextHeight = event.nativeEvent.layout.height
       setHeight(prev => (Math.abs(prev - nextHeight) < 0.5 ? prev : nextHeight))
@@ -187,7 +187,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
                 {
                   color: resolvedColor,
                   fontSize: tokens.typography.titleSize,
-                  fontWeight: tokens.typography.titleWeight as TextStyle['fontWeight'],
+                  fontWeight: tokens.typography.titleWeight,
                 },
                 titleStyle,
               ]}

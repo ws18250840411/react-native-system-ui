@@ -7,15 +7,24 @@ export interface WindowRect {
   height: number
 }
 
-export const measureInWindow = (node: any, callback: (rect: WindowRect | null) => void) => {
+type MeasureInWindowNode = {
+  measureInWindow?: (callback: (x: number, y: number, width: number, height: number) => void) => void
+}
+
+type BoundingClientRectNode = {
+  getBoundingClientRect?: () => { left?: number; top?: number; width?: number; height?: number }
+}
+
+export const measureInWindow = (node: unknown, callback: (rect: WindowRect | null) => void) => {
   if (!node) {
     callback(null)
     return
   }
 
   try {
-    if (isFunction(node.measureInWindow)) {
-      node.measureInWindow((x: number, y: number, width: number, height: number) => {
+    const maybeMeasureNode = node as MeasureInWindowNode
+    if (isFunction(maybeMeasureNode.measureInWindow)) {
+      maybeMeasureNode.measureInWindow((x: number, y: number, width: number, height: number) => {
         if (![x, y, width, height].every(Number.isFinite)) {
           callback(null)
           return
@@ -25,8 +34,9 @@ export const measureInWindow = (node: any, callback: (rect: WindowRect | null) =
       return
     }
 
-    if (isFunction(node.getBoundingClientRect)) {
-      const rect = node.getBoundingClientRect()
+    const maybeDomNode = node as BoundingClientRectNode
+    if (isFunction(maybeDomNode.getBoundingClientRect)) {
+      const rect = maybeDomNode.getBoundingClientRect()
       const x = rect?.left
       const y = rect?.top
       const width = rect?.width
@@ -35,7 +45,12 @@ export const measureInWindow = (node: any, callback: (rect: WindowRect | null) =
         callback(null)
         return
       }
-      callback({ x, y, width, height })
+      callback({
+        x: x as number,
+        y: y as number,
+        width: width as number,
+        height: height as number,
+      })
       return
     }
   } catch (_error) {
@@ -45,4 +60,3 @@ export const measureInWindow = (node: any, callback: (rect: WindowRect | null) =
 
   callback(null)
 }
-

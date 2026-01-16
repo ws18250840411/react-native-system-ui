@@ -79,10 +79,11 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
       const color = activeTextColor
       if (activeIcon) {
         if (React.isValidElement(activeIcon)) {
-          const iconProps = activeIcon.props as any
+          const iconElement = activeIcon as React.ReactElement<Record<string, unknown>>
+          const iconProps = iconElement.props
           return iconProps && ('fill' in iconProps || 'color' in iconProps)
-            ? React.cloneElement(activeIcon as any, { fill: color, color })
-            : activeIcon
+            ? React.cloneElement(iconElement, { fill: color, color })
+            : iconElement
         }
         if (isText(activeIcon)) {
           return <Text style={[styles.indicator, { color }]}>{activeIcon}</Text>

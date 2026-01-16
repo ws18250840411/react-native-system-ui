@@ -8,6 +8,7 @@ import {
   View,
   Platform,
   type LayoutChangeEvent,
+  type TextStyle,
 } from 'react-native'
 import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
@@ -22,8 +23,12 @@ const AnimatedText = Animated.createAnimatedComponent(Text)
 const IS_WEB = Platform.OS === 'web'
 
 if (IS_WEB) {
-  const globalObj = typeof globalThis !== 'undefined' ? globalThis : (window as any)
-  if (globalObj && globalObj.global === undefined) {
+  type GlobalLike = { global?: unknown }
+  const globalObj: GlobalLike =
+    typeof globalThis !== 'undefined'
+      ? (globalThis as unknown as GlobalLike)
+      : (window as unknown as GlobalLike)
+  if (globalObj.global === undefined) {
     globalObj.global = globalObj
   }
 }
@@ -460,7 +465,7 @@ const styles = StyleSheet.create({
       textOverflow: 'clip',
     },
     default: {},
-  }) as any,
+  }) as unknown as TextStyle,
   wrapText: {
     flexWrap: 'wrap',
     flexShrink: 1,

@@ -1,4 +1,4 @@
-import type { TextProps, ViewStyle } from 'react-native'
+import type { TextProps, TextStyle, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
 
@@ -34,9 +34,9 @@ export interface TypographyTokens {
   typography: {
     fontFamily: string
     weight: {
-      regular: string
-      medium: string
-      strong: string
+      regular: NonNullable<TextStyle['fontWeight']>
+      medium: NonNullable<TextStyle['fontWeight']>
+      strong: NonNullable<TextStyle['fontWeight']>
     }
   }
   opacity: {

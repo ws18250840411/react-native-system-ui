@@ -68,9 +68,10 @@ const getMaxZIndex = (node: React.ReactNode): number | undefined => {
   }
 
   if (React.isValidElement(node)) {
-    const style = (node.props as any)?.style
+    const element = node as React.ReactElement<{ style?: unknown; children?: React.ReactNode }>
+    const style = element.props.style
     if (style && !isFunction(style)) {
-      const flattened = StyleSheet.flatten(style)
+      const flattened = StyleSheet.flatten(style) as { zIndex?: unknown } | null
       const zIndex = flattened?.zIndex
       if (isNumber(zIndex)) {
         return zIndex
@@ -78,7 +79,7 @@ const getMaxZIndex = (node: React.ReactNode): number | undefined => {
     }
 
     // 支持 Fragment / 包装组件：继续向内找
-    return getMaxZIndex((node.props as any)?.children)
+    return getMaxZIndex(element.props.children)
   }
 
   return undefined
@@ -245,7 +246,7 @@ const webFixedStyle: ViewStyle | undefined =
     : undefined
 
 let autoHostContainer: HTMLElement | null = null
-let autoHostRoot: any = null
+let autoHostRoot: { render: (node: React.ReactNode) => void; unmount: () => void } | null = null
 let hostPromise: Promise<void> | null = null
 
 export const ensureGlobalPortalHost = () => {
@@ -276,7 +277,7 @@ export const ensureGlobalPortalHost = () => {
       autoHostContainer = doc.createElement('div')
       autoHostContainer.setAttribute('data-rnsu-portal-host', 'true')
       doc.body.appendChild(autoHostContainer)
-      autoHostRoot = createRoot(autoHostContainer)
+      autoHostRoot = createRoot(autoHostContainer) as unknown as { render: (node: React.ReactNode) => void; unmount: () => void }
       autoHostRoot.render(<PortalHost fixed />)
       scheduleTeardownAutoHost()
     })

@@ -46,7 +46,7 @@ export interface GridTokens {
     fontSize: number
     fontFamily: string
     lineHeight: number
-    fontWeight: string
+    fontWeight: NonNullable<TextStyle['fontWeight']>
   }
   spacing: {
     paddingHorizontal: number

@@ -26,14 +26,14 @@ export const FormItem: React.FC<FormItemProps> = ({
   initialValue,
   children,
 }) => {
-  const renderProps = isFunction(children)
+  const renderProps = typeof children === 'function'
   const context = React.useContext(FormContext)
 
   if (!context) {
     if (renderProps) {
       return (
         <>
-          {(children as any)({
+          {children({
             getFieldValue: () => undefined,
             getFieldsValue: () => ({}),
             form: null,
@@ -72,7 +72,7 @@ export const FormItem: React.FC<FormItemProps> = ({
 
   if (renderProps) {
     if (!shouldRender) return null
-    const node = (children as any)({
+    const node = children({
       getFieldValue: context.getFieldValue,
       getFieldsValue: context.getFieldsValue,
       form: context.form,
@@ -91,7 +91,7 @@ export const FormItem: React.FC<FormItemProps> = ({
     return <>{children}</>
   }
 
-  const child = childArray[0] as React.ReactElement<any>
+  const child = childArray[0] as React.ReactElement<Record<string, unknown>>
 
   const handleChange = (next: any) => {
     context.setFieldValue(name, next, trigger)
@@ -102,8 +102,13 @@ export const FormItem: React.FC<FormItemProps> = ({
   }
 
   const isFieldLike =
-    isString((child as any)?.type?.displayName) &&
-    ((child as any).type.displayName.includes('Field') || (child as any).type.displayName.includes('Input'))
+    (() => {
+      const displayName = (child.type as unknown as { displayName?: string }).displayName
+      return (
+        isString(displayName) &&
+        (displayName.includes('Field') || displayName.includes('Input'))
+      )
+    })()
 
   const resolveValue = () => {
     if (child.props[valuePropName] !== undefined) return child.props[valuePropName]

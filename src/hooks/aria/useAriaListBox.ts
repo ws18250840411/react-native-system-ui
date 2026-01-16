@@ -16,22 +16,22 @@ export interface UseAriaListBoxOptions<T> extends AriaListBoxProps<T> {
 
 export interface UseAriaListBoxResult<T> {
   state: ListState<T>
-  listBoxProps: any
-  labelProps: any
-  ref: React.RefObject<any>
+  listBoxProps: Record<string, unknown>
+  labelProps: Record<string, unknown>
+  ref: React.RefObject<unknown>
 }
 
 export const useAriaListBox = <T extends object>(
   props: UseAriaListBoxOptions<T>
 ): UseAriaListBoxResult<T> => {
-  const ref = React.useRef<any>(null)
+  const ref = React.useRef<unknown>(null)
   const state = useListState(props)
-  const { listBoxProps, labelProps } = useListBox(props, state, ref)
+  const { listBoxProps, labelProps } = useListBox(props, state, ref as unknown as React.RefObject<HTMLElement>)
 
   return {
     state,
-    listBoxProps,
-    labelProps,
+    listBoxProps: listBoxProps as unknown as Record<string, unknown>,
+    labelProps: labelProps as unknown as Record<string, unknown>,
     ref,
   }
 }

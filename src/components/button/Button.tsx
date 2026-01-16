@@ -5,6 +5,7 @@ import {
   Pressable,
   Text,
   View,
+  type ViewStyle,
 } from 'react-native'
 
 import { withAlpha, extractFirstColorToken } from '../../utils/color'
@@ -233,7 +234,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
     const gradientWebStyle =
       gradientFillEnabled && supportsGradientFill && gradientString
-        ? ({ backgroundImage: gradientString } as any)
+        ? ({ backgroundImage: gradientString } as unknown as ViewStyle)
         : undefined
 
     const iconWrapperStyle = React.useMemo(

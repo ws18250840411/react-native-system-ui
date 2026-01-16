@@ -3,7 +3,7 @@ import type { StyleProp, ViewStyle, FlatListProps } from 'react-native'
 
 import type { SwiperPagIndicatorProps } from './SwiperPagIndicator'
 
-export interface SwiperProps<T = any> {
+export interface SwiperProps<T = unknown> {
   /** 初始位置索引值 */
   initialSwipe?: number
   /** 是否允许手势滑动 */

@@ -30,7 +30,7 @@ export interface SidebarTokens {
   }
   typography: {
     fontSize: number
-    fontWeight: string | number
+    fontWeight: NonNullable<TextStyle['fontWeight']>
   }
   sizing: {
     width: number

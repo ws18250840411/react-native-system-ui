@@ -16,6 +16,7 @@ import { isDef, isFiniteNumber, isFunction, isObject, isRenderable, isText } fro
 import { formatNumberInput } from '../../utils/string'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
+import type { DialogShowOptions } from '../dialog'
 
 const styles = StyleSheet.create({
   body: {
@@ -371,18 +372,18 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       <QuestionO size={tokens.sizes.icon} fill={tokens.colors.tooltip} color={tokens.colors.tooltip} />
     )
     let icon: React.ReactNode = defaultIcon
-    let dialogProps: FieldTooltipProps | { message: React.ReactNode } = { message: tooltip as React.ReactNode }
+    let dialogProps: DialogShowOptions = { message: tooltip as React.ReactNode }
 
     if (!React.isValidElement(tooltip) && !isText(tooltip)) {
       const { icon: customIcon, ...rest } = tooltip as FieldTooltipProps
       icon = customIcon ?? defaultIcon
-      dialogProps = rest as FieldTooltipProps
+      dialogProps = rest as DialogShowOptions
     }
 
     return (
       <Pressable
         style={[styles.tooltip, { marginLeft: tokens.spacing.rightIconGap }]}
-        onPress={() => Dialog.show(dialogProps as any)}
+        onPress={() => Dialog.show(dialogProps)}
         accessibilityRole="button"
       >
         {icon}
@@ -437,12 +438,15 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const renderClearIcon = () => {
     if (!showClear) return null
-    const webMouseDownProps = {
-      onMouseDown: (event: any) => {
-        event.preventDefault?.()
-        event.stopPropagation?.()
-      },
-    } as any
+    const webMouseDownProps =
+      Platform.OS === 'web'
+        ? ({
+          onMouseDown: (event: { preventDefault?: () => void; stopPropagation?: () => void }) => {
+            event.preventDefault?.()
+            event.stopPropagation?.()
+          },
+        } as unknown as React.ComponentProps<typeof Pressable>)
+        : undefined
     return (
       <Pressable
         style={[
@@ -655,7 +659,11 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       titleStyle={mergedTitleStyle}
       style={style}
       contentStyle={contentWrapperStyle}
-      accessibilityState={error ? ({ invalid: true } as any) : undefined}
+      accessibilityState={
+        error
+          ? ({ invalid: true } as unknown as React.ComponentProps<typeof Cell>['accessibilityState'])
+          : undefined
+      }
       accessibilityLabel={isText(label) ? String(label) : undefined}
       onPress={onClick}
       android_ripple={androidRipple}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Linking, StyleSheet, Text, View } from 'react-native'
+import { Linking, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native'
 import renderer, { act } from 'react-test-renderer'
 
 import Typography from '..'
@@ -64,7 +64,7 @@ describe('Typography', () => {
     const text = tree.root.findByType(Text)
 
     act(() => {
-      text.props.onPress?.({} as any)
+      text.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(openURLSpy).toHaveBeenCalledWith('https://example.com')
@@ -120,7 +120,7 @@ describe('Typography', () => {
       <Typography onPress={onPress}>Press Me</Typography>
     )
     const text = tree.root.findByType(Text)
-    text.props.onPress({} as any)
+    text.props.onPress({} as unknown as GestureResponderEvent)
     expect(onPress).toHaveBeenCalled()
   })
 })

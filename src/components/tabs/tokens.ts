@@ -1,5 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
+import type { TextStyle } from 'react-native'
 import type { TabsAlign, TabsType } from './types'
 
 export interface TabsTokens {
@@ -52,8 +53,8 @@ export interface TabsTokens {
   }
   typography: {
     titleSize: number
-    titleWeight: string | number
-    titleActiveWeight: string | number
+    titleWeight: NonNullable<TextStyle['fontWeight']>
+    titleActiveWeight: NonNullable<TextStyle['fontWeight']>
     descriptionSize: number
     jumboTitleSize: number
     jumboLineHeight: number

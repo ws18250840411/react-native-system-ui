@@ -45,18 +45,19 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
   const applyIconTheme = (node: React.ReactNode) => {
     if (!React.isValidElement(node)) return node
 
-    const nextProps: any = {}
-    const p: any = (node as any).props ?? {}
+    const element = node as React.ReactElement<Record<string, unknown>>
+    const nextProps: Record<string, unknown> = {}
+    const p = element.props ?? {}
 
-    if (p.size == null) nextProps.size = resolvedIconSize
-    if (p.fill == null) nextProps.fill = color
-    if (p.color == null) nextProps.color = color
+    if (p['size'] == null) nextProps['size'] = resolvedIconSize
+    if (p['fill'] == null) nextProps['fill'] = color
+    if (p['color'] == null) nextProps['color'] = color
 
-    if (p.style != null) {
-      nextProps.style = [p.style, { color }]
+    if (p['style'] != null) {
+      nextProps['style'] = [p['style'], { color }]
     }
 
-    return React.cloneElement(node as any, nextProps)
+    return React.cloneElement(element, nextProps)
   }
 
   const renderIcon = () => {

@@ -67,7 +67,7 @@ const createSelectorTokens = ({
     fontSize: fontSize.md,
     descriptionSize: fontSize.sm,
     fontFamily: typography.fontFamily,
-    fontWeight: String(typography.weight.medium),
+    fontWeight: typography.weight.medium,
   },
   radii: { item: radii.xs },
   spacing: {

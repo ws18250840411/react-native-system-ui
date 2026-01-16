@@ -63,7 +63,8 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     state
   )
 
-  const { [' aria-disabled']: __ariaDisabledTypo, ...restGroupProps } = (groupProps ?? {}) as any
+  const groupPropsRecord = (groupProps ?? {}) as Record<string, unknown>
+  const { [' aria-disabled']: __ariaDisabledTypo, ...restGroupProps } = groupPropsRecord
   const resolvedGroupProps = {
     ...restGroupProps,
     'aria-disabled': disabled,
@@ -162,7 +163,8 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
         {supportsGap
           ? childrenArray
           : childrenArray.map((child, index) => {
-            const key = React.isValidElement(child) && child.key !== null ? child.key : index
+            const key: React.Key =
+              React.isValidElement(child) && child.key !== null ? child.key : index
             const itemStyle = itemStyleForIndex(index)
 
             if (React.isValidElement(child) && child.type !== React.Fragment) {
@@ -174,7 +176,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
             }
 
             return (
-              <View key={key as any} style={itemStyle}>
+              <View key={key} style={itemStyle}>
                 {child}
               </View>
             )

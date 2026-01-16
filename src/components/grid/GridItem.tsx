@@ -93,7 +93,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
               fontSize: tokens.typography.fontSize,
               lineHeight: tokens.typography.lineHeight,
               fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.fontWeight as any,
+              fontWeight: tokens.typography.fontWeight,
             },
             textStyle
           ]}

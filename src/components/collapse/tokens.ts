@@ -56,7 +56,7 @@ export const createCollapseTokens = (foundations: Foundations): CollapseTokens =
       titleSize: fontSize.md,
       descriptionSize: fontSize.sm,
       fontFamily: typography.fontFamily,
-      titleWeight: String(typography.weight.medium),
+      titleWeight: typography.weight.medium,
     },
     panel: {
       borderRadius: radii.sm,
@@ -71,4 +71,3 @@ export const createCollapseTokens = (foundations: Foundations): CollapseTokens =
 }
 
 export const useCollapseTokens = createComponentTokensHook('collapse', createCollapseTokens)
-

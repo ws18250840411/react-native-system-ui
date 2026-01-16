@@ -59,23 +59,31 @@ export const createHairlineView = ({
   }
 
   if (position !== 'all') {
-    const s = style as any
+    const s = style as unknown as Record<string, unknown>
     if (s[position] === undefined) s[position] = 0
   }
 
   const key = position === 'all' ? 'border' : `border${position[0].toUpperCase()}${position.slice(1)}`
-    ; (style as any)[`${key}Width`] = borderWidth
-  if (color) (style as any)[`${key}Color`] = color
+  const mutableStyle = style as unknown as Record<string, unknown>
+  mutableStyle[`${key}Width`] = borderWidth
+  if (color) mutableStyle[`${key}Color`] = color
 
   if (isWeb && (!width || width === 1 || width === StyleSheet.hairlineWidth)) {
-    const scales: Record<string, any> = {
+    const scales: Record<
+      Exclude<HairlineBorderOptions['position'], undefined>,
+      { scaleX?: number; scaleY?: number; scale?: number }
+    > = {
       top: { scaleY: 0.5 },
       bottom: { scaleY: 0.5 },
       left: { scaleX: 0.5 },
       right: { scaleX: 0.5 },
       all: { scale: 0.5 },
     }
-    if (scales[position]) style.transform = [scales[position]]
+    if (scales[position]) {
+      style.transform = [
+        scales[position] as unknown as Exclude<NonNullable<ViewStyle['transform']>, string>[number],
+      ]
+    }
   }
 
   return style

@@ -420,7 +420,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
           onLayout={handleLeftLayout}
           onTouchStart={closeOnActionPress ? (e) => handleActionTouchStart('left', e) : undefined}
           onTouchEnd={closeOnActionPress ? (e) => handleActionTouchEnd('left', e) : undefined}
-          {...(isWeb ? ({ onClick: () => handleActionClick('left') } as any) : undefined)}
+          {...(isWeb ? ({ onClick: () => handleActionClick('left') } as unknown as React.ComponentProps<typeof View>) : undefined)}
         >
           {left}
         </View>
@@ -433,7 +433,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
           onLayout={handleRightLayout}
           onTouchStart={closeOnActionPress ? (e) => handleActionTouchStart('right', e) : undefined}
           onTouchEnd={closeOnActionPress ? (e) => handleActionTouchEnd('right', e) : undefined}
-          {...(isWeb ? ({ onClick: () => handleActionClick('right') } as any) : undefined)}
+          {...(isWeb ? ({ onClick: () => handleActionClick('right') } as unknown as React.ComponentProps<typeof View>) : undefined)}
         >
           {right}
         </View>
