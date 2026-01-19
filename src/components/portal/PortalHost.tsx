@@ -1,7 +1,7 @@
 import React from 'react'
 import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
 
-import { isFunction, isNumber } from '../../utils/validate'
+import { isNumber } from '../../utils/validate'
 import { PortalContext, type PortalManager } from './PortalContext'
 
 interface PortalEntry {
@@ -66,136 +66,131 @@ const getMaxZIndex = (node: React.ReactNode): number | undefined => {
     return max
   }
 
-  if (React.isValidElement(node)) {
-    const element = node as React.ReactElement<{ style?: unknown; children?: React.ReactNode }>
-    const style = element.props.style
-    let max: number | undefined
-    if (style && !isFunction(style)) {
-      const zIndex =
-        typeof style === 'object' && !Array.isArray(style) && style !== null
-          ? (style as { zIndex?: unknown }).zIndex
-          : (StyleSheet.flatten(style) as { zIndex?: unknown } | null)?.zIndex
-      if (isNumber(zIndex)) {
-        max = zIndex
-      }
-    }
+  if (!React.isValidElement(node)) return undefined
 
-    const childMax = getMaxZIndex(element.props.children)
-    if (!isNumber(childMax)) return max
-    if (!isNumber(max)) return childMax
-    return Math.max(max, childMax)
+  const element = node as React.ReactElement<{ style?: unknown; children?: React.ReactNode }>
+  const style = element.props.style
+  let max: number | undefined
+  if (style && typeof style !== 'function') {
+    const flattened =
+      typeof style === 'object' && !Array.isArray(style) && style !== null
+        ? (style as { zIndex?: unknown })
+        : (StyleSheet.flatten(style) as { zIndex?: unknown } | null)
+    const zIndex = flattened?.zIndex
+    if (isNumber(zIndex)) {
+      max = zIndex
+    }
   }
 
-  return undefined
+  const childMax = getMaxZIndex(element.props.children)
+  if (!isNumber(childMax)) return max
+  if (!isNumber(max)) return childMax
+  return Math.max(max, childMax)
 }
 
 const hostStack: PortalLayer[] = []
 const portalEntries = new Map<number, PortalEntry>()
+const emptyEntries: PortalEntry[] = []
 let nextPortalKey = 1
 let warnedNative = false
-let autoHostTeardownScheduled = false
 let snapshotDirty = true
-let snapshotCache: PortalEntry[] = []
-
+let snapshotCache = emptyEntries
 const markSnapshotDirty = () => {
   snapshotDirty = true
 }
-
-const getEntriesSnapshot = (): PortalEntry[] => {
+const getEntriesSnapshot = () => {
   if (!snapshotDirty) return snapshotCache
   snapshotDirty = false
-  snapshotCache = Array.from(portalEntries.values())
+  snapshotCache =
+    portalEntries.size === 0 ? emptyEntries : Array.from(portalEntries.values())
   return snapshotCache
 }
-
-const notifyCurrentHost = () => {
+const syncCurrentHost = () => {
   const currentHost = hostStack[hostStack.length - 1]
   if (currentHost) {
     currentHost.setEntries(getEntriesSnapshot())
   }
 }
 
-const registerHost = (host: PortalLayer) => {
-  hostStack.push(host)
-  host.setEntries(getEntriesSnapshot())
-  scheduleTeardownAutoHost()
-}
-
-const unregisterHost = (host: PortalLayer) => {
+const setHostPresence = (host: PortalLayer, present: boolean) => {
+  if (present) {
+    hostStack.push(host)
+    syncCurrentHost()
+    maybeTeardownAutoHost()
+    return
+  }
   const index = hostStack.lastIndexOf(host)
   if (index >= 0) {
     hostStack.splice(index, 1)
   }
   if (hostStack.length === 0) {
     clearPortals()
-  } else {
-    notifyCurrentHost()
+    return
   }
-  scheduleTeardownAutoHost()
+  syncCurrentHost()
+  maybeTeardownAutoHost()
 }
 
 const mountPortal = (children: React.ReactNode, key?: number) => {
   const resolvedKey = key ?? nextPortalKey++
   portalEntries.set(resolvedKey, { key: resolvedKey, children, zIndex: getMaxZIndex(children) })
   markSnapshotDirty()
-  notifyCurrentHost()
+  syncCurrentHost()
   return resolvedKey
 }
 
 const updatePortal = (key: number, children: React.ReactNode) => {
   const prev = portalEntries.get(key)
-  if (prev && prev.children === children) return
-  portalEntries.set(key, { key, children, zIndex: getMaxZIndex(children) })
+  if (prev) {
+    if (prev.children === children) return
+    prev.children = children
+    prev.zIndex = getMaxZIndex(children)
+  } else {
+    portalEntries.set(key, { key, children, zIndex: getMaxZIndex(children) })
+  }
   markSnapshotDirty()
-  notifyCurrentHost()
+  syncCurrentHost()
 }
 
 const unmountPortal = (key: number) => {
   if (portalEntries.delete(key)) {
     markSnapshotDirty()
-    notifyCurrentHost()
-    scheduleTeardownAutoHost()
+    syncCurrentHost()
+    maybeTeardownAutoHost()
   }
 }
 
 const teardownAutoHost = () => {
   if (!autoHostRoot) return
-  autoHostRoot?.unmount?.()
+  autoHostRoot.unmount()
   autoHostRoot = null
   if (autoHostContainer?.parentNode) {
     autoHostContainer.parentNode.removeChild(autoHostContainer)
   }
   autoHostContainer = null
-  autoHostTeardownScheduled = false
 }
 
-const scheduleTeardownAutoHost = () => {
+const maybeTeardownAutoHost = () => {
   if (!autoHostRoot) return
-  if (autoHostTeardownScheduled) return
-  autoHostTeardownScheduled = true
-  Promise.resolve().then(() => {
-    autoHostTeardownScheduled = false
-    if (!autoHostRoot) return
-    if (hostStack.length > 1 || (portalEntries.size === 0 && hostStack.length <= 1)) {
-      teardownAutoHost()
-    }
-  })
+  if (hostStack.length > 1 || portalEntries.size === 0) {
+    teardownAutoHost()
+  }
 }
 
 const clearPortals = () => {
   if (portalEntries.size > 0) {
     portalEntries.clear()
     markSnapshotDirty()
-    notifyCurrentHost()
+    syncCurrentHost()
   }
   warnedNative = false
-  scheduleTeardownAutoHost()
+  maybeTeardownAutoHost()
 }
 
 const globalManager: PortalManager = {
-  mount: (children, key) => mountPortal(children, key),
-  update: (key, children) => updatePortal(key, children),
-  unmount: key => unmountPortal(key),
+  mount: mountPortal,
+  update: updatePortal,
+  unmount: unmountPortal,
 }
 
 export interface PortalHostProps {
@@ -208,7 +203,7 @@ export class PortalHost extends React.Component<PortalHostProps> {
 
   componentWillUnmount(): void {
     if (this.layer) {
-      unregisterHost(this.layer)
+      setHostPresence(this.layer, false)
       this.layer = null
     }
   }
@@ -216,11 +211,11 @@ export class PortalHost extends React.Component<PortalHostProps> {
   private readonly setLayerRef = (layer: PortalLayer | null) => {
     if (this.layer === layer) return
     if (this.layer) {
-      unregisterHost(this.layer)
+      setHostPresence(this.layer, false)
     }
     this.layer = layer
     if (layer) {
-      registerHost(layer)
+      setHostPresence(layer, true)
     }
   }
 
@@ -262,7 +257,8 @@ const webFixedStyle: ViewStyle | undefined =
     : undefined
 
 let autoHostContainer: HTMLElement | null = null
-let autoHostRoot: { render: (node: React.ReactNode) => void; unmount: () => void } | null = null
+type AutoHostRoot = import('react-dom/client').Root
+let autoHostRoot: AutoHostRoot | null = null
 let hostPromise: Promise<void> | null = null
 
 export const ensureGlobalPortalHost = () => {
@@ -293,9 +289,9 @@ export const ensureGlobalPortalHost = () => {
       autoHostContainer = doc.createElement('div')
       autoHostContainer.setAttribute('data-rnsu-portal-host', 'true')
       doc.body.appendChild(autoHostContainer)
-      autoHostRoot = createRoot(autoHostContainer) as unknown as { render: (node: React.ReactNode) => void; unmount: () => void }
+      autoHostRoot = createRoot(autoHostContainer)
       autoHostRoot.render(<PortalHost fixed />)
-      scheduleTeardownAutoHost()
+      maybeTeardownAutoHost()
     })
     .catch(error => {
       teardownAutoHost()

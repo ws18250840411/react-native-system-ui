@@ -17,37 +17,30 @@ const usePortalManager = () => React.useContext(PortalContext) ?? globalManager
 const PortalComponent: React.FC<PortalProps> = ({ children }) => {
   const manager = usePortalManager()
   const keyRef = React.useRef<number | null>(null)
-  const skipNextUpdateRef = React.useRef(false)
-
-  React.useEffect(() => {
-    if (manager === globalManager && typeof document === 'undefined') {
-      void ensureGlobalPortalHost()
-    }
-  }, [manager])
+  const lastChildrenRef = React.useRef<React.ReactNode>(null)
 
   React.useLayoutEffect(() => {
-    if (manager === globalManager && typeof document !== 'undefined') {
+    if (manager === globalManager) {
       void ensureGlobalPortalHost()
     }
 
     const key = manager.mount(children ?? null)
     keyRef.current = key
-    skipNextUpdateRef.current = true
+    lastChildrenRef.current = children ?? null
     return () => {
       if (keyRef.current !== null) {
         manager.unmount(keyRef.current)
         keyRef.current = null
       }
+      lastChildrenRef.current = null
     }
   }, [manager])
 
   React.useLayoutEffect(() => {
-    if (skipNextUpdateRef.current) {
-      skipNextUpdateRef.current = false
-      return
-    }
     if (keyRef.current === null) return
+    if (lastChildrenRef.current === children) return
     manager.update(keyRef.current, children ?? null)
+    lastChildrenRef.current = children ?? null
   }, [children, manager])
 
   return null

@@ -198,6 +198,7 @@ export const Popup: React.FC<PopupProps> = props => {
   const shouldCloseOnOverlay = closeOnClickOverlay ?? closeOnOverlayPress ?? true
   const shouldTranslate = placement !== 'center'
   const safeAreaInsetBottom = safeAreaInsetBottomProp ?? false
+  const resolvedDuration = duration < 0 ? 0 : duration
 
   const tokens = usePopupTokens(tokensOverride)
 
@@ -303,16 +304,12 @@ export const Popup: React.FC<PopupProps> = props => {
   const runAnimation = React.useCallback(
     (show: boolean) => {
       animatingRef.current = true
-      if (show) {
-        setMounted(true)
-        setInteractionVisible(true)
-      }
       // 对齐 react-vant：进入使用 ease-out，退出使用 ease-in（近似 CSS cubic-bezier 0.25,0.1,0.25,1 / 0.42,0,1,1）
       const easing = show ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic)
       animationRef.current?.stop()
       const animation = Animated.timing(progress, {
         toValue: show ? 1 : 0,
-        duration,
+        duration: resolvedDuration,
         easing,
         useNativeDriver: nativeDriverEnabled,
       })
@@ -338,7 +335,7 @@ export const Popup: React.FC<PopupProps> = props => {
         }
       })
     },
-    [destroyOnClose, duration, onClosed, onOpened, progress]
+    [destroyOnClose, onClosed, onOpened, progress, resolvedDuration]
   )
 
   React.useEffect(() => {
@@ -439,9 +436,13 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const stopPropagationResponder = React.useCallback(() => true, [])
 
-  const contentInteractionProps = stopPropagation
-    ? { ...overlayRestProps, onStartShouldSetResponder: stopPropagationResponder }
-    : overlayRestProps
+  const contentInteractionProps = React.useMemo(
+    () =>
+      stopPropagation
+        ? { ...overlayRestProps, onStartShouldSetResponder: stopPropagationResponder }
+        : overlayRestProps,
+    [overlayRestProps, stopPropagation, stopPropagationResponder],
+  )
 
   const config = placementConfig[placement]
   const distance = distanceRef.current || contentDistance
