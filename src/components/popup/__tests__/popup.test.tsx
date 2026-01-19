@@ -1,21 +1,38 @@
 import React from 'react'
-import { Animated, BackHandler, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import {
+  BackHandler,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  type GestureResponderEvent,
+  type LayoutChangeEvent,
+  type NativeEventSubscription,
+} from 'react-native'
 import renderer, { act } from 'react-test-renderer'
 
-import Popup from '..'
+import Popup, { type PopupPlacement } from '..'
 import { PortalHost } from '../../portal'
 
-const getStyleValue = (style: any, key: string): any => {
-  const flat = StyleSheet.flatten(style)
-  return flat?.[key]
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const getStyleValue = (style: unknown, key: string): unknown => {
+  const flat = StyleSheet.flatten(style as never) as unknown
+  return isObject(flat) ? flat[key] : undefined
 }
 
-const getTranslateOutputRange = (style: any, key: 'translateX' | 'translateY') => {
+const getTranslateOutputRange = (style: unknown, key: 'translateX' | 'translateY') => {
   const transform = getStyleValue(style, 'transform')
   if (!Array.isArray(transform)) return undefined
-  const entry = transform.find((item: any) => item && typeof item === 'object' && key in item)
+  const entry = transform.find((item): item is Record<string, unknown> => isObject(item) && key in item)
   const interpolation = entry?.[key]
-  return interpolation?._config?.outputRange
+  if (!isObject(interpolation)) return undefined
+  const config = interpolation['_config']
+  if (!isObject(config)) return undefined
+  return config['outputRange']
 }
 
 describe('Popup', () => {
@@ -94,7 +111,7 @@ describe('Popup', () => {
       node => node.type === Pressable && node.props.testID === 'test-overlay'
     )
     act(() => {
-      overlay.props.onPress?.({} as any)
+      overlay.props.onPress?.({} as unknown as GestureResponderEvent)
     })
 
     expect(handleClose).toHaveBeenCalled()
@@ -130,7 +147,7 @@ describe('Popup', () => {
     )
 
     await act(async () => {
-      overlay.props.onPress?.({} as any)
+      overlay.props.onPress?.({} as unknown as GestureResponderEvent)
       await Promise.resolve()
     })
 
@@ -174,7 +191,7 @@ describe('Popup', () => {
     )
 
     await act(async () => {
-      overlay.props.onPress?.({} as any)
+      overlay.props.onPress?.({} as unknown as GestureResponderEvent)
       await Promise.resolve()
     })
 
@@ -198,7 +215,9 @@ describe('Popup', () => {
     const originalOS = Platform.OS
     Platform.OS = 'android'
     const remove = jest.fn()
-    const addSpy = jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({ remove } as any)
+    const addSpy = jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockReturnValue({ remove } as unknown as NativeEventSubscription)
     const handleClose = jest.fn()
 
     let tree: renderer.ReactTestRenderer = renderer.create(<></>)
@@ -346,7 +365,7 @@ describe('Popup', () => {
     act(() => {
       popupContentBefore.props.onLayout?.({
         nativeEvent: { layout: { width: 100, height: 200 } },
-      } as any)
+      } as unknown as LayoutChangeEvent)
     })
 
     const popupContentAfter = findPopupContent()
@@ -378,7 +397,7 @@ describe('Popup', () => {
   })
 
   it('renders different placements', () => {
-    const placements: any[] = ['top', 'bottom', 'left', 'right', 'center']
+    const placements: PopupPlacement[] = ['top', 'bottom', 'left', 'right', 'center']
     placements.forEach(placement => {
       const tree = renderer.create(
         <Popup visible placement={placement}>

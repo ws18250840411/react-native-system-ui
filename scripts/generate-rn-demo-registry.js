@@ -85,124 +85,142 @@ const buildImportPath = (fromFile, toFile) => {
   return withoutExt.startsWith('.') ? withoutExt : `./${withoutExt}`
 }
 
-const rndocConfig = fs.readFileSync(rndocConfigPath, 'utf8')
-const menus = parseMenus(rndocConfig)
-const groups = menus['/components']
-if (!Array.isArray(groups)) {
-  throw new Error('menus["/components"] 不是数组，无法生成 RN 菜单。')
-}
+const generateRegistry = () => {
+  const rndocConfig = fs.readFileSync(rndocConfigPath, 'utf8')
+  const menus = parseMenus(rndocConfig)
+  const groups = menus['/components']
+  if (!Array.isArray(groups)) {
+    throw new Error('menus["/components"] 不是数组，无法生成 RN 菜单。')
+  }
 
-/** @type {Record<string, { title: string, demos: Array<{id: string, title: string, importPath: string}> }>} */
-const componentRegistry = {}
-/** @type {Array<{ title: string, slugs: string[] }>} */
-const menuGroups = []
-/** @type {Array<{ varName: string, importPath: string }>} */
-const imports = []
-const usedImportNames = new Set()
+  /** @type {Record<string, { title: string, demos: Array<{id: string, title: string, importPath: string}> }>} */
+  const componentRegistry = {}
+  /** @type {Array<{ title: string, slugs: string[] }>} */
+  const menuGroups = []
+  /** @type {Array<{ varName: string, importPath: string }>} */
+  const imports = []
+  const usedImportNames = new Set()
 
-for (const group of groups) {
-  if (!group || typeof group !== 'object') continue
-  const title = group.title
-  const children = Array.isArray(group.children) ? group.children : []
-  const slugs = children
-    .map(route => String(route))
-    .map(route => route.split('/').filter(Boolean).pop())
-    .filter(Boolean)
+  for (const group of groups) {
+    if (!group || typeof group !== 'object') continue
+    const title = group.title
+    const children = Array.isArray(group.children) ? group.children : []
+    const slugs = children
+      .map(route => String(route))
+      .map(route => route.split('/').filter(Boolean).pop())
+      .filter(Boolean)
 
-  menuGroups.push({ title, slugs })
+    menuGroups.push({ title, slugs })
 
-  for (const slug of slugs) {
-    if (componentRegistry[slug]) continue
-    const mdPath = path.join(docsComponentsDir, `${slug}.md`)
-    if (!fs.existsSync(mdPath)) {
-      componentRegistry[slug] = { title: slug, demos: [] }
-      continue
-    }
-
-    const mdSource = fs.readFileSync(mdPath, 'utf8')
-    const { title: componentTitle, demos } = parseDocs(mdSource)
-
-    const mappedDemos = demos.map(demo => {
-      const overridePath = rnDemoOverrides[slug]?.[demo.id]
-      const absDemoPath = overridePath ?? path.resolve(path.dirname(mdPath), demo.src)
-      const importPath = buildImportPath(outputPath, absDemoPath)
-      const varBase = `${toPascalCase(slug)}Demo${toPascalCase(demo.id)}`
-      let varName = safeIdentifier(varBase)
-      if (usedImportNames.has(varName)) {
-        let i = 2
-        while (usedImportNames.has(`${varName}_${i}`)) i += 1
-        varName = `${varName}_${i}`
+    for (const slug of slugs) {
+      if (componentRegistry[slug]) continue
+      const mdPath = path.join(docsComponentsDir, `${slug}.md`)
+      if (!fs.existsSync(mdPath)) {
+        componentRegistry[slug] = { title: slug, demos: [] }
+        continue
       }
-      usedImportNames.add(varName)
-      imports.push({ varName, importPath })
 
-      return {
-        id: demo.id,
-        title: demo.title,
-        varName,
+      const mdSource = fs.readFileSync(mdPath, 'utf8')
+      const { title: componentTitle, demos } = parseDocs(mdSource)
+
+      const mappedDemos = demos.map(demo => {
+        const overridePath = rnDemoOverrides[slug]?.[demo.id]
+        const absDemoPath = overridePath ?? path.resolve(path.dirname(mdPath), demo.src)
+        const importPath = buildImportPath(outputPath, absDemoPath)
+        const varBase = `${toPascalCase(slug)}Demo${toPascalCase(demo.id)}`
+        let varName = safeIdentifier(varBase)
+        if (usedImportNames.has(varName)) {
+          let i = 2
+          while (usedImportNames.has(`${varName}_${i}`)) i += 1
+          varName = `${varName}_${i}`
+        }
+        usedImportNames.add(varName)
+        imports.push({ varName, importPath })
+
+        return {
+          id: demo.id,
+          title: demo.title,
+          varName,
+        }
+      })
+
+      componentRegistry[slug] = {
+        title: componentTitle || slug,
+        demos: mappedDemos,
       }
-    })
-
-    componentRegistry[slug] = {
-      title: componentTitle || slug,
-      demos: mappedDemos,
     }
   }
-}
 
-imports.sort((a, b) => a.importPath.localeCompare(b.importPath))
+  imports.sort((a, b) => a.importPath.localeCompare(b.importPath))
 
-const lines = []
-lines.push('/* eslint-disable */')
-lines.push('// 此文件由 scripts/generate-rn-demo-registry.js 自动生成，请勿手改。')
-lines.push('')
-lines.push("import type React from 'react'")
-lines.push('')
+  const lines = []
+  lines.push('/* eslint-disable */')
+  lines.push('// 此文件由 scripts/generate-rn-demo-registry.js 自动生成，请勿手改。')
+  lines.push('')
+  lines.push("import type React from 'react'")
+  lines.push('')
 
-for (const item of imports) {
-  lines.push(`import ${item.varName} from '${item.importPath}'`)
-}
-
-lines.push('')
-lines.push('export type DemoEntry = {')
-lines.push('  id: string')
-lines.push('  title: string')
-lines.push('  Component: React.ComponentType<any>')
-lines.push('}')
-lines.push('')
-lines.push('export type ComponentEntry = {')
-lines.push('  title: string')
-lines.push('  demos: DemoEntry[]')
-lines.push('}')
-lines.push('')
-lines.push('export type MenuGroup = {')
-lines.push('  title: string')
-lines.push('  slugs: string[]')
-lines.push('}')
-lines.push('')
-
-lines.push('export const menuGroups: MenuGroup[] = ' + JSON.stringify(menuGroups, null, 2))
-lines.push('')
-
-lines.push('export const componentRegistry: Record<string, ComponentEntry> = {')
-for (const [slug, entry] of Object.entries(componentRegistry)) {
-  lines.push(`  ${JSON.stringify(slug)}: {`)
-  lines.push(`    title: ${JSON.stringify(entry.title)},`)
-  lines.push('    demos: [')
-  for (const demo of entry.demos) {
-    if (!demo || typeof demo !== 'object') continue
-    lines.push('      {')
-    lines.push(`        id: ${JSON.stringify(demo.id)},`)
-    lines.push(`        title: ${JSON.stringify(demo.title)},`)
-    lines.push(`        Component: ${demo.varName},`)
-    lines.push('      },')
+  for (const item of imports) {
+    lines.push(`import ${item.varName} from '${item.importPath}'`)
   }
-  lines.push('    ],')
-  lines.push('  },')
-}
-lines.push('}')
-lines.push('')
 
-fs.mkdirSync(path.dirname(outputPath), { recursive: true })
-fs.writeFileSync(outputPath, lines.join('\n'), 'utf8')
-console.log(`[rn-demos] generated: ${toPosixPath(path.relative(repoRoot, outputPath))}`)
+  lines.push('')
+  lines.push('export type DemoEntry = {')
+  lines.push('  id: string')
+  lines.push('  title: string')
+  lines.push('  Component: React.ComponentType<any>')
+  lines.push('}')
+  lines.push('')
+  lines.push('export type ComponentEntry = {')
+  lines.push('  title: string')
+  lines.push('  demos: DemoEntry[]')
+  lines.push('}')
+  lines.push('')
+  lines.push('export type MenuGroup = {')
+  lines.push('  title: string')
+  lines.push('  slugs: string[]')
+  lines.push('}')
+  lines.push('')
+
+  lines.push('export const menuGroups: MenuGroup[] = ' + JSON.stringify(menuGroups, null, 2))
+  lines.push('')
+
+  lines.push('export const componentRegistry: Record<string, ComponentEntry> = {')
+  for (const [slug, entry] of Object.entries(componentRegistry)) {
+    lines.push(`  ${JSON.stringify(slug)}: {`)
+    lines.push(`    title: ${JSON.stringify(entry.title)},`)
+    lines.push('    demos: [')
+    for (const demo of entry.demos) {
+      if (!demo || typeof demo !== 'object') continue
+      lines.push('      {')
+      lines.push(`        id: ${JSON.stringify(demo.id)},`)
+      lines.push(`        title: ${JSON.stringify(demo.title)},`)
+      lines.push(`        Component: ${demo.varName},`)
+      lines.push('      },')
+    }
+    lines.push('    ],')
+    lines.push('  },')
+  }
+  lines.push('}')
+  lines.push('')
+
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true })
+  fs.writeFileSync(outputPath, lines.join('\n'), 'utf8')
+  console.log(`[rn-demos] generated: ${toPosixPath(path.relative(repoRoot, outputPath))}`)
+}
+
+const isWatch = process.argv.includes('--watch') || process.argv.includes('-w')
+
+generateRegistry()
+
+if (isWatch) {
+  let timer = null
+  const schedule = () => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(generateRegistry, 120)
+  }
+
+  fs.watch(docsComponentsDir, { recursive: true }, schedule)
+  fs.watch(rndocConfigPath, schedule)
+  console.log('[rn-demos] watching docs/components and rndoc.config.ts')
+}

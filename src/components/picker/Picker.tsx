@@ -18,6 +18,7 @@ const getVisibleCount = (count: number) => {
 
 const GRADIENT_OVERLAY_ALPHA = 0.25
 const GRADIENT_STEPS = [0.98, 0.9075, 0.835, 0.7625, 0.69, 0.6175, 0.545, 0.4725, 0.4]
+const GRADIENT_STEPS_REVERSED = [...GRADIENT_STEPS].reverse()
 
 const GradientMask: React.FC<{
   height: number
@@ -56,7 +57,7 @@ const GradientMask: React.FC<{
     )
   }
 
-  const steps = position === 'top' ? GRADIENT_STEPS : [...GRADIENT_STEPS].reverse()
+  const steps = position === 'top' ? GRADIENT_STEPS : GRADIENT_STEPS_REVERSED
 
   return (
     <View pointerEvents="none" style={[...baseStyle, { backgroundColor: overlayColor }]}>
@@ -197,10 +198,7 @@ const Picker: React.FC<PickerProps> = props => {
     ...rest
   } = props
 
-  const visibleItemCount = React.useMemo(
-    () => getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount),
-    [tokens.defaults.visibleItemCount, visibleItemCountProp],
-  )
+  const visibleItemCount = getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount)
 
   const { normalized, handleSelect, handleConfirm } = usePickerValue({
     columns,
@@ -265,63 +263,62 @@ const Picker: React.FC<PickerProps> = props => {
     )
   }
 
-  const renderToolbar = () => {
-    if (!showToolbar) return null
-    return (
-      <View
-        style={[
-          styles.toolbar,
-          {
-            height: tokens.spacing.toolbarHeight,
-            borderColor: tokens.colors.indicator,
-            paddingHorizontal: tokens.spacing.actionPadding,
-          },
-        ]}
-      >
-        <Pressable onPress={onCancel} accessibilityRole="button">
-          {renderActionContent(cancelButtonText, tokens.colors.cancel)}
-        </Pressable>
-        {renderTitleContent(title)}
-        <Pressable onPress={handleConfirm} accessibilityRole="button">
-          {renderActionContent(confirmButtonText, tokens.colors.confirm)}
-        </Pressable>
-      </View>
-    )
-  }
+  const toolbar = showToolbar ? (
+    <View
+      style={[
+        styles.toolbar,
+        {
+          height: tokens.spacing.toolbarHeight,
+          borderColor: tokens.colors.indicator,
+          paddingHorizontal: tokens.spacing.actionPadding,
+        },
+      ]}
+    >
+      <Pressable onPress={onCancel} accessibilityRole="button">
+        {renderActionContent(cancelButtonText, tokens.colors.cancel)}
+      </Pressable>
+      {renderTitleContent(title)}
+      <Pressable onPress={handleConfirm} accessibilityRole="button">
+        {renderActionContent(confirmButtonText, tokens.colors.confirm)}
+      </Pressable>
+    </View>
+  ) : null
 
   const wrapperHeight = itemHeight * visibleItemCount
   const maskVisibleCount = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
   const indicatorOffset = itemHeight * maskVisibleCount
   const maskHeight = Math.max(itemHeight * 2, indicatorOffset)
   const hasColumns = normalized.columns.length > 0
+  const effectiveMaskColor = maskColor ?? tokens.colors.mask
+  const columnsContent = hasColumns
+    ? normalized.columns.map((column, columnIndex) => (
+      <PickerColumn
+        key={columnIndex}
+        columnIndex={columnIndex}
+        options={column}
+        value={normalized.values[columnIndex]}
+        itemHeight={itemHeight}
+        visibleItemCount={visibleItemCount}
+        decelerationRate={decelerationRate}
+        scrollEventThrottle={scrollEventThrottle}
+        optionRender={optionRender}
+        getOptionTestID={getOptionTestID}
+        getOptionA11yLabel={getOptionA11yLabel}
+        readOnly={readOnly}
+        swipeDuration={swipeDuration}
+        onSelect={handleSelect}
+        tokens={tokens}
+      />
+    ))
+    : null
 
   return (
     <View {...rest} style={[styles.container, { backgroundColor: tokens.colors.background }, style]} testID={testID}>
-      {toolbarPosition === 'top' ? renderToolbar() : null}
+      {toolbarPosition === 'top' ? toolbar : null}
       <View style={[styles.body, { height: wrapperHeight }]}>
         <View style={styles.columns} pointerEvents={loading ? 'none' : 'auto'}>
           {columnsTop}
-          {hasColumns
-            ? normalized.columns.map((column, columnIndex) => (
-              <PickerColumn
-                key={columnIndex}
-                columnIndex={columnIndex}
-                options={column}
-                value={normalized.values[columnIndex]}
-                itemHeight={itemHeight}
-                visibleItemCount={visibleItemCount}
-                decelerationRate={decelerationRate}
-                scrollEventThrottle={scrollEventThrottle}
-                optionRender={optionRender}
-                getOptionTestID={getOptionTestID}
-                getOptionA11yLabel={getOptionA11yLabel}
-                readOnly={readOnly}
-                swipeDuration={swipeDuration}
-                onSelect={handleSelect}
-                tokens={tokens}
-              />
-            ))
-            : null}
+          {columnsContent}
           {columnsBottom}
           {hasColumns ? (
             <>
@@ -336,8 +333,8 @@ const Picker: React.FC<PickerProps> = props => {
                   },
                 ]}
               />
-              <GradientMask position="top" height={maskHeight} color={maskColor ?? tokens.colors.mask} maskType={maskType} />
-              <GradientMask position="bottom" height={maskHeight} color={maskColor ?? tokens.colors.mask} maskType={maskType} />
+              <GradientMask position="top" height={maskHeight} color={effectiveMaskColor} maskType={maskType} />
+              <GradientMask position="bottom" height={maskHeight} color={effectiveMaskColor} maskType={maskType} />
             </>
           ) : null}
         </View>
@@ -347,7 +344,7 @@ const Picker: React.FC<PickerProps> = props => {
           </View>
         ) : null}
       </View>
-      {toolbarPosition === 'bottom' ? renderToolbar() : null}
+      {toolbarPosition === 'bottom' ? toolbar : null}
     </View>
   )
 }

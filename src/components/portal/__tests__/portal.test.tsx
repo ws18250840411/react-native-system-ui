@@ -109,6 +109,77 @@ describe('Portal', () => {
     })
   })
 
+  it('uses max zIndex across descendants', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <Portal>
+          <View testID="z-mix" style={{ zIndex: 10 }}>
+            <View style={{ zIndex: 30 }}>
+              <Text>30</Text>
+            </View>
+          </View>
+        </Portal>
+      </PortalHost>
+    )
+
+    const item = tree.root.findByProps({ testID: 'z-mix' })
+    const wrapperStyle = StyleSheet.flatten(item.parent?.props.style)
+    expect(wrapperStyle?.zIndex).toBe(30)
+
+    act(() => {
+      tree.unmount()
+    })
+  })
+
+  it('clears portals when last host unmounts', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <Portal>
+          <Text testID="cleanup-text">X</Text>
+        </Portal>
+      </PortalHost>
+    )
+
+    expect(portalStore.hasHosts()).toBe(true)
+    expect(portalStore.getSnapshot().length).toBe(1)
+
+    act(() => {
+      tree.unmount()
+    })
+
+    expect(portalStore.hasHosts()).toBe(false)
+    expect(portalStore.getSnapshot().length).toBe(0)
+  })
+
+  it('keeps portals when one of multiple hosts unmounts', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <PortalHost />
+      </PortalHost>
+    )
+
+    act(() => {
+      Portal.add(<Text testID="multi-host-text">static</Text>)
+    })
+
+    expect(portalStore.hasHosts()).toBe(true)
+    expect(portalStore.getSnapshot().length).toBe(1)
+
+    act(() => {
+      tree.update(<PortalHost />)
+    })
+
+    expect(portalStore.hasHosts()).toBe(true)
+    expect(portalStore.getSnapshot().length).toBe(1)
+
+    act(() => {
+      tree.unmount()
+    })
+
+    expect(portalStore.hasHosts()).toBe(false)
+    expect(portalStore.getSnapshot().length).toBe(0)
+  })
+
   it('clears static portals through Portal.clear', () => {
     const host = renderer.create(<PortalHost />)
 
@@ -152,12 +223,22 @@ describe('Portal', () => {
   })
 
   it('warns when no PortalHost is present', () => {
-    const spy = jest.spyOn(console, 'warn').mockImplementation(() => {})
-    renderer.create(
-      <Portal>
-        <Text>Content</Text>
-      </Portal>
-    )
+    const spy = jest.spyOn(console, 'warn').mockImplementation(() => { })
+    if (typeof document === 'undefined') {
+      act(() => {
+        renderer.create(
+          <Portal>
+            <Text>Content</Text>
+          </Portal>
+        )
+      })
+    } else {
+      renderer.create(
+        <Portal>
+          <Text>Content</Text>
+        </Portal>
+      )
+    }
     if (typeof document === 'undefined') {
       expect(spy).toHaveBeenCalledWith(
         expect.stringContaining('请在根节点挂载')

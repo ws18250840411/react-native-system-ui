@@ -75,6 +75,9 @@
 | space | 已冻结 ✅ | 极致精简版：Web 使用 gap；Native 用 margin/padding 模拟；children 过滤+for 循环；0 any |
 | switch | 已冻结 ✅ | 极致精简版：泛型 value；0 any；动画 stop 清理；禁用/加载/受控语义清晰 |
 | typography | 已冻结 ✅ | 极致精简版：Text 渲染安全、ellipsis 展开/收起性能回归单测、无障碍角色、includeFontPadding 统一 |
+| portal | 已冻结 ✅ | 极致精简版：Host 栈+快照缓存；zIndex 透传；Web 自动挂载/回收；render 无副作用 |
+| popup | 已冻结 ✅ | 极致精简版：关闭链路去重；布局测量等待；动画/安全区稳定；单测 0 any |
+| area | 已冻结 ✅ | 极致精简版：areaList→级联列；排序缓存；回调值归一；单测守护 |
 
 ### C 组（持续优化）
 
@@ -84,7 +87,6 @@
 
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
-| area | 持续优化 ✅ | 组合 Picker/Popup，数据联动与边界较多 |
 | calendar | 持续优化 ✅ | 日期逻辑+渲染复杂度高，边界多 |
 | cascader | 持续优化 ✅ | 多级联动与性能/状态复杂 |
 | circle | 持续优化 ✅ | Web/Native 渲染方案差异（svg/gradient）+动画 |
@@ -103,8 +105,6 @@
 | overlay | 持续优化 ✅ | 弹层基础设施（栈/zIndex/遮罩） |
 | password-input | 持续优化 ✅ | 输入+自绘 UI+动画/光标等 |
 | picker | 持续优化 ✅ | WheelPicker 三端实现差异明显 |
-| popup | 持续优化 ✅ | 弹层基础设施（承载/动画/安全区） |
-| portal | 持续优化 ✅ | 基础设施（承载与 Host 机制） |
 | pull-refresh | 持续优化 ✅ | 手势/滚动冲突，差异点多 |
 | search | 持续优化 ✅ | 基于 Field/Input，输入链路复杂 |
 | share-sheet | 持续优化 ✅ | 弹层+复杂内容布局 |

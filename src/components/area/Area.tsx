@@ -17,9 +17,10 @@ const Area: React.FC<AreaProps> = props => {
   } = props
 
   const resolvedColumnsNum = columnsNum === 1 || columnsNum === 2 || columnsNum === 3 ? columnsNum : 3
+  const { province_list, city_list, county_list } = areaList
   const columns = React.useMemo(
-    () => buildAreaColumns(areaList, resolvedColumnsNum),
-    [areaList, resolvedColumnsNum]
+    () => buildAreaColumns({ province_list, city_list, county_list }, resolvedColumnsNum),
+    [province_list, city_list, county_list, resolvedColumnsNum]
   )
 
   const handleChange = React.useCallback(
@@ -42,7 +43,7 @@ const Area: React.FC<AreaProps> = props => {
       columns={columns}
       value={value}
       defaultValue={defaultValue}
-      onChange={handleChange}
+      onChange={onChange ? handleChange : undefined}
       onConfirm={onConfirm ? handleConfirm : undefined}
     />
   )

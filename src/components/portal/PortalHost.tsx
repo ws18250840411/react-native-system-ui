@@ -24,7 +24,7 @@ class PortalLayer extends React.PureComponent<PortalLayerProps, PortalLayerState
   }
 
   setEntries = (entries: PortalEntry[]) => {
-    this.setState({ entries })
+    this.setState(prev => (prev.entries === entries ? null : { entries }))
   }
 
   render() {
@@ -58,45 +58,55 @@ const getMaxZIndex = (node: React.ReactNode): number | undefined => {
   if (!node) return undefined
   if (Array.isArray(node)) {
     let max: number | undefined
-    node.forEach(child => {
+    for (const child of node) {
       const value = getMaxZIndex(child)
-      if (isNumber(value)) {
-        max = isNumber(max) ? Math.max(max, value) : value
-      }
-    })
+      if (!isNumber(value)) continue
+      max = isNumber(max) ? Math.max(max, value) : value
+    }
     return max
   }
 
   if (React.isValidElement(node)) {
     const element = node as React.ReactElement<{ style?: unknown; children?: React.ReactNode }>
     const style = element.props.style
+    let max: number | undefined
     if (style && !isFunction(style)) {
-      const flattened = StyleSheet.flatten(style) as { zIndex?: unknown } | null
-      const zIndex = flattened?.zIndex
+      const zIndex =
+        typeof style === 'object' && !Array.isArray(style) && style !== null
+          ? (style as { zIndex?: unknown }).zIndex
+          : (StyleSheet.flatten(style) as { zIndex?: unknown } | null)?.zIndex
       if (isNumber(zIndex)) {
-        return zIndex
+        max = zIndex
       }
     }
 
-    // 支持 Fragment / 包装组件：继续向内找
-    return getMaxZIndex(element.props.children)
+    const childMax = getMaxZIndex(element.props.children)
+    if (!isNumber(childMax)) return max
+    if (!isNumber(max)) return childMax
+    return Math.max(max, childMax)
   }
 
   return undefined
 }
 
 const hostStack: PortalLayer[] = []
-const portalEntries = new Map<number, { children: React.ReactNode; zIndex?: number }>()
+const portalEntries = new Map<number, PortalEntry>()
 let nextPortalKey = 1
 let warnedNative = false
 let autoHostTeardownScheduled = false
+let snapshotDirty = true
+let snapshotCache: PortalEntry[] = []
 
-const getEntriesSnapshot = (): PortalEntry[] =>
-  Array.from(portalEntries.entries()).map(([key, entry]) => ({
-    key,
-    children: entry.children,
-    zIndex: entry.zIndex,
-  }))
+const markSnapshotDirty = () => {
+  snapshotDirty = true
+}
+
+const getEntriesSnapshot = (): PortalEntry[] => {
+  if (!snapshotDirty) return snapshotCache
+  snapshotDirty = false
+  snapshotCache = Array.from(portalEntries.values())
+  return snapshotCache
+}
 
 const notifyCurrentHost = () => {
   const currentHost = hostStack[hostStack.length - 1]
@@ -126,18 +136,23 @@ const unregisterHost = (host: PortalLayer) => {
 
 const mountPortal = (children: React.ReactNode, key?: number) => {
   const resolvedKey = key ?? nextPortalKey++
-  portalEntries.set(resolvedKey, { children, zIndex: getMaxZIndex(children) })
+  portalEntries.set(resolvedKey, { key: resolvedKey, children, zIndex: getMaxZIndex(children) })
+  markSnapshotDirty()
   notifyCurrentHost()
   return resolvedKey
 }
 
 const updatePortal = (key: number, children: React.ReactNode) => {
-  portalEntries.set(key, { children, zIndex: getMaxZIndex(children) })
+  const prev = portalEntries.get(key)
+  if (prev && prev.children === children) return
+  portalEntries.set(key, { key, children, zIndex: getMaxZIndex(children) })
+  markSnapshotDirty()
   notifyCurrentHost()
 }
 
 const unmountPortal = (key: number) => {
   if (portalEntries.delete(key)) {
+    markSnapshotDirty()
     notifyCurrentHost()
     scheduleTeardownAutoHost()
   }
@@ -170,6 +185,7 @@ const scheduleTeardownAutoHost = () => {
 const clearPortals = () => {
   if (portalEntries.size > 0) {
     portalEntries.clear()
+    markSnapshotDirty()
     notifyCurrentHost()
   }
   warnedNative = false

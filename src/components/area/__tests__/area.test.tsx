@@ -3,7 +3,7 @@ import renderer from 'react-test-renderer'
 
 import Picker from '../../picker'
 import Area from '..'
-import type { AreaList } from '../types'
+import type { AreaList, AreaOption } from '../types'
 
 const areaList: AreaList = {
   province_list: {
@@ -25,7 +25,7 @@ describe('Area', () => {
   it('passes cascade columns to Picker', () => {
     const tree = renderer.create(<Area areaList={areaList} columnsNum={3} />)
     const picker = tree.root.findByType(Picker)
-    const columns = picker.props.columns as any[]
+    const columns = picker.props.columns as AreaOption[]
 
     expect(columns).toHaveLength(2)
     expect(columns[0].children?.length).toBeGreaterThan(0)
@@ -53,17 +53,48 @@ describe('Area', () => {
 
   it('passes value and defaultValue to Picker', () => {
     const tree = renderer.create(
-      <Area areaList={areaList} value={["110000", "110100", "110101"]} defaultValue={["110000", "110100", "110101"]} />
+      <Area
+        areaList={areaList}
+        value={['110000', '110100', '110101']}
+        defaultValue={['110000', '110100', '110101']}
+      />,
     )
     const picker = tree.root.findByType(Picker)
-    expect(picker.props.value).toEqual(["110000", "110100", "110101"])
-    expect(picker.props.defaultValue).toEqual(["110000", "110100", "110101"])
+    expect(picker.props.value).toEqual(['110000', '110100', '110101'])
+    expect(picker.props.defaultValue).toEqual(['110000', '110100', '110101'])
   })
 
-  it('generates 2 columns when columnsNum is 2', () => {
+  it('keeps root columns length when columnsNum is 2', () => {
     const tree = renderer.create(<Area areaList={areaList} columnsNum={2} />)
     const picker = tree.root.findByType(Picker)
     expect(picker.props.columns).toHaveLength(2)
+  })
+
+  it('renders flat options when columnsNum is 1', () => {
+    const tree = renderer.create(<Area areaList={areaList} columnsNum={1} />)
+    const picker = tree.root.findByType(Picker)
+    const columns = picker.props.columns as AreaOption[]
+    expect(columns).toHaveLength(2)
+    expect(columns[0].children).toBeUndefined()
+  })
+
+  it('omits onChange handler when not provided', () => {
+    const tree = renderer.create(<Area areaList={areaList} />)
+    const picker = tree.root.findByType(Picker)
+    expect(picker.props.onChange).toBeUndefined()
+  })
+
+  it('handles missing city/county lists', () => {
+    const minimal: AreaList = {
+      province_list: {
+        '110000': '北京',
+      },
+    }
+    const tree = renderer.create(<Area areaList={minimal} />)
+    const picker = tree.root.findByType(Picker)
+    const columns = picker.props.columns as AreaOption[]
+    expect(columns).toHaveLength(1)
+    expect(columns[0].children).toBeUndefined()
   })
 
   it('handles confirm event', () => {

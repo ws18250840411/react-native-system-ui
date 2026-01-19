@@ -84,8 +84,12 @@ const placementConfig: Record<
   center: { container: { justifyContent: 'center', alignItems: 'center' }, axis: 'y' },
 }
 
-const buildRadius = (round: boolean | undefined, placement: PopupPlacement, radius: number) => {
-  if (!round) return { borderRadius: 0 }
+const buildRadius = (
+  round: boolean | undefined,
+  placement: PopupPlacement,
+  radius: number,
+): ViewStyle | undefined => {
+  if (!round) return
   switch (placement) {
     case 'top':
       return {
@@ -145,8 +149,6 @@ const renderWithSafeArea = (
 
 const hiddenContentStyle: ViewStyle = {
   opacity: 0,
-  // @ts-ignore
-  boxShadow: 'none',
   shadowOpacity: 0,
   shadowRadius: 0,
   elevation: 0,
@@ -199,7 +201,6 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const tokens = usePopupTokens(tokensOverride)
 
-  // Dynamic styles derived from tokens
   const dynamicStyles = React.useMemo(() => {
     const shadow = createPlatformShadow({
       color: tokens.shadow.color,
@@ -209,47 +210,69 @@ export const Popup: React.FC<PopupProps> = props => {
       elevation: tokens.shadow.elevation,
     })
 
+    const popup: ViewStyle = {
+      backgroundColor: tokens.colors.background,
+      padding: tokens.spacing.padding,
+      ...shadow,
+    }
+
+    const title: TextStyle = {
+      color: tokens.colors.title,
+      fontSize: tokens.typography.titleSize,
+      fontWeight: tokens.typography.titleWeight,
+      marginHorizontal: tokens.spacing.descriptionHorizontal,
+      textAlign: 'center',
+    }
+
+    const titleWrapper: ViewStyle = {
+      marginTop: tokens.spacing.titleTop,
+      marginBottom: tokens.spacing.titleBottom,
+      marginHorizontal: tokens.spacing.descriptionHorizontal,
+      alignItems: 'center',
+    }
+
+    const description: TextStyle = {
+      color: tokens.colors.description,
+      fontSize: tokens.typography.descriptionSize,
+      lineHeight: tokens.typography.descriptionLineHeight,
+    }
+
+    const descriptionWrapper: ViewStyle = {
+      marginHorizontal: tokens.spacing.descriptionHorizontal,
+      marginBottom: tokens.spacing.descriptionBottom,
+    }
+
+    const closeIconBase: ViewStyle = {
+      minWidth: tokens.spacing.closeIconSize,
+      minHeight: tokens.spacing.closeIconSize,
+      padding: 6,
+    }
+
+    const closeIconDefault: ViewStyle = {
+      width: tokens.spacing.closeIconSize,
+      height: tokens.spacing.closeIconSize,
+    }
+
+    const popupSide: ViewStyle = {
+      width: tokens.layout.sideWidth,
+      maxWidth: tokens.layout.maxWidth,
+    }
+
+    const popupCenter: ViewStyle = {
+      minWidth: tokens.layout.minWidth,
+      maxWidth: tokens.layout.centerMaxWidth,
+    }
+
     return {
-      popup: {
-        backgroundColor: tokens.colors.background,
-        padding: tokens.spacing.padding,
-        ...shadow,
-      },
-      title: {
-        color: tokens.colors.title,
-        fontSize: tokens.typography.titleSize,
-        fontWeight: tokens.typography.titleWeight,
-      },
-      titleWrapper: {
-        marginTop: tokens.spacing.titleTop,
-        marginBottom: tokens.spacing.titleBottom,
-      },
-      description: {
-        color: tokens.colors.description,
-        fontSize: tokens.typography.descriptionSize,
-        lineHeight: tokens.typography.descriptionLineHeight,
-      },
-      descriptionWrapper: {
-        marginHorizontal: tokens.spacing.descriptionHorizontal,
-        marginBottom: tokens.spacing.descriptionBottom,
-      },
-      closeIconBase: {
-        minWidth: tokens.spacing.closeIconSize,
-        minHeight: tokens.spacing.closeIconSize,
-        padding: 6, // keep fixed or add token if needed, usually fixed for hitSlop area
-      },
-      closeIconDefault: {
-        width: tokens.spacing.closeIconSize,
-        height: tokens.spacing.closeIconSize,
-      },
-      popupSide: {
-        width: tokens.layout.sideWidth,
-        maxWidth: tokens.layout.maxWidth,
-      },
-      popupCenter: {
-        minWidth: tokens.layout.minWidth,
-        maxWidth: tokens.layout.centerMaxWidth,
-      },
+      popup,
+      title,
+      titleWrapper,
+      description,
+      descriptionWrapper,
+      closeIconBase,
+      closeIconDefault,
+      popupSide,
+      popupCenter,
     }
   }, [tokens])
 
@@ -264,6 +287,7 @@ export const Popup: React.FC<PopupProps> = props => {
   const pendingShowRef = React.useRef(false)
   const openFallbackTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevVisible = React.useRef(visible)
+  const closingRef = React.useRef(false)
 
   const isVertical = placement === 'top' || placement === 'bottom'
   const isHorizontal = placement === 'left' || placement === 'right'
@@ -360,13 +384,19 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const requestClose = React.useCallback(
     async (reason: 'close-icon' | 'overlay' | 'close') => {
-      if (beforeClose) {
-        const result = await beforeClose(reason)
-        if (result === false) {
-          return
+      if (closingRef.current) return
+      closingRef.current = true
+      try {
+        if (beforeClose) {
+          const result = await beforeClose(reason)
+          if (result === false) {
+            return
+          }
         }
+        onClose?.()
+      } finally {
+        closingRef.current = false
       }
-      onClose?.()
     },
     [beforeClose, onClose]
   )
@@ -407,51 +437,42 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const { onLayout: overlayOnLayout, ...overlayRestProps } = overlayProps
 
-  const contentInteractionProps = React.useMemo(() => {
-    if (!stopPropagation) {
-      return overlayRestProps
-    }
-    return {
-      ...overlayRestProps,
-      onStartShouldSetResponder: () => true,
-    }
-  }, [overlayRestProps, stopPropagation])
+  const stopPropagationResponder = React.useCallback(() => true, [])
+
+  const contentInteractionProps = stopPropagation
+    ? { ...overlayRestProps, onStartShouldSetResponder: stopPropagationResponder }
+    : overlayRestProps
 
   const config = placementConfig[placement]
   const distance = distanceRef.current || contentDistance
+  const radiusStyle = React.useMemo(
+    () => buildRadius(round, placement, tokens.radius.round),
+    [placement, round, tokens.radius.round],
+  )
 
-  const translateStyle: Animated.WithAnimatedObject<ViewStyle> = shouldTranslate
-    ? {
-      transform: [
-        config.axis === 'y'
-          ? {
-            translateY: progress.interpolate({
-              inputRange: [0, 1],
-              outputRange: [distance * direction, 0],
-            }),
-          }
-          : {
-            translateX: progress.interpolate({
-              inputRange: [0, 1],
-              outputRange: [distance * direction, 0],
-            }),
-          },
-      ],
-    }
-    : { transform: [] }
+  const overlayOpacity = React.useMemo(
+    () => progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }),
+    [progress],
+  )
 
-  const overlayOpacity = progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] })
+  const translateTransform = React.useMemo(() => {
+    if (!shouldTranslate) return null
+    const outputRange: [number, number] = [distance * direction, 0]
+    return config.axis === 'y'
+      ? { translateY: progress.interpolate({ inputRange: [0, 1], outputRange }) }
+      : { translateX: progress.interpolate({ inputRange: [0, 1], outputRange }) }
+  }, [config.axis, direction, distance, progress, shouldTranslate])
+
+  const baseTransform = React.useMemo(
+    () => (translateTransform ? [translateTransform] : []),
+    [translateTransform],
+  )
+
   const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = React.useMemo(() => {
-    const transform = contentAnimationStyle?.transform
-    const baseTransform = Array.isArray(translateStyle.transform) ? translateStyle.transform : []
-    const mergedTransform = transform && Array.isArray(transform) ? [...baseTransform, ...transform] : baseTransform
-    return {
-      ...translateStyle,
-      ...contentAnimationStyle,
-      transform: mergedTransform,
-      opacity: progress,
-    }
-  }, [translateStyle, progress, contentAnimationStyle])
+    const extraTransform = contentAnimationStyle?.transform
+    const transform = Array.isArray(extraTransform) ? [...baseTransform, ...extraTransform] : baseTransform
+    return { ...contentAnimationStyle, transform, opacity: progress }
+  }, [baseTransform, contentAnimationStyle, progress])
 
   const handleContentLayout = React.useCallback(
     (event: LayoutChangeEvent) => {
@@ -482,11 +503,12 @@ export const Popup: React.FC<PopupProps> = props => {
   const hasCustomCloseIcon = closeIcon != null
 
   const hasHeader = isRenderable(title) || isRenderable(description)
+  const headerPadding = tokens.spacing.closeIconRight + tokens.spacing.closeIconSize
   const headerPaddingStyle =
     closeable && closeIconPosition.startsWith('top-')
       ? closeIconPosition.endsWith('right')
-        ? { paddingRight: 44 }
-        : { paddingLeft: 44 }
+        ? { paddingRight: headerPadding }
+        : { paddingLeft: headerPadding }
       : undefined
 
   const closeIconVerticalStyle = closeIconPosition.includes('bottom')
@@ -500,11 +522,11 @@ export const Popup: React.FC<PopupProps> = props => {
     <View style={[styles.header, headerPaddingStyle]}>
       {renderHeaderNode(title, {
         textStyle: [styles.title, dynamicStyles.title],
-        wrapperStyle: [styles.titleWrapper, dynamicStyles.titleWrapper],
+        wrapperStyle: dynamicStyles.titleWrapper,
       })}
       {renderHeaderNode(description, {
         textStyle: [styles.description, dynamicStyles.description],
-        wrapperStyle: [styles.descriptionWrapper, dynamicStyles.descriptionWrapper],
+        wrapperStyle: dynamicStyles.descriptionWrapper,
       })}
     </View>
   ) : null
@@ -528,7 +550,7 @@ export const Popup: React.FC<PopupProps> = props => {
         placement === 'center' ? dynamicStyles.popupCenter : null,
         isVertical ? styles.popupVertical : null,
         isHorizontal ? dynamicStyles.popupSide : null,
-        buildRadius(round, placement, tokens.radius.round),
+        radiusStyle,
         animatedContentStyle,
         style,
         hidden ? hiddenContentStyle : null,
@@ -601,7 +623,7 @@ export const Popup: React.FC<PopupProps> = props => {
               onMoveShouldSetResponder={() => true}
             />
           ) : null}
-          {visible || mounted ? content : null}
+          {content}
         </View>
       </View>
     </Portal>
@@ -623,22 +645,10 @@ const styles = StyleSheet.create({
   header: {
     width: '100%',
   },
-  titleWrapper: {
-    // Moved to dynamicStyles
-    marginHorizontal: 12,
-    alignItems: 'center',
-  },
   title: {
-    // Moved to dynamicStyles
-    marginHorizontal: 12,
-    textAlign: 'center',
     includeFontPadding: false,
   },
-  descriptionWrapper: {
-    // Moved to dynamicStyles
-  },
   description: {
-    // Moved to dynamicStyles
     includeFontPadding: false,
   },
   popupVertical: {

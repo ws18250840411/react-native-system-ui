@@ -38,6 +38,35 @@ export default function ComponentDemosScreen() {
     )
   }
 
+  if (resolvedSlug === 'picker' && entry) {
+    return (
+      <View style={styles.root}>
+        <Stack.Screen options={{ title }} />
+        <View style={styles.indexBarWrapper}>
+          <Tabs
+            defaultActive={entry.demos[0]?.id}
+            border={false}
+            color="#3a7afe"
+            titleActiveColor="#3a7afe"
+            align="start"
+            tabBarStyle={styles.indexBarTabBar}
+          >
+            {entry.demos.map(demo => {
+              const DemoComponent = demo.Component
+              return (
+                <Tabs.TabPane key={demo.id} name={demo.id} title={demo.title}>
+                  <View style={styles.sectionContent}>
+                    <DemoComponent />
+                  </View>
+                </Tabs.TabPane>
+              )
+            })}
+          </Tabs>
+        </View>
+      </View>
+    )
+  }
+
   if (isIndexBar && indexBarDemos?.basic && indexBarDemos?.custom) {
     return (
       <View style={styles.root}>
