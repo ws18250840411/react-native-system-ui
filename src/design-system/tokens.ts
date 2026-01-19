@@ -31,6 +31,7 @@ export interface Foundations {
     none: number
     xxs: number
     xs: number
+    ssm: number
     sm: number
     md: number
     lg: number
@@ -156,6 +157,7 @@ export const defaultFoundations: Foundations = {
     none: 0,
     xxs: 2,
     xs: 4,
+    ssm: 6,
     sm: 8,
     md: 12,
     lg: 16,

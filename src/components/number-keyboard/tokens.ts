@@ -10,6 +10,7 @@ export interface NumberKeyboardTokens {
     keyText: string
     keyTextActive: string
     closeBackground: string
+    closeActiveBackground: string
     closeText: string
     border: string
   }
@@ -44,17 +45,18 @@ const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
       background: palette.default[100],
       title: palette.default[700],
       keyBackground: '#ffffff',
-      keyActiveBackground: palette.default[100],
+      keyActiveBackground: palette.default[50],
       keyText: palette.default[900],
       keyTextActive: palette.primary[600],
-      closeBackground: palette.primary[600],
+      closeBackground: palette.primary[500],
+      closeActiveBackground: palette.primary[400],
       closeText: onPrimary,
       border: palette.default[200],
     },
     spacing: {
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-      keyGap: spacing.xs,
+      paddingHorizontal: spacing.ssm,
+      paddingVertical: spacing.ssm,
+      keyGap: spacing.ssm,
       titlePadding: spacing.md,
     },
     sizing: {

@@ -7,19 +7,19 @@ import { parseNumberLike } from '../../utils/number'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
-import { isText } from '../../utils/validate'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
 
 const keyboardRegistry = new Set<() => void>()
 
-const BASE_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+const NUMBER_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+const ZERO_KEY = '0'
 
 const shuffle = <T,>(list: T[]) => {
   const next = [...list]
   for (let i = next.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[next[i], next[j]] = [next[j], next[i]]
+      ;[next[i], next[j]] = [next[j], next[i]]
   }
   return next
 }
@@ -30,7 +30,7 @@ interface KeyboardKey {
   wider?: boolean
 }
 
-const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
+const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const {
     visible,
     title,
@@ -78,8 +78,13 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     if (parsed === undefined || !Number.isFinite(parsed) || parsed < 0) return undefined
     return Math.floor(parsed)
   }, [maxlengthProp])
+  const valueRef = React.useRef(value)
+  const maxlengthRef = React.useRef(maxlength)
+  valueRef.current = value
+  maxlengthRef.current = maxlength
 
-  const resolvedCloseText = theme === 'custom' ? closeButtonText ?? '完成' : closeButtonText
+  const isCustomTheme = theme === 'custom'
+  const resolvedCloseText = isCustomTheme ? closeButtonText ?? '完成' : closeButtonText
 
   const closeSelf = React.useCallback(() => {
     onClose?.()
@@ -99,11 +104,9 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     prevVisible.current = visible
   }, [visible, onShow, onHide])
 
-  // 仅允许一个键盘可见：当本实例显示时，通知其他实例关闭
   React.useEffect(() => {
     if (visible) {
       keyboardRegistry.add(closeSelf)
-      // 关闭其他已注册的键盘
       keyboardRegistry.forEach(fn => {
         if (fn !== closeSelf) {
           fn()
@@ -119,163 +122,180 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
 
   const keys = React.useMemo(() => {
     const shouldShuffle = Boolean(randomKeyOrder) && visible
-    const numbers = shouldShuffle ? shuffle(BASE_KEYS.slice(0, 9)) : BASE_KEYS.slice(0, 9)
+    const numbers = shouldShuffle ? shuffle(NUMBER_KEYS) : NUMBER_KEYS
     const main: KeyboardKey[] = numbers.map(text => ({ text, type: '' }))
 
-    if (theme === 'custom') {
+    if (isCustomTheme) {
       const extras = Array.isArray(extraKey) ? extraKey : extraKey ? [extraKey] : []
       if (extras.length === 1) {
-        main.push({ text: '0', type: '', wider: true }, { text: extras[0], type: 'extra' })
+        main.push({ text: ZERO_KEY, type: '', wider: true }, { text: extras[0], type: 'extra' })
       } else if (extras.length >= 2) {
         main.push(
           { text: extras[0], type: 'extra' },
-          { text: '0', type: '' },
+          { text: ZERO_KEY, type: '' },
           { text: extras[1], type: 'extra' },
         )
       } else {
-        main.push({ text: '0', type: '' })
+        main.push({ text: ZERO_KEY, type: '' })
       }
       return main
     }
 
     const normalizedExtra = Array.isArray(extraKey) ? extraKey[0] ?? '' : extraKey ?? ''
     main.push({ text: normalizedExtra, type: 'extra' })
-    main.push({ text: '0', type: '' })
+    main.push({ text: ZERO_KEY, type: '' })
     main.push({ type: showDeleteKey ? 'delete' : '', text: showDeleteKey ? undefined : '' })
     return main
-  }, [extraKey, randomKeyOrder, showDeleteKey, theme, visible])
+  }, [extraKey, isCustomTheme, randomKeyOrder, showDeleteKey, visible])
 
-  const handleInput = (text?: string, type?: NumberKeyboardKeyType) => {
-    if (type === 'delete') {
-      if (!value) return
-      onDelete?.()
-      const next = value.slice(0, -1)
-      setMergedValue(next)
-      return
-    }
-    if (type === 'close') {
-      closeSelf()
-      return
-    }
-    if (type === 'extra' && !text) {
-      closeSelf()
-      return
-    }
-    if (!text) return
-    if (maxlength !== undefined && value.length >= maxlength) {
-      return
-    }
-    onInput?.(text)
-    const next = `${value}${text}`
-    setMergedValue(next)
-  }
+  const handleInput = React.useCallback(
+    (text?: string, type?: NumberKeyboardKeyType) => {
+      if (type === 'delete') {
+        const currentValue = valueRef.current
+        if (!currentValue) return
+        onDelete?.()
+        setMergedValue(currentValue.slice(0, -1))
+        return
+      }
+      if (type === 'close' || (type === 'extra' && !text)) {
+        closeSelf()
+        return
+      }
+      if (!text) return
+      const currentValue = valueRef.current
+      const currentMaxlength = maxlengthRef.current
+      if (currentMaxlength !== undefined && currentValue.length >= currentMaxlength) return
+      onInput?.(text)
+      setMergedValue(`${currentValue}${text}`)
+    },
+    [closeSelf, onDelete, onInput, setMergedValue],
+  )
 
-  const wrapperShadow = createPlatformShadow({
-    color: shadow.color,
-    opacity: shadow.opacity,
-    radius: shadow.radius,
-    offsetY: shadow.offsetY,
-    elevation: shadow.elevation,
-  })
+  const wrapperShadow = React.useMemo(
+    () =>
+      createPlatformShadow({
+        color: shadow.color,
+        opacity: shadow.opacity,
+        radius: shadow.radius,
+        offsetY: shadow.offsetY,
+        elevation: shadow.elevation,
+      }),
+    [shadow.color, shadow.opacity, shadow.radius, shadow.offsetY, shadow.elevation],
+  )
 
-  const getKeyContent = (key: KeyboardKey) => {
-    if (key.type === 'delete') {
-      if (deleteRender) return deleteRender()
-      return deleteButtonText ?? '⌫'
-    }
-    if (key.type === 'extra') {
-      const extraText = key.text ?? ''
-      if (extraKeyRender) return extraKeyRender(extraText)
-      return extraText || '⌨︎'
-    }
-    if (key.type === 'close') {
-      return resolvedCloseText ?? '完成'
-    }
-    const keyText = key.text ?? ''
-    if (numberKeyRender) {
-      return numberKeyRender(keyText)
-    }
-    return keyText
-  }
+  const renderKey = React.useCallback(
+    (key: KeyboardKey, index: number, isClose = false, fullWidth = false, customHeight?: number) => {
+      const isPlaceholder = key.type === '' && !key.text
+      const disabled = isPlaceholder || (isClose && closeButtonLoading)
+      const onPress = disabled ? undefined : () => handleInput(key.text, key.type)
+      const backgroundColor = isClose ? colors.closeBackground : colors.keyBackground
+      const activeBackground = isClose ? colors.closeActiveBackground : colors.keyActiveBackground
+      const inactiveTextColor = isClose ? colors.closeText : colors.keyText
+      const pressedTextColor = isClose ? colors.closeText : colors.keyTextActive
+      const keyHeight = customHeight ?? (isClose ? sizing.closeHeight : sizing.keyHeight)
 
-  const renderKey = (
-    key: KeyboardKey,
-    index: number,
-    options?: { isClose?: boolean },
-  ) => {
-    const isClose = options?.isClose
-    const isPlaceholder = key.type === '' && !key.text
-    const disabled = isPlaceholder || (isClose && closeButtonLoading)
-    const onPress = disabled ? undefined : () => handleInput(key.text, key.type)
-    const backgroundColor = isClose ? colors.closeBackground : colors.keyBackground
-    const activeBackground = colors.keyActiveBackground
-    const inactiveTextColor = isClose ? colors.closeText : colors.keyText
-    const pressedTextColor = isClose ? colors.closeText : colors.keyTextActive
+      const keyText = key.text ?? ''
+      const contentNode =
+        key.type === 'delete'
+          ? deleteRender?.() ?? deleteButtonText ?? '⌫'
+          : key.type === 'extra'
+            ? extraKeyRender
+              ? extraKeyRender(keyText)
+              : keyText || '⌨︎'
+            : key.type === 'close'
+              ? resolvedCloseText ?? '完成'
+              : numberKeyRender
+                ? numberKeyRender(keyText)
+                : keyText
 
-    const contentNode = getKeyContent(key)
+      return (
+        <Pressable
+          key={`${key.type}-${index}-${key.text ?? index}`}
+          onPress={onPress}
+          disabled={disabled}
+          style={[
+            {
+              opacity: isPlaceholder ? 1 : disabled ? 0.6 : 1,
+            },
+            fullWidth
+              ? { width: '100%', flexBasis: 'auto', flexGrow: 0, alignSelf: 'stretch' }
+              : {
+                flexBasis: key.wider ? '64%' : '30%',
+                flexGrow: key.wider ? 2 : 1,
+              },
+          ]}
+          accessible={!isPlaceholder}
+          accessibilityRole={isPlaceholder ? undefined : 'button'}
+          accessibilityLabel={
+            isPlaceholder
+              ? undefined
+              : key.type === 'delete'
+                ? 'delete'
+                : key.type === 'close'
+                  ? resolvedCloseText ?? 'close'
+                  : key.type === 'extra'
+                    ? keyText || 'collapse'
+                    : keyText
+          }
+          accessibilityState={isPlaceholder ? undefined : { disabled: !!disabled }}
+          accessibilityElementsHidden={isPlaceholder}
+          importantForAccessibility={isPlaceholder ? 'no-hide-descendants' : undefined}
+        >
+          {({ pressed }) => {
+            const isPressed = pressed && !disabled
+            const keyBackground = disabled
+              ? colors.keyBackground
+              : isPressed
+                ? activeBackground
+                : backgroundColor
+            const textColor = isPressed ? pressedTextColor : inactiveTextColor
 
-    return (
-      <Pressable
-        key={`${key.type}-${index}-${key.text ?? index}`}
-        onPress={onPress}
-        disabled={disabled}
-        style={{
-          flexBasis: key.wider ? '64%' : '30%',
-          flexGrow: key.wider ? 2 : 1,
-          opacity: isPlaceholder ? 1 : disabled ? 0.6 : 1,
-        }}
-        accessible={!isPlaceholder}
-        accessibilityRole={isPlaceholder ? undefined : 'button'}
-        accessibilityLabel={
-          isPlaceholder
-            ? undefined
-            : key.type === 'delete'
-              ? 'delete'
-              : key.type === 'close'
-                ? resolvedCloseText ?? 'close'
-                : key.type === 'extra'
-                  ? key.text ?? 'collapse'
-                  : key.text
-        }
-        accessibilityState={isPlaceholder ? undefined : { disabled: !!disabled }}
-        accessibilityElementsHidden={isPlaceholder}
-        importantForAccessibility={isPlaceholder ? 'no-hide-descendants' : undefined}
-      >
-        {({ pressed }) => {
-          const isPressed = pressed && !disabled
-          const keyBackground = disabled
-            ? colors.keyBackground
-            : isPressed
-              ? activeBackground
-              : backgroundColor
-          const textColor = isPressed ? pressedTextColor : inactiveTextColor
-
-          return (
-            <View
-              style={[
-                styles.key,
-                {
-                  height: isClose ? sizing.closeHeight : sizing.keyHeight,
-                  backgroundColor: keyBackground,
-                  borderRadius: radii.key,
-                },
-              ]}
-            >
-              {isClose && closeButtonLoading ? (
-                <Loading size={18} color={textColor} />
-              ) : isText(contentNode) ? (
-                <Text style={[styles.keyText, { color: textColor, fontSize: sizing.fontSize }]}>
-                  {contentNode}
-                </Text>
-              ) : contentNode == null || contentNode === false ? null : (
-                contentNode
-              )}
-            </View>
-          )
-        }}
-      </Pressable>
-    )
-  }
+            return (
+              <View
+                style={[
+                  styles.key,
+                  {
+                    height: keyHeight,
+                    backgroundColor: keyBackground,
+                    borderRadius: radii.key,
+                  },
+                ]}
+              >
+                {isClose && closeButtonLoading ? (
+                  <Loading size={18} color={textColor} />
+                ) : typeof contentNode === 'string' || typeof contentNode === 'number' ? (
+                  <Text style={[styles.keyText, { color: textColor, fontSize: sizing.fontSize }]}>
+                    {contentNode}
+                  </Text>
+                ) : contentNode == null || contentNode === false ? null : (
+                  contentNode
+                )}
+              </View>
+            )
+          }}
+        </Pressable>
+      )
+    },
+    [
+      closeButtonLoading,
+      colors.closeActiveBackground,
+      colors.closeBackground,
+      colors.closeText,
+      colors.keyActiveBackground,
+      colors.keyBackground,
+      colors.keyText,
+      colors.keyTextActive,
+      deleteButtonText,
+      deleteRender,
+      extraKeyRender,
+      handleInput,
+      numberKeyRender,
+      radii.key,
+      sizing.closeHeight,
+      sizing.fontSize,
+      sizing.keyHeight,
+    ],
+  )
 
   const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
@@ -307,100 +327,124 @@ const NumberKeyboard: React.FC<NumberKeyboardProps> = props => {
     }
   }, [animated, visible, effectiveDuration])
 
-  const translateY = animated.interpolate({
-    inputRange: [0, 1],
-    outputRange: [contentHeight || 320, 0],
-  })
+  const translateY = React.useMemo(
+    () =>
+      animated.interpolate({
+        inputRange: [0, 1],
+        outputRange: [contentHeight || 320, 0],
+      }),
+    [animated, contentHeight],
+  )
 
-  const handleLayout = (e: LayoutChangeEvent) => {
+  const handleLayout = React.useCallback((e: LayoutChangeEvent) => {
     const { height } = e.nativeEvent.layout
-    if (Math.abs(height - contentHeight) > 0.5) {
-      setContentHeight(height)
-    }
-  }
+    setContentHeight(prev => (Math.abs(height - prev) > 0.5 ? height : prev))
+  }, [])
+
+  const hasHeader = !isCustomTheme && (title || closeButtonText)
+  const keyGap = spacing.keyGap
+  const doubleKeyHeight = sizing.keyHeight * 2 + keyGap
+  const memo = React.useMemo(() => {
+    const headerPaddingStyle = { paddingHorizontal: spacing.titlePadding }
+    const defaultRowStyle = [
+      styles.defaultRow,
+      {
+        paddingHorizontal: spacing.paddingHorizontal,
+        paddingTop: keyGap,
+        paddingBottom: keyGap,
+        gap: keyGap,
+      },
+    ]
+    const customRowStyle = [
+      styles.customRow,
+      {
+        paddingHorizontal: spacing.paddingHorizontal,
+        paddingTop: hasHeader ? 0 : keyGap,
+        paddingBottom: keyGap,
+        gap: keyGap,
+      },
+    ]
+    const customMainStyle = [styles.customMain, { gap: keyGap }]
+    const customSidebarStyle = [styles.customSidebar, { gap: keyGap }]
+    const keyNodes = keys.map((key, index) => renderKey(key, index))
+    const deleteNode = showDeleteKey
+      ? renderKey({ type: 'delete' }, 999, false, true, doubleKeyHeight)
+      : null
+    const closeNode = renderKey({ type: 'close' }, 1000, true, true, doubleKeyHeight)
+    const headerNode = hasHeader ? (
+      <View style={[styles.header, headerPaddingStyle]}>
+        <Text style={[styles.title, styles.titleOverlay, { color: colors.title }]} numberOfLines={1}>
+          {title}
+        </Text>
+        {resolvedCloseText ? (
+          <Pressable
+            onPress={closeSelf}
+            style={styles.headerClose}
+            accessibilityRole="button"
+            accessibilityLabel={resolvedCloseText}
+          >
+            <Text style={{ color: colors.title }}>{resolvedCloseText}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    ) : null
+    const bodyNode = isCustomTheme ? (
+      <View style={customRowStyle}>
+        <View style={customMainStyle}>{keyNodes}</View>
+        <View style={customSidebarStyle}>
+          {deleteNode}
+          {closeNode}
+        </View>
+      </View>
+    ) : (
+      <View style={defaultRowStyle}>{keyNodes}</View>
+    )
+    const safeAreaNode = safeAreaInsetBottom ? <SafeAreaView style={{ width: '100%' }} /> : null
+    return { headerNode, bodyNode, safeAreaNode }
+  }, [
+    colors.title,
+    doubleKeyHeight,
+    hasHeader,
+    isCustomTheme,
+    keyGap,
+    keys,
+    renderKey,
+    resolvedCloseText,
+    safeAreaInsetBottom,
+    showDeleteKey,
+    closeSelf,
+    spacing.paddingHorizontal,
+    spacing.titlePadding,
+    title,
+  ])
 
   if (!shouldRender && !visible) {
     return null
   }
 
-  const keyboardNode = (
-    <Animated.View
-      {...rest}
-      pointerEvents={visible ? 'auto' : 'none'}
-      onLayout={handleLayout}
-      style={[
-        styles.wrapper,
-        wrapperShadow,
-        style,
-        {
-          transform: [{ translateY }],
-          backgroundColor: colors.background,
-        },
-      ]}
-    >
-      {(title || closeButtonText) && theme === 'default' && (
-        <View style={[styles.header, { paddingHorizontal: spacing.titlePadding }]}>
-          <Text
-            style={[styles.title, styles.titleOverlay, { color: colors.title }]}
-            numberOfLines={1}
-          >
-            {title}
-          </Text>
-          {resolvedCloseText ? (
-            <Pressable
-              onPress={() => handleInput(undefined, 'close')}
-              style={styles.headerClose}
-              accessibilityRole="button"
-              accessibilityLabel={resolvedCloseText}
-            >
-              <Text style={{ color: colors.title }}>{resolvedCloseText}</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      )}
-
-      {theme === 'custom' ? (
-        <View
-          style={[
-            styles.customRow,
-            {
-              paddingHorizontal: spacing.paddingHorizontal,
-              paddingBottom: spacing.paddingVertical,
-              gap: spacing.keyGap,
-            },
-          ]}
-        >
-          <View style={[styles.customMain, { gap: spacing.keyGap }]}>
-            {keys.map((key, index) => renderKey(key, index))}
-          </View>
-          <View style={[styles.customSidebar, { gap: spacing.keyGap }]}>
-            {showDeleteKey
-              ? renderKey({ type: 'delete' }, 999)
-              : null}
-            {renderKey({ type: 'close', text: resolvedCloseText }, 1000, { isClose: true })}
-          </View>
-        </View>
-      ) : (
-        <View
-          style={[
-            styles.defaultRow,
-            {
-              paddingHorizontal: spacing.paddingHorizontal,
-              paddingBottom: spacing.paddingVertical,
-              gap: spacing.keyGap,
-            },
-          ]}
-        >
-          {keys.map((key, index) => renderKey(key, index))}
-        </View>
-      )}
-
-      {safeAreaInsetBottom ? <SafeAreaView style={{ width: '100%' }} /> : null}
-    </Animated.View>
+  return (
+    <Portal>
+      <Animated.View
+        {...rest}
+        pointerEvents={visible ? 'auto' : 'none'}
+        onLayout={handleLayout}
+        style={[
+          styles.wrapper,
+          wrapperShadow,
+          style,
+          {
+            transform: [{ translateY }],
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
+        {memo.headerNode}
+        {memo.bodyNode}
+        {memo.safeAreaNode}
+      </Animated.View>
+    </Portal>
   )
-
-  return <Portal>{keyboardNode}</Portal>
-}
+})
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -453,7 +497,7 @@ const styles = StyleSheet.create({
   customSidebar: {
     flex: 1,
     flexDirection: 'column',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
 })
 

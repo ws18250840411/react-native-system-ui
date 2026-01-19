@@ -227,7 +227,7 @@ describe('Dialog', () => {
       await expectation
     })
 
-    it('resolves confirm promise on cancel', async () => {
+    it('rejects confirm promise on cancel', async () => {
       jest.useFakeTimers()
 
       let promise: Promise<boolean> = Promise.resolve(true)
@@ -237,7 +237,7 @@ describe('Dialog', () => {
 
       const [cancelButton] = getActionButtons(hostTree!)
 
-      const expectation = expect(promise).resolves.toBe(false)
+      const expectation = expect(promise).rejects.toBe(false)
 
       await act(async () => {
         cancelButton.props.onPress?.()
