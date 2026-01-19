@@ -36,7 +36,6 @@ export type PopupCloseIconPosition =
 
 export interface PopupProps extends ViewProps {
   visible: boolean
-  /** 与 react-vant 对齐：position 等价于 placement */
   position?: PopupPlacement
   placement?: PopupPlacement
   title?: React.ReactNode
@@ -69,7 +68,6 @@ export interface PopupProps extends ViewProps {
   onOpen?: () => void
   onOpened?: () => void
   onClosed?: () => void
-  /** 自定义内容动画样式，用于覆盖默认动画（如 Dialog 的 scale 动画） */
   contentAnimationStyle?: Animated.WithAnimatedObject<ViewStyle>
 }
 
@@ -177,7 +175,7 @@ export const Popup: React.FC<PopupProps> = props => {
     safeAreaInsetBottom: safeAreaInsetBottomProp,
     lockScroll = true,
     destroyOnClose = false,
-    duration = 300,
+    duration = 250,
     zIndex,
     closeOnBackPress = false,
     closeOnPopstate = false,
@@ -198,7 +196,6 @@ export const Popup: React.FC<PopupProps> = props => {
   const shouldCloseOnOverlay = closeOnClickOverlay ?? closeOnOverlayPress ?? true
   const shouldTranslate = placement !== 'center'
   const safeAreaInsetBottom = safeAreaInsetBottomProp ?? false
-  const resolvedDuration = duration < 0 ? 0 : duration
 
   const tokens = usePopupTokens(tokensOverride)
 
@@ -304,12 +301,11 @@ export const Popup: React.FC<PopupProps> = props => {
   const runAnimation = React.useCallback(
     (show: boolean) => {
       animatingRef.current = true
-      // 对齐 react-vant：进入使用 ease-out，退出使用 ease-in（近似 CSS cubic-bezier 0.25,0.1,0.25,1 / 0.42,0,1,1）
       const easing = show ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic)
       animationRef.current?.stop()
       const animation = Animated.timing(progress, {
         toValue: show ? 1 : 0,
-        duration: resolvedDuration,
+        duration,
         easing,
         useNativeDriver: nativeDriverEnabled,
       })
@@ -335,7 +331,7 @@ export const Popup: React.FC<PopupProps> = props => {
         }
       })
     },
-    [destroyOnClose, onClosed, onOpened, progress, resolvedDuration]
+    [destroyOnClose, duration, onClosed, onOpened, progress]
   )
 
   React.useEffect(() => {
@@ -436,13 +432,9 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const stopPropagationResponder = React.useCallback(() => true, [])
 
-  const contentInteractionProps = React.useMemo(
-    () =>
-      stopPropagation
-        ? { ...overlayRestProps, onStartShouldSetResponder: stopPropagationResponder }
-        : overlayRestProps,
-    [overlayRestProps, stopPropagation, stopPropagationResponder],
-  )
+  const contentInteractionProps = stopPropagation
+    ? { ...overlayRestProps, onStartShouldSetResponder: stopPropagationResponder }
+    : overlayRestProps
 
   const config = placementConfig[placement]
   const distance = distanceRef.current || contentDistance

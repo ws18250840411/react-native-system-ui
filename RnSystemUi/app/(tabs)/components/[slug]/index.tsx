@@ -7,6 +7,7 @@ import { Cell, Tabs, Typography } from 'react-native-system-ui'
 import { componentRegistry } from '@/demo/registry'
 
 const FULLSCREEN_DEMO_SLUGS = new Set(['list', 'pull-refresh'])
+const TABBED_DEMO_SLUGS = new Set(['picker', 'datetime-picker'])
 
 export default function ComponentDemosScreen() {
   const router = useRouter()
@@ -38,7 +39,7 @@ export default function ComponentDemosScreen() {
     )
   }
 
-  if (resolvedSlug === 'picker' && entry) {
+  if (resolvedSlug && TABBED_DEMO_SLUGS.has(resolvedSlug) && entry) {
     return (
       <View style={styles.root}>
         <Stack.Screen options={{ title }} />

@@ -122,7 +122,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     const shouldClose = await runHook(options.onCancel)
     if (!shouldClose) return
     if (meta.mode === 'confirm') {
-      meta.reject?.(false)
+      meta.resolve?.(false)
     }
     close()
   }, [close, meta, options.beforeClose, options.onCancel])
@@ -144,7 +144,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     const shouldClose = await runHook(options.onClose)
     if (!shouldClose) return
     if (meta.mode === 'confirm') {
-      meta.reject?.(false)
+      meta.resolve?.(false)
     }
     close()
   }, [close, meta, options.beforeClose, options.onClose])
@@ -233,13 +233,12 @@ export const DialogImperative = {
       )
     }),
   confirm: (options?: DialogConfirmOptions) =>
-    new Promise<boolean>((resolve, reject) => {
+    new Promise<boolean>(resolve => {
       mountImperativeDialog(
         normalizeOptions('confirm', { showCancelButton: true, ...options }),
         {
           mode: 'confirm',
-          resolve: () => resolve(true),
-          reject: () => reject(false),
+          resolve: result => resolve(result === undefined ? true : result),
         }
       )
     }),
