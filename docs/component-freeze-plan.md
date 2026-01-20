@@ -80,7 +80,8 @@
 | portal | 已冻结 ✅ | 极致精简版：Host 栈+快照缓存；zIndex 透传；Web 自动挂载/回收；render 无副作用 |
 | popup | 已冻结 ✅ | 极致精简版：关闭链路去重；布局测量等待；动画/安全区稳定；单测 0 any |
 | area | 已冻结 ✅ | 极致精简版：areaList→级联列；排序缓存；回调值归一；单测守护 |
-| picker | 已冻结 ✅ | 滚动边界收敛；嵌套滚动可用；核心逻辑单测补齐 |
+| picker | 已冻结 ✅ | 极致精简版：虚拟渲染与滚动节奏自适应；惯性与边界收敛；核心逻辑单测补齐 |
+| overlay | 持续优化 ✅ | 极致精简版：栈/zIndex/遮罩；Token 对齐；单测通过 |
 
 ### C 组（持续优化）
 
@@ -103,7 +104,6 @@
 | index-bar | 持续优化 ✅ | 手势/滚动/定位，三端一致性敏感 |
 | input | 持续优化 ✅ | TextInput/autoSize/composition 等差异 |
 | notice-bar | 持续优化 ✅ | 动画/滚动/重播，差异点多 |
-| overlay | 持续优化 ✅ | 弹层基础设施（栈/zIndex/遮罩） |
 | password-input | 持续优化 ✅ | 输入+自绘 UI+动画/光标等 |
 | pull-refresh | 持续优化 ✅ | 手势/滚动冲突，差异点多 |
 | search | 持续优化 ✅ | 基于 Field/Input，输入链路复杂 |

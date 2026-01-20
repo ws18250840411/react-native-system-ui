@@ -1,6 +1,6 @@
 import Overlay from './Overlay'
 
-export type { OverlayProps } from './Overlay'
+export type { OverlayProps } from './types'
 export { Overlay }
 export default Overlay
 

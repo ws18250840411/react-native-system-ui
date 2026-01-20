@@ -124,21 +124,21 @@ describe('Dialog', () => {
     const msg = texts.find(t => t.props.children === 'msg')
     expect(msg).toBeTruthy()
     const style = msg?.props.style
-    const hasLeft = Array.isArray(style) 
-      ? style.some((s: any) => s?.textAlign === 'left') 
+    const hasLeft = Array.isArray(style)
+      ? style.some((s: any) => s?.textAlign === 'left')
       : (style as any)?.textAlign === 'left'
-      
+
     expect(hasLeft).toBe(true)
   })
 
   it('renders close icon when closeable is true', () => {
     const onClose = jest.fn()
     const tree = renderInHost(<Dialog visible closeable onClose={onClose} />)
-    
+
     const pressables = tree.root.findAllByType(Pressable)
     // Find the close icon pressable (has hitSlop)
     const closeBtn = pressables.find(p => p.props.hitSlop && p.props.hitSlop.top === 8)
-    
+
     expect(closeBtn).toBeTruthy()
     act(() => {
       closeBtn?.props.onPress?.()
@@ -150,13 +150,13 @@ describe('Dialog', () => {
     const onClose = jest.fn()
     const beforeClose = jest.fn().mockReturnValue(false)
     const tree = renderInHost(<Dialog visible closeable onClose={onClose} beforeClose={beforeClose} />)
-    
+
     const closeBtn = tree.root.findAllByType(Pressable).find(p => p.props.hitSlop && p.props.hitSlop.top === 8)
-    
+
     act(() => {
       closeBtn?.props.onPress?.()
     })
-    
+
     expect(beforeClose).toHaveBeenCalledWith('close')
     expect(onClose).not.toHaveBeenCalled()
   })
@@ -191,7 +191,7 @@ describe('Dialog', () => {
 
     it('shows and closes via static show', async () => {
       jest.useFakeTimers()
-      let close: () => void = () => {}
+      let close: () => void = () => { }
       act(() => {
         close = Dialog.show({ title: '静态', message: '内容', showCancelButton: true })
       })

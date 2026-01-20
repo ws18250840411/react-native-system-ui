@@ -4,60 +4,47 @@ import {
   Pressable,
   StyleSheet,
   View,
-  type StyleProp,
   type ViewStyle,
 } from 'react-native'
 
-import type { DeepPartial } from '../../types'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import { parseNumberLike } from '../../utils/number'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from './useOverlayStack'
-import type { OverlayTokens } from './tokens'
 import { useOverlayTokens } from './tokens'
-
-export interface OverlayProps {
-  visible?: boolean
-  color?: string
-  duration?: number | string
-  lockScroll?: boolean
-  closeOnBackPress?: boolean
-  onPress?: () => void
-  /** 与 Web/官方命名对齐：同 onPress */
-  onClick?: () => void
-  style?: StyleProp<ViewStyle>
-  testID?: string
-  accessibilityLabel?: string
-  zIndex?: number | string
-  tokensOverride?: DeepPartial<OverlayTokens>
-  children?: React.ReactNode
-}
+import type { OverlayProps } from './types'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 export const Overlay: React.FC<OverlayProps> = props => {
   const {
-    visible = false,
     color,
-    duration,
-    lockScroll = true,
-    closeOnBackPress = false,
     tokensOverride,
     onPress,
     onClick,
     style,
-    testID = 'rv-overlay',
-    accessibilityLabel = '关闭遮罩',
     zIndex,
     children,
+    visible: visibleProp,
+    duration: durationProp,
+    lockScroll: lockScrollProp,
+    closeOnBackPress: closeOnBackPressProp,
+    testID: testIDProp,
+    accessibilityLabel: accessibilityLabelProp,
   } = props
 
   const hasAction = !!onPress || !!onClick
 
   const tokens = useOverlayTokens(tokensOverride)
+  const visible = visibleProp ?? tokens.defaults.visible
+  const lockScroll = lockScrollProp ?? tokens.defaults.lockScroll
+  const closeOnBackPress = closeOnBackPressProp ?? tokens.defaults.closeOnBackPress
+  const testID = testIDProp ?? tokens.defaults.testID
+  const accessibilityLabel = accessibilityLabelProp ?? tokens.defaults.accessibilityLabel
+  const duration = durationProp ?? tokens.defaults.duration
   const resolvedDuration = Math.max(
     0,
-    parseNumberLike(duration, tokens.animationDuration) ?? tokens.animationDuration
+    parseNumberLike(duration, tokens.defaults.duration) ?? tokens.defaults.duration
   )
   const { mounted, animated } = usePresenceAnimation(visible, { duration: resolvedDuration })
 
@@ -89,7 +76,7 @@ export const Overlay: React.FC<OverlayProps> = props => {
       <View
         pointerEvents="box-none"
         style={[
-          styles.portal,
+          tokens.layout.portal,
           resolvedZIndex !== undefined && resolvedZIndex !== null
             ? { zIndex: resolvedZIndex }
             : null,
@@ -99,7 +86,7 @@ export const Overlay: React.FC<OverlayProps> = props => {
         <AnimatedPressable
           testID={testID}
           style={[
-            styles.overlay,
+            tokens.layout.overlay,
             {
               backgroundColor: resolvedColor,
               opacity: animated,
@@ -118,15 +105,6 @@ export const Overlay: React.FC<OverlayProps> = props => {
     </Portal>
   )
 }
-
-const styles = StyleSheet.create({
-  portal: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-})
 
 Overlay.displayName = 'Overlay'
 

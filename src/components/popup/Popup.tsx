@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   Animated,
+  Dimensions,
   Easing,
   Pressable,
   SafeAreaView,
@@ -21,11 +22,13 @@ import { isRenderable, isText } from '../../utils/validate'
 import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
-import { useAriaOverlay } from '../../hooks'
+import { useAriaOverlay, usePresenceAnimation } from '../../hooks'
 import type { PopupTokens } from './tokens'
 import { usePopupTokens } from './tokens'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+const EASING_IN_CUBIC = Easing.bezier(0.55, 0.055, 0.675, 0.19)
+const EASING_OUT_CIRC = Easing.bezier(0.075, 0.82, 0.165, 1.0)
 
 export type PopupPlacement = 'top' | 'bottom' | 'left' | 'right' | 'center'
 export type PopupCloseIconPosition =
@@ -175,7 +178,7 @@ export const Popup: React.FC<PopupProps> = props => {
     safeAreaInsetBottom: safeAreaInsetBottomProp,
     lockScroll = true,
     destroyOnClose = false,
-    duration = 250,
+    duration = 300,
     zIndex,
     closeOnBackPress = false,
     closeOnPopstate = false,
@@ -278,14 +281,8 @@ export const Popup: React.FC<PopupProps> = props => {
   const [interactionVisible, setInteractionVisible] = React.useState(visible)
   const isOpen = visible || interactionVisible
   const canCloseOnOverlay = shouldCloseOnOverlay && (onClose || beforeClose)
-  const [contentDistance, setContentDistance] = React.useState(0)
   const progress = React.useRef(new Animated.Value(0)).current
-  const animatingRef = React.useRef(false)
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
-  const distanceRef = React.useRef(0)
-  const pendingDistanceRef = React.useRef<number | null>(null)
-  const pendingShowRef = React.useRef(false)
-  const openFallbackTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevVisible = React.useRef(visible)
   const closingRef = React.useRef(false)
 
@@ -293,17 +290,9 @@ export const Popup: React.FC<PopupProps> = props => {
   const isHorizontal = placement === 'left' || placement === 'right'
   const direction = placement === 'top' || placement === 'left' ? -1 : 1
 
-  const clearOpenFallbackTimer = React.useCallback(() => {
-    if (openFallbackTimerRef.current) {
-      clearTimeout(openFallbackTimerRef.current)
-      openFallbackTimerRef.current = null
-    }
-  }, [])
-
   const runAnimation = React.useCallback(
     (show: boolean) => {
-      animatingRef.current = true
-      const easing = show ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic)
+      const easing = show ? EASING_OUT_CIRC : EASING_IN_CUBIC
       animationRef.current?.stop()
       const animation = Animated.timing(progress, {
         toValue: show ? 1 : 0,
@@ -315,13 +304,6 @@ export const Popup: React.FC<PopupProps> = props => {
 
       animation.start(({ finished }) => {
         if (!finished) return
-        animatingRef.current = false
-        const pendingDistance = pendingDistanceRef.current
-        if (pendingDistance != null) {
-          pendingDistanceRef.current = null
-          distanceRef.current = pendingDistance
-          setContentDistance(pendingDistance)
-        }
         if (show) {
           onOpened?.()
         } else {
@@ -340,27 +322,12 @@ export const Popup: React.FC<PopupProps> = props => {
     if (visible) {
       setMounted(true)
       setInteractionVisible(true)
-      clearOpenFallbackTimer()
-      const needWaitForLayout = shouldTranslate && distanceRef.current === 0
-      if (needWaitForLayout) {
-        pendingShowRef.current = true
-        openFallbackTimerRef.current = setTimeout(() => {
-          if (pendingShowRef.current && visible) {
-            pendingShowRef.current = false
-            runAnimation(true)
-          }
-        }, 50)
-        return
-      }
-      pendingShowRef.current = false
       runAnimation(true)
     } else {
-      pendingShowRef.current = false
-      clearOpenFallbackTimer()
       if (!prevVisible.current) return
       runAnimation(false)
     }
-  }, [clearOpenFallbackTimer, runAnimation, shouldTranslate, visible])
+  }, [runAnimation, visible])
 
   React.useEffect(() => {
     if (visible && !prevVisible.current) {
@@ -372,9 +339,8 @@ export const Popup: React.FC<PopupProps> = props => {
   React.useEffect(
     () => () => {
       animationRef.current?.stop()
-      clearOpenFallbackTimer()
     },
-    [clearOpenFallbackTimer]
+    []
   )
 
   const requestClose = React.useCallback(
@@ -439,24 +405,30 @@ export const Popup: React.FC<PopupProps> = props => {
     : overlayRestProps
 
   const config = placementConfig[placement]
-  const distance = distanceRef.current || contentDistance
   const radiusStyle = React.useMemo(
     () => buildRadius(round, placement, tokens.radius.round),
     [placement, round, tokens.radius.round],
   )
 
-  const overlayOpacity = React.useMemo(
-    () => progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }),
-    [progress],
-  )
+  const { animated: overlayOpacity } = usePresenceAnimation(visible, { duration })
+
+  const translateDistance = React.useMemo(() => {
+    if (placement === 'left' || placement === 'right') {
+      return Dimensions.get('window').width
+    }
+    if (placement === 'top' || placement === 'bottom') {
+      return Dimensions.get('window').height
+    }
+    return 0
+  }, [placement])
 
   const translateTransform = React.useMemo(() => {
     if (!shouldTranslate) return null
-    const outputRange: [number, number] = [distance * direction, 0]
+    const outputRange: [number, number] = [translateDistance * direction, 0]
     return config.axis === 'y'
       ? { translateY: progress.interpolate({ inputRange: [0, 1], outputRange }) }
       : { translateX: progress.interpolate({ inputRange: [0, 1], outputRange }) }
-  }, [config.axis, direction, distance, progress, shouldTranslate])
+  }, [config.axis, direction, progress, shouldTranslate, translateDistance])
 
   const baseTransform = React.useMemo(
     () => (translateTransform ? [translateTransform] : []),
@@ -466,27 +438,21 @@ export const Popup: React.FC<PopupProps> = props => {
   const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = React.useMemo(() => {
     const extraTransform = contentAnimationStyle?.transform
     const transform = Array.isArray(extraTransform) ? [...baseTransform, ...extraTransform] : baseTransform
-    return { ...contentAnimationStyle, transform, opacity: progress }
-  }, [baseTransform, contentAnimationStyle, progress])
+    const baseStyle = { ...contentAnimationStyle, transform }
+    if (placement === 'center') {
+      return { ...baseStyle, opacity: progress }
+    }
+    if (contentAnimationStyle?.opacity == null) {
+      return { ...baseStyle, opacity: 1 }
+    }
+    return baseStyle
+  }, [baseTransform, contentAnimationStyle, placement, progress])
 
   const handleContentLayout = React.useCallback(
     (event: LayoutChangeEvent) => {
       overlayOnLayout?.(event)
-      const { width, height } = event.nativeEvent.layout
-      const nextDistance = isVertical ? height : width
-      if (animatingRef.current) {
-        pendingDistanceRef.current = nextDistance
-        return
-      }
-      distanceRef.current = nextDistance
-      setContentDistance(prev => (Math.abs(prev - nextDistance) < 0.5 ? prev : nextDistance))
-      if (pendingShowRef.current && visible) {
-        pendingShowRef.current = false
-        clearOpenFallbackTimer()
-        runAnimation(true)
-      }
     },
-    [clearOpenFallbackTimer, isVertical, overlayOnLayout, runAnimation, visible]
+    [overlayOnLayout]
   )
 
   const shouldRender = mounted || visible

@@ -50,7 +50,7 @@
     "react-native-web": "0.21.2",
     "react-native-svg": "^15.15.1",
     "react-test-renderer": "^19.2.3",
-    "rndoc-cli": "2.0.2",
+    "rndoc-cli": "2.0.5",
     "typescript": "^5.9.3"
   },
   "dependencies": {

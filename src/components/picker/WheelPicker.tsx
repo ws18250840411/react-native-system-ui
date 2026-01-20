@@ -32,6 +32,13 @@ export type WheelPickerProps<T extends PickerOption = PickerOption> = {
   swipeDuration?: number
 }
 
+const getVelocityBucket = (velocity: number) => {
+  const abs = Math.abs(velocity)
+  if (abs > 1.2) return 2
+  if (abs > 0.6) return 1
+  return 0
+}
+
 const WheelPickerInner = <T extends PickerOption,>({
   data,
   selectedIndex,
@@ -41,7 +48,7 @@ const WheelPickerInner = <T extends PickerOption,>({
   visibleRest,
   readOnly,
   indicatorColor,
-  decelerationRate = Platform.select({ ios: 0.998, android: 0.99, default: 0.99 }) ?? 'normal',
+  decelerationRate = Platform.select({ ios: 0.9975, android: 0.989, default: 0.989 }) ?? 'normal',
   scrollEventThrottle = 16,
   swipeDuration = 300,
 }: WheelPickerProps<T>) => {
@@ -64,10 +71,8 @@ const WheelPickerInner = <T extends PickerOption,>({
   const windowSize = total > visibleCount * 12 ? 7 : 5
   const batchingPeriod = total > visibleCount * 20 ? 32 : 16
   const effectiveScrollThrottle = total > visibleCount * 20 ? 32 : scrollEventThrottle
-  const webVirtualEnabled = isWeb && total > visibleCount * 4
-  const webSpacer = React.useMemo(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
-  const listHeader = React.useMemo(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
-  const listFooter = React.useMemo(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
+  const webVirtualEnabled = total > visibleCount * 4
+  const Spacer = React.useCallback(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
 
   const dragEndTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const momentumRef = React.useRef(false)
@@ -104,6 +109,11 @@ const WheelPickerInner = <T extends PickerOption,>({
   const startOffsetRef = React.useRef(0)
   const startTimeRef = React.useRef(0)
   const [webTransition, setWebTransition] = React.useState(0)
+  const [webVelocityBucket, setWebVelocityBucket] = React.useState(0)
+  const webVelocityBucketRef = React.useRef(0)
+  const lastWheelTimeRef = React.useRef<number | null>(null)
+  const wheelDeltaRef = React.useRef(0)
+  const wheelRafRef = React.useRef<number | null>(null)
   const pendingIndexRef = React.useRef<number | null>(null)
   const pendingTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const rafIdRef = React.useRef<number | null>(null)
@@ -113,6 +123,10 @@ const WheelPickerInner = <T extends PickerOption,>({
       cancelAnimationFrame(rafIdRef.current)
       rafIdRef.current = null
     }
+    if (wheelRafRef.current != null && typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(wheelRafRef.current)
+      wheelRafRef.current = null
+    }
   }, [])
 
   const clearPendingTimer = React.useCallback(() => {
@@ -121,6 +135,27 @@ const WheelPickerInner = <T extends PickerOption,>({
       pendingTimerRef.current = null
     }
   }, [])
+
+  const setVelocityBucket = React.useCallback((velocity: number) => {
+    const next = getVelocityBucket(velocity)
+    if (next !== webVelocityBucketRef.current) {
+      webVelocityBucketRef.current = next
+      setWebVelocityBucket(next)
+    }
+  }, [])
+
+  const updateWheelVelocity = React.useCallback(
+    (delta: number) => {
+      const now = Date.now()
+      const last = lastWheelTimeRef.current
+      if (last != null) {
+        const dt = Math.max(1, now - last)
+        setVelocityBucket(delta / dt)
+      }
+      lastWheelTimeRef.current = now
+    },
+    [setVelocityBucket],
+  )
 
   React.useEffect(() => () => clearPendingTimer(), [clearPendingTimer])
   React.useEffect(() => () => stopRaf(), [stopRaf])
@@ -163,16 +198,27 @@ const WheelPickerInner = <T extends PickerOption,>({
 
   const handleWheel = React.useCallback(
     (event: { nativeEvent?: { deltaY?: number } }) => {
-      if (!isWeb || readOnly) return
+      if (readOnly) return
       const delta = event.nativeEvent?.deltaY ?? 0
       if (!delta) return
-      const direction = delta > 0 ? 1 : -1
-      const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data)
-      const nextIndex = clamp(index + direction, 0, maxIndex)
-      if (nextIndex === safeSelectedIndex) return
-      startWebSnap(nextIndex)
+      wheelDeltaRef.current += delta
+      if (wheelRafRef.current != null || typeof requestAnimationFrame === 'undefined') {
+        return
+      }
+      wheelRafRef.current = requestAnimationFrame(() => {
+        wheelRafRef.current = null
+        const queued = wheelDeltaRef.current
+        wheelDeltaRef.current = 0
+        if (!queued) return
+        updateWheelVelocity(queued)
+        const direction = queued > 0 ? 1 : -1
+        const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data)
+        const nextIndex = clamp(index + direction, 0, maxIndex)
+        if (nextIndex === safeSelectedIndex) return
+        startWebSnap(nextIndex)
+      })
     },
-    [data, isWeb, itemHeight, maxIndex, readOnly, safeSelectedIndex, startWebSnap, total],
+    [data, itemHeight, maxIndex, readOnly, safeSelectedIndex, startWebSnap, total, updateWheelVelocity],
   )
 
   const keyExtractor = React.useCallback(
@@ -192,6 +238,11 @@ const WheelPickerInner = <T extends PickerOption,>({
     [itemHeight, renderItem],
   )
 
+  const webIndex = React.useMemo(
+    () => clamp(Math.round(-webOffset / itemHeight), 0, maxIndex),
+    [itemHeight, maxIndex, webOffset],
+  )
+
   const webRender = React.useMemo(() => {
     if (!isWeb || total <= 0) {
       return { items: null as React.ReactNode, topSpacer: null as React.ReactNode, bottomSpacer: null as React.ReactNode }
@@ -199,10 +250,11 @@ const WheelPickerInner = <T extends PickerOption,>({
     let startIndex = 0
     let endIndex = maxIndex
     if (webVirtualEnabled) {
-      const buffer = Math.max(visibleCount * 2, 8)
-      const currentIndex = clamp(Math.round(-webOffset / itemHeight), 0, maxIndex)
-      startIndex = clamp(currentIndex - buffer, 0, maxIndex)
-      endIndex = clamp(currentIndex + buffer, 0, maxIndex)
+      const baseBuffer = Math.max(visibleCount * 2, 8)
+      const velocityBoost = webVelocityBucket === 2 ? visibleCount * 4 : webVelocityBucket === 1 ? visibleCount * 2 : 0
+      const buffer = Math.min(baseBuffer + velocityBoost, Math.max(visibleCount * 6, 24))
+      startIndex = clamp(webIndex - buffer, 0, maxIndex)
+      endIndex = clamp(webIndex + buffer, 0, maxIndex)
     }
     const items: React.ReactNode[] = []
     for (let index = startIndex; index <= endIndex; index += 1) {
@@ -222,9 +274,24 @@ const WheelPickerInner = <T extends PickerOption,>({
       topSpacer: topHeight > 0 ? <View style={{ height: topHeight }} /> : null,
       bottomSpacer: bottomHeight > 0 ? <View style={{ height: bottomHeight }} /> : null,
     }
-  }, [data, isWeb, itemHeight, maxIndex, renderItem, total, visibleCount, webOffset, webVirtualEnabled])
+  }, [data, isWeb, itemHeight, maxIndex, renderItem, total, visibleCount, webIndex, webVirtualEnabled, webVelocityBucket])
 
-  const webTransform = { transform: [{ translateY: webOffset }] }
+  const webTransform = React.useMemo(
+    () => ({ transform: [{ translateY: webOffset }] }),
+    [webOffset],
+  )
+  const webTransitionStyle = React.useMemo<ViewStyle | undefined>(
+    () =>
+      webTransition
+        ? ({
+          transitionProperty: 'transform',
+          transitionDuration: `${webTransition}ms`,
+          transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
+          willChange: 'transform',
+        } as unknown as ViewStyle)
+        : undefined,
+    [webTransition],
+  )
   const handleWebTransitionEnd = React.useCallback(
     (event: { nativeEvent?: { propertyName?: string } } & { propertyName?: string }) => {
       const propertyName = event.nativeEvent?.propertyName ?? event.propertyName
@@ -237,10 +304,9 @@ const WheelPickerInner = <T extends PickerOption,>({
   const panResponder = React.useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => isWeb && !readOnly,
-        onMoveShouldSetPanResponder: () => isWeb && !readOnly,
+        onStartShouldSetPanResponder: () => !readOnly,
+        onMoveShouldSetPanResponder: () => !readOnly,
         onPanResponderGrant: () => {
-          if (!isWeb) return
           stopRaf()
           pendingIndexRef.current = null
           setWebTransition(0)
@@ -248,28 +314,27 @@ const WheelPickerInner = <T extends PickerOption,>({
           startTimeRef.current = Date.now()
         },
         onPanResponderMove: (_, gesture) => {
-          if (!isWeb || readOnly) return
+          if (readOnly) return
+          setVelocityBucket(gesture.vy)
           const next = clamp(
             startOffsetRef.current + gesture.dy,
             minOffset,
             0,
           )
           webOffsetRef.current = next
-          if (typeof requestAnimationFrame !== 'undefined') {
-            if (rafIdRef.current != null) {
-              cancelAnimationFrame(rafIdRef.current)
-              rafIdRef.current = null
-            }
-            rafIdRef.current = requestAnimationFrame(() => {
-              rafIdRef.current = null
-              setWebOffset(webOffsetRef.current)
-            })
-          } else {
+          if (typeof requestAnimationFrame === 'undefined') {
             setWebOffset(next)
+            return
           }
+          if (rafIdRef.current != null) return
+          rafIdRef.current = requestAnimationFrame(() => {
+            rafIdRef.current = null
+            setWebOffset(webOffsetRef.current)
+          })
         },
         onPanResponderRelease: (_, gesture) => {
-          if (!isWeb || readOnly) return
+          if (readOnly) return
+          setVelocityBucket(0)
           const duration = Date.now() - startTimeRef.current
           const distance = gesture.dy
           let target = clamp(startOffsetRef.current + distance, minOffset, 0)
@@ -281,19 +346,17 @@ const WheelPickerInner = <T extends PickerOption,>({
         },
         onPanResponderTerminationRequest: () => false,
         onPanResponderTerminate: () => {
-          if (!isWeb) return
           setWebTransition(0)
         },
       }),
-    [data, isWeb, itemHeight, minOffset, onChange, readOnly, safeSelectedIndex, swipeDuration, total],
+    [data, itemHeight, minOffset, readOnly, setVelocityBucket, swipeDuration, total],
   )
 
   if (isWeb) {
     return (
       <View
         style={[styles.column, { height: containerHeight }, webOnlyStyles.grab]}
-        // @ts-expect-error web only
-        onWheel={handleWheel}
+        {...({ onWheel: handleWheel } as unknown as React.ComponentProps<typeof View>)}
         {...panResponder.panHandlers}
       >
         <View
@@ -306,22 +369,15 @@ const WheelPickerInner = <T extends PickerOption,>({
         <View
           style={[
             webTransform,
-            isWeb
-              ? ({
-                transitionProperty: webTransition ? 'transform' : 'none',
-                transitionDuration: `${webTransition}ms`,
-                transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
-                willChange: 'transform',
-              } as unknown as ViewStyle)
-              : undefined,
+            isWeb ? webTransitionStyle : undefined,
           ]}
           {...({ onTransitionEnd: handleWebTransitionEnd } as unknown as React.ComponentProps<typeof View>)}
         >
-          {webSpacer}
+          <Spacer />
           {webRender.topSpacer}
           {webRender.items}
           {webRender.bottomSpacer}
-          {webSpacer}
+          <Spacer />
         </View>
       </View>
     )
@@ -368,8 +424,8 @@ const WheelPickerInner = <T extends PickerOption,>({
         onMoveShouldSetResponderCapture={() => shouldCapture}
         removeClippedSubviews={!isWeb}
         collapsable={false}
-        ListHeaderComponent={listHeader}
-        ListFooterComponent={listFooter}
+        ListHeaderComponent={Spacer}
+        ListFooterComponent={Spacer}
         onScrollBeginDrag={() => {
           momentumRef.current = false
           clearDragEndTimer()
