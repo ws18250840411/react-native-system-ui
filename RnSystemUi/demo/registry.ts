@@ -8,8 +8,6 @@ import ActionSheetDemoCustom from '../../docs/components/action-sheet/demo/custo
 import ActionSheetDemoDescription from '../../docs/components/action-sheet/demo/description'
 import ActionSheetDemoStatus from '../../docs/components/action-sheet/demo/status'
 import AreaDemoBasic from '../../docs/components/area/demo/basic'
-import AreaDemoColumns from '../../docs/components/area/demo/columns'
-import AreaDemoControlled from '../../docs/components/area/demo/controlled'
 import AvatarDemoBasic from '../../docs/components/avatar/demo/basic'
 import AvatarDemoSize from '../../docs/components/avatar/demo/size'
 import BadgeDemoBasic from '../../docs/components/badge/demo/basic'
@@ -2294,18 +2292,8 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     demos: [
       {
         id: "basic",
-        title: "基础省市区",
+        title: "基础用法",
         Component: AreaDemoBasic,
-      },
-      {
-        id: "columns",
-        title: "省市两级",
-        Component: AreaDemoColumns,
-      },
-      {
-        id: "controlled",
-        title: "受控切换",
-        Component: AreaDemoControlled,
       },
     ],
   },

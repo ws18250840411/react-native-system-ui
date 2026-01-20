@@ -19,21 +19,9 @@ import { Area } from 'react-native-system-ui'
 
 ### 基础用法
 
-传入 `areaList` 即可渲染省市区三级联动。
+传入 `areaList` 即可渲染省市区三级联动，并支持列数切换与受控模式。
 
-<code src="./area/demo/basic.tsx" title="基础省市区"></code>
-
-### 自定义列数
-
-通过 `columnsNum` 控制展示的列数，例如只展示省市两级。
-
-<code src="./area/demo/columns.tsx" title="省市两级"></code>
-
-### 受控模式
-
-配合 `value/onChange` 与按钮即可外部控制当前选中地区。
-
-<code src="./area/demo/controlled.tsx" title="受控切换"></code>
+<code src="./area/demo/basic.tsx" title="基础用法"></code>
 
 ## API
 

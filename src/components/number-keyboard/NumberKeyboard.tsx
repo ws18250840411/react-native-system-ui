@@ -121,7 +121,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   }, [visible, closeSelf])
 
   const keys = React.useMemo(() => {
-    const shouldShuffle = Boolean(randomKeyOrder) && visible
+    const shouldShuffle = randomKeyOrder && visible
     const numbers = shouldShuffle ? shuffle(NUMBER_KEYS) : NUMBER_KEYS
     const main: KeyboardKey[] = numbers.map(text => ({ text, type: '' }))
 
@@ -183,6 +183,15 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     [shadow.color, shadow.opacity, shadow.radius, shadow.offsetY, shadow.elevation],
   )
 
+  const keyGap = spacing.keyGap
+  const [contentWidth, setContentWidth] = React.useState(0)
+  const customColumnWidth = React.useMemo(() => {
+    if (!isCustomTheme || contentWidth <= 0) return undefined
+    const availableWidth = contentWidth - spacing.paddingHorizontal * 2
+    const columnWidth = (availableWidth - keyGap * 3) / 4
+    return columnWidth > 0 ? columnWidth : undefined
+  }, [contentWidth, isCustomTheme, keyGap, spacing.paddingHorizontal])
+
   const renderKey = React.useCallback(
     (key: KeyboardKey, index: number, isClose = false, fullWidth = false, customHeight?: number) => {
       const isPlaceholder = key.type === '' && !key.text
@@ -193,6 +202,11 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
       const inactiveTextColor = isClose ? colors.closeText : colors.keyText
       const pressedTextColor = isClose ? colors.closeText : colors.keyTextActive
       const keyHeight = customHeight ?? (isClose ? sizing.closeHeight : sizing.keyHeight)
+      const actionFontSize = Math.round(sizing.fontSize * 0.64)
+      const textFontSize =
+        key.type === 'close' || key.type === 'extra' || key.type === 'delete'
+          ? actionFontSize
+          : sizing.fontSize
 
       const keyText = key.text ?? ''
       const contentNode =
@@ -218,11 +232,20 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
               opacity: isPlaceholder ? 1 : disabled ? 0.6 : 1,
             },
             fullWidth
-              ? { width: '100%', flexBasis: 'auto', flexGrow: 0, alignSelf: 'stretch' }
-              : {
-                flexBasis: key.wider ? '64%' : '30%',
-                flexGrow: key.wider ? 2 : 1,
-              },
+              ? { width: '100%', flexBasis: 'auto' as unknown as number, flexGrow: 0, alignSelf: 'stretch' }
+              : isCustomTheme && customColumnWidth
+                ? {
+                  width: key.wider ? customColumnWidth * 2 + keyGap : customColumnWidth,
+                  flexBasis: 'auto' as unknown as number,
+                  flexGrow: 0,
+                  flexShrink: 0,
+                }
+                : {
+                  flexBasis: 0,
+                  flexGrow: key.wider ? 2 : 1,
+                  flexShrink: 1,
+                  minWidth: 0,
+                },
           ]}
           accessible={!isPlaceholder}
           accessibilityRole={isPlaceholder ? undefined : 'button'}
@@ -264,7 +287,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
                 {isClose && closeButtonLoading ? (
                   <Loading size={18} color={textColor} />
                 ) : typeof contentNode === 'string' || typeof contentNode === 'number' ? (
-                  <Text style={[styles.keyText, { color: textColor, fontSize: sizing.fontSize }]}>
+                  <Text style={[styles.keyText, { color: textColor, fontSize: textFontSize }]}>
                     {contentNode}
                   </Text>
                 ) : contentNode == null || contentNode === false ? null : (
@@ -294,6 +317,9 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
       sizing.closeHeight,
       sizing.fontSize,
       sizing.keyHeight,
+      customColumnWidth,
+      isCustomTheme,
+      keyGap,
     ],
   )
 
@@ -337,36 +363,103 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   )
 
   const handleLayout = React.useCallback((e: LayoutChangeEvent) => {
-    const { height } = e.nativeEvent.layout
+    const { height, width } = e.nativeEvent.layout
     setContentHeight(prev => (Math.abs(height - prev) > 0.5 ? height : prev))
+    setContentWidth(prev => (Math.abs(width - prev) > 0.5 ? width : prev))
   }, [])
 
   const hasHeader = !isCustomTheme && (title || closeButtonText)
-  const keyGap = spacing.keyGap
   const doubleKeyHeight = sizing.keyHeight * 2 + keyGap
   const memo = React.useMemo(() => {
     const headerPaddingStyle = { paddingHorizontal: spacing.titlePadding }
-    const defaultRowStyle = [
+    const defaultContainerStyle = [
       styles.defaultRow,
       {
+        flexDirection: 'column' as const,
+        flexWrap: 'nowrap' as const,
         paddingHorizontal: spacing.paddingHorizontal,
         paddingTop: keyGap,
         paddingBottom: keyGap,
         gap: keyGap,
       },
     ]
+    const defaultLineStyle = { flexDirection: 'row' as const, gap: keyGap }
+
     const customRowStyle = [
       styles.customRow,
       {
         paddingHorizontal: spacing.paddingHorizontal,
         paddingTop: hasHeader ? 0 : keyGap,
         paddingBottom: keyGap,
-        gap: keyGap,
       },
     ]
-    const customMainStyle = [styles.customMain, { gap: keyGap }]
-    const customSidebarStyle = [styles.customSidebar, { gap: keyGap }]
-    const keyNodes = keys.map((key, index) => renderKey(key, index))
+    const customMainStyle = [
+      styles.customMain,
+      {
+        flexDirection: 'column' as const,
+        flexWrap: 'nowrap' as const,
+        gap: keyGap,
+      },
+      customColumnWidth
+        ? {
+          width: customColumnWidth * 3 + keyGap * 2,
+          flexBasis: 'auto' as unknown as number,
+          flexGrow: 0,
+          flexShrink: 0,
+        }
+        : null,
+    ]
+    const customSidebarStyle = [
+      styles.customSidebar,
+      { gap: keyGap, marginLeft: keyGap },
+      customColumnWidth
+        ? {
+          width: customColumnWidth,
+          flexBasis: 'auto' as unknown as number,
+          flexGrow: 0,
+          flexShrink: 0,
+        }
+        : null,
+    ]
+
+    const entries: Array<{ key: KeyboardKey; index: number }> = keys.map((key, index) => ({ key, index }))
+    const defaultLines: Array<Array<{ key: KeyboardKey; index: number }>> = []
+    for (let i = 0; i < entries.length; i += 3) {
+      defaultLines.push(entries.slice(i, i + 3))
+    }
+    const defaultNode = (
+      <View style={defaultContainerStyle}>
+        {defaultLines.map((line, lineIndex) => (
+          <View key={`l-${lineIndex}`} style={defaultLineStyle}>
+            {line.map(item => renderKey(item.key, item.index))}
+          </View>
+        ))}
+      </View>
+    )
+
+    const customLines: Array<Array<{ key: KeyboardKey; index: number }>> = []
+    for (let i = 0; i < 9 && i < entries.length; i += 3) {
+      customLines.push(entries.slice(i, i + 3))
+    }
+    const tail = entries.slice(9)
+    if (tail.length === 1) {
+      customLines.push([
+        { key: { type: '' }, index: 1000001 },
+        tail[0],
+        { key: { type: '' }, index: 1000002 },
+      ])
+    } else if (tail.length) {
+      customLines.push(tail)
+    }
+    const customMainNode = (
+      <View style={customMainStyle}>
+        {customLines.map((line, lineIndex) => (
+          <View key={`cl-${lineIndex}`} style={defaultLineStyle}>
+            {line.map(item => renderKey(item.key, item.index))}
+          </View>
+        ))}
+      </View>
+    )
     const deleteNode = showDeleteKey
       ? renderKey({ type: 'delete' }, 999, false, true, doubleKeyHeight)
       : null
@@ -390,14 +483,14 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     ) : null
     const bodyNode = isCustomTheme ? (
       <View style={customRowStyle}>
-        <View style={customMainStyle}>{keyNodes}</View>
+        {customMainNode}
         <View style={customSidebarStyle}>
           {deleteNode}
           {closeNode}
         </View>
       </View>
     ) : (
-      <View style={defaultRowStyle}>{keyNodes}</View>
+      defaultNode
     )
     const safeAreaNode = safeAreaInsetBottom ? <SafeAreaView style={{ width: '100%' }} /> : null
     return { headerNode, bodyNode, safeAreaNode }
@@ -413,6 +506,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     safeAreaInsetBottom,
     showDeleteKey,
     closeSelf,
+    customColumnWidth,
     spacing.paddingHorizontal,
     spacing.titlePadding,
     title,
