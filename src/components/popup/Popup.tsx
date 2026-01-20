@@ -276,6 +276,8 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const [mounted, setMounted] = React.useState(visible)
   const [interactionVisible, setInteractionVisible] = React.useState(visible)
+  const isOpen = visible || interactionVisible
+  const canCloseOnOverlay = shouldCloseOnOverlay && (onClose || beforeClose)
   const [contentDistance, setContentDistance] = React.useState(0)
   const progress = React.useRef(new Animated.Value(0)).current
   const animatingRef = React.useRef(false)
@@ -491,7 +493,7 @@ export const Popup: React.FC<PopupProps> = props => {
 
   if (!shouldRender) return null
 
-  const hidden = (!visible && !interactionVisible)
+  const hidden = !isOpen
 
   const hasCustomCloseIcon = closeIcon != null
 
@@ -533,6 +535,22 @@ export const Popup: React.FC<PopupProps> = props => {
     children
   )
 
+  const closeIconNode = closeable ? (
+    <Pressable
+      style={[
+        styles.closeIconBase,
+        dynamicStyles.closeIconBase,
+        closeIconVerticalStyle,
+        closeIconHorizontalStyle,
+        !hasCustomCloseIcon ? dynamicStyles.closeIconDefault : null,
+      ]}
+      hitSlop={8}
+      onPress={() => requestClose('close-icon')}
+    >
+      {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}
+    </Pressable>
+  ) : null
+
   const content = (
     <Animated.View
       ref={overlayRef as unknown as React.Ref<React.ElementRef<typeof View>>}
@@ -550,21 +568,7 @@ export const Popup: React.FC<PopupProps> = props => {
       ]}
       {...rest}
     >
-      {closeable ? (
-        <Pressable
-          style={[
-            styles.closeIconBase,
-            dynamicStyles.closeIconBase,
-            closeIconVerticalStyle,
-            closeIconHorizontalStyle,
-            !hasCustomCloseIcon ? dynamicStyles.closeIconDefault : null,
-          ]}
-          hitSlop={8}
-          onPress={() => requestClose('close-icon')}
-        >
-          {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}
-        </Pressable>
-      ) : null}
+      {closeIconNode}
       {renderWithSafeArea(contentBody, { safeArea, safeAreaInsetTop, safeAreaInsetBottom })}
     </Animated.View>
   )
@@ -579,12 +583,12 @@ export const Popup: React.FC<PopupProps> = props => {
       >
         <View
           style={[styles.container, config.container]}
-          pointerEvents={visible || interactionVisible ? 'auto' : 'none'}
+          pointerEvents={isOpen ? 'auto' : 'none'}
           accessibilityViewIsModal={visible}
           accessibilityLiveRegion="polite"
           onAccessibilityEscape={() => requestClose('close')}
         >
-          {overlay && (visible || interactionVisible) ? (
+          {overlay && isOpen ? (
             <AnimatedPressable
               testID={overlayTestID}
               style={[
@@ -592,8 +596,8 @@ export const Popup: React.FC<PopupProps> = props => {
                 { backgroundColor: tokens.colors.overlay, opacity: overlayOpacity },
                 overlayStyle,
               ]}
-              pointerEvents={visible || interactionVisible ? 'auto' : 'none'}
-              {...(shouldCloseOnOverlay && (onClose || beforeClose)
+              pointerEvents={isOpen ? 'auto' : 'none'}
+              {...(canCloseOnOverlay
                 ? {
                   accessibilityRole: 'button' as const,
                   accessibilityLabel: overlayAccessibilityLabel,
@@ -608,7 +612,7 @@ export const Popup: React.FC<PopupProps> = props => {
               }}
             />
           ) : null}
-          {!overlay && lockScroll && (visible || interactionVisible) ? (
+          {!overlay && lockScroll && isOpen ? (
             <View
               style={styles.lockLayer}
               pointerEvents="auto"

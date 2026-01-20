@@ -70,6 +70,7 @@
 | progress | 已冻结 ✅ | 极致精简版：百分比动画；Pivot 仅在需要时测量；Web 渐变限定；动画 stop 清理 |
 | radio | 已冻结 ✅ | 极致精简版：Group 原始值回传（注册表映射）；labelDisabled 语义清晰；Web gap/Native margin 分支最小化；iconRender 异常兜底 |
 | rate | 已冻结 ✅ | 极致精简版：受控/非受控统一；半星点击与滑动只在 touchable 时启用；自定义图标无 StyleSheet.flatten；禁用/只读语义清晰 |
+| dialog | 已冻结 ✅ | 极致精简版：弹层/Portal/动画/关闭链路稳定；逻辑分支收敛；渲染结构最小化 |
 | number-keyboard | 已冻结 ✅ | 极致精简版：弹层+输入联动+交互细节稳定；回调/渲染节点最小化；无冗余分支 |
 | selector | 已冻结 ✅ | 极致精简版：Set/Map 驱动选择态；items 回传 O(k)；受控/非受控统一；无障碍与布局分支最小化 |
 | sidebar | 已冻结 ✅ | 极致精简版：children 扫描单次 for 循环；受控/非受控统一；无 any；onChange items 无多余分配 |
@@ -94,7 +95,6 @@
 | collapse | 持续优化 ✅ | 测量+展开动画+性能敏感 |
 | config-provider | 持续优化 ✅ | 全局基础设施，影响面大 |
 | datetime-picker | 持续优化 ✅ | Picker+日期逻辑，三端细节多 |
-| dialog | 持续优化 ✅ | 弹层/Portal/动画/关闭链路 |
 | dropdown-menu | 持续优化 ✅ | 定位测量/滚动场景多端差异 |
 | field | 持续优化 ✅ | 输入/键盘/输入法差异的核心承载 |
 | form | 持续优化 ✅ | 校验/依赖/异步校验与边界多 |

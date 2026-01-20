@@ -120,6 +120,13 @@ export const Dialog: React.FC<DialogProps> = props => {
   const hasTitle = isValidNode(title)
   const hasMessage = isValidNode(message)
   const hasChildren = isValidNode(children)
+  const hasContent = hasMessage || hasChildren
+  const hasFooterActions = showCancelButton || showConfirmButton
+  const isRoundTheme = theme === 'round-button'
+  const cancelLoading = cancelProps?.loading
+  const confirmLoading = confirmProps?.loading
+  const cancelText = cancelButtonText ?? locale.cancel
+  const confirmText = confirmButtonText ?? locale.confirm
 
   const runBeforeClose = (action: 'confirm' | 'cancel' | 'close') => {
     if (!beforeClose) return true
@@ -158,12 +165,12 @@ export const Dialog: React.FC<DialogProps> = props => {
   }
 
   const handleCancel = () => {
-    if (cancelProps?.loading) return
+    if (cancelLoading) return
     runAction('cancel', onCancel)
   }
 
   const handleConfirm = () => {
-    if (confirmProps?.loading) return
+    if (confirmLoading) return
     runAction('confirm', onConfirm)
   }
 
@@ -189,13 +196,10 @@ export const Dialog: React.FC<DialogProps> = props => {
     ? [
       styles.titleWrapper,
       {
-        paddingTop:
-          hasMessage || hasChildren
-            ? tokens.spacing.titlePaddingTop
-            : tokens.spacing.titleIsolatedPadding,
-        paddingBottom: hasMessage || hasChildren ? 0 : tokens.spacing.titleIsolatedPadding,
-        paddingHorizontal: hasMessage || hasChildren ? tokens.spacing.paddingHorizontal : 0,
-        marginBottom: hasMessage || hasChildren ? tokens.spacing.titleGap : 0,
+        paddingTop: hasContent ? tokens.spacing.titlePaddingTop : tokens.spacing.titleIsolatedPadding,
+        paddingBottom: hasContent ? 0 : tokens.spacing.titleIsolatedPadding,
+        paddingHorizontal: hasContent ? tokens.spacing.paddingHorizontal : 0,
+        marginBottom: hasContent ? tokens.spacing.titleGap : 0,
       },
     ]
     : null
@@ -216,7 +220,7 @@ export const Dialog: React.FC<DialogProps> = props => {
   const messageTextStyle = [
     styles.message,
     {
-      color: theme === 'round-button' ? tokens.colors.title : tokens.colors.message,
+      color: isRoundTheme ? tokens.colors.title : tokens.colors.message,
       fontSize: tokens.typography.messageSize,
       lineHeight: tokens.typography.messageLineHeight,
       textAlign: messageAlign,
@@ -239,7 +243,7 @@ export const Dialog: React.FC<DialogProps> = props => {
     styles.messageWrapper,
     {
       paddingTop: hasTitle ? tokens.spacing.messagePaddingTop : tokens.spacing.messagePadding,
-      paddingBottom: theme === 'round-button' ? tokens.spacing.roundFooterPadding : tokens.spacing.messagePadding,
+      paddingBottom: isRoundTheme ? tokens.spacing.roundFooterPadding : tokens.spacing.messagePadding,
       paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
     },
   ]
@@ -257,6 +261,90 @@ export const Dialog: React.FC<DialogProps> = props => {
 
   const mergedCloseOnOverlayPress = closeOnOverlayPress || closeOnClickOverlay
   const animatedStyle = { transform: [{ scale: scaleAnim }] }
+
+  const roundFooterStyle = [
+    styles.roundFooter,
+    {
+      paddingTop: tokens.spacing.messagePaddingTop,
+      paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
+      paddingBottom: tokens.spacing.roundFooterPadding,
+    },
+  ]
+
+  const roundFooterNode = hasFooterActions ? (
+    <View style={roundFooterStyle}>
+      {showCancelButton ? (
+        <View
+          style={[
+            styles.roundButtonWrapper,
+            showConfirmButton ? { marginRight: tokens.spacing.roundFooterGap } : null,
+          ]}
+        >
+          <Button
+            block
+            round
+            type="warning"
+            text={cancelText}
+            color={cancelButtonColor}
+            loading={cancelLoading}
+            disabled={cancelProps?.disabled}
+            onPress={handleCancel}
+            style={{ minHeight: tokens.sizes.roundButtonHeight }}
+          />
+        </View>
+      ) : null}
+      {showConfirmButton ? (
+        <View
+          style={[
+            styles.roundButtonWrapper,
+            showCancelButton ? { marginLeft: tokens.spacing.roundFooterGap } : null,
+          ]}
+        >
+          <Button
+            block
+            round
+            type="danger"
+            text={confirmText}
+            color={confirmButtonColor}
+            loading={confirmLoading}
+            disabled={confirmProps?.disabled}
+            onPress={handleConfirm}
+            style={{ minHeight: tokens.sizes.roundButtonHeight }}
+          />
+        </View>
+      ) : null}
+    </View>
+  ) : null
+
+  const defaultFooterNode = hasFooterActions ? (
+    <View style={styles.footer}>
+      <View style={footerBorderTopStyle} pointerEvents="none" />
+      {showCancelButton ? (
+        <ActionButton
+          tokens={tokens}
+          text={cancelText}
+          color={cancelButtonColor ?? tokens.colors.cancel}
+          dividerPosition="none"
+          loading={cancelLoading}
+          disabled={cancelProps?.disabled}
+          onPress={handleCancel}
+        />
+      ) : null}
+      {showConfirmButton ? (
+        <ActionButton
+          tokens={tokens}
+          text={confirmText}
+          color={confirmButtonColor ?? tokens.colors.confirm}
+          dividerPosition={showCancelButton ? 'left' : 'none'}
+          loading={confirmLoading}
+          disabled={confirmProps?.disabled}
+          onPress={handleConfirm}
+        />
+      ) : null}
+    </View>
+  ) : null
+
+  const footerNode = footer ?? (isRoundTheme ? roundFooterNode : defaultFooterNode)
 
   return (
     <Popup
@@ -276,7 +364,7 @@ export const Dialog: React.FC<DialogProps> = props => {
         {
           backgroundColor: tokens.colors.background,
           borderRadius: tokens.sizes.borderRadius,
-          padding: 0
+          padding: 0,
         },
         widthStyle,
         style,
@@ -307,7 +395,7 @@ export const Dialog: React.FC<DialogProps> = props => {
         </View>
       ) : null}
 
-      {hasMessage || hasChildren ? (
+      {hasContent ? (
         <View style={[styles.content, messageContentStyle, contentStyle]}>
           {hasChildren ? (
             children
@@ -323,93 +411,7 @@ export const Dialog: React.FC<DialogProps> = props => {
         </View>
       ) : null}
 
-      {footer
-        ? footer
-        : theme === 'round-button'
-          ? showCancelButton || showConfirmButton
-            ? (
-              <View
-                style={[
-                  styles.roundFooter,
-                  {
-                    paddingTop: tokens.spacing.messagePaddingTop,
-                    paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
-                    paddingBottom: tokens.spacing.roundFooterPadding,
-                  },
-                ]}
-              >
-                {showCancelButton ? (
-                  <View
-                    style={[
-                      styles.roundButtonWrapper,
-                      showConfirmButton ? { marginRight: tokens.spacing.roundFooterGap } : null,
-                    ]}
-                  >
-                    <Button
-                      block
-                      round
-                      type="warning"
-                      text={cancelButtonText ?? locale.cancel}
-                      color={cancelButtonColor}
-                      loading={cancelProps?.loading}
-                      disabled={cancelProps?.disabled}
-                      onPress={handleCancel}
-                      style={{ minHeight: tokens.sizes.roundButtonHeight }}
-                    />
-                  </View>
-                ) : null}
-                {showConfirmButton ? (
-                  <View
-                    style={[
-                      styles.roundButtonWrapper,
-                      showCancelButton ? { marginLeft: tokens.spacing.roundFooterGap } : null,
-                    ]}
-                  >
-                    <Button
-                      block
-                      round
-                      type="danger"
-                      text={confirmButtonText ?? locale.confirm}
-                      color={confirmButtonColor}
-                      loading={confirmProps?.loading}
-                      disabled={confirmProps?.disabled}
-                      onPress={handleConfirm}
-                      style={{ minHeight: tokens.sizes.roundButtonHeight }}
-                    />
-                  </View>
-                ) : null}
-              </View>
-            )
-            : null
-          : showCancelButton || showConfirmButton
-            ? (
-              <View style={styles.footer}>
-                <View style={footerBorderTopStyle} pointerEvents="none" />
-                {showCancelButton ? (
-                  <ActionButton
-                    tokens={tokens}
-                    text={cancelButtonText ?? locale.cancel}
-                    color={cancelButtonColor ?? tokens.colors.cancel}
-                    dividerPosition="none"
-                    loading={cancelProps?.loading}
-                    disabled={cancelProps?.disabled}
-                    onPress={handleCancel}
-                  />
-                ) : null}
-                {showConfirmButton ? (
-                  <ActionButton
-                    tokens={tokens}
-                    text={confirmButtonText ?? locale.confirm}
-                    color={confirmButtonColor ?? tokens.colors.confirm}
-                    dividerPosition={showCancelButton ? 'left' : 'none'}
-                    loading={confirmProps?.loading}
-                    disabled={confirmProps?.disabled}
-                    onPress={handleConfirm}
-                  />
-                ) : null}
-              </View>
-            )
-            : null}
+      {footerNode}
     </Popup>
   )
 }
