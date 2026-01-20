@@ -61,6 +61,7 @@ export default defineConfig({
   description: '基于rndoc打造的React组件库',
   locales: false,
   build: {
+    rn: true,
     disableTypeCheck: true,
     extraBabelPresets: [
       resolveFromRndoc('@babel/preset-typescript'),

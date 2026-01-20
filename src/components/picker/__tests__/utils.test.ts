@@ -42,6 +42,17 @@ describe('picker utils', () => {
     expect(values[1]).toBe('hz')
   })
 
+  it('skips disabled options when normalizing', () => {
+    const options: PickerOption[] = [
+      { label: 'A', value: 'a', disabled: true },
+      { label: 'B', value: 'b' },
+      { label: 'C', value: 'c' },
+    ]
+    const prepared = prepareColumns(options)
+    const { values } = normalizePicker(prepared, ['a'])
+    expect(values[0]).toBe('b')
+  })
+
   it('toArrayValue filters nullish and wraps primitives', () => {
     expect(toArrayValue(null)).toEqual([])
     expect(toArrayValue(undefined)).toEqual([])

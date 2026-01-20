@@ -62,7 +62,7 @@ Picker 的 `columns` 接受三种结构：
 | `visibleItemCount` | 可见选项个数（会兜底为 ≥3 的奇数） | `number` | `tokens.defaults.visibleItemCount` |
 | `loading` | 是否显示加载状态 | `boolean` | `false` |
 | `readOnly` | 是否只读（禁用滚动/选择） | `boolean` | `false` |
-| `decelerationRate` | 滚动减速率（仅原生 FlatList 分支生效） | `'normal' \| 'fast' \| number` | `'fast'` |
+| `decelerationRate` | 滚动减速率（仅原生 FlatList 分支生效） | `'normal' \| 'fast' \| number` | `iOS: 0.998 / Android: 0.99` |
 | `swipeDuration` | 释放后的滚动动画时长（ms） | `number` | `tokens.defaults.swipeDuration` |
 | `maskColor` | 蒙层颜色 | `string` | 主题背景色 |
 | `maskType` | 蒙层类型 | `'gradient' \| 'solid'` | `tokens.defaults.maskType` |

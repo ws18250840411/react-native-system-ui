@@ -179,7 +179,7 @@ const Picker: React.FC<PickerProps> = props => {
     visibleItemCount: visibleItemCountProp = tokens.defaults.visibleItemCount,
     loading = false,
     readOnly = false,
-    decelerationRate = 'fast',
+    decelerationRate = Platform.select({ ios: 0.998, android: 0.99, default: 0.99 }) ?? 'normal',
     swipeDuration = tokens.defaults.swipeDuration,
     scrollEventThrottle = 16,
     columnsTop,

@@ -48,6 +48,32 @@ describe('Picker', () => {
     )
   })
 
+  it('skips disabled default option', () => {
+    const columns: PickerOption[] = [
+      { label: 'A', value: 'a', disabled: true },
+      { label: 'B', value: 'b' },
+    ]
+
+    const optionRender = jest.fn((option, ctx) => `${option.value}:${ctx.active ? 1 : 0}`)
+
+    renderer.create(
+      <Picker columns={columns} defaultValue="a" optionRender={optionRender} />,
+    )
+
+    const calls = optionRender.mock.calls.map(([option, ctx]) => ({
+      value: option.value,
+      active: ctx.active,
+      columnIndex: ctx.columnIndex,
+    }))
+
+    expect(calls).toEqual(
+      expect.arrayContaining([
+        { value: 'a', active: false, columnIndex: 0 },
+        { value: 'b', active: true, columnIndex: 0 },
+      ]),
+    )
+  })
+
   it('supports ReactNode toolbar slots without nesting in Text', () => {
     const columns: PickerOption[] = [{ label: 'A', value: 'a' }]
 
@@ -127,4 +153,3 @@ describe('Picker', () => {
     expect(columns).toBeDefined()
   })
 })
-

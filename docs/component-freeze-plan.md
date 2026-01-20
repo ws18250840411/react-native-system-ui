@@ -80,6 +80,7 @@
 | portal | 已冻结 ✅ | 极致精简版：Host 栈+快照缓存；zIndex 透传；Web 自动挂载/回收；render 无副作用 |
 | popup | 已冻结 ✅ | 极致精简版：关闭链路去重；布局测量等待；动画/安全区稳定；单测 0 any |
 | area | 已冻结 ✅ | 极致精简版：areaList→级联列；排序缓存；回调值归一；单测守护 |
+| picker | 已冻结 ✅ | 滚动边界收敛；嵌套滚动可用；核心逻辑单测补齐 |
 
 ### C 组（持续优化）
 
@@ -104,7 +105,6 @@
 | notice-bar | 持续优化 ✅ | 动画/滚动/重播，差异点多 |
 | overlay | 持续优化 ✅ | 弹层基础设施（栈/zIndex/遮罩） |
 | password-input | 持续优化 ✅ | 输入+自绘 UI+动画/光标等 |
-| picker | 持续优化 ✅ | WheelPicker 三端实现差异明显 |
 | pull-refresh | 持续优化 ✅ | 手势/滚动冲突，差异点多 |
 | search | 持续优化 ✅ | 基于 Field/Input，输入链路复杂 |
 | share-sheet | 持续优化 ✅ | 弹层+复杂内容布局 |
