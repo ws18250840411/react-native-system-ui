@@ -91,14 +91,13 @@ export interface CascaderTokens {
 
 export type CascaderValue = string | number
 
-export interface CascaderOption {
+export interface CascaderOption extends Record<string, unknown> {
   text?: React.ReactNode
   value?: CascaderValue
   disabled?: boolean
   color?: string
   children?: CascaderOption[]
   loading?: boolean
-  [key: string]: any
 }
 
 export interface CascaderFieldNames {

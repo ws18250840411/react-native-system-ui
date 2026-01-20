@@ -12,7 +12,7 @@ import {
 import { Checked, Cross } from "react-native-system-icon"
 
 import { useControllableValue } from "../../hooks"
-import { isFunction, isNumber, isText } from "../../utils/validate"
+import { isFunction, isNumber, isRenderable, isText } from "../../utils/validate"
 import Popup from "../popup"
 import Tabs from "../tabs"
 import type { TabsValue } from "../tabs"
@@ -96,7 +96,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const keys = React.useMemo(() => getFieldKeys(fieldNames), [fieldNames])
 
-  const cascaderValue = React.useMemo(() => (Array.isArray(value) ? value : []), [value])
+  const cascaderValue = Array.isArray(value) ? value : []
   const [panelValue, setPanelValue] = React.useState<CascaderValue[]>(cascaderValue)
   const resolvedCloseable = closeable ?? tokens.defaults.closeable
 
@@ -161,7 +161,8 @@ const Cascader: React.FC<CascaderProps> = props => {
     popupVisible ? closePopup(true) : openPopup()
   }, [closePopup, openPopup, poppable, popupVisible])
 
-  const renderProp = React.useMemo(() => (isFunction(children) ? (children as CascaderRenderProps) : null), [children])
+  const isRenderProp = isFunction(children)
+  const renderProp = isRenderProp ? (children as CascaderRenderProps) : null
 
   const handleClickTab = React.useCallback(
     (event: TabsClickEvent) => {
@@ -349,7 +350,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     )
   }
 
-  const inlineChildren = !poppable && !isFunction(children) ? children : null
+  const inlineChildren = !poppable && !isRenderProp ? children : null
 
   const content = (
     <View
@@ -452,7 +453,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const triggerNode = renderProp
     ? renderProp(cascaderValue, confirmedRows, cascaderActions)
-    : (isFunction(children) ? null : children ?? null)
+    : (isRenderProp ? null : children ?? null)
 
   return (
     <>
@@ -523,7 +524,9 @@ const CascaderOptionItem = React.memo(
             {label}
           </Text>
         )
-        : label ?? null
+        : isRenderable(label)
+          ? (label as React.ReactNode)
+          : null
 
     return (
       <Pressable

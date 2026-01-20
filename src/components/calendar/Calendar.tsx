@@ -133,7 +133,10 @@ const Calendar: React.FC<CalendarProps> = props => {
     defaultValuePropName: 'defaultValue',
     trigger: 'onSelect',
   })
-  const value = React.useMemo(() => toArrayValue(selectedValue), [selectedValue])
+  const value = React.useMemo(
+    () => normalizeValue(toArrayValue(selectedValue), type),
+    [selectedValue, type]
+  )
 
   const [currentMonth, setCurrentMonth] = React.useState(() => {
     const initial = value.length ? value[0] : new Date()
@@ -185,6 +188,7 @@ const Calendar: React.FC<CalendarProps> = props => {
   )
 
   const confirmDisabled = type === 'range' ? value.length < 2 : value.length === 0
+  const columnPadding = tokens.spacing.column / 2
 
   const maybeAutoConfirm = React.useCallback(
     (next: Date[]) => {
@@ -238,7 +242,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     }
 
     let next: Date[] = []
-    const normalized = value.map(item => new Date(item))
+    const normalized = value
     switch (type) {
       case 'single': {
         next = [day]
@@ -275,9 +279,13 @@ const Calendar: React.FC<CalendarProps> = props => {
     }
   }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelectedValue, showConfirm, maybeAutoConfirm])
 
-  const selectedSet = React.useMemo(() => new Set(value.map(item => startOfDay(item).getTime())), [value])
-  const rangeBounds = type === 'range' && value.length === 2
-    ? [startOfDay(value[0]).getTime(), startOfDay(value[1]).getTime()]
+  const valueTimes = React.useMemo(
+    () => value.map(item => startOfDay(item).getTime()),
+    [value]
+  )
+  const selectedSet = React.useMemo(() => new Set(valueTimes), [valueTimes])
+  const rangeBounds = type === 'range' && valueTimes.length === 2
+    ? [valueTimes[0], valueTimes[1]]
     : null
 
   const renderDay = React.useCallback((day: Date | null, index: number) => {
@@ -285,7 +293,10 @@ const Calendar: React.FC<CalendarProps> = props => {
       return (
         <View
           key={`placeholder-${index}`}
-          style={[tokens.layout.dayPlaceholder, { paddingVertical: tokens.spacing.dayPaddingVertical }]}
+          style={[
+            tokens.layout.dayPlaceholder,
+            { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding },
+          ]}
         />
       )
     }
@@ -318,7 +329,10 @@ const Calendar: React.FC<CalendarProps> = props => {
     return (
       <Pressable
         key={day.toISOString()}
-        style={[tokens.layout.dayButton, { paddingVertical: tokens.spacing.dayPaddingVertical }]}
+        style={[
+          tokens.layout.dayButton,
+          { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding },
+        ]}
         disabled={isDisabled}
         onPress={() => handleSelectDay(day)}
         testID={getCalendarDayTestId(day)}
@@ -326,7 +340,7 @@ const Calendar: React.FC<CalendarProps> = props => {
         <Text style={dayStyle}>{day.getDate()}</Text>
       </Pressable>
     )
-  }, [selectedSet, type, rangeBounds, minDay, maxDay, tokens, color, handleSelectDay])
+  }, [selectedSet, type, rangeBounds, minDay, maxDay, tokens, color, handleSelectDay, columnPadding])
 
   const content = (
     <View
@@ -419,7 +433,10 @@ const Calendar: React.FC<CalendarProps> = props => {
       ) : null}
       <View style={[tokens.layout.weekRow, { marginBottom: tokens.spacing.weekRowMarginBottom }]}>
         {weekLabels.map((label, index) => (
-          <View key={`weekday-${index}`} style={tokens.layout.weekLabelItem}>
+          <View
+            key={`weekday-${index}`}
+            style={[tokens.layout.weekLabelItem, { paddingHorizontal: columnPadding }]}
+          >
             {isText(label)
               ? (
                 <Text style={[tokens.layout.weekLabel, { color: tokens.colors.text }]}>
@@ -430,7 +447,7 @@ const Calendar: React.FC<CalendarProps> = props => {
           </View>
         ))}
       </View>
-      <View style={[tokens.layout.days, { rowGap: tokens.spacing.row, columnGap: tokens.spacing.column }]}>
+      <View style={[tokens.layout.days, { rowGap: tokens.spacing.row }]}>
         {monthDays.map((day, index) => renderDay(day, index))}
       </View>
       {showConfirm ? (
