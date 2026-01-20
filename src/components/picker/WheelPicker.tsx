@@ -249,7 +249,7 @@ const WheelPickerInner = <T extends PickerOption,>({
           {data.map((item, index) => {
             const content = renderItem(item, index)
             return (
-              <View key={String(item.value ?? index)} style={[styles.option, { height: itemHeight }]}>
+              <View key={`${index}-${String(item.value ?? '')}`} style={[styles.option, { height: itemHeight }]}>
                 {content ?? null}
               </View>
             )
@@ -260,8 +260,13 @@ const WheelPickerInner = <T extends PickerOption,>({
     )
   }
 
+  const shouldCapture = !readOnly
+
   return (
-    <View style={[styles.column, { height: containerHeight }]} collapsable={false}>
+    <View
+      style={[styles.column, { height: containerHeight }]}
+      collapsable={false}
+    >
       <View
         style={[
           styles.indicator,
@@ -272,7 +277,7 @@ const WheelPickerInner = <T extends PickerOption,>({
       <FlatList
         ref={listRef}
         data={data}
-        keyExtractor={(item, idx) => String(item.value ?? idx)}
+        keyExtractor={(item, idx) => `${idx}-${String(item.value ?? '')}`}
         renderItem={({ item, index }) => {
           const content = renderItem(item, index)
           return (
@@ -291,7 +296,9 @@ const WheelPickerInner = <T extends PickerOption,>({
         decelerationRate={decelerationRate}
         snapToInterval={itemHeight}
         snapToAlignment="start"
-        nestedScrollEnabled={true}
+        nestedScrollEnabled={false}
+        onStartShouldSetResponderCapture={() => shouldCapture}
+        onMoveShouldSetResponderCapture={() => shouldCapture}
         removeClippedSubviews={!isWeb}
         collapsable={false}
         ListHeaderComponent={<View style={{ height: spacerHeight }} />}

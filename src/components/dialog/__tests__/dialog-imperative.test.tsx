@@ -165,7 +165,7 @@ describe('DialogImperative', () => {
       await props.onCancel?.()
     })
 
-    await expect(promise).rejects.toBe(false)
+    await expect(promise).resolves.toBe(false)
   })
 
   it('resolves confirm promise on confirm', async () => {
@@ -189,7 +189,7 @@ describe('DialogImperative', () => {
     await expect(promise).resolves.toBe(true)
   })
 
-  it('rejects confirm promise on cancel', async () => {
+  it('resolves confirm promise on cancel', async () => {
     let promise!: Promise<boolean>
     act(() => {
       promise = DialogImperative.confirm({
@@ -198,8 +198,6 @@ describe('DialogImperative', () => {
         cancelButtonText: 'No',
       })
     })
-    // prevent unhandled rejection noise; assertion below still checks final value
-    promise.catch(() => undefined)
 
     await act(async () => {
       const props = getMockDialogProps()
@@ -209,6 +207,6 @@ describe('DialogImperative', () => {
       await props.onCancel?.()
     })
 
-    await expect(promise).rejects.toBe(false)
+    await expect(promise).resolves.toBe(false)
   })
 })

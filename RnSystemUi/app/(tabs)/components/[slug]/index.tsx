@@ -6,7 +6,7 @@ import { Cell, Tabs, Typography } from 'react-native-system-ui'
 
 import { componentRegistry } from '@/demo/registry'
 
-const FULLSCREEN_DEMO_SLUGS = new Set(['list', 'pull-refresh'])
+const FULLSCREEN_DEMO_SLUGS = new Set(['list', 'pull-refresh', 'area'])
 
 export default function ComponentDemosScreen() {
   const router = useRouter()

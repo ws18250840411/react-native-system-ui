@@ -27,7 +27,6 @@ type ImperativeMode = 'show' | 'alert' | 'confirm'
 interface ImperativeMeta {
   mode: ImperativeMode
   resolve?: (value?: any) => void
-  reject?: (reason?: any) => void
 }
 
 interface DialogRegistryItem {
@@ -122,7 +121,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     const shouldClose = await runHook(options.onCancel)
     if (!shouldClose) return
     if (meta.mode === 'confirm') {
-      meta.reject?.(false)
+      meta.resolve?.(false)
     }
     close()
   }, [close, meta, options.beforeClose, options.onCancel])
@@ -144,7 +143,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     const shouldClose = await runHook(options.onClose)
     if (!shouldClose) return
     if (meta.mode === 'confirm') {
-      meta.reject?.(false)
+      meta.resolve?.(false)
     }
     close()
   }, [close, meta, options.beforeClose, options.onClose])
@@ -232,20 +231,16 @@ export const DialogImperative = {
         }
       )
     }),
-  confirm: (options?: DialogConfirmOptions) => {
-    const promise = new Promise<boolean>((resolve, reject) => {
+  confirm: (options?: DialogConfirmOptions) =>
+    new Promise<boolean>(resolve => {
       mountImperativeDialog(
         normalizeOptions('confirm', { showCancelButton: true, ...options }),
         {
           mode: 'confirm',
           resolve: result => resolve(result === undefined ? true : result),
-          reject,
         }
       )
-    })
-    promise.catch(() => undefined)
-    return promise
-  },
+    }),
   clear: () => {
     Array.from(dialogRegistry.keys()).forEach(key => {
       requestClose(key)
