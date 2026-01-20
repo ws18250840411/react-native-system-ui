@@ -232,8 +232,8 @@ export const DialogImperative = {
         }
       )
     }),
-  confirm: (options?: DialogConfirmOptions) =>
-    new Promise<boolean>((resolve, reject) => {
+  confirm: (options?: DialogConfirmOptions) => {
+    const promise = new Promise<boolean>((resolve, reject) => {
       mountImperativeDialog(
         normalizeOptions('confirm', { showCancelButton: true, ...options }),
         {
@@ -242,7 +242,10 @@ export const DialogImperative = {
           reject,
         }
       )
-    }),
+    })
+    promise.catch(() => undefined)
+    return promise
+  },
   clear: () => {
     Array.from(dialogRegistry.keys()).forEach(key => {
       requestClose(key)

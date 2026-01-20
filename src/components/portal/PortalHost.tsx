@@ -160,14 +160,29 @@ const unmountPortal = (key: number) => {
   }
 }
 
-const teardownAutoHost = () => {
-  if (!autoHostRoot) return
-  autoHostRoot.unmount()
-  autoHostRoot = null
-  if (autoHostContainer?.parentNode) {
-    autoHostContainer.parentNode.removeChild(autoHostContainer)
+const scheduleTeardown = typeof queueMicrotask === 'function'
+  ? queueMicrotask
+  : (task: () => void) => {
+    Promise.resolve().then(task)
   }
-  autoHostContainer = null
+
+const teardownAutoHost = () => {
+  if (!autoHostRoot || teardownScheduled) return
+  teardownScheduled = true
+  scheduleTeardown(() => {
+    teardownScheduled = false
+    if (!autoHostRoot) return
+    if (hostStack.length > 1 || portalEntries.size === 0) {
+      const root = autoHostRoot
+      const container = autoHostContainer
+      autoHostRoot = null
+      autoHostContainer = null
+      root.unmount()
+      if (container?.parentNode) {
+        container.parentNode.removeChild(container)
+      }
+    }
+  })
 }
 
 const maybeTeardownAutoHost = () => {
@@ -260,6 +275,7 @@ let autoHostContainer: HTMLElement | null = null
 type AutoHostRoot = import('react-dom/client').Root
 let autoHostRoot: AutoHostRoot | null = null
 let hostPromise: Promise<void> | null = null
+let teardownScheduled = false
 
 export const ensureGlobalPortalHost = () => {
   if (hostStack.length > 0) {
