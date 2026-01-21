@@ -6,8 +6,11 @@ import { PortalHost } from '../../portal'
 import ImagePreview from '../../image-preview'
 
 beforeAll(() => {
-  ; (global as any).window = (global as any).window ?? {}
-    ; (global as any).window.Image = (global as any).window.Image ?? function () { }
+  const globalWithWindow = global as typeof globalThis & {
+    window?: Record<string, unknown> & { Image?: unknown }
+  }
+  globalWithWindow.window = globalWithWindow.window ?? {}
+  globalWithWindow.window.Image = globalWithWindow.window.Image ?? function () { }
 })
 
 describe('Uploader', () => {
@@ -26,7 +29,7 @@ describe('Uploader', () => {
 
     const uploadButton = tree.root.findByProps({ testID: 'rv-uploader-upload' })
     await act(async () => {
-      await uploadButton.props.onPress?.({})
+      await uploadButton.props.onPress?.()
     })
 
     expect(onUpload).toHaveBeenCalled()
@@ -57,7 +60,7 @@ describe('Uploader', () => {
 
     const deleteBtn = tree.root.findByProps({ testID: 'rv-uploader-delete-0' })
     await act(async () => {
-      await deleteBtn.props.onPress?.({})
+      await deleteBtn.props.onPress?.()
     })
 
     expect(onDelete).toHaveBeenCalled()
@@ -87,7 +90,7 @@ describe('Uploader', () => {
 
     const deleteBtn = tree.root.findByProps({ testID: 'rv-uploader-delete-0' })
     await act(async () => {
-      await deleteBtn.props.onPress?.({})
+      await deleteBtn.props.onPress?.()
     })
 
     expect(onDelete).toHaveBeenCalled()
@@ -118,7 +121,7 @@ describe('Uploader', () => {
 
     const uploadButton = tree.root.findByProps({ testID: 'rv-uploader-upload' })
     await act(async () => {
-      await uploadButton.props.onPress?.({} as any)
+      await uploadButton.props.onPress?.()
     })
 
     expect(uploadButton.props.disabled).toBe(true)
@@ -150,7 +153,7 @@ describe('Uploader', () => {
 
     const uploadButton = tree.root.findByProps({ testID: 'rv-uploader-upload' })
     await act(async () => {
-      await uploadButton.props.onPress?.({} as any)
+      await uploadButton.props.onPress?.()
     })
 
     expect(uploadButton.props.disabled).toBe(true)
@@ -180,7 +183,7 @@ describe('Uploader', () => {
 
     const deleteBtn = tree.root.findByProps({ testID: 'rv-uploader-delete-0' })
     await act(async () => {
-      await deleteBtn.props.onPress?.({} as any)
+      await deleteBtn.props.onPress?.()
     })
 
     expect(handleChange).toHaveBeenLastCalledWith([])
@@ -204,7 +207,7 @@ describe('Uploader', () => {
 
     const previewPressable = tree.root.findByProps({ testID: 'rv-uploader-preview-0' })
     act(() => {
-      previewPressable.props.onPress?.({})
+      previewPressable.props.onPress?.()
     })
 
     const preview = tree.root.findByType(ImagePreview)
@@ -233,7 +236,7 @@ describe('Uploader', () => {
 
     const previewPressable = tree.root.findByProps({ testID: 'rv-uploader-preview-0' })
     act(() => {
-      previewPressable.props.onPress?.({})
+      previewPressable.props.onPress?.()
     })
 
     const preview = tree.root.findByType(ImagePreview)
@@ -264,7 +267,7 @@ describe('Uploader', () => {
 
     const previewPressable = tree.root.findByProps({ testID: 'rv-uploader-preview-0' })
     act(() => {
-      previewPressable.props.onPress?.({})
+      previewPressable.props.onPress?.()
     })
 
     let preview = tree.root.findByType(ImagePreview)

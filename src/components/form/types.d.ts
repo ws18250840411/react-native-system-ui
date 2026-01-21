@@ -4,8 +4,8 @@ import type { ViewProps } from 'react-native'
 export type FormRuleValidateTrigger = string | string[]
 
 export type FormRuleValidator = (
-  value: any,
-  values: Record<string, any>
+  value: unknown,
+  values: Record<string, unknown>
 ) => void | boolean | string | Promise<void | boolean | string>
 
 export type NamePath = string | number | (string | number)[]
@@ -25,33 +25,33 @@ export interface FormItemRule {
 export interface RegisteredFieldOptions {
   rules?: FormItemRule[]
   dependencies?: NamePath[]
-  initialValue?: any
+  initialValue?: unknown
   validateTrigger?: FormRuleValidateTrigger
 }
 
 export interface FormInstance {
-  submit: () => Promise<Record<string, any> | undefined>
-  getFieldsValue: () => Record<string, any>
-  setFieldsValue: (values: Record<string, any>) => void
+  submit: () => Promise<Record<string, unknown> | undefined>
+  getFieldsValue: () => Record<string, unknown>
+  setFieldsValue: (values: Record<string, unknown>) => void
   resetFields: () => void
-  validateFields: (names?: NamePath[]) => Promise<Record<string, any>>
+  validateFields: (names?: NamePath[]) => Promise<Record<string, unknown>>
   getFieldError: (name: NamePath) => string[]
 }
 
 export interface FormProps extends ViewProps {
-  initialValues?: Record<string, any>
+  initialValues?: Record<string, unknown>
   colon?: boolean
   labelWidth?: number
   showValidateMessage?: boolean
   footer?: ReactNode
-  onValuesChange?: (values: Record<string, any>, name: string, value: any) => void
-  onFinish?: (values: Record<string, any>) => void
+  onValuesChange?: (values: Record<string, unknown>, name: string, value: unknown) => void
+  onFinish?: (values: Record<string, unknown>) => void
   children?: ReactNode
 }
 
 export interface FormSubscribeProps {
   to?: string[]
-  children: (changedValues: Record<string, any>, form: FormInstance | null) => ReactNode
+  children: (changedValues: Record<string, unknown>, form: FormInstance | null) => ReactNode
 }
 
 export interface FormItemProps {
@@ -68,13 +68,13 @@ export interface FormItemProps {
   showValidateMessage?: boolean
   required?: boolean
   noStyle?: boolean
-  shouldUpdate?: (prev: Record<string, any>, next: Record<string, any>) => boolean
-  initialValue?: any
+  shouldUpdate?: (prev: Record<string, unknown>, next: Record<string, unknown>) => boolean
+  initialValue?: unknown
   children:
     | ReactNode
     | ((payload: {
-        getFieldValue: (name: NamePath) => any
-        getFieldsValue: () => Record<string, any>
+        getFieldValue: (name: NamePath) => unknown
+        getFieldsValue: () => Record<string, unknown>
         form: FormInstance | null
       }) => ReactNode)
 }

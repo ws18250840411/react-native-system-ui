@@ -3,7 +3,7 @@ import React from 'react'
 import { isBoolean, isFiniteNumber } from '../../utils/validate'
 import Field from '../field'
 import { useFieldTokens } from '../field/tokens'
-import type { FieldAutosizeConfig } from '../field/types'
+import type { FieldAutosizeConfig, FieldInstance } from '../field/types'
 import { useInputTokens } from './tokens'
 import type { InputInstance, InputProps, InputTextAreaProps } from './types'
 
@@ -24,7 +24,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
   } = props
 
   const tokens = useInputTokens(tokensOverride)
-  const inputRef = React.useRef<any>(null)
+  const inputRef = React.useRef<FieldInstance | null>(null)
 
   const handleChangeText = (value: string) => {
     onChange?.(value)

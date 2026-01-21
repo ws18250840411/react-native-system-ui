@@ -53,7 +53,15 @@ const toSliderValue = (values: readonly number[], range: boolean, fallback: numb
   return values[0] ?? fallback
 }
 
-const createAccessibilityProps = (inputProps: any) => {
+const createAccessibilityProps = (
+  inputProps?: {
+    role?: string
+    ['aria-value']?: unknown
+    accessibilityActions?: unknown
+    onAccessibilityAction?: unknown
+    disabled?: boolean
+  } | null
+) => {
   if (!inputProps) return {}
   const {
     role,

@@ -6,7 +6,7 @@ import { Typography } from 'react-native-system-ui'
 
 import { componentRegistry } from '@/demo/registry'
 
-const NO_SCROLL_WRAPPER = new Set(['list', 'pull-refresh', 'index-bar', 'picker', 'area'])
+const NO_SCROLL_WRAPPER = new Set(['list', 'pull-refresh', 'index-bar', 'picker', 'datetime-picker', 'area'])
 
 export default function ComponentDemoRunnerScreen() {
   const { slug, demo } = useLocalSearchParams<{ slug: string; demo: string }>()

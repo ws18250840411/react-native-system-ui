@@ -14,10 +14,10 @@ export type UploaderFile = {
   name?: string
   type?: string
   size?: number
-  [key: string]: any
+  [key: string]: unknown
 }
 
-type BivariantCallback<T extends (...args: any[]) => any> = { bivarianceHack: T }['bivarianceHack']
+type BivariantCallback<T extends (...args: unknown[]) => unknown> = { bivarianceHack: T }['bivarianceHack']
 
 export type UploaderMaxSize =
   | number
@@ -44,7 +44,7 @@ export interface UploaderValueItem {
   file?: UploaderFile
   status?: UploaderItemStatus
   message?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface UploaderProps extends ViewProps {

@@ -9,25 +9,25 @@ interface FieldKeys {
 }
 
 export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKeys, value: CascaderValue[]) => {
-  const normalizedOptions = React.useMemo(() => options ?? [], [options])
-
   const depth = React.useMemo(() => {
-    let maxDepth = 0
+    let maxDepth = 1
     const traverse = (opts: CascaderOption[] | undefined, level: number) => {
-      if (!opts) return
+      if (!opts || !opts.length) return
       if (level > maxDepth) maxDepth = level
       const next = level + 1
       opts.forEach(option => {
+        const hasChildrenProp = Object.prototype.hasOwnProperty.call(option, keys.childrenKey)
+        if (hasChildrenProp && next > maxDepth) maxDepth = next
         const children = option[keys.childrenKey] as CascaderOption[] | undefined
-        if (children) traverse(children, next)
+        if (children && children.length) traverse(children, next)
       })
     }
-    traverse(normalizedOptions, 1)
-    return maxDepth || 1
-  }, [keys.childrenKey, normalizedOptions])
+    traverse(options, 1)
+    return maxDepth
+  }, [keys.childrenKey, options])
 
   const tabs = React.useMemo(() => {
-    if (!value || !value.length) return [normalizedOptions]
+    if (!value || !value.length) return [options]
     return value.reduce<CascaderOption[][]>(
       (acc, val, index) => {
         if (val === undefined || val === null) return acc
@@ -38,9 +38,9 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
         if (children) acc.push(children)
         return acc
       },
-      [normalizedOptions],
+      [options],
     )
-  }, [keys.childrenKey, keys.valueKey, normalizedOptions, value])
+  }, [keys.childrenKey, keys.valueKey, options, value])
 
   const items = React.useMemo(() => {
     if (!value || !value.length) return []

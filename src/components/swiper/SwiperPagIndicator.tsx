@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
 
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -60,7 +60,7 @@ export interface SwiperPagIndicatorProps {
   total: number
   current: number
   vertical?: boolean
-  style?: any
+  style?: StyleProp<ViewStyle>
   activeColor?: string
   inactiveColor?: string
   tokensOverride?: DeepPartial<SwiperPagIndicatorTokens>

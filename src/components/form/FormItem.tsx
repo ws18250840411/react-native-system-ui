@@ -45,7 +45,7 @@ export const FormItem: React.FC<FormItemProps> = ({
   }
 
   const normalizedRules = rules ?? EMPTY_RULES
-  const prevValuesRef = React.useRef<Record<string, any>>(context.values)
+  const prevValuesRef = React.useRef<Record<string, unknown>>(context.values)
 
   React.useEffect(() => {
     prevValuesRef.current = context.values
@@ -93,9 +93,9 @@ export const FormItem: React.FC<FormItemProps> = ({
 
   const child = childArray[0] as React.ReactElement<Record<string, unknown>>
 
-  const handleChange = (next: any) => {
+  const handleChange = (next: unknown) => {
     context.setFieldValue(name, next, trigger)
-    const original = child.props[trigger]
+    const original = (child.props as Record<string, unknown>)[trigger]
     if (isFunction(original)) {
       original(next)
     }
@@ -111,21 +111,22 @@ export const FormItem: React.FC<FormItemProps> = ({
     })()
 
   const resolveValue = () => {
-    if (child.props[valuePropName] !== undefined) return child.props[valuePropName]
+    const childValue = (child.props as Record<string, unknown>)[valuePropName]
+    if (childValue !== undefined) return childValue
     if (mergedValue !== undefined) return mergedValue
     if (isFieldLike && valuePropName === 'value') return ''
     return mergedValue
   }
 
-  const injectedProps: Record<string, any> = {
+  const injectedProps: Record<string, unknown> = {
     [valuePropName]: resolveValue(),
     [trigger]: handleChange,
   }
 
   mergedValidateTriggers.forEach(eventName => {
     if (!eventName || eventName === trigger) return
-    const original = child.props[eventName]
-    injectedProps[eventName] = (...args: any[]) => {
+    const original = (child.props as Record<string, unknown>)[eventName]
+    injectedProps[eventName] = (...args: unknown[]) => {
       if (isFunction(original)) {
         original(...args)
       }

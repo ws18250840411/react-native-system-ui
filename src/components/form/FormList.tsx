@@ -11,14 +11,14 @@ export interface FormListField {
 }
 
 export interface FormListOperation {
-  add: (defaultValue?: any, index?: number) => void
+  add: (defaultValue?: unknown, index?: number) => void
   remove: (index: number) => void
   move: (from: number, to: number) => void
 }
 
 export interface FormListProps {
   name: NamePath
-  initialValue?: any[]
+  initialValue?: unknown[]
   children: (fields: FormListField[], operation: FormListOperation) => React.ReactNode
 }
 
@@ -43,7 +43,7 @@ export const FormList: React.FC<FormListProps> = ({ name, initialValue, children
   }
 
   const listValueRaw = getValueByName(context.values, name)
-  const listValue: any[] = Array.isArray(listValueRaw) ? listValueRaw : []
+  const listValue: unknown[] = Array.isArray(listValueRaw) ? listValueRaw : []
 
   const fields: FormListField[] = listValue.map((_, index) => ({
     name: index,
@@ -51,7 +51,7 @@ export const FormList: React.FC<FormListProps> = ({ name, initialValue, children
     isListField: true,
   }))
 
-  const add = (defaultValue?: any, index?: number) => {
+  const add = (defaultValue?: unknown, index?: number) => {
     const insertIndex = typeof index === 'number' ? index : listValue.length
     const next = [...listValue]
     next.splice(insertIndex, 0, defaultValue)

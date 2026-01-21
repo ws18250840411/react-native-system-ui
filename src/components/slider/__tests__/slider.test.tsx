@@ -8,7 +8,7 @@ jest.mock('@react-native-aria/utils', () => ({
   isRTL: jest.fn(() => false),
 }))
 
-const getStyleValue = (style: any, key: string): any => {
+const getStyleValue = (style: unknown, key: string): unknown => {
   if (!style) return undefined
   if (Array.isArray(style)) {
     for (const item of style) {
@@ -18,7 +18,7 @@ const getStyleValue = (style: any, key: string): any => {
     return undefined
   }
   if (typeof style === 'object') {
-    return style[key]
+    return (style as Record<string, unknown>)[key]
   }
   return undefined
 }
@@ -41,7 +41,11 @@ describe('Slider', () => {
     const thumbViews = tree.root.findAll(
       node =>
         Array.isArray(node.props.style) &&
-        node.props.style.some((style: any) => style?.position === 'absolute' && style?.borderWidth !== undefined),
+        node.props.style.some((style: unknown) => {
+          if (!style || typeof style !== 'object') return false
+          const obj = style as Record<string, unknown>
+          return obj.position === 'absolute' && obj.borderWidth !== undefined
+        }),
     )
     expect(thumbViews.length).toBeGreaterThanOrEqual(2)
   })
@@ -53,7 +57,11 @@ describe('Slider', () => {
     const thumb = tree.root.findAll(
       node =>
         Array.isArray(node.props.style) &&
-        node.props.style.some((style: any) => style?.position === 'absolute' && style?.borderWidth !== undefined),
+        node.props.style.some((style: unknown) => {
+          if (!style || typeof style !== 'object') return false
+          const obj = style as Record<string, unknown>
+          return obj.position === 'absolute' && obj.borderWidth !== undefined
+        }),
     )[0]
 
     expect(getStyleValue(thumb.props.style, 'left')).toBe('100%')
@@ -65,7 +73,11 @@ describe('Slider', () => {
     const thumb = tree.root.findAll(
       node =>
         Array.isArray(node.props.style) &&
-        node.props.style.some((style: any) => style?.position === 'absolute' && style?.borderWidth !== undefined),
+        node.props.style.some((style: unknown) => {
+          if (!style || typeof style !== 'object') return false
+          const obj = style as Record<string, unknown>
+          return obj.position === 'absolute' && obj.borderWidth !== undefined
+        }),
     )[0]
 
     expect(getStyleValue(thumb.props.style, 'left')).toBe('50%')
@@ -165,7 +177,7 @@ describe('Slider', () => {
     const tree = renderer.create(
       <Slider
         value={50}
-        min={Number.NaN as any}
+        min={Number.NaN}
         max={100}
         button={({ value }) => (
           <Text testID="slider-value">{Array.isArray(value) ? value.join(',') : String(value)}</Text>
@@ -181,7 +193,7 @@ describe('Slider', () => {
       <Slider
         value={50}
         min={0}
-        max={Number.NaN as any}
+        max={Number.NaN}
         button={({ value }) => (
           <Text testID="slider-value">{Array.isArray(value) ? value.join(',') : String(value)}</Text>
         )}

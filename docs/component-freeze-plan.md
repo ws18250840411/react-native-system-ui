@@ -72,6 +72,7 @@
 | rate | 已冻结 ✅ | 极致精简版：受控/非受控统一；半星点击与滑动只在 touchable 时启用；自定义图标无 StyleSheet.flatten；禁用/只读语义清晰 |
 | dialog | 已冻结 ✅ | 极致精简版：弹层/Portal/动画/关闭链路稳定；逻辑分支收敛；渲染结构最小化 |
 | number-keyboard | 已冻结 ✅ | 极致精简版：弹层+输入联动+交互细节稳定；回调/渲染节点最小化；无冗余分支 |
+| cascader | 已冻结 ✅ | 极致精简版：多级联动稳定；虚拟列表；异步分支深度处理；0 any |
 | selector | 已冻结 ✅ | 极致精简版：Set/Map 驱动选择态；items 回传 O(k)；受控/非受控统一；无障碍与布局分支最小化 |
 | sidebar | 已冻结 ✅ | 极致精简版：children 扫描单次 for 循环；受控/非受控统一；无 any；onChange items 无多余分配 |
 | space | 已冻结 ✅ | 极致精简版：Web 使用 gap；Native 用 margin/padding 模拟；children 过滤+for 循环；0 any |
@@ -92,7 +93,6 @@
 
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
-| cascader | 持续优化 ✅ | 多级联动与性能/状态复杂 |
 | circle | 持续优化 ✅ | Web/Native 渲染方案差异（svg/gradient）+动画 |
 | collapse | 持续优化 ✅ | 测量+展开动画+性能敏感 |
 | config-provider | 持续优化 ✅ | 全局基础设施，影响面大 |

@@ -7,8 +7,11 @@ import type { ImagePreviewRef } from '../types'
 import { PortalHost } from '../../portal'
 
 beforeAll(() => {
-  ; (global as any).window = (global as any).window ?? {}
-    ; (global as any).window.Image = (global as any).window.Image ?? function () { }
+  const globalWithWindow = global as typeof globalThis & {
+    window?: Record<string, unknown> & { Image?: unknown }
+  }
+  globalWithWindow.window = globalWithWindow.window ?? {}
+  globalWithWindow.window.Image = globalWithWindow.window.Image ?? function () { }
 })
 
 describe('ImagePreview', () => {
@@ -47,7 +50,7 @@ describe('ImagePreview', () => {
 
     const [overlay] = tree.root.findAll(node => node.props.testID === 'rv-image-preview-overlay')
     await act(async () => {
-      await overlay.props.onPress?.({})
+      await overlay.props.onPress?.()
     })
 
     expect(handleClose).toHaveBeenCalledWith({ index: 0, image: 'https://a.png' })

@@ -3,6 +3,7 @@ import renderer, { act } from 'react-test-renderer'
 import { ScrollView, Text } from 'react-native'
 
 import IndexBar from '..'
+import type { IndexBarInstance } from '../types'
 
 const { Anchor } = IndexBar
 
@@ -46,11 +47,11 @@ describe('IndexBar', () => {
   })
 
   it('scrolls to index imperatively', () => {
-    const ref = React.createRef<any>()
+    const ref = React.createRef<IndexBarInstance>()
     const tree = renderer.create(
       <IndexBar ref={ref}>
         <Anchor index="A">
-            <Text>A</Text>
+          <Text>A</Text>
         </Anchor>
       </IndexBar>
     )
@@ -63,7 +64,7 @@ describe('IndexBar', () => {
     expect(ref.current.scrollTo).toBeDefined()
       
     act(() => {
-        ref.current?.scrollTo('A')
+      ref.current?.scrollTo('A')
     })
   })
 })

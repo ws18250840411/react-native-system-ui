@@ -1,5 +1,5 @@
 import React from 'react'
-import { SafeAreaView, StyleSheet, View } from 'react-native'
+import { SafeAreaView, StyleSheet, View, type LayoutChangeEvent } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
@@ -68,7 +68,7 @@ const TabbarBase: React.FC<TabbarProps> = props => {
   const [barHeight, setBarHeight] = React.useState(tokens.layout.height)
   const enablePlaceholder = fixed && placeholder
   const handleLayout = React.useCallback(
-    (event: any) => {
+    (event: LayoutChangeEvent) => {
       if (!enablePlaceholder) return
       const nextHeight = event.nativeEvent.layout.height
       setBarHeight((prev) => (Math.abs(prev - nextHeight) < 0.5 ? prev : nextHeight))

@@ -1,13 +1,12 @@
 import React from "react"
 import {
+  FlatList,
   Pressable,
-  ScrollView,
   Text,
   View,
   useWindowDimensions,
   type LayoutChangeEvent,
   type PressableStateCallbackType,
-  type TextStyle,
 } from "react-native"
 import { Checked, Cross } from "react-native-system-icon"
 
@@ -245,48 +244,22 @@ const Cascader: React.FC<CascaderProps> = props => {
     [currentValue.length, items, keys.childrenKey, loadingText, placeholder],
   )
 
-  const renderOptionsList = (optionList: CascaderOption[], tabIndex: number) => (
-    <ScrollView
-      style={[tokens.layout.optionList, { height: tokens.sizing.optionListHeight }]}
-      contentContainerStyle={{
-        paddingTop: tokens.spacing.optionListPaddingTop,
-        paddingBottom: tokens.spacing.optionListPaddingBottom,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      {optionList.length
-        ? optionList.map((item) => (
-          <CascaderOptionItem
-            key={String(item[keys.valueKey])}
-            option={item}
-            tabIndex={tabIndex}
-            selected={currentValue[tabIndex] === item[keys.valueKey]}
-            activeColor={activeColor}
-            keys={keys}
-            optionRender={optionRender}
-            onSelect={handleSelect}
-            tokens={tokens}
-          />
-        ))
-        : (
-          <Text
-            style={[
-              tokens.layout.empty,
-              {
-                color: tokens.colors.placeholder,
-                paddingVertical: tokens.spacing.emptyPaddingVertical,
-                fontSize: tokens.typography.emptyTextSize,
-              },
-            ]}
-          >
-            {getEmptyText(tabIndex)}
-          </Text>
-        )}
-    </ScrollView>
-  )
-
   const renderTabs = () => {
-    if (!tabs.length) return renderOptionsList([], 0)
+    if (!tabs.length) {
+      return (
+        <CascaderOptionList
+          optionList={[]}
+          tabIndex={0}
+          selectedValue={currentValue[0]}
+          activeColor={activeColor}
+          keys={keys}
+          optionRender={optionRender}
+          onSelect={handleSelect}
+          tokens={tokens}
+          emptyText={getEmptyText(0)}
+        />
+      )
+    }
     const swipeableEnabled = !!swipeable
     const resolvedTabsWidth = measuredWidth || windowWidth || undefined
     const tabBarStyle = {
@@ -341,7 +314,17 @@ const Cascader: React.FC<CascaderProps> = props => {
 
             return (
               <Tabs.TabPane key={index} name={index} title={titleNode}>
-                {renderOptionsList(optionList, index)}
+                <CascaderOptionList
+                  optionList={optionList}
+                  tabIndex={index}
+                  selectedValue={currentValue[index]}
+                  activeColor={activeColor}
+                  keys={keys}
+                  optionRender={optionRender}
+                  onSelect={handleSelect}
+                  tokens={tokens}
+                  emptyText={getEmptyText(index)}
+                />
               </Tabs.TabPane>
             )
           })}
@@ -572,6 +555,87 @@ const CascaderOptionItem = React.memo(
       </Pressable>
     )
   }
+)
+
+const CascaderOptionList = React.memo(
+  ({
+    optionList,
+    tabIndex,
+    selectedValue,
+    activeColor,
+    keys,
+    optionRender,
+    onSelect,
+    tokens,
+    emptyText,
+  }: {
+    optionList: CascaderOption[]
+    tabIndex: number
+    selectedValue?: CascaderValue
+    activeColor: string
+    keys: FieldKeys
+    optionRender?: CascaderProps['optionRender']
+    onSelect: (option: CascaderOption, tabIndex: number) => void
+    tokens: CascaderTokens
+    emptyText: string
+  }) => {
+    if (!optionList.length) {
+      return (
+        <View style={[tokens.layout.optionList, { height: tokens.sizing.optionListHeight }]}>
+          <Text
+            style={[
+              tokens.layout.empty,
+              {
+                color: tokens.colors.placeholder,
+                paddingVertical: tokens.spacing.emptyPaddingVertical,
+                fontSize: tokens.typography.emptyTextSize,
+              },
+            ]}
+          >
+            {emptyText}
+          </Text>
+        </View>
+      )
+    }
+
+    const renderItem = React.useCallback(
+      ({ item }: { item: CascaderOption }) => (
+        <CascaderOptionItem
+          option={item}
+          tabIndex={tabIndex}
+          selected={selectedValue === item[keys.valueKey]}
+          activeColor={activeColor}
+          keys={keys}
+          optionRender={optionRender}
+          onSelect={onSelect}
+          tokens={tokens}
+        />
+      ),
+      [activeColor, keys, onSelect, optionRender, selectedValue, tabIndex, tokens],
+    )
+
+    const keyExtractor = React.useCallback(
+      (item: CascaderOption) => String(item[keys.valueKey]),
+      [keys.valueKey],
+    )
+
+    return (
+      <FlatList
+        data={optionList}
+        style={[tokens.layout.optionList, { height: tokens.sizing.optionListHeight }]}
+        contentContainerStyle={{
+          paddingTop: tokens.spacing.optionListPaddingTop,
+          paddingBottom: tokens.spacing.optionListPaddingBottom,
+        }}
+        showsVerticalScrollIndicator={false}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        removeClippedSubviews
+        initialNumToRender={20}
+        windowSize={5}
+      />
+    )
+  },
 )
 
 export default Cascader

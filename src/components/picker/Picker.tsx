@@ -68,7 +68,13 @@ const GradientMask: React.FC<{
   )
 }
 
-const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof usePickerTokens> }> = React.memo(
+const PickerColumn: React.FC<
+  PickerColumnProps & {
+    tokens: ReturnType<typeof usePickerTokens>
+    onInteractStart?: () => void
+    onInteractEnd?: () => void
+  }
+> = React.memo(
   props => {
     const {
       columnIndex,
@@ -85,6 +91,8 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
       decelerationRate,
       scrollEventThrottle,
       swipeDuration,
+      onInteractStart,
+      onInteractEnd,
     } = props
     const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
@@ -112,6 +120,8 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
           visibleRest={restVisible}
           selectedIndex={Math.max(0, selectedIndex)}
           onChange={handleChange}
+          onInteractStart={onInteractStart}
+          onInteractEnd={onInteractEnd}
           readOnly={readOnly}
           indicatorColor={tokens.colors.indicator}
           decelerationRate={decelerationRate}
@@ -199,10 +209,33 @@ const Picker: React.FC<PickerProps> = props => {
   } = props
 
   const visibleItemCount = getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount)
+  const interactingCountRef = React.useRef(0)
+  const [isInteracting, setIsInteracting] = React.useState(false)
+  const stableValueRef = React.useRef(valueProp)
+
+  React.useEffect(() => {
+    if (!isInteracting) {
+      stableValueRef.current = valueProp
+    }
+  }, [isInteracting, valueProp])
+
+  const handleInteractStart = React.useCallback(() => {
+    interactingCountRef.current += 1
+    setIsInteracting(true)
+  }, [])
+
+  const handleInteractEnd = React.useCallback(() => {
+    interactingCountRef.current = Math.max(0, interactingCountRef.current - 1)
+    if (interactingCountRef.current === 0) {
+      setIsInteracting(false)
+    }
+  }, [])
+
+  const valueForPicker = isInteracting ? stableValueRef.current : valueProp
 
   const { normalized, handleSelect, handleConfirm } = usePickerValue({
     columns,
-    valueProp,
+    valueProp: valueForPicker,
     defaultValue,
     emitConfirmOnAutoSelect,
     onChange,
@@ -308,6 +341,8 @@ const Picker: React.FC<PickerProps> = props => {
         swipeDuration={swipeDuration}
         onSelect={handleSelect}
         tokens={tokens}
+        onInteractStart={handleInteractStart}
+        onInteractEnd={handleInteractEnd}
       />
     ))
     : null

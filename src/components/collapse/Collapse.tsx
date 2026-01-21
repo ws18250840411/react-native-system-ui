@@ -174,7 +174,7 @@ export const Collapse = ((props: CollapseProps) => {
       return child
     }
     const name = (child.props as CollapsePanelProps).name ?? String(index)
-    return React.cloneElement(child as React.ReactElement<any>, { name, index })
+    return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { name, index })
   })
 
   return (

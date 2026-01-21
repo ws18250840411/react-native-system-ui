@@ -82,7 +82,7 @@ describe('Skeleton', () => {
   })
 
   it('handles non-finite row safely', () => {
-    const tree = renderer.create(<Skeleton row={Number.POSITIVE_INFINITY as any} />)
+    const tree = renderer.create(<Skeleton row={Number.POSITIVE_INFINITY} />)
     const rows = tree.root.findAll(node => node.props.testID?.startsWith('rv-skeleton-row-'))
     expect(rows.length).toBe(0)
   })

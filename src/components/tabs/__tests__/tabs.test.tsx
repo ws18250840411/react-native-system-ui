@@ -202,16 +202,19 @@ describe('Tabs', () => {
   })
 
   it('does not cancel tabbar scroll animation by onScroll updates', () => {
-    const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: any, _config: any) => {
+    const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: unknown, _config: unknown) => {
       const animation = {
         start: jest.fn(),
         stop: jest.fn(),
         reset: jest.fn(),
       }
-      return animation as any
-    }) as any)
+      return animation as unknown as ReturnType<typeof Animated.timing>
+    }) as unknown as typeof Animated.timing)
 
-    const setValueSpy = jest.spyOn(Animated.Value.prototype as any, 'setValue')
+    const setValueSpy = jest.spyOn(
+      Animated.Value.prototype as unknown as { setValue: (value: number) => void },
+      'setValue',
+    )
 
     const tree = renderer.create(
       <Tabs defaultActive="a" scrollable>
@@ -247,7 +250,7 @@ describe('Tabs', () => {
     const before = setValueSpy.mock.calls.length
 
     act(() => {
-      tabC.props.onPress?.({})
+      tabC.props.onPress?.()
     })
 
     const afterChange = setValueSpy.mock.calls.length
@@ -266,14 +269,14 @@ describe('Tabs', () => {
   })
 
   it('keeps indicator working when panes are appended', () => {
-    const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: any, _config: any) => {
+    const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: unknown, _config: unknown) => {
       const animation = {
         start: jest.fn(),
         stop: jest.fn(),
         reset: jest.fn(),
       }
-      return animation as any
-    }) as any)
+      return animation as unknown as ReturnType<typeof Animated.timing>
+    }) as unknown as typeof Animated.timing)
 
     let tree = renderer.create(
       <Tabs defaultActive="b" scrollable>
@@ -304,7 +307,7 @@ describe('Tabs', () => {
 
     const tabAAfter = tree.root.findByProps({ testID: 'rv-tabs-item-a' })
     act(() => {
-      tabAAfter.props.onPress?.({})
+      tabAAfter.props.onPress?.()
     })
 
     expect(timingSpy).toHaveBeenCalled()
@@ -314,7 +317,7 @@ describe('Tabs', () => {
   })
 
   it('recognizes children with correct displayName even if not TabPane class', () => {
-    const CustomPane = ({ title, children }: any) => (
+    const CustomPane: React.FC<{ name?: string; title?: React.ReactNode; children?: React.ReactNode }> = ({ children }) => (
       <View testID="custom-pane-content">{children}</View>
     )
     CustomPane.displayName = 'Tabs.TabPane'

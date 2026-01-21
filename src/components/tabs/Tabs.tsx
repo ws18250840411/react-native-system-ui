@@ -30,6 +30,11 @@ interface ParsedPane extends TabPaneProps {
   index: number
 }
 
+type SwipeableScrollRef = {
+  getNode?: () => { scrollTo: (params: { x?: number; y?: number; animated?: boolean }) => void }
+  scrollTo?: (params: { x?: number; y?: number; animated?: boolean }) => void
+}
+
 const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> => {
   if (!React.isValidElement(child)) return false
   if (child.type === TabPane) return true
@@ -444,7 +449,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const navLastScrollXRef = React.useRef(0)
   const indicatorInitializedRef = React.useRef(false)
   const paneLayoutMap = React.useRef<Map<TabsValue, { height: number }>>(new Map())
-  const swipeableScrollRef = React.useRef<any>(null)
+  const swipeableScrollRef = React.useRef<SwipeableScrollRef | null>(null)
   const swipeableChangeByScrollRef = React.useRef(false)
   const [containerWidth, setContainerWidth] = React.useState(0)
   const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)

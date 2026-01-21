@@ -1,16 +1,22 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TextInput, View, type NativeSyntheticEvent, type TextInputSubmitEditingEventData } from 'react-native'
 
-const globalAny: any = global
-if (!globalAny.document) {
-  globalAny.document = {
+const globalWithDoc = global as unknown as {
+  document?: {
+    createElement: () => { style: Record<string, unknown> }
+    body: { appendChild: () => void }
+  }
+}
+if (!globalWithDoc.document) {
+  globalWithDoc.document = {
     createElement: () => ({ style: {} }),
     body: { appendChild: () => { } },
   }
 }
 
 import Search from '..'
+import type { SearchRef } from '../types'
 
 describe('Search', () => {
   it('renders label and default action text', () => {
@@ -26,7 +32,7 @@ describe('Search', () => {
   })
 
   it('exposes focus/blur/clear methods via ref', () => {
-    let searchRef: any
+    let searchRef: SearchRef | null = null
     const tree = renderer.create(<Search defaultValue="test" ref={ref => { searchRef = ref }} />)
 
     const onChangeText = jest.fn()
@@ -36,7 +42,7 @@ describe('Search', () => {
     })
 
     renderer.act(() => {
-      searchRef.clear()
+      searchRef?.clear()
     })
 
     expect(onChangeText).toHaveBeenCalledWith('')
@@ -67,7 +73,10 @@ describe('Search', () => {
     const contentView = views.find(v => {
       const style = v.props.style
       if (Array.isArray(style)) {
-        return style.some((s: any) => s && typeof s.borderRadius === 'number')
+        return style.some((s: unknown) => {
+          if (!s || typeof s !== 'object') return false
+          return typeof (s as Record<string, unknown>).borderRadius === 'number'
+        })
       }
       return style && typeof style.borderRadius === 'number'
     })
@@ -83,7 +92,8 @@ describe('Search', () => {
 
     const input = tree.root.findByType(TextInput)
     act(() => {
-      input.props.onSubmitEditing?.({} as any)
+      const event = { nativeEvent: { text: 'hello' } } as unknown as NativeSyntheticEvent<TextInputSubmitEditingEventData>
+      input.props.onSubmitEditing?.(event)
     })
 
     expect(handleSearch).toHaveBeenCalledWith('coffee')

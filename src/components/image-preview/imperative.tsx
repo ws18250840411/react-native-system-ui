@@ -2,7 +2,7 @@ import React from 'react'
 
 import Portal from '../portal/Portal'
 import ImagePreview from './ImagePreview'
-import type { ImagePreviewDestroy, ImagePreviewOpenOptions } from './types'
+import type { CloseParams, ImagePreviewDestroy, ImagePreviewOpenOptions } from './types'
 
 const activeKeys = new Set<number>()
 const closers = new Map<number, () => void>()
@@ -45,7 +45,7 @@ const ImagePreviewPortal: React.FC<ImagePreviewPortalProps> = ({ id, options }) 
   }, [close, id])
 
   const handleClose = React.useCallback(
-    (params: any) => {
+    (params: CloseParams) => {
       options.onClose?.(params)
       setVisible(false)
     },
@@ -83,4 +83,3 @@ export const ImagePreviewImperative = {
     activeKeys.clear()
   },
 }
-

@@ -38,7 +38,7 @@ export default function ComponentDemosScreen() {
     )
   }
 
-  if (resolvedSlug === 'picker' && entry) {
+  if ((resolvedSlug === 'picker' || resolvedSlug === 'datetime-picker') && entry) {
     return (
       <View style={styles.root}>
         <Stack.Screen options={{ title }} />

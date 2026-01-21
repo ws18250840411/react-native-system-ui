@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { PanResponder, Pressable, StyleSheet, Text, View } from 'react-native'
+import { PanResponder, Pressable, StyleSheet, Text, View, type GestureResponderEvent, type PanResponderGestureState } from 'react-native'
 
 import SwipeCell, { type SwipeCellRef } from '..'
 
@@ -36,8 +36,8 @@ describe('SwipeCell', () => {
 
   it('does not capture swipes towards missing side when closed', () => {
     const originalCreate = PanResponder.create
-    let capturedConfig: any = null
-    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((config: any) => {
+    let capturedConfig: Parameters<typeof PanResponder.create>[0] | null = null
+    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((config: Parameters<typeof PanResponder.create>[0]) => {
       capturedConfig = config
       return originalCreate(config)
     })
@@ -49,8 +49,11 @@ describe('SwipeCell', () => {
     )
 
     expect(capturedConfig).toBeTruthy()
-    expect(capturedConfig.onMoveShouldSetPanResponder({}, { dx: 10, dy: 0 })).toBe(false) // 右滑，但没有 left
-    expect(capturedConfig.onMoveShouldSetPanResponder({}, { dx: -10, dy: 0 })).toBe(true) // 左滑，展示 right
+    const evt = {} as unknown as GestureResponderEvent
+    const right = { dx: 10, dy: 0 } as unknown as PanResponderGestureState
+    const left = { dx: -10, dy: 0 } as unknown as PanResponderGestureState
+    expect(capturedConfig!.onMoveShouldSetPanResponder!(evt, right)).toBe(false) // 右滑，但没有 left
+    expect(capturedConfig!.onMoveShouldSetPanResponder!(evt, left)).toBe(true) // 左滑，展示 right
 
     spy.mockRestore()
   })
@@ -60,8 +63,8 @@ describe('SwipeCell', () => {
     const ref = React.createRef<SwipeCellRef>()
 
     const originalCreate = PanResponder.create
-    let capturedConfig: any = null
-    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((config: any) => {
+    let capturedConfig: Parameters<typeof PanResponder.create>[0] | null = null
+    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((config: Parameters<typeof PanResponder.create>[0]) => {
       capturedConfig = config
       return originalCreate(config)
     })
@@ -78,7 +81,9 @@ describe('SwipeCell', () => {
     })
 
     expect(capturedConfig).toBeTruthy()
-    expect(capturedConfig.onMoveShouldSetPanResponder({}, { dx: 10, dy: 0 })).toBe(true)
+    const evt = {} as unknown as GestureResponderEvent
+    const gesture = { dx: 10, dy: 0 } as unknown as PanResponderGestureState
+    expect(capturedConfig!.onMoveShouldSetPanResponder!(evt, gesture)).toBe(true)
 
     spy.mockRestore()
     jest.useRealTimers()
@@ -129,7 +134,7 @@ describe('SwipeCell', () => {
 
     const rightActionContainer = tree.root
       .findAllByType(View)
-      .find((node) => StyleSheet.flatten(node.props.style as any)?.alignItems === 'flex-end')
+      .find((node) => StyleSheet.flatten(node.props.style)?.alignItems === 'flex-end')
 
     expect(rightActionContainer).toBeTruthy()
 
@@ -228,7 +233,7 @@ describe('SwipeCell', () => {
         ref={ref}
         rightWidth={100}
         right={<View />}
-        duration={Number.NaN as any}
+        duration={Number.NaN}
         onOpen={onOpen}
       >
         <Text>content</Text>

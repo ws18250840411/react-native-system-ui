@@ -61,7 +61,7 @@ export type ImagePreviewOpenOptions = Omit<ImagePreviewProps, 'visible'>
 export type ImagePreviewDestroy = () => void
 
 export interface ImagePreviewStatic {
-  Host: React.ComponentType<any>
+  Host: React.ComponentType<Record<string, unknown>>
   open: (options: ImagePreviewOpenOptions) => ImagePreviewDestroy
   clear: () => void
 }

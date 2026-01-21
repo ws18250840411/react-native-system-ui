@@ -3,11 +3,18 @@ import renderer, { act } from 'react-test-renderer'
 import { StyleSheet, Text } from 'react-native'
 
 import Cascader from '..'
+import type { CascaderOption } from '../types'
+
+type CustomOption = CascaderOption & {
+  label: string
+  id: number
+  nodes?: CustomOption[]
+}
 
 describe('Cascader', () => {
   it('selects option, triggers onChange, and advances to next tab', () => {
     const onChange = jest.fn()
-    const options = [
+    const options: CascaderOption[] = [
       {
         text: 'A',
         value: 'a',
@@ -21,12 +28,12 @@ describe('Cascader', () => {
     ]
 
     const tree = renderer.create(
-      <Cascader options={options as any} onChange={onChange} showHeader={false} swipeable={false} />
+      <Cascader options={options} onChange={onChange} showHeader={false} swipeable={false} />
     )
 
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
     act(() => {
-      option.props.onPress?.({} as any)
+      option.props.onPress?.()
     })
 
     expect(onChange).toHaveBeenCalled()
@@ -40,7 +47,7 @@ describe('Cascader', () => {
 
   it('triggers onClickTab with tabIndex and title', () => {
     const onClickTab = jest.fn()
-    const options = [
+    const options: CascaderOption[] = [
       {
         text: 'A',
         value: 'a',
@@ -49,17 +56,17 @@ describe('Cascader', () => {
     ]
 
     const tree = renderer.create(
-      <Cascader options={options as any} onClickTab={onClickTab} showHeader={false} />
+      <Cascader options={options} onClickTab={onClickTab} showHeader={false} />
     )
 
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
     act(() => {
-      option.props.onPress?.({} as any)
+      option.props.onPress?.()
     })
 
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
     act(() => {
-      tab0.props.onPress?.({} as any)
+      tab0.props.onPress?.()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, 'A')
@@ -67,7 +74,7 @@ describe('Cascader', () => {
 
   it('triggers onClickTab even when clicking active tab', () => {
     const onClickTab = jest.fn()
-    const options = [
+    const options: CascaderOption[] = [
       {
         text: 'A',
         value: 'a',
@@ -76,19 +83,19 @@ describe('Cascader', () => {
     ]
 
     const tree = renderer.create(
-      <Cascader options={options as any} onClickTab={onClickTab} showHeader={false} />
+      <Cascader options={options} onClickTab={onClickTab} showHeader={false} />
     )
 
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
     act(() => {
-      tab0.props.onPress?.({} as any)
+      tab0.props.onPress?.()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, '请选择')
   })
 
   it('shows loadingText for async children placeholder column', () => {
-    const options = [
+    const options: CascaderOption[] = [
       {
         text: 'A',
         value: 'a',
@@ -98,7 +105,7 @@ describe('Cascader', () => {
 
     const tree = renderer.create(
       <Cascader
-        options={options as any}
+        options={options}
         loadingText="加载中..."
         placeholder="请选择"
         showHeader={false}
@@ -107,7 +114,7 @@ describe('Cascader', () => {
 
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
     act(() => {
-      option.props.onPress?.({} as any)
+      option.props.onPress?.()
     })
 
     const pane1 = tree.root.findByProps({ testID: 'rv-tabs-pane-1' })
@@ -117,7 +124,7 @@ describe('Cascader', () => {
 
   it('supports custom fieldNames for text/value/children', () => {
     const onFinish = jest.fn()
-    const options = [
+    const options: CustomOption[] = [
       {
         label: '广东省',
         id: 1,
@@ -130,7 +137,7 @@ describe('Cascader', () => {
 
     const tree = renderer.create(
       <Cascader
-        options={options as any}
+        options={options}
         fieldNames={{ text: 'label', value: 'id', children: 'nodes' }}
         onFinish={onFinish}
         showHeader={false}
@@ -139,20 +146,20 @@ describe('Cascader', () => {
 
     const option0 = tree.root.findByProps({ testID: 'cascader-option-0-1' })
     act(() => {
-      option0.props.onPress?.({} as any)
+      option0.props.onPress?.()
     })
 
     const option1 = tree.root.findByProps({ testID: 'cascader-option-1-11' })
     act(() => {
-      option1.props.onPress?.({} as any)
+      option1.props.onPress?.()
     })
 
-    expect(onFinish).toHaveBeenCalledWith([1, 11], [options[0], options[0].nodes[0]])
+    expect(onFinish).toHaveBeenCalledWith([1, 11], [options[0], options[0].nodes![0]])
   })
 
   it('supports onClickTab title with custom fieldNames', () => {
     const onClickTab = jest.fn()
-    const options = [
+    const options: CustomOption[] = [
       {
         label: '广东省',
         id: 1,
@@ -162,7 +169,7 @@ describe('Cascader', () => {
 
     const tree = renderer.create(
       <Cascader
-        options={options as any}
+        options={options}
         fieldNames={{ text: 'label', value: 'id', children: 'nodes' }}
         onClickTab={onClickTab}
         showHeader={false}
@@ -171,12 +178,12 @@ describe('Cascader', () => {
 
     const option0 = tree.root.findByProps({ testID: 'cascader-option-0-1' })
     act(() => {
-      option0.props.onPress?.({} as any)
+      option0.props.onPress?.()
     })
 
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
     act(() => {
-      tab0.props.onPress?.({} as any)
+      tab0.props.onPress?.()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, '广东省')

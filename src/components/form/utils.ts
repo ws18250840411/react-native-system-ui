@@ -19,22 +19,49 @@ export const serializeNamePath = (name?: NamePath): string => {
   return path.join('.')
 }
 
-export const getValueByName = (source: any, name: NamePath): any => {
+export const getValueByName = (source: unknown, name: NamePath): unknown => {
   const path = toNamePath(name)
-  return path.reduce((acc, key) => (acc == null ? acc : acc[key]), source)
+  return path.reduce<unknown>((acc, key) => {
+    if (acc == null) return acc
+    const keyStr = String(key)
+    if (Array.isArray(acc)) {
+      const index = Number(keyStr)
+      return Number.isFinite(index)
+        ? acc[index]
+        : (acc as unknown as Record<string, unknown>)[keyStr]
+    }
+    if (typeof acc === 'object') {
+      return (acc as Record<string, unknown>)[keyStr]
+    }
+    return undefined
+  }, source)
 }
 
-export const setValueByName = (source: any, name: NamePath, value: any) => {
+export const setValueByName = (source: unknown, name: NamePath, value: unknown) => {
   const path = toNamePath(name)
   if (!path.length) return value
-  const clone = Array.isArray(source) ? [...source] : { ...(source ?? {}) }
-  let cursor: any = clone
+  const clone =
+    Array.isArray(source)
+      ? [...source]
+      : typeof source === 'object' && source !== null
+        ? { ...(source as Record<string, unknown>) }
+        : {}
+  let cursor: Record<string, unknown> | unknown[] = clone as Record<string, unknown> | unknown[]
   path.forEach((key, index) => {
+    const keyStr = String(key)
+    const keyIndex = Number(keyStr)
     if (index === path.length - 1) {
-      cursor[key] = value
+      if (Array.isArray(cursor) && Number.isFinite(keyIndex)) {
+        cursor[keyIndex] = value
+      } else {
+        ;(cursor as unknown as Record<string, unknown>)[keyStr] = value
+      }
       return
     }
-    const nextVal = cursor[key]
+    const nextVal =
+      Array.isArray(cursor) && Number.isFinite(keyIndex)
+        ? cursor[keyIndex]
+        : (cursor as unknown as Record<string, unknown>)[keyStr]
     const nextContainer =
       nextVal === undefined || nextVal === null
         ? isNumber(path[index + 1])
@@ -42,9 +69,15 @@ export const setValueByName = (source: any, name: NamePath, value: any) => {
           : {}
         : Array.isArray(nextVal)
           ? [...nextVal]
-          : { ...nextVal }
-    cursor[key] = nextContainer
-    cursor = nextContainer
+          : typeof nextVal === 'object'
+            ? { ...(nextVal as Record<string, unknown>) }
+            : {}
+    if (Array.isArray(cursor) && Number.isFinite(keyIndex)) {
+      cursor[keyIndex] = nextContainer
+    } else {
+      ;(cursor as unknown as Record<string, unknown>)[keyStr] = nextContainer
+    }
+    cursor = nextContainer as Record<string, unknown> | unknown[]
   })
   return clone
 }

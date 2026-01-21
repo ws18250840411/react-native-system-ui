@@ -19,7 +19,7 @@ describe('DropdownMenu', () => {
 
     const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
     act(() => {
-      trigger.props.onPress?.({} as any)
+      trigger.props.onPress?.()
     })
 
     const mask = tree.root.findByProps({ testID: 'rv-dropdown-mask' })
@@ -42,12 +42,12 @@ describe('DropdownMenu', () => {
 
     const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
     act(() => {
-      trigger.props.onPress?.({} as any)
+      trigger.props.onPress?.()
     })
 
     const option = tree.root.findByProps({ testID: 'rv-dropdown-option-a' })
     act(() => {
-      option.props.onPress?.({} as any)
+      option.props.onPress?.()
     })
 
     expect(onChange).toHaveBeenCalledWith('a', expect.objectContaining({ value: 'a' }))
@@ -75,7 +75,7 @@ describe('DropdownMenu', () => {
 
     const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
     act(() => {
-      trigger.props.onPress?.({} as any)
+      trigger.props.onPress?.()
     })
 
     expect(tree.root.findAllByProps({ testID: 'dm-option-a' }).length).toBeGreaterThan(0)
@@ -99,12 +99,12 @@ describe('DropdownMenu', () => {
 
     const trigger = tree.root.findByProps({ testID: 'rv-dropdown-trigger-0' })
     act(() => {
-      trigger.props.onPress?.({} as any)
+      trigger.props.onPress?.()
     })
 
     const optionB = tree.root.findByProps({ testID: 'rv-dropdown-option-b' })
     act(() => {
-      optionB.props.onPress?.({} as any)
+      optionB.props.onPress?.()
     })
 
     expect(onChange).toHaveBeenCalledWith({ item1: 'b' })

@@ -1,19 +1,19 @@
 import React from 'react'
 
-import type { NamePath, RegisteredFieldOptions } from './types'
+import type { FormInstance, NamePath, RegisteredFieldOptions } from './types'
 
 export interface FormContextValue {
-  values: Record<string, any>
-  getFieldValue: (name: NamePath) => any
-  setFieldValue: (name: NamePath, value: any, trigger?: string) => void
+  values: Record<string, unknown>
+  getFieldValue: (name: NamePath) => unknown
+  setFieldValue: (name: NamePath, value: unknown, trigger?: string) => void
   registerField: (name: NamePath, options: RegisteredFieldOptions) => () => void
   getFieldError: (name: NamePath) => string[] | undefined
   validateField: (name: NamePath, trigger?: string) => Promise<boolean>
-  getFieldsValue: () => Record<string, any>
+  getFieldsValue: () => Record<string, unknown>
   subscribe: (
-    listener: (changedValues: Record<string, any>, allValues: Record<string, any>) => void
+    listener: (changedValues: Record<string, unknown>, allValues: Record<string, unknown>) => void
   ) => () => void
-  form?: any
+  form?: FormInstance
   colon?: boolean
   labelWidth?: number
   showValidateMessage?: boolean

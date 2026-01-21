@@ -17,7 +17,8 @@ describe('Circle', () => {
       .map(node => StyleSheet.flatten(node.props.style))
       .find(style => typeof style?.backgroundImage === 'string' && style.backgroundImage.includes('conic-gradient'))
 
-    expect(ringStyle?.maskImage ?? (ringStyle as any)?.WebkitMaskImage).toBeTruthy()
+    const ringObj = ringStyle as unknown as Record<string, unknown> | undefined
+    expect((ringObj as Record<string, unknown> | undefined)?.maskImage ?? ringObj?.WebkitMaskImage).toBeTruthy()
   })
 
   it('renders inner fill when fill is provided on web', () => {

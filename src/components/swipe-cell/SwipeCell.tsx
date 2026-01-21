@@ -7,6 +7,7 @@ import {
   Pressable,
   StyleSheet,
   View,
+  type GestureResponderEvent,
   type LayoutChangeEvent,
   type PanResponderGestureState,
   type StyleProp,
@@ -217,7 +218,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   )
 
   const handleActionTouchStart = React.useCallback(
-    (side: SwipeCellSide, event: any) => {
+    (side: SwipeCellSide, event: GestureResponderEvent) => {
       if (!closeOnActionPress) return
       if (positionRef.current !== side) return
       const x = event?.nativeEvent?.pageX
@@ -229,7 +230,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   )
 
   const handleActionTouchEnd = React.useCallback(
-    (side: SwipeCellSide, event: any) => {
+    (side: SwipeCellSide, event: GestureResponderEvent) => {
       if (!closeOnActionPress) return
       if (positionRef.current !== side) return
       if (panActiveRef.current) return
@@ -347,7 +348,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
 
   const panResponder = React.useMemo(
     () => {
-      const shouldSet = (_evt: any, gesture: PanResponderGestureState) => {
+      const shouldSet = (_evt: GestureResponderEvent, gesture: PanResponderGestureState) => {
         if (disabled) return false
         if (!isHorizontalSwipe(gesture)) return false
 
@@ -366,7 +367,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
         // 打开状态下：允许从任意区域继续拖拽回中间或另一侧
         return true
       }
-      const handleEnd = (_evt: any, gesture: PanResponderGestureState) => {
+      const handleEnd = (_evt: GestureResponderEvent, gesture: PanResponderGestureState) => {
         panActiveRef.current = false
         flushDrag()
         cancelDragRaf()

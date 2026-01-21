@@ -2,9 +2,14 @@ import React from 'react'
 import renderer, { act } from 'react-test-renderer'
 import { Pressable, Text, TextInput } from 'react-native'
 
-const globalAny: any = global
-if (!globalAny.document) {
-  globalAny.document = {
+const globalWithDoc = global as unknown as {
+  document?: {
+    createElement: () => { style: Record<string, unknown> }
+    body: { appendChild: () => void }
+  }
+}
+if (!globalWithDoc.document) {
+  globalWithDoc.document = {
     createElement: () => ({ style: {} }),
     body: { appendChild: () => {} },
   }
@@ -29,7 +34,7 @@ describe('Field', () => {
     const input = tree.root.findByType(TextInput)
 
     act(() => {
-      input.props.onBlur?.({} as any)
+      input.props.onBlur?.()
     })
 
     expect(handleChange).toHaveBeenLastCalledWith('(1234)')
@@ -47,7 +52,7 @@ describe('Field', () => {
   })
 
   it('supports tooltip number message', () => {
-    const showSpy = jest.spyOn(Dialog, 'show').mockImplementation(() => 0 as any)
+    const showSpy = jest.spyOn(Dialog, 'show').mockImplementation(() => () => {})
 
     const tree = renderer.create(<Field label="A" tooltip={0} />)
     const pressables = tree.root.findAllByType(Pressable)
@@ -62,7 +67,7 @@ describe('Field', () => {
   })
 
   it('includes errorMessage in describedBy when it is 0', () => {
-    const tree = renderer.create(<Field errorMessage={0 as any} />)
+    const tree = renderer.create(<Field errorMessage={0} />)
     const input = tree.root.findByType(TextInput)
     expect(Array.isArray(input.props.accessibilityDescribedBy)).toBe(true)
     expect(input.props.accessibilityDescribedBy.length).toBeGreaterThan(0)

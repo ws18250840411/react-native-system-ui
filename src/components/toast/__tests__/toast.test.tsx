@@ -118,7 +118,7 @@ describe('Toast', () => {
 
     const overlay = tree.root.findByProps({ testID: 'rv-toast-overlay' }) as renderer.ReactTestInstance
     act(() => {
-      overlay.props.onPress?.({} as any)
+      overlay.props.onPress?.()
     })
     expect(onClose).toHaveBeenCalled()
   })

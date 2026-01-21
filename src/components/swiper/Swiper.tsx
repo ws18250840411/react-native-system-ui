@@ -188,7 +188,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const slideSizeValue = (vertical ? containerHeight : containerWidth) * slideRatio
 
   const itemSizeStyle = useMemo(() => {
-    const style: any = { [vertical ? 'height' : 'width']: slideSizeValue }
+    const style: Record<string, number> = { [vertical ? 'height' : 'width']: slideSizeValue }
     if (crossAxisSize != null && !(autoHeight && !vertical)) {
       style[vertical ? 'width' : 'height'] = crossAxisSize
     }
@@ -782,26 +782,20 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   }, [current, onChange, count, getDisplayIndex])
 
   const renderChildItem = useCallback(
-    ({ item, index }: { item: any; index: number }) => {
-      if (item.type === 'child') {
-        const child = validChildren[item.index]
+    ({ item, index }: { item: unknown; index: number }) => {
+      const marker = item as { type?: unknown; index?: unknown }
+      if (marker.type === 'child') {
+        const childIndex = typeof marker.index === 'number' ? marker.index : -1
+        const child = validChildren[childIndex]
         if (!child) return null
 
         if (!autoHeightEnabled) {
-          return React.cloneElement(child as React.ReactElement<any>, {
-            style: [
-              (child as React.ReactElement<any>).props.style,
-              itemSizeStyle,
-            ],
-          })
+          const element = child as React.ReactElement<{ style?: unknown }>
+          return React.cloneElement(element, { style: [element.props.style, itemSizeStyle] })
         }
 
-        const nextChild = React.cloneElement(child as React.ReactElement<any>, {
-          style: [
-            (child as React.ReactElement<any>).props.style,
-            styles.autoHeightChild,
-          ],
-        })
+        const element = child as React.ReactElement<{ style?: unknown }>
+        const nextChild = React.cloneElement(element, { style: [element.props.style, styles.autoHeightChild] })
 
         return (
           <View style={itemSizeStyle} onLayout={(e) => handleItemLayout(index, e)} collapsable={false}>
@@ -815,15 +809,16 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   )
 
   const renderDataItem = useCallback(
-    (info: any) => {
+    (info: unknown) => {
       if (!renderItem) return null
-      const item = renderItem(info)
+      const item = renderItem(info as Parameters<NonNullable<typeof renderItem>>[0])
       if (!item) return null
 
+      const itemIndex = (info as { index: number }).index
       return (
         <View
           style={itemSizeStyle}
-          onLayout={autoHeightEnabled ? (e) => handleItemLayout(info.index, e) : undefined}
+          onLayout={autoHeightEnabled ? (e) => handleItemLayout(itemIndex, e) : undefined}
           collapsable={false}
         >
           {item}
@@ -834,7 +829,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   )
 
   const getItemKey = useCallback(
-    (item: any, index: number) => {
+    (_item: unknown, index: number) => {
       if (shouldLoop && count > 1) {
         if (index === 0) return `loop-last-${count - 1}`
         if (index === displayCount - 1) return `loop-first-0`
@@ -846,7 +841,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   )
 
   const getItemLayout = useCallback(
-    (_: any, index: number) => {
+    (_: unknown, index: number) => {
       const offset =
         !shouldLoop && nonLoopSnapOffsets
           ? nonLoopSnapOffsets[index] ?? slideSizeValue * index

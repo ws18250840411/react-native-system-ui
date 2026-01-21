@@ -1,23 +1,53 @@
 import React from 'react'
 import { act, create } from 'react-test-renderer'
-import { TextInput, Button, Text } from 'react-native'
+import { TextInput, Text, type TextInputProps } from 'react-native'
 import Form, { useWatch } from '..'
 import { FormItem } from '../FormItem'
+import type { FormInstance } from '../types'
 
-const globalAny: any = global
-if (!globalAny.document) {
-  globalAny.document = {
+const globalWithDoc = global as unknown as {
+  document?: {
+    createElement: () => { style: Record<string, unknown> }
+    body: { appendChild: () => void }
+  }
+}
+if (!globalWithDoc.document) {
+  globalWithDoc.document = {
     createElement: () => ({ style: {} }),
     body: { appendChild: () => { } },
   }
 }
 
-// Mock Input component
-const Input = (props: any) => (
-  <TextInput
-    {...props}
-    onChangeText={props.onChangeText} // FormItem injects onChangeText by default
-    testID={props.testID || 'input'}
+type InputProps = Omit<TextInputProps, 'value' | 'onChangeText' | 'onBlur' | 'testID'> & {
+  value?: string
+  onChangeText?: (text: string) => void
+  onBlur?: () => void
+  testID?: string
+  error?: boolean
+  errorMessage?: string
+}
+
+const TestTextInput = TextInput as unknown as React.ComponentType<
+  TextInputProps & { testID?: string; error?: boolean; errorMessage?: string }
+>
+
+const Input: React.FC<InputProps> = ({
+  testID,
+  value,
+  onChangeText,
+  onBlur,
+  error,
+  errorMessage,
+  ...rest
+}) => (
+  <TestTextInput
+    {...rest}
+    value={value}
+    onChangeText={onChangeText}
+    onBlur={onBlur}
+    testID={testID || 'input'}
+    error={error}
+    errorMessage={errorMessage}
   />
 )
 
@@ -47,7 +77,7 @@ describe('Form', () => {
 
   it('prevents submit when required rule fails until the value is corrected', async () => {
     const onFinish = jest.fn()
-    let formRef: any
+    let formRef: FormInstance | null = null
     const tree = create(
       <Form
         ref={ref => {
@@ -64,7 +94,7 @@ describe('Form', () => {
     // Submit with empty value
     let result
     await act(async () => {
-      result = await formRef.submit()
+      result = await formRef?.submit()
     })
     expect(onFinish).not.toHaveBeenCalled()
 
@@ -79,7 +109,7 @@ describe('Form', () => {
     })
 
     await act(async () => {
-      result = await formRef.submit()
+      result = await formRef?.submit()
     })
     expect(onFinish).toHaveBeenCalledWith({ username: 'valid' })
   })
@@ -183,7 +213,7 @@ describe('Form', () => {
   })
 
   it('supports async validator and validateFields', async () => {
-    let formRef: any
+    let formRef: FormInstance | null = null
     const tree = create(
       <Form
         ref={ref => {
@@ -215,7 +245,7 @@ describe('Form', () => {
 
     await act(async () => {
       try {
-        await formRef.validateFields()
+        await formRef?.validateFields()
       } catch (e) {
         // ignore
       }
@@ -312,7 +342,7 @@ describe('Form', () => {
   })
 
   it('resets fields', () => {
-    let formRef: any
+    let formRef: FormInstance | null = null
     const tree = create(
       <Form
         initialValues={{ name: 'init' }}
@@ -336,7 +366,7 @@ describe('Form', () => {
 
     // Reset
     act(() => {
-      formRef.resetFields()
+      formRef?.resetFields()
     })
     expect(input.props.value).toBe('init')
   })
@@ -344,7 +374,7 @@ describe('Form', () => {
   it('useWatch updates correctly', () => {
     const Watcher = () => {
       const value = useWatch('name')
-      return <Text testID="watcher">{value}</Text>
+      return <Text testID="watcher">{String(value ?? '')}</Text>
     }
 
     const tree = create(

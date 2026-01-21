@@ -1,5 +1,16 @@
 import React from 'react'
-import { PanResponder, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  PanResponder,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type GestureResponderEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import { isFiniteNumber, isUndefined } from '../../utils/validate'
@@ -93,7 +104,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
 
   React.useImperativeHandle(ref, () => ({ scrollTo: (index: IndexBarValue) => scrollToIndex(index, true) }))
 
-  const handleScroll = (event: any) => {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event?.nativeEvent?.contentOffset?.y ?? 0
     scrollYRef.current = offsetY
 
@@ -188,7 +199,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     </View>
   ) : null
 
-  const pickIndexFromEvent = (evt: any): IndexBarValue | null => {
+  const pickIndexFromEvent = (evt: GestureResponderEvent): IndexBarValue | null => {
     const height = indexListHeightRef.current
     if (!height || !navItems.length) return null
     const paddingY = layout.paddingVertical
