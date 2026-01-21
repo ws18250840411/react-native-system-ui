@@ -232,18 +232,12 @@ export const DialogImperative = {
       )
     }),
   confirm: (options?: DialogConfirmOptions) =>
-    new Promise<boolean>((resolve, reject) => {
+    new Promise<boolean>(resolve => {
       mountImperativeDialog(
         normalizeOptions('confirm', { showCancelButton: true, ...options }),
         {
           mode: 'confirm',
-          resolve: result => {
-            if (result === false) {
-              reject(false)
-              return
-            }
-            resolve(result === undefined ? true : result)
-          },
+          resolve: result => resolve(result === undefined ? true : result),
         }
       )
     }),
