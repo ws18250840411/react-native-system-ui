@@ -451,13 +451,31 @@ const Cascader: React.FC<CascaderProps> = props => {
     [closePopup, openPopup, togglePopup],
   )
 
+  const enhanceTriggerNode = React.useCallback(
+    (node: React.ReactNode) => {
+      if (!React.isValidElement(node)) return node
+      const props = node.props as { onPress?: () => void; onClick?: () => void }
+      const handlePress = () => {
+        props.onPress?.()
+        props.onClick?.()
+        openPopup()
+      }
+      return React.cloneElement(node as React.ReactElement<Record<string, unknown>>, {
+        onPress: handlePress,
+        onClick: handlePress,
+      })
+    },
+    [openPopup],
+  )
+
   const triggerNode = renderProp
     ? renderProp(cascaderValue, confirmedRows, cascaderActions)
     : (isRenderProp ? null : children ?? null)
+  const resolvedTriggerNode = enhanceTriggerNode(triggerNode)
 
   return (
     <>
-      {triggerNode}
+      {resolvedTriggerNode}
       <Popup
         visible={popupVisible}
         placement={popupPlacement}
