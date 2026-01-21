@@ -134,7 +134,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       Math.floor(parseNumberLike(length, 6) ?? 6),
     )
     const tokens = usePasswordInputTokens(tokensOverride)
-    const { colors, radii, sizing, typography, opacity } = tokens
+    const { colors, radii, sizing, typography, opacity, spacing } = tokens
 
     const inputRef = React.useRef<TextInput>(null)
     const [cursorVisible, setCursorVisible] = React.useState(true)
@@ -399,7 +399,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
           </View>
         </Pressable>
         {tip ? (
-          <View style={styles.infoWrapper}>
+          <View style={[styles.infoWrapper, { marginTop: spacing.infoMarginTop }]}>
             {isText(tip) ? (
               <Text style={[styles.infoText, { color: tipColor }]}>{tip}</Text>
             ) : (

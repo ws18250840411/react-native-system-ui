@@ -154,7 +154,7 @@ export const Collapse = ((props: CollapseProps) => {
     [accordion, activeKeys, controlled, disabled, onChange],
   )
 
-  const contextValue: CollapseContextValue = {
+  const contextValue = React.useMemo<CollapseContextValue>(() => ({
     activeKeys,
     toggle,
     accordion,
@@ -163,18 +163,19 @@ export const Collapse = ((props: CollapseProps) => {
     border,
     disabled,
     tokens,
-  }
+  }), [accordion, activeKeys, border, disabled, expandIcon, iconPosition, tokens, toggle])
 
-  const items = React.Children.toArray(children)
-
-  const renderedChildren = items.map((child, index) => {
-    if (!React.isValidElement(child)) return child
-    if (!isFunction(child.type) && !isObject(child.type)) {
-      return child
-    }
-    const name = (child.props as CollapsePanelProps).name ?? String(index)
-    return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { name, index })
-  })
+  const renderedChildren = React.useMemo(() => {
+    const items = React.Children.toArray(children)
+    return items.map((child, index) => {
+      if (!React.isValidElement(child)) return child
+      if (!isFunction(child.type) && !isObject(child.type)) {
+        return child
+      }
+      const name = (child.props as CollapsePanelProps).name ?? String(index)
+      return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { name, index })
+    })
+  }, [children])
 
   return (
     <CollapseContext.Provider value={contextValue}>
@@ -241,12 +242,17 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     ...rest
   } = props
 
-  const isActive = activeKeys.includes(String(name))
+  const nameKey = String(name)
+  const isActive = activeKeys.includes(nameKey)
   const mergedDisabled = collapseDisabled || disabled
   const { colors, spacing, typography } = tokens
 
   const [contentHeight, setContentHeight] = React.useState(0)
   const animation = React.useRef(new Animated.Value(isActive ? 1 : 0)).current
+  const rotate = React.useMemo(
+    () => animation.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '-90deg'] }),
+    [animation],
+  )
 
   React.useEffect(() => {
     Animated.timing(animation, {
@@ -260,20 +266,20 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const resolvedLabel = description ?? label
   const resolvedValue = extra ?? value
 
-  const handleToggle = () => {
+  const handleToggle = React.useCallback(() => {
     if (mergedDisabled || readOnly) return
-    toggle(String(name))
-  }
+    toggle(nameKey)
+  }, [mergedDisabled, nameKey, readOnly, toggle])
 
   React.useImperativeHandle(
     ref,
     () => ({
       toggle: (expand?: boolean) => {
         if (mergedDisabled || readOnly) return
-        toggle(String(name), expand)
+        toggle(nameKey, expand)
       },
     }),
-    [mergedDisabled, name, readOnly, toggle],
+    [mergedDisabled, nameKey, readOnly, toggle],
   )
 
   const handleContentLayout = (event: LayoutChangeEvent) => {
@@ -290,7 +296,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     }),
   }
 
-  const renderExpandIcon = () => {
+  const renderExpandIcon = React.useCallback(() => {
     if (isFunction(expandIcon)) {
       return expandIcon(isActive)
     }
@@ -300,34 +306,28 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     return (
       <Animated.View
         style={{
-          transform: [
-            {
-              rotate: animation.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '-90deg'] }),
-            },
-          ],
+          transform: [{ rotate }],
         }}
       >
         <Arrow size={16} fill={mergedDisabled ? colors.disabled : colors.arrow} />
       </Animated.View>
     )
-  }
+  }, [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotate])
 
-  const renderChildren = () => {
-    if (isText(children)) {
-      return (
-        <Text
-          style={{
-            color: mergedDisabled ? colors.disabled : colors.description,
-            fontSize: typography.descriptionSize,
-            lineHeight: Math.round(typography.descriptionSize * 1.5),
-          }}
-        >
-          {children}
-        </Text>
-      )
-    }
-    return children
-  }
+  const contentNode = React.useMemo(() => {
+    if (!isText(children)) return children
+    return (
+      <Text
+        style={{
+          color: mergedDisabled ? colors.disabled : colors.description,
+          fontSize: typography.descriptionSize,
+          lineHeight: Math.round(typography.descriptionSize * 1.5),
+        }}
+      >
+        {children}
+      </Text>
+    )
+  }, [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize])
 
   const showItemBorder = Boolean(panelBorder)
   const showTopBorder = index > 0 && showItemBorder
@@ -398,7 +398,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
             },
           ]}
         >
-          {renderChildren()}
+          {contentNode}
         </View>
       </Animated.View>
     </View>

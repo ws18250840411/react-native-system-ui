@@ -68,6 +68,8 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     closeOnPopstate,
     zIndex,
     duration,
+    safeAreaInsetTop = true,
+    safeAreaInsetBottom = true,
     onChange,
     onClose,
     onClosed,
@@ -277,6 +279,8 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       closeIconPosition={closeIconPosition}
       stopPropagation={false}
       round={false}
+      safeAreaInsetTop={safeAreaInsetTop}
+      safeAreaInsetBottom={safeAreaInsetBottom}
       overlayTestID="rv-image-preview-overlay"
       style={styles.popup}
       beforeClose={handlePopupBeforeClose}
@@ -325,8 +329,15 @@ const styles = StyleSheet.create({
   popup: {
     padding: 0,
     borderRadius: 0,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     width: '100%',
     height: '100%',
+    maxWidth: '100%',
+    maxHeight: '100%',
     backgroundColor: 'transparent',
   },
   content: {

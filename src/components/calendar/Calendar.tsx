@@ -496,6 +496,16 @@ const Calendar: React.FC<CalendarProps> = props => {
       round={popupRound}
       closeOnOverlayPress={resolvedCloseOnOverlayPress}
       overlay={resolvedOverlay}
+      safeAreaInsetTop={
+        popupRestProps?.safeAreaInsetTop !== undefined
+          ? popupRestProps.safeAreaInsetTop
+          : showHeader
+      }
+      safeAreaInsetBottom={
+        popupRestProps?.safeAreaInsetBottom !== undefined
+          ? popupRestProps.safeAreaInsetBottom
+          : popupPlacement === 'bottom'
+      }
       onOpen={handlePopupOpen}
       onOpened={handlePopupOpened}
       onClose={handlePopupClose}

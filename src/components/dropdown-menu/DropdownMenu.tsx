@@ -229,18 +229,20 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   const resolvedBarBottom = resolvedBarTop + resolvedBarHeight
   const bottomInset = Math.max(0, windowHeight - resolvedBarTop)
 
-  const insetStyle = direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }
+  const insetStyle = React.useMemo(
+    () => (direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }),
+    [bottomInset, direction, resolvedBarBottom],
+  )
   const panelRadiusStyle = direction === 'up' ? styles.panelUp : styles.panelDown
 
-  const offset = 8
-  const translate = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: direction === 'up' ? [offset, 0] : [-offset, 0],
-  })
-  const panelAnimatedStyle = {
-    opacity: progress,
-    transform: [{ translateY: translate }],
-  }
+  const panelAnimatedStyle = React.useMemo(() => {
+    const offset = 8
+    const translate = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: direction === 'up' ? [offset, 0] : [-offset, 0],
+    })
+    return { opacity: progress, transform: [{ translateY: translate }] }
+  }, [direction, progress])
 
   const { zIndex: stackZIndex } = useOverlayStack({
     visible: mounted,
@@ -251,23 +253,47 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const resolvedZIndex = stackZIndex ?? zIndex
 
-  const barChildren = React.Children.map(children, (child, index) => {
-    if (!React.isValidElement(child)) return child
-    const element = child as React.ReactElement<Record<string, unknown>>
-    return React.cloneElement(element, { index, barScrollable })
-  })
+  const barChildren = React.useMemo(
+    () =>
+      React.Children.map(children, (child, index) => {
+        if (!React.isValidElement(child)) return child
+        const element = child as React.ReactElement<Record<string, unknown>>
+        return React.cloneElement(element, { index, barScrollable })
+      }),
+    [barScrollable, children],
+  )
 
-  const barStyle = [
-    styles.barWrapper,
-    {
-      height: tokens.sizing.barHeight,
-      backgroundColor: tokens.colors.barBackground,
-      paddingHorizontal: tokens.spacing.horizontal,
-      zIndex: mounted ? resolvedZIndex + 1 : undefined,
-      ...tokens.shadow,
+  const barStyle = React.useMemo(
+    () => [
+      styles.barWrapper,
+      {
+        height: tokens.sizing.barHeight,
+        backgroundColor: tokens.colors.barBackground,
+        paddingHorizontal: tokens.spacing.horizontal,
+        zIndex: mounted ? resolvedZIndex + 1 : undefined,
+        ...tokens.shadow,
+      },
+      createHairlineBorderBottom(tokens.colors.divider),
+    ],
+    [
+      mounted,
+      resolvedZIndex,
+      tokens.colors.barBackground,
+      tokens.colors.divider,
+      tokens.shadow,
+      tokens.sizing.barHeight,
+      tokens.spacing.horizontal,
+    ],
+  )
+
+  const handleBarLayout = React.useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      const { height } = event.nativeEvent.layout
+      setBarHeight(height)
+      requestMeasure(height)
     },
-    createHairlineBorderBottom(tokens.colors.divider),
-  ]
+    [requestMeasure],
+  )
 
   return (
     <DropdownMenuContext.Provider value={contextValue}>
@@ -276,11 +302,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
           ref={barRef}
           collapsable={false}
           style={barStyle}
-          onLayout={event => {
-            const { height } = event.nativeEvent.layout
-            setBarHeight(height)
-            requestMeasure(height)
-          }}
+          onLayout={handleBarLayout}
         >
           {barScrollable ? (
             <ScrollView

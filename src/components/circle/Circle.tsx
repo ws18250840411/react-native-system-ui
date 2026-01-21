@@ -5,33 +5,18 @@ import { isText, clamp, parseNumber, parsePercentage } from '../../utils'
 import { useCircleTokens } from './tokens'
 import type { CircleProps, CircleStartPosition } from './types'
 
-const resolveSvgRotation = (position: CircleStartPosition) => {
-  switch (position) {
-    case 'right':
-      return 0
-    case 'bottom':
-      return 90
-    case 'left':
-      return 180
-    case 'top':
-    default:
-      return -90
-  }
+const SVG_ROTATION: Record<CircleStartPosition, number> = {
+  top: -90,
+  right: 0,
+  bottom: 90,
+  left: 180,
 }
 
-// CSS conic-gradient 默认起点是 12 点方向（north）
-const resolveWebRotation = (position: CircleStartPosition) => {
-  switch (position) {
-    case 'top':
-      return 0
-    case 'right':
-      return 90
-    case 'bottom':
-      return 180
-    case 'left':
-    default:
-      return 270
-  }
+const WEB_ROTATION: Record<CircleStartPosition, number> = {
+  top: 0,
+  right: 90,
+  bottom: 180,
+  left: 270,
 }
 
 const isTransparentColor = (value: string) => {
@@ -45,6 +30,16 @@ const isTransparentColor = (value: string) => {
     return Number.isFinite(alpha) && alpha === 0
   }
   return false
+}
+
+type WebRingStyle = ViewStyle & {
+  backgroundImage?: string
+  WebkitMaskImage?: string
+  maskImage?: string
+  WebkitMaskRepeat?: string
+  maskRepeat?: string
+  WebkitMaskSize?: string
+  maskSize?: string
 }
 
 const AnimatedSvgCircle = Animated.createAnimatedComponent(SvgCircle)
@@ -68,7 +63,6 @@ export const Circle: React.FC<CircleProps> = props => {
     children,
   } = props
   const tokens = useCircleTokens(tokensOverride)
-  const rateValue = rateProp ?? tokens.defaults.rate
   const fill = fillProp ?? tokens.defaults.fill
   const clockwise = clockwiseProp ?? tokens.defaults.clockwise
   const startPosition = startPositionProp ?? tokens.defaults.startPosition
@@ -77,10 +71,12 @@ export const Circle: React.FC<CircleProps> = props => {
 
   const resolvedSize = Math.max(0, parseNumber(size, tokens.defaults.size))
   const resolvedStrokeWidth = Math.max(0, parseNumber(strokeWidth, tokens.defaults.strokeWidth))
-  const rate = clamp(parsePercentage(rateValue), 0, 100)
+  const rate = clamp(parsePercentage(rateProp ?? tokens.defaults.rate), 0, 100)
 
   const resolvedColor = color ?? tokens.colors.color
   const resolvedLayerColor = layerColor ?? tokens.colors.layerColor
+  const baseStyle = [tokens.layout.root, { width: resolvedSize, height: resolvedSize }, style]
+  const contentStyle = [tokens.layout.content, { width: resolvedSize, height: resolvedSize }]
 
   const content = React.useMemo(() => {
     if (children == null || children === false) return null
@@ -109,53 +105,33 @@ export const Circle: React.FC<CircleProps> = props => {
     const safeStroke = Math.min(resolvedStrokeWidth, resolvedSize / 2)
     const innerSize = Math.max(0, resolvedSize - safeStroke * 2)
     const progressAngle = (rate / 100) * 360
-    const rotation = resolveWebRotation(startPosition)
+    const rotation = WEB_ROTATION[startPosition]
     const shouldRenderInner = innerSize > 0 && !isTransparentColor(fill)
 
     const gradient = clockwise
       ? `conic-gradient(from ${rotation}deg, ${resolvedColor} 0deg ${progressAngle}deg, ${resolvedLayerColor} ${progressAngle}deg 360deg)`
       : `conic-gradient(from ${rotation}deg, ${resolvedLayerColor} 0deg ${360 - progressAngle}deg, ${resolvedColor} ${360 - progressAngle}deg 360deg)`
 
-    const webMask =
-      safeStroke > 0
-        ? `radial-gradient(farthest-side, transparent calc(100% - ${safeStroke}px), #000 calc(100% - ${safeStroke}px))`
-        : undefined
-    const webMaskStyle: Record<string, string> | undefined = webMask
-      ? {
-        WebkitMaskImage: webMask,
-        maskImage: webMask,
-        WebkitMaskRepeat: 'no-repeat',
-        maskRepeat: 'no-repeat',
-        WebkitMaskSize: '100% 100%',
-        maskSize: '100% 100%',
-      }
-      : undefined
-
-    const webRingStyle = {
+    const webRingStyle: WebRingStyle = {
       width: resolvedSize,
       height: resolvedSize,
       borderRadius: resolvedSize / 2,
       backgroundImage: gradient,
-      ...(webMaskStyle ?? {}),
-    } as unknown as ViewStyle
+    }
+
+    if (safeStroke > 0) {
+      const mask = `radial-gradient(farthest-side, transparent calc(100% - ${safeStroke}px), #000 calc(100% - ${safeStroke}px))`
+      webRingStyle.WebkitMaskImage = mask
+      webRingStyle.maskImage = mask
+      webRingStyle.WebkitMaskRepeat = 'no-repeat'
+      webRingStyle.maskRepeat = 'no-repeat'
+      webRingStyle.WebkitMaskSize = '100% 100%'
+      webRingStyle.maskSize = '100% 100%'
+    }
 
     return (
-      <View
-        style={[
-          tokens.layout.root,
-          {
-            width: resolvedSize,
-            height: resolvedSize,
-          },
-          style,
-        ]}
-      >
-        <View
-          style={[
-            tokens.layout.webRing,
-            webRingStyle,
-          ]}
-        />
+      <View style={baseStyle}>
+        <View style={[tokens.layout.webRing, webRingStyle]} />
         {shouldRenderInner ? (
           <View
             style={[
@@ -171,7 +147,7 @@ export const Circle: React.FC<CircleProps> = props => {
             ]}
           />
         ) : null}
-        <View pointerEvents="box-none" style={[tokens.layout.content, { width: resolvedSize, height: resolvedSize }]}>
+        <View pointerEvents="box-none" style={contentStyle}>
           {content}
         </View>
       </View>
@@ -180,7 +156,7 @@ export const Circle: React.FC<CircleProps> = props => {
 
   const radius = Math.max(0, (resolvedSize - resolvedStrokeWidth) / 2)
   const circumference = 2 * Math.PI * radius
-  const rotation = resolveSvgRotation(startPosition)
+  const rotation = SVG_ROTATION[startPosition]
   const safeDuration = Math.max(0, animationDuration ?? tokens.defaults.animationDuration)
   const dashOffsetTarget = (clockwise ? 1 : -1) * circumference * (1 - rate / 100)
 
@@ -200,20 +176,22 @@ export const Circle: React.FC<CircleProps> = props => {
     return () => animation.stop()
   }, [animated, dashOffset, dashOffsetTarget, safeDuration])
 
+  const center = resolvedSize / 2
+
   return (
-    <View style={[tokens.layout.root, { width: resolvedSize, height: resolvedSize }, style]}>
+    <View style={baseStyle}>
       <Svg width={resolvedSize} height={resolvedSize}>
         <SvgCircle
-          cx={resolvedSize / 2}
-          cy={resolvedSize / 2}
+          cx={center}
+          cy={center}
           r={radius}
           stroke={resolvedLayerColor}
           strokeWidth={resolvedStrokeWidth}
           fill={fill}
         />
         <AnimatedSvgCircle
-          cx={resolvedSize / 2}
-          cy={resolvedSize / 2}
+          cx={center}
+          cy={center}
           r={radius}
           stroke={resolvedColor}
           strokeWidth={resolvedStrokeWidth}
@@ -222,11 +200,11 @@ export const Circle: React.FC<CircleProps> = props => {
           strokeDashoffset={dashOffset}
           strokeLinecap={lineCap}
           rotation={rotation}
-          originX={resolvedSize / 2}
-          originY={resolvedSize / 2}
+          originX={center}
+          originY={center}
         />
       </Svg>
-      <View pointerEvents="box-none" style={[tokens.layout.content, { width: resolvedSize, height: resolvedSize }]}>
+      <View pointerEvents="box-none" style={contentStyle}>
         {content}
       </View>
     </View>

@@ -2,6 +2,7 @@ import React from 'react'
 import {
   Animated,
   Pressable,
+  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -41,6 +42,10 @@ export interface ToastProps {
   closeOnClickOverlay?: boolean
   closeOnClick?: boolean
   loadingIndicator?: React.ReactNode
+  /** 内容顶部是否预留安全区域（默认根据 position 自动设置，设置为 false 可全屏显示） */
+  safeAreaInsetTop?: boolean
+  /** 内容底部是否预留安全区域（默认根据 position 自动设置，设置为 false 可全屏显示） */
+  safeAreaInsetBottom?: boolean
   tokensOverride?: DeepPartial<ToastTokens>
   style?: StyleProp<ViewStyle>
   textStyle?: StyleProp<TextStyle>
@@ -66,6 +71,8 @@ export const Toast: React.FC<ToastProps> = props => {
     closeOnClickOverlay = false,
     closeOnClick = false,
     loadingIndicator,
+    safeAreaInsetTop: safeAreaInsetTopProp,
+    safeAreaInsetBottom: safeAreaInsetBottomProp,
     tokensOverride,
     style,
     textStyle,
@@ -84,6 +91,10 @@ export const Toast: React.FC<ToastProps> = props => {
   const prevVisibleRef = React.useRef(visible)
   const closingRef = React.useRef(false)
   const positionOffset = windowHeight > 0 ? Math.round(windowHeight * 0.2) : 60
+  const needsSafeAreaTop =
+    safeAreaInsetTopProp !== undefined ? safeAreaInsetTopProp : position === 'top'
+  const needsSafeAreaBottom =
+    safeAreaInsetBottomProp !== undefined ? safeAreaInsetBottomProp : position === 'bottom'
   const positionStyle: ViewStyle =
     position === 'top'
       ? { justifyContent: 'flex-start', paddingTop: positionOffset }
@@ -209,6 +220,7 @@ export const Toast: React.FC<ToastProps> = props => {
             onMoveShouldSetResponder={() => true}
           />
         ) : null}
+        {needsSafeAreaTop ? <SafeAreaView style={{ width: '100%' }} pointerEvents="none" /> : null}
         <Pressable disabled={!closeOnClick} {...toastPress.interactionProps}>
           <Animated.View
             style={[
@@ -239,6 +251,7 @@ export const Toast: React.FC<ToastProps> = props => {
               : null}
           </Animated.View>
         </Pressable>
+        {needsSafeAreaBottom ? <SafeAreaView style={{ width: '100%' }} pointerEvents="none" /> : null}
       </View>
     </Portal>
   )

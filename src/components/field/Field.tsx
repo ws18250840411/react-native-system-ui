@@ -172,18 +172,21 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const rows = rowsProp ?? tokens.defaults.rows
   const formatTrigger = formatTriggerProp ?? tokens.defaults.formatTrigger
 
-  const mergedTitleStyle = [
-    {
-      width: labelWidth,
-      minWidth: labelWidth,
-      maxWidth: labelWidth,
-      flexBasis: labelWidth,
-      marginRight: tokens.spacing.labelGap,
-      flexShrink: 0,
-      flexGrow: 0,
-    },
-    titleStyle,
-  ]
+  const mergedTitleStyle = React.useMemo(
+    () => [
+      {
+        width: labelWidth,
+        minWidth: labelWidth,
+        maxWidth: labelWidth,
+        flexBasis: labelWidth,
+        marginRight: tokens.spacing.labelGap,
+        flexShrink: 0,
+        flexGrow: 0,
+      },
+      titleStyle,
+    ],
+    [labelWidth, titleStyle, tokens.spacing.labelGap],
+  )
 
   const resolvedSuffix = suffixProp ?? button
   const resolvedDescription = intro ?? description
@@ -199,11 +202,13 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const inputRef = React.useRef<TextInput>(null)
   const introId = React.useId()
   const errorId = React.useId()
-  const describedByIds = [
-    isRenderable(errorMessage) ? errorId : null,
-    isRenderable(resolvedDescription) ? introId : null,
-  ].filter(Boolean) as string[]
-  const describedBy = describedByIds.length ? describedByIds : undefined
+  const describedBy = React.useMemo(() => {
+    const ids = [
+      isRenderable(errorMessage) ? errorId : null,
+      isRenderable(resolvedDescription) ? introId : null,
+    ].filter(Boolean) as string[]
+    return ids.length ? ids : undefined
+  }, [errorId, errorMessage, introId, resolvedDescription])
 
   const lineHeight = tokens.defaults.textareaLineHeight
   const autoSizeConfig = autoSize && isObject(autoSize) ? autoSize : undefined
@@ -225,16 +230,22 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const maxHeight = isTextarea && maxRows ? Math.max(tokens.sizes.textareaMinHeight, maxRows * lineHeight) : undefined
   const [textareaHeight, setTextareaHeight] = React.useState<number | undefined>(minHeight)
 
-  const formatValue = (inputValue: string, trigger: 'onChange' | 'onBlur' = 'onChange') =>
-    formatter && trigger === formatTrigger ? formatter(inputValue) : inputValue
+  const formatValue = React.useCallback(
+    (inputValue: string, trigger: 'onChange' | 'onBlur' = 'onChange') =>
+      formatter && trigger === formatTrigger ? formatter(inputValue) : inputValue,
+    [formatTrigger, formatter],
+  )
 
-  const updateValue = (next: string, trigger: 'onChange' | 'onBlur' = 'onChange') => {
-    const formatted = formatValue(next, trigger)
-    if (!isControlled) {
-      setInternalValue(formatted)
-    }
-    onChangeText?.(formatted)
-  }
+  const updateValue = React.useCallback(
+    (next: string, trigger: 'onChange' | 'onBlur' = 'onChange') => {
+      const formatted = formatValue(next, trigger)
+      if (!isControlled) {
+        setInternalValue(formatted)
+      }
+      onChangeText?.(formatted)
+    },
+    [formatValue, isControlled, onChangeText],
+  )
 
   React.useImperativeHandle(
     ref,
@@ -257,7 +268,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     (clearTrigger === 'always' ||
       (clearTrigger === 'focus' && (focused || pressingClear)))
 
-  const handleChangeText = (text: string) => {
+  const handleChangeText = React.useCallback((text: string) => {
     let next = text ?? ''
 
     if (type === 'number' || type === 'digit') {
@@ -271,28 +282,28 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     }
 
     updateValue(next, 'onChange')
-  }
+  }, [maxLength, onOverlimit, type, updateValue])
 
-  const handleFocus = (event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
+  const handleFocus = React.useCallback((event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
     setFocused(true)
     onFocus?.(event)
     if (readOnly) {
       inputRef.current?.blur()
     }
-  }
+  }, [onFocus, readOnly])
 
-  const handleBlur = (event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
+  const handleBlur = React.useCallback((event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
     updateValue(value ?? '', 'onBlur')
     setFocused(false)
     onBlur?.(event)
-  }
+  }, [onBlur, updateValue, value])
 
-  const handlePressIn = (event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => {
+  const handlePressIn = React.useCallback((event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => {
     onPressIn?.(event)
     onClickInput?.()
-  }
+  }, [onClickInput, onPressIn])
 
-  const handleContentSizeChange = (event: { nativeEvent: { contentSize: { height: number } } }) => {
+  const handleContentSizeChange = React.useCallback((event: { nativeEvent: { contentSize: { height: number } } }) => {
     if (!isTextarea) return
     const contentHeight = event.nativeEvent.contentSize?.height ?? 0
     if (!contentHeight) return
@@ -307,14 +318,14 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       nextHeight = Math.max(minHeight, contentHeight)
     }
     setTextareaHeight(nextHeight)
-  }
+  }, [autoSize, isTextarea, maxHeight, minHeight])
 
-  const handleClear = () => {
+  const handleClear = React.useCallback(() => {
     updateValue('')
     inputRef.current?.clear?.()
     inputRef.current?.focus?.()
     onClear?.()
-  }
+  }, [onClear, updateValue])
 
   const renderLabel = () => {
     if (!isRenderable(label)) return null
@@ -597,13 +608,16 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     )
   }
 
-  const contentWrapperStyle = [
-    {
-      width: '100%' as const,
-      justifyContent: alignMap[controlAlign],
-    },
-    contentStyle,
-  ]
+  const contentWrapperStyle = React.useMemo(
+    () => [
+      {
+        width: '100%' as const,
+        justifyContent: alignMap[controlAlign],
+      },
+      contentStyle,
+    ],
+    [contentStyle, controlAlign],
+  )
 
   const renderAffix = (node: React.ReactNode) => {
     if (isText(node)) {

@@ -37,6 +37,10 @@ export interface ImagePreviewProps {
   zIndex?: number
   duration?: number
   closeOnlyClickCloseIcon?: boolean
+  /** 内容顶部是否预留安全区域（默认 true，设置为 false 可全屏显示） */
+  safeAreaInsetTop?: boolean
+  /** 内容底部是否预留安全区域（默认 true，设置为 false 可全屏显示） */
+  safeAreaInsetBottom?: boolean
   onChange?: (index: number) => void
   onClose?: (params: CloseParams) => void
   onClosed?: () => void

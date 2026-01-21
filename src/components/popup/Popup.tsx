@@ -129,7 +129,9 @@ const renderHeaderNode = (
 
 const renderWithSafeArea = (
   children: React.ReactNode,
-  opts: { safeArea: boolean; safeAreaInsetTop: boolean; safeAreaInsetBottom: boolean }
+  opts: { safeArea: boolean; safeAreaInsetTop: boolean; safeAreaInsetBottom: boolean },
+  safeAreaTopRef?: React.RefObject<View>,
+  onSafeAreaTopLayout?: () => void
 ) => {
   if (opts.safeArea) {
     return (
@@ -140,9 +142,15 @@ const renderWithSafeArea = (
   }
   return (
     <>
-      {opts.safeAreaInsetTop ? <SafeAreaView style={styles.safeInsetTop} /> : null}
+      {opts.safeAreaInsetTop ? (
+        <SafeAreaView
+          ref={safeAreaTopRef}
+          style={[styles.safeInsetTop, { pointerEvents: 'none' }]}
+          onLayout={onSafeAreaTopLayout}
+        />
+      ) : null}
       {children}
-      {opts.safeAreaInsetBottom ? <SafeAreaView style={styles.safeInsetBottom} /> : null}
+      {opts.safeAreaInsetBottom ? <SafeAreaView style={[styles.safeInsetBottom, { pointerEvents: 'none' }]} /> : null}
     </>
   )
 }
@@ -454,6 +462,19 @@ export const Popup: React.FC<PopupProps> = props => {
     [overlayOnLayout]
   )
 
+  const [safeAreaTopHeight, setSafeAreaTopHeight] = React.useState(0)
+  const safeAreaTopRef = React.useRef<View>(null)
+
+  React.useEffect(() => {
+    if (safeAreaInsetTop && safeAreaTopRef.current) {
+      safeAreaTopRef.current.measure((x, y, width, height) => {
+        setSafeAreaTopHeight(height)
+      })
+    } else {
+      setSafeAreaTopHeight(0)
+    }
+  }, [safeAreaInsetTop])
+
   const shouldRender = mounted || visible
 
   if (!shouldRender) return null
@@ -471,9 +492,16 @@ export const Popup: React.FC<PopupProps> = props => {
         : { paddingLeft: headerPadding }
       : undefined
 
-  const closeIconVerticalStyle = closeIconPosition.includes('bottom')
-    ? { bottom: tokens.spacing.closeIconTop }
-    : { top: tokens.spacing.closeIconTop }
+  const closeIconTopValue = closeIconPosition.includes('top')
+    ? tokens.spacing.closeIconTop + safeAreaTopHeight
+    : undefined
+  const closeIconBottomValue = closeIconPosition.includes('bottom')
+    ? tokens.spacing.closeIconTop
+    : undefined
+
+  const closeIconVerticalStyle = closeIconBottomValue !== undefined
+    ? { bottom: closeIconBottomValue }
+    : { top: closeIconTopValue }
   const closeIconHorizontalStyle = closeIconPosition.endsWith('left')
     ? { left: tokens.spacing.closeIconRight }
     : { right: tokens.spacing.closeIconRight }
@@ -534,7 +562,18 @@ export const Popup: React.FC<PopupProps> = props => {
       {...rest}
     >
       {closeIconNode}
-      {renderWithSafeArea(contentBody, { safeArea, safeAreaInsetTop, safeAreaInsetBottom })}
+      {renderWithSafeArea(
+        contentBody,
+        { safeArea, safeAreaInsetTop, safeAreaInsetBottom },
+        safeAreaTopRef,
+        () => {
+          if (safeAreaTopRef.current) {
+            safeAreaTopRef.current.measure((x, y, width, height) => {
+              setSafeAreaTopHeight(height)
+            })
+          }
+        }
+      )}
     </Animated.View>
   )
 
@@ -618,7 +657,7 @@ const styles = StyleSheet.create({
   },
   closeIconBase: {
     position: 'absolute',
-    zIndex: 1,
+    zIndex: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },

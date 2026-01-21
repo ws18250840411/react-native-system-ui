@@ -311,6 +311,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       visible={visible}
       placement="bottom"
       round={round}
+      safeAreaInsetTop={hasTitle && closeable}
       safeAreaInsetBottom={safeAreaInsetBottom}
       overlay={overlay}
       lockScroll={lockScroll}

@@ -62,6 +62,10 @@
 | action-sheet | 已冻结 ✅ | 极致精简版：默认蒙层可关闭且可关闭开关；onClose/onCancel 语义清晰；0 any；Item 回调稳定避免无谓重渲染 |
 | button | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、真实 Hairline、Android 波纹裁剪、无障碍完善、ButtonGroup 协同优化 |
 | checkbox | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、组选逻辑、Ref转发+无障碍/交互一致性 |
+| collapse | 已冻结 ✅ | 极致精简版：测量/展开动画稳定；disabled 置灰（title/label/value/content）与禁用交互一致 |
+| config-provider | 已冻结 ✅ | 极致精简版：Locale 继承收敛；Provider 渲染稳定 |
+| dropdown-menu | 已冻结 ✅ | 极致精简版：测量/渲染收敛；动画与布局稳定 |
+| field | 已冻结 ✅ | 极致精简版：输入/格式化/clear/textarea 逻辑收敛；渲染与回调稳定 |
 | image | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、映射表优化、Web/Native SVG 统一、无障碍精修 |
 | list | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、横纵向支持、ScrollComponent 注入、无障碍精修、逻辑最小化 |
 | loading | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、Native Driver 动画、无 ActivityIndicator 依赖 |
@@ -82,6 +86,7 @@
 | popup | 已冻结 ✅ | 极致精简版：关闭链路去重；布局测量等待；动画/安全区稳定；单测 0 any |
 | area | 已冻结 ✅ | 极致精简版：areaList→级联列；排序缓存；回调值归一；单测守护 |
 | picker | 已冻结 ✅ | 极致精简版：虚拟渲染与滚动节奏自适应；惯性与边界收敛；级联快切稳定（innerValueRef 立即同步）；核心逻辑单测补齐 |
+| circle | 已冻结 ✅ | 极致精简版：Web/Native 渲染收敛；动画稳定；0 any |
 | overlay | 持续优化 ✅ | 极致精简版：栈/zIndex/遮罩；Token 对齐；单测通过 |
 | calendar | 已冻结 ✅ | 极致精简版：选择值归一；选中态缓存；无 any；单测通过 |
 | datetime-picker | 已冻结 ✅ | 极致精简版：列联动一致；Web 互不干扰；无 any |
@@ -94,11 +99,6 @@
 
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
-| circle | 持续优化 ✅ | Web/Native 渲染方案差异（svg/gradient）+动画 |
-| collapse | 持续优化 ✅ | 测量+展开动画+性能敏感；disabled 置灰（title/label/value/content）与禁用交互一致 |
-| config-provider | 持续优化 ✅ | 全局基础设施，影响面大 |
-| dropdown-menu | 持续优化 ✅ | 定位测量/滚动场景多端差异 |
-| field | 持续优化 ✅ | 输入/键盘/输入法差异的核心承载 |
 | form | 持续优化 ✅ | 校验/依赖/异步校验与边界多；类型收敛（setValueByName 返回值/上下文 form null 兼容） |
 | image-preview | 持续优化 ✅ | Portal+Swiper+手势/关闭链路 |
 | index-bar | 持续优化 ✅ | 手势/滚动/定位，三端一致性敏感 |

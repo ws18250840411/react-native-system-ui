@@ -465,6 +465,16 @@ const Cascader: React.FC<CascaderProps> = props => {
         round={popupRound}
         closeOnOverlayPress={resolvedCloseOnOverlayPress}
         overlay={resolvedOverlay}
+        safeAreaInsetTop={
+          popupRestProps?.safeAreaInsetTop !== undefined
+            ? popupRestProps.safeAreaInsetTop
+            : showHeader && resolvedCloseable
+        }
+        safeAreaInsetBottom={
+          popupRestProps?.safeAreaInsetBottom !== undefined
+            ? popupRestProps.safeAreaInsetBottom
+            : popupPlacement === 'bottom'
+        }
         onOpen={popupOnOpen}
         onOpened={popupOnOpened}
         onClose={() => {

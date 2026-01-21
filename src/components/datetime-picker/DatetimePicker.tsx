@@ -28,7 +28,14 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
     (node: React.ReactElement, popup?: boolean, popupProps?: Omit<PopupProps, 'visible' | 'children'>) => {
       if (!popup) return node
       return (
-        <Popup visible={popupVisible} onClose={close} placement="bottom" round {...popupProps}>
+        <Popup
+          visible={popupVisible}
+          onClose={close}
+          placement="bottom"
+          round
+          safeAreaInsetBottom={true}
+          {...popupProps}
+        >
           {node}
         </Popup>
       )
