@@ -12,6 +12,17 @@ type CustomOption = CascaderOption & {
 }
 
 describe('Cascader', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    act(() => {
+      jest.runOnlyPendingTimers()
+    })
+    jest.useRealTimers()
+  })
+
   it('selects option, triggers onChange, and advances to next tab', () => {
     const onChange = jest.fn()
     const options: CascaderOption[] = [
@@ -34,6 +45,9 @@ describe('Cascader', () => {
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
     act(() => {
       option.props.onPress?.()
+    })
+    act(() => {
+      jest.runOnlyPendingTimers()
     })
 
     expect(onChange).toHaveBeenCalled()
@@ -63,10 +77,16 @@ describe('Cascader', () => {
     act(() => {
       option.props.onPress?.()
     })
+    act(() => {
+      jest.runOnlyPendingTimers()
+    })
 
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
     act(() => {
       tab0.props.onPress?.()
+    })
+    act(() => {
+      jest.runOnlyPendingTimers()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, 'A')
@@ -89,6 +109,9 @@ describe('Cascader', () => {
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
     act(() => {
       tab0.props.onPress?.()
+    })
+    act(() => {
+      jest.runOnlyPendingTimers()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, '请选择')
@@ -115,6 +138,9 @@ describe('Cascader', () => {
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
     act(() => {
       option.props.onPress?.()
+    })
+    act(() => {
+      jest.runOnlyPendingTimers()
     })
 
     const pane1 = tree.root.findByProps({ testID: 'rv-tabs-pane-1' })
@@ -148,10 +174,16 @@ describe('Cascader', () => {
     act(() => {
       option0.props.onPress?.()
     })
+    act(() => {
+      jest.runOnlyPendingTimers()
+    })
 
     const option1 = tree.root.findByProps({ testID: 'cascader-option-1-11' })
     act(() => {
       option1.props.onPress?.()
+    })
+    act(() => {
+      jest.runOnlyPendingTimers()
     })
 
     expect(onFinish).toHaveBeenCalledWith([1, 11], [options[0], options[0].nodes![0]])
@@ -180,10 +212,16 @@ describe('Cascader', () => {
     act(() => {
       option0.props.onPress?.()
     })
+    act(() => {
+      jest.runOnlyPendingTimers()
+    })
 
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
     act(() => {
       tab0.props.onPress?.()
+    })
+    act(() => {
+      jest.runOnlyPendingTimers()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, '广东省')

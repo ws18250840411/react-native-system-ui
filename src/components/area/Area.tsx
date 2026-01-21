@@ -5,6 +5,26 @@ import type { PickerOption, PickerValue } from '../picker/types'
 import type { AreaProps, AreaOption } from './types'
 import { buildAreaColumns } from './utils'
 
+const normalizeCascadeValue = (
+  root: PickerOption[],
+  raw: AreaProps['value'] | AreaProps['defaultValue'],
+  depth: number,
+) => {
+  if (!raw) return raw
+  const input = Array.isArray(raw) ? raw.map(String) : [String(raw)]
+  const result: string[] = []
+  let options: PickerOption[] | undefined = root
+  for (let i = 0; i < depth; i += 1) {
+    if (!options?.length) break
+    const wanted = input[i]
+    const nextOption: PickerOption | undefined = options.find(o => String(o.value) === wanted) ?? options[0]
+    if (!nextOption) break
+    result.push(String(nextOption.value))
+    options = (nextOption.children as PickerOption[] | undefined) ?? undefined
+  }
+  return result
+}
+
 const Area: React.FC<AreaProps> = props => {
   const {
     areaList,
@@ -23,6 +43,16 @@ const Area: React.FC<AreaProps> = props => {
     () => buildAreaColumns({ province_list, city_list, county_list }, resolvedColumnsNum),
     [province_list, city_list, county_list, resolvedColumnsNum]
   )
+
+  const normalizedValue = React.useMemo(() => {
+    if (value === undefined) return undefined
+    return normalizeCascadeValue(columns as PickerOption[], value, resolvedColumnsNum)
+  }, [columns, resolvedColumnsNum, value])
+
+  const normalizedDefaultValue = React.useMemo(() => {
+    if (defaultValue === undefined) return undefined
+    return normalizeCascadeValue(columns as PickerOption[], defaultValue, resolvedColumnsNum)
+  }, [columns, defaultValue, resolvedColumnsNum])
 
   const handleChange = React.useCallback(
     (values: PickerValue[], options: (PickerOption | undefined)[]) => {
@@ -43,8 +73,8 @@ const Area: React.FC<AreaProps> = props => {
       {...pickerProps}
       columns={columns}
       interactionMode={interactionMode}
-      value={value}
-      defaultValue={defaultValue}
+      value={normalizedValue}
+      defaultValue={normalizedDefaultValue}
       onChange={onChange ? handleChange : undefined}
       onConfirm={onConfirm ? handleConfirm : undefined}
     />
