@@ -1,6 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import { getHairlineWidth } from '../../utils/hairline'
+import { getHairlineWidth } from '../../utils'
 import type { TagTokens } from './types'
 
 const buildTone = (

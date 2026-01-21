@@ -2,7 +2,7 @@ import React from 'react'
 import { Pressable, Text, View } from 'react-native'
 
 import Image from '../image'
-import { isNumber } from '../../utils/validate'
+import { isNumber } from '../../utils'
 import { useAvatarTokens } from './tokens'
 import type { AvatarProps } from './types'
 

@@ -3,8 +3,7 @@ import { Pressable, Text, View, type PressableStateCallbackType } from 'react-na
 import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
-import { createHairlineBorderBottom } from '../../utils/hairline'
-import { isRenderable, isText } from '../../utils/validate'
+import { createHairlineBorderBottom, isRenderable, isText } from '../../utils'
 import Loading from '../loading'
 import Popup from '../popup'
 import type { ActionSheetAction, ActionSheetCloseAction, ActionSheetProps } from './types'

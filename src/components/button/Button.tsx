@@ -8,10 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 
-import { withAlpha, extractFirstColorToken } from '../../utils/color'
-import { createPlatformShadow } from '../../utils/createPlatformShadow'
-import { isFiniteNumber, isFunction, isNumber, isString, isText } from '../../utils/validate'
-import { ensureSpace } from '../../utils/string'
+import { withAlpha, extractFirstColorToken, createPlatformShadow, ensureSpace, isFiniteNumber, isFunction, isNumber, isString, isText } from '../../utils'
 import Loading from '../loading'
 import { useAriaPress } from '../../hooks'
 import type {

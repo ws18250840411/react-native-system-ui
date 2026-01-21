@@ -3,7 +3,7 @@ import type { LayoutChangeEvent } from 'react-native'
 import { Image, Text, View, useWindowDimensions } from 'react-native'
 
 import type { WaterMarkProps } from './types'
-import { isFiniteNumber, isString } from '../../utils/validate'
+import { isFiniteNumber, isString } from '../../utils'
 import { useWaterMarkTokens } from './tokens'
 
 const WaterMark: React.FC<WaterMarkProps> = props => {

@@ -1,8 +1,7 @@
 import React from 'react'
 import { Animated, Platform, Text, View, type ViewStyle } from 'react-native'
 import Svg, { Circle as SvgCircle } from 'react-native-svg'
-import { isText } from '../../utils/validate'
-import { clamp, parseNumber, parsePercentage } from '../../utils/number'
+import { isText, clamp, parseNumber, parsePercentage } from '../../utils'
 import { useCircleTokens } from './tokens'
 import type { CircleProps, CircleStartPosition } from './types'
 

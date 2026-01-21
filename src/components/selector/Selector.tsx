@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native'
 import type { SelectorProps, SelectorValue } from './types'
 import { useSelectorTokens } from './tokens'
 import { useControllableValue } from '../../hooks'
-import { isText } from '../../utils/validate'
+import { isText } from '../../utils'
 
 const CHECK_MARK = '✓'
 const CHECK_MARK_CORNER_HEIGHT = 8

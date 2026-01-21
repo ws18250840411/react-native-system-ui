@@ -2,7 +2,7 @@ import React from 'react'
 import { Animated, StyleSheet, View, type ViewStyle } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
-import { isFiniteNumber, isString } from '../../utils/validate'
+import { isFiniteNumber, isString } from '../../utils'
 import type { SkeletonProps } from './types'
 import { useSkeletonTokens } from './tokens'
 

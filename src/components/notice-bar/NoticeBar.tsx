@@ -12,8 +12,7 @@ import {
 } from 'react-native'
 import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
-import { isRenderable, isText } from '../../utils/validate'
-import { parseNumber } from '../../utils/number'
+import { isRenderable, isText, parseNumber } from '../../utils'
 
 import { nativeDriverEnabled } from '../../platform'
 import type { NoticeBarProps } from './types'

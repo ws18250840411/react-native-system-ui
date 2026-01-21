@@ -29,17 +29,18 @@ export const usePickerValue = ({
   })
   const innerValueRef = React.useRef(innerValue)
 
+  const commitValue = React.useCallback((next: PickerValue[]) => {
+    innerValueRef.current = next
+    setInnerValue(next)
+  }, [])
+
   React.useEffect(() => {
     if (!isControlled) return
     const next = toArrayValue(valueProp)
     if (!shallowEqualArray(innerValue, next)) {
-      setInnerValue(next)
+      commitValue(next)
     }
-  }, [isControlled, valueProp])
-
-  React.useEffect(() => {
-    innerValueRef.current = innerValue
-  }, [innerValue])
+  }, [commitValue, innerValue, isControlled, valueProp])
 
   const normalized = React.useMemo(
     () => normalizePicker(preparedColumns, innerValue),
@@ -49,13 +50,14 @@ export const usePickerValue = ({
   React.useEffect(() => {
     if (isControlled) return
     if (!shallowEqualArray(innerValue, normalized.values)) {
-      setInnerValue(normalized.values)
+      commitValue(normalized.values)
       onChange?.(normalized.values, normalized.options)
       if (emitConfirmOnAutoSelect) {
         onConfirm?.(normalized.values, normalized.options)
       }
     }
   }, [
+    commitValue,
     emitConfirmOnAutoSelect,
     innerValue,
     isControlled,
@@ -75,13 +77,11 @@ export const usePickerValue = ({
       }
 
       const final = normalizePicker(preparedColumns, next)
-      setInnerValue(final.values)
-
-      if (!shallowEqualArray(normalized.values, final.values)) {
-        onChange?.(final.values, final.options)
-      }
+      if (shallowEqualArray(innerValueRef.current, final.values)) return
+      commitValue(final.values)
+      onChange?.(final.values, final.options)
     },
-    [normalized.values, onChange, preparedColumns],
+    [commitValue, onChange, preparedColumns],
   )
 
   const handleConfirm = React.useCallback(() => {

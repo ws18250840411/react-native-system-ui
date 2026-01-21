@@ -11,7 +11,7 @@ import {
 
 import { nativeDriverEnabled } from '../../platform'
 import { useControllableValue } from '../../hooks'
-import { parseNumber } from '../../utils/number'
+import { parseNumber } from '../../utils'
 import type { SwitchProps } from './types'
 import { useSwitchTokens } from './tokens'
 

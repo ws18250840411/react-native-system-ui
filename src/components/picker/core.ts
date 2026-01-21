@@ -1,6 +1,6 @@
 import type { PickerOption } from './types'
 
-import { clamp } from '../../utils/number'
+import { clamp } from '../../utils'
 import { findEnabledIndex } from './utils'
 
 const MOMENTUM_LIMIT_TIME = 500

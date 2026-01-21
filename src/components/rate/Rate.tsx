@@ -11,8 +11,7 @@ import {
 import type { RateProps } from './types'
 import { useRateTokens } from './tokens'
 import { useControllableValue } from '../../hooks'
-import { clamp, parseNumber } from '../../utils/number'
-import { isFiniteNumber } from '../../utils/validate'
+import { clamp, parseNumber, isFiniteNumber } from '../../utils'
 
 const DEFAULT_CHARACTER = '★'
 

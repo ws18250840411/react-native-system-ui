@@ -17,8 +17,7 @@ import {
 
 import type { DeepPartial } from '../../types'
 import { addPopStateListener, nativeDriverEnabled } from '../../platform'
-import { createPlatformShadow } from '../../utils/createPlatformShadow'
-import { isRenderable, isText } from '../../utils/validate'
+import { createPlatformShadow, isRenderable, isText } from '../../utils'
 import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'

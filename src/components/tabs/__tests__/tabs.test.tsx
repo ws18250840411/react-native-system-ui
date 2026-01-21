@@ -201,6 +201,38 @@ describe('Tabs', () => {
     expect(item).toBeDefined()
   })
 
+  it('fills capsule active background like official', () => {
+    const activeColor = '#123456'
+    const tree = renderer.create(
+      <Tabs type="capsule" color={activeColor} defaultActive="1">
+        <TabPane title="1" name="1" />
+        <TabPane title="2" name="2" />
+      </Tabs>
+    )
+
+    const activeTab = tree.root.findByProps({ testID: 'rv-tabs-item-1' })
+    const activeBg = activeTab
+      .findAllByType(View)
+      .map(v => StyleSheet.flatten(v.props.style))
+      .find(s => s?.backgroundColor === activeColor)
+
+    expect(activeBg?.alignSelf).toBe('stretch')
+  })
+
+  it('fills card active background like official', () => {
+    const activeColor = '#654321'
+    const tree = renderer.create(
+      <Tabs type="card" color={activeColor} defaultActive="1">
+        <TabPane title="1" name="1" />
+        <TabPane title="2" name="2" />
+      </Tabs>
+    )
+
+    const activeTab = tree.root.findByProps({ testID: 'rv-tabs-item-1' })
+    const activeStyle = StyleSheet.flatten(activeTab.props.style)
+    expect(activeStyle?.backgroundColor).toBe(activeColor)
+  })
+
   it('does not cancel tabbar scroll animation by onScroll updates', () => {
     const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: unknown, _config: unknown) => {
       const animation = {

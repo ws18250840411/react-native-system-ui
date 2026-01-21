@@ -3,7 +3,7 @@ import { Platform, View, type ViewStyle } from 'react-native'
 
 import { FlexContext } from './FlexContext'
 import type { FlexItemProps } from './types'
-import { isNumber } from '../../utils/validate'
+import { isNumber } from '../../utils'
 
 type FlexStyle = {
   flex?: number

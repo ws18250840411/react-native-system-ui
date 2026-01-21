@@ -2,8 +2,7 @@ import React from 'react'
 import { Text, View } from 'react-native'
 
 import { useCountDown } from '../../hooks'
-import { formatDuration } from '../../utils/date'
-import { isFunction, isText } from '../../utils/validate'
+import { formatDuration, isFunction, isText } from '../../utils'
 import { useCountDownTokens } from './tokens'
 import type { CountDownInstance, CountDownProps } from './types'
 

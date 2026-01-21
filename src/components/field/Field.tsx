@@ -12,11 +12,11 @@ import { Clear, QuestionO } from 'react-native-system-icon'
 
 import Cell from '../cell'
 import Dialog from '../dialog'
-import { isDef, isFiniteNumber, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
-import { formatNumberInput } from '../../utils/string'
+import { isDef, isFiniteNumber, isFunction, isObject, isRenderable, isText, formatNumberInput } from '../../utils'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 import type { DialogShowOptions } from '../dialog'
+import { alignMap, mapKeyboardType } from './utils'
 
 const styles = StyleSheet.create({
   body: {
@@ -96,25 +96,6 @@ const styles = StyleSheet.create({
   message: {},
   wordLimit: {},
 })
-
-const alignMap: Record<'left' | 'center' | 'right', 'flex-start' | 'center' | 'flex-end'> = {
-  left: 'flex-start',
-  center: 'center',
-  right: 'flex-end',
-}
-
-const mapKeyboardType = (type: FieldProps['type']): TextInputProps['keyboardType'] => {
-  switch (type) {
-    case 'number':
-      return 'decimal-pad'
-    case 'digit':
-      return 'number-pad'
-    case 'tel':
-      return 'phone-pad'
-    default:
-      return undefined
-  }
-}
 
 export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) => {
   const {

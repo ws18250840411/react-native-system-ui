@@ -1,7 +1,7 @@
 import React from 'react'
 
 import Portal from '../portal/Portal'
-import { isFunction, isString, isText } from '../../utils/validate'
+import { isFunction, isString, isText } from '../../utils'
 import Notify from './Notify'
 import type { NotifyProps, NotifyType } from './types'
 

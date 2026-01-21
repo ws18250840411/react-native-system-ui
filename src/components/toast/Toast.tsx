@@ -19,7 +19,7 @@ import { Checked, Close } from 'react-native-system-icon'
 import { useOverlayStack } from '../overlay'
 import type { LoadingType } from '../loading'
 import type { DeepPartial } from '../../types'
-import { isFiniteNumber, isText } from '../../utils/validate'
+import { isFiniteNumber, isText } from '../../utils'
 import { useToastTokens } from './tokens'
 import type { ToastTokens } from './tokens'
 

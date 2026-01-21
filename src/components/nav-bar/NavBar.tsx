@@ -3,8 +3,7 @@ import { Pressable, SafeAreaView, Text, View, type LayoutChangeEvent } from 'rea
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
-import { createHairlineBorderBottom } from '../../utils/hairline'
-import { isRenderable, isText } from '../../utils/validate'
+import { createHairlineBorderBottom, isRenderable, isText } from '../../utils'
 import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
 

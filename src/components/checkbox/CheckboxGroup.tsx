@@ -9,7 +9,7 @@ import type {
 } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
-import { isBoolean } from '../../utils/validate'
+import { isBoolean } from '../../utils'
 
 const serialize = (value: CheckboxValue) => String(value)
 

@@ -1,5 +1,5 @@
 import type { PickerColumn, PickerColumns, PickerOption, PickerValue } from './types'
-import { isObject } from '../../utils/validate'
+import { isObject } from '../../utils'
 
 export interface NormalizedPickerResult {
   columns: PickerOption[][]

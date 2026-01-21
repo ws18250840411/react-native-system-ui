@@ -2,7 +2,7 @@ import React from 'react'
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
-import { isFunction, isText } from '../../utils/validate'
+import { isFunction, isText } from '../../utils'
 import { useTagTokens } from './tokens'
 import type { TagProps } from './types'
 

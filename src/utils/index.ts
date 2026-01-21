@@ -1,0 +1,11 @@
+// 统一导出所有工具函数，简化导入路径
+export * from './array'
+export * from './color'
+export * from './createPlatformShadow'
+export * from './date'
+export * from './deepMerge'
+export * from './hairline'
+export * from './number'
+export * from './promise'
+export * from './string'
+export * from './validate'

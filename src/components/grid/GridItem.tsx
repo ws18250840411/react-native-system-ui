@@ -8,8 +8,7 @@ import {
 } from 'react-native'
 
 import Badge from '../badge'
-import { createHairlineView } from '../../utils/hairline'
-import { isFunction, isRenderable, isText } from '../../utils/validate'
+import { createHairlineView, isFunction, isRenderable, isText } from '../../utils'
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 

@@ -1,8 +1,7 @@
 import React from 'react'
 
 import { Portal } from '../portal/Portal'
-import { deepMerge } from '../../utils/deepMerge'
-import { isString, isUndefined } from '../../utils/validate'
+import { deepMerge, isString, isUndefined } from '../../utils'
 import type {
   DialogAlertOptions,
   DialogConfirmOptions,

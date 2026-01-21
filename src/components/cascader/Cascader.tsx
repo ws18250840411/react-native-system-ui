@@ -11,7 +11,7 @@ import {
 import { Checked, Cross } from "react-native-system-icon"
 
 import { useControllableValue } from "../../hooks"
-import { isFunction, isNumber, isRenderable, isText } from "../../utils/validate"
+import { isFunction, isNumber, isRenderable, isText } from "../../utils"
 import Popup from "../popup"
 import Tabs from "../tabs"
 import type { TabsValue } from "../tabs"

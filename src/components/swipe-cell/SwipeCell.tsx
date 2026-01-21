@@ -15,8 +15,7 @@ import {
 } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
-import { clamp } from '../../utils/number'
-import { isFiniteNumber, isFunction, isNumber } from '../../utils/validate'
+import { clamp, isFiniteNumber, isFunction, isNumber } from '../../utils'
 
 export type SwipeCellSide = 'left' | 'right'
 export type SwipeCellPosition = SwipeCellSide | 'closed'

@@ -10,7 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 
-import { clamp } from '../../utils/number'
+import { clamp } from '../../utils'
 import { indexToOffset, offsetToIndex, shouldMomentum, momentumTarget } from './core'
 import styles from './styles'
 import type { PickerOption } from './types'

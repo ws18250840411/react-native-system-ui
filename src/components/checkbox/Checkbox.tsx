@@ -6,7 +6,7 @@ import { useToggleState } from '@react-stately/toggle'
 import type { CheckboxProps } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
-import { isText } from '../../utils/validate'
+import { isText } from '../../utils'
 
 export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   const {

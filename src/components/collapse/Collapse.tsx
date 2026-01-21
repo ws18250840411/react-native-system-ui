@@ -12,8 +12,7 @@ import { Arrow } from 'react-native-system-icon'
 
 import { Cell } from '../cell'
 import type { DeepPartial } from '../../types'
-import { createHairlineView } from '../../utils/hairline'
-import { isFunction, isNumber, isObject, isRenderable, isText } from '../../utils/validate'
+import { createHairlineView, isFunction, isNumber, isObject, isRenderable, isText } from '../../utils'
 import { useCollapseTokens } from './tokens'
 import type { CollapseTokens } from './types'
 

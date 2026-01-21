@@ -1,7 +1,7 @@
 import React from 'react'
 
 import Portal from '../portal/Portal'
-import { isFunction, isString, isText } from '../../utils/validate'
+import { isFunction, isString, isText } from '../../utils'
 import Toast, { type ToastProps, type ToastType } from './Toast'
 
 export type ToastShowOptions = Omit<ToastProps, 'visible'> & { message?: React.ReactNode }

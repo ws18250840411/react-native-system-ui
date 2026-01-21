@@ -1,7 +1,7 @@
 import { BackHandler, Platform } from 'react-native'
 
 import { setBodyScrollLocked } from '../../platform'
-import { isNumber } from '../../utils/validate'
+import { isNumber } from '../../utils'
 
 export interface OverlayStackEntry {
   key: number

@@ -11,8 +11,7 @@ import { useToggleState } from '@react-stately/toggle'
 import type { RadioProps } from './types'
 import { RadioGroupContext } from './RadioContext'
 import { useRadioTokens } from './tokens'
-import { parseNumber } from '../../utils/number'
-import { isText } from '../../utils/validate'
+import { parseNumber, isText } from '../../utils'
 
 export const Radio = React.memo((props: RadioProps) => {
   const {

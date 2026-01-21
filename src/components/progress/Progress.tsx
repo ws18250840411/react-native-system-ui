@@ -8,8 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 
-import { clamp, parseNumberLike, parsePercentage } from '../../utils/number'
-import { isString, isText } from '../../utils/validate'
+import { clamp, parseNumberLike, parsePercentage, isString, isText } from '../../utils'
 import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'
 

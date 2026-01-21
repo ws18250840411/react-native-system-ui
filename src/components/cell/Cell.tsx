@@ -10,7 +10,7 @@ import {
 import { Arrow } from 'react-native-system-icon'
 
 import { useAriaPress, useHairline } from '../../hooks'
-import { isRenderable, isText } from '../../utils/validate'
+import { isRenderable, isText } from '../../utils'
 
 import { CellGroupContext } from './CellContext'
 import { useCellTokens } from './tokens'

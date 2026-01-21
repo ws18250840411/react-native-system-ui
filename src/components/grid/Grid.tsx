@@ -1,7 +1,7 @@
 import React from 'react'
 import { View } from 'react-native'
 
-import { createHairlineView } from '../../utils/hairline'
+import { createHairlineView } from '../../utils'
 import { GridContext } from './GridContext'
 import { useGridTokens } from './tokens'
 import type { GridProps } from './types'

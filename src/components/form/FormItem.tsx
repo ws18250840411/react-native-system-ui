@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { isFunction, isString } from '../../utils/validate'
+import { isFunction, isString } from '../../utils'
 import { FormContext } from './FormContext'
 import type { FormItemProps, FormItemRule } from './types'
 import { normalizeTrigger } from './utils'

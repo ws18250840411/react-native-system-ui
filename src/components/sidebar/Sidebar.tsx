@@ -6,7 +6,7 @@ import { useControllableValue } from '../../hooks'
 import type { SidebarItemProps, SidebarProps } from './types'
 import { SidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
-import { isText } from '../../utils/validate'
+import { isText } from '../../utils'
 
 const SidebarBase: React.FC<SidebarProps> = props => {
   const { children, sideStyle, style, tokensOverride, ...rest } = props

@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
-import { parseNumberLike } from '../../utils/number'
+import { parseNumberLike } from '../../utils'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from './useOverlayStack'
 import { useOverlayTokens } from './tokens'

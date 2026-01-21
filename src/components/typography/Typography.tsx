@@ -1,7 +1,7 @@
 import React from 'react'
 import { Linking, Text, View } from 'react-native'
 import type { GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextLayoutEventData, TextProps, TextStyle } from 'react-native'
-import { isBoolean, isNumber, isPlainObject } from '../../utils/validate'
+import { isBoolean, isNumber, isPlainObject } from '../../utils'
 import { isWeb as isWebPlatform } from '../../platform'
 
 import type {

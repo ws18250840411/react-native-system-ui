@@ -11,7 +11,6 @@ import {
   View,
   StyleSheet,
   Platform,
-  PanResponder,
   Animated,
   Easing,
   useWindowDimensions,
@@ -20,50 +19,20 @@ import {
   type LayoutChangeEvent,
   type ViewStyle,
 } from 'react-native'
-import { clamp } from '../../utils/number'
-import { isFiniteNumber } from '../../utils/validate'
+import { clamp, isFiniteNumber } from '../../utils'
 import type { SwiperProps, SwiperInstance } from './types'
 import SwiperItem from './SwiperItem'
 import SwiperPagIndicator from './SwiperPagIndicator'
-
-const FALLBACK_WIDTH = 375
-const FALLBACK_HEIGHT = 667
-
-const runAfterFrames = (frames: number, fn: () => void) => {
-  const raf =
-    typeof requestAnimationFrame !== 'undefined'
-      ? requestAnimationFrame
-      : (cb: FrameRequestCallback) => {
-        setTimeout(() => cb(Date.now()), 16)
-        return 0
-      }
-  let left = Math.max(1, frames)
-  const step = () => {
-    left -= 1
-    if (left <= 0) {
-      fn()
-      return
-    }
-    raf(step)
-  }
-  raf(step)
-}
-
-type WebCancelableEvent = {
-  preventDefault?: () => void
-  stopPropagation?: () => void
-  nativeEvent?: {
-    preventDefault?: () => void
-    stopPropagation?: () => void
-  }
-}
-
-const stopWebEvent = (event: WebCancelableEvent) => {
-  event.preventDefault?.()
-  event.stopPropagation?.()
-  event.nativeEvent?.preventDefault?.()
-  event.nativeEvent?.stopPropagation?.()
-}
+import {
+  FALLBACK_WIDTH,
+  FALLBACK_HEIGHT,
+  runAfterFrames,
+  getInitialSwipeValue,
+  getDurationMs,
+  getSlideSizePct,
+  getTrackOffsetPct,
+} from './utils'
+import { useSwiperWeb } from './useSwiperWeb'
 
 type SwiperComponent = (<T>(
   props: SwiperProps<T> & React.RefAttributes<SwiperInstance>
@@ -94,10 +63,10 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     testID,
   } = props
 
-  const initialSwipeValue = isFiniteNumber(initialSwipe) ? initialSwipe : 0
-  const durationMs = isFiniteNumber(duration) ? Math.max(0, duration) : 0
-  const slideSizePct = isFiniteNumber(slideSize) ? clamp(slideSize, 1, 100) : 100
-  const trackOffsetPct = isFiniteNumber(trackOffset) ? clamp(trackOffset, 0, 100) : 0
+  const initialSwipeValue = getInitialSwipeValue(initialSwipe)
+  const durationMs = getDurationMs(duration)
+  const slideSizePct = getSlideSizePct(slideSize)
+  const trackOffsetPct = getTrackOffsetPct(trackOffset)
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const viewportWidth = windowWidth || FALLBACK_WIDTH
@@ -246,13 +215,21 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const [autoHeightValue, setAutoHeightValue] = useState<number | undefined>(undefined)
   const measuredHeightsRef = useRef<Record<number, number>>({})
 
-  const webOffsetRef = useRef(0)
-  const startOffsetRef = useRef(0)
-  const panLockRef = useRef(false)
-  const webTranslateXAnim = useRef(new Animated.Value(0)).current
-  const webTranslateYAnim = useRef(new Animated.Value(0)).current
+  const swipeToRef = useRef<(index: number, animated?: boolean) => void>(() => {})
 
-  const panLatestRef = useRef({
+  const {
+    webOffsetRef,
+    webTranslateXAnim,
+    webTranslateYAnim,
+    webTrackTransform,
+    panResponder,
+    stopWebSnapAnim,
+    cancelWebRaf,
+    flushWebTranslate,
+    scheduleWebTranslate,
+    webSnapAnimRef,
+  } = useSwiperWeb({
+    isWeb,
     enabledState,
     touchable,
     vertical,
@@ -262,71 +239,11 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     slideSizeValue,
     nonLoopMinOffset,
     nonLoopMaxOffset,
-    maxOffsetLoop: Math.max(0, displayCount - 1) * slideSizeValue,
-    duration: durationMs,
+    durationMs,
     preventScroll,
+    trackOffsetPx,
+    swipeToRef,
   })
-  panLatestRef.current = {
-    enabledState,
-    touchable,
-    vertical,
-    count,
-    shouldLoop,
-    displayCount,
-    slideSizeValue,
-    nonLoopMinOffset,
-    nonLoopMaxOffset,
-    maxOffsetLoop: Math.max(0, displayCount - 1) * slideSizeValue,
-    duration: durationMs,
-    preventScroll,
-  }
-
-  const webRafIdRef = useRef<number | null>(null)
-  const webPendingOffsetRef = useRef<number | null>(null)
-
-  const flushWebTranslate = () => {
-    const pending = webPendingOffsetRef.current
-    if (pending == null) return
-    webPendingOffsetRef.current = null
-    const latest = panLatestRef.current
-      ; (latest.vertical ? webTranslateYAnim : webTranslateXAnim).setValue(pending)
-  }
-
-  const scheduleWebTranslate = (next: number) => {
-    webPendingOffsetRef.current = next
-    if (webRafIdRef.current != null) return
-    webRafIdRef.current = requestAnimationFrame(() => {
-      webRafIdRef.current = null
-      flushWebTranslate()
-    })
-  }
-
-  const cancelWebRaf = () => {
-    if (webRafIdRef.current != null) {
-      cancelAnimationFrame(webRafIdRef.current)
-      webRafIdRef.current = null
-    }
-    webPendingOffsetRef.current = null
-  }
-
-  const webSnapAnimRef = useRef<Animated.CompositeAnimation | null>(null)
-  const stopWebSnapAnim = () => {
-    const anim = webSnapAnimRef.current
-    if (anim) {
-      anim.stop()
-      webSnapAnimRef.current = null
-    }
-    const latest = panLatestRef.current
-    const activeAnim = latest.vertical ? webTranslateYAnim : webTranslateXAnim
-    let nextOffset = webOffsetRef.current
-    activeAnim.stopAnimation((value) => {
-      if (typeof value === 'number') {
-        nextOffset = value
-      }
-    })
-      ; (latest.vertical ? webTranslateXAnim : webTranslateYAnim).stopAnimation()
-    webOffsetRef.current = nextOffset
-  }
 
   useEffect(() => {
     return () => {
@@ -334,8 +251,8 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
       stopWebSnapAnim()
       clearNativeScrollEndTimer()
     }
-  }, [clearNativeScrollEndTimer])
-
+  }, [cancelWebRaf, stopWebSnapAnim, clearNativeScrollEndTimer])
+  
   const finishNativeScroll = useCallback(() => {
     clearNativeScrollEndTimer()
     isScrollingRef.current = false
@@ -363,16 +280,6 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     }, timeout)
   }, [clearNativeScrollEndTimer, durationMs, finishNativeScroll])
 
-  const webTrackTransform = useMemo(() => {
-    if (vertical) {
-      return trackOffsetPx
-        ? [{ translateY: trackOffsetPx }, { translateY: webTranslateYAnim }]
-        : [{ translateY: webTranslateYAnim }]
-    }
-    return trackOffsetPx
-      ? [{ translateX: trackOffsetPx }, { translateX: webTranslateXAnim }]
-      : [{ translateX: webTranslateXAnim }]
-  }, [trackOffsetPx, vertical, webTranslateXAnim, webTranslateYAnim])
 
   useEffect(() => {
     setEnabledState(enabled)
@@ -605,7 +512,6 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     ]
   )
 
-  const swipeToRef = useRef(swipeTo)
   useEffect(() => {
     swipeToRef.current = swipeTo
   }, [swipeTo])
@@ -924,87 +830,6 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     }
     return displayData.map((_, index) => slideSizeValue * index)
   }, [displayData, nonLoopSnapOffsets, shouldLoop, slideSizePct, slideSizeValue, trackOffsetPct])
-
-  const panResponder = useMemo(() => {
-    if (!isWeb) return null
-
-    return PanResponder.create({
-      onStartShouldSetPanResponder: () => {
-        const latest = panLatestRef.current
-        return !!latest.enabledState && !!latest.touchable && latest.count > 1
-      },
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        const latest = panLatestRef.current
-        if (!latest.enabledState || !latest.touchable || latest.count <= 1) return false
-        if (latest.vertical) {
-          return Math.abs(gestureState.dy) > Math.abs(gestureState.dx)
-        }
-        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
-      },
-      onPanResponderGrant: () => {
-        const latest = panLatestRef.current
-        if (!latest.enabledState || !latest.touchable || latest.count <= 1) return
-        panLockRef.current = true
-        isDraggingRef.current = true
-        cancelWebRaf()
-        stopWebSnapAnim()
-        startOffsetRef.current = webOffsetRef.current
-      },
-      onPanResponderMove: (event, gestureState) => {
-        if (!panLockRef.current) return
-        const latest = panLatestRef.current
-        if (latest.preventScroll) {
-          stopWebEvent(event as unknown as WebCancelableEvent)
-        }
-        const delta = latest.vertical ? gestureState.dy : gestureState.dx
-        const nextRaw = startOffsetRef.current + delta
-        const next = latest.shouldLoop
-          ? clamp(nextRaw, -latest.maxOffsetLoop, 0)
-          : clamp(nextRaw, -latest.nonLoopMaxOffset, -latest.nonLoopMinOffset)
-        webOffsetRef.current = next
-        scheduleWebTranslate(next)
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        const latest = panLatestRef.current
-        panLockRef.current = false
-        isDraggingRef.current = false
-        cancelWebRaf()
-        flushWebTranslate()
-        const distance = latest.vertical ? gestureState.dy : gestureState.dx
-        const velocity = latest.vertical ? gestureState.vy : gestureState.vx
-
-        const dir = velocity !== 0 ? (velocity > 0 ? 1 : -1) : distance !== 0 ? (distance > 0 ? 1 : -1) : 0
-        const velocityOffset = Math.min(Math.abs(velocity) * 2000, latest.slideSizeValue) * dir
-        let targetOffset = startOffsetRef.current + distance + velocityOffset
-
-        targetOffset = latest.shouldLoop
-          ? clamp(targetOffset, -latest.maxOffsetLoop, 0)
-          : clamp(targetOffset, -latest.nonLoopMaxOffset, -latest.nonLoopMinOffset)
-
-        const targetIndex = Math.round(-targetOffset / latest.slideSizeValue)
-        const displayIndex = latest.shouldLoop
-          ? clamp(targetIndex, 0, latest.displayCount - 1)
-          : clamp(targetIndex, 0, latest.count - 1)
-
-        const realIndex = latest.shouldLoop
-          ? displayIndex === 0
-            ? latest.count - 1
-            : displayIndex === latest.displayCount - 1
-              ? 0
-              : displayIndex - 1
-          : displayIndex
-
-        swipeToRef.current(realIndex, true)
-      },
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderTerminate: () => {
-        panLockRef.current = false
-        isDraggingRef.current = false
-        cancelWebRaf()
-        stopWebSnapAnim()
-      },
-    })
-  }, [isWeb, webTranslateXAnim, webTranslateYAnim])
 
   useEffect(() => {
     if (!isWeb) return

@@ -4,8 +4,7 @@ import { Platform, Pressable, Text, View, type ViewStyle } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
 import { resolveGapInput, useSpaceTokens } from './tokens'
-import { parseNumberLike } from '../../utils/number'
-import { isFiniteNumber, isFunction, isRenderable, isText } from '../../utils/validate'
+import { parseNumberLike, isFiniteNumber, isFunction, isRenderable, isText } from '../../utils'
 
 const alignMap = {
   start: 'flex-start',

@@ -7,8 +7,7 @@ import {
 } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
-import { withAlpha } from '../../utils/color'
-import { isText } from '../../utils/validate'
+import { withAlpha, isText } from '../../utils'
 import type { LoadingProps } from './types'
 import { useLoadingTokens } from './tokens'
 

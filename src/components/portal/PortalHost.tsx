@@ -1,7 +1,7 @@
 import React from 'react'
 import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
 
-import { isNumber } from '../../utils/validate'
+import { isNumber } from '../../utils'
 import { PortalContext, type PortalManager } from './PortalContext'
 
 interface PortalEntry {

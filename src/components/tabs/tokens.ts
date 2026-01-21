@@ -89,7 +89,7 @@ export interface TabsTokens {
 }
 
 const createTokens = (foundations: Foundations): TabsTokens => {
-  const { palette, spacing, fontSize } = foundations
+  const { palette, spacing, fontSize, radii } = foundations
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
@@ -154,7 +154,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       offset: spacing.md,
     },
     card: {
-      radius: 18,
+      radius: radii.xs,
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.xs,
       height: 30,
@@ -163,7 +163,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
     capsule: {
       radius: 999,
       paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.xs,
+      paddingVertical: spacing.ssm,
     },
     jumbo: {
       radius: 16,

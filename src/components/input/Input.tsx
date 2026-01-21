@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { isBoolean, isFiniteNumber } from '../../utils/validate'
+import { isBoolean, isFiniteNumber } from '../../utils'
 import Field from '../field'
 import { useFieldTokens } from '../field/tokens'
 import type { FieldAutosizeConfig, FieldInstance } from '../field/types'

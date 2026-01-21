@@ -2,7 +2,7 @@ import React from 'react'
 import { Pressable, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
-import { isRenderable, isText } from '../../utils/validate'
+import { isRenderable, isText } from '../../utils'
 import Badge from '../badge'
 import { useSidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'

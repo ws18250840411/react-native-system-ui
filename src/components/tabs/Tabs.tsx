@@ -2,10 +2,11 @@ import React from 'react'
 import {
   Animated,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
+  ScrollView,
   View,
+  Platform,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -13,33 +14,18 @@ import {
 } from 'react-native'
 
 import { useAriaPress, useControllableValue } from '../../hooks'
-import { parseNumberLike } from '../../utils/number'
-import { isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
+import { parseNumberLike, isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
 import TabPane from './TabPane'
-
-const requestFrame =
-  typeof requestAnimationFrame !== 'undefined' && isFunction(requestAnimationFrame)
-    ? requestAnimationFrame
-    : (cb: (time?: number) => void) => setTimeout(cb, 16)
+import { requestFrame, isTabPaneElement } from './utils'
+import { useTabsAnimation } from './useTabsAnimation'
+import { useTabsScroll } from './useTabsScroll'
 
 interface ParsedPane extends TabPaneProps {
   key: React.Key
   name: TabsValue
   index: number
-}
-
-type SwipeableScrollRef = {
-  getNode?: () => { scrollTo: (params: { x?: number; y?: number; animated?: boolean }) => void }
-  scrollTo?: (params: { x?: number; y?: number; animated?: boolean }) => void
-}
-
-const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> => {
-  if (!React.isValidElement(child)) return false
-  if (child.type === TabPane) return true
-  const type = child.type as unknown as { displayName?: string }
-  return type.displayName === 'Tabs.TabPane'
 }
 
 interface TabItemProps {
@@ -115,6 +101,20 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const horizontalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingHorizontal
   const verticalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingVertical
   const labelWrapperStyles: ViewStyle[] = [styles.labelWrapper]
+  const labelTextWrapperStyles: ViewStyle[] | null = isCapsule
+    ? [
+      {
+        flex: 1,
+        alignSelf: 'stretch',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: tokens.capsule.radius,
+        backgroundColor: isActive
+          ? color ?? tokens.colors.capsuleActiveBackground
+          : tokens.colors.capsuleBackground,
+      },
+    ]
+    : null
   if (isJumbo) {
     labelWrapperStyles.push(styles.labelWrapperJumbo)
   }
@@ -123,12 +123,10 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
     labelWrapperStyles.push({
       paddingHorizontal: tokens.card.paddingHorizontal,
       paddingVertical: tokens.card.paddingVertical,
-      backgroundColor: isActive
-        ? color ?? tokens.colors.cardActiveBackground
-        : tokens.colors.cardBackground,
     })
   }
   if (isCapsule) {
+    labelWrapperStyles.push({ flex: 1, alignSelf: 'stretch' })
     labelWrapperStyles.push({
       paddingHorizontal: tokens.capsule.paddingHorizontal,
       paddingVertical: tokens.capsule.paddingVertical,
@@ -157,41 +155,54 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
           ? {
             borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth,
             borderRightColor: color ?? tokens.colors.cardBorder,
+            backgroundColor: isActive
+              ? color ?? tokens.colors.cardActiveBackground
+              : tokens.colors.cardBackground,
           }
           : null,
         tabStyle,
       ]}
     >
       <View style={labelWrapperStyles}>
-        <Text
-          style={[
-            styles.title,
-            isCapsule
-              ? {
-                borderRadius: tokens.capsule.radius,
-                backgroundColor: isActive
-                  ? color ?? tokens.colors.capsuleActiveBackground
-                  : tokens.colors.capsuleBackground,
-                color: textColor,
-                fontSize: tokens.typography.titleSize,
-                fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
-                textAlign: 'center',
-                paddingVertical: tokens.capsule.paddingVertical,
-              }
-              : {
+        {labelTextWrapperStyles ? (
+          <View style={labelTextWrapperStyles}>
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: textColor,
+                  fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
+                  fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+                  lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
+                  textAlign: 'center',
+                },
+                ellipsis && !isJumbo ? styles.ellipsis : null,
+                titleStyle,
+              ]}
+              numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
+            >
+              {renderTitle}
+            </Text>
+          </View>
+        ) : (
+          <Text
+            style={[
+              styles.title,
+              {
                 color: textColor,
                 fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
                 fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
                 lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
                 textAlign: 'center',
               },
-            ellipsis && !isJumbo ? styles.ellipsis : null,
-            titleStyle,
-          ]}
-          numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
-        >
-          {renderTitle}
-        </Text>
+              ellipsis && !isJumbo ? styles.ellipsis : null,
+              titleStyle,
+            ]}
+            numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
+          >
+            {renderTitle}
+          </Text>
+        )}
         {isRenderable(renderDescription)
           ? isText(renderDescription)
             ? (
@@ -437,19 +448,11 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     }
   }, [currentName, isSwipeable, swipeableConfig?.autoHeight])
 
-  const indicatorX = React.useRef(new Animated.Value(0)).current
-  const indicatorWidth = React.useRef(new Animated.Value(0)).current
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
-  const navScrollRef = React.useRef<ScrollView>(null)
   const navContainerWidthRef = React.useRef(0)
   const navContentWidthRef = React.useRef(0)
-  const navScrollX = React.useRef(new Animated.Value(0)).current
-  const navScrollAnimRef = React.useRef<Animated.CompositeAnimation | null>(null)
-  const navAutoScrollingRef = React.useRef(false)
-  const navLastScrollXRef = React.useRef(0)
-  const indicatorInitializedRef = React.useRef(false)
   const paneLayoutMap = React.useRef<Map<TabsValue, { height: number }>>(new Map())
-  const swipeableScrollRef = React.useRef<SwipeableScrollRef | null>(null)
+  const swipeableScrollRef = React.useRef<any>(null)
   const swipeableChangeByScrollRef = React.useRef(false)
   const [containerWidth, setContainerWidth] = React.useState(0)
   const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
@@ -464,119 +467,41 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const indicatorColor = color ?? tokens.colors.indicator
   const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
 
-  const animateIndicator = React.useCallback(
-    (name?: TabsValue, immediate?: boolean) => {
-      if (name == null || type !== 'line') return false
-      const shouldUseEqualWidth =
-        !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
-      const index = nameIndexMap.get(name) ?? -1
-      const equalTabWidth = shouldUseEqualWidth ? navContainerWidthRef.current / panes.length : 0
-      let layout = shouldUseEqualWidth
-        ? { x: Math.max(index, 0) * equalTabWidth, width: equalTabWidth }
-        : layoutMap.current.get(name)
-      if (!layout || index < 0) {
-        return false
-      }
-      const timing = (value: Animated.Value, toValue: number) =>
-        Animated.timing(value, {
-          toValue,
-          duration: immediate || !animated ? 0 : resolvedDuration,
-          useNativeDriver: false,
-        })
-      const targetWidth = resolvedLineWidth ?? layout.width
-      const targetX = resolvedLineWidth
-        ? layout.x + (layout.width - targetWidth) / 2
-        : layout.x
-      Animated.parallel([
-        timing(indicatorX, targetX),
-        timing(indicatorWidth, targetWidth),
-      ]).start()
-      return true
-    },
-    [align, animated, indicatorWidth, indicatorX, nameIndexMap, panes.length, resolvedDuration, resolvedLineWidth, scrollable, type],
-  )
+  const {
+    indicatorX,
+    indicatorWidth,
+    indicatorInitializedRef,
+    animateIndicator,
+  } = useTabsAnimation({
+    type,
+    animated,
+    scrollable,
+    align,
+    panes,
+    nameIndexMap,
+    resolvedLineWidth,
+    resolvedLineHeight,
+    resolvedDuration,
+    currentName,
+    layoutMap,
+    navContainerWidthRef,
+  })
 
-  const scrollIntoView = React.useCallback(
-    (immediate?: boolean) => {
-      if (!scrollable || currentName == null) return
-      const layout = layoutMap.current.get(currentName)
-      const containerWidth = navContainerWidthRef.current
-      if (!layout || !containerWidth) return
-      const contentWidth = navContentWidthRef.current
-      const targetX = layout.x - (containerWidth - layout.width) / 2
-      const maxScroll = Math.max(contentWidth - containerWidth, 0)
-      const clampedX = Math.max(0, Math.min(targetX, maxScroll))
-      if (maxScroll <= 0) {
-        return
-      }
-      if (Math.abs(clampedX - navLastScrollXRef.current) < 1) {
-        return
-      }
-      if (navScrollAnimRef.current) {
-        navScrollAnimRef.current.stop()
-        navScrollAnimRef.current = null
-      }
-      if (immediate || !animated) {
-        navAutoScrollingRef.current = true
-        navScrollX.setValue(clampedX)
-        requestFrame(() => {
-          navAutoScrollingRef.current = false
-        })
-        return
-      }
-      navScrollX.setValue(navLastScrollXRef.current)
-      navAutoScrollingRef.current = true
-      navScrollAnimRef.current = Animated.timing(navScrollX, {
-        toValue: clampedX,
-        duration: resolvedDuration,
-        useNativeDriver: false,
-      })
-      navScrollAnimRef.current.start(({ finished }) => {
-        navScrollAnimRef.current = null
-        navAutoScrollingRef.current = false
-        if (!finished) {
-          return
-        }
-        navLastScrollXRef.current = clampedX
-      })
-    },
-    [animated, currentName, navScrollX, resolvedDuration, scrollable],
-  )
-
-  React.useEffect(() => {
-    const listenerId = navScrollX.addListener(({ value }) => {
-      navLastScrollXRef.current = value
-      navScrollRef.current?.scrollTo({ x: value, y: 0, animated: false })
-    })
-    return () => {
-      navScrollX.removeListener(listenerId)
-    }
-  }, [navScrollX])
-
-  const handleNavScrollBeginDrag = React.useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    navAutoScrollingRef.current = false
-    if (navScrollAnimRef.current) {
-      navScrollAnimRef.current.stop()
-      navScrollAnimRef.current = null
-    }
-    navLastScrollXRef.current = event.nativeEvent.contentOffset.x
-  }, [])
-
-  const handleNavScroll = React.useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (navAutoScrollingRef.current) {
-      return
-    }
-    navLastScrollXRef.current = event.nativeEvent.contentOffset.x
-  }, [])
-
-  React.useEffect(() => {
-    if (currentName == null) return
-    const shouldAnimate = indicatorInitializedRef.current
-    const didAnimate = animateIndicator(currentName, !shouldAnimate)
-    if (didAnimate && !indicatorInitializedRef.current) {
-      indicatorInitializedRef.current = true
-    }
-  }, [animateIndicator, currentName])
+  const {
+    navScrollRef,
+    navScrollX,
+    scrollIntoView,
+    handleNavScrollBeginDrag,
+    handleNavScroll,
+  } = useTabsScroll({
+    scrollable,
+    animated,
+    currentName,
+    resolvedDuration,
+    layoutMap,
+    navContainerWidthRef,
+    navContentWidthRef,
+  })
 
   const handleTabLayout = React.useCallback(
     (name: TabsValue, event: LayoutChangeEvent) => {
@@ -590,7 +515,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         }
       }
     },
-    [animateIndicator],
+    [animateIndicator, indicatorInitializedRef],
   )
 
   const handleNavContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
@@ -603,7 +528,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         indicatorInitializedRef.current = true
       }
     }
-  }, [align, animateIndicator, currentName, scrollable, type])
+  }, [align, animateIndicator, currentName, scrollable, type, indicatorInitializedRef])
 
   const handleContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
     const nextWidth = event.nativeEvent.layout.width
@@ -745,11 +670,9 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     return tokens.tabList.height
   }, [type, tokens])
   const navPaddingBottom =
-    type === 'line'
-      ? 0
-      : type === 'card'
-        ? 0
-        : tokens.tabList.paddingBottom
+    Platform.OS === 'web' && type !== 'line' && type !== 'card'
+      ? tokens.tabList.paddingBottom
+      : 0
   const indicatorBottom = showIndicator ? (type === 'line' ? 0 : tokens.indicator.offset) : 0
 
   if (panes.length === 0) {

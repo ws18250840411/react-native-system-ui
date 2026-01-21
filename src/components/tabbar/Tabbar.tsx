@@ -3,7 +3,7 @@ import { SafeAreaView, StyleSheet, View, type LayoutChangeEvent } from 'react-na
 
 import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
-import { createHairlineBorderTop } from '../../utils/hairline'
+import { createHairlineBorderTop } from '../../utils'
 import { TabbarContext } from './TabbarContext'
 import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarProps, TabbarValue } from './types'

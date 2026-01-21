@@ -13,7 +13,7 @@ import {
 } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
-import { isFiniteNumber, isUndefined } from '../../utils/validate'
+import { isFiniteNumber, isUndefined } from '../../utils'
 import type { IndexAnchorProps, IndexBarInstance, IndexBarProps, IndexBarValue } from './types'
 import { useIndexBarTokens } from './tokens'
 

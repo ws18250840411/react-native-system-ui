@@ -1,7 +1,7 @@
 import React from 'react'
 import { Text, View } from 'react-native'
 
-import { createHairlineView } from '../../utils/hairline'
+import { createHairlineView } from '../../utils'
 import { Cell as CellBase } from './Cell'
 import { CellGroupContext } from './CellContext'
 import type { CellGroupProps } from './types'

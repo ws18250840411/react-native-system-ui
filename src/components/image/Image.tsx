@@ -3,7 +3,7 @@ import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, T
 import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, ViewStyle } from 'react-native'
 import { SvgUri } from 'react-native-svg'
 
-import { isNumber, isString, isText } from '../../utils/validate'
+import { isNumber, isString, isText } from '../../utils'
 import { useImageTokens } from './tokens'
 import type { ImageFit, ImageProps } from './types'
 

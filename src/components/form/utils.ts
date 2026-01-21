@@ -1,4 +1,4 @@
-import { isNumber, isString } from '../../utils/validate'
+import { isNumber, isString } from '../../utils'
 import type { NamePath } from './types'
 
 export const normalizeTrigger = (trigger?: string | string[]) =>

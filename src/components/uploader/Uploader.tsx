@@ -21,9 +21,16 @@ import type {
 import { useControllableValue } from '../../hooks'
 import Image from '../image'
 import ImagePreview from '../image-preview'
-import { parseNumber } from '../../utils/number'
-import { toArray } from '../../utils/array'
-import { isImageUrlString, isFunction, isUndefined, isString } from '../../utils/validate'
+import { parseNumber, toArray, isFunction, isString } from '../../utils'
+import {
+  isImageFile,
+  resolveSource,
+  normalizeMaxSize,
+  filterFiles,
+  readFileContent,
+  processBeforeRead,
+  type NormalizedMaxSize,
+} from './utils'
 
 const statusDefaults: Record<UploaderItemStatus, string> = {
   pending: '上传中',
@@ -35,77 +42,6 @@ type InternalTask = {
   status: UploaderItemStatus
   file: File
   url?: string
-}
-
-const isImageFile = (item: UploaderValueItem, forced?: boolean) => {
-  if (forced !== undefined) return forced
-  if (item.file?.type) return item.file.type.indexOf('image') === 0
-  return isImageUrlString(item.url ?? item.thumbnail ?? '')
-}
-
-const resolveSource = (item: UploaderValueItem, isImage: boolean) => {
-  if (!isImage) return
-  if (item.source) return item.source
-  const uri = item.thumbnail ?? item.url
-  return uri ? { uri } : undefined
-}
-
-type NormalizedMaxSize = Exclude<UploaderMaxSize, string>
-
-const normalizeMaxSize = (maxSize: UploaderMaxSize | undefined, fallback: number): NormalizedMaxSize => {
-  if (isFunction(maxSize)) return maxSize
-  return parseNumber(maxSize, fallback)
-}
-
-const filterFiles = (files: File[], maxSize: NormalizedMaxSize) => {
-  const valid: File[] = []
-  const invalid: File[] = []
-  files.forEach(file => {
-    ; ((isFunction(maxSize) ? maxSize(file) : file.size > maxSize) ? invalid : valid).push(file)
-  })
-  return { valid, invalid }
-}
-
-const readFileContent = async (
-  file: File,
-  resultType: UploaderResultType,
-  createObjectUrl: (file: File) => string | undefined,
-) => {
-  if (file?.type?.indexOf('image') === 0) {
-    return createObjectUrl(file)
-  }
-  if (resultType === 'file') return undefined
-
-  if (isUndefined(FileReader)) {
-    return undefined
-  }
-
-  return await new Promise<string | undefined>(resolve => {
-    const reader = new FileReader()
-    reader.onload = (event: ProgressEvent<FileReader>) => {
-      const result = event.target?.result
-      resolve(typeof result === 'string' ? result : undefined)
-    }
-    reader.onerror = () => resolve(undefined)
-    if (resultType === 'dataUrl') {
-      reader.readAsDataURL(file)
-    } else {
-      reader.readAsText(file)
-    }
-  })
-}
-
-const processBeforeRead = async (
-  file: File,
-  files: File[],
-  beforeRead: UploaderBeforeRead | undefined,
-) => {
-  if (!beforeRead) return file
-  try {
-    return await beforeRead(file, files)
-  } catch {
-    return false
-  }
 }
 
 const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) => {
@@ -218,7 +154,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   }
 
   const maxCountValue = Math.max(0, Math.floor(parseNumber(maxCount, Number.MAX_VALUE)))
-  const maxSizeValue = normalizeMaxSize(maxSize, Number.MAX_VALUE)
+  const maxSizeValue = normalizeMaxSize(maxSize, Number.MAX_VALUE) as NormalizedMaxSize
   const sizeValue = parseNumber(previewSize, tokens.size)
 
   const idRef = React.useRef(0)

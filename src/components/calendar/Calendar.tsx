@@ -2,7 +2,7 @@ import React from 'react'
 import { Pressable, Text, View, type TextStyle } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
-import { isText } from '../../utils/validate'
+import { isText } from '../../utils'
 import Popup from '../popup'
 import { useCalendarTokens } from './tokens'
 import type { CalendarProps, CalendarType } from './types'

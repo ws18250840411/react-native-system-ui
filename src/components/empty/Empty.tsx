@@ -2,7 +2,7 @@ import React from 'react'
 import { Text, View } from 'react-native'
 import { Description, Fail, Search } from 'react-native-system-icon'
 
-import { isRenderable, isString, isText } from '../../utils/validate'
+import { isRenderable, isString, isText } from '../../utils'
 import Image from '../image'
 import { useEmptyTokens } from './tokens'
 import type { EmptyProps } from './types'

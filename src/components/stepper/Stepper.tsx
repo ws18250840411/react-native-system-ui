@@ -17,9 +17,10 @@ import {
   formatNumber as formatValue,
   numberToString as valueToString,
   parseDecimalLength,
-} from '../../utils/number'
-import { isFiniteNumber, isNumber } from '../../utils/validate'
-import { isPromiseLike } from '../../utils/promise'
+  isFiniteNumber,
+  isNumber,
+  isPromiseLike,
+} from '../../utils'
 import { useStepperTokens } from './tokens'
 import type { StepperInstance, StepperProps } from './types'
 

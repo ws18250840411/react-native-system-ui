@@ -8,7 +8,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native'
 
-import { isFunction, isText } from '../../utils/validate'
+import { isFunction, isText } from '../../utils'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
