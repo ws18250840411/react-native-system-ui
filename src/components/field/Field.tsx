@@ -267,7 +267,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     }),
   )
 
-  const finalTextAlign = controlAlign !== 'left' ? controlAlign : inputAlignProp
+  const finalTextAlign = controlAlign !== 'left' ? controlAlign : inputAlign
 
   const showClear =
     clearable &&

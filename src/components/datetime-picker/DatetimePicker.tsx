@@ -109,6 +109,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     formatter = (_type, value) => value,
     filter,
     columnsOrder,
+    interactionMode = 'freeze',
     value,
     defaultValue,
     onChange,
@@ -301,6 +302,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     <Picker
       {...pickerProps}
       columns={columns}
+      interactionMode={interactionMode}
       value={pickerValue}
       onChange={handleChange}
       onConfirm={handleConfirm}
@@ -318,6 +320,7 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     maxHour = 23,
     minMinute = 0,
     maxMinute = 59,
+    interactionMode = 'freeze',
     value,
     defaultValue,
     onChange,
@@ -387,6 +390,7 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     <Picker
       {...pickerProps}
       columns={columns}
+      interactionMode={interactionMode}
       value={pickerValue}
       onChange={handleChange}
       onConfirm={handleConfirm}

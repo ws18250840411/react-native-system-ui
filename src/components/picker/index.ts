@@ -9,5 +9,6 @@ export type {
   PickerColumn,
   PickerColumns,
   PickerColumnWithDefault,
+  PickerInteractionMode,
   PickerToolbarPosition,
 } from './types'

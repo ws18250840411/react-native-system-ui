@@ -3,12 +3,12 @@ import { Pressable, Text, View, Platform, type ViewStyle } from 'react-native'
 
 import Loading from '../loading'
 import { withAlpha } from '../../utils/color'
-import { isFiniteNumber, isText } from '../../utils/validate'
+import { isFiniteNumber, isObject, isText } from '../../utils/validate'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
 import styles from './styles'
 import { usePickerValue } from './usePickerValue'
-import type { PickerColumnProps, PickerOption, PickerProps } from './types'
+import type { PickerColumnProps, PickerColumns, PickerOption, PickerProps } from './types'
 import { findEnabledIndex } from './utils'
 
 const getVisibleCount = (count: number) => {
@@ -66,6 +66,18 @@ const GradientMask: React.FC<{
       ))}
     </View>
   )
+}
+
+const isCascadeColumns = (columns?: PickerColumns) => {
+  if (!Array.isArray(columns) || columns.length === 0) return false
+  const first = columns[0] as unknown
+  if (Array.isArray(first)) return false
+  if (isObject(first) && 'options' in first) return false
+  return columns.some(option => {
+    if (!isObject(option)) return false
+    const children = (option as PickerOption).children
+    return Array.isArray(children) && children.length > 0
+  })
 }
 
 const PickerColumn: React.FC<
@@ -200,6 +212,7 @@ const Picker: React.FC<PickerProps> = props => {
     emitConfirmOnAutoSelect = true,
     maskColor,
     maskType = tokens.defaults.maskType,
+    interactionMode = 'auto',
     onChange,
     onConfirm,
     onCancel,
@@ -209,29 +222,38 @@ const Picker: React.FC<PickerProps> = props => {
   } = props
 
   const visibleItemCount = getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount)
+  const isCascade = isCascadeColumns(columns)
+  
+  // 移除复杂的冻结逻辑，现在由 usePickerValue 内部状态保证交互稳定性
+  const shouldFreezeValue = false
+    
   const interactingCountRef = React.useRef(0)
   const [isInteracting, setIsInteracting] = React.useState(false)
   const stableValueRef = React.useRef(valueProp)
 
   React.useEffect(() => {
-    if (!isInteracting) {
+    if (!shouldFreezeValue) {
       stableValueRef.current = valueProp
+      return
     }
-  }, [isInteracting, valueProp])
+    if (!isInteracting) stableValueRef.current = valueProp
+  }, [isInteracting, shouldFreezeValue, valueProp])
 
   const handleInteractStart = React.useCallback(() => {
+    if (!shouldFreezeValue) return
     interactingCountRef.current += 1
     setIsInteracting(true)
-  }, [])
+  }, [shouldFreezeValue])
 
   const handleInteractEnd = React.useCallback(() => {
+    if (!shouldFreezeValue) return
     interactingCountRef.current = Math.max(0, interactingCountRef.current - 1)
     if (interactingCountRef.current === 0) {
       setIsInteracting(false)
     }
-  }, [])
+  }, [shouldFreezeValue])
 
-  const valueForPicker = isInteracting ? stableValueRef.current : valueProp
+  const valueForPicker = shouldFreezeValue && isInteracting ? stableValueRef.current : valueProp
 
   const { normalized, handleSelect, handleConfirm } = usePickerValue({
     columns,
@@ -324,27 +346,35 @@ const Picker: React.FC<PickerProps> = props => {
   const hasColumns = normalized.columns.length > 0
   const effectiveMaskColor = maskColor ?? tokens.colors.mask
   const columnsContent = hasColumns
-    ? normalized.columns.map((column, columnIndex) => (
-      <PickerColumn
-        key={columnIndex}
-        columnIndex={columnIndex}
-        options={column}
-        value={normalized.values[columnIndex]}
-        itemHeight={itemHeight}
-        visibleItemCount={visibleItemCount}
-        decelerationRate={decelerationRate}
-        scrollEventThrottle={scrollEventThrottle}
-        optionRender={optionRender}
-        getOptionTestID={getOptionTestID}
-        getOptionA11yLabel={getOptionA11yLabel}
-        readOnly={readOnly}
-        swipeDuration={swipeDuration}
-        onSelect={handleSelect}
-        tokens={tokens}
-        onInteractStart={handleInteractStart}
-        onInteractEnd={handleInteractEnd}
-      />
-    ))
+    ? normalized.columns.map((column, columnIndex) => {
+      const key = isCascade
+        ? `${columnIndex}-${normalized.values
+          .slice(0, columnIndex)
+          .map(String)
+          .join('|')}`
+        : String(columnIndex)
+      return (
+        <PickerColumn
+          key={key}
+          columnIndex={columnIndex}
+          options={column}
+          value={normalized.values[columnIndex]}
+          itemHeight={itemHeight}
+          visibleItemCount={visibleItemCount}
+          decelerationRate={decelerationRate}
+          scrollEventThrottle={scrollEventThrottle}
+          optionRender={optionRender}
+          getOptionTestID={getOptionTestID}
+          getOptionA11yLabel={getOptionA11yLabel}
+          readOnly={readOnly}
+          swipeDuration={swipeDuration}
+          onSelect={handleSelect}
+          tokens={tokens}
+          onInteractStart={handleInteractStart}
+          onInteractEnd={handleInteractEnd}
+        />
+      )
+    })
     : null
 
   return (

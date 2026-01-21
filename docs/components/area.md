@@ -21,7 +21,7 @@ import { Area } from 'react-native-system-ui'
 
 传入 `areaList` 即可渲染省市区三级联动，并支持列数切换与受控模式。
 
-<code src="./area/demo/basic.tsx" title="基础用法"></code>
+<code src="./area/demo/basic.tsx" title=""></code>
 
 ## API
 
@@ -39,6 +39,7 @@ import { Area } from 'react-native-system-ui'
 | `itemHeight` | 选项高度 | `number` | Picker 默认 |
 | `visibleItemCount` | 可见选项个数 | `number` | Picker 默认 |
 | `loading` | 是否显示加载状态 | `boolean` | `false` |
+| `interactionMode` | 交互同步策略，可选 `auto/freeze/sync` | `string` | `'sync'` |
 | `onChange` | 选项改变回调 | `(values: string[], options: AreaOption[]) => void` | - |
 | `onConfirm` | 点击确认回调 | `(values: string[], options: AreaOption[]) => void` | - |
 | `onCancel` | 点击取消回调 | `() => void` | - |

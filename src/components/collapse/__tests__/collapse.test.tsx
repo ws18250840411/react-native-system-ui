@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Pressable, Text } from 'react-native'
+import { Pressable, StyleSheet, Text } from 'react-native'
 
 import Collapse, { type CollapsePanelInstance } from '..'
 
@@ -97,5 +97,27 @@ describe('Collapse', () => {
 
     expect(tree.root.findAllByType(Pressable)).toHaveLength(0)
     expect(handleChange).not.toHaveBeenCalled()
+  })
+
+  it('renders disabled style for title/label/content', () => {
+    const disabledColor = 'rgb(1, 2, 3)'
+    const tree = renderer.create(
+      <Collapse
+        disabled
+        tokensOverride={{ colors: { disabled: disabledColor } }}
+      >
+        <Collapse.Item name="a" title="A" label="L">
+          内容
+        </Collapse.Item>
+      </Collapse>
+    )
+
+    const titleText = tree.root.findAllByType(Text).find(t => t.props.children === 'A')
+    const labelText = tree.root.findAllByType(Text).find(t => t.props.children === 'L')
+    const contentText = tree.root.findAllByType(Text).find(t => t.props.children === '内容')
+
+    expect(StyleSheet.flatten(titleText?.props.style)?.color).toBe(disabledColor)
+    expect(StyleSheet.flatten(labelText?.props.style)?.color).toBe(disabledColor)
+    expect(StyleSheet.flatten(contentText?.props.style)?.color).toBe(disabledColor)
   })
 })

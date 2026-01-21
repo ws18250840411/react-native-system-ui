@@ -122,7 +122,6 @@ const WheelPickerInner = <T extends PickerOption,>({
   const pendingTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const rafIdRef = React.useRef<number | null>(null)
   const isInteractingRef = React.useRef(false)
-  const pendingPropIndexRef = React.useRef<number | null>(null)
   const notifyInteractStart = React.useCallback(() => {
     if (readOnly) return
     if (isInteractingRef.current) return
@@ -179,10 +178,6 @@ const WheelPickerInner = <T extends PickerOption,>({
   React.useEffect(() => () => stopRaf(), [stopRaf])
   React.useEffect(() => {
     if (!isWeb) return
-    if (isInteractingRef.current) {
-      pendingPropIndexRef.current = safeSelectedIndex
-      return
-    }
     clearPendingTimer()
     pendingIndexRef.current = null
     setWebTransition(0)
@@ -199,21 +194,13 @@ const WheelPickerInner = <T extends PickerOption,>({
     clearPendingTimer()
     setWebTransition(0)
     notifyInteractEnd()
-    const pendingPropIndex = pendingPropIndexRef.current
-    pendingPropIndexRef.current = null
-    if (pendingPropIndex != null && pendingPropIndex !== safeSelectedIndex) {
-      const nextOffset = indexToOffset(pendingPropIndex, itemHeight)
-      webOffsetRef.current = nextOffset
-      setWebOffset(nextOffset)
-    }
     if (nextIndex !== safeSelectedIndex) onChange(nextIndex)
-  }, [clearPendingTimer, itemHeight, onChange, readOnly, safeSelectedIndex, setWebTransition])
+  }, [clearPendingTimer, onChange, readOnly, safeSelectedIndex, setWebTransition])
 
   const startWebSnap = React.useCallback(
     (targetIndex: number) => {
       if (readOnly) return
       notifyInteractStart()
-      pendingPropIndexRef.current = null
       const clampedIndex = clamp(targetIndex, 0, maxIndex)
       const targetOffset = indexToOffset(clampedIndex, itemHeight)
       clearPendingTimer()
@@ -343,7 +330,6 @@ const WheelPickerInner = <T extends PickerOption,>({
         onPanResponderGrant: () => {
           stopRaf()
           pendingIndexRef.current = null
-          pendingPropIndexRef.current = null
           notifyInteractStart()
           setWebTransition(0)
           startOffsetRef.current = webOffsetRef.current
@@ -383,7 +369,6 @@ const WheelPickerInner = <T extends PickerOption,>({
         onPanResponderTerminationRequest: () => false,
         onPanResponderTerminate: () => {
           notifyInteractEnd()
-          pendingPropIndexRef.current = null
           setWebTransition(0)
         },
       }),

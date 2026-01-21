@@ -1,0 +1,42 @@
+name-template: 'v$RESOLVED_VERSION 🌈'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '⭐ 新特性'
+    labels:
+      - '🧑‍🎄 feature'
+  - title: '💄 优化'
+    labels:
+      - '🧑‍🚀 enhance'
+      - '💄UI'
+  - title: '🐛 修复'
+    labels:
+      - '🕵️‍♂️ bug'
+autolabeler:
+  - label: '🧑‍🎄 feature'
+    branch:
+      - '/feat-.+/'
+    title:
+      - '/feat/i'
+  - label: '🕵️‍♂️ bug'
+    branch:
+      - '/fix-.+/'
+    title:
+      - '/fix/i'
+  - label: '🧑‍🚀 enhance'
+    branch:
+      - '/enhance-.+/'
+  - label: '💄UI'
+    branch:
+      - '/style-.+/'
+exclude-contributors:
+  - '3lang3'
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+template: |
+  ## 发布内容
+
+  $CHANGES
+
+  ***
+
+  完整内容，请参见 [comparison between $PREVIOUS_TAG and v$NEXT_MINOR_VERSION](https://github.com/3lang3/react-vant/compare/$PREVIOUS_TAG...v$NEXT_MINOR_VERSION)

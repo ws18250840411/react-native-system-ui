@@ -2292,7 +2292,7 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     demos: [
       {
         id: "basic",
-        title: "基础用法",
+        title: "basic",
         Component: AreaDemoBasic,
       },
     ],

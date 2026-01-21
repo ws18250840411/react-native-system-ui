@@ -318,7 +318,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
       return (
         <Text
           style={{
-            color: colors.description,
+            color: mergedDisabled ? colors.disabled : colors.description,
             fontSize: typography.descriptionSize,
             lineHeight: Math.round(typography.descriptionSize * 1.5),
           }}
@@ -378,8 +378,9 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
           disabled={mergedDisabled}
           onPress={readOnly ? undefined : handleToggle}
           accessibilityState={{ expanded: isActive, disabled: mergedDisabled }}
-          titleStyle={titleStyle}
-          labelStyle={descriptionStyle}
+          titleStyle={mergedDisabled ? [titleStyle, { color: colors.disabled }] : titleStyle}
+          labelStyle={mergedDisabled ? [descriptionStyle, { color: colors.disabled }] : descriptionStyle}
+          valueStyle={mergedDisabled ? { color: colors.disabled } : undefined}
           rightIcon={headerRightIcon}
         />
         {showHeaderBottomBorder ? (

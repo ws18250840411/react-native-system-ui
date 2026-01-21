@@ -23,21 +23,11 @@ export const usePickerValue = ({
   const preparedColumns = React.useMemo(() => prepareColumns(columns), [columns])
   const isControlled = valueProp !== undefined
 
-  const [innerValue, setInnerValue] = React.useState<PickerValue[]>(() =>
-    toArrayValue(valueProp ?? defaultValue ?? []),
-  )
-
-  const mergedValue = React.useMemo(
-    () => (isControlled ? toArrayValue(valueProp) : innerValue),
-    [innerValue, isControlled, valueProp],
-  )
-
-  const normalized = React.useMemo(
-    () => normalizePicker(preparedColumns, mergedValue),
-    [preparedColumns, mergedValue],
-  )
-
-  const didInitRef = React.useRef(false)
+  const [innerValue, setInnerValue] = React.useState<PickerValue[]>(() => {
+    const initial = toArrayValue(valueProp ?? defaultValue ?? [])
+    return normalizePicker(preparedColumns, initial).values
+  })
+  const innerValueRef = React.useRef(innerValue)
 
   React.useEffect(() => {
     if (!isControlled) return
@@ -45,20 +35,20 @@ export const usePickerValue = ({
     if (!shallowEqualArray(innerValue, next)) {
       setInnerValue(next)
     }
-  }, [innerValue, isControlled, valueProp])
+  }, [isControlled, valueProp])
+
+  React.useEffect(() => {
+    innerValueRef.current = innerValue
+  }, [innerValue])
+
+  const normalized = React.useMemo(
+    () => normalizePicker(preparedColumns, innerValue),
+    [preparedColumns, innerValue],
+  )
 
   React.useEffect(() => {
     if (isControlled) return
-
-    if (!didInitRef.current) {
-      didInitRef.current = true
-      if (!shallowEqualArray(innerValue, normalized.values)) {
-        setInnerValue(normalized.values)
-      }
-      return
-    }
-
-    if (!shallowEqualArray(mergedValue, normalized.values)) {
+    if (!shallowEqualArray(innerValue, normalized.values)) {
       setInnerValue(normalized.values)
       onChange?.(normalized.values, normalized.options)
       if (emitConfirmOnAutoSelect) {
@@ -69,7 +59,6 @@ export const usePickerValue = ({
     emitConfirmOnAutoSelect,
     innerValue,
     isControlled,
-    mergedValue,
     normalized.options,
     normalized.values,
     onChange,
@@ -78,19 +67,21 @@ export const usePickerValue = ({
 
   const handleSelect = React.useCallback(
     (option: PickerOption, columnIndex: number) => {
-      const base = [...mergedValue]
-      base[columnIndex] = option.value
+      const next = [...innerValueRef.current]
+      next[columnIndex] = option.value
 
-      const next = normalizePicker(preparedColumns, base)
-
-      if (!isControlled) {
-        setInnerValue(next.values)
+      if (preparedColumns.type === 'cascade') {
+        next.length = columnIndex + 1
       }
-      if (!shallowEqualArray(normalized.values, next.values)) {
-        onChange?.(next.values, next.options)
+
+      const final = normalizePicker(preparedColumns, next)
+      setInnerValue(final.values)
+
+      if (!shallowEqualArray(normalized.values, final.values)) {
+        onChange?.(final.values, final.options)
       }
     },
-    [mergedValue, preparedColumns, isControlled, normalized.values, onChange],
+    [normalized.values, onChange, preparedColumns],
   )
 
   const handleConfirm = React.useCallback(() => {

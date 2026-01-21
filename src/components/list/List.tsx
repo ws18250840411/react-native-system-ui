@@ -47,13 +47,20 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const mergedError = errorControlled ? !!error : innerError
 
   const loadingRef = React.useRef(false)
+  const mergedLoadingRef = React.useRef(mergedLoading)
+  const mergedErrorRef = React.useRef(mergedError)
   const containerMainSizeRef = React.useRef(0)
   const contentMainSizeRef = React.useRef(0)
 
-  const triggerLoad = async (isRetry: boolean) => {
+  React.useEffect(() => {
+    mergedLoadingRef.current = mergedLoading
+    mergedErrorRef.current = mergedError
+  }, [mergedLoading, mergedError])
+
+  const triggerLoad = React.useCallback(async (isRetry: boolean) => {
     if (!onLoad || finished) return
-    if (loadingRef.current || mergedLoading) return
-    if (mergedError && !isRetry) return
+    if (loadingRef.current || mergedLoadingRef.current) return
+    if (mergedErrorRef.current && !isRetry) return
 
     loadingRef.current = true
     if (!loadingControlled) setInnerLoading(true)
@@ -66,39 +73,39 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
       loadingRef.current = false
       if (!loadingControlled) setInnerLoading(false)
     }
-  }
+  }, [errorControlled, finished, loadingControlled, onLoad])
 
-  const check = () => {
-    if (mergedLoading || mergedError) return
+  const check = React.useCallback(() => {
+    if (mergedLoadingRef.current || mergedErrorRef.current) return
     if (!containerMainSizeRef.current) return
     if (contentMainSizeRef.current <= containerMainSizeRef.current && !finished) {
       triggerLoad(false)
     }
-  }
+  }, [finished, triggerLoad])
 
   React.useImperativeHandle(ref, () => ({ check }), [check])
 
-  const handleScroll = (event: any) => {
+  const handleScroll = React.useCallback((event: any) => {
     onScroll?.(event)
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent
     const distance = horizontal
       ? contentSize.width - (layoutMeasurement.width + contentOffset.x)
       : contentSize.height - (layoutMeasurement.height + contentOffset.y)
     if (distance <= offset) triggerLoad(false)
-  }
+  }, [horizontal, offset, onScroll, triggerLoad])
 
-  const handleContentSizeChange = (width: number, height: number) => {
+  const handleContentSizeChange = React.useCallback((width: number, height: number) => {
     onContentSizeChange?.(width, height)
     contentMainSizeRef.current = horizontal ? width : height
     if (immediateCheck) check()
-  }
+  }, [check, horizontal, immediateCheck, onContentSizeChange])
 
-  const handleLayout = (event: any) => {
+  const handleLayout = React.useCallback((event: any) => {
     onLayout?.(event)
     const { layout } = event.nativeEvent
     containerMainSizeRef.current = horizontal ? layout.width : layout.height
     if (immediateCheck) check()
-  }
+  }, [check, horizontal, immediateCheck, onLayout])
 
   const retry = () => triggerLoad(true)
 

@@ -84,6 +84,7 @@
 | picker | 已冻结 ✅ | 极致精简版：虚拟渲染与滚动节奏自适应；惯性与边界收敛；核心逻辑单测补齐 |
 | overlay | 持续优化 ✅ | 极致精简版：栈/zIndex/遮罩；Token 对齐；单测通过 |
 | calendar | 已冻结 ✅ | 极致精简版：选择值归一；选中态缓存；无 any；单测通过 |
+| datetime-picker | 已冻结 ✅ | 极致精简版：列联动一致；Web 互不干扰；无 any |
 
 ### C 组（持续优化）
 
@@ -94,12 +95,11 @@
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
 | circle | 持续优化 ✅ | Web/Native 渲染方案差异（svg/gradient）+动画 |
-| collapse | 持续优化 ✅ | 测量+展开动画+性能敏感 |
+| collapse | 持续优化 ✅ | 测量+展开动画+性能敏感；disabled 置灰（title/label/value/content）与禁用交互一致 |
 | config-provider | 持续优化 ✅ | 全局基础设施，影响面大 |
-| datetime-picker | 持续优化 ✅ | Picker+日期逻辑，三端细节多 |
 | dropdown-menu | 持续优化 ✅ | 定位测量/滚动场景多端差异 |
 | field | 持续优化 ✅ | 输入/键盘/输入法差异的核心承载 |
-| form | 持续优化 ✅ | 校验/依赖/异步校验与边界多 |
+| form | 持续优化 ✅ | 校验/依赖/异步校验与边界多；类型收敛（setValueByName 返回值/上下文 form null 兼容） |
 | image-preview | 持续优化 ✅ | Portal+Swiper+手势/关闭链路 |
 | index-bar | 持续优化 ✅ | 手势/滚动/定位，三端一致性敏感 |
 | input | 持续优化 ✅ | TextInput/autoSize/composition 等差异 |
@@ -112,7 +112,7 @@
 | slider | 持续优化 ✅ | 拖拽手势与滚动冲突，高风险 |
 | stepper | 持续优化 ✅ | TextInput+长按/边界与交互多 |
 | swipe-cell | 持续优化 ✅ | 滑动手势/点击回收/滚动冲突，高风险 |
-| swiper | 持续优化 ✅ | 滑动/循环/指示器/虚拟化，多端差异 |
+| swiper | 持续优化 ✅ | 滑动/循环/指示器/虚拟化，多端差异；Ref 跳转同页不锁死；native 滚动结束兜底避免队列卡住；ref 连点以“目标页”计算并尽快发起 scrollToIndex |
 | tabbar | 持续优化 ✅ | 动画/安全区/fixed 布局与交互 |
 | tabs | 持续优化 ✅ | swipeable/指示器/滚动/测量复杂 |
 | toast | 持续优化 ✅ | 弹层/队列/静态 API/关闭链路 |

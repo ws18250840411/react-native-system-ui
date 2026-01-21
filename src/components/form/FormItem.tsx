@@ -75,7 +75,7 @@ export const FormItem: React.FC<FormItemProps> = ({
     const node = children({
       getFieldValue: context.getFieldValue,
       getFieldsValue: context.getFieldsValue,
-      form: context.form,
+      form: context.form ?? null,
     })
     return <>{node}</>
   }

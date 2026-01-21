@@ -2,7 +2,6 @@ import React from 'react'
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
-import { getHairlineWidth } from '../../utils/hairline'
 import { isFunction, isText } from '../../utils/validate'
 import { useTagTokens } from './tokens'
 import type { TagProps } from './types'

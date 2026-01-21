@@ -26,8 +26,14 @@ const isColumnWithOptions = (col: PickerColumn | PickerOption): col is { options
   'options' in col &&
   Array.isArray((col as { options?: unknown }).options)
 
-const hasChildren = (option: PickerOption) =>
-  !!option && Array.isArray(option.children) && (option.children as PickerOption[]).length > 0
+const hasChildren = (option: PickerOption) => {
+  return (
+    !!option &&
+    isObject(option) &&
+    Array.isArray((option as any).children) &&
+    (option as any).children.length > 0
+  )
+}
 
 export const findEnabledIndex = (options: PickerOption[], startIndex: number) => {
   if (!options.length) return -1
@@ -54,10 +60,16 @@ const normalizeMultiple = (
     const current = rawValue[index]
     const defaultIndex = defaults[index] !== undefined ? opts.findIndex(item => item.value === defaults[index]) : -1
     const currentIndex = opts.findIndex(item => item.value === current)
+    
+    // 如果 currentIndex >= 0，说明当前值在选项中，直接使用
+    // 否则尝试使用 defaultValue，再否则使用第一个选项
     const startIndex = currentIndex >= 0 ? currentIndex : defaultIndex >= 0 ? defaultIndex : 0
     const targetIndex = findEnabledIndex(opts, startIndex)
     const target = targetIndex >= 0 ? opts[targetIndex] : undefined
-    values[index] = (target?.value ?? current ?? defaults[index] ?? opts[0]?.value) as PickerValue
+    
+    // 修正：只有当当前值存在且未被禁用时，才保留当前值
+    const isCurrentValid = currentIndex >= 0 && !opts[currentIndex]?.disabled
+    values[index] = (isCurrentValid ? current : (target?.value ?? defaults[index] ?? opts[0]?.value)) as PickerValue
     options[index] = target
   })
 
@@ -75,14 +87,22 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
 
   let currentOptions: PickerOption[] | undefined = rootOptions
   let depth = 0
-  while (currentOptions && currentOptions.length) {
+  
+  // 限制最大深度，防止数据异常导致死循环
+  while (currentOptions && currentOptions.length && depth < 10) {
     columns.push(currentOptions)
     const current = rawValue[depth]
-    const startIndex = currentOptions.findIndex(item => item.value === current)
+    
+    // 使用更宽松的匹配逻辑，并优先保证匹配到 startIndex
+    const startIndex = currentOptions.findIndex(item => 
+      item.value === current || String(item.value) === String(current)
+    )
+    
     const targetIndex = findEnabledIndex(currentOptions, startIndex >= 0 ? startIndex : 0)
     const target: PickerOption | undefined =
-      targetIndex >= 0 ? currentOptions[targetIndex] : undefined
-    values[depth] = (target?.value ?? current) as PickerValue
+      targetIndex >= 0 ? currentOptions[targetIndex] : currentOptions[0]
+    
+    values[depth] = target?.value as PickerValue
     options[depth] = target
 
     if (target && hasChildren(target)) {

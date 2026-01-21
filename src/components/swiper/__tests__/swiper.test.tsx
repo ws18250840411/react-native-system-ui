@@ -1,3 +1,17 @@
+var mockScrollToIndex: jest.Mock
+
+jest.mock('react-native', () => {
+  const React = require('react')
+  const actual = jest.requireActual('react-native')
+  mockScrollToIndex = jest.fn()
+  const FlatList = React.forwardRef((_props: any, ref: any) => {
+    React.useImperativeHandle(ref, () => ({ scrollToIndex: mockScrollToIndex }))
+    return null
+  })
+  FlatList.displayName = 'FlatList'
+  return { ...actual, FlatList }
+})
+
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
 import { Text, FlatList, Platform, View } from 'react-native'
@@ -10,6 +24,7 @@ describe('Swiper', () => {
   beforeEach(() => {
     jest.useFakeTimers()
     Platform.OS = 'ios'
+    mockScrollToIndex.mockClear()
   })
 
   afterEach(() => {
@@ -122,5 +137,49 @@ describe('Swiper', () => {
 
     const flatList = tree.root.findByType(FlatList)
     expect(flatList.props.snapToOffsets).toEqual([20, 140])
+  })
+
+  it('does not block subsequent ref commands when targeting current index', () => {
+    const swiperRef = React.createRef<any>()
+
+    renderer.create(
+      <Swiper ref={swiperRef} testID="ref-swiper">
+        <Swiper.Item><Text>1</Text></Swiper.Item>
+        <Swiper.Item><Text>2</Text></Swiper.Item>
+        <Swiper.Item><Text>3</Text></Swiper.Item>
+      </Swiper>,
+    )
+
+    act(() => {
+      swiperRef.current?.goToFirstIndex()
+      swiperRef.current?.swipeNext()
+    })
+
+    expect(mockScrollToIndex).toHaveBeenCalledTimes(1)
+    expect(mockScrollToIndex).toHaveBeenLastCalledWith({ index: 2, animated: true })
+
+    act(() => {
+      jest.runOnlyPendingTimers()
+    })
+  })
+
+  it('responds immediately to multiple ref commands', () => {
+    const swiperRef = React.createRef<any>()
+
+    renderer.create(
+      <Swiper ref={swiperRef} testID="ref-swiper-multi">
+        <Swiper.Item><Text>1</Text></Swiper.Item>
+        <Swiper.Item><Text>2</Text></Swiper.Item>
+        <Swiper.Item><Text>3</Text></Swiper.Item>
+      </Swiper>,
+    )
+
+    act(() => {
+      swiperRef.current?.swipeNext()
+      swiperRef.current?.swipeNext()
+    })
+
+    expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 2, animated: true })
+    expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 3, animated: true })
   })
 })

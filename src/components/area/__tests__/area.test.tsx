@@ -64,6 +64,17 @@ describe('Area', () => {
     expect(picker.props.defaultValue).toEqual(['110000', '110100', '110101'])
   })
 
+  it('normalizes value path when descendants mismatch', () => {
+    const tree = renderer.create(
+      <Area
+        areaList={areaList}
+        value={['110000', '310100', '310101']}
+      />,
+    )
+    const picker = tree.root.findByType(Picker)
+    expect(picker.props.value).toEqual(['110000', '110100', '110101'])
+  })
+
   it('keeps root columns length when columnsNum is 2', () => {
     const tree = renderer.create(<Area areaList={areaList} columnsNum={2} />)
     const picker = tree.root.findByType(Picker)

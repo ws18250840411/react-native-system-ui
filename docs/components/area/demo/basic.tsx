@@ -1,16 +1,20 @@
 import React from 'react'
-import { View } from 'react-native'
+import { Platform, StyleSheet, Text, View } from 'react-native'
 
 import { Area, Button, Field, Tabs } from 'react-native-system-ui'
 
 import { areaList } from './areaList'
 
 function BasicDemo() {
-  return <Area areaList={areaList} title="选择地区" />
+  const [value, setValue] = React.useState<string[]>(['110000', '110100', '110101'])
+  return <Area areaList={areaList} value={value} onChange={setValue} title="选择地区" />
 }
 
 function ColumnsDemo() {
-  return <Area areaList={areaList} columnsNum={2} title="省市选择" />
+  const [value, setValue] = React.useState<string[]>(['110000', '110100'])
+  return (
+    <Area areaList={areaList} columnsNum={2} value={value} onChange={setValue} title="省市选择" />
+  )
 }
 
 function ControlledDemo() {
@@ -33,7 +37,30 @@ function ControlledDemo() {
   )
 }
 
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <View style={styles.section}>
+    <Text style={styles.title}>{title}</Text>
+    {children}
+  </View>
+)
+
 export default function AreaTabbedDemo() {
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.list}>
+        <Section title="基础用法">
+          <BasicDemo />
+        </Section>
+        <Section title="列数切换">
+          <ColumnsDemo />
+        </Section>
+        <Section title="受控模式">
+          <ControlledDemo />
+        </Section>
+      </View>
+    )
+  }
+
   return (
     <Tabs
       defaultActive="basic"
@@ -56,3 +83,17 @@ export default function AreaTabbedDemo() {
     </Tabs>
   )
 }
+
+const styles = StyleSheet.create({
+  list: {
+    gap: 16,
+  },
+  section: {
+    gap: 12,
+  },
+  title: {
+    fontSize: 14,
+    color: '#323233',
+    fontWeight: '600',
+  },
+})

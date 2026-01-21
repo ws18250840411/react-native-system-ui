@@ -1,0 +1,6 @@
+dist
+node_modules
+typings
+commitlint.config.js
+packages/*/tests/*.ts
+

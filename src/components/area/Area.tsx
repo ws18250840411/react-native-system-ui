@@ -13,6 +13,7 @@ const Area: React.FC<AreaProps> = props => {
     defaultValue,
     onChange,
     onConfirm,
+    interactionMode = 'sync',
     ...pickerProps
   } = props
 
@@ -41,6 +42,7 @@ const Area: React.FC<AreaProps> = props => {
     <Picker
       {...pickerProps}
       columns={columns}
+      interactionMode={interactionMode}
       value={value}
       defaultValue={defaultValue}
       onChange={onChange ? handleChange : undefined}

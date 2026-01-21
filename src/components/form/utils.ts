@@ -37,9 +37,9 @@ export const getValueByName = (source: unknown, name: NamePath): unknown => {
   }, source)
 }
 
-export const setValueByName = (source: unknown, name: NamePath, value: unknown) => {
+export const setValueByName = (source: Record<string, unknown>, name: NamePath, value: unknown): Record<string, unknown> => {
   const path = toNamePath(name)
-  if (!path.length) return value
+  if (!path.length) return source
   const clone =
     Array.isArray(source)
       ? [...source]
@@ -79,5 +79,5 @@ export const setValueByName = (source: unknown, name: NamePath, value: unknown) 
     }
     cursor = nextContainer as Record<string, unknown> | unknown[]
   })
-  return clone
+  return clone as Record<string, unknown>
 }

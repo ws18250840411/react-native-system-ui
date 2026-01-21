@@ -114,8 +114,18 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const nativeMomentumRef = useRef(false)
   const prevIndexRef = useRef<number>(initialSwipeValue)
   const currentDisplayIndexRef = useRef<number>(initialSwipeValue)
+  const desiredIndexRef = useRef<number>(initialSwipeValue)
   const isWeb = Platform.OS === 'web'
   const nativeQueuedScrollRef = useRef<{ index: number; animated: boolean } | null>(null)
+  const nativeScrollSeqRef = useRef(0)
+  const nativeScrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearNativeScrollEndTimer = useCallback(() => {
+    if (nativeScrollEndTimerRef.current) {
+      clearTimeout(nativeScrollEndTimerRef.current)
+      nativeScrollEndTimerRef.current = null
+    }
+  }, [])
 
   const validChildren = useMemo(() => {
     if (children) {
@@ -322,8 +332,36 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     return () => {
       cancelWebRaf()
       stopWebSnapAnim()
+      clearNativeScrollEndTimer()
     }
-  }, [])
+  }, [clearNativeScrollEndTimer])
+
+  const finishNativeScroll = useCallback(() => {
+    clearNativeScrollEndTimer()
+    isScrollingRef.current = false
+    nativeMomentumRef.current = false
+    const queued = nativeQueuedScrollRef.current
+    if (queued && flatListRef.current) {
+      nativeQueuedScrollRef.current = null
+      const nextRealIndex = getDisplayIndex(queued.index)
+      runAfterFrames(1, () => {
+        swipeToRef.current(nextRealIndex, queued.animated)
+      })
+    }
+  }, [clearNativeScrollEndTimer, getDisplayIndex])
+
+  const scheduleNativeScrollFallback = useCallback(() => {
+    clearNativeScrollEndTimer()
+    const seq = nativeScrollSeqRef.current + 1
+    nativeScrollSeqRef.current = seq
+    const timeout = Math.max(700, durationMs + 500)
+    nativeScrollEndTimerRef.current = setTimeout(() => {
+      if (nativeScrollSeqRef.current !== seq) return
+      if (isDraggingRef.current) return
+      if (!isScrollingRef.current) return
+      finishNativeScroll()
+    }, timeout)
+  }, [clearNativeScrollEndTimer, durationMs, finishNativeScroll])
 
   const webTrackTransform = useMemo(() => {
     if (vertical) {
@@ -343,7 +381,8 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const currentRef = useRef(current)
   useEffect(() => {
     currentRef.current = current
-  }, [current])
+    desiredIndexRef.current = getDisplayIndex(current)
+  }, [current, getDisplayIndex])
 
   const handleItemLayout = useCallback(
     (displayIndex: number, e: LayoutChangeEvent) => {
@@ -410,8 +449,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
       if (count === 0) return
 
       const clampedIndex = clamp(index, 0, count - 1)
+      desiredIndexRef.current = clampedIndex
       const currentIndex = currentRef.current
-      const displayIndex = getDisplayIndex(currentIndex)
+      const displayIndex = desiredIndexRef.current
 
       let targetIndex: number
       let needsJump = false
@@ -437,6 +477,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
       }
 
       if (isWeb) {
+        if (!needsJump && targetIndex === currentIndex) return
         stopWebSnapAnim()
         const offset = shouldLoop
           ? -targetIndex * slideSizeValue
@@ -494,11 +535,29 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
           setCurrentSafe(targetIndex)
         }
       } else if (flatListRef.current) {
-        if (isScrollingRef.current && animated) {
+        if (!needsJump && targetIndex === currentIndex) {
+          finishNativeScroll()
+          return
+        }
+        if (isDraggingRef.current && animated) {
           nativeQueuedScrollRef.current = { index: targetIndex, animated }
           return
         }
+        if (isScrollingRef.current && animated) {
+          nativeQueuedScrollRef.current = { index: targetIndex, animated }
+          scheduleNativeScrollFallback()
+          try {
+            flatListRef.current.scrollToIndex({ index: targetIndex, animated: true })
+          } catch {
+          }
+          return
+        }
         isScrollingRef.current = true
+        if (animated) {
+          scheduleNativeScrollFallback()
+        } else {
+          clearNativeScrollEndTimer()
+        }
         try {
           flatListRef.current.scrollToIndex({
             index: targetIndex,
@@ -509,23 +568,19 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
           nativeQueuedScrollRef.current = { index: targetIndex, animated }
           return
         }
+        if (!animated) {
+          setCurrentSafe(targetIndex)
+        }
         if (needsJump && jumpDisplayIndex != null && !animated) {
           runAfterFrames(2, () => {
             flatListRef.current?.scrollToIndex({ index: jumpDisplayIndex!, animated: false })
             setCurrentSafe(jumpDisplayIndex!)
           })
-        } else if (!animated) {
-          setCurrentSafe(targetIndex)
         }
 
         if (!animated) {
           runAfterFrames(1, () => {
-            isScrollingRef.current = false
-            const queued = nativeQueuedScrollRef.current
-            if (queued && flatListRef.current) {
-              nativeQueuedScrollRef.current = null
-              swipeTo(getDisplayIndex(queued.index), queued.animated)
-            }
+            finishNativeScroll()
           })
         }
       }
@@ -544,6 +599,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
       stopWebSnapAnim,
       setCurrentSafe,
       durationMs,
+      clearNativeScrollEndTimer,
+      finishNativeScroll,
+      scheduleNativeScrollFallback,
     ]
   )
 
@@ -554,22 +612,23 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
 
   const swipeNext = useCallback(() => {
     if (count === 0) return
-    const displayIndex = getDisplayIndex(currentRef.current)
-    const nextIndex = displayIndex === count - 1 ? 0 : displayIndex + 1
+    const baseIndex = desiredIndexRef.current
+    const nextIndex = baseIndex === count - 1 ? 0 : baseIndex + 1
     swipeTo(nextIndex)
-  }, [count, getDisplayIndex, swipeTo])
+  }, [count, swipeTo])
 
   const swipePrev = useCallback(() => {
     if (count === 0) return
-    const displayIndex = getDisplayIndex(currentRef.current)
-    const prevIndex = displayIndex === 0 ? count - 1 : displayIndex - 1
+    const baseIndex = desiredIndexRef.current
+    const prevIndex = baseIndex === 0 ? count - 1 : baseIndex - 1
     swipeTo(prevIndex)
-  }, [count, getDisplayIndex, swipeTo])
+  }, [count, swipeTo])
 
   const handleNativeScrollEndByOffset = useCallback(
     (offset: number) => {
       if (count === 0) return
 
+      clearNativeScrollEndTimer()
       isScrollingRef.current = false
       nativeMomentumRef.current = false
 
@@ -594,6 +653,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
       }
 
       setCurrentSafe(index)
+      desiredIndexRef.current = getDisplayIndex(index)
 
       const queued = nativeQueuedScrollRef.current
       if (queued && flatListRef.current) {
@@ -604,7 +664,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
         })
       }
     },
-    [count, displayCount, getDisplayIndex, setCurrentSafe, shouldLoop, slideSizeValue, swipeTo]
+    [clearNativeScrollEndTimer, count, displayCount, getDisplayIndex, setCurrentSafe, shouldLoop, slideSizeValue, swipeTo]
   )
 
   const handleScrollEnd = useCallback(
