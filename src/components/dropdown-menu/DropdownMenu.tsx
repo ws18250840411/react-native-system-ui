@@ -13,9 +13,14 @@ import { useDropdownMenuTokens } from './tokens'
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 const isSameFrame = (
-  prev: { y: number; height: number } | null,
-  next: { y: number; height: number }
-) => prev != null && Math.abs(prev.y - next.y) < 0.5 && Math.abs(prev.height - next.height) < 0.5
+  prev: { x: number; y: number; width: number; height: number } | null,
+  next: { x: number; y: number; width: number; height: number }
+) =>
+  prev != null &&
+  Math.abs(prev.x - next.x) < 0.5 &&
+  Math.abs(prev.y - next.y) < 0.5 &&
+  Math.abs(prev.width - next.width) < 0.5 &&
+  Math.abs(prev.height - next.height) < 0.5
 
 const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((props, ref) => {
   const {
@@ -26,7 +31,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     disabled = false,
     zIndex: zIndexProp = 10,
     duration,
-    overlay = true,
+    overlay = false,
     closeOnClickOverlay = true,
     closeOnClickOutside = true,
     swipeThreshold,
@@ -52,8 +57,14 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   const [mounted, setMounted] = React.useState(false)
   const [barHeight, setBarHeight] = React.useState(0)
   const barRef = React.useRef<View>(null)
-  const [barFrame, setBarFrame] = React.useState<{ y: number; height: number } | null>(null)
-  const { height: windowHeight } = useWindowDimensions()
+  const [barFrame, setBarFrame] = React.useState<{
+    x: number
+    y: number
+    width: number
+    height: number
+  } | null>(null)
+  const [barWidth, setBarWidth] = React.useState(0)
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions()
 
   const panelRegistryRef = React.useRef(new Map<number, React.ReactNode>())
 
@@ -137,23 +148,39 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     const node = barRef.current
 
     if (!node) {
-      const fallback = { y: 0, height: fallbackHeight ?? barHeight }
+      const fallback = {
+        x: 0,
+        y: 0,
+        width: barWidth || windowWidth,
+        height: fallbackHeight ?? barHeight,
+      }
       setBarFrame(prev => (isSameFrame(prev, fallback) ? prev : fallback))
       return
     }
 
     measureInWindow(node, rect => {
       if (rect) {
-        const next = { y: rect.y, height: rect.height }
-        if (!Number.isFinite(next.y) || !Number.isFinite(next.height)) return
+        const next = { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+        if (
+          !Number.isFinite(next.x) ||
+          !Number.isFinite(next.y) ||
+          !Number.isFinite(next.width) ||
+          !Number.isFinite(next.height)
+        )
+          return
         setBarFrame(prev => (isSameFrame(prev, next) ? prev : next))
         return
       }
 
-      const fallback = { y: 0, height: fallbackHeight ?? barHeight }
+      const fallback = {
+        x: 0,
+        y: 0,
+        width: barWidth || windowWidth,
+        height: fallbackHeight ?? barHeight,
+      }
       setBarFrame(prev => (isSameFrame(prev, fallback) ? prev : fallback))
     })
-  }, [barHeight])
+  }, [barHeight, barWidth, windowWidth])
 
   const prevActiveIndexRef = React.useRef<number | null>(null)
   React.useEffect(() => {
@@ -226,12 +253,18 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const resolvedBarTop = barFrame?.y ?? 0
   const resolvedBarHeight = barFrame?.height ?? barHeight
+  const resolvedBarLeft = barFrame?.x ?? 0
+  const resolvedBarWidth = barFrame?.width ?? (barWidth || windowWidth)
   const resolvedBarBottom = resolvedBarTop + resolvedBarHeight
   const bottomInset = Math.max(0, windowHeight - resolvedBarTop)
 
   const insetStyle = React.useMemo(
     () => (direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }),
     [bottomInset, direction, resolvedBarBottom],
+  )
+  const panelPositionStyle = React.useMemo(
+    () => ({ left: resolvedBarLeft, width: resolvedBarWidth }),
+    [resolvedBarLeft, resolvedBarWidth],
   )
   const panelRadiusStyle = direction === 'up' ? styles.panelUp : styles.panelDown
 
@@ -287,9 +320,10 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   )
 
   const handleBarLayout = React.useCallback(
-    (event: { nativeEvent: { layout: { height: number } } }) => {
-      const { height } = event.nativeEvent.layout
+    (event: { nativeEvent: { layout: { height: number; width: number } } }) => {
+      const { height, width } = event.nativeEvent.layout
       setBarHeight(height)
+      setBarWidth(width)
       requestMeasure(height)
     },
     [requestMeasure],
@@ -347,6 +381,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
                 style={[
                   styles.panel,
                   insetStyle,
+                  panelPositionStyle,
                   panelRadiusStyle,
                   panelAnimatedStyle,
                   {
@@ -392,8 +427,6 @@ const styles = StyleSheet.create({
   },
   panel: {
     position: 'absolute',
-    left: 0,
-    right: 0,
     overflow: 'hidden',
   },
   panelUp: {
