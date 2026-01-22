@@ -26,6 +26,17 @@ export const useOverlayStack = ({
 }: UseOverlayStackOptions): UseOverlayStackResult => {
   const entries = useOverlayEntries()
   const entryRef = React.useRef<OverlayStackEntry | null>(null)
+  const stableOptions = React.useMemo(
+    () => options,
+    [
+      options.onClose,
+      options.closeOnBack,
+      options.lockScroll,
+      options.zIndex,
+      options.type,
+      options.meta,
+    ]
+  )
 
   React.useEffect(() => {
     if (!visible) {
@@ -35,7 +46,7 @@ export const useOverlayStack = ({
       }
       return
     }
-    const entry = overlayStackStore.mount(options)
+    const entry = overlayStackStore.mount(stableOptions)
     entryRef.current = entry
     return () => {
       if (entryRef.current) {
@@ -49,8 +60,8 @@ export const useOverlayStack = ({
     if (!visible || !entryRef.current) {
       return
     }
-    overlayStackStore.update(entryRef.current.key, options)
-  }, [visible, options.onClose, options.closeOnBack, options.lockScroll, options.zIndex, options.type])
+    overlayStackStore.update(entryRef.current.key, stableOptions)
+  }, [stableOptions, visible])
 
   const current = entryRef.current
   const snapshotEntry = current
@@ -61,7 +72,7 @@ export const useOverlayStack = ({
 
   return {
     entryKey: snapshotEntry?.key ?? null,
-    zIndex: snapshotEntry?.zIndex ?? options.zIndex,
+    zIndex: snapshotEntry?.zIndex ?? stableOptions.zIndex,
     isTopMost: !!snapshotEntry && (!!top && top.key === snapshotEntry.key),
   }
 }

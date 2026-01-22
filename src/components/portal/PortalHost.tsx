@@ -142,7 +142,6 @@ const mountPortal = (children: React.ReactNode, key?: number) => {
 const updatePortal = (key: number, children: React.ReactNode) => {
   const prev = portalEntries.get(key)
   if (prev) {
-    if (prev.children === children) return
     prev.children = children
     prev.zIndex = getMaxZIndex(children)
   } else {

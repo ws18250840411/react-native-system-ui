@@ -17,7 +17,6 @@ const usePortalManager = () => React.useContext(PortalContext) ?? globalManager
 const PortalComponent: React.FC<PortalProps> = ({ children }) => {
   const manager = usePortalManager()
   const keyRef = React.useRef<number | null>(null)
-  const lastChildrenRef = React.useRef<React.ReactNode>(null)
 
   React.useLayoutEffect(() => {
     if (manager === globalManager) {
@@ -26,21 +25,17 @@ const PortalComponent: React.FC<PortalProps> = ({ children }) => {
 
     const key = manager.mount(children ?? null)
     keyRef.current = key
-    lastChildrenRef.current = children ?? null
     return () => {
       if (keyRef.current !== null) {
         manager.unmount(keyRef.current)
         keyRef.current = null
       }
-      lastChildrenRef.current = null
     }
   }, [manager])
 
   React.useLayoutEffect(() => {
     if (keyRef.current === null) return
-    if (lastChildrenRef.current === children) return
     manager.update(keyRef.current, children ?? null)
-    lastChildrenRef.current = children ?? null
   }, [children, manager])
 
   return null

@@ -85,6 +85,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   const [errors, setErrors] = React.useState<Record<string, string[]>>({})
   const lastInitialValuesRef = React.useRef<Record<string, unknown>>(mergedInitialValues)
   const fieldsRef = React.useRef<Record<string, RegisteredFieldOptions & { name: NamePath }>>({})
+  const dependencyGraphRef = React.useRef(new Map<string, Set<string>>())
   const valuesRef = React.useRef(values)
   const errorsRef = React.useRef(errors)
   const validationSeqRef = React.useRef<Record<string, number>>({})
@@ -125,7 +126,30 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 
   const registerField = React.useCallback((name: NamePath, options: RegisteredFieldOptions) => {
     const key = serializeNamePath(name)
+    const prev = fieldsRef.current[key]
+    if (prev?.dependencies?.length) {
+      for (const dep of prev.dependencies) {
+        const depKey = serializeNamePath(dep)
+        const set = dependencyGraphRef.current.get(depKey)
+        if (!set) continue
+        set.delete(key)
+        if (!set.size) dependencyGraphRef.current.delete(depKey)
+      }
+    }
+
     fieldsRef.current[key] = { ...options, name }
+
+    if (options.dependencies?.length) {
+      for (const dep of options.dependencies) {
+        const depKey = serializeNamePath(dep)
+        const set = dependencyGraphRef.current.get(depKey)
+        if (set) {
+          set.add(key)
+        } else {
+          dependencyGraphRef.current.set(depKey, new Set([key]))
+        }
+      }
+    }
 
     if (options.initialValue !== undefined) {
       const existsInInitial = getValueByName(lastInitialValuesRef.current, name)
@@ -144,7 +168,17 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     }
 
     return () => {
+      const current = fieldsRef.current[key]
       delete fieldsRef.current[key]
+      if (current?.dependencies?.length) {
+        for (const dep of current.dependencies) {
+          const depKey = serializeNamePath(dep)
+          const set = dependencyGraphRef.current.get(depKey)
+          if (!set) continue
+          set.delete(key)
+          if (!set.size) dependencyGraphRef.current.delete(depKey)
+        }
+      }
       setFieldErrors(name, [])
     }
   }, [setFieldErrors])
@@ -229,9 +263,11 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         valuesRef.current = next
         onValuesChange?.(next, nameKey, value)
         runFieldValidation(name, trigger, value, next)
-        for (const fieldName in fieldsRef.current) {
-          const meta = fieldsRef.current[fieldName]
-          if (meta.dependencies?.some(dep => serializeNamePath(dep) === nameKey)) {
+        const dependents = dependencyGraphRef.current.get(nameKey)
+        if (dependents?.size) {
+          for (const dependentKey of dependents) {
+            const meta = fieldsRef.current[dependentKey]
+            if (!meta) continue
             runFieldValidation(meta.name, trigger, getValueByName(next, meta.name), next)
           }
         }
@@ -264,6 +300,14 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
           merged = setValueByName(merged, key, newVal)
           onValuesChange?.(merged, key, newVal)
           runFieldValidation(key, undefined, newVal, merged)
+          const dependents = dependencyGraphRef.current.get(key)
+          if (dependents?.size) {
+            for (const dependentKey of dependents) {
+              const meta = fieldsRef.current[dependentKey]
+              if (!meta) continue
+              runFieldValidation(meta.name, undefined, getValueByName(merged, meta.name), merged)
+            }
+          }
         })
         if (merged === prev) return prev
         valuesRef.current = merged

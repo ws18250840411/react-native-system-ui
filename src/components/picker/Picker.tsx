@@ -82,8 +82,6 @@ const isCascadeColumns = (columns?: PickerColumns) => {
 const PickerColumn: React.FC<
   PickerColumnProps & {
     tokens: ReturnType<typeof usePickerTokens>
-    onInteractStart?: () => void
-    onInteractEnd?: () => void
   }
 > = React.memo(
   props => {
@@ -102,8 +100,6 @@ const PickerColumn: React.FC<
       decelerationRate,
       scrollEventThrottle,
       swipeDuration,
-      onInteractStart,
-      onInteractEnd,
     } = props
     const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
@@ -131,8 +127,6 @@ const PickerColumn: React.FC<
           visibleRest={restVisible}
           selectedIndex={Math.max(0, selectedIndex)}
           onChange={handleChange}
-          onInteractStart={onInteractStart}
-          onInteractEnd={onInteractEnd}
           readOnly={readOnly}
           indicatorColor={tokens.colors.indicator}
           decelerationRate={decelerationRate}
@@ -222,46 +216,16 @@ const Picker: React.FC<PickerProps> = props => {
 
   const visibleItemCount = getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount)
   const isCascade = isCascadeColumns(columns)
-  
-  // 移除复杂的冻结逻辑，现在由 usePickerValue 内部状态保证交互稳定性
-  const shouldFreezeValue = false
-    
-  const interactingCountRef = React.useRef(0)
-  const [isInteracting, setIsInteracting] = React.useState(false)
-  const stableValueRef = React.useRef(valueProp)
-
-  React.useEffect(() => {
-    if (!shouldFreezeValue) {
-      stableValueRef.current = valueProp
-      return
-    }
-    if (!isInteracting) stableValueRef.current = valueProp
-  }, [isInteracting, shouldFreezeValue, valueProp])
-
-  const handleInteractStart = React.useCallback(() => {
-    if (!shouldFreezeValue) return
-    interactingCountRef.current += 1
-    setIsInteracting(true)
-  }, [shouldFreezeValue])
-
-  const handleInteractEnd = React.useCallback(() => {
-    if (!shouldFreezeValue) return
-    interactingCountRef.current = Math.max(0, interactingCountRef.current - 1)
-    if (interactingCountRef.current === 0) {
-      setIsInteracting(false)
-    }
-  }, [shouldFreezeValue])
-
-  const valueForPicker = shouldFreezeValue && isInteracting ? stableValueRef.current : valueProp
 
   const { normalized, handleSelect, handleConfirm } = usePickerValue({
     columns,
-    valueProp: valueForPicker,
+    valueProp,
     defaultValue,
     emitConfirmOnAutoSelect,
     onChange,
     onConfirm,
   })
+
 
   const renderActionContent = (content: React.ReactNode, color: string) => {
     if (React.isValidElement(content)) {
@@ -369,8 +333,6 @@ const Picker: React.FC<PickerProps> = props => {
           swipeDuration={swipeDuration}
           onSelect={handleSelect}
           tokens={tokens}
-          onInteractStart={handleInteractStart}
-          onInteractEnd={handleInteractEnd}
         />
       )
     })

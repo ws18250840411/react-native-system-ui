@@ -110,6 +110,8 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   const leftWidth = isFiniteNumber(leftWidthProp) ? Math.max(0, leftWidthProp) : measuredLeftWidth
   const rightWidth = isFiniteNumber(rightWidthProp) ? Math.max(0, rightWidthProp) : measuredRightWidth
   const durationMs = isFiniteNumber(duration) ? Math.max(0, Math.round(duration)) : 180
+  const hasLeft = leftWidth > 0 && !!left
+  const hasRight = rightWidth > 0 && !!right
 
   const clearCloseFromActionTimer = React.useCallback(() => {
     if (closeFromActionTimerRef.current != null) {
@@ -289,8 +291,6 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   const decideTarget = React.useCallback(
     (current: number, gesture: PanResponderGestureState) => {
       const velocityX = isFiniteNumber(gesture.vx) ? gesture.vx : 0
-      const hasLeft = leftWidth > 0 && !!left
-      const hasRight = rightWidth > 0 && !!right
 
       const safeThreshold = isFiniteNumber(threshold) ? clamp(threshold, 0, 1) : 0.3
       const leftThreshold = leftWidth * safeThreshold
@@ -342,7 +342,68 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
 
       return { target: 0, position: 'closed' as const }
     },
-    [left, leftWidth, right, rightWidth, threshold]
+    [hasLeft, hasRight, leftWidth, rightWidth, threshold]
+  )
+
+  const handleLeftActionClick = React.useCallback(() => handleActionClick('left'), [handleActionClick])
+  const handleRightActionClick = React.useCallback(() => handleActionClick('right'), [handleActionClick])
+  const handleLeftActionTouchStart = React.useCallback(
+    (event: GestureResponderEvent) => handleActionTouchStart('left', event),
+    [handleActionTouchStart],
+  )
+  const handleRightActionTouchStart = React.useCallback(
+    (event: GestureResponderEvent) => handleActionTouchStart('right', event),
+    [handleActionTouchStart],
+  )
+  const handleLeftActionTouchEnd = React.useCallback(
+    (event: GestureResponderEvent) => handleActionTouchEnd('left', event),
+    [handleActionTouchEnd],
+  )
+  const handleRightActionTouchEnd = React.useCallback(
+    (event: GestureResponderEvent) => handleActionTouchEnd('right', event),
+    [handleActionTouchEnd],
+  )
+
+  const leftActionTouchStartProp = React.useMemo(
+    () => (closeOnActionPress ? handleLeftActionTouchStart : undefined),
+    [closeOnActionPress, handleLeftActionTouchStart],
+  )
+  const rightActionTouchStartProp = React.useMemo(
+    () => (closeOnActionPress ? handleRightActionTouchStart : undefined),
+    [closeOnActionPress, handleRightActionTouchStart],
+  )
+  const leftActionTouchEndProp = React.useMemo(
+    () => (closeOnActionPress ? handleLeftActionTouchEnd : undefined),
+    [closeOnActionPress, handleLeftActionTouchEnd],
+  )
+  const rightActionTouchEndProp = React.useMemo(
+    () => (closeOnActionPress ? handleRightActionTouchEnd : undefined),
+    [closeOnActionPress, handleRightActionTouchEnd],
+  )
+  const leftWebActionProps = React.useMemo(
+    () =>
+      isWeb
+        ? ({
+          onClick: handleLeftActionClick,
+        } as unknown as React.ComponentProps<typeof View>)
+        : undefined,
+    [handleLeftActionClick, isWeb],
+  )
+  const rightWebActionProps = React.useMemo(
+    () =>
+      isWeb
+        ? ({
+          onClick: handleRightActionClick,
+        } as unknown as React.ComponentProps<typeof View>)
+        : undefined,
+    [handleRightActionClick, isWeb],
+  )
+
+  const contentAnimatedStyle = React.useMemo(
+    () => ({
+      transform: [{ translateX }],
+    }),
+    [translateX],
   )
 
   const panResponder = React.useMemo(
@@ -352,8 +413,6 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
         if (!isHorizontalSwipe(gesture)) return false
 
         const dx = gesture.dx ?? 0
-        const hasLeft = leftWidth > 0 && !!left
-        const hasRight = rightWidth > 0 && !!right
         const position = positionRef.current
 
         // 关闭状态下：只在有对应侧操作区时才拦截，避免“滑了但没任何反馈/阻断列表滚动”
@@ -402,10 +461,10 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
       decideTarget,
       disabled,
       flushDrag,
-      left,
       leftWidth,
-      right,
       rightWidth,
+      hasLeft,
+      hasRight,
       scheduleDrag,
       translateX,
     ]
@@ -418,9 +477,9 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
           style={[styles.left, leftStyle]}
           pointerEvents="box-none"
           onLayout={handleLeftLayout}
-          onTouchStart={closeOnActionPress ? (e) => handleActionTouchStart('left', e) : undefined}
-          onTouchEnd={closeOnActionPress ? (e) => handleActionTouchEnd('left', e) : undefined}
-          {...(isWeb ? ({ onClick: () => handleActionClick('left') } as unknown as React.ComponentProps<typeof View>) : undefined)}
+          onTouchStart={leftActionTouchStartProp}
+          onTouchEnd={leftActionTouchEndProp}
+          {...leftWebActionProps}
         >
           {left}
         </View>
@@ -431,9 +490,9 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
           style={[styles.right, rightStyle]}
           pointerEvents="box-none"
           onLayout={handleRightLayout}
-          onTouchStart={closeOnActionPress ? (e) => handleActionTouchStart('right', e) : undefined}
-          onTouchEnd={closeOnActionPress ? (e) => handleActionTouchEnd('right', e) : undefined}
-          {...(isWeb ? ({ onClick: () => handleActionClick('right') } as unknown as React.ComponentProps<typeof View>) : undefined)}
+          onTouchStart={rightActionTouchStartProp}
+          onTouchEnd={rightActionTouchEndProp}
+          {...rightWebActionProps}
         >
           {right}
         </View>
@@ -443,9 +502,7 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
         style={[
           styles.content,
           contentStyle,
-          {
-            transform: [{ translateX }],
-          },
+          contentAnimatedStyle,
         ]}
       >
         {children}

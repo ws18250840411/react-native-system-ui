@@ -26,27 +26,53 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
   const tokens = useInputTokens(tokensOverride)
   const inputRef = React.useRef<FieldInstance | null>(null)
 
-  const handleChangeText = (value: string) => {
+  const handleChangeText = React.useCallback((value: string) => {
     onChange?.(value)
     onChangeText?.(value)
-  }
+  }, [onChange, onChangeText])
 
-  React.useImperativeHandle(ref, () => ({
-    focus: () => inputRef.current?.focus?.(),
-    blur: () => inputRef.current?.blur?.(),
-    clear: () => {
-      inputRef.current?.clear?.()
-    },
-    get nativeElement() {
-      return inputRef.current?.nativeElement ?? null
-    },
-  }))
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      focus: () => inputRef.current?.focus?.(),
+      blur: () => inputRef.current?.blur?.(),
+      clear: () => inputRef.current?.clear?.(),
+      get nativeElement() {
+        return inputRef.current?.nativeElement ?? null
+      },
+    }),
+    [],
+  )
 
-  const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
-  const resolvedClearTrigger =
-    clearTriggerOverride ?? tokens.defaults.clearTrigger
-  const resolvedKeyboardType =
-    keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined)
+  const resolvedInputAlign = React.useMemo(
+    () => align ?? inputAlignProp ?? tokens.defaults.inputAlign,
+    [align, inputAlignProp, tokens.defaults.inputAlign],
+  )
+  const resolvedClearTrigger = React.useMemo(
+    () => clearTriggerOverride ?? tokens.defaults.clearTrigger,
+    [clearTriggerOverride, tokens.defaults.clearTrigger],
+  )
+  const resolvedKeyboardType = React.useMemo(
+    () => keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined),
+    [keyboardTypeProp, type],
+  )
+
+  const fieldStyle = React.useMemo(
+    () => [
+      {
+        paddingHorizontal: tokens.spacing.paddingHorizontal,
+        paddingVertical: tokens.spacing.paddingVertical,
+        backgroundColor: tokens.colors.background,
+      },
+      style,
+    ],
+    [
+      style,
+      tokens.colors.background,
+      tokens.spacing.paddingHorizontal,
+      tokens.spacing.paddingVertical,
+    ],
+  )
 
   return (
     <Field
@@ -58,14 +84,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
       border={tokens.defaults.border}
       inputAlign={resolvedInputAlign}
       clearTrigger={resolvedClearTrigger}
-      style={[
-        {
-          paddingHorizontal: tokens.spacing.paddingHorizontal,
-          paddingVertical: tokens.spacing.paddingVertical,
-          backgroundColor: tokens.colors.background,
-        },
-        style,
-      ]}
+      style={fieldStyle}
       showWordLimit={showWordLimit}
       onChangeText={handleChangeText}
     />
@@ -79,19 +98,19 @@ const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref
   const fieldTokens = useFieldTokens(rest.fieldTokensOverride)
 
   const lineHeight = fieldTokens.defaults.textareaLineHeight
-  const toRows = (height?: number) => {
+  const toRows = React.useCallback((height?: number) => {
     if (!isFiniteNumber(height) || height <= 0) return undefined
     return Math.max(1, Math.round(height / lineHeight))
-  }
+  }, [lineHeight])
 
-  let resolvedAutoSize: boolean | FieldAutosizeConfig | undefined
-  if (!autoSize || isBoolean(autoSize)) {
-    resolvedAutoSize = autoSize
-  } else {
+  const resolvedAutoSize = React.useMemo<boolean | FieldAutosizeConfig | undefined>(() => {
+    if (!autoSize || isBoolean(autoSize)) {
+      return autoSize
+    }
     const minRows = toRows(autoSize.minHeight)
     const maxRows = toRows(autoSize.maxHeight)
-    resolvedAutoSize = minRows || maxRows ? { minRows, maxRows } : undefined
-  }
+    return minRows || maxRows ? { minRows, maxRows } : undefined
+  }, [autoSize, toRows])
 
   return <InputComponent ref={ref} {...rest} type="textarea" autoSize={resolvedAutoSize} />
 })

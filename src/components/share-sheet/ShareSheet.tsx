@@ -22,6 +22,11 @@ const ShareSheetOptionItem: React.FC<{
   tokens: ShareSheetTokens
   onSelect: (option: ShareSheetOption, index: number) => void
 }> = ({ option, index, columns, tokens, onSelect }) => {
+  const optionWidthStyle = React.useMemo(() => ({ width: `${100 / columns}%` }), [columns])
+  const iconStyle = React.useMemo(
+    () => ({ width: tokens.sizing.icon, height: tokens.sizing.icon }),
+    [tokens.sizing.icon],
+  )
   const press = useAriaPress({
     onPress: () => onSelect(option, index),
     extraProps: {
@@ -34,11 +39,11 @@ const ShareSheetOptionItem: React.FC<{
     <Pressable
       style={[
         styles.option,
-        { width: `${100 / columns}%` },
+        optionWidthStyle,
       ]}
       {...press.interactionProps}
     >
-      <View style={[styles.icon, { width: tokens.sizing.icon, height: tokens.sizing.icon }]}>
+      <View style={[styles.icon, iconStyle]}>
         {option.icon}
       </View>
       {isValidNode(option.name)
@@ -122,60 +127,132 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   } = props
 
   const tokens = useShareSheetTokens(tokensOverride)
-  const groups = normalizeOptions(options)
-  const resolvedColumns =
-    isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4
+  const groups = React.useMemo(() => normalizeOptions(options), [options])
+  const resolvedColumns = React.useMemo(
+    () => (isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4),
+    [columns],
+  )
 
   const hasTitle = isValidNode(title)
   const hasDescription = isValidNode(description)
   const hasCancelText = isValidNode(cancelText)
 
-  const close = (isCancel?: boolean) => {
+  const close = React.useCallback((isCancel?: boolean) => {
     if (isCancel) onCancel?.()
     onClose?.()
-  }
+  }, [onCancel, onClose])
 
-  const handleSelect = (option: ShareSheetOption, index: number) => {
+  const handleSelect = React.useCallback((option: ShareSheetOption, index: number) => {
     onSelect?.(option, index)
     option.onPress?.(option)
     if (closeOnSelect) close()
-  }
+  }, [close, closeOnSelect, onSelect])
 
-  const renderGroups = () => {
+  const onPopupClose = React.useCallback(() => close(true), [close])
+
+  const wrapperStyle = React.useMemo(
+    () => [styles.wrapper, { backgroundColor: tokens.colors.background }],
+    [tokens.colors.background],
+  )
+
+  const groupRowStyle = React.useMemo(
+    () => [styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }],
+    [tokens.spacing.gap],
+  )
+
+  const groupNodes = React.useMemo(() => {
     if (!groups.length) return null
     let globalIndex = 0
-    return groups.map((group, groupIndex) => {
-      return (
-        <View key={groupIndex}>
-          {groupIndex ? (
-            <View
-              style={createHairlineView({
-                position: 'top',
-                color: tokens.colors.border,
-                left: tokens.spacing.horizontal,
-                right: tokens.spacing.horizontal,
-              })}
-            />
-          ) : null}
-          <View style={[styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }]}>
-            {group.map(option => {
-              const currentIndex = globalIndex++
-              return (
-                <ShareSheetOptionItem
-                  key={option.key ?? currentIndex}
-                  option={option}
-                  index={currentIndex}
-                  columns={resolvedColumns}
-                  tokens={tokens}
-                  onSelect={handleSelect}
-                />
-              )
+    return groups.map((group, groupIndex) => (
+      <View key={groupIndex}>
+        {groupIndex ? (
+          <View
+            style={createHairlineView({
+              position: 'top',
+              color: tokens.colors.border,
+              left: tokens.spacing.horizontal,
+              right: tokens.spacing.horizontal,
             })}
-          </View>
+          />
+        ) : null}
+        <View style={groupRowStyle}>
+          {group.map(option => {
+            const currentIndex = globalIndex++
+            return (
+              <ShareSheetOptionItem
+                key={option.key ?? currentIndex}
+                option={option}
+                index={currentIndex}
+                columns={resolvedColumns}
+                tokens={tokens}
+                onSelect={handleSelect}
+              />
+            )
+          })}
         </View>
-      )
-    })
-  }
+      </View>
+    ))
+  }, [
+    groupRowStyle,
+    groups,
+    handleSelect,
+    resolvedColumns,
+    tokens,
+    tokens.colors.border,
+    tokens.spacing.horizontal,
+  ])
+
+  const headerNode = React.useMemo(() => {
+    if (!hasTitle && !hasDescription) return null
+    return (
+      <View style={styles.header}>
+        {hasTitle
+          ? isText(title)
+            ? (
+              <Text
+                style={[
+                  styles.title,
+                  { color: tokens.colors.title, fontSize: tokens.typography.title },
+                ]}
+              >
+                {title}
+              </Text>
+            )
+            : (
+              <View style={styles.node}>{title}</View>
+            )
+          : null}
+        {hasDescription
+          ? isText(description)
+            ? (
+              <Text
+                style={[
+                  styles.description,
+                  {
+                    color: tokens.colors.description,
+                    fontSize: tokens.typography.description,
+                  },
+                ]}
+              >
+                {description}
+              </Text>
+            )
+            : (
+              <View style={styles.node}>{description}</View>
+            )
+          : null}
+      </View>
+    )
+  }, [
+    description,
+    hasDescription,
+    hasTitle,
+    title,
+    tokens.colors.description,
+    tokens.colors.title,
+    tokens.typography.description,
+    tokens.typography.title,
+  ])
 
   return (
     <Popup
@@ -186,57 +263,19 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
       safeAreaInsetBottom={safeAreaInsetBottom}
       overlay={overlay}
       lockScroll={lockScroll}
-      onClose={() => close(true)}
+      onClose={onPopupClose}
       style={[styles.popupOverride, popupStyle]}
     >
-      <View style={[styles.wrapper, { backgroundColor: tokens.colors.background }]}>
-        {(hasTitle || hasDescription) ? (
-          <View style={styles.header}>
-            {hasTitle
-              ? isText(title)
-                ? (
-                  <Text
-                    style={[
-                      styles.title,
-                      { color: tokens.colors.title, fontSize: tokens.typography.title },
-                    ]}
-                  >
-                    {title}
-                  </Text>
-                )
-                : (
-                  <View style={styles.node}>{title}</View>
-                )
-              : null}
-            {hasDescription
-              ? isText(description)
-                ? (
-                  <Text
-                    style={[
-                      styles.description,
-                      {
-                        color: tokens.colors.description,
-                        fontSize: tokens.typography.description,
-                      },
-                    ]}
-                  >
-                    {description}
-                  </Text>
-                )
-                : (
-                  <View style={styles.node}>{description}</View>
-                )
-              : null}
-          </View>
-        ) : null}
-        {renderGroups()}
+      <View style={wrapperStyle}>
+        {headerNode}
+        {groupNodes}
         {children}
         {hasCancelText
           ? (
             <ShareSheetCancel
               cancelText={cancelText}
               tokens={tokens}
-              onPress={() => close(true)}
+              onPress={onPopupClose}
             />
           )
           : null}

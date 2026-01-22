@@ -36,10 +36,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     onSearch,
     onCancel,
     onChangeText,
-    onChange,
     onSubmitEditing,
-    value: valueProp,
-    defaultValue,
     returnKeyType,
     inputStyle,
     align,
@@ -52,7 +49,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const [value, triggerChange] = useControllableValue<string>(props, { defaultValue: '' })
 
   const inputValue = value ?? ''
-  const resolvedInputAlign = align ?? inputAlign
+  const resolvedInputAlign = React.useMemo(() => align ?? inputAlign, [align, inputAlign])
 
   const handleChange = React.useCallback(
     (next: string) => {
@@ -77,12 +74,25 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     [inputValue, onSearch, onSubmitEditing],
   )
 
-  const resolvedBackground = background ?? tokens.colors.background
-  const resolvedLeftIcon = leftIcon ?? (
-    <SearchIcon size={tokens.icon.size} fill={tokens.colors.icon} color={tokens.colors.icon} />
+  const resolvedBackground = React.useMemo(
+    () => background ?? tokens.colors.background,
+    [background, tokens.colors.background],
   )
-  const resolvedClearTrigger = clearTrigger ?? tokens.defaults.clearTrigger
-  const resolvedReturnKeyType = returnKeyType ?? 'search'
+  const resolvedLeftIcon = React.useMemo(
+    () =>
+      leftIcon ?? (
+        <SearchIcon size={tokens.icon.size} fill={tokens.colors.icon} color={tokens.colors.icon} />
+      ),
+    [leftIcon, tokens.colors.icon, tokens.icon.size],
+  )
+  const resolvedClearTrigger = React.useMemo(
+    () => clearTrigger ?? tokens.defaults.clearTrigger,
+    [clearTrigger, tokens.defaults.clearTrigger],
+  )
+  const resolvedReturnKeyType = React.useMemo(
+    () => returnKeyType ?? 'search',
+    [returnKeyType],
+  )
   const shouldShowAction = !!action || showAction
   const isCustomActionText = React.isValidElement(actionText)
   const shouldRenderCancelAction = shouldShowAction && !action && !isCustomActionText
@@ -108,27 +118,43 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     },
   })
 
-  const containerStyles = [
-    styles.container,
-    {
-      paddingHorizontal: tokens.spacing.paddingHorizontal,
-      paddingVertical: tokens.spacing.paddingVertical,
-      backgroundColor: resolvedBackground,
-    },
-    containerStyle,
-  ]
+  const containerStyles = React.useMemo(
+    () => [
+      styles.container,
+      {
+        paddingHorizontal: tokens.spacing.paddingHorizontal,
+        paddingVertical: tokens.spacing.paddingVertical,
+        backgroundColor: resolvedBackground,
+      },
+      containerStyle,
+    ],
+    [
+      containerStyle,
+      resolvedBackground,
+      tokens.spacing.paddingHorizontal,
+      tokens.spacing.paddingVertical,
+    ],
+  )
 
-  const contentStyles = [
-    styles.content,
-    {
-      borderRadius: radius,
-      paddingHorizontal: tokens.spacing.contentPaddingHorizontal,
-      paddingVertical: tokens.spacing.contentPaddingVertical,
-      backgroundColor: tokens.colors.contentBackground,
-    },
-  ]
+  const contentStyles = React.useMemo(
+    () => [
+      styles.content,
+      {
+        borderRadius: radius,
+        paddingHorizontal: tokens.spacing.contentPaddingHorizontal,
+        paddingVertical: tokens.spacing.contentPaddingVertical,
+        backgroundColor: tokens.colors.contentBackground,
+      },
+    ],
+    [
+      radius,
+      tokens.colors.contentBackground,
+      tokens.spacing.contentPaddingHorizontal,
+      tokens.spacing.contentPaddingVertical,
+    ],
+  )
 
-  const renderLabel = () => {
+  const labelNode = React.useMemo(() => {
     if (!label) return null
     if (isText(label)) {
       return (
@@ -144,12 +170,16 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
         </Text>
       )
     }
-    return (
-      <View style={{ marginRight: tokens.spacing.labelGap }}>{label}</View>
-    )
-  }
+    return <View style={{ marginRight: tokens.spacing.labelGap }}>{label}</View>
+  }, [
+    label,
+    tokens.colors.label,
+    tokens.spacing.labelGap,
+    tokens.typography.label,
+    tokens.typography.labelWeight,
+  ])
 
-  const renderAction = () => {
+  const actionNode = React.useMemo(() => {
     if (action) {
       return (
         <View style={[styles.actionWrapper, { marginLeft: tokens.spacing.actionGap }]}>
@@ -189,12 +219,25 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
         </Text>
       </Pressable>
     )
-  }
+  }, [
+    action,
+    actionText,
+    cancelActionPress.interactionProps,
+    cancelActionPress.states.pressed,
+    isCustomActionText,
+    locale.cancel,
+    shouldShowAction,
+    tokens.colors.action,
+    tokens.opacity.actionPressed,
+    tokens.spacing.actionGap,
+    tokens.typography.action,
+    tokens.typography.actionWeight,
+  ])
 
   return (
     <View style={containerStyles}>
       <View style={contentStyles}>
-        {renderLabel()}
+        {labelNode}
         <View style={styles.fieldWrapper}>
           <Field
             ref={inputRef}
@@ -218,7 +261,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
           />
         </View>
       </View>
-      {renderAction()}
+      {actionNode}
     </View>
   )
 }

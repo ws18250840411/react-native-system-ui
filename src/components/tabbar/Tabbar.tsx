@@ -117,26 +117,7 @@ const TabbarBase: React.FC<TabbarProps> = props => {
 
   if (items.length === 0) return null
 
-  const bar = (
-    <View
-      style={[
-        styles.bar,
-        {
-          backgroundColor: background,
-          paddingHorizontal: tokens.layout.paddingHorizontal,
-          minHeight: tokens.layout.height,
-        },
-        border ? createHairlineBorderTop(tokens.colors.border) : null,
-        contentStyle,
-      ]}
-    >
-      <TabbarContext.Provider value={contextValue}>
-        <View style={[styles.row, { minHeight: tokens.layout.height }]} accessibilityRole="tablist">
-          {clonedChildren}
-        </View>
-      </TabbarContext.Provider>
-    </View>
-  )
+  const ContentWrapper = enableSafeAreaInsetBottom ? SafeAreaView : View
 
   return (
     <>
@@ -146,11 +127,24 @@ const TabbarBase: React.FC<TabbarProps> = props => {
         style={[styles.container, fixed && [styles.fixed, { zIndex }], style]}
         onLayout={handleLayout}
       >
-        {enableSafeAreaInsetBottom ? (
-          <SafeAreaView style={{ backgroundColor: background }}>{bar}</SafeAreaView>
-        ) : (
-          bar
-        )}
+        <ContentWrapper
+          style={[
+            styles.bar,
+            {
+              backgroundColor: background,
+              paddingHorizontal: tokens.layout.paddingHorizontal,
+              minHeight: tokens.layout.height,
+            },
+            border ? createHairlineBorderTop(tokens.colors.border) : null,
+            contentStyle,
+          ]}
+        >
+          <TabbarContext.Provider value={contextValue}>
+            <View style={[styles.row, { minHeight: tokens.layout.height }]} accessibilityRole="tablist">
+              {clonedChildren}
+            </View>
+          </TabbarContext.Provider>
+        </ContentWrapper>
       </View>
     </>
   )

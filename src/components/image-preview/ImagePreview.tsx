@@ -81,8 +81,9 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
   const popupCloseReason = React.useRef<ImagePreviewCloseReason>('close')
   const tapStartRef = React.useRef<{ x: number; y: number } | null>(null)
   const tapMovedRef = React.useRef(false)
-  const [active, setActive] = React.useState(() => clampIndex(startPosition, images.length))
-  const safeActive = clampIndex(active, images.length)
+  const imagesLen = images.length
+  const [active, setActive] = React.useState(() => clampIndex(startPosition, imagesLen))
+  const safeActive = clampIndex(active, imagesLen)
   const latestRef = React.useRef({
     images,
     index: safeActive,
@@ -96,18 +97,18 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     onClose,
   }
 
-  const resolvedImages = React.useMemo(
-    () => images.map(img => (isString(img) ? { uri: img } : img)) as ImageSourcePropType[],
-    [images]
+  const resolvedImages = React.useMemo<ImageSourcePropType[]>(
+    () => images.map(img => (isString(img) ? { uri: img } : img)),
+    [images],
   )
 
   React.useEffect(() => {
-    setActive(current => clampIndex(current, images.length))
-  }, [images.length])
+    setActive(current => clampIndex(current, imagesLen))
+  }, [imagesLen])
 
   React.useEffect(() => {
     if (!visible) return
-    const next = clampIndex(startPosition, images.length)
+    const next = clampIndex(startPosition, imagesLen)
     setActive(next)
     if (typeof requestAnimationFrame !== 'undefined') {
       const raf = requestAnimationFrame(() => {
@@ -115,7 +116,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       })
       return () => cancelAnimationFrame(raf)
     }
-  }, [images.length, startPosition, visible])
+  }, [imagesLen, startPosition, visible])
 
   const runBeforeClose = React.useCallback(async (reason: ImagePreviewCloseReason) => {
     const { beforeClose: currentBeforeClose, images: currentImages, index } = latestRef.current
@@ -152,22 +153,22 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
 
   React.useImperativeHandle(ref, () => ({
     swipeTo: (index: number, animated = true) => {
-      const next = clampIndex(index, images.length)
+      const next = clampIndex(index, imagesLen)
       setActive(next)
       swiperRef.current?.swipeTo(next, animated)
     },
-  }))
+  }), [imagesLen])
 
-  const handleSwiperChange = (idx: number) => {
+  const handleSwiperChange = React.useCallback((idx: number) => {
     if (safeActive === idx) return
     setActive(idx)
     onChange?.(idx)
-  }
+  }, [onChange, safeActive])
 
-  const handleImagePress = () => {
+  const handleImagePress = React.useCallback(() => {
     if (closeOnlyClickCloseIcon) return
     void emitClose('content')
-  }
+  }, [closeOnlyClickCloseIcon, emitClose])
 
   const resetTap = React.useCallback(() => {
     tapStartRef.current = null
@@ -236,33 +237,44 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     return handlers
   }, [markTapMove, markTapStart, resetTap, tryTapEnd])
 
-  const indexNode =
-    showIndex && images.length ? (
+  const indexNode = React.useMemo(() => {
+    if (!showIndex || !imagesLen) return null
+    const indexText = `${safeActive + 1} / ${imagesLen}`
+    return (
       <View style={styles.index} testID="rv-image-preview-index">
         <View style={[styles.indexBadge, { backgroundColor: colors.indexBackground }]}>
           {indexRender ? (
-            indexRender({ index: safeActive, len: images.length })
+            indexRender({ index: safeActive, len: imagesLen })
           ) : (
-            <Text style={[styles.indexText, { color: colors.indexText }]}>{`${safeActive + 1} / ${images.length}`}</Text>
+            <Text style={[styles.indexText, { color: colors.indexText }]}>{indexText}</Text>
           )}
         </View>
       </View>
-    ) : null
+    )
+  }, [colors.indexBackground, colors.indexText, imagesLen, indexRender, safeActive, showIndex])
 
   const lazyBuffer = lazyRender ? Math.max(0, lazyRenderBuffer | 0) : 0
 
-  const indicatorsNode =
-    showIndicators && images.length > 1 ? (
+  const indicatorsNode = React.useMemo(() => {
+    if (!showIndicators || imagesLen <= 1) return null
+    return (
       <View testID="rv-image-preview-indicators">
         <Swiper.PagIndicator
-          total={images.length}
+          total={imagesLen}
           current={safeActive}
           activeColor={colors.indicatorActive}
           inactiveColor={colors.indicatorInactive}
           style={{ bottom: 32 }}
         />
       </View>
-    ) : null
+    )
+  }, [
+    colors.indicatorActive,
+    colors.indicatorInactive,
+    imagesLen,
+    safeActive,
+    showIndicators,
+  ])
 
   return (
     <Popup
@@ -289,17 +301,17 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     >
       <View style={[styles.content, { backgroundColor: colors.background }]}>
         {indexNode}
-        {images.length === 0 ? (
+        {imagesLen === 0 ? (
           <View style={styles.empty} testID="rv-image-preview-empty" />
         ) : (
           <Swiper
             ref={swiperRef}
             style={styles.swiper}
-            initialSwipe={clampIndex(startPosition, images.length)}
+            initialSwipe={clampIndex(startPosition, imagesLen)}
             loop={false}
             autoplay={false}
             duration={swipeDuration}
-            touchable={images.length > 1}
+            touchable={imagesLen > 1}
             indicator={false}
             onChange={handleSwiperChange}
             testID="rv-image-preview-swiper"

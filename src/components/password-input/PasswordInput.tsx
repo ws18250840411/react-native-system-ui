@@ -141,47 +141,56 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const blinkTimer = React.useRef<ReturnType<typeof setInterval> | null>(null)
     const [focused, setFocused] = React.useState(autoFocus)
 
-    const keyboardType = type === 'number' ? 'number-pad' : 'default'
-    const inputMode = type === 'number' ? 'numeric' : 'text'
+    const keyboardType = React.useMemo(
+      () => (type === 'number' ? 'number-pad' : 'default'),
+      [type],
+    )
+    const inputMode = React.useMemo(() => (type === 'number' ? 'numeric' : 'text'), [type])
 
     const [code = '', setCode] = useControllableValue<string>(
       props,
       { defaultValue: '' }
     )
-    const normalizeValue = (nextValue: unknown) => {
-      let next =
-        nextValue === null || nextValue === undefined
-          ? ''
-          : isString(nextValue)
-            ? nextValue
-            : String(nextValue)
-      if (type === 'number') {
-        next = sanitizeNumber(next)
-      }
-      if (lengthSafe > 0 && next.length > lengthSafe) {
-        next = next.slice(0, lengthSafe)
-      }
-      return next
-    }
-    const normalizedCode = normalizeValue(code)
+    const normalizeValue = React.useCallback(
+      (nextValue: unknown) => {
+        let next =
+          nextValue === null || nextValue === undefined
+            ? ''
+            : isString(nextValue)
+              ? nextValue
+              : String(nextValue)
+        if (type === 'number') {
+          next = sanitizeNumber(next)
+        }
+        if (lengthSafe > 0 && next.length > lengthSafe) {
+          next = next.slice(0, lengthSafe)
+        }
+        return next
+      },
+      [lengthSafe, type],
+    )
+    const normalizedCode = React.useMemo(() => normalizeValue(code), [code, normalizeValue])
 
-    const updateValue = (nextValue: string) => {
-      const normalized = normalizeValue(nextValue)
-      if (normalized === normalizedCode) return
-      if (validator && !validator(normalized)) return
-      setCode(normalized)
-    }
+    const updateValue = React.useCallback(
+      (nextValue: string) => {
+        const normalized = normalizeValue(nextValue)
+        if (normalized === normalizedCode) return
+        if (validator && !validator(normalized)) return
+        setCode(normalized)
+      },
+      [normalizeValue, normalizedCode, setCode, validator],
+    )
 
-    const focusInput = () => {
+    const focusInput = React.useCallback(() => {
       if (disabled) return
       inputRef.current?.focus()
-    }
-    const blurInput = () => {
+    }, [disabled])
+    const blurInput = React.useCallback(() => {
       inputRef.current?.blur()
-    }
-    const clearInput = () => {
+    }, [])
+    const clearInput = React.useCallback(() => {
       updateValue('')
-    }
+    }, [updateValue])
 
     React.useImperativeHandle(
       ref,
@@ -190,6 +199,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
         blur: blurInput,
         clear: clearInput,
       }),
+      [blurInput, clearInput, focusInput],
     )
 
     React.useEffect(() => {
@@ -200,19 +210,19 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       return () => clearTimeout(timer)
     }, [autoFocus, disabled])
 
-    const handleChangeText = (text: string) => {
+    const handleChangeText = React.useCallback((text: string) => {
       updateValue(text ?? '')
-    }
+    }, [updateValue])
 
-    const handleFocus = () => {
+    const handleFocus = React.useCallback(() => {
       setFocused(true)
       onFocus?.()
-    }
+    }, [onFocus])
 
-    const handleBlur = () => {
+    const handleBlur = React.useCallback(() => {
       setFocused(false)
       onBlur?.()
-    }
+    }, [onBlur])
 
     const prevSubmitRef = React.useRef({
       value: normalizedCode,
@@ -256,61 +266,88 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       }
     }, [disabled, focused, showCursor])
 
-    const cells = Array.from({ length: lengthSafe }, (_, index) => {
-      const char = normalizedCode?.[index]
-      const isFilled = !!char
-      const showBlink =
-        showCursor &&
-        focused &&
-        !disabled &&
-        normalizedCode.length === index &&
-        index < lengthSafe
-      return { key: index, char, isFilled, showBlink }
-    })
+    const cells = React.useMemo(
+      () =>
+        Array.from({ length: lengthSafe }, (_, index) => {
+          const char = normalizedCode?.[index]
+          const isFilled = !!char
+          const showBlink =
+            showCursor &&
+            focused &&
+            !disabled &&
+            normalizedCode.length === index &&
+            index < lengthSafe
+          return { key: index, char, isFilled, showBlink }
+        }),
+      [disabled, focused, lengthSafe, normalizedCode, showCursor],
+    )
 
-    const gutterValue = Math.max(0, parseNumberLike(gutter, 0) ?? 0)
+    const gutterValue = React.useMemo(
+      () => Math.max(0, parseNumberLike(gutter, 0) ?? 0),
+      [gutter],
+    )
     const hasGutter = gutterValue > 0
 
     const tip = errorInfo ?? info
     const tipColor = errorInfo ? colors.error : colors.muted
 
     const backgroundColor = hasGutter ? 'transparent' : colors.background
-    const cellTextBase = {
-      color: colors.text,
-      fontSize: sizing.cellTextSize,
-      fontWeight: typography.cellTextWeight,
-      fontFamily: typography.fontFamily,
-    }
+    const cellTextBase = React.useMemo(
+      () => ({
+        color: colors.text,
+        fontSize: sizing.cellTextSize,
+        fontWeight: typography.cellTextWeight,
+        fontFamily: typography.fontFamily,
+      }),
+      [colors.text, sizing.cellTextSize, typography.cellTextWeight, typography.fontFamily],
+    )
+
+    const wrapperStyle = React.useMemo(
+      () => [
+        styles.wrapper,
+        {
+          backgroundColor,
+          borderRadius: radii.wrapper,
+          opacity: disabled ? opacity.disabled : 1,
+        },
+        !hasGutter && {
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.border,
+        },
+      ],
+      [
+        backgroundColor,
+        colors.border,
+        disabled,
+        hasGutter,
+        opacity.disabled,
+        radii.wrapper,
+      ],
+    )
+
+    const securityStyle = React.useMemo(
+      () => [
+        styles.security,
+        {
+          borderRadius: hasGutter ? 0 : radii.wrapper,
+          backgroundColor,
+        },
+      ],
+      [backgroundColor, hasGutter, radii.wrapper],
+    )
 
     return (
       <View style={style}>
         <Pressable
           {...rest}
-          style={[
-            styles.wrapper,
-            {
-              backgroundColor,
-              borderRadius: radii.wrapper,
-              opacity: disabled ? opacity.disabled : 1,
-            },
-            !hasGutter && {
-              borderWidth: StyleSheet.hairlineWidth,
-              borderColor: colors.border,
-            },
-          ]}
+          style={wrapperStyle}
           onPress={focusInput}
           disabled={disabled}
           accessibilityRole="button"
           accessibilityState={{ disabled }}
         >
           <View
-            style={[
-              styles.security,
-              {
-                borderRadius: hasGutter ? 0 : radii.wrapper,
-                backgroundColor,
-              },
-            ]}
+            style={securityStyle}
           >
             {cells.map((item, index) => {
               const filledTextStyle = [

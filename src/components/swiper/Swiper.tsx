@@ -150,13 +150,13 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     [shouldLoop, count, displayCount]
   )
 
-  const handleContainerLayout = (e: LayoutChangeEvent) => {
+  const handleContainerLayout = useCallback((e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout
     setContainerLayout((prev) => {
       if (prev.width === width && prev.height === height) return prev
       return { width, height }
     })
-  }
+  }, [])
 
   const containerWidth = containerLayout.width || viewportWidth
   const containerHeight = containerLayout.height || viewportHeight
@@ -215,7 +215,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const [autoHeightValue, setAutoHeightValue] = useState<number | undefined>(undefined)
   const measuredHeightsRef = useRef<Record<number, number>>({})
 
-  const swipeToRef = useRef<(index: number, animated?: boolean) => void>(() => {})
+  const swipeToRef = useRef<(index: number, animated?: boolean) => void>(() => { })
 
   const {
     webOffsetRef,
@@ -252,7 +252,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
       clearNativeScrollEndTimer()
     }
   }, [cancelWebRaf, stopWebSnapAnim, clearNativeScrollEndTimer])
-  
+
   const finishNativeScroll = useCallback(() => {
     clearNativeScrollEndTimer()
     isScrollingRef.current = false
@@ -355,10 +355,10 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     (index: number, animated = true) => {
       if (count === 0) return
 
-      const clampedIndex = clamp(index, 0, count - 1)
-      desiredIndexRef.current = clampedIndex
+      const targetRealIndex = clamp(index, 0, count - 1)
+      const fromRealIndex = desiredIndexRef.current
+      desiredIndexRef.current = targetRealIndex
       const currentIndex = currentRef.current
-      const displayIndex = desiredIndexRef.current
 
       let targetIndex: number
       let needsJump = false
@@ -366,21 +366,21 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
       let jumpDisplayIndex: number | null = null
 
       if (shouldLoop) {
-        if (displayIndex === count - 1 && clampedIndex === 0) {
+        if (fromRealIndex === count - 1 && targetRealIndex === 0) {
           targetIndex = displayCount - 1
           needsJump = true
           jumpOffset = -1 * slideSizeValue
           jumpDisplayIndex = 1
-        } else if (displayIndex === 0 && clampedIndex === count - 1) {
+        } else if (fromRealIndex === 0 && targetRealIndex === count - 1) {
           targetIndex = 0
           needsJump = true
           jumpOffset = -count * slideSizeValue
           jumpDisplayIndex = count
         } else {
-          targetIndex = clampedIndex + 1 // 循环模式下需要偏移
+          targetIndex = targetRealIndex + 1 // 循环模式下需要偏移
         }
       } else {
-        targetIndex = clampedIndex
+        targetIndex = targetRealIndex
       }
 
       if (isWeb) {
@@ -501,7 +501,6 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
       webTranslateXAnim,
       webTranslateYAnim,
       nonLoopSnapOffsets,
-      getDisplayIndex,
       displayCount,
       stopWebSnapAnim,
       setCurrentSafe,
@@ -606,6 +605,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
 
   const indicatorRafIdRef = useRef<number | null>(null)
   const indicatorPendingRef = useRef<number | null>(null)
+  const canUseRaf = typeof requestAnimationFrame === 'function' && typeof cancelAnimationFrame === 'function'
 
   const flushIndicator = () => {
     const next = indicatorPendingRef.current
@@ -617,10 +617,17 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const scheduleIndicator = (next: number) => {
     indicatorPendingRef.current = next
     if (indicatorRafIdRef.current != null) return
-    indicatorRafIdRef.current = requestAnimationFrame(() => {
+    if (canUseRaf) {
+      indicatorRafIdRef.current = requestAnimationFrame(() => {
+        indicatorRafIdRef.current = null
+        flushIndicator()
+      })
+      return
+    }
+    indicatorRafIdRef.current = setTimeout(() => {
       indicatorRafIdRef.current = null
       flushIndicator()
-    })
+    }, 16) as unknown as number
   }
 
   useEffect(() => {
@@ -633,7 +640,11 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   useEffect(() => {
     return () => {
       if (indicatorRafIdRef.current != null) {
-        cancelAnimationFrame(indicatorRafIdRef.current)
+        if (canUseRaf) {
+          cancelAnimationFrame(indicatorRafIdRef.current)
+        } else {
+          clearTimeout(indicatorRafIdRef.current)
+        }
         indicatorRafIdRef.current = null
       }
       indicatorPendingRef.current = null

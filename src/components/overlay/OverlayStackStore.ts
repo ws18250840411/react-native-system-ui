@@ -98,7 +98,7 @@ export class OverlayStackStore {
 
   private resolveZIndex = (provided?: number) => {
     if (isNumber(provided)) {
-      if (!Number.isFinite(provided)) {
+      if (!Number.isFinite(provided) || provided < 0) {
         return this.baseZIndex
       }
       return provided >= this.baseZIndex ? provided : this.baseZIndex + provided

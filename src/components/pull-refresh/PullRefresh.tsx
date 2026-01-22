@@ -36,21 +36,25 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const { colors, sizing } = tokens
 
   const translateY = React.useRef(new Animated.Value(0)).current
-  const headHeightNumber = Math.max(
-    0,
-    parseNumberLike(headHeight, sizing.headHeight) ?? sizing.headHeight
+  const headHeightNumber = React.useMemo(
+    () => Math.max(0, parseNumberLike(headHeight, sizing.headHeight) ?? sizing.headHeight),
+    [headHeight, sizing.headHeight],
   )
-  const pullDistanceNumber = Math.max(
-    0,
-    parseNumberLike(pullDistance, headHeightNumber) ?? headHeightNumber
+  const pullDistanceNumber = React.useMemo(
+    () => Math.max(0, parseNumberLike(pullDistance, headHeightNumber) ?? headHeightNumber),
+    [headHeightNumber, pullDistance],
   )
-  const successDurationMs = Math.max(
-    0,
-    parseNumberLike(successDuration, DEFAULT_SUCCESS_DURATION) ?? DEFAULT_SUCCESS_DURATION
+  const successDurationMs = React.useMemo(
+    () =>
+      Math.max(
+        0,
+        parseNumberLike(successDuration, DEFAULT_SUCCESS_DURATION) ?? DEFAULT_SUCCESS_DURATION,
+      ),
+    [successDuration],
   )
-  const animationDurationMs = Math.max(
-    0,
-    parseNumberLike(animationDuration, 300) ?? 300
+  const animationDurationMs = React.useMemo(
+    () => Math.max(0, parseNumberLike(animationDuration, 300) ?? 300),
+    [animationDuration],
   )
 
   const isControlled = !isUndefined(refreshing)
@@ -93,18 +97,18 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     }
   }, [])
 
-  const setRefreshing = (value: boolean) => {
+  const setRefreshing = React.useCallback((value: boolean) => {
     if (!isControlled) setInnerRefreshing(value)
-  }
+  }, [isControlled])
 
   React.useEffect(() => {
     mergedRefreshingRef.current = mergedRefreshing
   }, [mergedRefreshing])
 
-  const resolveStatusText = (text: PullRefreshStatusText | undefined, fallback: React.ReactNode) => {
+  const resolveStatusText = React.useCallback((text: PullRefreshStatusText | undefined, fallback: React.ReactNode) => {
     const resolved = isUndefined(text) ? fallback : text
     return isFunction(resolved) ? resolved({ distance }) : resolved
-  }
+  }, [distance])
 
   const triggerSuccess = React.useCallback(() => {
     if (successText === null || successText === undefined || successText === false) return
@@ -138,7 +142,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         refreshSucceededRef.current = false
       }
     }
-  }, [disabled, mergedRefreshing, onRefresh, onRefreshEnd, triggerSuccess])
+  }, [disabled, mergedRefreshing, onRefresh, onRefreshEnd, setRefreshing, triggerSuccess])
 
   // Web 端没有原生下拉回弹与 RefreshControl，需要用拖拽手势模拟内容下移。
   React.useEffect(() => {
@@ -182,16 +186,19 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     refreshSucceededRef.current = false
   }, [mergedRefreshing, showSuccess, triggerSuccess])
 
-  const status: PullRefreshStatus =
-    mergedRefreshing
-      ? 'loading'
-      : showSuccess
-        ? 'success'
-        : disabled || distance === 0
-          ? 'normal'
-          : distance < pullDistanceNumber
-            ? 'pulling'
-            : 'loosing'
+  const status: PullRefreshStatus = React.useMemo(
+    () =>
+      mergedRefreshing
+        ? 'loading'
+        : showSuccess
+          ? 'success'
+          : disabled || distance === 0
+            ? 'normal'
+            : distance < pullDistanceNumber
+              ? 'pulling'
+              : 'loosing',
+    [disabled, distance, mergedRefreshing, pullDistanceNumber, showSuccess],
+  )
 
   const opacity = React.useRef(new Animated.Value(status === 'normal' ? 0 : 1)).current
   React.useEffect(() => {
@@ -204,7 +211,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     Animated.timing(opacity, { toValue, duration: animationDurationMs, useNativeDriver: nativeDriverEnabled }).start()
   }, [animationDurationMs, opacity, status])
 
-  const statusNode = (() => {
+  const statusNode = React.useMemo(() => {
     switch (status) {
       case 'pulling':
         return resolveStatusText(pullingText, locale.vanPullRefresh.pulling)
@@ -217,31 +224,41 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       default:
         return null
     }
-  })()
+  }, [loadingText, locale.vanPullRefresh.loading, locale.vanPullRefresh.loosing, locale.vanPullRefresh.pulling, loosingText, pullingText, resolveStatusText, status, successText])
 
   const shouldReserveHead = (status === 'loading' || status === 'success') && distance === 0
-  const flattenedContainerStyle = StyleSheet.flatten(scrollProps.contentContainerStyle) as { paddingTop?: unknown } | null
+  const flattenedContainerStyle = React.useMemo(
+    () =>
+      StyleSheet.flatten(scrollProps.contentContainerStyle) as { paddingTop?: unknown } | null,
+    [scrollProps.contentContainerStyle],
+  )
   const basePaddingTop = isNumber(flattenedContainerStyle?.paddingTop) ? flattenedContainerStyle.paddingTop : 0
-  const contentContainerStyle = shouldReserveHead
-    ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
-    : scrollProps.contentContainerStyle
+  const contentContainerStyle = React.useMemo(
+    () =>
+      shouldReserveHead
+        ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
+        : scrollProps.contentContainerStyle,
+    [basePaddingTop, headHeightNumber, scrollProps.contentContainerStyle, shouldReserveHead],
+  )
 
-  const handleScroll = (
-    event: Parameters<NonNullable<React.ComponentProps<typeof ScrollView>['onScroll']>>[0]
-  ) => {
-    scrollProps.onScroll?.(event)
-    const offset = event.nativeEvent.contentOffset?.y ?? 0
-    if (isWeb) {
-      scrollTopRef.current = Math.max(0, offset)
-      return
-    }
-    if (disabled) return
-    if (!isFunction(onRefresh) || mergedRefreshing || showSuccess) {
-      setDistanceValue(0)
-      return
-    }
-    setDistanceValue(offset < 0 ? -offset : 0)
-  }
+  const onScrollProp = scrollProps.onScroll
+  const handleScroll = React.useCallback(
+    (event: Parameters<NonNullable<React.ComponentProps<typeof ScrollView>['onScroll']>>[0]) => {
+      onScrollProp?.(event)
+      const offset = event.nativeEvent.contentOffset?.y ?? 0
+      if (isWeb) {
+        scrollTopRef.current = Math.max(0, offset)
+        return
+      }
+      if (disabled) return
+      if (!isFunction(onRefresh) || mergedRefreshing || showSuccess) {
+        setDistanceValue(0)
+        return
+      }
+      setDistanceValue(offset < 0 ? -offset : 0)
+    },
+    [disabled, isWeb, mergedRefreshing, onRefresh, onScrollProp, setDistanceValue, showSuccess],
+  )
 
   const panResponder = React.useMemo(() => {
     if (!isWeb || !isFunction(onRefresh)) return null

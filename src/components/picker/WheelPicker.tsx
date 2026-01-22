@@ -98,9 +98,11 @@ const WheelPickerInner = <T extends PickerOption,>({
       if (Math.abs(nextOffset - offsetY) > 0.5) {
         listRef.current?.scrollToOffset({ offset: nextOffset, animated })
       }
-      if (index !== safeSelectedIndex) onChange(index)
+      // 移除索引比较，总是触发 onChange，让上层的 handleSelect 来决定是否需要更新
+      // 这对于级联选择器很重要，即使索引相同，也可能需要重新计算后续列
+      onChange(index)
     },
-    [data, itemHeight, onChange, readOnly, safeSelectedIndex, total],
+    [data, itemHeight, onChange, readOnly, total],
   )
 
   React.useEffect(() => {
@@ -194,8 +196,10 @@ const WheelPickerInner = <T extends PickerOption,>({
     clearPendingTimer()
     setWebTransition(0)
     notifyInteractEnd()
-    if (nextIndex !== safeSelectedIndex) onChange(nextIndex)
-  }, [clearPendingTimer, onChange, readOnly, safeSelectedIndex, setWebTransition])
+    // 移除索引比较，总是触发 onChange，让上层的 handleSelect 来决定是否需要更新
+    // 这对于级联选择器很重要，即使索引相同，也可能需要重新计算后续列
+    onChange(nextIndex)
+  }, [clearPendingTimer, onChange, readOnly, setWebTransition])
 
   const startWebSnap = React.useCallback(
     (targetIndex: number) => {
@@ -235,11 +239,12 @@ const WheelPickerInner = <T extends PickerOption,>({
         const direction = queued > 0 ? 1 : -1
         const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data)
         const nextIndex = clamp(index + direction, 0, maxIndex)
-        if (nextIndex === safeSelectedIndex) return
+        // 移除索引比较，总是调用 startWebSnap，让 finalizePendingChange 和 handleSelect 来决定是否需要更新
+        // 这对于级联选择器很重要，即使索引相同，也可能需要重新计算后续列
         startWebSnap(nextIndex)
       })
     },
-    [data, itemHeight, maxIndex, readOnly, safeSelectedIndex, startWebSnap, total, updateWheelVelocity],
+    [data, itemHeight, maxIndex, readOnly, startWebSnap, total, updateWheelVelocity],
   )
 
   const keyExtractor = React.useCallback(

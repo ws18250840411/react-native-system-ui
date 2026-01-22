@@ -66,6 +66,19 @@
 | config-provider | 已冻结 ✅ | 极致精简版：Locale 继承收敛；Provider 渲染稳定 |
 | dropdown-menu | 已冻结 ✅ | 极致精简版：测量/渲染收敛；动画与布局稳定 |
 | field | 已冻结 ✅ | 极致精简版：输入/格式化/clear/textarea 逻辑收敛；渲染与回调稳定 |
+| form | 已冻结 ✅ | 极致精简版：依赖校验由图驱动；异步校验序列收敛；上下文 form/null 兼容 |
+| image-preview | 已冻结 ✅ | 极致精简版：Portal+Swiper+手势关闭链路收敛；渲染与回调稳定 |
+| index-bar | 已冻结 ✅ | 极致精简版：手势拾取与滚动联动稳定；PanResponder/渲染收敛；回调稳定 |
+| input | 已冻结 ✅ | 极致精简版：Field 包装层回调/样式收敛；TextArea autoSize 转换稳定 |
+| notice-bar | 已冻结 ✅ | 极致精简版：横/竖向滚动与回调收敛；布局测量稳定；关闭链路稳定 |
+| password-input | 已冻结 ✅ | 极致精简版：输入归一与回调稳定；光标闪烁/布局样式收敛；单测通过 |
+| pull-refresh | 已冻结 ✅ | 极致精简版：受控/非受控刷新收敛；Web 手势与状态派生稳定；回调与布局计算收敛 |
+| search | 已冻结 ✅ | 极致精简版：基于 Field 的输入链路收敛；action/label 渲染稳定；回调稳定 |
+| share-sheet | 已冻结 ✅ | 极致精简版：弹层关闭链路稳定；options 渲染收敛；回调稳定 |
+| skeleton | 已冻结 ✅ | 极致精简版：动画与样式/派生值收敛；渲染稳定；单测通过 |
+| slider | 已冻结 ✅ | 极致精简版：派生值/样式/回调收敛；拖拽事件节流与清理；step 单测补齐 |
+| stepper | 已冻结 ✅ | 极致精简版：输入/长按链路稳定；回调与样式收敛；单测通过 |
+| swipe-cell | 已冻结 ✅ | 极致精简版：手势拦截条件稳定；action 关闭链路稳定；回调与样式收敛；单测通过 |
 | image | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、映射表优化、Web/Native SVG 统一、无障碍精修 |
 | list | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、横纵向支持、ScrollComponent 注入、无障碍精修、逻辑最小化 |
 | loading | 已冻结 ✅ | 极致精简版：全 Tokens 驱动、Native Driver 动画、无 ActivityIndicator 依赖 |
@@ -90,6 +103,11 @@
 | overlay | 持续优化 ✅ | 极致精简版：栈/zIndex/遮罩；Token 对齐；单测通过 |
 | calendar | 已冻结 ✅ | 极致精简版：选择值归一；选中态缓存；无 any；单测通过 |
 | datetime-picker | 已冻结 ✅ | 极致精简版：列联动一致；Web 互不干扰；无 any |
+| swiper | 已冻结 ✅ | 极致精简版：滑动/循环/指示器/虚拟化多端差异收敛；loop 边界跳转最短路径；Ref 跳转同页不锁死；ref 连点以“目标页”计算并尽快发起 scrollToIndex；单测覆盖 loop wrap |
+| tabbar | 已冻结 ✅ | 极致精简版：动画/安全区/fixed 布局与交互收敛；结构收敛（SafeArea/容器节点更少）；单测通过 |
+| toast | 已冻结 ✅ | 极致精简版：弹层/队列/静态 API/关闭链路收敛；单测通过 |
+| tabs | 已冻结 ✅ | 极致精简版：swipeable/指示器/滚动/测量逻辑稳定；单测通过 |
+| uploader | 已冻结 ✅ | 极致精简版：文件选择/预览/清理三端差异收敛；交互与回调稳定；单测通过 |
 
 ### C 组（持续优化）
 
@@ -99,24 +117,6 @@
 
 | 组件（目录） | 冻结建议 | 主要原因（简述） |
 | --- | --- | --- |
-| form | 持续优化 ✅ | 校验/依赖/异步校验与边界多；类型收敛（setValueByName 返回值/上下文 form null 兼容） |
-| image-preview | 持续优化 ✅ | Portal+Swiper+手势/关闭链路 |
-| index-bar | 持续优化 ✅ | 手势/滚动/定位，三端一致性敏感 |
-| input | 持续优化 ✅ | TextInput/autoSize/composition 等差异 |
-| notice-bar | 持续优化 ✅ | 动画/滚动/重播，差异点多 |
-| password-input | 持续优化 ✅ | 输入+自绘 UI+动画/光标等 |
-| pull-refresh | 持续优化 ✅ | 手势/滚动冲突，差异点多 |
-| search | 持续优化 ✅ | 基于 Field/Input，输入链路复杂 |
-| share-sheet | 持续优化 ✅ | 弹层+复杂内容布局 |
-| skeleton | 持续优化 ✅ | 动画/driver/性能敏感 |
-| slider | 持续优化 ✅ | 拖拽手势与滚动冲突，高风险 |
-| stepper | 持续优化 ✅ | TextInput+长按/边界与交互多 |
-| swipe-cell | 持续优化 ✅ | 滑动手势/点击回收/滚动冲突，高风险 |
-| swiper | 持续优化 ✅ | 滑动/循环/指示器/虚拟化，多端差异；Ref 跳转同页不锁死；native 滚动结束兜底避免队列卡住；ref 连点以“目标页”计算并尽快发起 scrollToIndex |
-| tabbar | 持续优化 ✅ | 动画/安全区/fixed 布局与交互 |
-| tabs | 持续优化 ✅ | swipeable/指示器/滚动/测量复杂 |
-| toast | 持续优化 ✅ | 弹层/队列/静态 API/关闭链路 |
-| uploader | 持续优化 ✅ | 文件选择/预览/清理与三端差异明显 |
 
 ## 冻结执行建议（流程）
 

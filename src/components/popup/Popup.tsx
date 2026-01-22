@@ -131,7 +131,7 @@ const renderWithSafeArea = (
   children: React.ReactNode,
   opts: { safeArea: boolean; safeAreaInsetTop: boolean; safeAreaInsetBottom: boolean },
   safeAreaTopRef?: React.RefObject<View>,
-  onSafeAreaTopLayout?: () => void
+  onSafeAreaTopLayout?: (event: LayoutChangeEvent) => void
 ) => {
   if (opts.safeArea) {
     return (
@@ -290,6 +290,7 @@ export const Popup: React.FC<PopupProps> = props => {
   const canCloseOnOverlay = shouldCloseOnOverlay && (onClose || beforeClose)
   const progress = React.useRef(new Animated.Value(0)).current
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
+  const animationSeqRef = React.useRef(0)
   const prevVisible = React.useRef(visible)
   const closingRef = React.useRef(false)
 
@@ -299,6 +300,8 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const runAnimation = React.useCallback(
     (show: boolean) => {
+      animationSeqRef.current += 1
+      const currentSeq = animationSeqRef.current
       const easing = show ? EASING_OUT_CIRC : EASING_IN_CUBIC
       animationRef.current?.stop()
       const animation = Animated.timing(progress, {
@@ -310,7 +313,7 @@ export const Popup: React.FC<PopupProps> = props => {
       animationRef.current = animation
 
       animation.start(({ finished }) => {
-        if (!finished) return
+        if (!finished || currentSeq !== animationSeqRef.current) return
         if (show) {
           onOpened?.()
         } else {
@@ -463,17 +466,12 @@ export const Popup: React.FC<PopupProps> = props => {
   )
 
   const [safeAreaTopHeight, setSafeAreaTopHeight] = React.useState(0)
-  const safeAreaTopRef = React.useRef<View>(null)
-
-  React.useEffect(() => {
-    if (safeAreaInsetTop && safeAreaTopRef.current) {
-      safeAreaTopRef.current.measure((x, y, width, height) => {
-        setSafeAreaTopHeight(height)
-      })
-    } else {
-      setSafeAreaTopHeight(0)
-    }
-  }, [safeAreaInsetTop])
+  const handleSafeAreaTopLayout = React.useCallback(
+    (event: LayoutChangeEvent) => {
+      setSafeAreaTopHeight(event.nativeEvent.layout.height)
+    },
+    [],
+  )
 
   const shouldRender = mounted || visible
 
@@ -565,14 +563,8 @@ export const Popup: React.FC<PopupProps> = props => {
       {renderWithSafeArea(
         contentBody,
         { safeArea, safeAreaInsetTop, safeAreaInsetBottom },
-        safeAreaTopRef,
-        () => {
-          if (safeAreaTopRef.current) {
-            safeAreaTopRef.current.measure((x, y, width, height) => {
-              setSafeAreaTopHeight(height)
-            })
-          }
-        }
+        undefined,
+        safeAreaInsetTop ? handleSafeAreaTopLayout : undefined
       )}
     </Animated.View>
   )

@@ -115,12 +115,12 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     }
   }, [decimalLength, hasFocus, setInputText, value])
 
-  const getCurrentNumber = () => {
+  const getCurrentNumber = React.useCallback(() => {
     const current = valueRef.current
     return isFiniteNumber(current) ? current : 0
-  }
+  }, [])
 
-  const isActionDisabled = (type: 'plus' | 'minus') => {
+  const isActionDisabled = React.useCallback((type: 'plus' | 'minus') => {
     if (disabled) return true
     if (type === 'plus' && disablePlus) return true
     if (type === 'minus' && disableMinus) return true
@@ -133,22 +133,22 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       return true
     }
     return false
-  }
+  }, [disableMinus, disablePlus, disabled, getCurrentNumber, max, min])
 
-  const setValue = (next: number | null) => {
+  const setValue = React.useCallback((next: number | null) => {
     const prev = valueRef.current ?? null
     if (Object.is(prev, next)) return false
     valueRef.current = next
     triggerChange(next, { name })
     return true
-  }
+  }, [name, triggerChange])
 
-  const applyNextValue = (nextRaw: number) => {
+  const applyNextValue = React.useCallback((nextRaw: number) => {
     const formatted = formatValue(nextRaw, integer, decimalLength)
     return autoFixed ? clampValue(formatted, min, max) : formatted
-  }
+  }, [autoFixed, decimalLength, integer, max, min])
 
-  const performValueChange = (
+  const performValueChange = React.useCallback((
     next: number | null,
     committed?: (committedValue: number | null) => void,
   ) => {
@@ -205,9 +205,9 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       console.error(error)
       return commit()
     }
-  }
+  }, [beforeChange, decimalLength, setInputText, setValue])
 
-  const stepOnce = (
+  const stepOnce = React.useCallback((
     type: 'plus' | 'minus',
     event?: GestureResponderEvent,
     options?: { emitOverlimit?: boolean; emitButtonCallbacks?: boolean },
@@ -236,7 +236,16 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         onMinus?.(event, committedValue)
       }
     })
-  }
+  }, [
+    applyNextValue,
+    getCurrentNumber,
+    isActionDisabled,
+    onMinus,
+    onOverlimit,
+    onPlus,
+    performValueChange,
+    resolvedStep,
+  ])
 
   const longPressRef = React.useRef<{
     delay?: ReturnType<typeof setTimeout>
@@ -246,7 +255,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     hadLongPress: false,
   })
 
-  const clearLongPress = () => {
+  const clearLongPress = React.useCallback(() => {
     if (longPressRef.current.delay) {
       clearTimeout(longPressRef.current.delay)
       longPressRef.current.delay = undefined
@@ -255,11 +264,11 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       clearInterval(longPressRef.current.interval)
       longPressRef.current.interval = undefined
     }
-  }
+  }, [])
 
-  React.useEffect(() => clearLongPress, [])
+  React.useEffect(() => clearLongPress, [clearLongPress])
 
-  const startLongPress = (type: 'plus' | 'minus') => {
+  const startLongPress = React.useCallback((type: 'plus' | 'minus') => {
     if (!longPress) return
     if (changingRef.current) return
     if (isActionDisabled(type)) return
@@ -288,20 +297,20 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         }
       }, LONG_PRESS_INTERVAL)
     }, LONG_PRESS_DELAY)
-  }
+  }, [clearLongPress, isActionDisabled, longPress, stepOnce])
 
-  const handlePressOut = () => {
+  const handlePressOut = React.useCallback(() => {
     clearLongPress()
-  }
+  }, [clearLongPress])
 
-  const handleButtonPress = (type: 'plus' | 'minus', event: GestureResponderEvent) => {
+  const handleButtonPress = React.useCallback((type: 'plus' | 'minus', event: GestureResponderEvent) => {
     if (longPressRef.current.hadLongPress) {
       longPressRef.current.hadLongPress = false
       return
     }
     longPressRef.current.hadLongPress = false
     stepOnce(type, event, { emitOverlimit: true, emitButtonCallbacks: true })
-  }
+  }, [stepOnce])
 
   const currentForCompare = isFiniteNumber(value) ? value : 0
   const minNumber = isFiniteNumber(min) ? min : undefined
@@ -311,14 +320,20 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const plusDisabled = disabledForAll || disablePlus || (maxNumber !== undefined && currentForCompare >= maxNumber)
   const radius = tokens.radii.default
 
-  const buttonBaseStyle = { width: resolvedButtonSize, height: resolvedButtonSize }
-  const inputBoxStyle = {
-    width: resolvedInputWidth,
-    height: resolvedButtonSize,
-    marginHorizontal: tokens.spacing.gap,
-  }
+  const buttonBaseStyle = React.useMemo(
+    () => ({ width: resolvedButtonSize, height: resolvedButtonSize }),
+    [resolvedButtonSize],
+  )
+  const inputBoxStyle = React.useMemo(
+    () => ({
+      width: resolvedInputWidth,
+      height: resolvedButtonSize,
+      marginHorizontal: tokens.spacing.gap,
+    }),
+    [resolvedButtonSize, resolvedInputWidth, tokens.spacing.gap],
+  )
 
-  const getButtonStyle = (type: 'plus' | 'minus', state: PressableStateCallbackType) => {
+  const getButtonStyle = React.useCallback((type: 'plus' | 'minus', state: PressableStateCallbackType) => {
     const isPlus = type === 'plus'
     const disabledState = isPlus ? plusDisabled : minusDisabled
 
@@ -379,9 +394,24 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       { backgroundColor },
       buttonStyle,
     ]
-  }
+  }, [
+    buttonBaseStyle,
+    buttonStyle,
+    minusDisabled,
+    plusDisabled,
+    radius,
+    resolvedButtonSize,
+    theme,
+    tokens.colors.active,
+    tokens.colors.background,
+    tokens.colors.buttonDisabledBackground,
+    tokens.colors.roundTheme,
+    tokens.colors.roundThemeBackground,
+    tokens.opacity.pressed,
+    tokens.opacity.roundDisabled,
+  ])
 
-  const getButtonTextStyle = (type: 'plus' | 'minus') => {
+  const getButtonTextStyle = React.useCallback((type: 'plus' | 'minus') => {
     const isPlus = type === 'plus'
     const disabledState = isPlus ? plusDisabled : minusDisabled
 
@@ -405,9 +435,19 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         fontWeight: tokens.typography.fontWeight,
       },
     ]
-  }
+  }, [
+    minusDisabled,
+    plusDisabled,
+    theme,
+    tokens.colors.buttonDisabledIcon,
+    tokens.colors.buttonIcon,
+    tokens.colors.roundTheme,
+    tokens.colors.roundThemeText,
+    tokens.typography.fontSize,
+    tokens.typography.fontWeight,
+  ])
 
-  const handleChangeText = (text: string) => {
+  const handleChangeText = React.useCallback((text: string) => {
     if (disableInput || disabled || changingRef.current) return
 
     setInputText(text)
@@ -423,21 +463,31 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     if (!Number.isFinite(numeric)) return
 
     performValueChange(applyNextValue(numeric))
-  }
+  }, [
+    allowEmpty,
+    applyNextValue,
+    changingRef,
+    disableInput,
+    disabled,
+    inputProps,
+    performValueChange,
+    resolvedDefaultValue,
+    setInputText,
+  ])
 
-  const handleFocus = (
+  const handleFocus = React.useCallback((
     event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onFocus']>>[0],
   ) => {
-    setHasFocus(true)
     if (disableInput) {
       inputRef.current?.blur()
       return
     }
+    setHasFocus(true)
     onFocus?.(event)
     inputProps?.onFocus?.(event)
-  }
+  }, [disableInput, inputProps, onFocus])
 
-  const handleBlur = (
+  const handleBlur = React.useCallback((
     event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onBlur']>>[0],
   ) => {
     setHasFocus(false)
@@ -456,36 +506,94 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
 
     onBlur?.(event)
     inputProps?.onBlur?.(event)
-  }
+  }, [
+    allowEmpty,
+    applyNextValue,
+    inputProps,
+    onBlur,
+    performValueChange,
+    resolvedDefaultValue,
+  ])
 
-  const handleInputPressIn = (event: GestureResponderEvent) => {
+  const handleInputPressIn = React.useCallback((event: GestureResponderEvent) => {
     onClick?.(event)
     inputProps?.onPressIn?.(event)
-  }
+  }, [inputProps, onClick])
 
-  const renderButton = (type: 'plus' | 'minus') => {
-    const isPlus = type === 'plus'
-    const visible = isPlus ? showPlus : showMinus
-    if (!visible) return null
+  const handleMinusPress = React.useCallback(
+    (event: GestureResponderEvent) => handleButtonPress('minus', event),
+    [handleButtonPress],
+  )
+  const handlePlusPress = React.useCallback(
+    (event: GestureResponderEvent) => handleButtonPress('plus', event),
+    [handleButtonPress],
+  )
+  const handleMinusPressIn = React.useCallback(() => startLongPress('minus'), [startLongPress])
+  const handlePlusPressIn = React.useCallback(() => startLongPress('plus'), [startLongPress])
+  const getMinusButtonStyle = React.useCallback(
+    (state: PressableStateCallbackType) => getButtonStyle('minus', state),
+    [getButtonStyle],
+  )
+  const getPlusButtonStyle = React.useCallback(
+    (state: PressableStateCallbackType) => getButtonStyle('plus', state),
+    [getButtonStyle],
+  )
 
+  const renderMinusButton = React.useCallback(() => {
+    if (!showMinus) return null
     return (
       <Pressable
-        key={type}
-        testID={`stepper-${type}`}
+        key="minus"
+        testID="stepper-minus"
         accessibilityRole="button"
-        accessibilityLabel={type === 'plus' ? 'add' : 'minus'}
-        accessibilityState={{ disabled: isPlus ? plusDisabled : minusDisabled }}
-        onPress={event => handleButtonPress(type, event)}
-        onPressIn={() => startLongPress(type)}
+        accessibilityLabel="minus"
+        accessibilityState={{ disabled: minusDisabled }}
+        onPress={handleMinusPress}
+        onPressIn={handleMinusPressIn}
         onPressOut={handlePressOut}
-        style={state => getButtonStyle(type, state)}
+        style={getMinusButtonStyle}
       >
-        <Text style={getButtonTextStyle(type)}>{isPlus ? '+' : '-'}</Text>
+        <Text style={getButtonTextStyle('minus')}>-</Text>
       </Pressable>
     )
-  }
+  }, [
+    getButtonTextStyle,
+    getMinusButtonStyle,
+    handleMinusPress,
+    handleMinusPressIn,
+    handlePressOut,
+    minusDisabled,
+    showMinus,
+  ])
 
-  const renderInput = () => {
+  const renderPlusButton = React.useCallback(() => {
+    if (!showPlus) return null
+    return (
+      <Pressable
+        key="plus"
+        testID="stepper-plus"
+        accessibilityRole="button"
+        accessibilityLabel="add"
+        accessibilityState={{ disabled: plusDisabled }}
+        onPress={handlePlusPress}
+        onPressIn={handlePlusPressIn}
+        onPressOut={handlePressOut}
+        style={getPlusButtonStyle}
+      >
+        <Text style={getButtonTextStyle('plus')}>+</Text>
+      </Pressable>
+    )
+  }, [
+    getButtonTextStyle,
+    getPlusButtonStyle,
+    handlePlusPress,
+    handlePlusPressIn,
+    handlePressOut,
+    plusDisabled,
+    showPlus,
+  ])
+
+  const inputNode = React.useMemo(() => {
     if (!showInput) return null
 
     const editable = !disabledForAll && !disableInput
@@ -502,6 +610,8 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       ? tokens.colors.inputDisabledText
       : tokens.colors.inputText
 
+    const keyboardType = integer ? 'number-pad' : 'decimal-pad'
+
     return (
       <TextInput
         ref={inputRef}
@@ -515,20 +625,39 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         value={inputValue}
         placeholder={placeholder}
         editable={editable}
-        keyboardType={integer ? 'number-pad' : 'decimal-pad'}
+        keyboardType={keyboardType}
         onChangeText={handleChangeText}
         onFocus={handleFocus}
         onBlur={handleBlur}
         onPressIn={handleInputPressIn}
       />
     )
-  }
+  }, [
+    disableInput,
+    disabledForAll,
+    handleBlur,
+    handleChangeText,
+    handleFocus,
+    handleInputPressIn,
+    inputBoxStyle,
+    inputProps,
+    inputStyle,
+    inputValue,
+    integer,
+    placeholder,
+    showInput,
+    theme,
+    tokens.colors.background,
+    tokens.colors.inputDisabledBackground,
+    tokens.colors.inputDisabledText,
+    tokens.colors.inputText,
+  ])
 
   return (
     <View {...rest} style={[styles.container, style]}>
-      {renderButton('minus')}
-      {renderInput()}
-      {renderButton('plus')}
+      {renderMinusButton()}
+      {inputNode}
+      {renderPlusButton()}
     </View>
   )
 })

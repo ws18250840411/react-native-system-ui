@@ -101,10 +101,10 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     setContainerWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next))
   }, [])
 
-  const handleClose = () => {
+  const handleClose = React.useCallback(() => {
     setVisible(false)
     onClose?.()
-  }
+  }, [onClose])
 
   const closePress = useAriaPress({
     disabled: mode !== 'closeable' || !visible,
@@ -121,7 +121,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     extraProps: onPress ? { accessibilityRole: 'button' } : undefined,
   })
 
-  const renderRight = () => {
+  const rightNode = React.useMemo(() => {
     if (mode === 'closeable') {
       return (
         <Pressable hitSlop={8} {...closePress.interactionProps}>
@@ -132,23 +132,25 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     if (mode === 'link') {
       return <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
     }
-    if (rightIcon) {
-      return rightIcon
-    }
-    return null
-  }
-
-  const rightNode = renderRight()
+    return rightIcon ?? null
+  }, [closePress.interactionProps, mode, resolvedColor, rightIcon])
   const hasLeft = isRenderable(leftIcon)
   const hasRight = Boolean(rightNode)
 
-  const effectiveContainerWidth = Math.max(
-    0,
-    containerWidth -
-      (hasLeft ? tokens.spacing.sidePadding : 0) -
-      (hasRight ? tokens.spacing.sidePadding : 0),
+  const effectiveContainerWidth = React.useMemo(
+    () =>
+      Math.max(
+        0,
+        containerWidth -
+          (hasLeft ? tokens.spacing.sidePadding : 0) -
+          (hasRight ? tokens.spacing.sidePadding : 0),
+      ),
+    [containerWidth, hasLeft, hasRight, tokens.spacing.sidePadding],
   )
-  const shouldScroll = !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth)
+  const shouldScroll = React.useMemo(
+    () => !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth),
+    [contentWidth, effectiveContainerWidth, isVertical, scrollable, wrapable],
+  )
 
   React.useEffect(() => {
     if (!visible) {
@@ -259,21 +261,15 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     verticalTranslateY,
   ])
 
-  if (!visible) {
-    return null
-  }
-
-  const handleItemLayout = (event: LayoutChangeEvent) => {
+  const handleItemLayout = React.useCallback((event: LayoutChangeEvent) => {
     const height = event?.nativeEvent?.layout?.height
     if (!height) return
     setItemHeight(prev => (prev === 0 || Math.abs(prev - height) >= 0.5 ? height : prev))
-  }
+  }, [])
 
-  const renderVerticalContent = () => {
+  const verticalContentNode = React.useMemo(() => {
     if (!isVertical) return null
-    if (verticalTrackItems.length === 0) {
-      return null
-    }
+    if (verticalTrackItems.length === 0) return null
 
     if (!hasVerticalLoop) {
       const single = verticalTrackItems[0]
@@ -331,6 +327,41 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         </Animated.View>
       </View>
     )
+  }, [
+    handleItemLayout,
+    hasVerticalLoop,
+    isVertical,
+    itemHeight,
+    resolvedColor,
+    restTextProps,
+    textOnLayout,
+    tokens.typography.fontSize,
+    verticalTrackItems,
+    verticalTranslateY,
+  ])
+
+  const handleContainerLayout = React.useCallback(
+    (event: LayoutChangeEvent) => {
+      setContainerWidthSafe(event.nativeEvent.layout.width)
+    },
+    [setContainerWidthSafe],
+  )
+
+  const handleTextLayout = React.useCallback(
+    (event: LayoutChangeEvent) => {
+      setContentWidthSafe(event.nativeEvent.layout.width)
+      textOnLayout?.(event)
+    },
+    [setContentWidthSafe, textOnLayout],
+  )
+
+  const handleNodeLayout = React.useCallback(
+    (event: LayoutChangeEvent) => setContentWidthSafe(event.nativeEvent.layout.width),
+    [setContentWidthSafe],
+  )
+
+  if (!visible) {
+    return null
   }
 
   return (
@@ -356,7 +387,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         </View>
       ) : null}
       <View
-        onLayout={event => setContainerWidthSafe(event.nativeEvent.layout.width)}
+        onLayout={handleContainerLayout}
         style={[
           styles.content,
           wrapable && styles.contentWrap,
@@ -366,14 +397,11 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         pointerEvents="none"
       >
         {isVertical ? (
-          renderVerticalContent()
+          verticalContentNode
         ) : shouldScroll ? (
           isTextContent ? (
             <AnimatedText
-              onLayout={event => {
-                setContentWidthSafe(event.nativeEvent.layout.width)
-                textOnLayout?.(event)
-              }}
+              onLayout={handleTextLayout}
               style={[
                 styles.text,
                 styles.scrollText,
@@ -392,7 +420,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
             </AnimatedText>
           ) : (
             <Animated.View
-              onLayout={event => setContentWidth(event.nativeEvent.layout.width)}
+              onLayout={handleNodeLayout}
               style={[
                 styles.text,
                 { transform: [{ translateX }] },
@@ -404,10 +432,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         ) : (
           isTextContent ? (
             <Text
-              onLayout={event => {
-                setContentWidthSafe(event.nativeEvent.layout.width)
-                textOnLayout?.(event)
-              }}
+              onLayout={handleTextLayout}
               style={[
                 styles.text,
                 { color: resolvedColor, fontSize: tokens.typography.fontSize },
@@ -421,7 +446,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
             </Text>
           ) : (
             <View
-              onLayout={event => setContentWidthSafe(event.nativeEvent.layout.width)}
+              onLayout={handleNodeLayout}
               style={[
                 styles.text,
                 wrapable && styles.wrapText,

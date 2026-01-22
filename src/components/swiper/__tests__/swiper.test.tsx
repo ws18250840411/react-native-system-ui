@@ -182,4 +182,42 @@ describe('Swiper', () => {
     expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 2, animated: true })
     expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 3, animated: true })
   })
+
+  it('wraps forward in loop via boundary copy', () => {
+    const swiperRef = React.createRef<any>()
+
+    renderer.create(
+      <Swiper ref={swiperRef} initialSwipe={2}>
+        <Swiper.Item><Text>1</Text></Swiper.Item>
+        <Swiper.Item><Text>2</Text></Swiper.Item>
+        <Swiper.Item><Text>3</Text></Swiper.Item>
+      </Swiper>,
+    )
+
+    act(() => {
+      swiperRef.current?.swipeNext()
+    })
+
+    expect(mockScrollToIndex).toHaveBeenCalledTimes(1)
+    expect(mockScrollToIndex).toHaveBeenLastCalledWith({ index: 4, animated: true })
+  })
+
+  it('wraps backward in loop via boundary copy', () => {
+    const swiperRef = React.createRef<any>()
+
+    renderer.create(
+      <Swiper ref={swiperRef} initialSwipe={0}>
+        <Swiper.Item><Text>1</Text></Swiper.Item>
+        <Swiper.Item><Text>2</Text></Swiper.Item>
+        <Swiper.Item><Text>3</Text></Swiper.Item>
+      </Swiper>,
+    )
+
+    act(() => {
+      swiperRef.current?.swipePrev()
+    })
+
+    expect(mockScrollToIndex).toHaveBeenCalledTimes(1)
+    expect(mockScrollToIndex).toHaveBeenLastCalledWith({ index: 0, animated: true })
+  })
 })

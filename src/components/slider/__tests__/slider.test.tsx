@@ -168,9 +168,24 @@ describe('Slider', () => {
 
   it('respects step', () => {
     const onChange = jest.fn()
-    const tree = renderer.create(
-      <Slider value={1.5} step={1} onChange={onChange} />
-    )
+    const tree = renderer.create(<Slider value={0} min={0} max={10} step={2} onChange={onChange} />)
+    const track = tree.root.findByType(Pressable)
+
+    act(() => {
+      track.props.onLayout?.({
+        nativeEvent: { layout: { width: 100, height: 10, x: 0, y: 0 } },
+      })
+    })
+
+    act(() => {
+      track.props.onPress?.({
+        nativeEvent: { locationX: 40, locationY: 0, pageX: 40, pageY: 0 },
+        preventDefault: jest.fn(),
+      })
+    })
+
+    expect(onChange).toHaveBeenCalled()
+    expect(onChange.mock.calls[0][0]).toBe(4)
   })
 
   it('falls back when min is NaN', () => {

@@ -57,21 +57,38 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   const rowWidth = rowWidthProp ?? tokens.defaults.rowWidth
   const round = roundProp ?? false
 
-  const rows = isFiniteNumber(row) ? Math.max(0, Math.floor(row)) : 0
-  const rowWidths = resolveSeries(rows, rowWidth, tokens.defaults.rowWidth)
-  const rowHeights = resolveSeries(rows, rowHeight, tokens.defaults.rowHeight)
+  const rows = React.useMemo(
+    () => (isFiniteNumber(row) ? Math.max(0, Math.floor(row)) : 0),
+    [row],
+  )
+  const rowWidths = React.useMemo(() => {
+    const widths = resolveSeries(rows, rowWidth, tokens.defaults.rowWidth)
+    if (
+      !Array.isArray(rowWidth) &&
+      rows > 1 &&
+      (props.rowWidth === undefined || (isString(props.rowWidth) && props.rowWidth.trim() === '100%'))
+    ) {
+      widths[rows - 1] = tokens.defaults.lastRowWidth
+    }
+    return widths
+  }, [props.rowWidth, rowWidth, rows, tokens.defaults.lastRowWidth, tokens.defaults.rowWidth])
+  const rowHeights = React.useMemo(
+    () => resolveSeries(rows, rowHeight, tokens.defaults.rowHeight),
+    [rowHeight, rows, tokens.defaults.rowHeight],
+  )
 
-  if (
-    !Array.isArray(rowWidth) &&
-    rows > 1 &&
-    (props.rowWidth === undefined || (isString(props.rowWidth) && props.rowWidth.trim() === '100%'))
-  ) {
-    rowWidths[rows - 1] = tokens.defaults.lastRowWidth
-  }
-
-  const titleHeight = rowHeights[0] ?? tokens.defaults.rowHeight
-  const resolvedAvatarSize = normalize(avatarSize, tokens.defaults.avatarSize)
-  const resolvedTitleWidth = normalize(titleWidth, tokens.defaults.titleWidth)
+  const titleHeight = React.useMemo(
+    () => rowHeights[0] ?? tokens.defaults.rowHeight,
+    [rowHeights, tokens.defaults.rowHeight],
+  )
+  const resolvedAvatarSize = React.useMemo(
+    () => normalize(avatarSize, tokens.defaults.avatarSize),
+    [avatarSize, tokens.defaults.avatarSize],
+  )
+  const resolvedTitleWidth = React.useMemo(
+    () => normalize(titleWidth, tokens.defaults.titleWidth),
+    [titleWidth, tokens.defaults.titleWidth],
+  )
 
   const animated = React.useRef(new Animated.Value(0)).current
 
@@ -99,15 +116,103 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
     return () => loop.stop()
   }, [animate, animated, loading, tokens.animation.duration])
 
-  const animatedStyle =
-    !loading || !animate
-      ? undefined
-      : ({
-        opacity: animated.interpolate({
-          inputRange: [0, 1],
-          outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
-        }),
-      } as unknown as ViewStyle)
+  const animatedStyle = React.useMemo(() => {
+    if (!loading || !animate) return undefined
+    return {
+      opacity: animated.interpolate({
+        inputRange: [0, 1],
+        outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
+      }),
+    } as unknown as ViewStyle
+  }, [animate, animated, loading, tokens.animation.maxOpacity, tokens.animation.minOpacity])
+
+  const containerStyles = React.useMemo(
+    () => [styles.container, { gap: tokens.spacing.containerGap }, style],
+    [style, tokens.spacing.containerGap],
+  )
+
+  const avatarNode = React.useMemo(() => {
+    if (!avatar) return null
+    return (
+      <Animated.View
+        style={[
+          {
+            width: resolvedAvatarSize as ViewStyle['width'],
+            height: resolvedAvatarSize as ViewStyle['height'],
+            borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
+            backgroundColor: tokens.colors.block,
+          },
+          animatedStyle,
+        ]}
+      />
+    )
+  }, [
+    animatedStyle,
+    avatar,
+    avatarShape,
+    resolvedAvatarSize,
+    tokens.colors.block,
+    tokens.radius,
+  ])
+
+  const titleNode = React.useMemo(() => {
+    if (!title) return null
+    return (
+      <Animated.View
+        style={[
+          {
+            width: resolvedTitleWidth as ViewStyle['width'],
+            height: titleHeight as ViewStyle['height'],
+            backgroundColor: tokens.colors.block,
+            borderRadius: round ? tokens.radius : 0,
+          },
+          animatedStyle,
+        ]}
+      />
+    )
+  }, [
+    animatedStyle,
+    round,
+    resolvedTitleWidth,
+    title,
+    titleHeight,
+    tokens.colors.block,
+    tokens.radius,
+  ])
+
+  const rowNodes = React.useMemo(() => {
+    if (rows <= 0) return null
+    return (
+      <View style={styles.rows}>
+        {rowWidths.map((width, index) => (
+          <Animated.View
+            key={index}
+            testID={`rv-skeleton-row-${index}`}
+            style={[
+              {
+                width: width as ViewStyle['width'],
+                height: rowHeights[index] as ViewStyle['height'],
+                marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
+                backgroundColor: tokens.colors.block,
+                borderRadius: round ? tokens.radius : 0,
+              },
+              animatedStyle,
+            ]}
+          />
+        ))}
+      </View>
+    )
+  }, [
+    animatedStyle,
+    rowHeights,
+    rowWidths,
+    round,
+    rows,
+    title,
+    tokens.colors.block,
+    tokens.radius,
+    tokens.spacing.rowGap,
+  ])
 
   if (!loading) {
     return (
@@ -118,54 +223,11 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   }
 
   return (
-    <View ref={ref} style={[styles.container, { gap: tokens.spacing.containerGap }, style]} {...rest}>
-      {avatar ? (
-        <Animated.View
-          style={[
-            {
-              width: resolvedAvatarSize as ViewStyle['width'],
-              height: resolvedAvatarSize as ViewStyle['height'],
-              borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
-              backgroundColor: tokens.colors.block,
-            },
-            animatedStyle,
-          ]}
-        />
-      ) : null}
+    <View ref={ref} style={containerStyles} {...rest}>
+      {avatarNode}
       <View style={styles.content}>
-        {title ? (
-          <Animated.View
-            style={[
-              {
-                width: resolvedTitleWidth as ViewStyle['width'],
-                height: titleHeight as ViewStyle['height'],
-                backgroundColor: tokens.colors.block,
-                borderRadius: round ? tokens.radius : 0,
-              },
-              animatedStyle,
-            ]}
-          />
-        ) : null}
-        {rows > 0 ? (
-          <View style={styles.rows}>
-            {rowWidths.map((width, index) => (
-              <Animated.View
-                key={index}
-                testID={`rv-skeleton-row-${index}`}
-                style={[
-                  {
-                    width: width as ViewStyle['width'],
-                    height: rowHeights[index] as ViewStyle['height'],
-                    marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
-                    backgroundColor: tokens.colors.block,
-                    borderRadius: round ? tokens.radius : 0,
-                  },
-                  animatedStyle,
-                ]}
-              />
-            ))}
-          </View>
-        ) : null}
+        {titleNode}
+        {rowNodes}
       </View>
     </View>
   )

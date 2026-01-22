@@ -37,6 +37,7 @@ export const useSwiperWeb = ({
   trackOffsetPx,
   swipeToRef,
 }: UseSwiperWebParams) => {
+  const canUseRaf = typeof requestAnimationFrame === 'function' && typeof cancelAnimationFrame === 'function'
   const webOffsetRef = useRef(0)
   const startOffsetRef = useRef(0)
   const panLockRef = useRef(false)
@@ -87,19 +88,30 @@ export const useSwiperWeb = ({
   const scheduleWebTranslate = useCallback((next: number) => {
     webPendingOffsetRef.current = next
     if (webRafIdRef.current != null) return
-    webRafIdRef.current = requestAnimationFrame(() => {
+    if (canUseRaf) {
+      webRafIdRef.current = requestAnimationFrame(() => {
+        webRafIdRef.current = null
+        flushWebTranslate()
+      })
+      return
+    }
+    webRafIdRef.current = setTimeout(() => {
       webRafIdRef.current = null
       flushWebTranslate()
-    })
-  }, [flushWebTranslate])
+    }, 16) as unknown as number
+  }, [canUseRaf, flushWebTranslate])
 
   const cancelWebRaf = useCallback(() => {
     if (webRafIdRef.current != null) {
-      cancelAnimationFrame(webRafIdRef.current)
+      if (canUseRaf) {
+        cancelAnimationFrame(webRafIdRef.current)
+      } else {
+        clearTimeout(webRafIdRef.current)
+      }
       webRafIdRef.current = null
     }
     webPendingOffsetRef.current = null
-  }, [])
+  }, [canUseRaf])
 
   const webSnapAnimRef = useRef<Animated.CompositeAnimation | null>(null)
   const stopWebSnapAnim = useCallback(() => {
