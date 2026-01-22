@@ -37,10 +37,10 @@ export const usePickerValue = ({
   React.useEffect(() => {
     if (!isControlled) return
     const next = toArrayValue(valueProp)
-    if (!shallowEqualArray(innerValue, next)) {
+    if (!shallowEqualArray(innerValueRef.current, next)) {
       commitValue(next)
     }
-  }, [commitValue, innerValue, isControlled, valueProp])
+  }, [commitValue, isControlled, valueProp])
 
   const normalized = React.useMemo(
     () => normalizePicker(preparedColumns, innerValue),

@@ -23,7 +23,7 @@ describe('Cascader', () => {
     jest.useRealTimers()
   })
 
-  it('selects option, triggers onChange, and advances to next tab', () => {
+  it('selects option, triggers onChange, and advances to next tab', async () => {
     const onChange = jest.fn()
     const options: CascaderOption[] = [
       {
@@ -43,11 +43,10 @@ describe('Cascader', () => {
     )
 
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
-    act(() => {
+    await act(async () => {
       option.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     expect(onChange).toHaveBeenCalled()
@@ -59,7 +58,7 @@ describe('Cascader', () => {
     expect(StyleSheet.flatten(pane1.props.style)?.display).toBeUndefined()
   })
 
-  it('triggers onClickTab with tabIndex and title', () => {
+  it('triggers onClickTab with tabIndex and title', async () => {
     const onClickTab = jest.fn()
     const options: CascaderOption[] = [
       {
@@ -74,25 +73,23 @@ describe('Cascader', () => {
     )
 
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
-    act(() => {
+    await act(async () => {
       option.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
-    act(() => {
+    await act(async () => {
       tab0.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, 'A')
   })
 
-  it('triggers onClickTab even when clicking active tab', () => {
+  it('triggers onClickTab even when clicking active tab', async () => {
     const onClickTab = jest.fn()
     const options: CascaderOption[] = [
       {
@@ -107,17 +104,16 @@ describe('Cascader', () => {
     )
 
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
-    act(() => {
+    await act(async () => {
       tab0.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, '请选择')
   })
 
-  it('shows loadingText for async children placeholder column', () => {
+  it('shows loadingText for async children placeholder column', async () => {
     const options: CascaderOption[] = [
       {
         text: 'A',
@@ -136,11 +132,10 @@ describe('Cascader', () => {
     )
 
     const option = tree.root.findByProps({ testID: 'cascader-option-0-a' })
-    act(() => {
+    await act(async () => {
       option.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     const pane1 = tree.root.findByProps({ testID: 'rv-tabs-pane-1' })
@@ -148,7 +143,7 @@ describe('Cascader', () => {
     expect(texts).toContain('加载中...')
   })
 
-  it('supports custom fieldNames for text/value/children', () => {
+  it('supports custom fieldNames for text/value/children', async () => {
     const onFinish = jest.fn()
     const options: CustomOption[] = [
       {
@@ -171,25 +166,23 @@ describe('Cascader', () => {
     )
 
     const option0 = tree.root.findByProps({ testID: 'cascader-option-0-1' })
-    act(() => {
+    await act(async () => {
       option0.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     const option1 = tree.root.findByProps({ testID: 'cascader-option-1-11' })
-    act(() => {
+    await act(async () => {
       option1.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     expect(onFinish).toHaveBeenCalledWith([1, 11], [options[0], options[0].nodes![0]])
   })
 
-  it('supports onClickTab title with custom fieldNames', () => {
+  it('supports onClickTab title with custom fieldNames', async () => {
     const onClickTab = jest.fn()
     const options: CustomOption[] = [
       {
@@ -209,19 +202,17 @@ describe('Cascader', () => {
     )
 
     const option0 = tree.root.findByProps({ testID: 'cascader-option-0-1' })
-    act(() => {
+    await act(async () => {
       option0.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     const tab0 = tree.root.findByProps({ testID: 'rv-tabs-item-0' })
-    act(() => {
+    await act(async () => {
       tab0.props.onPress?.()
-    })
-    act(() => {
       jest.runOnlyPendingTimers()
+      await Promise.resolve()
     })
 
     expect(onClickTab).toHaveBeenCalledWith(0, '广东省')

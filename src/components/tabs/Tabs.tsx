@@ -555,6 +555,20 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     [beforeChange],
   )
 
+  const changeSeqRef = React.useRef(0)
+  const requestChange = React.useCallback(
+    (name: TabsValue, index: number) => {
+      changeSeqRef.current += 1
+      const seq = changeSeqRef.current
+      runBeforeChange(name).then(canChange => {
+        if (!canChange) return
+        if (changeSeqRef.current !== seq) return
+        setActiveValue(name, index)
+      })
+    },
+    [runBeforeChange, setActiveValue],
+  )
+
   const handlePaneLayout = React.useCallback(
     (name: TabsValue, event: LayoutChangeEvent) => {
       if (isSwipeable && swipeableConfig?.autoHeight) {
@@ -568,21 +582,43 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     [currentName, isSwipeable, swipeableConfig?.autoHeight],
   )
 
-  const handleSwipeMomentumScrollEnd = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const swipeEndIndexRef = React.useRef<number | null>(null)
+  React.useEffect(() => {
+    swipeEndIndexRef.current = null
+  }, [currentName])
+
+  const handleSwipeEnd = React.useCallback(
+    (offsetX: number) => {
       if (!isSwipeable || containerWidth <= 0) {
         return
       }
-      const offsetX = event.nativeEvent.contentOffset.x
       const pageIndex = Math.round(offsetX / containerWidth)
+      if (swipeEndIndexRef.current === pageIndex) {
+        return
+      }
+      swipeEndIndexRef.current = pageIndex
       const nextPane = panes[pageIndex]
-      if (!nextPane || nextPane.name === currentName) {
+      if (!nextPane || nextPane.name === currentNameRef.current) {
         return
       }
       swipeableChangeByScrollRef.current = true
-      setActiveValue(nextPane.name, nextPane.index)
+      requestChange(nextPane.name, nextPane.index)
     },
-    [containerWidth, currentName, isSwipeable, panes, setActiveValue],
+    [containerWidth, isSwipeable, panes, requestChange],
+  )
+
+  const handleSwipeMomentumScrollEnd = React.useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      handleSwipeEnd(event.nativeEvent.contentOffset.x)
+    },
+    [handleSwipeEnd],
+  )
+
+  const handleSwipeScrollEndDrag = React.useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      handleSwipeEnd(event.nativeEvent.contentOffset.x)
+    },
+    [handleSwipeEnd],
   )
 
   React.useEffect(() => {
@@ -615,18 +651,9 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       if (pane.disabled || pane.name === currentNameRef.current) {
         return
       }
-      if (!beforeChange) {
-        setActiveValue(pane.name, index)
-        return
-      }
-      runBeforeChange(pane.name).then(canChange => {
-        if (!canChange) {
-          return
-        }
-        setActiveValue(pane.name, index)
-      })
+      requestChange(pane.name, index)
     },
-    [beforeChange, onClickTab, runBeforeChange, setActiveValue],
+    [onClickTab, requestChange],
   )
 
   const scrollTo = React.useCallback(
@@ -834,6 +861,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         scrollEventThrottle={16}
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleSwipeMomentumScrollEnd}
+        onScrollEndDrag={handleSwipeScrollEndDrag}
         nestedScrollEnabled={swipeableConfig?.preventScroll === false}
         directionalLockEnabled={swipeableConfig?.preventScroll !== false}
       >

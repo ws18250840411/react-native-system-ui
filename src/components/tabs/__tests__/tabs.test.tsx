@@ -7,7 +7,7 @@ import Tabs from '..'
 const { TabPane } = Tabs
 
 describe('Tabs', () => {
-  it('switches active tab on press and triggers onChange', () => {
+  it('switches active tab on press and triggers onChange', async () => {
     const onChange = jest.fn()
     const tree = renderer.create(
       <Tabs defaultActive="chat" onChange={onChange}>
@@ -22,8 +22,9 @@ describe('Tabs', () => {
 
     const noticeTab = tree.root.findByProps({ testID: 'rv-tabs-item-notice' })
 
-    act(() => {
+    await act(async () => {
       noticeTab.props.onPress?.({})
+      await Promise.resolve()
     })
 
     expect(onChange).toHaveBeenCalledWith('notice', 1)
@@ -38,7 +39,7 @@ describe('Tabs', () => {
     expect(chatStyle?.display).toBe('none')
   })
 
-  it('lazy renders content until tab becomes active', () => {
+  it('lazy renders content until tab becomes active', async () => {
     const tree = renderer.create(
       <Tabs defaultActive="today" lazyRender>
         <TabPane title="今日" name="today">
@@ -53,8 +54,9 @@ describe('Tabs', () => {
     expect(tree.root.findAllByProps({ testID: 'rv-tabs-pane-week' })).toHaveLength(0)
 
     const weekTab = tree.root.findByProps({ testID: 'rv-tabs-item-week' })
-    act(() => {
+    await act(async () => {
       weekTab.props.onPress?.({})
+      await Promise.resolve()
     })
 
     expect(tree.root.findAllByProps({ testID: 'rv-tabs-pane-week' })).toHaveLength(1)
@@ -144,7 +146,7 @@ describe('Tabs', () => {
     expect(bPane).toHaveLength(0)
   })
 
-  it('renders lazyRenderPlaceholder before content loads', () => {
+  it('renders lazyRenderPlaceholder before content loads', async () => {
     const tree = renderer.create(
       <Tabs
         defaultActive="ready"
@@ -165,8 +167,9 @@ describe('Tabs', () => {
     expect(laterPane.findAllByType(Text)[0].props.children).toBe('占位符')
 
     const laterTab = tree.root.findByProps({ testID: 'rv-tabs-item-later' })
-    act(() => {
+    await act(async () => {
       laterTab.props.onPress?.({})
+      await Promise.resolve()
     })
 
     const updatedPane = tree.root.findByProps({ testID: 'rv-tabs-pane-later' })
@@ -233,7 +236,7 @@ describe('Tabs', () => {
     expect(activeStyle?.backgroundColor).toBe(activeColor)
   })
 
-  it('does not cancel tabbar scroll animation by onScroll updates', () => {
+  it('does not cancel tabbar scroll animation by onScroll updates', async () => {
     const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: unknown, _config: unknown) => {
       const animation = {
         start: jest.fn(),
@@ -281,8 +284,9 @@ describe('Tabs', () => {
 
     const before = setValueSpy.mock.calls.length
 
-    act(() => {
+    await act(async () => {
       tabC.props.onPress?.()
+      await Promise.resolve()
     })
 
     const afterChange = setValueSpy.mock.calls.length
@@ -300,7 +304,7 @@ describe('Tabs', () => {
     setValueSpy.mockRestore()
   })
 
-  it('keeps indicator working when panes are appended', () => {
+  it('keeps indicator working when panes are appended', async () => {
     const timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(((_value: unknown, _config: unknown) => {
       const animation = {
         start: jest.fn(),
@@ -338,8 +342,9 @@ describe('Tabs', () => {
     })
 
     const tabAAfter = tree.root.findByProps({ testID: 'rv-tabs-item-a' })
-    act(() => {
+    await act(async () => {
       tabAAfter.props.onPress?.()
+      await Promise.resolve()
     })
 
     expect(timingSpy).toHaveBeenCalled()

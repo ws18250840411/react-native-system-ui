@@ -324,12 +324,15 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
 
   const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
   const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
+  const animationSeqRef = React.useRef(0)
   const [contentHeight, setContentHeight] = React.useState(0)
   const [shouldRender, setShouldRender] = React.useState(visible)
 
   const effectiveDuration = transition === false ? 0 : transitionDuration
 
   React.useEffect(() => {
+    animationSeqRef.current += 1
+    const currentSeq = animationSeqRef.current
     if (visible) {
       setShouldRender(true)
     }
@@ -342,7 +345,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     })
     animationRef.current = animation
     animation.start(({ finished }) => {
-      if (finished && !visible) {
+      if (finished && !visible && animationSeqRef.current === currentSeq) {
         setShouldRender(false)
       }
     })

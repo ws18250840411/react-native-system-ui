@@ -63,6 +63,8 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
 
   const scrollTopRef = React.useRef(0)
   const draggingRef = React.useRef(false)
+  const webDragRafRef = React.useRef<number | null>(null)
+  const webDragPendingRef = React.useRef<number | null>(null)
   const [distance, setDistance] = React.useState(0)
   const [showSuccess, setShowSuccess] = React.useState(false)
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -89,13 +91,45 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     setDistance(prev => (Math.abs(prev - normalized) < 1 ? prev : normalized))
   }, [animationDurationMs, isWeb, translateY])
 
+  const flushWebDrag = React.useCallback(() => {
+    const pending = webDragPendingRef.current
+    if (pending == null) return
+    webDragPendingRef.current = null
+    setDistanceValue(pending)
+  }, [setDistanceValue])
+
+  const cancelWebDrag = React.useCallback(() => {
+    if (webDragRafRef.current != null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(webDragRafRef.current)
+    }
+    webDragRafRef.current = null
+    webDragPendingRef.current = null
+  }, [])
+
+  const scheduleWebDrag = React.useCallback(
+    (nextDistance: number) => {
+      if (!isWeb || typeof requestAnimationFrame !== 'function') {
+        setDistanceValue(nextDistance)
+        return
+      }
+      webDragPendingRef.current = nextDistance
+      if (webDragRafRef.current != null) return
+      webDragRafRef.current = requestAnimationFrame(() => {
+        webDragRafRef.current = null
+        flushWebDrag()
+      })
+    },
+    [flushWebDrag, isWeb, setDistanceValue],
+  )
+
   React.useEffect(() => {
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }
+      cancelWebDrag()
     }
-  }, [])
+  }, [cancelWebDrag])
 
   const setRefreshing = React.useCallback((value: boolean) => {
     if (!isControlled) setInnerRefreshing(value)
@@ -296,12 +330,13 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         if (scrollTopRef.current > 0) return
 
         const raw = Math.max(0, gestureState.dy ?? 0)
-        setDistanceValue(easeDistance(raw))
+        scheduleWebDrag(easeDistance(raw))
 
         ;(event as unknown as { preventDefault?: () => void }).preventDefault?.()
       },
       onPanResponderRelease: async (_event, gestureState) => {
         draggingRef.current = false
+        cancelWebDrag()
         if (disabled) return
         if (mergedRefreshingRef.current) return
         if (showSuccess) return
@@ -319,6 +354,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       },
       onPanResponderTerminate: () => {
         draggingRef.current = false
+        cancelWebDrag()
         setDistanceValue(0, true)
       },
     })
@@ -328,6 +364,8 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     headHeightNumber,
     isWeb,
     pullDistanceNumber,
+    cancelWebDrag,
+    scheduleWebDrag,
     setDistanceValue,
     showSuccess,
   ])

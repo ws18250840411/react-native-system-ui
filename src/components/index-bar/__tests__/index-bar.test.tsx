@@ -35,7 +35,7 @@ describe('IndexBar', () => {
     const tree = renderer.create(
       <IndexBar indexList={customIndices}>
         <Anchor index="1">
-            <Text>1</Text>
+          <Text>1</Text>
         </Anchor>
       </IndexBar>
     )
@@ -55,16 +55,181 @@ describe('IndexBar', () => {
         </Anchor>
       </IndexBar>
     )
-      
+
     // Mock scrollTo
     const scrollView = tree.root.findByType(ScrollView)
     // In test renderer, we can't easily mock instance methods of native components unless we mock the component itself.
     // But we can check if ref is populated
-    expect(ref.current).toBeDefined()
-    expect(ref.current.scrollTo).toBeDefined()
-      
+    const current = ref.current
+    expect(current).toBeDefined()
+    expect(current?.scrollTo).toBeDefined()
+
     act(() => {
       ref.current?.scrollTo('A')
+    })
+  })
+
+  it('maps drag location to nearest index item', () => {
+    const onSelect = jest.fn()
+    const tree = renderer.create(
+      <IndexBar onSelect={onSelect}>
+        <Anchor index="A"><Text>A</Text></Anchor>
+        <Anchor index="B"><Text>B</Text></Anchor>
+        <Anchor index="C"><Text>C</Text></Anchor>
+      </IndexBar>
+    )
+
+    const navList = tree.root.findByProps({ testID: 'rv-indexbar-nav-list' })
+    const navA = tree.root.findByProps({ testID: 'rv-indexbar-nav-A' })
+    const navB = tree.root.findByProps({ testID: 'rv-indexbar-nav-B' })
+    const navC = tree.root.findByProps({ testID: 'rv-indexbar-nav-C' })
+
+    act(() => {
+      navA.props.onLayout?.({ nativeEvent: { layout: { y: 10, height: 10 } } })
+      navB.props.onLayout?.({ nativeEvent: { layout: { y: 30, height: 10 } } })
+      navC.props.onLayout?.({ nativeEvent: { layout: { y: 50, height: 10 } } })
+    })
+
+    const buildEvent = (locationY: number) => ({
+      nativeEvent: { locationY },
+      touchHistory: {
+        touchBank: [
+          {
+            currentPageX: 0,
+            currentPageY: locationY,
+            startPageX: 0,
+            startPageY: locationY,
+            previousPageX: 0,
+            previousPageY: locationY,
+            touchActive: true,
+          },
+        ],
+        numberActiveTouches: 1,
+        indexOfSingleActiveTouch: 0,
+        mostRecentTimeStamp: 0,
+      },
+    })
+
+    act(() => {
+      navList.props.onResponderGrant?.(buildEvent(36))
+    })
+    expect(onSelect).toHaveBeenCalledWith('B')
+  })
+
+  it('selects nearest index when tapping list background', () => {
+    const onSelect = jest.fn()
+    const tree = renderer.create(
+      <IndexBar onSelect={onSelect}>
+        <Anchor index="A"><Text>A</Text></Anchor>
+        <Anchor index="B"><Text>B</Text></Anchor>
+        <Anchor index="C"><Text>C</Text></Anchor>
+      </IndexBar>
+    )
+
+    const navList = tree.root.findByProps({ testID: 'rv-indexbar-nav-list' })
+    const navA = tree.root.findByProps({ testID: 'rv-indexbar-nav-A' })
+    const navB = tree.root.findByProps({ testID: 'rv-indexbar-nav-B' })
+    const navC = tree.root.findByProps({ testID: 'rv-indexbar-nav-C' })
+
+    act(() => {
+      navA.props.onLayout?.({ nativeEvent: { layout: { y: 10, height: 10 } } })
+      navB.props.onLayout?.({ nativeEvent: { layout: { y: 30, height: 10 } } })
+      navC.props.onLayout?.({ nativeEvent: { layout: { y: 50, height: 10 } } })
+    })
+
+    const buildEvent = (locationY: number) => ({
+      nativeEvent: { locationY },
+      touchHistory: {
+        touchBank: [
+          {
+            currentPageX: 0,
+            currentPageY: locationY,
+            startPageX: 0,
+            startPageY: locationY,
+            previousPageX: 0,
+            previousPageY: locationY,
+            touchActive: true,
+          },
+        ],
+        numberActiveTouches: 1,
+        indexOfSingleActiveTouch: 0,
+        mostRecentTimeStamp: 0,
+      },
+    })
+
+    act(() => {
+      navList.props.onResponderGrant?.(buildEvent(34))
+    })
+    expect(onSelect).toHaveBeenCalledWith('B')
+  })
+
+  it('selects nearest index on responder start', () => {
+    const onSelect = jest.fn()
+    const tree = renderer.create(
+      <IndexBar onSelect={onSelect}>
+        <Anchor index="A"><Text>A</Text></Anchor>
+        <Anchor index="B"><Text>B</Text></Anchor>
+        <Anchor index="C"><Text>C</Text></Anchor>
+      </IndexBar>
+    )
+
+    const navList = tree.root.findByProps({ testID: 'rv-indexbar-nav-list' })
+    const navA = tree.root.findByProps({ testID: 'rv-indexbar-nav-A' })
+    const navB = tree.root.findByProps({ testID: 'rv-indexbar-nav-B' })
+    const navC = tree.root.findByProps({ testID: 'rv-indexbar-nav-C' })
+
+    act(() => {
+      navA.props.onLayout?.({ nativeEvent: { layout: { y: 10, height: 10 } } })
+      navB.props.onLayout?.({ nativeEvent: { layout: { y: 30, height: 10 } } })
+      navC.props.onLayout?.({ nativeEvent: { layout: { y: 50, height: 10 } } })
+    })
+
+    const buildEvent = (locationY: number) => ({
+      nativeEvent: { locationY },
+      touchHistory: {
+        touchBank: [
+          {
+            currentPageX: 0,
+            currentPageY: locationY,
+            startPageX: 0,
+            startPageY: locationY,
+            previousPageX: 0,
+            previousPageY: locationY,
+            touchActive: true,
+          },
+        ],
+        numberActiveTouches: 1,
+        indexOfSingleActiveTouch: 0,
+        mostRecentTimeStamp: 0,
+      },
+    })
+
+    act(() => {
+      navList.props.onResponderStart?.(buildEvent(34))
+    })
+    expect(onSelect).toHaveBeenCalledWith('B')
+  })
+
+  it('highlights pressed index during interaction even when controlled', () => {
+    const itemRender = jest.fn((item: string | number, active: boolean) => (
+      <Text>{`${item}-${active ? 'on' : 'off'}`}</Text>
+    ))
+    const tree = renderer.create(
+      <IndexBar value="A" itemRender={itemRender}>
+        <Anchor index="A"><Text>A</Text></Anchor>
+        <Anchor index="B"><Text>B</Text></Anchor>
+      </IndexBar>
+    )
+
+    const navB = tree.root.findByProps({ testID: 'rv-indexbar-nav-B' })
+    act(() => {
+      navB.props.onPressIn?.()
+    })
+
+    expect(itemRender.mock.calls.some(call => call[0] === 'B' && call[1] === true)).toBe(true)
+
+    act(() => {
+      navB.props.onPressOut?.()
     })
   })
 })

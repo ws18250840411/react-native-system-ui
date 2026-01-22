@@ -196,13 +196,13 @@ export const SwipeCell = React.forwardRef<SwipeCellRef, SwipeCellProps>((props, 
   const open = React.useCallback(
     (side: SwipeCellSide) => {
       if (disabled) return
-      if (side === 'left' && leftWidth > 0) {
+      if (side === 'left' && hasLeft) {
         animateTo(leftWidth, 'left')
-      } else if (side === 'right' && rightWidth > 0) {
+      } else if (side === 'right' && hasRight) {
         animateTo(-rightWidth, 'right')
       }
     },
-    [animateTo, disabled, leftWidth, rightWidth]
+    [animateTo, disabled, hasLeft, hasRight, leftWidth, rightWidth]
   )
 
   const close = React.useCallback(() => {

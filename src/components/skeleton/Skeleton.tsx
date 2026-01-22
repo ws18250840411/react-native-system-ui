@@ -93,7 +93,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   const animated = React.useRef(new Animated.Value(0)).current
 
   React.useEffect(() => {
-    if (!loading || !animate) {
+    if (!loading || !animate || tokens.animation.duration <= 0) {
       animated.setValue(0)
       return
     }

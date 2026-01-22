@@ -233,6 +233,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
   const hasCancelText = isRenderable(cancelText)
 
   const lastPopupCloseReasonRef = React.useRef<ActionSheetCloseAction>('close')
+  const closingRef = React.useRef(false)
 
   const runBeforeClose = React.useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
@@ -262,9 +263,15 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
 
   const requestClose = React.useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
-      const allowed = await runBeforeClose(action)
-      if (!allowed) return
-      emitClose(action)
+      if (closingRef.current) return
+      closingRef.current = true
+      try {
+        const allowed = await runBeforeClose(action)
+        if (!allowed) return
+        emitClose(action)
+      } finally {
+        closingRef.current = false
+      }
     },
     [emitClose, runBeforeClose],
   )

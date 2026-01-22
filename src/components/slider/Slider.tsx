@@ -170,6 +170,7 @@ export const Slider: React.FC<SliderProps> = props => {
   const tokens = useSliderTokens(tokensOverride)
   const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
   const trackRef = React.useRef<React.ElementRef<typeof Pressable> | null>(null)
+  const measureRafRef = React.useRef<number | null>(null)
 
   const resolvedMin = parseNumber(min, 0)
   const resolvedMax = parseNumber(max, 100)
@@ -257,7 +258,9 @@ export const Slider: React.FC<SliderProps> = props => {
 
     if (Platform.OS !== 'web' || typeof requestAnimationFrame === 'undefined') return
 
-    requestAnimationFrame(() => {
+    if (measureRafRef.current != null) return
+    measureRafRef.current = requestAnimationFrame(() => {
+      measureRafRef.current = null
       const node = trackRef.current as unknown as {
         measureInWindow?: (cb: (x: number, y: number, width: number, height: number) => void) => void
       } | null
@@ -272,6 +275,15 @@ export const Slider: React.FC<SliderProps> = props => {
         setTrackLayout(prev => (isSameLayout(prev, measured) ? prev : measured))
       })
     })
+  }, [])
+
+  React.useEffect(() => {
+    return () => {
+      if (measureRafRef.current != null && typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(measureRafRef.current)
+      }
+      measureRafRef.current = null
+    }
   }, [])
 
   const reverseX = orientation === 'horizontal' ? reverse || isRTL() : reverse

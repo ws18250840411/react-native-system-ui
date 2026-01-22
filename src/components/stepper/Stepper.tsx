@@ -267,6 +267,11 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   }, [])
 
   React.useEffect(() => clearLongPress, [clearLongPress])
+  React.useEffect(() => {
+    if (disabled || changing || !longPress) {
+      clearLongPress()
+    }
+  }, [changing, clearLongPress, disabled, longPress])
 
   const startLongPress = React.useCallback((type: 'plus' | 'minus') => {
     if (!longPress) return

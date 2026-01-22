@@ -125,6 +125,7 @@ export const Dialog: React.FC<DialogProps> = props => {
   const confirmLoading = confirmProps?.loading
   const cancelText = cancelButtonText ?? locale.cancel
   const confirmText = confirmButtonText ?? locale.confirm
+  const actionSeqRef = React.useRef(0)
 
   const runBeforeClose = (action: 'confirm' | 'cancel' | 'close') => {
     if (!beforeClose) return true
@@ -140,16 +141,20 @@ export const Dialog: React.FC<DialogProps> = props => {
     action: 'confirm' | 'cancel' | 'close',
     handler?: () => void
   ) => {
+    actionSeqRef.current += 1
+    const seq = actionSeqRef.current
     const result = runBeforeClose(action)
     if (result === false) return
     if (isPromiseLike(result)) {
       void result
         .then(resolved => {
           if (resolved === false) return
+          if (actionSeqRef.current !== seq) return
           handler?.()
         })
         .catch(error => {
           console.error(error)
+          if (actionSeqRef.current !== seq) return
           handler?.()
         })
       return
