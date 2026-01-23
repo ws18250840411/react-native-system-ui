@@ -86,6 +86,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
           },
           sideStyle,
         ]}
+        accessibilityRole="tablist"
       >
         <SidebarContext.Provider value={contextValue}>
           {clonedItems}

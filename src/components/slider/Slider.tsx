@@ -8,6 +8,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native'
 import type { SliderProps, SliderValue } from './types'
 import { useSliderTokens } from './tokens'
 import { parseNumber, isFunction, isFiniteNumber } from '../../utils'
+import { useAriaPress } from '../../hooks'
 import {
   clampValue,
   isSameLayout,
@@ -346,6 +347,12 @@ export const Slider: React.FC<SliderProps> = props => {
     }
   }, [ariaDisabled, orientation, reverse, reverseX, state, trackLayout.height, trackLayout.width, trackLayout.x, trackLayout.y])
 
+  const { interactionProps: trackInteractionProps } = useAriaPress({
+    disabled: ariaDisabled,
+    onPress: handleTrackPress,
+    extraProps: restTrackProps as Record<string, unknown>,
+  })
+
   const currentValue = formatOutput(state.values)
   const currentValueRef = React.useRef<SliderValue>(currentValue)
   currentValueRef.current = currentValue
@@ -623,8 +630,7 @@ export const Slider: React.FC<SliderProps> = props => {
       <View style={[styles.trackWrapper, orientation === 'vertical' && styles.trackWrapperVertical]}>
         <Pressable
           ref={trackRef}
-          {...restTrackProps}
-          onPress={handleTrackPress}
+          {...trackInteractionProps}
           disabled={ariaDisabled}
           onLayout={(event: LayoutChangeEvent) => {
             handleTrackLayout(event)

@@ -1,7 +1,15 @@
 import * as React from 'react'
+import { Platform } from 'react-native'
 import { useFocus, useFocusRing } from '@react-native-aria/focus'
 import { useHover, usePress, type PressEvents } from '@react-native-aria/interactions'
 import { mergeProps } from '@react-native-aria/utils'
+
+const mergePropsCompat = (...args: Array<Record<string, unknown>>) => {
+  if (typeof mergeProps === 'function') {
+    return mergeProps(...args) as Record<string, unknown>
+  }
+  return Object.assign({}, ...args)
+}
 
 export interface UseAriaPressOptions extends PressEvents {
   /**
@@ -45,8 +53,8 @@ export interface UseAriaPressResult {
 
 export const useAriaPress = ({
   disabled = false,
-  allowHover = true,
-  allowFocus = true,
+  allowHover = Platform.OS === 'web',
+  allowFocus = Platform.OS === 'web',
   extraProps,
   ...pressEvents
 }: UseAriaPressOptions = {}): UseAriaPressResult => {
@@ -71,25 +79,37 @@ export const useAriaPress = ({
   }
   const { focusProps: focusRingProps, isFocusVisible } = useFocusRingCompat({ isDisabled: disabled })
 
-  let interactionProps: Record<string, unknown> = pressProps as unknown as Record<string, unknown>
-  if (allowHover) {
-    interactionProps = mergeProps(interactionProps, hoverProps) as unknown as Record<string, unknown>
-  }
-  if (allowFocus && !disabled) {
-    interactionProps = mergeProps(interactionProps, focusProps, focusRingProps) as unknown as Record<string, unknown>
-  }
-  if (extraProps) {
-    interactionProps = mergeProps(interactionProps, extraProps) as unknown as Record<string, unknown>
-  }
+  const interactionProps = React.useMemo(() => {
+    let merged: Record<string, unknown> = pressProps as unknown as Record<string, unknown>
+    if (allowHover) {
+      merged = mergePropsCompat(merged, hoverProps as Record<string, unknown>)
+    }
+    if (allowFocus && !disabled) {
+      merged = mergePropsCompat(
+        merged,
+        focusProps as Record<string, unknown>,
+        focusRingProps as Record<string, unknown>,
+      )
+    }
+    if (extraProps) {
+      merged = mergePropsCompat(merged, extraProps)
+    }
+    return merged
+  }, [allowFocus, allowHover, disabled, extraProps, focusProps, focusRingProps, hoverProps, pressProps])
 
-  return {
-    interactionProps,
-    states: {
+  const states = React.useMemo(
+    () => ({
       hovered: !!isHovered,
       pressed: !!isPressed,
       focused: !!isFocused,
       focusVisible: !!isFocusVisible,
       disabled: !!disabled,
-    },
+    }),
+    [disabled, isFocusVisible, isFocused, isHovered, isPressed],
+  )
+
+  return {
+    interactionProps,
+    states,
   }
 }

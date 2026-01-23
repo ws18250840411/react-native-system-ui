@@ -22,11 +22,19 @@ export const useAriaToggle = (
 ): UseAriaToggleResult => {
   const inputRef = props.inputRef ?? React.useRef<unknown>(null)
   const state = useToggleState(props)
-  const { inputProps } = useToggle(props, state, inputRef as unknown as React.RefObject<HTMLInputElement>)
+  const { inputProps } = useToggle(
+    props,
+    state,
+    inputRef as unknown as React.RefObject<HTMLInputElement>
+  )
+  const resolvedInputProps = React.useMemo(
+    () => inputProps as unknown as Record<string, unknown>,
+    [inputProps],
+  )
 
   return {
     state,
-    inputProps: inputProps as unknown as Record<string, unknown>,
+    inputProps: resolvedInputProps,
     inputRef,
   }
 }

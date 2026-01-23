@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
-import { useControllableValue } from '../../hooks'
+import { useAriaPress, useControllableValue } from '../../hooks'
 import { parseNumber } from '../../utils'
 import type { SwitchProps } from './types'
 import { useSwitchTokens } from './tokens'
@@ -114,10 +114,15 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
     if (Object.is(next, value)) return
     triggerChange(next)
   }
+  const { interactionProps } = useAriaPress({
+    disabled,
+    onPress: handlePress,
+    extraProps: rest as Record<string, unknown>,
+  })
 
   return (
     <Pressable
-      {...rest}
+      {...interactionProps}
       accessibilityRole="switch"
       accessibilityState={{ checked: isChecked, disabled }}
       disabled={disabled}
@@ -126,7 +131,6 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
         { opacity: disabled ? tokens.opacity.disabled : pressed ? tokens.opacity.pressed : 1 },
         style,
       ]}
-      onPress={handlePress}
     >
       <Animated.View
         style={[

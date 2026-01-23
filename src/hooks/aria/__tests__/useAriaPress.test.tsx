@@ -54,7 +54,12 @@ describe('useAriaPress', () => {
   it('合并交互 props 并返回统一状态', () => {
     const ref = React.createRef<UseAriaPressResult>()
 
-    renderer.create(<TestComponent ref={ref} options={{ extraProps: { accessibilityRole: 'button' } }} />)
+    renderer.create(
+      <TestComponent
+        ref={ref}
+        options={{ allowHover: true, allowFocus: true, extraProps: { accessibilityRole: 'button' } }}
+      />
+    )
 
     expect(mockUsePress).toHaveBeenCalledWith({ isDisabled: false })
     expect(mockUseHover).toHaveBeenCalledWith({ isDisabled: false })

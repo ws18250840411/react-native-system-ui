@@ -749,6 +749,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     <ScrollView
       horizontal
       ref={navScrollRef}
+      accessibilityRole="tablist"
       showsHorizontalScrollIndicator={false}
       scrollEventThrottle={16}
       onScrollBeginDrag={handleNavScrollBeginDrag}
@@ -770,7 +771,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       {indicatorNode}
     </ScrollView>
   ) : (
-    <View style={[styles.navContent, styles.navContentStatic]}>
+    <View accessibilityRole="tablist" style={[styles.navContent, styles.navContentStatic]}>
       {navItems}
       {indicatorNode}
     </View>

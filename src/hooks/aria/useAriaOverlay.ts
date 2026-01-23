@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useOverlay } from '@react-native-aria/overlays'
+import { mergeProps } from '@react-native-aria/utils'
 import type { ViewProps } from 'react-native'
 
 export interface UseAriaOverlayOptions {
@@ -44,11 +45,17 @@ export const useAriaOverlay = ({
     overlayRef as unknown as React.RefObject<HTMLElement>
   )
 
+  const resolvedOverlayProps = React.useMemo(
+    () =>
+      (mergeProps(
+        overlayProps ?? {},
+        overlayPropOverrides ?? {},
+      ) as unknown as Partial<ViewProps> & Record<string, unknown>),
+    [overlayPropOverrides, overlayProps],
+  )
+
   return {
     overlayRef,
-    overlayProps: ({
-      ...(overlayProps ?? {}),
-      ...(overlayPropOverrides ?? {}),
-    } as unknown as Partial<ViewProps> & Record<string, unknown>),
+    overlayProps: resolvedOverlayProps,
   }
 }

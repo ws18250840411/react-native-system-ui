@@ -25,13 +25,35 @@ export const useAriaListBox = <T extends object>(
   props: UseAriaListBoxOptions<T>
 ): UseAriaListBoxResult<T> => {
   const ref = React.useRef<unknown>(null)
-  const state = useListState(props)
-  const { listBoxProps, labelProps } = useListBox(props, state, ref as unknown as React.RefObject<HTMLElement>)
+  const { label, ...rest } = props
+  const resolvedProps = React.useMemo(() => {
+    if (label == null) return rest
+    const ariaLabel = typeof label === 'string' ? label : undefined
+    return {
+      ...rest,
+      ...(ariaLabel ? { 'aria-label': ariaLabel } : null),
+    }
+  }, [label, rest])
+  const state = useListState(resolvedProps)
+  const { listBoxProps, labelProps } = useListBox(
+    resolvedProps,
+    state,
+    ref as unknown as React.RefObject<HTMLElement>
+  )
+
+  const resolvedListBoxProps = React.useMemo(
+    () => listBoxProps as unknown as Record<string, unknown>,
+    [listBoxProps],
+  )
+  const resolvedLabelProps = React.useMemo(
+    () => labelProps as unknown as Record<string, unknown>,
+    [labelProps],
+  )
 
   return {
     state,
-    listBoxProps: listBoxProps as unknown as Record<string, unknown>,
-    labelProps: labelProps as unknown as Record<string, unknown>,
+    listBoxProps: resolvedListBoxProps,
+    labelProps: resolvedLabelProps,
     ref,
   }
 }

@@ -47,7 +47,7 @@ describe('useAriaListBox', () => {
 
     expect(mockUseListState).toHaveBeenCalledWith(options)
     expect(mockUseListBox).toHaveBeenCalledTimes(1)
-    expect(mockUseListBox.mock.calls[0][0]).toBe(options)
+    expect(mockUseListBox.mock.calls[0][0]).toStrictEqual(options)
     expect(mockUseListBox.mock.calls[0][1]).toBe(state)
     expect(mockUseListBox.mock.calls[0][2]).toBe(ref.current?.ref)
 
