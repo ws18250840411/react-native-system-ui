@@ -129,4 +129,48 @@ describe('Rate', () => {
     const icon = tree.root.findByType(CustomIcon)
     expect(icon).toBeDefined()
   })
+
+  it('applies correct styles to custom icon elements', () => {
+    const CustomIcon = (props: any) => <Text {...props}>Icon</Text>
+    const tree = renderer.create(
+      <Rate count={1} icon={<CustomIcon />} value={1} size={20} />
+    )
+
+    const icon = tree.root.findByType(CustomIcon)
+    const style = icon.props.style
+
+    expect(style).toEqual(
+      expect.objectContaining({
+        fontSize: 20,
+        lineHeight: 20,
+        width: 20,
+        height: 20,
+        textAlign: 'center',
+        includeFontPadding: false,
+      }),
+    )
+  })
+
+  it('allows overriding font styles but enforces layout styles', () => {
+    const CustomIcon = (props: any) => <Text {...props}>Icon</Text>
+    const tree = renderer.create(
+      <Rate
+        count={1}
+        icon={<CustomIcon style={{ fontSize: 10, width: 100 }} />}
+        value={1}
+        size={20}
+      />
+    )
+
+    const icon = tree.root.findByType(CustomIcon)
+    const style = icon.props.style
+
+    expect(style).toEqual(
+      expect.objectContaining({
+        fontSize: 10, // User override respected
+        width: 20,    // Layout style enforced (size prop)
+        height: 20,   // Layout style enforced
+      }),
+    )
+  })
 })

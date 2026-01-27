@@ -37,8 +37,6 @@ export const createRateTokens = (foundations: Foundations): RateTokens => {
         left: 0,
         top: 0,
         overflow: 'hidden',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
       },
     },
     colors: {

@@ -190,7 +190,7 @@ export const Rate = React.memo((props: RateProps) => {
   const handleResponderMove = (event: GestureResponderEvent) => {
     if (!interactive || !touchable) return
     if (gestureDirectionRef.current !== 'horizontal') return
-    ;(event as unknown as { preventDefault?: () => void }).preventDefault?.()
+      ; (event as unknown as { preventDefault?: () => void }).preventDefault?.()
     const nextScore = valueFromLocationX(event.nativeEvent.locationX)
     if (lastMoveValueRef.current === nextScore) return
     lastMoveValueRef.current = nextScore
@@ -206,20 +206,24 @@ export const Rate = React.memo((props: RateProps) => {
   const renderIconNode = (renderValue: React.ReactNode, tintColor: string) => {
     if (React.isValidElement(renderValue)) {
       const element = renderValue as React.ReactElement<{ style?: StyleProp<AnyStyle> }>
-      const baseStyle: AnyStyle = {
+      const defaultStyle: AnyStyle = {
         color: tintColor,
         fontSize: resolvedSize,
         lineHeight: resolvedSize,
+        textAlign: 'center',
+        includeFontPadding: false,
+      }
+      const layoutStyle: AnyStyle = {
         width: resolvedSize,
         height: resolvedSize,
-        textAlign: 'center',
         flexShrink: 0,
       }
       return React.cloneElement(element, {
         style: StyleSheet.flatten<AnyStyle>([
+          defaultStyle,
           element.props.style,
           iconStyle as unknown as StyleProp<AnyStyle>,
-          baseStyle,
+          layoutStyle,
         ]),
       })
     }
@@ -251,21 +255,33 @@ export const Rate = React.memo((props: RateProps) => {
     const fill = clamp(displayValue - index, 0, 1)
     const marginRight = index === resolvedCount - 1 ? 0 : resolvedGutter
 
+    const isFull = fill === 1
+    const activeIconWrapperStyle: AnyStyle = {
+      width: fill * resolvedSize,
+      height: isFull ? resolvedSize : resolvedSize * 1.5,
+      top: isFull ? 0 : -resolvedSize * 0.25,
+      overflow: isFull ? 'visible' : 'hidden',
+    }
+    const activeIconInnerStyle: AnyStyle = {
+      width: resolvedSize,
+      height: resolvedSize,
+      marginTop: isFull ? 0 : resolvedSize * 0.25,
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'visible',
+    }
+
     const iconContent = (
       <View style={[tokens.layout.iconBox, { width: resolvedSize, height: resolvedSize }]}>
         {fill < 1 ? renderIconNode(resolvedVoidIcon, voidTint) : null}
         {fill > 0 ? (
           <View
             pointerEvents="none"
-            style={[
-              tokens.layout.fill,
-              {
-                width: fill * resolvedSize,
-                height: resolvedSize,
-              },
-            ]}
+            style={[tokens.layout.fill, activeIconWrapperStyle]}
           >
-            {renderIconNode(resolvedActiveIcon, activeTint)}
+            <View style={activeIconInnerStyle}>
+              {renderIconNode(resolvedActiveIcon, activeTint)}
+            </View>
           </View>
         ) : null}
       </View>
