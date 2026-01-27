@@ -237,44 +237,26 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     return handlers
   }, [markTapMove, markTapStart, resetTap, tryTapEnd])
 
-  const indexNode = React.useMemo(() => {
-    if (!showIndex || !imagesLen) return null
-    const indexText = `${safeActive + 1} / ${imagesLen}`
-    return (
-      <View style={styles.index} testID="rv-image-preview-index">
-        <View style={[styles.indexBadge, { backgroundColor: colors.indexBackground }]}>
-          {indexRender ? (
-            indexRender({ index: safeActive, len: imagesLen })
-          ) : (
-            <Text style={[styles.indexText, { color: colors.indexText }]}>{indexText}</Text>
-          )}
+  const renderIndex = React.useCallback(
+    (current: number, total: number) => {
+      if (!showIndex || total === 0) return null
+      const indexText = `${current + 1} / ${total}`
+      return (
+        <View style={styles.index} testID="rv-image-preview-index">
+          <View style={[styles.indexBadge, { backgroundColor: colors.indexBackground }]}>
+            {indexRender ? (
+              indexRender({ index: current, len: total })
+            ) : (
+              <Text style={[styles.indexText, { color: colors.indexText }]}>{indexText}</Text>
+            )}
+          </View>
         </View>
-      </View>
-    )
-  }, [colors.indexBackground, colors.indexText, imagesLen, indexRender, safeActive, showIndex])
+      )
+    },
+    [colors.indexBackground, colors.indexText, indexRender, showIndex],
+  )
 
   const lazyBuffer = lazyRender ? Math.max(0, lazyRenderBuffer | 0) : 0
-
-  const indicatorsNode = React.useMemo(() => {
-    if (!showIndicators || imagesLen <= 1) return null
-    return (
-      <View testID="rv-image-preview-indicators">
-        <Swiper.PagIndicator
-          total={imagesLen}
-          current={safeActive}
-          activeColor={colors.indicatorActive}
-          inactiveColor={colors.indicatorInactive}
-          style={{ bottom: 32 }}
-        />
-      </View>
-    )
-  }, [
-    colors.indicatorActive,
-    colors.indicatorInactive,
-    imagesLen,
-    safeActive,
-    showIndicators,
-  ])
 
   return (
     <Popup
@@ -300,7 +282,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       onClosed={onClosed}
     >
       <View style={[styles.content, { backgroundColor: colors.background }]}>
-        {indexNode}
+        {imagesLen === 1 ? renderIndex(0, 1) : null}
         {imagesLen === 0 ? (
           <View style={styles.empty} testID="rv-image-preview-empty" />
         ) : (
@@ -312,7 +294,21 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
             autoplay={false}
             duration={swipeDuration}
             touchable={imagesLen > 1}
-            indicator={false}
+            indicator={(total, current) => (
+              <>
+                {renderIndex(current, total)}
+                {showIndicators && total > 1 && (
+                  <Swiper.PagIndicator
+                    total={total}
+                    current={current}
+                    activeColor={colors.indicatorActive}
+                    inactiveColor={colors.indicatorInactive}
+                    style={{ bottom: 32 }}
+                    testID="rv-image-preview-indicators"
+                  />
+                )}
+              </>
+            )}
             onChange={handleSwiperChange}
             testID="rv-image-preview-swiper"
           >
@@ -327,7 +323,6 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
             ))}
           </Swiper>
         )}
-        {indicatorsNode}
       </View>
     </Popup>
   )

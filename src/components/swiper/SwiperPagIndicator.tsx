@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
+import { View, StyleSheet, type StyleProp, type ViewStyle, type ViewProps } from 'react-native'
 
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
@@ -56,7 +56,7 @@ export const useSwiperPagIndicatorTokens = createComponentTokensHook(
   createSwiperPagIndicatorTokens
 )
 
-export interface SwiperPagIndicatorProps {
+export interface SwiperPagIndicatorProps extends ViewProps {
   total: number
   current: number
   vertical?: boolean
@@ -75,6 +75,7 @@ const SwiperPagIndicator = React.memo<SwiperPagIndicatorProps>(
     activeColor,
     inactiveColor,
     tokensOverride,
+    ...rest
   }) => {
     const tokens = useSwiperPagIndicatorTokens(tokensOverride)
     const dots: React.ReactElement[] = []
@@ -119,6 +120,7 @@ const SwiperPagIndicator = React.memo<SwiperPagIndicatorProps>(
           containerPositionStyle,
           style,
         ]}
+        {...rest}
       >
         {dots}
       </View>

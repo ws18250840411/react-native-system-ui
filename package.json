@@ -442,6 +442,12 @@
       "require": "./dist/cjs/water-mark/index.js",
       "default": "./dist/es/water-mark/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./safe-area": {
+      "react-native": "./src/components/safe-area/index.tsx",
+      "import": "./dist/es/safe-area/index.js",
+      "require": "./dist/cjs/safe-area/index.js",
+      "default": "./dist/es/safe-area/index.js"
+    }
   }
 }

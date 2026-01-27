@@ -205,7 +205,6 @@ export default defineConfig({
           '/components/notice-bar',
           '/components/progress',
           '/components/swiper',
-          '/components/swipe-cell',
           '/components/skeleton',
           '/components/tag',
           '/components/water-mark',
