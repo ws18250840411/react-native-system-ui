@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
+import { Animated, Easing, Platform, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
@@ -186,6 +186,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const [contentWidth, setContentWidth] = React.useState(0)
   const customColumnWidth = React.useMemo(() => {
     if (!isCustomTheme || contentWidth <= 0) return undefined
+    if (Platform.OS !== 'web') return undefined
     const availableWidth = contentWidth - spacing.paddingHorizontal * 2
     const columnWidth = (availableWidth - keyGap * 3) / 4
     return columnWidth > 0 ? columnWidth : undefined
@@ -393,6 +394,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
         paddingHorizontal: spacing.paddingHorizontal,
         paddingTop: hasHeader ? 0 : keyGap,
         paddingBottom: keyGap,
+        width: '100%' as const,
       },
     ]
     const customMainStyle = [

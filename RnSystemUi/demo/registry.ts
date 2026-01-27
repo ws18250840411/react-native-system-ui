@@ -258,9 +258,6 @@ import StepperDemoBeforeChange from '../../docs/components/stepper/demo/before-c
 import StepperDemoCustom from '../../docs/components/stepper/demo/custom'
 import StepperDemoDisabled from '../../docs/components/stepper/demo/disabled'
 import StepperDemoRange from '../../docs/components/stepper/demo/range'
-import SwipeCellDemoBasic from '../../docs/components/swipe-cell/demo/basic'
-import SwipeCellDemoBoth from '../../docs/components/swipe-cell/demo/both'
-import SwipeCellDemoControl from '../../docs/components/swipe-cell/demo/control'
 import SwiperDemoAutoplay from '../../docs/components/swiper/demo/autoplay'
 import SwiperDemoBasic from '../../docs/components/swiper/demo/basic'
 import SwiperDemoCustomIndicator from '../../docs/components/swiper/demo/custom-indicator'
@@ -405,7 +402,6 @@ export const menuGroups: MenuGroup[] = [
       "notice-bar",
       "progress",
       "swiper",
-      "swipe-cell",
       "skeleton",
       "tag",
       "water-mark"
@@ -2034,26 +2030,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "data-mode",
         title: "数据模式",
         Component: SwiperDemoDataMode,
-      },
-    ],
-  },
-  "swipe-cell": {
-    title: "SwipeCell 滑动单元格",
-    demos: [
-      {
-        id: "basic",
-        title: "基础用法",
-        Component: SwipeCellDemoBasic,
-      },
-      {
-        id: "both",
-        title: "双侧滑动",
-        Component: SwipeCellDemoBoth,
-      },
-      {
-        id: "control",
-        title: "Ref 控制",
-        Component: SwipeCellDemoControl,
       },
     ],
   },
