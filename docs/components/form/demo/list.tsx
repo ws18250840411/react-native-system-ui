@@ -1,7 +1,8 @@
 import React from 'react'
+import { View, Text } from 'react-native'
 
 import { AddO } from 'react-native-system-icon'
-import { Button, Cell, Form, Field, Toast } from 'react-native-system-ui'
+import { Button, Form, Field, Toast } from 'react-native-system-ui'
 
 export default function FormListDemo() {
   const formRef = Form.useForm()
@@ -23,32 +24,46 @@ export default function FormListDemo() {
         />
       )}
     >
-      <Cell.Group>
-        <Form.List name="users">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map((field, idx) => (
-                <Cell.Group key={field.key} inset>
-                  <Form.Item name={[field.name, 'name']}>
-                    <Field label={`用户${idx + 1} 姓名`} placeholder="请输入姓名" clearable />
-                  </Form.Item>
-                  <Form.Item name={[field.name, 'age']}>
-                    <Field label="年龄" placeholder="请输入年龄" clearable />
-                  </Form.Item>
-                  <Button size="small" type="danger" text="删除" onPress={() => remove(idx)} />
-                </Cell.Group>
-              ))}
-              <Button
-                plain
-                block
-                icon={<AddO size={16} />}
-                text="新增用户"
-                onPress={() => add({ name: '', age: '' })}
-              />
-            </>
-          )}
-        </Form.List>
-      </Cell.Group>
+      <Form.List name="users">
+        {(fields, { add, remove }) => (
+          <>
+            {fields.map((field, idx) => (
+              <View key={field.key} style={{ marginBottom: 24 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: '#969799',
+                    paddingVertical: 12,
+                    lineHeight: 16,
+                  }}
+                >
+                  用户 {idx + 1}
+                </Text>
+                <Form.Item name={[field.name, 'name']}>
+                  <Field label="姓名" placeholder="请输入姓名" clearable />
+                </Form.Item>
+                <Form.Item name={[field.name, 'age']}>
+                  <Field label="年龄" placeholder="请输入年龄" clearable />
+                </Form.Item>
+                <Button
+                  size="small"
+                  type="danger"
+                  text="删除"
+                  onPress={() => remove(idx)}
+                  style={{ marginTop: 8 }}
+                />
+              </View>
+            ))}
+            <Button
+              plain
+              block
+              icon={<AddO size={16} />}
+              text="新增用户"
+              onPress={() => add({ name: '', age: '' })}
+            />
+          </>
+        )}
+      </Form.List>
     </Form>
   )
 }

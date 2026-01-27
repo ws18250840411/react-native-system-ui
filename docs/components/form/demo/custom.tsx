@@ -28,8 +28,8 @@ const MobileInput: React.FC<MobileInputProps> = ({ value = { prefix: '86', value
 
   return (
     <>
-      <Space align="center" gap={12}>
-        <View style={{ flex: 0.55 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ width: 100, marginRight: 12 }}>
           <Field
             readOnly
             clickable
@@ -45,7 +45,7 @@ const MobileInput: React.FC<MobileInputProps> = ({ value = { prefix: '86', value
             onChangeText={val => trigger({ value: val })}
           />
         </View>
-      </Space>
+      </View>
 
       <Popup
         visible={visible}

@@ -1,18 +1,34 @@
 import React from 'react'
+import { View, Text } from 'react-native'
 
 import {
   Button,
+  Cell,
   Checkbox,
   Field,
   Form,
   Radio,
   Rate,
   Slider,
+  Space,
   Stepper,
   Switch,
   Toast,
   Uploader,
 } from 'react-native-system-ui'
+
+const GroupTitle = ({ title }: { title: string }) => (
+  <Text
+    style={{
+      fontSize: 14,
+      color: '#969799',
+      paddingVertical: 12,
+      lineHeight: 16,
+    }}
+  >
+    {title}
+  </Text>
+)
 
 export default function FormTypeDemo() {
   const formRef = Form.useForm()
@@ -20,6 +36,7 @@ export default function FormTypeDemo() {
   return (
     <Form
       ref={formRef}
+      style={{ paddingHorizontal: 12 }}
       initialValues={{
         switch: true,
         checkbox: true,
@@ -30,7 +47,6 @@ export default function FormTypeDemo() {
         stepper: 1,
       }}
       onFinish={values => Toast.info(JSON.stringify(values))}
-      style={{ paddingHorizontal: 12 }}
       footer={(
         <Button
           round
@@ -42,48 +58,81 @@ export default function FormTypeDemo() {
         />
       )}
     >
-      <Form.Item name="switch" label="开关" valuePropName="checked" trigger="onChange">
-        <Switch size={20} />
-      </Form.Item>
+      <View>
+        <Cell title="开关" style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+          <Form.Item name="switch" valuePropName="checked" trigger="onChange">
+            <Switch size={24} />
+          </Form.Item>
+        </Cell>
 
-      <Form.Item name="checkbox" label="复选框" valuePropName="checked" trigger="onChange">
-        <Checkbox shape="square">复选框</Checkbox>
-      </Form.Item>
+        <Cell title="步进器" style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+          <Form.Item name="stepper" valuePropName="value" trigger="onChange">
+            <Stepper />
+          </Form.Item>
+        </Cell>
 
-      <Form.Item name="checkbox_group" label="复选框组" valuePropName="value" trigger="onChange">
-        <Checkbox.Group direction="horizontal">
-          <Checkbox shape="square" name="a">复选框a</Checkbox>
-          <Checkbox shape="square" name="b">复选框b</Checkbox>
-          <Checkbox shape="square" name="c">复选框c</Checkbox>
-        </Checkbox.Group>
-      </Form.Item>
+        <Cell title="评分" style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+          <Form.Item name="rate" valuePropName="value" trigger="onChange">
+            <Rate />
+          </Form.Item>
+        </Cell>
 
-      <Form.Item name="radio" label="单选框" valuePropName="value" trigger="onChange">
-        <Radio.Group direction="horizontal">
-          <Radio name="a">单选框a</Radio>
-          <Radio name="b">单选框b</Radio>
-        </Radio.Group>
-      </Form.Item>
+        <Cell title="滑块" style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+          <Form.Item name="slider" valuePropName="value" trigger="onChange">
+            <Slider style={{ width: 200 }} />
+          </Form.Item>
+        </Cell>
 
-      <Form.Item name="stepper" label="步进器" valuePropName="value" trigger="onChange">
-        <Stepper />
-      </Form.Item>
+        <Cell title="上传文件" border={false} style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+          <Form.Item name="uploader" valuePropName="value" trigger="onChange">
+            <Uploader />
+          </Form.Item>
+        </Cell>
+      </View>
 
-      <Form.Item name="rate" label="评分" valuePropName="value" trigger="onChange">
-        <Rate />
-      </Form.Item>
+      <View>
+        <Cell title="复选框" style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+          <Form.Item name="checkbox" valuePropName="checked" trigger="onChange">
+            <Checkbox shape="square">复选框</Checkbox>
+          </Form.Item>
+        </Cell>
 
-      <Form.Item name="slider" label="滑块" valuePropName="value" trigger="onChange">
-        <Slider />
-      </Form.Item>
+        <Cell title="复选框组" style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+          <Form.Item name="checkbox_group" valuePropName="value" trigger="onChange">
+            <Checkbox.Group direction="horizontal">
+              <Space gap={12}>
+                <Checkbox shape="square" name="a">复选框a</Checkbox>
+                <Checkbox shape="square" name="b">复选框b</Checkbox>
+              </Space>
+            </Checkbox.Group>
+          </Form.Item>
+        </Cell>
 
-      <Form.Item name="uploader" label="上传文件" valuePropName="value" trigger="onChange">
-        <Uploader />
-      </Form.Item>
+        <Cell title="单选框" border={false} style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+          <Form.Item name="radio" valuePropName="value" trigger="onChange">
+            <Radio.Group direction="horizontal">
+              <Space gap={12}>
+                <Radio name="a">单选框a</Radio>
+                <Radio name="b">单选框b</Radio>
+              </Space>
+            </Radio.Group>
+          </Form.Item>
+        </Cell>
+      </View>
 
-      <Form.Item name="textarea" label="详细地址">
-        <Field placeholder="请输入详细地址" type="textarea" rows={3} showWordLimit maxLength={140} border={false} />
-      </Form.Item>
+      <View>
+        <Form.Item name="textarea" label="详细地址">
+          <Field
+            placeholder="请输入详细地址"
+            type="textarea"
+            rows={3}
+            showWordLimit
+            maxLength={140}
+            border={false}
+            style={{ paddingHorizontal: 0 }}
+          />
+        </Form.Item>
+      </View>
     </Form>
   )
 }
