@@ -209,8 +209,10 @@ export const Rate = React.memo((props: RateProps) => {
       const baseStyle: AnyStyle = {
         color: tintColor,
         fontSize: resolvedSize,
+        lineHeight: resolvedSize,
         width: resolvedSize,
         height: resolvedSize,
+        textAlign: 'center',
         flexShrink: 0,
       }
       return React.cloneElement(element, {

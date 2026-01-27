@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, Easing, Platform, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
+import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
@@ -183,14 +183,6 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   )
 
   const keyGap = spacing.keyGap
-  const [contentWidth, setContentWidth] = React.useState(0)
-  const customColumnWidth = React.useMemo(() => {
-    if (!isCustomTheme || contentWidth <= 0) return undefined
-    if (Platform.OS !== 'web') return undefined
-    const availableWidth = contentWidth - spacing.paddingHorizontal * 2
-    const columnWidth = (availableWidth - keyGap * 3) / 4
-    return columnWidth > 0 ? columnWidth : undefined
-  }, [contentWidth, isCustomTheme, keyGap, spacing.paddingHorizontal])
 
   const renderKey = React.useCallback(
     (key: KeyboardKey, index: number, isClose = false, fullWidth = false, customHeight?: number) => {
@@ -233,19 +225,12 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
             },
             fullWidth
               ? { width: '100%', flexBasis: 'auto' as unknown as number, flexGrow: 0, alignSelf: 'stretch' }
-              : isCustomTheme && customColumnWidth
-                ? {
-                  width: key.wider ? customColumnWidth * 2 + keyGap : customColumnWidth,
-                  flexBasis: 'auto' as unknown as number,
-                  flexGrow: 0,
-                  flexShrink: 0,
-                }
-                : {
-                  flexBasis: 0,
-                  flexGrow: key.wider ? 2 : 1,
-                  flexShrink: 1,
-                  minWidth: 0,
-                },
+              : {
+                flexBasis: 0,
+                flexGrow: key.wider ? 2 : 1,
+                flexShrink: 1,
+                minWidth: 0,
+              },
           ]}
           accessible={!isPlaceholder}
           accessibilityRole={isPlaceholder ? undefined : 'button'}
@@ -317,9 +302,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
       sizing.closeHeight,
       sizing.fontSize,
       sizing.keyHeight,
-      customColumnWidth,
-      isCustomTheme,
-      keyGap,
+      resolvedCloseText,
     ],
   )
 
@@ -366,9 +349,8 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   )
 
   const handleLayout = React.useCallback((e: LayoutChangeEvent) => {
-    const { height, width } = e.nativeEvent.layout
+    const { height } = e.nativeEvent.layout
     setContentHeight(prev => (Math.abs(height - prev) > 0.5 ? height : prev))
-    setContentWidth(prev => (Math.abs(width - prev) > 0.5 ? width : prev))
   }, [])
 
   const hasHeader = !isCustomTheme && (title || closeButtonText)
@@ -404,26 +386,10 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
         flexWrap: 'nowrap' as const,
         gap: keyGap,
       },
-      customColumnWidth
-        ? {
-          width: customColumnWidth * 3 + keyGap * 2,
-          flexBasis: 'auto' as unknown as number,
-          flexGrow: 0,
-          flexShrink: 0,
-        }
-        : null,
     ]
     const customSidebarStyle = [
       styles.customSidebar,
       { gap: keyGap, marginLeft: keyGap },
-      customColumnWidth
-        ? {
-          width: customColumnWidth,
-          flexBasis: 'auto' as unknown as number,
-          flexGrow: 0,
-          flexShrink: 0,
-        }
-        : null,
     ]
 
     const entries: Array<{ key: KeyboardKey; index: number }> = keys.map((key, index) => ({ key, index }))
@@ -510,7 +476,6 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     safeAreaInsetBottom,
     showDeleteKey,
     closeSelf,
-    customColumnWidth,
     spacing.paddingHorizontal,
     spacing.titlePadding,
     title,
