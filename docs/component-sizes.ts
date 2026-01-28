@@ -7,7 +7,7 @@
 export default [
   {
     "name": "swiper",
-    "size": 10070
+    "size": 10037
   },
   {
     "name": "picker",
@@ -15,7 +15,7 @@ export default [
   },
   {
     "name": "tabs",
-    "size": 9066
+    "size": 9062
   },
   {
     "name": "dropdown-menu",
@@ -51,11 +51,11 @@ export default [
   },
   {
     "name": "field",
-    "size": 5134
+    "size": 5195
   },
   {
     "name": "number-keyboard",
-    "size": 4949
+    "size": 4945
   },
   {
     "name": "index-bar",
@@ -111,7 +111,7 @@ export default [
   },
   {
     "name": "collapse",
-    "size": 3506
+    "size": 3509
   },
   {
     "name": "action-sheet",

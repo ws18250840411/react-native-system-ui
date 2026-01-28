@@ -604,8 +604,6 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   }
   const handleScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     isDraggingRef.current = false
-    const interval = (isFiniteNumber(autoplay) && Math.max(0, autoplay)) || 5000
-    startAutoplay(interval * 2)
     const { contentOffset } = event.nativeEvent
     runAfterFrames(1, () => {
       if (nativeMomentumRef.current) return
@@ -685,10 +683,8 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     }
     onDragEndRef.current = () => {
       isDraggingRef.current = false
-      const interval = (isFiniteNumber(autoplay) && Math.max(0, autoplay)) || 5000
-      startAutoplay(interval * 2)
     }
-  }, [startAutoplay, stopAutoplay, autoplay])
+  }, [stopAutoplay])
 
   useEffect(() => {
     startAutoplay()
