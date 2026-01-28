@@ -426,11 +426,11 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   const renderPlaceholder = (name?: string) => (
     <View style={styles.placeholder}>
       <Text style={styles.placeholderIcon}>FILE</Text>
-      {name ? (
+      {name && (
         <Text style={placeholderNameStyle} numberOfLines={1}>
           {name}
         </Text>
-      ) : null}
+      )}
     </View>
   )
 
@@ -490,17 +490,17 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
                     ) : (
                       renderPlaceholder(fileName)
                     )}
-                    {previewCoverRender ? (
+                    {previewCoverRender && (
                       <View style={styles.cover} pointerEvents="none">
                         {previewCoverRender(item)}
                       </View>
-                    ) : null}
+                    )}
                     {renderStatus(item.status)}
-                    {deletable ? (
+                    {deletable && (
                       <View style={deleteStyle}>
                         {renderDelete(() => handleDelete(item, index), `rv-uploader-delete-${index}`)}
                       </View>
-                    ) : null}
+                    )}
                   </Pressable>
                 </View>
               )
@@ -523,16 +523,16 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
                     renderPlaceholder(task.file?.name)
                   )}
                   {renderStatus(task.status)}
-                  {task.status !== 'pending' ? (
+                  {task.status !== 'pending' && (
                     <View style={deleteStyle}>
                       {renderDelete(() => removeTask(task.id), `rv-uploader-task-delete-${task.id}`)}
                     </View>
-                  ) : null}
+                  )}
                 </View>
               </View>
             ))}
           </>
-        ) : null}
+        )}
 
         {canShowUpload ? (
           <Pressable
@@ -552,11 +552,11 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
                 {uploadIcon ?? <Text style={[styles.uploadIcon, { color: tokens.colors.icon }]}>+</Text>}
                 {uploadText ? (
                   <Text style={[styles.uploadText, { color: tokens.colors.text }]}>{uploadText}</Text>
-                ) : null}
+                )}
               </View>
             )}
           </Pressable>
-        ) : null}
+        )}
       </View>
       {previewFullImage ? (
         <ImagePreview

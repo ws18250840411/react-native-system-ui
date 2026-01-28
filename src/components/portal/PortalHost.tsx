@@ -43,7 +43,7 @@ class PortalLayer extends React.PureComponent<PortalLayerProps, PortalLayerState
             collapsable={false}
             style={[
               styles.portalEntry,
-              isNumber(entry.zIndex) ? { zIndex: entry.zIndex } : null,
+              isNumber(entry.zIndex) && { zIndex: entry.zIndex },
             ]}
           >
             {entry.children}

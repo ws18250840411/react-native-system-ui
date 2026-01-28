@@ -78,7 +78,7 @@ export const SafeAreaClipper: React.FC<SafeAreaClipperProps> = ({
   const shouldClip = Boolean(clipTop && isTop && topOffset > 0)
 
   return (
-    <View style={[style, shouldClip ? { top: topOffset, overflow: 'hidden' } : null]}>
+    <View style={[style, shouldClip && { top: topOffset, overflow: 'hidden' }]}>
       {children}
     </View>
   )

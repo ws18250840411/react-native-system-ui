@@ -367,7 +367,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
                 baseCell.push(
                   styles.cellGutter,
                   { borderColor: colors.border },
-                  index > 0 ? { marginLeft: gutterValue } : null,
+                  index > 0 && { marginLeft: gutterValue },
                 )
               } else if (index < lengthSafe - 1) {
                 baseCell.push({

@@ -351,9 +351,9 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           </>
         ) : (
           <>
-            {icon && iconPosition === 'left' ? renderIcon() : null}
+            {icon && iconPosition === 'left' && renderIcon()}
             {renderText()}
-            {icon && iconPosition === 'right' ? renderIcon() : null}
+            {icon && iconPosition === 'right' && renderIcon()}
           </>
         )}
       </View>

@@ -136,7 +136,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
                 testID="rv-list-loading"
               >
                 <Loading size={tokens.sizing.loadingIndicator} />
-                {loadingText ? <View style={{ marginLeft: tokens.spacing.inlineGap }}>{loadingText}</View> : null}
+                {loadingText && <View style={{ marginLeft: tokens.spacing.inlineGap }}>{loadingText}</View>}
               </View>
             )
         ) : null}

@@ -205,7 +205,7 @@ export const Progress = memo((props: ProgressProps) => {
               height,
               backgroundColor: resolvedIndicatorColor,
               borderRadius: height / 2,
-              ...(isGradient ? ({ backgroundImage: color } as unknown as ViewStyle) : null),
+              ...(isGradient && ({ backgroundImage: color } as unknown as ViewStyle)),
             },
             indicatorStyle,
             { width: indicatorWidth },

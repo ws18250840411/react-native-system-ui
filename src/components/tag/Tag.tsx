@@ -69,47 +69,40 @@ export const Tag: React.FC<TagProps> = props => {
     style,
   ]
 
-  const label =
-    children == null || children === false ? null : isText(children) ? (
-      <Text
-        style={[
-          {
-            color: resolvedTextColor,
-            fontSize: sizeTokens.fontSize,
-            lineHeight: sizeTokens.lineHeight,
-            fontFamily: tokens.typography.fontFamily,
-            fontWeight: tokens.typography.fontWeight,
-          },
-          textStyle,
-        ]}
-      >
-        {children}
-      </Text>
-    ) : (
-      children
-    )
+  const label = children == null || children === false ? null : isText(children) ? (
+    <Text
+      style={[
+        {
+          color: resolvedTextColor,
+          fontSize: sizeTokens.fontSize,
+          lineHeight: sizeTokens.lineHeight,
+          fontFamily: tokens.typography.fontFamily,
+          fontWeight: tokens.typography.fontWeight,
+        },
+        textStyle,
+      ]}
+    >
+      {children}
+    </Text>
+  ) : children
 
-  const close =
-    !closeable ? null : (
-      <Pressable
-        accessibilityRole="button"
-        hitSlop={tokens.spacing.closeHitSlop}
-        style={[tokens.layout.close, { marginLeft: tokens.spacing.closeGap }]}
-        onPress={event => {
-          event.stopPropagation?.()
-          onClose?.()
-        }}
-      >
-        {isFunction(closeIcon)
-          ? closeIcon(resolvedTextColor, tokens.sizing.closeIconSize)
-          : closeIcon ?? (
-            <Close
-              color={resolvedTextColor}
-              size={tokens.sizing.closeIconSize}
-            />
-          )}
-      </Pressable>
-    )
+  const close = !closeable ? null : (
+    <Pressable
+      accessibilityRole="button"
+      hitSlop={tokens.spacing.closeHitSlop}
+      style={[tokens.layout.close, { marginLeft: tokens.spacing.closeGap }]}
+      onPress={event => {
+        event.stopPropagation?.()
+        onClose?.()
+      }}
+    >
+      {isFunction(closeIcon)
+        ? closeIcon(resolvedTextColor, tokens.sizing.closeIconSize)
+        : closeIcon ?? (
+          <Close color={resolvedTextColor} size={tokens.sizing.closeIconSize} />
+        )}
+    </Pressable>
+  )
 
   const content = (
     <>
@@ -125,7 +118,7 @@ export const Tag: React.FC<TagProps> = props => {
         onPress={onPress}
         style={({ pressed }) => [
           containerStyle,
-          pressed ? { opacity: tokens.defaults.pressedOpacity } : null,
+          pressed && { opacity: tokens.defaults.pressedOpacity },
         ]}
         {...rest}
       >

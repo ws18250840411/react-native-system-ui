@@ -258,8 +258,8 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
                 {renderDescription}
               </View>
             )
-          : null}
-        {isRenderable(pane.badge) ? (
+          )}
+        {isRenderable(pane.badge) && (
           <View style={styles.badge}>
             {isText(pane.badge) ? (
               <Text style={[styles.badgeText, { color: tokens.colors.badgeText }]}>{pane.badge}</Text>
@@ -267,7 +267,7 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
               pane.badge
             )}
           </View>
-        ) : null}
+        )}
       </View>
     </Pressable>
   )
@@ -802,7 +802,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         tabBarStyle,
       ]}
     >
-      {navLeft ? <View style={styles.navSide}>{navLeft}</View> : null}
+      {navLeft && <View style={styles.navSide}>{navLeft}</View>}
       <View
         style={[
           styles.nav,
@@ -824,7 +824,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       >
         {navBody}
       </View>
-      {navRight ? <View style={styles.navSide}>{navRight}</View> : null}
+      {navRight && <View style={styles.navSide}>{navRight}</View>}
     </View>
   )
 
@@ -842,10 +842,10 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     const paneStyles = [
       styles.pane,
       isSwipeable ? styles.swipeablePane : null,
-      isSwipeable && containerWidth > 0 ? { width: containerWidth } : null,
+      isSwipeable && containerWidth > 0 && { width: containerWidth },
       !isSwipeable && !isActive ? styles.hiddenPane : null,
     ]
-    const paneContent = shouldRender ? pane.children : lazyRenderPlaceholder ?? null
+    const paneContent = shouldRender ? pane.children : lazyRenderPlaceholder || null
     return (
       <View
         key={pane.key}
@@ -862,7 +862,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const swipeableContentStyle = [
     styles.content,
     contentStyle,
-    swipeableConfig?.autoHeight && swipeableHeight !== undefined ? { height: swipeableHeight } : null,
+    swipeableConfig?.autoHeight && swipeableHeight !== undefined && { height: swipeableHeight },
   ]
 
   const contentNode = isSwipeable ? (
@@ -888,7 +888,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   return (
     <View {...rest} style={[styles.container, style]} onLayout={handleContainerLayout}>
       {navContent}
-      {navBottom ? <View style={styles.navBottom}>{navBottom}</View> : null}
+      {navBottom && <View style={styles.navBottom}>{navBottom}</View>}
       {contentNode}
     </View>
   )

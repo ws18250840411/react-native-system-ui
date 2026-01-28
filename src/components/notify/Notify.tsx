@@ -193,7 +193,7 @@ export const Notify: React.FC<NotifyProps> = props => {
             )
           : null}
       </View>
-      {safeAreaInsetBottom ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
+      {safeAreaInsetBottom && <SafeAreaView style={tokens.layout.safeArea} />}
     </Animated.View>
   )
 

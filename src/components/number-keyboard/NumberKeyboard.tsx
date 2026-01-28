@@ -462,7 +462,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     ) : (
       defaultNode
     )
-    const safeAreaNode = safeAreaInsetBottom ? <SafeAreaView style={{ width: '100%' }} /> : null
+    const safeAreaNode = safeAreaInsetBottom && <SafeAreaView style={{ width: '100%' }} />
     return { headerNode, bodyNode, safeAreaNode }
   }, [
     colors.title,

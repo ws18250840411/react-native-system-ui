@@ -170,33 +170,28 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
     }
     : {}
 
-  const labelNode =
-    children === null || children === undefined || children === false
-      ? null
-      : isText(children)
-        ? (
-          <Text
-            accessible={false}
-            style={[
-              tokens.layout.label,
-              {
-                color: labelColor,
-                fontSize: tokens.typography.fontSize,
-                lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              labelStyle,
-            ]}
-          >
-            {children}
-          </Text>
-        )
-        : (
-          <View accessible={false} style={labelStyle as unknown as StyleProp<ViewStyle>}>
-            {children}
-          </View>
-        )
+  const labelNode = children === null || children === undefined || children === false ? null : isText(children) ? (
+    <Text
+      accessible={false}
+      style={[
+        tokens.layout.label,
+        {
+          color: labelColor,
+          fontSize: tokens.typography.fontSize,
+          lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+          fontFamily: tokens.typography.fontFamily,
+          fontWeight: tokens.typography.fontWeight,
+        },
+        labelStyle,
+      ]}
+    >
+      {children}
+    </Text>
+  ) : (
+    <View accessible={false} style={labelStyle as unknown as StyleProp<ViewStyle>}>
+      {children}
+    </View>
+  )
 
   const iconBaseStyle = {
     width: resolvedIconSize,
@@ -208,7 +203,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   }
   const defaultIcon = (
     <View style={[tokens.layout.icon, iconBaseStyle]}>
-      {isChecked ? (
+      {isChecked && (
         <Text
           style={[
             tokens.layout.checkmark,
@@ -220,7 +215,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
         >
           ✓
         </Text>
-      ) : null}
+      )}
     </View>
   )
   let iconVisual: React.ReactNode = defaultIcon
@@ -233,7 +228,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
 
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
 
-  const labelWrapper = labelNode ? (
+  const labelWrapper = labelNode && (
     <View
       style={[tokens.layout.labelWrapper, spacingStyle]}
       pointerEvents={resolvedLabelDisabled ? 'none' : undefined}
@@ -241,7 +236,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
     >
       {labelNode}
     </View>
-  ) : null
+  )
 
   const iconWrapperStyle = [
     tokens.layout.iconWrapper,

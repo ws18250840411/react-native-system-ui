@@ -62,7 +62,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
 
   const resolvedRadioGroupProps = {
     ...(radioGroupProps ?? {}),
-    ...(accessibilityHint ? { 'aria-describedby': accessibilityHint } : null),
+    ...(accessibilityHint && { 'aria-describedby': accessibilityHint }),
     'aria-disabled': disabled,
   }
 

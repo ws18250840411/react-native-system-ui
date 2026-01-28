@@ -102,7 +102,7 @@ export const Grid: React.FC<GridProps> = props => {
       <View
         style={[
           tokens.layout.container,
-          gutter ? { paddingLeft: gutter } : null,
+          gutter && { paddingLeft: gutter },
           style,
         ]}
         {...rest}

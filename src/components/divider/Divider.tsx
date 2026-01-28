@@ -28,26 +28,23 @@ export const Divider: React.FC<DividerProps> = props => {
   const borderStyle = dashed ? 'dashed' : 'solid'
 
   const hasContent = isRenderable(children)
-  const content =
-    !hasContent ? null : isText(children) ? (
-      <Text
-        style={[
-          tokens.layout.text,
-          {
-            color: tokens.colors.text,
-            fontSize: tokens.typography.fontSize,
-            lineHeight: tokens.typography.lineHeight,
-            fontFamily: tokens.typography.fontFamily,
-            fontWeight: tokens.typography.fontWeight,
-          },
-          textStyle,
-        ]}
-      >
-        {children}
-      </Text>
-    ) : (
-      children
-    )
+  const content = !hasContent ? null : isText(children) ? (
+    <Text
+      style={[
+        tokens.layout.text,
+        {
+          color: tokens.colors.text,
+          fontSize: tokens.typography.fontSize,
+          lineHeight: tokens.typography.lineHeight,
+          fontFamily: tokens.typography.fontFamily,
+          fontWeight: tokens.typography.fontWeight,
+        },
+        textStyle,
+      ]}
+    >
+      {children}
+    </Text>
+  ) : children
 
   const leftGrow = contentPosition === 'left' ? tokens.sizing.sideMinFlex : 1
   const rightGrow = contentPosition === 'right' ? tokens.sizing.sideMinFlex : 1
@@ -96,7 +93,7 @@ export const Divider: React.FC<DividerProps> = props => {
       {...rest}
     >
       {renderLine(hasContent ? leftGrow : 1)}
-      {hasContent ? (
+      {hasContent && (
         <>
           <View
             style={[
@@ -109,7 +106,7 @@ export const Divider: React.FC<DividerProps> = props => {
           </View>
           {renderLine(rightGrow)}
         </>
-      ) : null}
+      )}
     </View>
   )
 }

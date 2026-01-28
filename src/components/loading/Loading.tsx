@@ -221,25 +221,23 @@ export const Loading: React.FC<LoadingProps> = props => {
     marginLeft: vertical ? 0 : tokens.spacing.gap,
     marginTop: vertical ? tokens.spacing.gap : 0,
   }
-  const textNode = hasChildren ? (
-    isText(children) ? (
-      <Text
-        style={[
-          tokens.layout.text,
-          textSpacingStyle,
-          {
-            fontSize: textSize,
-            color: textColor,
-          },
-          textStyle,
-        ]}
-      >
-        {children}
-      </Text>
-    ) : (
-      <View style={textSpacingStyle}>{children}</View>
-    )
-  ) : null
+  const textNode = hasChildren && (isText(children) ? (
+    <Text
+      style={[
+        tokens.layout.text,
+        textSpacingStyle,
+        {
+          fontSize: textSize,
+          color: textColor,
+        },
+        textStyle,
+      ]}
+    >
+      {children}
+    </Text>
+  ) : (
+    <View style={textSpacingStyle}>{children}</View>
+  ))
 
   return (
     <View

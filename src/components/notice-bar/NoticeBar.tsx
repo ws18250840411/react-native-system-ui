@@ -132,7 +132,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     if (mode === 'link') {
       return <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
     }
-    return rightIcon ?? null
+    return rightIcon || null
   }, [closePress.interactionProps, mode, resolvedColor, rightIcon])
   const hasLeft = isRenderable(leftIcon)
   const hasRight = Boolean(rightNode)
@@ -294,7 +294,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
 
     return (
       <View
-        style={[styles.verticalViewport, itemHeight ? { height: itemHeight } : null]}
+        style={[styles.verticalViewport, itemHeight && { height: itemHeight }]}
         pointerEvents="none"
       >
         <Animated.View

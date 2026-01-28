@@ -156,7 +156,7 @@ export const Space = React.memo((props: SpaceProps) => {
           tokens.layout.container,
           containerBaseStyle,
           style,
-          states.pressed ? { opacity: 0.85 } : null,
+          states.pressed && { opacity: 0.85 },
         ]}
         {...interactionProps}
         {...rest}

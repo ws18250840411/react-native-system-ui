@@ -86,7 +86,7 @@ const SelectorOptionItemImpl = <V extends SelectorValue>({
             backgroundColor: active ? tokens.colors.backgroundActive : tokens.colors.background,
             opacity: disabled ? tokens.states.disabledOpacity : 1,
           },
-          states.pressed ? { opacity: 0.9 } : null,
+          states.pressed && { opacity: 0.9 },
           itemStyle,
         ]}
       >

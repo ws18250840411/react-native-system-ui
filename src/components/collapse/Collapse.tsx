@@ -180,8 +180,8 @@ export const Collapse = ((props: CollapseProps) => {
   return (
     <CollapseContext.Provider value={contextValue}>
       <View style={[tokens.layout.container, border && { backgroundColor: colors.background }, style]} {...rest}>
-        {border ? <Hairline tokens={tokens} position="top" color={colors.border} /> : null}
-        {border ? <Hairline tokens={tokens} position="bottom" color={colors.border} /> : null}
+        {border && <Hairline tokens={tokens} position="top" color={colors.border} />}
+        {border && <Hairline tokens={tokens} position="bottom" color={colors.border} />}
         {renderedChildren}
       </View>
     </CollapseContext.Provider>

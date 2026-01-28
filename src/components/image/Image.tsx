@@ -217,7 +217,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     if (node == null || node === false) return null
     if (isText(node)) {
       return (
-        <Text style={[tokens.layout.label, { color }, marginTop ? { marginTop } : null]}>
+        <Text style={[tokens.layout.label, { color }, marginTop && { marginTop }]}>
           {node}
         </Text>
       )

@@ -314,7 +314,7 @@ export const Rate = React.memo((props: RateProps) => {
           tokens.layout.item,
           { marginRight },
           itemStyle,
-          pressed ? { opacity: tokens.states.pressedOpacity } : null,
+          pressed && { opacity: tokens.states.pressedOpacity },
         ]}
       >
         {iconContent}

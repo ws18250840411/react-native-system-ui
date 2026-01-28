@@ -85,7 +85,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const renderLeft = () => {
     const arrowNode = leftArrow === true
       ? <ArrowLeft size={18} fill={sideColor} color={sideColor} />
-      : (isRenderable(leftArrow) ? leftArrow : null)
+      : (isRenderable(leftArrow) && leftArrow)
 
     const hasAction = !!handlePressLeft
       || isRenderable(arrowNode)

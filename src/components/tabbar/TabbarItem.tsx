@@ -117,7 +117,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     >
       <View style={[styles.iconWrapper, iconStyle]}>
         {renderIcon()}
-        {shouldRenderBadge ? <View style={styles.badge}>{renderBadge()}</View> : null}
+        {shouldRenderBadge && <View style={styles.badge}>{renderBadge()}</View>}
       </View>
       {isRenderable(children) ? (
         <Text
@@ -134,7 +134,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
         >
           {renderLabel()}
         </Text>
-      ) : null}
+      )}
     </Pressable>
   )
 }

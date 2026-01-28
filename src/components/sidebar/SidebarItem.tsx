@@ -62,7 +62,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
       style={[tokens.layout.item, { height: tokens.sizing.itemHeight }, style]}
     >
       <View style={tokens.layout.indicatorWrapper}>
-        {isActive ? (
+        {isActive && (
           <View
             style={[
               tokens.layout.indicator,
@@ -73,7 +73,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
               },
             ]}
           />
-        ) : null}
+        )}
       </View>
       <View style={tokens.layout.itemContent}>
         <View style={tokens.layout.titleRow}>
@@ -96,7 +96,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
               )
               : title
             : null}
-          {isRenderable(badge) ? (
+          {isRenderable(badge) && (
             <View style={[tokens.layout.badge, badgeStyle]}>
               {isText(badge) ? (
                 <Badge content={badge} />
@@ -104,10 +104,10 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
                 badge
               )}
             </View>
-          ) : null}
-          {dot ? (
+          )}
+          {dot && (
             <View style={[tokens.layout.dot, { backgroundColor: tokens.colors.indicator }]} />
-          ) : null}
+          )}
         </View>
       </View>
     </Pressable>

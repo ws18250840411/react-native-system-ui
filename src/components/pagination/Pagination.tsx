@@ -99,8 +99,8 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         onPress={() => handleSelect(item.number)}
         style={({ pressed }) => [
           tokens.layout.item,
-          item.active ? { backgroundColor: tokens.colors.activeBackground } : null,
-          pressed && !item.active ? { opacity: tokens.defaults.pressedOpacity } : null,
+          item.active && { backgroundColor: tokens.colors.activeBackground },
+          pressed && !item.active && { opacity: tokens.defaults.pressedOpacity },
         ]}
         testID={`rv-pagination-page-${index}`}
       >
@@ -131,8 +131,8 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         disabled={disabled}
         style={({ pressed }) => [
           tokens.layout.control,
-          disabled ? { opacity: tokens.defaults.disabledOpacity } : null,
-          pressed && !disabled ? { opacity: tokens.defaults.pressedOpacity } : null,
+          disabled && { opacity: tokens.defaults.disabledOpacity },
+          pressed && !disabled && { opacity: tokens.defaults.pressedOpacity },
         ]}
         testID={`rv-pagination-${type}`}
       >

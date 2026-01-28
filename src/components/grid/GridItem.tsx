@@ -82,7 +82,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
       ) : content
     }
 
-    const textElement = hasText ? (
+    const textElement = hasText && (
       isText(text) ? (
         <Text
           style={[
@@ -101,7 +101,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
           {text}
         </Text>
       ) : text
-    ) : null
+    )
 
     innerContent = <>{iconElement}{textElement}</>
   }

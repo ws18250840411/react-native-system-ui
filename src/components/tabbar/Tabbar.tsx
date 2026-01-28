@@ -121,7 +121,7 @@ const TabbarBase: React.FC<TabbarProps> = props => {
 
   return (
     <>
-      {enablePlaceholder ? <View testID="rv-tabbar-placeholder" style={{ height: barHeight }} /> : null}
+      {enablePlaceholder && <View testID="rv-tabbar-placeholder" style={{ height: barHeight }} />}
       <View
         {...rest}
         style={[styles.container, fixed && [styles.fixed, { zIndex }], style]}

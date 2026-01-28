@@ -150,7 +150,7 @@ const renderWithSafeArea = (
         />
       ) : null}
       {children}
-      {opts.safeAreaInsetBottom ? <SafeAreaView style={[styles.safeInsetBottom, { pointerEvents: 'none' }]} /> : null}
+      {opts.safeAreaInsetBottom && <SafeAreaView style={[styles.safeInsetBottom, { pointerEvents: 'none' }]} />}
     </>
   )
 }
@@ -574,7 +574,7 @@ export const Popup: React.FC<PopupProps> = props => {
   return (
     <Portal>
       <View
-        style={[styles.portalRoot, resolvedZIndex ? { zIndex: resolvedZIndex } : null]}
+        style={[styles.portalRoot, resolvedZIndex && { zIndex: resolvedZIndex }]}
         pointerEvents="box-none"
       >
         <View

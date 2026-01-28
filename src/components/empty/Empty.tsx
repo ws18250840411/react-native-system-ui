@@ -124,11 +124,11 @@ export const Empty: React.FC<EmptyProps> = props => {
     >
       {renderImage()}
       {renderDescription()}
-      {isRenderable(children) ? (
+      {isRenderable(children) && (
         <View style={{ marginTop: tokens.spacing.footerMarginTop }}>
           {isText(children) ? <Text>{children}</Text> : children}
         </View>
-      ) : null}
+      )}
     </View>
   )
 }

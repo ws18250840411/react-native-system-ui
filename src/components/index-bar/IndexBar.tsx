@@ -309,7 +309,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     if (itemHeight <= 0) return null
     const y = locationY - paddingY
     const idx = Math.max(0, Math.min(navItems.length - 1, Math.floor(y / itemHeight)))
-    return navItems[idx] ?? null
+    return navItems[idx] || null
   }, [layout.paddingVertical, navItems])
 
   const shouldHandleResponder = React.useCallback((evt: GestureResponderEvent) => {
@@ -374,7 +374,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
       >
         {anchorNodes}
       </ScrollView>
-      {sticky && stickyVisible && stickyNode ? <StickyWrapper style={stickyWrapperStyle}>{stickyNode}</StickyWrapper> : null}
+      {sticky && stickyVisible && stickyNode && <StickyWrapper style={stickyWrapperStyle}>{stickyNode}</StickyWrapper>}
       <View
         testID="rv-indexbar-nav-list"
         style={[

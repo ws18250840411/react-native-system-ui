@@ -425,7 +425,7 @@ export const FormSubscribe: React.FC<FormSubscribeProps> = ({ to, children }) =>
     })
   }, [context, to])
 
-  return <>{children(changed, context?.form ?? null)}</>
+  return <>{children(changed, context?.form || null)}</>
 }
 
 export default InternalForm

@@ -169,35 +169,34 @@ export const Radio = React.memo((props: RadioProps) => {
   const borderRadius =
     shape === 'square' ? tokens.radii.square : tokens.radii.round
 
-  const labelNode =
-    children === null || children === undefined || children === false ? null : (
-      <View
-        style={[tokens.layout.labelWrapper, spacingStyle]}
-        pointerEvents="none"
-        accessible={false}
-      >
-        {isText(children) ? (
-          <Text
-            accessible={false}
-            style={[
-              tokens.layout.label,
-              {
-                color: labelColor,
-                fontSize: tokens.typography.fontSize,
-                lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              labelStyle,
-            ]}
-          >
-            {children}
-          </Text>
-        ) : (
-          children
-        )}
-      </View>
-    )
+  const labelNode = children === null || children === undefined || children === false ? null : (
+    <View
+      style={[tokens.layout.labelWrapper, spacingStyle]}
+      pointerEvents="none"
+      accessible={false}
+    >
+      {isText(children) ? (
+        <Text
+          accessible={false}
+          style={[
+            tokens.layout.label,
+            {
+              color: labelColor,
+              fontSize: tokens.typography.fontSize,
+              lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+              fontFamily: tokens.typography.fontFamily,
+              fontWeight: tokens.typography.fontWeight,
+            },
+            labelStyle,
+          ]}
+        >
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
+    </View>
+  )
 
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
 

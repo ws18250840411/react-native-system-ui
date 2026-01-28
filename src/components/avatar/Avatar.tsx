@@ -53,7 +53,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       >
         {icon}
       </View>
-    ) : fallbackText ? (
+    ) : fallbackText && (
       <Text
         style={[
           tokens.layout.text,
@@ -68,7 +68,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       >
         {fallbackText}
       </Text>
-    ) : null
+    )
 
     const content = src || source ? (
       <Image

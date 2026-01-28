@@ -108,7 +108,7 @@ const ActionSheetItem: React.FC<{
       ]}
       {...actionPress.interactionProps}
     >
-      {hasIcon ? <View style={tokens.layout.icon}>{action.icon}</View> : null}
+      {hasIcon && <View style={tokens.layout.icon}>{action.icon}</View>}
       {loading ? (
         <Loading size={20} />
       ) : hasName ? (

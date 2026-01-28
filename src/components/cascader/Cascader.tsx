@@ -453,7 +453,7 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   const triggerNode = renderProp
     ? renderProp(cascaderValue, confirmedRows, cascaderActions)
-    : (isRenderProp ? null : children ?? null)
+    : (isRenderProp ? null : children || null)
   const resolvedTriggerNode = enhanceTriggerNode(triggerNode)
 
   return (
@@ -549,7 +549,7 @@ const CascaderOptionItem = React.memo(
             paddingVertical: tokens.spacing.optionPaddingVertical,
             paddingHorizontal: tokens.spacing.optionPaddingHorizontal,
           },
-          pressed && !disabled ? { backgroundColor: tokens.colors.optionActiveBackground } : null,
+          pressed && !disabled && { backgroundColor: tokens.colors.optionActiveBackground },
         ]}
         onPress={() => onSelect(option, tabIndex)}
         disabled={disabled}

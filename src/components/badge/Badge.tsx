@@ -110,9 +110,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   const offsetStyle = React.useMemo(() => {
     if (!offset) return undefined
     const [x, y] = offset
-    return (hasChildren
-      ? { right: x, top: y }
-      : { marginLeft: x, marginTop: y }) as ViewStyle
+    return (hasChildren ? { right: x, top: y } : { marginLeft: x, marginTop: y }) as ViewStyle
   }, [offset, hasChildren])
 
   const badgeElement = React.useMemo(() => {
@@ -131,12 +129,9 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
           !hasChildren ? style : undefined,
         ]}
       >
-        {!dot &&
-          (React.isValidElement(formattedContent) ? (
-            formattedContent
-          ) : (
-            <Text style={mergedTextStyle}>{formattedContent}</Text>
-          ))}
+        {!dot && (React.isValidElement(formattedContent) ? formattedContent : (
+          <Text style={mergedTextStyle}>{formattedContent}</Text>
+        ))}
       </View>
     )
   }, [
@@ -154,25 +149,21 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   ])
 
   if (hasChildren) {
-    if (onPress) {
-      return (
-        <Pressable
-          ref={ref}
-          onPress={onPress}
-          style={({ pressed }) => [
-            tokens.layout.wrapper,
-            style,
-            pressed && { opacity: tokens.defaults.pressedOpacity },
-          ]}
-          {...rest}
-        >
-          {children}
-          {badgeElement}
-        </Pressable>
-      )
-    }
-
-    return (
+    return onPress ? (
+      <Pressable
+        ref={ref}
+        onPress={onPress}
+        style={({ pressed }) => [
+          tokens.layout.wrapper,
+          style,
+          pressed && { opacity: tokens.defaults.pressedOpacity },
+        ]}
+        {...rest}
+      >
+        {children}
+        {badgeElement}
+      </Pressable>
+    ) : (
       <View ref={ref} style={[tokens.layout.wrapper, style]} {...rest}>
         {children}
         {badgeElement}
@@ -182,23 +173,21 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
 
   if (!visible) return null
 
-  if (onPress) {
-    return (
-      <Pressable
-        ref={ref}
-        onPress={onPress}
-        style={({ pressed }) => [
-          tokens.layout.pressableStandalone,
-          pressed && { opacity: tokens.defaults.pressedOpacity },
-        ]}
-        {...rest}
-      >
-        {badgeElement}
-      </Pressable>
-    )
-  }
-
-  return React.cloneElement(badgeElement as React.ReactElement<any>, { ref, ...rest })
+  return onPress ? (
+    <Pressable
+      ref={ref}
+      onPress={onPress}
+      style={({ pressed }) => [
+        tokens.layout.pressableStandalone,
+        pressed && { opacity: tokens.defaults.pressedOpacity },
+      ]}
+      {...rest}
+    >
+      {badgeElement}
+    </Pressable>
+  ) : (
+    React.cloneElement(badgeElement as React.ReactElement<any>, { ref, ...rest })
+  )
 })
 
 Badge.displayName = 'Badge'

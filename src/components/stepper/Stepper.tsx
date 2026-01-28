@@ -357,7 +357,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
           ...base,
           {
             backgroundColor: tokens.colors.roundTheme,
-            ...(state.pressed && !disabledState ? { opacity: tokens.opacity.pressed } : null),
+            ...(state.pressed && !disabledState && { opacity: tokens.opacity.pressed }),
           },
           buttonStyle,
         ]
@@ -369,7 +369,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
           backgroundColor: tokens.colors.roundThemeBackground,
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: tokens.colors.roundTheme,
-          ...(state.pressed && !disabledState ? { opacity: tokens.opacity.pressed } : null),
+          ...(state.pressed && !disabledState && { opacity: tokens.opacity.pressed }),
         },
         buttonStyle,
       ]

@@ -206,21 +206,21 @@ export const Toast: React.FC<ToastProps> = props => {
         style={[
           styles.backdrop,
           positionStyle,
-          stackZIndex ? { zIndex: stackZIndex } : null,
+          stackZIndex && { zIndex: stackZIndex },
         ]}
         pointerEvents={forbidClick || overlay || closeOnClick ? 'auto' : 'none'}
       >
         {overlay || forbidClick ? (
           <Pressable
             testID="rv-toast-overlay"
-            style={[styles.overlay, overlay ? { backgroundColor: colors.backdrop } : null, overlayStyle]}
+            style={[styles.overlay, overlay && { backgroundColor: colors.backdrop }, overlayStyle]}
             pointerEvents="auto"
             onPress={overlay && closeOnClickOverlay ? handleClose : undefined}
             onStartShouldSetResponder={() => true}
             onMoveShouldSetResponder={() => true}
           />
         ) : null}
-        {needsSafeAreaTop ? <SafeAreaView style={{ width: '100%' }} pointerEvents="none" /> : null}
+        {needsSafeAreaTop && <SafeAreaView style={{ width: '100%' }} pointerEvents="none" />}
         <Pressable disabled={!closeOnClick} {...toastPress.interactionProps}>
           <Animated.View
             style={[
@@ -251,7 +251,7 @@ export const Toast: React.FC<ToastProps> = props => {
               : null}
           </Animated.View>
         </Pressable>
-        {needsSafeAreaBottom ? <SafeAreaView style={{ width: '100%' }} pointerEvents="none" /> : null}
+        {needsSafeAreaBottom && <SafeAreaView style={{ width: '100%' }} pointerEvents="none" />}
       </View>
     </Portal>
   )

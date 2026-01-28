@@ -52,7 +52,7 @@ const ActionButton = (props: ActionButtonProps) => {
       ]}
       onPress={disabled || loading ? undefined : onPress}
     >
-      {dividerStyle ? <View style={dividerStyle} pointerEvents="none" /> : null}
+      {dividerStyle && <View style={dividerStyle} pointerEvents="none" />}
       {loading ? (
         <ActivityIndicator size="small" color={textColor} />
       ) : React.isValidElement(text) ? (
@@ -280,7 +280,7 @@ export const Dialog: React.FC<DialogProps> = props => {
         <View
           style={[
             styles.roundButtonWrapper,
-            showConfirmButton ? { marginRight: tokens.spacing.roundFooterGap } : null,
+            showConfirmButton && { marginRight: tokens.spacing.roundFooterGap },
           ]}
         >
           <Button
@@ -300,7 +300,7 @@ export const Dialog: React.FC<DialogProps> = props => {
         <View
           style={[
             styles.roundButtonWrapper,
-            showCancelButton ? { marginLeft: tokens.spacing.roundFooterGap } : null,
+            showCancelButton && { marginLeft: tokens.spacing.roundFooterGap },
           ]}
         >
           <Button

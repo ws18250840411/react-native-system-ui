@@ -262,7 +262,7 @@ const WheelPickerInner = <T extends PickerOption,>({
       const content = renderItem(item, index)
       return (
         <View style={[styles.option, { height: itemHeight }]}>
-          {content ?? null}
+          {content}
         </View>
       )
     },
@@ -294,7 +294,7 @@ const WheelPickerInner = <T extends PickerOption,>({
       const content = renderItem(item, index)
       items.push(
         <View key={`${index}-${String(item.value ?? '')}`} style={[styles.option, { height: itemHeight }]}>
-          {content ?? null}
+          {content}
         </View>,
       )
     }
@@ -302,8 +302,8 @@ const WheelPickerInner = <T extends PickerOption,>({
     const bottomHeight = (maxIndex - endIndex) * itemHeight
     return {
       items,
-      topSpacer: topHeight > 0 ? <View style={{ height: topHeight }} /> : null,
-      bottomSpacer: bottomHeight > 0 ? <View style={{ height: bottomHeight }} /> : null,
+      topSpacer: topHeight > 0 && <View style={{ height: topHeight }} />,
+      bottomSpacer: bottomHeight > 0 && <View style={{ height: bottomHeight }} />,
     }
   }, [data, isWeb, itemHeight, maxIndex, renderItem, total, visibleCount, webIndex, webVirtualEnabled, webVelocityBucket])
 

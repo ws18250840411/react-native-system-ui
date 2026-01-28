@@ -163,9 +163,7 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
             },
           ]}
         >
-          {loading ? (
-            <ActivityIndicator size={tokens.loader.size} color={trackColor} />
-          ) : null}
+          {loading && <ActivityIndicator size={tokens.loader.size} color={trackColor} />}
         </AnimatedHandle>
       </Animated.View>
     </Pressable>

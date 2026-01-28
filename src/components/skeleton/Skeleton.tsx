@@ -146,14 +146,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         ]}
       />
     )
-  }, [
-    animatedStyle,
-    avatar,
-    avatarShape,
-    resolvedAvatarSize,
-    tokens.colors.block,
-    tokens.radius,
-  ])
+  }, [animatedStyle, avatar, avatarShape, resolvedAvatarSize, tokens.colors.block, tokens.radius])
 
   const titleNode = React.useMemo(() => {
     if (!title) return null
@@ -170,15 +163,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         ]}
       />
     )
-  }, [
-    animatedStyle,
-    round,
-    resolvedTitleWidth,
-    title,
-    titleHeight,
-    tokens.colors.block,
-    tokens.radius,
-  ])
+  }, [animatedStyle, round, resolvedTitleWidth, title, titleHeight, tokens.colors.block, tokens.radius])
 
   const rowNodes = React.useMemo(() => {
     if (rows <= 0) return null
@@ -202,17 +187,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         ))}
       </View>
     )
-  }, [
-    animatedStyle,
-    rowHeights,
-    rowWidths,
-    round,
-    rows,
-    title,
-    tokens.colors.block,
-    tokens.radius,
-    tokens.spacing.rowGap,
-  ])
+  }, [animatedStyle, rowHeights, rowWidths, round, rows, title, tokens.colors.block, tokens.radius, tokens.spacing.rowGap])
 
   if (!loading) {
     return (
