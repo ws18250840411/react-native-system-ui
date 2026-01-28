@@ -224,28 +224,35 @@ describe('Portal', () => {
 
   it('warns when no PortalHost is present', () => {
     const spy = jest.spyOn(console, 'warn').mockImplementation(() => { })
-    if (typeof document === 'undefined') {
-      act(() => {
+    const previousDev = (global as any).__DEV__
+    ;(global as any).__DEV__ = true
+    
+    try {
+      if (typeof document === 'undefined') {
+        act(() => {
+          renderer.create(
+            <Portal>
+              <Text>Content</Text>
+            </Portal>
+          )
+        })
+      } else {
         renderer.create(
           <Portal>
             <Text>Content</Text>
           </Portal>
         )
-      })
-    } else {
-      renderer.create(
-        <Portal>
-          <Text>Content</Text>
-        </Portal>
-      )
+      }
+      if (typeof document === 'undefined') {
+        expect(spy).toHaveBeenCalledWith(
+          expect.stringContaining('请在根节点挂载')
+        )
+      } else {
+        expect(spy).not.toHaveBeenCalled()
+      }
+    } finally {
+      ;(global as any).__DEV__ = previousDev
+      spy.mockRestore()
     }
-    if (typeof document === 'undefined') {
-      expect(spy).toHaveBeenCalledWith(
-        expect.stringContaining('请在根节点挂载')
-      )
-    } else {
-      expect(spy).not.toHaveBeenCalled()
-    }
-    spy.mockRestore()
   })
 })

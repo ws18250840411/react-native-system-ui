@@ -1,12 +1,13 @@
 import React from 'react'
 import { SafeAreaView, View, type LayoutChangeEvent } from 'react-native'
- 
+export { SafeAreaClipper, SafeAreaClipProvider, useSafeAreaClip } from './SafeAreaClipper'
+
 export interface SafeAreaOpts {
   safeArea?: boolean
   safeAreaInsetTop?: boolean
   safeAreaInsetBottom?: boolean
 }
- 
+
 export const renderWithSafeArea = (
   children: React.ReactNode,
   opts: SafeAreaOpts,

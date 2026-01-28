@@ -29,139 +29,142 @@ type SelectorOptionItemProps<V extends SelectorValue> = {
   onToggle: (option: SelectorProps<V>['options'][number]) => void
 }
 
-const SelectorOptionItem = React.memo(
-  <V extends SelectorValue>({
-    option,
-    active,
+const SelectorOptionItemImpl = <V extends SelectorValue>({
+  option,
+  active,
+  disabled,
+  multiple,
+  showCheckMark,
+  basis,
+  itemMargin,
+  tokens,
+  itemStyle,
+  labelStyle,
+  descriptionStyle,
+  onToggle,
+}: SelectorOptionItemProps<V>) => {
+  const labelContent = option.label
+  const descriptionContent = option.description
+  const hasDescription = descriptionContent != null
+  const accessibilityLabel =
+    isText(labelContent)
+      ? String(labelContent)
+      : String(option.value)
+  const accessibilityHint =
+    isText(descriptionContent)
+      ? String(descriptionContent)
+      : undefined
+
+  const { interactionProps, states } = useAriaPress({
     disabled,
-    multiple,
-    showCheckMark,
-    basis,
-    itemMargin,
-    tokens,
-    itemStyle,
-    labelStyle,
-    descriptionStyle,
-    onToggle,
-  }: SelectorOptionItemProps<V>) => {
-    const labelContent = option.label
-    const descriptionContent = option.description
-    const hasDescription = descriptionContent != null
-    const accessibilityLabel =
-      isText(labelContent)
-        ? String(labelContent)
-        : String(option.value)
-    const accessibilityHint =
-      isText(descriptionContent)
-        ? String(descriptionContent)
-        : undefined
+    onPress: () => onToggle(option),
+    extraProps: {
+      accessibilityRole: multiple ? 'checkbox' : 'radio',
+      accessibilityLabel,
+      accessibilityHint,
+      accessibilityState: multiple
+        ? { checked: active, disabled }
+        : { selected: active, disabled },
+    },
+  })
 
-    const { interactionProps, states } = useAriaPress({
-      disabled,
-      onPress: () => onToggle(option),
-      extraProps: {
-        accessibilityRole: multiple ? 'checkbox' : 'radio',
-        accessibilityLabel,
-        accessibilityHint,
-        accessibilityState: multiple
-          ? { checked: active, disabled }
-          : { selected: active, disabled },
-      },
-    })
-
-    return (
-      <Pressable
-        {...interactionProps}
-        style={[tokens.layout.pressable, { width: basis }]}
+  return (
+    <Pressable
+      {...interactionProps}
+      style={[tokens.layout.pressable, { width: basis }]}
+    >
+      <View
+        style={[
+          tokens.layout.item,
+          {
+            marginHorizontal: itemMargin,
+            marginVertical: itemMargin,
+            paddingHorizontal: tokens.spacing.paddingHorizontal,
+            paddingVertical: tokens.spacing.paddingVertical,
+            borderRadius: tokens.radii.item,
+            borderColor: active ? tokens.colors.borderActive : tokens.colors.border,
+            backgroundColor: active ? tokens.colors.backgroundActive : tokens.colors.background,
+            opacity: disabled ? tokens.states.disabledOpacity : 1,
+          },
+          states.pressed ? { opacity: 0.9 } : null,
+          itemStyle,
+        ]}
       >
-        <View
-          style={[
-            tokens.layout.item,
-            {
-              marginHorizontal: itemMargin,
-              marginVertical: itemMargin,
-              paddingHorizontal: tokens.spacing.paddingHorizontal,
-              paddingVertical: tokens.spacing.paddingVertical,
-              borderRadius: tokens.radii.item,
-              borderColor: active ? tokens.colors.borderActive : tokens.colors.border,
-              backgroundColor: active ? tokens.colors.backgroundActive : tokens.colors.background,
-              opacity: disabled ? tokens.states.disabledOpacity : 1,
-            },
-            states.pressed ? { opacity: 0.9 } : null,
-            itemStyle,
-          ]}
-        >
-          {isText(labelContent) ? (
+        {isText(labelContent) ? (
+          <Text
+            style={[
+              tokens.layout.label,
+              {
+                color: active ? tokens.colors.textActive : tokens.colors.text,
+                fontSize: tokens.typography.fontSize,
+                lineHeight: tokens.typography.fontSize * 1.4,
+                fontFamily: tokens.typography.fontFamily,
+                fontWeight: tokens.typography.fontWeight,
+              },
+              labelStyle,
+            ]}
+          >
+            {labelContent}
+          </Text>
+        ) : (
+          labelContent
+        )}
+
+        {hasDescription ? (
+          isText(descriptionContent) ? (
             <Text
               style={[
-                tokens.layout.label,
+                tokens.layout.description,
                 {
-                  color: active ? tokens.colors.textActive : tokens.colors.text,
-                  fontSize: tokens.typography.fontSize,
-                  lineHeight: tokens.typography.fontSize * 1.4,
-                  fontFamily: tokens.typography.fontFamily,
-                  fontWeight: tokens.typography.fontWeight,
+                  marginTop: tokens.spacing.descriptionMarginTop,
+                  color: disabled
+                    ? tokens.colors.disabledText
+                    : tokens.colors.description,
+                  fontSize: tokens.typography.descriptionSize,
+                  lineHeight: tokens.typography.descriptionSize * 1.4,
                 },
-                labelStyle,
+                descriptionStyle,
               ]}
             >
-              {labelContent}
+              {descriptionContent}
             </Text>
           ) : (
-            labelContent
-          )}
+            <View style={{ marginTop: tokens.spacing.descriptionMarginTop }}>
+              {descriptionContent}
+            </View>
+          )
+        ) : null}
 
-          {hasDescription ? (
-            isText(descriptionContent) ? (
-              <Text
-                style={[
-                  tokens.layout.description,
-                  {
-                    marginTop: tokens.spacing.descriptionMarginTop,
-                    color: disabled
-                      ? tokens.colors.disabledText
-                      : tokens.colors.description,
-                    fontSize: tokens.typography.descriptionSize,
-                    lineHeight: tokens.typography.descriptionSize * 1.4,
-                  },
-                  descriptionStyle,
-                ]}
-              >
-                {descriptionContent}
-              </Text>
-            ) : (
-              <View style={{ marginTop: tokens.spacing.descriptionMarginTop }}>
-                {descriptionContent}
-              </View>
-            )
-          ) : null}
+        {active && showCheckMark ? (
+          <>
+            <View
+              style={[
+                tokens.layout.checkMarkTriangle,
+                {
+                  borderTopWidth: CHECK_MARK_CORNER_HEIGHT,
+                  borderBottomWidth: CHECK_MARK_CORNER_HEIGHT,
+                  borderLeftWidth: CHECK_MARK_CORNER_WIDTH,
+                  borderRightWidth: CHECK_MARK_CORNER_WIDTH,
+                  borderBottomColor: tokens.colors.check,
+                  borderRightColor: tokens.colors.check,
+                },
+              ]}
+            />
+            <Text style={[tokens.layout.checkMark, { color: tokens.colors.checkForeground }]}>
+              {CHECK_MARK}
+            </Text>
+          </>
+        ) : null}
+      </View>
+    </Pressable>
+  )
+}
 
-          {active && showCheckMark ? (
-            <>
-              <View
-                style={[
-                  tokens.layout.checkMarkTriangle,
-                  {
-                    borderTopWidth: CHECK_MARK_CORNER_HEIGHT,
-                    borderBottomWidth: CHECK_MARK_CORNER_HEIGHT,
-                    borderLeftWidth: CHECK_MARK_CORNER_WIDTH,
-                    borderRightWidth: CHECK_MARK_CORNER_WIDTH,
-                    borderBottomColor: tokens.colors.check,
-                    borderRightColor: tokens.colors.check,
-                  },
-                ]}
-              />
-              <Text style={[tokens.layout.checkMark, { color: tokens.colors.checkForeground }]}>
-                {CHECK_MARK}
-              </Text>
-            </>
-          ) : null}
-        </View>
-      </Pressable>
-    )
-  },
-)
-SelectorOptionItem.displayName = 'SelectorOptionItem'
+const SelectorOptionItemMemo = React.memo(SelectorOptionItemImpl)
+SelectorOptionItemMemo.displayName = 'SelectorOptionItem'
+const SelectorOptionItem = SelectorOptionItemMemo as <V extends SelectorValue>(
+  props: SelectorOptionItemProps<V>
+) => React.ReactElement
 
 const SelectorImpl = <V extends SelectorValue>(props: SelectorProps<V>) => {
   const {
@@ -184,7 +187,7 @@ const SelectorImpl = <V extends SelectorValue>(props: SelectorProps<V>) => {
   const columns = columnsProp ?? tokens.defaults.columns ?? 1
   const multiple = multipleProp ?? tokens.defaults.multiple
   const showCheckMark = showCheckMarkProp ?? tokens.defaults.showCheckMark
-  const disabled = disabledProp ?? tokens.defaults.disabled
+  const disabled = Boolean(disabledProp ?? tokens.defaults.disabled)
 
   const [value = [], triggerChange] = useControllableValue<V[]>(props, {
     defaultValue: [],
@@ -238,7 +241,7 @@ const SelectorImpl = <V extends SelectorValue>(props: SelectorProps<V>) => {
           key={String(option.value)}
           option={option}
           active={selectedSet.has(option.value)}
-          disabled={disabled || option.disabled}
+          disabled={disabled || Boolean(option.disabled)}
           multiple={multiple}
           showCheckMark={showCheckMark}
           basis={basis}

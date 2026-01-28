@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, type DimensionValue, type ViewStyle } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineView, isFiniteNumber, isText, isValidNode } from '../../utils'
@@ -22,7 +22,10 @@ const ShareSheetOptionItem: React.FC<{
   tokens: ShareSheetTokens
   onSelect: (option: ShareSheetOption, index: number) => void
 }> = ({ option, index, columns, tokens, onSelect }) => {
-  const optionWidthStyle = React.useMemo(() => ({ width: `${100 / columns}%` }), [columns])
+  const optionWidthStyle = React.useMemo<ViewStyle>(
+    () => ({ width: `${100 / columns}%` as DimensionValue }),
+    [columns],
+  )
   const iconStyle = React.useMemo(
     () => ({ width: tokens.sizing.icon, height: tokens.sizing.icon }),
     [tokens.sizing.icon],

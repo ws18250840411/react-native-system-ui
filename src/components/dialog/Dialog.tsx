@@ -132,7 +132,7 @@ export const Dialog: React.FC<DialogProps> = props => {
     try {
       return beforeClose(action)
     } catch (error) {
-      console.error(error)
+      if (typeof __DEV__ !== 'undefined' && __DEV__) console.error(error)
       return true
     }
   }
@@ -153,7 +153,7 @@ export const Dialog: React.FC<DialogProps> = props => {
           handler?.()
         })
         .catch(error => {
-          console.error(error)
+          if (typeof __DEV__ !== 'undefined' && __DEV__) console.error(error)
           if (actionSeqRef.current !== seq) return
           handler?.()
         })

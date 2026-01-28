@@ -7,12 +7,12 @@ import {
   View,
   type LayoutChangeEvent,
 } from 'react-native'
-
 import { isFunction, isText } from '../../utils'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
+import { SafeAreaClipProvider } from '../safe-area'
 import type { NotifyProps, NotifyPosition } from './types'
 import { useNotifyTokens } from './tokens'
 
@@ -49,11 +49,14 @@ export const Notify: React.FC<NotifyProps> = props => {
   const safeAreaInsetBottom =
     props.safeAreaInsetBottom ??
     (position === 'bottom' ? tokens.defaults.safeAreaInsetBottom : false)
-
   const variant = tokens.colors.variants[type]
   const resolvedBackground = background ?? variant.background
   const resolvedTextColor = color ?? variant.text
   const resolvedDuration = durationProp ?? tokens.defaults.duration
+  const topInsetStyle = React.useMemo(
+    () => ({ backgroundColor: resolvedBackground }),
+    [resolvedBackground]
+  )
 
   // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
   const { mounted, animated } = usePresenceAnimation(visible, {
@@ -102,10 +105,10 @@ export const Notify: React.FC<NotifyProps> = props => {
   }, [onClose, resolvedDuration, visible])
 
   const interactive = closeOnClick || isFunction(onClick)
-  const handlePress = () => {
+  const handlePress = React.useCallback(() => {
     onClick?.()
     if (closeOnClick) onClose?.()
-  }
+  }, [closeOnClick, onClick, onClose])
   const accessibilityRole = interactive ? 'button' : 'alert'
   const press = useAriaPress({
     disabled: !interactive,
@@ -117,13 +120,13 @@ export const Notify: React.FC<NotifyProps> = props => {
   })
 
   const [barHeight, setBarHeight] = React.useState(0)
-  const handleLayout = (event: LayoutChangeEvent) => {
+  const handleLayout = React.useCallback((event: LayoutChangeEvent) => {
     const height = event.nativeEvent.layout.height
     if (!height) return
     setBarHeight(prev => (prev === height ? prev : height))
-  }
+  }, [])
 
-  const translateDistance = barHeight || tokens.sizing.minHeight
+  const translateDistance = Math.max(barHeight, tokens.sizing.minHeight)
   const translateY =
     position === 'bottom'
       ? animated.interpolate({
@@ -141,7 +144,7 @@ export const Notify: React.FC<NotifyProps> = props => {
 
   const resolvedZIndex = stackZIndex ?? zIndex
 
-  const bar = (
+  const renderBar = (topInsetNode: React.ReactNode) => (
     <Animated.View
       testID="rv-notify-bar"
       accessibilityRole={!interactive ? accessibilityRole : undefined}
@@ -157,7 +160,7 @@ export const Notify: React.FC<NotifyProps> = props => {
         style,
       ]}
     >
-      {safeAreaInsetTop ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
+      {topInsetNode}
       <View
         style={[
           tokens.layout.content,
@@ -196,9 +199,10 @@ export const Notify: React.FC<NotifyProps> = props => {
 
   return (
     <Portal>
-      <View
-        testID="rv-notify"
-        pointerEvents={interactive ? 'box-none' : 'none'}
+      <SafeAreaClipProvider
+        enabled={safeAreaInsetTop}
+        position={position}
+        topInsetStyle={topInsetStyle}
         style={[
           tokens.layout.portal,
           position === 'bottom' ? { bottom: 0 } : { top: 0 },
@@ -207,14 +211,25 @@ export const Notify: React.FC<NotifyProps> = props => {
             : null,
         ]}
       >
-        {interactive ? (
-          <Pressable {...press.interactionProps} disabled={!interactive}>
-            {bar}
-          </Pressable>
-        ) : (
-          bar
-        )}
-      </View>
+        {({ clipTop, topInset }) => {
+          const topInsetNode = clipTop
+            ? null
+            : safeAreaInsetTop
+              ? <SafeAreaView style={tokens.layout.safeArea} />
+              : topInset
+          return (
+            <View testID="rv-notify" pointerEvents={interactive ? 'box-none' : 'none'}>
+              {interactive ? (
+                <Pressable {...press.interactionProps} disabled={!interactive}>
+                  {renderBar(topInsetNode)}
+                </Pressable>
+              ) : (
+                renderBar(topInsetNode)
+              )}
+            </View>
+          )
+        }}
+      </SafeAreaClipProvider>
     </Portal>
   )
 }

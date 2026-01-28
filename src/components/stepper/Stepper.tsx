@@ -184,7 +184,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
             commit()
           })
           .catch(error => {
-            console.error(error)
+            if (typeof __DEV__ !== 'undefined' && __DEV__) console.error(error)
             commit()
           })
           .finally(() => {
@@ -202,7 +202,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
 
       return commit()
     } catch (error) {
-      console.error(error)
+      if (typeof __DEV__ !== 'undefined' && __DEV__) console.error(error)
       return commit()
     }
   }, [beforeChange, decimalLength, setInputText, setValue])

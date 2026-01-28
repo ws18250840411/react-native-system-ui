@@ -63,7 +63,6 @@ export type { ShareSheetProps, ShareSheetOption, ShareSheetOptions } from './sha
 export type { DropdownMenuProps, DropdownItemProps, DropdownOption, DropdownMenuDirection, DropdownMenuInstance, DropdownItemInstance } from './dropdown-menu'
 export type { AreaProps } from './area'
 export type { ListProps, ListRef } from './list'
-export type { SwipeCellProps, SwipeCellRef, SwipeCellSide, SwipeCellPosition } from './swipe-cell'
 export type { PullRefreshProps } from './pull-refresh'
 export type { ImagePreviewProps, ImagePreviewRef, ImagePreviewCloseParams, ImagePreviewOpenOptions, ImagePreviewDestroy } from './image-preview'
 export type { SwiperProps, SwiperInstance, SwiperItemProps, SwiperPagIndicatorProps, SwiperPagIndicatorTokens } from './swiper'

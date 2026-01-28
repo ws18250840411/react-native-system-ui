@@ -350,7 +350,7 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
           return
         }
         if (!isTabPaneElement(element)) {
-          if (__DEV__) {
+          if (typeof __DEV__ !== 'undefined' && __DEV__) {
             const type = element.type
             const childName =
               typeof type === 'string'
@@ -544,11 +544,11 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
         return Promise.resolve(beforeChange(name))
           .then(res => res !== false)
           .catch(error => {
-            console.warn('[Tabs] beforeChange 抛出异常：', error)
+            if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Tabs] beforeChange 抛出异常：', error)
             return false
           })
       } catch (error) {
-        console.warn('[Tabs] beforeChange 抛出异常：', error)
+        if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Tabs] beforeChange 抛出异常：', error)
         return Promise.resolve(false)
       }
     },

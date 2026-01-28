@@ -28,7 +28,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
   const context = useSidebarContext()
 
   if (!context) {
-    if (__DEV__) {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       console.warn('[SidebarItem] 需要作为 Sidebar 子节点使用。')
     }
     return null

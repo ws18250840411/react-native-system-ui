@@ -68,6 +68,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const [distance, setDistance] = React.useState(0)
   const [showSuccess, setShowSuccess] = React.useState(false)
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const refreshEndTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const mergedRefreshingRef = React.useRef(mergedRefreshing)
   const refreshTriggeredRef = React.useRef(false)
   const refreshSucceededRef = React.useRef(false)
@@ -127,6 +128,9 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }
+      if (refreshEndTimerRef.current) {
+        clearTimeout(refreshEndTimerRef.current)
+      }
       cancelWebDrag()
     }
   }, [cancelWebDrag])
@@ -168,7 +172,12 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       refreshSucceededRef.current = true
     } finally {
       setRefreshing(false)
-      if (isFunction(onRefreshEnd)) setTimeout(onRefreshEnd, 0)
+      if (isFunction(onRefreshEnd)) {
+        if (refreshEndTimerRef.current) {
+          clearTimeout(refreshEndTimerRef.current)
+        }
+        refreshEndTimerRef.current = setTimeout(onRefreshEnd, 0)
+      }
 
       if (refreshTriggeredRef.current && refreshSucceededRef.current && !mergedRefreshingRef.current) {
         triggerSuccess()
@@ -332,7 +341,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         const raw = Math.max(0, gestureState.dy ?? 0)
         scheduleWebDrag(easeDistance(raw))
 
-        ;(event as unknown as { preventDefault?: () => void }).preventDefault?.()
+          ; (event as unknown as { preventDefault?: () => void }).preventDefault?.()
       },
       onPanResponderRelease: async (_event, gestureState) => {
         draggingRef.current = false

@@ -327,7 +327,9 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
           return [...prev, ...next.slice(0, available).map(item => normalizeItem(item))]
         })
       })
-      .catch(() => { })
+      .catch(error => {
+        if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Uploader] onUpload rejected:', error)
+      })
   }
 
   const closeImagePreview = () => setPreviewVisible(false)
@@ -459,7 +461,14 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
             {items.map((item, index) => {
               const isImage = isImageFile(item, isImageUrl?.(item))
               const source = resolveSource(item, isImage)
-              const fileName = item.file?.name ?? item.filename ?? item.url ?? ''
+              const fileName =
+                typeof item.file?.name === 'string'
+                  ? item.file.name
+                  : typeof item.url === 'string'
+                    ? item.url
+                    : typeof item.thumbnail === 'string'
+                      ? item.thumbnail
+                      : ''
 
               return (
                 <View

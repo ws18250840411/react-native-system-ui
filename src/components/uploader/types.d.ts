@@ -14,7 +14,6 @@ export type UploaderFile = {
   name?: string
   type?: string
   size?: number
-  [key: string]: unknown
 }
 
 type BivariantCallback<T extends (...args: unknown[]) => unknown> = { bivarianceHack: T }['bivarianceHack']

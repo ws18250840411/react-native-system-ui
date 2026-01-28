@@ -31,7 +31,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
   const context = useTabbarContext()
 
   if (!context) {
-    if (__DEV__) {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       console.warn('[TabbarItem] 需要作为 Tabbar 的子节点使用。')
     }
     return null
