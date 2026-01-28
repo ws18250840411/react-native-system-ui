@@ -80,6 +80,7 @@ const WheelPickerInner = <T extends PickerOption,>({
 
   const dragEndTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const momentumRef = React.useRef(false)
+  const lastOffsetRef = React.useRef(0)
 
   const clearDragEndTimer = React.useCallback(() => {
     if (dragEndTimerRef.current) {
@@ -87,8 +88,6 @@ const WheelPickerInner = <T extends PickerOption,>({
       dragEndTimerRef.current = null
     }
   }, [])
-
-  React.useEffect(() => () => clearDragEndTimer(), [clearDragEndTimer])
 
   const emitIndexFromOffset = React.useCallback(
     (offsetY: number, animated: boolean) => {
@@ -155,6 +154,14 @@ const WheelPickerInner = <T extends PickerOption,>({
     }
   }, [])
 
+  React.useEffect(() => {
+    return () => {
+      clearDragEndTimer()
+      clearPendingTimer()
+      stopRaf()
+    }
+  }, [clearDragEndTimer, clearPendingTimer, stopRaf])
+
   const setVelocityBucket = React.useCallback((velocity: number) => {
     const next = getVelocityBucket(velocity)
     if (next !== webVelocityBucketRef.current) {
@@ -176,8 +183,6 @@ const WheelPickerInner = <T extends PickerOption,>({
     [setVelocityBucket],
   )
 
-  React.useEffect(() => () => clearPendingTimer(), [clearPendingTimer])
-  React.useEffect(() => () => stopRaf(), [stopRaf])
   React.useEffect(() => {
     if (!isWeb) return
     clearPendingTimer()
@@ -377,7 +382,7 @@ const WheelPickerInner = <T extends PickerOption,>({
           setWebTransition(0)
         },
       }),
-    [data, itemHeight, minOffset, notifyInteractEnd, notifyInteractStart, readOnly, setVelocityBucket, swipeDuration, total],
+    [data, itemHeight, maxIndex, minOffset, notifyInteractEnd, notifyInteractStart, readOnly, setVelocityBucket, startWebSnap, stopRaf, total],
   )
 
   if (isWeb) {
@@ -454,6 +459,9 @@ const WheelPickerInner = <T extends PickerOption,>({
         collapsable={false}
         ListHeaderComponent={Spacer}
         ListFooterComponent={Spacer}
+        onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+          lastOffsetRef.current = e.nativeEvent.contentOffset.y
+        }}
         onScrollBeginDrag={() => {
           momentumRef.current = false
           clearDragEndTimer()
@@ -461,11 +469,12 @@ const WheelPickerInner = <T extends PickerOption,>({
         }}
         onScrollEndDrag={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
           if (readOnly) return
-          const offsetY = e.nativeEvent.contentOffset.y
+          const y = e.nativeEvent.contentOffset.y
+          lastOffsetRef.current = y
           clearDragEndTimer()
           dragEndTimerRef.current = setTimeout(() => {
             if (!momentumRef.current) {
-              emitIndexFromOffset(offsetY, true)
+              emitIndexFromOffset(lastOffsetRef.current, true)
               notifyInteractEnd()
             }
           }, 80)
@@ -478,7 +487,9 @@ const WheelPickerInner = <T extends PickerOption,>({
         onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
           momentumRef.current = false
           clearDragEndTimer()
-          emitIndexFromOffset(e.nativeEvent.contentOffset.y, false)
+          const y = e.nativeEvent.contentOffset.y
+          lastOffsetRef.current = y
+          emitIndexFromOffset(y, false)
           notifyInteractEnd()
         }}
         scrollEnabled={!readOnly}

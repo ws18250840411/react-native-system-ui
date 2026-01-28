@@ -78,10 +78,10 @@ import { Radio } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `name` / `value` | 标识符 | `RadioValue` | - |
-| `shape` | 形状，可选值为 `square` | `RadioShape` | `round` |
+| `shape` | 形状 | `'round' \| 'square'` | `'round'` |
 | `disabled` | 是否为禁用状态 | `boolean` | `false` |
 | `labelDisabled` | 是否禁用文本内容点击 | `boolean` | `false` |
-| `labelPosition` | 文本位置，可选值为 `left` | `RadioLabelPosition` | `right` |
+| `labelPosition` | 文本位置 | `'left' \| 'right'` | `'right'` |
 | `iconSize` | 图标大小 | `number \| string` | `tokens.defaults.iconSize` |
 | `checkedColor` | 选中状态颜色 | `string` | 主题主色 |
 | `iconRender` | 自定义图标 | `({ checked, disabled }) => ReactNode` | - |
@@ -93,7 +93,7 @@ import { Radio } from 'react-native-system-ui'
 | `value` | 当前选中项的标识符（受控） | `RadioValue` | - |
 | `defaultValue` | 默认选中项的标识符（非受控） | `RadioValue` | - |
 | `disabled` | 是否禁用所有单选框 | `boolean` | `false` |
-| `direction` | 排列方向，可选值为 `horizontal` | `RadioGroupDirection` | `vertical` |
+| `direction` | 排列方向 | `'horizontal' \| 'vertical'` | `'vertical'` |
 | `iconSize` | 所有单选框的图标大小 | `number \| string` | - |
 | `checkedColor` | 所有单选框的选中状态颜色 | `string` | - |
 | `labelDisabled` | 是否禁用文本内容点击 | `boolean` | `false` |

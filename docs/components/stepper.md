@@ -54,7 +54,7 @@ import { Stepper } from 'react-native-system-ui'
 | `inputWidth` | 输入框宽度，默认单位为 `px` | `number \| string` | `32px` |
 | `buttonSize` | 按钮大小以及输入框高度，默认单位为 `px` | `number \| string` | `28px` |
 | `decimalLength` | 固定显示的小数位数 | `number \| string` | - |
-| `theme` | 样式风格，可选值为 `round` | `StepperTheme` | `default` |
+| `theme` | 样式风格 | `'default' \| 'round'` | `'default'` |
 | `placeholder` | 输入框占位提示文字 | `string` | - |
 | `integer` | 是否只允许输入整数 | `boolean` | `false` |
 | `disabled` | 是否禁用步进器 | `boolean` | `false` |

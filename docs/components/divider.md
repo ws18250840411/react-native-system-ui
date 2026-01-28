@@ -53,10 +53,10 @@ import { Divider } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 分割线方向，可选 `horizontal` | `DividerType` | `'horizontal'` |
+| `type` | 分割线方向 | `'horizontal'` | `'horizontal'` |
 | `dashed` | 是否为虚线 | `boolean` | `false` |
 | `hairline` | 是否使用 0.5px 线条 | `boolean` | `true` |
-| `contentPosition` | 文本位置，可选 `left` `center` `right` | `DividerContentPosition` | `'center'` |
+| `contentPosition` | 文本位置 | `'left' \| 'center' \| 'right'` | `'center'` |
 | `lineColor` | 线条颜色 | `string` | `tokens.colors.line` |
 | `textStyle` | 文本样式 | `StyleProp<TextStyle>` | - |
 | `style` | 容器样式 | `StyleProp<ViewStyle>` | - |

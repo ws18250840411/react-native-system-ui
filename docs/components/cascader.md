@@ -49,27 +49,27 @@ import { Cascader } from 'react-native-system-ui';
 
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| title | 顶部标题 | _ReactNode_ | - |
-| value | 当前选中的值 | _(string \| number)[]_ | - |
-| defaultValue | 默认选中的值 | _(string \| number)[]_ | - |
-| options | 可选项数据源 | _CascaderOption[]_ | `[]` |
-| optionRender | 自定义选项文字 | _({ option: CascaderOption, selected: boolean }) => ReactNode_ | - |
-| placeholder | 未选中时的提示文案 | _string_ | `请选择` |
-| activeColor | 选中状态的高亮颜色 | _string_ | - |
-| closeable | 是否显示关闭图标 | _boolean_ | `true` |
-| closeIcon | 关闭图标 | _ReactNode_ | - |
-| fieldNames | 自定义 `options` 结构中的字段 | _object_ | `{ text: 'text', value: 'value', children: 'children' }` |
-| swipeable | 是否开启手势左右滑动切换 | _boolean_ | `true` |
-| children | 渲染函数 | _(val: (string \| number)[], selectedRows: CascaderOption[], actions: CascaderActions) => ReactNode_ | - |
+| `title` | 顶部标题 | `ReactNode` | - |
+| `value` | 当前选中的值 | `(string \| number)[]` | - |
+| `defaultValue` | 默认选中的值 | `(string \| number)[]` | - |
+| `options` | 可选项数据源 | `CascaderOption[]` | `[]` |
+| `optionRender` | 自定义选项文字 | `({ option: CascaderOption, selected: boolean }) => ReactNode` | - |
+| `placeholder` | 未选中时的提示文案 | `string` | `'请选择'` |
+| `activeColor` | 选中状态的高亮颜色 | `string` | - |
+| `closeable` | 是否显示关闭图标 | `boolean` | `true` |
+| `closeIcon` | 关闭图标 | `ReactNode` | - |
+| `fieldNames` | 自定义 `options` 结构中的字段 | `object` | `{ text: 'text', value: 'value', children: 'children' }` |
+| `swipeable` | 是否开启手势左右滑动切换 | `boolean` | `true` |
+| `children` | 渲染函数 | `(val: (string \| number)[], selectedRows: CascaderOption[], actions: CascaderActions) => ReactNode` | - |
 
 ### Events
 
 | 事件 | 说明 | 类型 |
 | --- | --- | --- |
-| onChange | 选中项变化时触发 | _(val: (string \| number)[], selectedRows: CascaderOption[]) => void_ |
-| onFinish | 全部选项选择完成后触发 | _(val: (string \| number)[], selectedRows: CascaderOption[]) => void_ |
-| onClose | 点击关闭图标时触发 | _() => void_ |
-| onClickTab | 点击标签时触发 | _(tabIndex: number, title: string) => void_ |
+| `onChange` | 选中项变化时触发 | `(val: (string \| number)[], selectedRows: CascaderOption[]) => void` |
+| `onFinish` | 全部选项选择完成后触发 | `(val: (string \| number)[], selectedRows: CascaderOption[]) => void` |
+| `onClose` | 点击关闭图标时触发 | `() => void` |
+| `onClickTab` | 点击标签时触发 | `(tabIndex: number, title: string) => void` |
 
 ### CascaderOption 数据结构
 
@@ -77,12 +77,12 @@ import { Cascader } from 'react-native-system-ui';
 
 | 键名      | 说明                     | 类型                        |
 | --------- | ------------------------ | --------------------------- |
-| text      | 选项文字（必填）         | _string_                    |
-| value     | 选项对应的值（必填）     | _string \| number_          |
-| color     | 选项文字颜色             | _string_                    |
-| children  | 子选项列表               | _CascaderOption[]_          |
-| disabled  | 是否禁用选项             | _boolean_                   |
-| className | 为对应列添加额外的 class | _string \| Array \| object_ |
+| `text`    | 选项文字（必填）         | `string`                    |
+| `value`   | 选项对应的值（必填）     | `string \| number`          |
+| `color`   | 选项文字颜色             | `string`                    |
+| `children`| 子选项列表               | `CascaderOption[]`          |
+| `disabled`| 是否禁用选项             | `boolean`                   |
+| `className`| 为对应列添加额外的 class | `string \| Array \| object` |
 
 ## 主题定制
 

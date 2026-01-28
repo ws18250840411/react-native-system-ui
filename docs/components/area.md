@@ -30,7 +30,7 @@ import { Area } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `areaList` | 省市区数据 | `AreaList` | - |
-| `columnsNum` | 展示列数，可选 `1/2/3` | `1 \| 2 \| 3` | `3` |
+| `columnsNum` | 展示列数 | `1 \| 2 \| 3` | `3` |
 | `value` | 当前选中地区码数组（受控） | `string[]` | - |
 | `defaultValue` | 默认选中值 | `string[]` | - |
 | `title` | 标题 | `ReactNode` | - |
@@ -39,7 +39,7 @@ import { Area } from 'react-native-system-ui'
 | `itemHeight` | 选项高度 | `number` | Picker 默认 |
 | `visibleItemCount` | 可见选项个数 | `number` | Picker 默认 |
 | `loading` | 是否显示加载状态 | `boolean` | `false` |
-| `interactionMode` | 交互同步策略，可选 `auto/freeze/sync` | `string` | `'sync'` |
+| `interactionMode` | 交互同步策略 | `'auto' \| 'freeze' \| 'sync'` | `'sync'` |
 | `onChange` | 选项改变回调 | `(values: string[], options: AreaOption[]) => void` | - |
 | `onConfirm` | 点击确认回调 | `(values: string[], options: AreaOption[]) => void` | - |
 | `onCancel` | 点击取消回调 | `() => void` | - |

@@ -36,7 +36,7 @@ import { Pagination } from 'react-native-system-ui'
 | `value` | 当前页（受控） | `number` | `1` |
 | `defaultValue` | 默认页 | `number` | `1` |
 | `onChange` | 页码变化回调 | `(page: number) => void` | - |
-| `mode` | 模式，可选 `multi`、`simple` | `'multi' \| 'simple'` | `'multi'` |
+| `mode` | 模式 | `'multi' \| 'simple'` | `'multi'` |
 | `pageCount` | 总页数 | `number` | 依据 `totalItems/itemsPerPage` 计算 |
 | `totalItems` | 总条目数 | `number` | `0` |
 | `itemsPerPage` | 每页条数 | `number` | `10` |

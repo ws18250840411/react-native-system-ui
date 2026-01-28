@@ -89,6 +89,13 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const nativeScrollSeqRef = useRef(0)
   const nativeScrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const scrollToIndexSafe = useCallback((index: number, animated: boolean) => {
+    try {
+      flatListRef.current?.scrollToIndex({ index, animated })
+    } catch {
+    }
+  }, [])
+
   const clearNativeScrollEndTimer = useCallback(() => {
     if (nativeScrollEndTimerRef.current) {
       clearTimeout(nativeScrollEndTimerRef.current)
@@ -344,10 +351,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
 
     nativeLastAlignedMainAxisRef.current = mainAxisMeasured
     runAfterFrames(2, () => {
-      try {
-        flatListRef.current?.scrollToIndex({ index: currentRef.current, animated: false })
-      } catch {
-      }
+      scrollToIndexSafe(currentRef.current, false)
     })
   }, [isWeb, count, vertical, containerLayout.height, containerLayout.width])
 
@@ -453,10 +457,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
         if (isScrollingRef.current && animated) {
           nativeQueuedScrollRef.current = { index: targetIndex, animated }
           scheduleNativeScrollFallback()
-          try {
-            flatListRef.current.scrollToIndex({ index: targetIndex, animated: true })
-          } catch {
-          }
+          scrollToIndexSafe(targetIndex, true)
           return
         }
         isScrollingRef.current = true
@@ -465,16 +466,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
         } else {
           clearNativeScrollEndTimer()
         }
-        try {
-          flatListRef.current.scrollToIndex({
-            index: targetIndex,
-            animated,
-          })
-        } catch {
-          isScrollingRef.current = false
-          nativeQueuedScrollRef.current = { index: targetIndex, animated }
-          return
-        }
+        scrollToIndexSafe(targetIndex, animated)
         if (!animated) {
           setCurrentSafe(targetIndex)
         }
@@ -958,7 +950,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
           runAfterFrames(2, () => {
             try {
               isScrollingRef.current = true
-              flatListRef.current?.scrollToIndex({ index: info.index, animated: false })
+              scrollToIndexSafe(info.index, false)
               setCurrentSafe(info.index)
             } finally {
               isScrollingRef.current = false

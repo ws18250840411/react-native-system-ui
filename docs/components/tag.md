@@ -47,8 +47,8 @@ import { Tag } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 标签类型，可选 `default` `primary` `success` `warning` `danger` | `TagType` | `'default'` |
-| `size` | 标签尺寸，可选 `mini` `small` `medium` `large` | `TagSize` | `'small'` |
+| `type` | 标签类型 | `'default' \| 'primary' \| 'success' \| 'warning' \| 'danger'` | `'default'` |
+| `size` | 标签尺寸 | `'mini' \| 'small' \| 'medium' \| 'large'` | `'small'` |
 | `plain` | 是否为空心样式 | `boolean` | `false` |
 | `round` | 是否为圆角样式 | `boolean` | `false` |
 | `mark` | 是否为标记样式（左侧为直角） | `boolean` | `false` |

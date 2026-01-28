@@ -71,7 +71,7 @@ import { Grid } from 'react-native-system-ui'
 | `border` | 是否显示边框 | `boolean` | `true` |
 | `center` | 是否将格子内容居中显示 | `boolean` | `true` |
 | `square` | 是否将格子固定为正方形 | `boolean` | `false` |
-| `direction` | 格子内容排列的方向，可选值为 `horizontal` \| `vertical` | `GridDirection` | `'vertical'` |
+| `direction` | 格子内容排列的方向 | `'horizontal' \| 'vertical'` | `'vertical'` |
 | `reverse` | 是否调换图标和文本的位置 | `boolean` | `false` |
 | `clickable` | 是否开启整组可点击态 | `boolean` | `false` |
 | `iconColor` | 图标颜色 | `string` | - |

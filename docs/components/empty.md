@@ -43,7 +43,7 @@ import { Empty } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `image` | 图片类型，可选 `default` `error` `network` `search`，支持传入图片 URL 或自定义节点 | `EmptyImage \| string \| ReactNode` | `'default'` |
+| `image` | 图片类型，支持传入图片 URL 或自定义节点 | `'default' \| 'error' \| 'network' \| 'search' \| string \| ReactNode` | `'default'` |
 | `imageSize` | 图片尺寸（px） | `number` | `tokens.sizes.image` |
 | `description` | 描述文案 | `ReactNode` | - |
 | `gap` | 图像与描述之间的间距 | `number` | `tokens.spacing.descriptionMargin` |

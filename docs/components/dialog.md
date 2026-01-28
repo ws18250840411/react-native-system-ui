@@ -69,10 +69,10 @@ Dialog 支持 promise
 
 | 方法名         | 说明             | 参数      | 返回值            |
 | -------------- | ---------------- | --------- | ----------------- |
-| Dialog         | 弹窗组件         | `options` | `React.ReactNode` |
-| Dialog.show    | 展示提示弹窗     | `options` | `Promise`         |
-| Dialog.alert   | 展示消息提示弹窗 | `options` | `Promise`         |
-| Dialog.confirm | 展示消息确认弹窗 | `options` | `Promise`         |
+| `Dialog`       | 弹窗组件         | `options` | `React.ReactNode` |
+| `Dialog.show`  | 展示提示弹窗     | `options` | `Promise`         |
+| `Dialog.alert` | 展示消息提示弹窗 | `options` | `Promise`         |
+| `Dialog.confirm` | 展示消息确认弹窗 | `options` | `Promise`         |
 
 #### 注意
 
@@ -105,33 +105,33 @@ export default function App() {
 
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| visible | 是否显示弹窗 | _boolean_ | - |
-| title | 标题 | _string_ | - |
-| width | 弹窗宽度，默认单位为`px` | _number \| string_ | `320px` |
-| message | 文本内容，支持通过`\n`换行 | _string_ | - |
-| messageAlign | 内容对齐方式，可选值为`left` `right` | _string_ | `center` |
-| theme | 样式风格，可选值为`round-button` | _string_ | `default` |
-| className | 自定义类名 | _any_ | - |
-| showConfirmButton | 是否展示确认按钮 | _boolean_ | `true` |
-| showCancelButton | 是否展示取消按钮 | _boolean_ | `false` |
-| confirmButtonText | 确认按钮文案 | _string_ | `确认` |
-| confirmButtonColor | 确认按钮颜色 | _string_ | `#ee0a24` |
-| cancelButtonText | 取消按钮文案 | _string_ | `取消` |
-| cancelButtonColor | 取消按钮颜色 | _string_ | `black` |
-| overlay | 是否展示遮罩层 | _boolean_ | `true` |
-| overlayClass | 自定义遮罩层类名 | _string_ | - |
-| overlayStyle | 自定义遮罩层样式 | _object_ | - |
-| closeable | 是否展示关闭图标 | _boolean_ | `false` |
-| closeOnPopstate | 是否在页面回退时自动关闭 | _boolean_ | `true` |
-| closeOnClickOverlay | 是否在点击遮罩层后关闭弹窗 | _boolean_ | `false` |
-| lockScroll | 是否锁定背景滚动 | _boolean_ | `true` |
-| transition | 动画类名 [see](https://reactcommunity.org/react-transition-group/) | _string_ | - |
-| onCancel | 点击取消按钮时触发 | _Function_ | - |
-| onConfirm | 点击确认按钮时触发 | _Function_ | - |
-| onClose | Dialog 关闭时的回调 | _Function_ | - |
-| onClosed | Dialog 完全关闭时的回调 | _Function_ | - |
-| teleport | 指定挂载的节点 | _HTMLElement \| (() => HTMLElement)_ | `body` |
-| footer | 自定义底部按钮区域 | _ReactNode_ | - |
+| `visible` | 是否显示弹窗 | `boolean` | - |
+| `title` | 标题 | `string` | - |
+| `width` | 弹窗宽度，默认单位为`px` | `number \| string` | `320px` |
+| `message` | 文本内容，支持通过`\n`换行 | `string` | - |
+| `messageAlign` | 内容对齐方式 | `'left' \| 'center' \| 'right'` | `'center'` |
+| `theme` | 样式风格 | `'default' \| 'round-button'` | `'default'` |
+| `className` | 自定义类名 | `any` | - |
+| `showConfirmButton` | 是否展示确认按钮 | `boolean` | `true` |
+| `showCancelButton` | 是否展示取消按钮 | `boolean` | `false` |
+| `confirmButtonText` | 确认按钮文案 | `string` | `'确认'` |
+| `confirmButtonColor` | 确认按钮颜色 | `string` | `#ee0a24` |
+| `cancelButtonText` | 取消按钮文案 | `string` | `'取消'` |
+| `cancelButtonColor` | 取消按钮颜色 | `string` | `black` |
+| `overlay` | 是否展示遮罩层 | `boolean` | `true` |
+| `overlayClass` | 自定义遮罩层类名 | `string` | - |
+| `overlayStyle` | 自定义遮罩层样式 | `object` | - |
+| `closeable` | 是否展示关闭图标 | `boolean` | `false` |
+| `closeOnPopstate` | 是否在页面回退时自动关闭 | `boolean` | `true` |
+| `closeOnClickOverlay` | 是否在点击遮罩层后关闭弹窗 | `boolean` | `false` |
+| `lockScroll` | 是否锁定背景滚动 | `boolean` | `true` |
+| `transition` | 动画类名 [see](https://reactcommunity.org/react-transition-group/) | `string` | - |
+| `onCancel` | 点击取消按钮时触发 | `Function` | - |
+| `onConfirm` | 点击确认按钮时触发 | `Function` | - |
+| `onClose` | Dialog 关闭时的回调 | `Function` | - |
+| `onClosed` | Dialog 完全关闭时的回调 | `Function` | - |
+| `teleport` | 指定挂载的节点 | `HTMLElement \| (() => HTMLElement)` | `body` |
+| `footer` | 自定义底部按钮区域 | `ReactNode` | - |
 
 ## 主题定制
 

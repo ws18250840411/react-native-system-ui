@@ -79,14 +79,12 @@ import { Slider } from 'react-native-system-ui'
 
 ### Events
 
-`SliderValue` 指 `value`
-
 | 事件名 | 说明 | 回调参数 |
 | --- | --- | --- |
-| `onChange` | 进度变化时**实时触发** | `value: SliderValue` |
-| `onChangeAfter` | 进度变化且**结束拖动后触发** | `value: SliderValue` |
-| `onDragStart` | 开始拖动时触发 | `event: GestureResponderEvent, value: SliderValue` |
-| `onDragEnd` | 结束拖动时触发 | `event: GestureResponderEvent, value: SliderValue` |
+| `onChange` | 进度变化时**实时触发** | `value: number \| [number, number]` |
+| `onChangeAfter` | 进度变化且**结束拖动后触发** | `value: number \| [number, number]` |
+| `onDragStart` | 开始拖动时触发 | `event: GestureResponderEvent, value: number \| [number, number]` |
+| `onDragEnd` | 结束拖动时触发 | `event: GestureResponderEvent, value: number \| [number, number]` |
 
 > `trackHeight/thumbSize/thumb/leftThumb/rightThumb` 为历史别名，优先使用 `barHeight/buttonSize/button/leftButton/rightButton`。
 

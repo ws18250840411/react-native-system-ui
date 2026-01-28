@@ -76,7 +76,7 @@ import { Uploader } from 'react-native-system-ui'
 | `deletable` | 是否展示删除按钮 | `boolean` | `true` |
 | `deleteRender` | 自定义删除按钮视图 | `(del: () => void) => ReactNode` | - |
 | `showUpload` | 是否展示上传区域 | `boolean` | `true` |
-| `capture` | 图片选取模式，可选值为 `camera`（Web 端） | `string` | - |
+| `capture` | 图片选取模式（Web 端） | `string` | - |
 | `maxSize` | 文件大小限制，单位为 `byte`（Web 下 `file` 为 `File`） | `number \| string \| (file: UploaderFile) => boolean` | `Number.MAX_VALUE` |
 | `maxCount` | 文件上传数量限制 | `number \| string` | `Number.MAX_VALUE` |
 | `resultType` | 文件读取结果类型（Web 端） | `'dataUrl' \| 'text' \| 'file'` | `'dataUrl'` |

@@ -45,7 +45,7 @@ import { NumberKeyboard } from 'react-native-system-ui'
 | `randomKeyOrder` | 数字键是否随机排列 | `boolean` | `false` |
 | `blurOnClose` | 点击关闭按钮时是否触发 `onBlur` | `boolean` | `true` |
 | `safeAreaInsetBottom` | 是否适配底部安全区 | `boolean` | `true` |
-| `theme` | 样式风格，`default` / `custom` | `NumberKeyboardTheme` | `default` |
+| `theme` | 样式风格 | `'default' \| 'custom'` | `'default'` |
 | `maxlength` | 输入最大长度 | `number` | - |
 | `onInput` | 点击数字或自定义按键时触发 | `(key: string) => void` | - |
 | `onDelete` | 点击删除键时触发 | `() => void` | - |

@@ -60,7 +60,7 @@ import { NoticeBar } from 'react-native-system-ui'
 | `background` | 背景色 | `string` | `#fff7cc` |
 | `leftIcon` | 自定义左侧图标 | `ReactNode` | - |
 | `rightIcon` | 自定义右侧图标 | `ReactNode` | - |
-| `mode` | `closeable` / `link` | `NoticeBarMode` | `undefined` |
+| `mode` | 通知栏模式 | `'closeable' \| 'link'` | - |
 | `delay` | 滚动延迟（秒） | `number` | `1` |
 | `speed` | 滚动速度（px/s） | `number` | `60` |
 | `scrollable` | 是否强制开启滚动 | `boolean` | `内容溢出时自动` |

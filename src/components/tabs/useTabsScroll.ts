@@ -1,6 +1,6 @@
 import React from 'react'
 import { Animated, ScrollView, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native'
-import { requestFrame } from './utils'
+import { cancelFrame, requestFrame } from './utils'
 import type { TabsValue } from './types'
 
 interface UseTabsScrollParams {
@@ -27,6 +27,7 @@ export const useTabsScroll = ({
   const navScrollAnimRef = React.useRef<Animated.CompositeAnimation | null>(null)
   const navAutoScrollingRef = React.useRef(false)
   const navLastScrollXRef = React.useRef(0)
+  const navAutoScrollFrameRef = React.useRef<number | null>(null)
 
   const scrollIntoView = React.useCallback(
     (immediate?: boolean) => {
@@ -48,10 +49,13 @@ export const useTabsScroll = ({
         navScrollAnimRef.current.stop()
         navScrollAnimRef.current = null
       }
+      cancelFrame(navAutoScrollFrameRef.current)
+      navAutoScrollFrameRef.current = null
       if (immediate || !animated) {
         navAutoScrollingRef.current = true
         navScrollX.setValue(clampedX)
-        requestFrame(() => {
+        navAutoScrollFrameRef.current = requestFrame(() => {
+          navAutoScrollFrameRef.current = null
           navAutoScrollingRef.current = false
         })
         return
@@ -76,6 +80,7 @@ export const useTabsScroll = ({
   )
 
   React.useEffect(() => {
+    if (!scrollable) return
     const listenerId = navScrollX.addListener(({ value }) => {
       navLastScrollXRef.current = value
       navScrollRef.current?.scrollTo({ x: value, y: 0, animated: false })
@@ -83,7 +88,14 @@ export const useTabsScroll = ({
     return () => {
       navScrollX.removeListener(listenerId)
     }
-  }, [navScrollX])
+  }, [navScrollX, scrollable])
+
+  React.useEffect(() => {
+    return () => {
+      cancelFrame(navAutoScrollFrameRef.current)
+      navAutoScrollFrameRef.current = null
+    }
+  }, [])
 
   const handleNavScrollBeginDrag = React.useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     navAutoScrollingRef.current = false

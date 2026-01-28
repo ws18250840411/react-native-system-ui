@@ -61,9 +61,9 @@ import { Typography } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 文本类型，可选 `default` `primary` `success` `warning` `danger` `secondary` `light` | `TypographyType` | `default` |
-| `color` | 自定义文字颜色，支持直接传入颜色值或 `TypographyType`（优先级高于 `type`） | `string \| TypographyType` | - |
-| `size` | 文本大小，可选 `xs` `sm` `md` `lg` `xl` `xxl` | `TypographySize` | `md` |
+| `type` | 文本类型 | `'default' \| 'primary' \| 'success' \| 'warning' \| 'danger' \| 'secondary' \| 'light'` | `'default'` |
+| `color` | 自定义文字颜色，支持直接传入颜色值或类型值（优先级高于 `type`） | `string \| 'default' \| 'primary' \| 'success' \| 'warning' \| 'danger' \| 'secondary' \| 'light'` | - |
+| `size` | 文本大小 | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl' \| 'xxl'` | `'md'` |
 | `disabled` | 是否禁用，并降低不透明度 | `boolean` | `false` |
 | `strong` | 是否加粗 | `boolean` | `false` |
 | `underline` | 是否显示下划线 | `boolean` | `false` |
@@ -89,7 +89,7 @@ import { Typography } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `level` | 标题层级 `1-6` | `TypographyTitleLevel` | `5` |
+| `level` | 标题层级 | `1 \| 2 \| 3 \| 4 \| 5 \| 6` | `5` |
 
 ### Typography.Link Props
 

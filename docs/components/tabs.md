@@ -60,7 +60,7 @@ import { Tabs } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `active` | 当前选中项标识符，受控模式 | `TabsValue` | - |
 | `defaultActive` | 默认选中项标识符 | `TabsValue` | 第一个 Tab |
-| `type` | 外观类型，可选 `line` `card` `capsule` `jumbo` | `'line' \| 'card' \| 'capsule' \| 'jumbo'` | `line` |
+| `type` | 外观类型 | `'line' \| 'card' \| 'capsule' \| 'jumbo'` | `'line'` |
 | `align` | 非滚动模式下的对齐方式 | `'start' \| 'center'` | `center` |
 | `color` | 指示器与激活文字颜色 | `string` | 主题色 |
 | `background` | 标签栏背景色 | `string` | `#fff` |

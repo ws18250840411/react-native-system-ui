@@ -63,7 +63,7 @@ import { Space } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `size` | 间距大小，支持预设 `mini` `small` `normal` `large`，也接受数字或像素字符串；数组形式为 `[vertical, horizontal]` | `SpaceGap \| SpaceSizePreset` | `normal` |
+| `size` | 间距大小，支持预设，也接受数字或像素字符串；数组形式为 `[vertical, horizontal]` | `'mini' \| 'small' \| 'normal' \| 'large' \| number \| string \| [number \| string, number \| string]` | `'normal'` |
 | `gap` | 自定义间距，语义同 `size`，优先级更高；数组形式为 `[vertical, horizontal]` | `number \| string \| [number \| string, number \| string]` | - |
 | `justify` | 主轴对齐方式 | `'start' \| 'end' \| 'center' \| 'between' \| 'around' \| 'evenly' \| 'stretch'` | `'start'` |
 | `align` | 交叉轴对齐方式 | `'start' \| 'end' \| 'center' \| 'baseline' \| 'stretch'` | `'center'`（`direction="vertical"` 时默认为 `stretch`） |

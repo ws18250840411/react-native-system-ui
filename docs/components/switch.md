@@ -65,11 +65,11 @@ import { Switch } from 'react-native-system-ui'
 
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `checked` | 开关选中状态 | `any` | `false` |
-| `defaultChecked` | 开关选中状态 | `any` | `false` |
+| `checked` | 开关选中状态（受控） | `any` | - |
+| `defaultChecked` | 默认选中状态 | `any` | `false` |
 | `loading` | 是否为加载状态 | `boolean` | `false` |
 | `disabled` | 是否为禁用状态 | `boolean` | `false` |
-| `size` | 开关尺寸，默认单位为 `px` | `number \| string` | `30px` |
+| `size` | 开关尺寸 | `number \| string` | `30px` |
 | `activeColor` | 打开时的背景色 | `string` | `#3f45ff` |
 | `inactiveColor` | 关闭时的背景色 | `string` | `white` |
 | `activeValue` | 打开时对应的值 | `any` | `true` |

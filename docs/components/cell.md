@@ -98,7 +98,7 @@ import { Cell } from 'react-native-system-ui'
 | `value` | 右侧内容，支持字符串、数字或任意 `ReactNode`（节点会根据布局自动向左/右对齐） | `ReactNode` | - |
 | `label` | 标题下方的描述信息 | `ReactNode` | - |
 | `extra` | 自定义单元格最右侧的额外内容 | `ReactNode` | - |
-| `size` | 单元格大小，可选值 `large` | `'normal' \| 'large'` | `'normal'` |
+| `size` | 单元格大小 | `'normal' \| 'large'` | `'normal'` |
 | `icon` | 左侧图标 | `ReactNode` | - |
 | `rightIcon` | 自定义右侧图标，默认在 `isLink` 或 `clickable` 时展示 `Arrow` | `ReactNode` | - |
 | `border` | 是否显示内边框 | `boolean` | `true` |
@@ -106,7 +106,7 @@ import { Cell } from 'react-native-system-ui'
 | `isLink` | 是否展示右侧箭头并开启点击反馈 | `boolean` | `false` |
 | `required` | 是否显示表单必填星号 | `boolean` | `false` |
 | `center` | 是否使内容垂直居中 | `boolean` | `false` |
-| `arrowDirection` | 箭头方向，可选 `left` `right` `up` `down` | `CellArrowDirection` | `'right'` |
+| `arrowDirection` | 箭头方向 | `'left' \| 'right' \| 'up' \| 'down'` | `'right'` |
 | `titleStyle` | 标题样式 | `StyleProp<TextStyle>` | - |
 | `valueStyle` | 右侧内容样式 | `StyleProp<TextStyle>` | - |
 | `labelStyle` | 描述信息样式 | `StyleProp<TextStyle>` | - |

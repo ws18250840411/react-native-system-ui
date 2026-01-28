@@ -78,7 +78,7 @@ import { Checkbox } from 'react-native-system-ui'
 | `checked` | 是否选中（受控） | `boolean` | - |
 | `defaultChecked` | 默认选中状态（非受控） | `boolean` | `false` |
 | `disabled` | 是否禁用 | `boolean` | `false` |
-| `shape` | 图标形状，可选 `round` / `square` | `CheckboxShape` | `round` |
+| `shape` | 图标形状 | `'round' \| 'square'` | `'round'` |
 | `iconSize` | 图标大小 | `number` | `20` |
 | `iconRender` | 自定义图标渲染 | `CheckboxIconRender` | - |
 | `checkedColor` | 选中时的背景与描边颜色 | `string` | 主题主色 |
@@ -98,9 +98,9 @@ import { Checkbox } from 'react-native-system-ui'
 | `defaultValue` | 默认选中集合（非受控） | `CheckboxValue[]` | `[]` |
 | `onChange` | 选项变化回调 | `(value: CheckboxValue[]) => void` | - |
 | `disabled` | 是否禁用整组 | `boolean` | `false` |
-| `direction` | 布局方向 | `CheckboxGroupDirection` | `vertical` |
+| `direction` | 布局方向 | `'horizontal' \| 'vertical'` | `'vertical'` |
 | `max` | 最多可选几个项目 | `number` | - |
-| `shape` | 统一设置子项 `shape` | `CheckboxShape` | - |
+| `shape` | 统一设置子项 `shape` | `'round' \| 'square'` | - |
 | `iconSize` | 统一设置子项图标大小 | `number` | - |
 | `iconRender` | 统一设置子项自定义图标 | `CheckboxIconRender` | - |
 | `checkedColor` | 统一设置选中颜色 | `string` | - |

@@ -51,7 +51,7 @@ import { Loading } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 加载类型，可选 `circular` `spinner` | `LoadingType` | `'circular'` |
+| `type` | 加载类型 | `'circular' \| 'spinner'` | `'circular'` |
 | `size` | 指示器尺寸（px） | `number` | `30` |
 | `color` | 指示器颜色 | `string` | `tokens.colors.indicator` |
 | `textSize` | 文案字号 | `number` | `tokens.defaults.textSize` |

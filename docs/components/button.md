@@ -93,26 +93,26 @@ import { Button } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 类型，可选值为 `default` `primary` `info` `warning` `danger` `success` | `ButtonType` | `default` |
-| `size` | 尺寸，可选值为 `large` `normal` `small` `mini` | `ButtonSize` | `normal` |
-| `mode` | 展示模式，类似 react-native-paper（`contained` `text` `outlined` `contained-tonal` `elevated`），可通过 `ThemeProvider` 中的 `components.button.defaults.mode` 配置全局默认值 | `ButtonMode` | `contained`（若 `plain` 为 true 且未显式指定 `mode` 则退化为 `text`） |
+| `type` | 按钮类型 | `'default' \| 'primary' \| 'success' \| 'info' \| 'warning' \| 'danger'` | `'default'` |
+| `size` | 按钮尺寸 | `'large' \| 'normal' \| 'small' \| 'mini'` | `'normal'` |
+| `mode` | 展示模式，类似 react-native-paper，可通过 `ThemeProvider` 中的 `components.button.defaults.mode` 配置全局默认值 | `'contained' \| 'text' \| 'outlined' \| 'contained-tonal' \| 'elevated'` | `'contained'`（若 `plain` 为 true 且未显式指定 `mode` 则退化为 `'text'`） |
 | `text` | 按钮文字，未传时可直接通过 `children` 传入 | `ReactNode` | - |
 | `color` | 按钮颜色，支持传入 `linear-gradient` 渐变色（等同于 `buttonColor`，保留兼容） | `string` | - |
 | `buttonColor` | 自定义按钮背景色 | `string` | - |
 | `textColor` | 自定义文字颜色 | `string` | 自动推导 |
 | `dark` | 是否强制文字使用浅色（`true`）或深色（`false`） | `boolean` | `undefined`（自动推导） |
 | `icon` | 按钮图标，支持函数 `(color, size) => ReactNode` | `ReactNode \| (color: string, size: number) => ReactNode` | - |
-| `iconPosition` | 图标展示位置，可选值为 `right` | `'left' \| 'right'` | `'left'` |
+| `iconPosition` | 图标展示位置 | `'left' \| 'right'` | `'left'` |
 | `block` | 是否为块级元素 | `boolean` | `false` |
 | `plain` | 是否为朴素按钮 | `boolean` | `false` |
 | `square` | 是否为方形按钮 | `boolean` | `false` |
 | `round` | 是否为圆形按钮 | `boolean` | `false` |
-| `shadow` | 显示阴影，可选值为 `1` `2` `3` | `boolean \| 1 \| 2 \| 3` | `false` |
+| `shadow` | 显示阴影 | `boolean \| 1 \| 2 \| 3` | `false` |
 | `disabled` | 是否禁用按钮 | `boolean` | `false` |
 | `hairline` | 是否使用 0.5px 边框 | `boolean` | `false` |
 | `loading` | 是否为加载状态 | `boolean` | `false` |
 | `loadingText` | 加载状态提示文字 | `ReactNode` | - |
-| `loadingType` | 加载图标类型，可选值为 `spinner` | `'circular' \| 'spinner'` | `'circular'` |
+| `loadingType` | 加载图标类型 | `'circular' \| 'spinner'` | `'circular'` |
 | `loadingSize` | 加载图标尺寸，等同于 `ActivityIndicator` 的 `size` | `'small' \| 'large' \| number` | `'small'` |
 | `loadingIndicator` | 自定义加载指示器 | `ReactNode` | `ActivityIndicator` |
 | `uppercase` | 是否将文字自动转为大写（与 react-native-paper 对齐） | `boolean` | `false` |
@@ -135,14 +135,14 @@ import { Button } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 统一设置按钮类型 | `ButtonType` | `default` |
-| `mode` | 统一设置展示模式，等同子组件的 `mode` 属性 | `ButtonMode` | `-` |
-| `size` | 统一设置按钮尺寸 | `ButtonSize` | `normal` |
+| `type` | 统一设置按钮类型 | `'default' \| 'primary' \| 'success' \| 'info' \| 'warning' \| 'danger'` | `'default'` |
+| `mode` | 统一设置展示模式，等同子组件的 `mode` 属性 | `'contained' \| 'text' \| 'outlined' \| 'contained-tonal' \| 'elevated'` | `-` |
+| `size` | 统一设置按钮尺寸 | `'large' \| 'normal' \| 'small' \| 'mini'` | `'normal'` |
 | `plain` | 是否为朴素按钮组 | `boolean` | `false` |
 | `square` | 是否为方形按钮组 | `boolean` | `false` |
 | `round` | 是否为圆形按钮组 | `boolean` | `false` |
 | `block` | 是否为块级元素 | `boolean` | `false` |
-| `shadow` | 显示阴影，可选值为 `1` `2` `3` | `boolean \| 1 \| 2 \| 3` | `false` |
+| `shadow` | 显示阴影 | `boolean \| 1 \| 2 \| 3` | `false` |
 | `disabled` | 是否禁用按钮组 | `boolean` | `false` |
 | `iconPosition` | 统一设置图标位置 | `'left' \| 'right'` | `'left'` |
 | `hairline` | 统一设置细边框 | `boolean` | `false` |

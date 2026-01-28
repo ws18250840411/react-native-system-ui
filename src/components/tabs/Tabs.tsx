@@ -18,7 +18,7 @@ import { parseNumberLike, isBoolean, isFunction, isObject, isRenderable, isText 
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
 import TabPane from './TabPane'
-import { requestFrame, isTabPaneElement } from './utils'
+import { cancelFrame, requestFrame, isTabPaneElement } from './utils'
 import { useTabsAnimation } from './useTabsAnimation'
 import { useTabsScroll } from './useTabsScroll'
 
@@ -451,11 +451,19 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
   const navContainerWidthRef = React.useRef(0)
   const navContentWidthRef = React.useRef(0)
+  const navContentSizeSyncFrameRef = React.useRef<number | null>(null)
   const paneLayoutMap = React.useRef<Map<TabsValue, { height: number }>>(new Map())
   const swipeableScrollRef = React.useRef<any>(null)
   const swipeableChangeByScrollRef = React.useRef(false)
   const [containerWidth, setContainerWidth] = React.useState(0)
   const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
+
+  React.useEffect(() => {
+    return () => {
+      cancelFrame(navContentSizeSyncFrameRef.current)
+      navContentSizeSyncFrameRef.current = null
+    }
+  }, [])
 
   const scrollable = React.useMemo(() => {
     if (isBoolean(scrollableProp)) {
@@ -762,7 +770,11 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
           return
         }
         if (Math.abs(w - prev) > 1) {
-          scrollIntoView()
+          cancelFrame(navContentSizeSyncFrameRef.current)
+          navContentSizeSyncFrameRef.current = requestFrame(() => {
+            navContentSizeSyncFrameRef.current = null
+            scrollIntoView()
+          })
         }
       }}
       contentContainerStyle={styles.navContent}

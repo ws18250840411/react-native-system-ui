@@ -59,7 +59,7 @@ import { Collapse } from 'react-native-system-ui'
 | `value` | 标题右侧区域 | `ReactNode` | - |
 | `border` | 是否显示内边框 | `boolean` | `true` |
 | `isLink` | 是否展示标题栏右侧箭头 | `boolean` | `true` |
-| `size` | 标题栏大小，可选值为 `large` | `'normal' \| 'large'` | `'normal'` |
+| `size` | 标题栏大小 | `'normal' \| 'large'` | `'normal'` |
 | `disabled` | 是否禁用当前面板 | `boolean` | `false` |
 | `readOnly` | 是否为只读状态，只读状态下无法操作面板 | `boolean` | `false` |
 

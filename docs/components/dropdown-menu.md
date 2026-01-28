@@ -47,7 +47,7 @@ import { DropdownMenu } from 'react-native-system-ui'
 | `defaultValue` | 下拉菜单默认值 | `Record<string, string \| number>` | - |
 | `activeColor` | 菜单标题和选项的选中态颜色 | `string` | `#ee0a24` |
 | `activeIcon` | 自定义选项的选中态勾选图标 | `ReactNode` | - |
-| `direction` | 菜单展开方向，可选值为 `up` | `'down' \| 'up'` | `down` |
+| `direction` | 菜单展开方向 | `'down' \| 'up'` | `'down'` |
 | `disabled` | 是否禁用菜单 | `boolean` | `false` |
 | `zIndex` | 菜单栏层级 | `number \| string` | `10` |
 | `duration` | 动画时长（秒），设置为 `0` 可禁用动画 | `number \| string` | `0.2` |

@@ -54,28 +54,28 @@ import { Tabbar } from 'react-native-system-ui'
 
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| value | 当前选中标签的名称或索引值 | _number \| string_ | - |
-| defaultValue | 默认选中标签的名称或索引值 | _number \| string_ | `0` |
-| fixed | 是否固定在底部 | _boolean_ | `true` |
-| border | 是否显示外边框 | _boolean_ | `true` |
-| zIndex | 元素 z-index | _number_ | `1` |
-| activeColor | 选中标签的颜色 | _string_ | `theme.primary` |
-| inactiveColor | 未选中标签的颜色 | _string_ | `theme.default[500]` |
-| placeholder | 固定在底部时，是否在标签位置生成一个等高的占位元素 | _boolean_ | `false` |
-| safeAreaInsetBottom | 是否开启底部安全区适配，设置 fixed 时默认开启 | _boolean_ | `false` |
+| `value` | 当前选中标签的名称或索引值 | `number \| string` | - |
+| `defaultValue` | 默认选中标签的名称或索引值 | `number \| string` | `0` |
+| `fixed` | 是否固定在底部 | `boolean` | `true` |
+| `border` | 是否显示外边框 | `boolean` | `true` |
+| `zIndex` | 元素 z-index | `number` | `1` |
+| `activeColor` | 选中标签的颜色 | `string` | 主题主色 |
+| `inactiveColor` | 未选中标签的颜色 | `string` | 主题默认色 |
+| `placeholder` | 固定在底部时，是否在标签位置生成一个等高的占位元素 | `boolean` | `false` |
+| `safeAreaInsetBottom` | 是否开启底部安全区适配，设置 fixed 时默认开启 | `boolean` | `false` |
 
 ### Tabbar Events
 
 | 事件名 | 说明 | 回调参数 |
 | --- | --- | --- |
-| onChange | 切换标签时触发 | _active: number \| string, index: number_ |
+| `onChange` | 切换标签时触发 | `(active: number \| string, index: number) => void` |
 
 ### Tabbar.Item Props
 
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| name | 标签名称，作为匹配的标识符 | _number \| string_ | 当前标签的索引值 |
-| icon | 图标 | _ReactNode \| (active: boolean) => React.ReactNode_ | - |
-| badge | 图标右上角徽标的内容 | _BadgeProps \| number \| string_ | - |
+| `name` | 标签名称，作为匹配的标识符 | `number \| string` | 当前标签的索引值 |
+| `icon` | 图标 | `ReactNode \| (active: boolean) => ReactNode` | - |
+| `badge` | 图标右上角徽标的内容 | `BadgeProps \| number \| string` | - |
 
 > 补充说明（RN 扩展）：额外支持 `background`、`contentStyle`、`style`、`iconSize`、`dot`、`disabled`、`textStyle`、`iconStyle`、`testID`、`onClick` 等属性。
