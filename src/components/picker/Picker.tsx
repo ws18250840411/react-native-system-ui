@@ -1,11 +1,10 @@
 import React from 'react'
-import { Pressable, Text, View, Platform, type ViewStyle } from 'react-native'
+import { Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
 
 import Loading from '../loading'
 import { withAlpha, isFiniteNumber, isObject, isText } from '../../utils'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
-import styles from './styles'
 import { usePickerValue } from './usePickerValue'
 import type { PickerColumnProps, PickerColumns, PickerOption, PickerProps } from './types'
 import { findEnabledIndex } from './utils'
@@ -109,15 +108,12 @@ const PickerColumn: React.FC<
       return findEnabledIndex(options, idx >= 0 ? idx : 0)
     }, [options, value])
 
-    const handleChange = React.useCallback(
-      (index: number) => {
-        const target = findEnabledIndex(options, index)
-        const option = options[target]
-        if (!option || option.disabled) return
-        onSelect(option, columnIndex, target)
-      },
-      [columnIndex, onSelect, options],
-    )
+    const handleChange = React.useCallback((index: number) => {
+      const target = findEnabledIndex(options, index)
+      const option = options[target]
+      if (!option || option.disabled) return
+      onSelect(option, columnIndex, target)
+    }, [columnIndex, onSelect, options])
 
     return (
       <View style={[styles.column, { height: itemHeight * visibleItemCount }]}>
@@ -136,39 +132,20 @@ const PickerColumn: React.FC<
             if (!item) return null
             const active = item.value === value
             const disabled = !!item.disabled
-            const textColor = disabled
-              ? tokens.colors.textDisabled
-              : active
-                ? tokens.colors.text
-                : tokens.colors.textMuted
+            const textColor = disabled ? tokens.colors.textDisabled : (active ? tokens.colors.text : tokens.colors.textMuted)
             const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
             const testID = getOptionTestID?.(item, { columnIndex, active })
             const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
             return (
-              <View
-                style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]}
-                testID={testID}
-                accessible={!!a11yLabel}
-                accessibilityLabel={a11yLabel}
-              >
+              <View style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
                 {isText(content) ? (
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.optionText,
-                      {
-                        color: textColor,
-                        fontSize: tokens.typography.optionSize,
-                        fontFamily: tokens.typography.fontFamily,
-                        fontWeight: tokens.typography.optionWeight,
-                      },
-                    ]}
-                  >
-                    {content}
-                  </Text>
-                ) : (
-                  content
-                )}
+                  <Text numberOfLines={1} style={[styles.optionText, {
+                    color: textColor,
+                    fontSize: tokens.typography.optionSize,
+                    fontFamily: tokens.typography.fontFamily,
+                    fontWeight: tokens.typography.optionWeight,
+                  }]}>{content}</Text>
+                ) : content}
               </View>
             )
           }}
@@ -228,70 +205,33 @@ const Picker: React.FC<PickerProps> = props => {
 
 
   const renderActionContent = (content: React.ReactNode, color: string) => {
-    if (React.isValidElement(content)) {
-      return (
-        <View style={{ minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>
-          {content}
-        </View>
-      )
-    }
-    if (isText(content)) {
-      return (
-        <Text
-          numberOfLines={1}
-          style={[
-            styles.actionText,
-            {
-              color,
-              fontSize: tokens.typography.toolbarSize,
-              fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.toolbarWeight,
-            },
-          ]}
-        >
-          {content}
-        </Text>
-      )
-    }
+    if (React.isValidElement(content)) return <View style={{ minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>{content}</View>
+    if (isText(content)) return <Text numberOfLines={1} style={[styles.actionText, {
+      color,
+      fontSize: tokens.typography.toolbarSize,
+      fontFamily: tokens.typography.fontFamily,
+      fontWeight: tokens.typography.toolbarWeight,
+    }]}>{content}</Text>
     return <View style={{ minWidth: 44 }} />
   }
 
   const renderTitleContent = (content: React.ReactNode) => {
-    if (content == null) {
-      return <View />
-    }
-    if (React.isValidElement(content)) {
-      return <View style={[styles.title, { alignItems: 'center', justifyContent: 'center' }]}>{content}</View>
-    }
-    return (
-      <Text
-        style={[
-          styles.title,
-          {
-            fontSize: tokens.typography.toolbarSize,
-            fontFamily: tokens.typography.fontFamily,
-            color: tokens.colors.text,
-            fontWeight: tokens.typography.toolbarWeight,
-          },
-        ]}
-        numberOfLines={1}
-      >
-        {content}
-      </Text>
-    )
+    if (content == null) return <View />
+    if (React.isValidElement(content)) return <View style={[styles.title, { alignItems: 'center', justifyContent: 'center' }]}>{content}</View>
+    return <Text style={[styles.title, {
+      fontSize: tokens.typography.toolbarSize,
+      fontFamily: tokens.typography.fontFamily,
+      color: tokens.colors.text,
+      fontWeight: tokens.typography.toolbarWeight,
+    }]} numberOfLines={1}>{content}</Text>
   }
 
   const toolbar = showToolbar ? (
-    <View
-      style={[
-        styles.toolbar,
-        {
-          height: tokens.spacing.toolbarHeight,
-          borderColor: tokens.colors.indicator,
-          paddingHorizontal: tokens.spacing.actionPadding,
-        },
-      ]}
-    >
+    <View style={[styles.toolbar, {
+      height: tokens.spacing.toolbarHeight,
+      borderColor: tokens.colors.indicator,
+      paddingHorizontal: tokens.spacing.actionPadding,
+    }]}>
       <Pressable onPress={onCancel} accessibilityRole="button">
         {renderActionContent(cancelButtonText, tokens.colors.cancel)}
       </Pressable>
@@ -308,72 +248,121 @@ const Picker: React.FC<PickerProps> = props => {
   const maskHeight = Math.max(itemHeight * 2, indicatorOffset)
   const hasColumns = normalized.columns.length > 0
   const effectiveMaskColor = maskColor ?? tokens.colors.mask
-  const columnsContent = hasColumns
-    ? normalized.columns.map((column, columnIndex) => {
-      const key = isCascade
-        ? `${columnIndex}-${normalized.values
-          .slice(0, columnIndex)
-          .map(String)
-          .join('|')}`
-        : String(columnIndex)
-      return (
-        <PickerColumn
-          key={key}
-          columnIndex={columnIndex}
-          options={column}
-          value={normalized.values[columnIndex]}
-          itemHeight={itemHeight}
-          visibleItemCount={visibleItemCount}
-          decelerationRate={decelerationRate}
-          scrollEventThrottle={scrollEventThrottle}
-          optionRender={optionRender}
-          getOptionTestID={getOptionTestID}
-          getOptionA11yLabel={getOptionA11yLabel}
-          readOnly={readOnly}
-          swipeDuration={swipeDuration}
-          onSelect={handleSelect}
-          tokens={tokens}
-        />
-      )
-    })
-    : null
+  const columnsContent = hasColumns ? normalized.columns.map((column, columnIndex) => {
+    const key = isCascade ? `${columnIndex}-${normalized.values.slice(0, columnIndex).map(String).join('|')}` : String(columnIndex)
+    return (
+      <PickerColumn
+        key={key}
+        columnIndex={columnIndex}
+        options={column}
+        value={normalized.values[columnIndex]}
+        itemHeight={itemHeight}
+        visibleItemCount={visibleItemCount}
+        decelerationRate={decelerationRate}
+        scrollEventThrottle={scrollEventThrottle}
+        optionRender={optionRender}
+        getOptionTestID={getOptionTestID}
+        getOptionA11yLabel={getOptionA11yLabel}
+        readOnly={readOnly}
+        swipeDuration={swipeDuration}
+        onSelect={handleSelect}
+        tokens={tokens}
+      />
+    )
+  }) : null
 
   return (
     <View {...rest} style={[styles.container, { backgroundColor: tokens.colors.background }, style]} testID={testID}>
-      {toolbarPosition === 'top' ? toolbar : null}
+      {toolbarPosition === 'top' && toolbar}
       <View style={[styles.body, { height: wrapperHeight }]}>
         <View style={styles.columns} pointerEvents={loading ? 'none' : 'auto'}>
           {columnsTop}
           {columnsContent}
           {columnsBottom}
-          {hasColumns ? (
+          {hasColumns && (
             <>
-              <View
-                pointerEvents="none"
-                style={[
-                  styles.indicator,
-                  {
-                    top: indicatorOffset,
-                    height: itemHeight,
-                    borderColor: tokens.colors.indicator,
-                  },
-                ]}
-              />
+              <View pointerEvents="none" style={[styles.indicator, {
+                top: indicatorOffset,
+                height: itemHeight,
+                borderColor: tokens.colors.indicator,
+              }]} />
               <GradientMask position="top" height={maskHeight} color={effectiveMaskColor} maskType={maskType} />
               <GradientMask position="bottom" height={maskHeight} color={effectiveMaskColor} maskType={maskType} />
             </>
-          ) : null}
+          )}
         </View>
-        {loading ? (
+        {loading && (
           <View style={styles.loading}>
             <Loading />
           </View>
-        ) : null}
+        )}
       </View>
-      {toolbarPosition === 'bottom' ? toolbar : null}
+      {toolbarPosition === 'bottom' && toolbar}
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    borderRadius: 4,
+  },
+  body: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  columns: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  column: {
+    flex: 1,
+  },
+  option: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  optionText: {
+    includeFontPadding: false,
+  },
+  indicator: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    zIndex: 3,
+  },
+  gradientMask: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 2,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  title: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  actionText: {
+    minWidth: 44,
+    textAlign: 'center',
+  },
+  loading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.65)',
+  },
+})
 
 Picker.displayName = 'Picker'
 

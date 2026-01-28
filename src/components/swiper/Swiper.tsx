@@ -5,6 +5,13 @@ import React, {
   useEffect,
   useMemo,
   useImperativeHandle,
+  forwardRef,
+  cloneElement,
+  Children,
+  isValidElement,
+  type ReactElement,
+  type RefAttributes,
+  type Ref,
 } from 'react'
 import {
   FlatList,
@@ -35,10 +42,10 @@ import {
 import { useSwiperWeb } from './useSwiperWeb'
 
 type SwiperComponent = (<T>(
-  props: SwiperProps<T> & React.RefAttributes<SwiperInstance>
-) => React.ReactElement | null) & { displayName?: string }
+  props: SwiperProps<T> & RefAttributes<SwiperInstance>
+) => ReactElement | null) & { displayName?: string }
 
-const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) => {
+const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const {
     initialSwipe = 0,
     touchable = true,
@@ -105,9 +112,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
 
   const validChildren = useMemo(() => {
     if (children) {
-      return React.Children.toArray(children).filter(
-        (child): child is React.ReactElement => {
-          if (!React.isValidElement(child)) return false
+      return Children.toArray(children).filter(
+        (child): child is ReactElement => {
+          if (!isValidElement(child)) return false
           if (child.type === SwiperItem) return true
           const type = child.type as unknown as { displayName?: string }
           return type.displayName === 'SwiperItem'
@@ -159,10 +166,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
 
   const handleContainerLayout = useCallback((e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout
-    setContainerLayout((prev) => {
-      if (prev.width === width && prev.height === height) return prev
-      return { width, height }
-    })
+    setContainerLayout((prev) => prev.width === width && prev.height === height ? prev : { width, height })
   }, [])
 
   const containerWidth = containerLayout.width || viewportWidth
@@ -170,9 +174,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
 
   const crossAxisMeasured = vertical ? containerLayout.width : containerLayout.height
   const crossAxisSize = crossAxisMeasured > 0 ? crossAxisMeasured : undefined
-
   const slideSizeValue = (vertical ? containerHeight : containerWidth) * slideRatio
-
   const itemSizeStyle = useMemo(() => {
     const style: Record<string, number> = { [vertical ? 'height' : 'width']: slideSizeValue }
     if (crossAxisSize != null && !(autoHeight && !vertical)) {
@@ -180,7 +182,6 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     }
     return style
   }, [vertical, slideSizeValue, crossAxisSize, autoHeight])
-
   const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
   const trackOffsetPx = mainAxisMeasured > 0 ? mainAxisMeasured * offsetRatio : 0
 
@@ -199,17 +200,13 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const nonLoopSnapOffsets = useMemo(() => {
     if (!stuckAtBoundaryEnabled || count <= 1) return null
     const offsets = new Array<number>(count)
-    for (let i = 0; i < count; i += 1) {
-      if (i === 0) offsets[i] = nonLoopMinOffset
-      else if (i === count - 1) offsets[i] = nonLoopMaxOffset
-      else offsets[i] = slideSizeValue * i
-    }
+    for (let i = 0; i < count; i += 1) offsets[i] = i === 0 ? nonLoopMinOffset : i === count - 1 ? nonLoopMaxOffset : slideSizeValue * i
     return offsets
   }, [count, nonLoopMaxOffset, nonLoopMinOffset, slideSizeValue, stuckAtBoundaryEnabled])
 
   const getInitialIndex = useCallback(() => {
     const initial = clamp(initialSwipeValue, 0, count - 1)
-    return shouldLoop ? initial + 1 : initial // +1 因为循环模式下第一个是复制的末尾
+    return shouldLoop ? initial + 1 : initial
   }, [initialSwipeValue, count, shouldLoop])
 
   const [current, setCurrent] = useState(() => getInitialIndex())
@@ -223,6 +220,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const measuredHeightsRef = useRef<Record<number, number>>({})
 
   const swipeToRef = useRef<(index: number, animated?: boolean) => void>(() => { })
+
+  const onDragStartRef = useRef<() => void>(() => { })
+  const onDragEndRef = useRef<() => void>(() => { })
 
   const {
     webOffsetRef,
@@ -250,6 +250,8 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     preventScroll,
     trackOffsetPx,
     swipeToRef,
+    onDragStart: () => onDragStartRef.current(),
+    onDragEnd: () => onDragEndRef.current(),
   })
 
   useEffect(() => {
@@ -331,10 +333,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
     setAutoHeightValue(height)
   }, [autoHeightEnabled, current, getDisplayIndex])
 
-  const containerAutoHeightStyle =
-    autoHeightEnabled && autoHeightValue != null
-      ? { height: autoHeightValue }
-      : undefined
+  const containerAutoHeightStyle = autoHeightEnabled && autoHeightValue != null ? { height: autoHeightValue } : undefined
 
   const nativeLastAlignedMainAxisRef = useRef(0)
   useEffect(() => {
@@ -381,14 +380,17 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
           jumpOffset = -count * slideSizeValue
           jumpDisplayIndex = count
         } else {
-          targetIndex = targetRealIndex + 1 // 循环模式下需要偏移
+          targetIndex = targetRealIndex + 1
         }
       } else {
         targetIndex = targetRealIndex
       }
 
       if (isWeb) {
-        if (!needsJump && targetIndex === currentIndex) return
+        if (!needsJump && targetIndex === currentIndex) {
+          if (autoplay && enabledState) startAutoplay()
+          return
+        }
         stopWebSnapAnim()
         const offset = shouldLoop
           ? -targetIndex * slideSizeValue
@@ -407,6 +409,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
             webSnapAnimRef.current = anim
             anim.start(({ finished }) => {
               webSnapAnimRef.current = null
+              if (autoplay && enabledState) startAutoplay()
               if (!finished || jumpOffset === null || jumpDisplayIndex === null) return
 
               webOffsetRef.current = jumpOffset
@@ -426,6 +429,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
             }
             webOffsetRef.current = jumpOffset!
             setCurrentSafe(jumpDisplayIndex!)
+            if (autoplay && enabledState) startAutoplay()
           }
         } else {
           const animValue = vertical ? webTranslateYAnim : webTranslateXAnim
@@ -439,15 +443,18 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
             webSnapAnimRef.current = anim
             anim.start(() => {
               webSnapAnimRef.current = null
+              if (autoplay && enabledState) startAutoplay()
             })
           } else {
             animValue.setValue(offset)
+            if (autoplay && enabledState) startAutoplay()
           }
           setCurrentSafe(targetIndex)
         }
       } else if (flatListRef.current) {
         if (!needsJump && targetIndex === currentIndex) {
           finishNativeScroll()
+          if (autoplay && enabledState) startAutoplay()
           return
         }
         if (isDraggingRef.current && animated) {
@@ -469,6 +476,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
         scrollToIndexSafe(targetIndex, animated)
         if (!animated) {
           setCurrentSafe(targetIndex)
+          if (autoplay && enabledState) startAutoplay()
         }
         if (needsJump && jumpDisplayIndex != null && !animated) {
           runAfterFrames(2, () => {
@@ -510,16 +518,32 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const swipeNext = useCallback(() => {
     if (count === 0) return
     const baseIndex = desiredIndexRef.current
-    const nextIndex = baseIndex === count - 1 ? 0 : baseIndex + 1
-    swipeTo(nextIndex)
+    swipeTo(baseIndex === count - 1 ? 0 : baseIndex + 1)
   }, [count, swipeTo])
-
   const swipePrev = useCallback(() => {
     if (count === 0) return
     const baseIndex = desiredIndexRef.current
-    const prevIndex = baseIndex === 0 ? count - 1 : baseIndex - 1
-    swipeTo(prevIndex)
+    swipeTo(baseIndex === 0 ? count - 1 : baseIndex - 1)
   }, [count, swipeTo])
+
+  const stopAutoplay = useCallback(() => {
+    if (autoplayTimerRef.current) {
+      clearTimeout(autoplayTimerRef.current)
+      autoplayTimerRef.current = null
+    }
+  }, [])
+
+  const startAutoplay = useCallback((delay?: number) => {
+    if (!autoplay || count <= 1 || !enabledState) return
+    if (isDraggingRef.current || isScrollingRef.current) return
+    stopAutoplay()
+    const interval = (isFiniteNumber(autoplay) && Math.max(0, autoplay)) || 5000
+    autoplayTimerRef.current = setTimeout(() => {
+      if (isDraggingRef.current || isScrollingRef.current) return
+      swipeNext()
+      startAutoplay()
+    }, delay ?? interval)
+  }, [autoplay, count, enabledState, swipeNext, stopAutoplay])
 
   const handleNativeScrollEndByOffset = useCallback(
     (offset: number) => {
@@ -559,18 +583,18 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
         runAfterFrames(1, () => {
           swipeTo(nextDisplayIndex, queued.animated)
         })
+      } else if (autoplay && enabledState) {
+        startAutoplay()
       }
     },
-    [clearNativeScrollEndTimer, count, displayCount, getDisplayIndex, setCurrentSafe, shouldLoop, slideSizeValue, swipeTo]
+    [clearNativeScrollEndTimer, count, displayCount, getDisplayIndex, setCurrentSafe, shouldLoop, slideSizeValue, swipeTo, autoplay, enabledState, startAutoplay]
   )
 
   const handleScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       if (count === 0) return
-
       const { contentOffset } = event.nativeEvent
-      const offset = vertical ? contentOffset.y : contentOffset.x
-      handleNativeScrollEndByOffset(offset)
+      handleNativeScrollEndByOffset(vertical ? contentOffset.y : contentOffset.x)
     },
     [count, handleNativeScrollEndByOffset, vertical]
   )
@@ -578,18 +602,18 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   const handleScrollBeginDrag = () => {
     isDraggingRef.current = true
     isScrollingRef.current = true
+    stopAutoplay()
   }
-
   const handleScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     isDraggingRef.current = false
+    const interval = (isFiniteNumber(autoplay) && Math.max(0, autoplay)) || 5000
+    startAutoplay(interval * 2)
     const { contentOffset } = event.nativeEvent
-    const offset = vertical ? contentOffset.y : contentOffset.x
     runAfterFrames(1, () => {
       if (nativeMomentumRef.current) return
-      handleNativeScrollEndByOffset(offset)
+      handleNativeScrollEndByOffset(vertical ? contentOffset.y : contentOffset.x)
     })
   }
-
   const handleMomentumScrollBegin = () => {
     nativeMomentumRef.current = true
     isScrollingRef.current = true
@@ -645,54 +669,33 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isWeb) return
-      if (count <= 1) return
-      if (!slideSizeValue) return
+      if (isWeb || count <= 1 || !slideSizeValue) return
       const { contentOffset } = event.nativeEvent
       const offset = vertical ? contentOffset.y : contentOffset.x
-      let displayIndex = Math.round(offset / slideSizeValue)
-      displayIndex = shouldLoop
-        ? clamp(displayIndex, 0, displayCount - 1)
-        : clamp(displayIndex, 0, count - 1)
+      const displayIndex = shouldLoop
+        ? clamp(Math.round(offset / slideSizeValue), 0, displayCount - 1)
+        : clamp(Math.round(offset / slideSizeValue), 0, count - 1)
       scheduleIndicator(getDisplayIndex(displayIndex))
     },
-    [
-      count,
-      displayCount,
-      getDisplayIndex,
-      isWeb,
-      scheduleIndicator,
-      shouldLoop,
-      slideSizeValue,
-      vertical,
-    ],
+    [count, displayCount, getDisplayIndex, isWeb, scheduleIndicator, shouldLoop, slideSizeValue, vertical]
   )
 
   useEffect(() => {
-    const stop = () => {
-      if (autoplayTimerRef.current) {
-        clearTimeout(autoplayTimerRef.current)
-        autoplayTimerRef.current = null
-      }
+    onDragStartRef.current = () => {
+      isDraggingRef.current = true
+      stopAutoplay()
     }
-
-    if (!autoplay || count <= 1 || !enabledState) {
-      stop()
-      return
+    onDragEndRef.current = () => {
+      isDraggingRef.current = false
+      const interval = (isFiniteNumber(autoplay) && Math.max(0, autoplay)) || 5000
+      startAutoplay(interval * 2)
     }
+  }, [startAutoplay, stopAutoplay, autoplay])
 
-    const interval = isFiniteNumber(autoplay) ? Math.max(0, autoplay) : 5000
-    const tick = () => {
-      if (!isDraggingRef.current && !isScrollingRef.current) {
-        swipeNext()
-      }
-      autoplayTimerRef.current = setTimeout(tick, interval)
-    }
-
-    stop()
-    autoplayTimerRef.current = setTimeout(tick, interval)
-    return stop
-  }, [autoplay, count, enabledState, swipeNext])
+  useEffect(() => {
+    startAutoplay()
+    return stopAutoplay
+  }, [startAutoplay, stopAutoplay])
 
   useImperativeHandle(
     ref,
@@ -723,143 +726,84 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
 
   const renderIndicator = () => {
     if (indicator === false || count <= 1) return null
-
-    const currentIndex = indicatorIndex
-
-    if (typeof indicator === 'function') {
-      return indicator(count, currentIndex)
-    }
-
-    return (
-      <SwiperPagIndicator
-        {...indicatorProps}
-        total={count}
-        current={currentIndex}
-        vertical={vertical}
-      />
-    )
+    if (typeof indicator === 'function') return indicator(count, indicatorIndex)
+    return <SwiperPagIndicator {...indicatorProps} total={count} current={indicatorIndex} vertical={vertical} />
   }
 
   useEffect(() => {
     if (!onChange || count <= 0) return
     const nextDisplay = getDisplayIndex(current)
-    const prevDisplay = currentDisplayIndexRef.current
-    if (nextDisplay === prevDisplay) return
-    prevIndexRef.current = prevDisplay
+    if (nextDisplay === currentDisplayIndexRef.current) return
+    prevIndexRef.current = currentDisplayIndexRef.current
     currentDisplayIndexRef.current = nextDisplay
     onChange(nextDisplay)
   }, [current, onChange, count, getDisplayIndex])
 
-  const renderChildItem = useCallback(
-    ({ item, index }: { item: unknown; index: number }) => {
-      const marker = item as { type?: unknown; index?: unknown }
-      if (marker.type === 'child') {
-        const childIndex = typeof marker.index === 'number' ? marker.index : -1
-        const child = validChildren[childIndex]
-        if (!child) return null
+  const renderChildItem = useCallback(({ item, index }: { item: unknown; index: number }) => {
+    const marker = item as { type?: unknown; index?: unknown }
+    if (marker.type !== 'child') return null
+    const childIndex = typeof marker.index === 'number' ? marker.index : -1
+    const child = validChildren[childIndex]
+    if (!child) return null
+    if (!autoHeightEnabled) {
+      const element = child as ReactElement<{ style?: unknown }>
+      return cloneElement(element, { style: [element.props.style, itemSizeStyle] })
+    }
+    const element = child as ReactElement<{ style?: unknown }>
+    return (
+      <View style={itemSizeStyle} onLayout={(e) => handleItemLayout(index, e)} collapsable={false}>
+        {cloneElement(element, { style: [element.props.style, styles.autoHeightChild] })}
+      </View>
+    )
+  }, [validChildren, itemSizeStyle, autoHeightEnabled, handleItemLayout])
 
-        if (!autoHeightEnabled) {
-          const element = child as React.ReactElement<{ style?: unknown }>
-          return React.cloneElement(element, { style: [element.props.style, itemSizeStyle] })
-        }
+  const renderDataItem = useCallback((info: unknown) => {
+    if (!renderItem) return null
+    const item = renderItem(info as Parameters<NonNullable<typeof renderItem>>[0])
+    if (!item) return null
+    const itemIndex = (info as { index: number }).index
+    return (
+      <View style={itemSizeStyle} onLayout={autoHeightEnabled ? (e) => handleItemLayout(itemIndex, e) : undefined} collapsable={false}>
+        {item}
+      </View>
+    )
+  }, [renderItem, itemSizeStyle, autoHeightEnabled, handleItemLayout])
 
-        const element = child as React.ReactElement<{ style?: unknown }>
-        const nextChild = React.cloneElement(element, { style: [element.props.style, styles.autoHeightChild] })
+  const getItemKey = useCallback((_item: unknown, index: number) => {
+    if (shouldLoop && count > 1) {
+      if (index === 0) return `loop-last-${count - 1}`
+      if (index === displayCount - 1) return `loop-first-0`
+      return `item-${index - 1}`
+    }
+    return `item-${index}`
+  }, [shouldLoop, count, displayCount])
 
-        return (
-          <View style={itemSizeStyle} onLayout={(e) => handleItemLayout(index, e)} collapsable={false}>
-            {nextChild}
-          </View>
-        )
-      }
-      return null
-    },
-    [validChildren, itemSizeStyle, autoHeightEnabled, handleItemLayout]
-  )
-
-  const renderDataItem = useCallback(
-    (info: unknown) => {
-      if (!renderItem) return null
-      const item = renderItem(info as Parameters<NonNullable<typeof renderItem>>[0])
-      if (!item) return null
-
-      const itemIndex = (info as { index: number }).index
-      return (
-        <View
-          style={itemSizeStyle}
-          onLayout={autoHeightEnabled ? (e) => handleItemLayout(itemIndex, e) : undefined}
-          collapsable={false}
-        >
-          {item}
-        </View>
-      )
-    },
-    [renderItem, itemSizeStyle, autoHeightEnabled, handleItemLayout]
-  )
-
-  const getItemKey = useCallback(
-    (_item: unknown, index: number) => {
-      if (shouldLoop && count > 1) {
-        if (index === 0) return `loop-last-${count - 1}`
-        if (index === displayCount - 1) return `loop-first-0`
-        return `item-${index - 1}`
-      }
-      return `item-${index}`
-    },
-    [shouldLoop, count, displayCount]
-  )
-
-  const getItemLayout = useCallback(
-    (_: unknown, index: number) => {
-      const offset =
-        !shouldLoop && nonLoopSnapOffsets
-          ? nonLoopSnapOffsets[index] ?? slideSizeValue * index
-          : slideSizeValue * index
-      return {
-        length: slideSizeValue,
-        offset,
-        index,
-      }
-    },
-    [nonLoopSnapOffsets, shouldLoop, slideSizeValue]
-  )
+  const getItemLayout = useCallback((_: unknown, index: number) => {
+    const offset = !shouldLoop && nonLoopSnapOffsets ? nonLoopSnapOffsets[index] ?? slideSizeValue * index : slideSizeValue * index
+    return { length: slideSizeValue, offset, index }
+  }, [nonLoopSnapOffsets, shouldLoop, slideSizeValue])
 
   const snapToOffsets = useMemo(() => {
-    if (slideSizePct === 100 && trackOffsetPct === 0) {
-      return undefined // 使用 snapToInterval
-    }
-    if (!shouldLoop && nonLoopSnapOffsets) {
-      return nonLoopSnapOffsets
-    }
+    if (slideSizePct === 100 && trackOffsetPct === 0) return undefined
+    if (!shouldLoop && nonLoopSnapOffsets) return nonLoopSnapOffsets
     return displayData.map((_, index) => slideSizeValue * index)
   }, [displayData, nonLoopSnapOffsets, shouldLoop, slideSizePct, slideSizeValue, trackOffsetPct])
 
   useEffect(() => {
     if (!isWeb) return
     const initialIndex = getInitialIndex()
-    const initialOffset = shouldLoop
-      ? -initialIndex * slideSizeValue
-      : -1 * (nonLoopSnapOffsets?.[initialIndex] ?? slideSizeValue * initialIndex)
+    const initialOffset = shouldLoop ? -initialIndex * slideSizeValue : -1 * (nonLoopSnapOffsets?.[initialIndex] ?? slideSizeValue * initialIndex)
     webOffsetRef.current = initialOffset
-    if (vertical) {
-      webTranslateYAnim.setValue(initialOffset)
-    } else {
-      webTranslateXAnim.setValue(initialOffset)
-    }
+    if (vertical) webTranslateYAnim.setValue(initialOffset)
+    else webTranslateXAnim.setValue(initialOffset)
   }, [isWeb, getInitialIndex, nonLoopSnapOffsets, shouldLoop, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
 
   useEffect(() => {
-    if (!isWeb) return
-    if (count === 0) return
-    const offset = shouldLoop
-      ? -currentRef.current * slideSizeValue
-      : -1 * (nonLoopSnapOffsets?.[currentRef.current] ?? slideSizeValue * currentRef.current)
+    if (!isWeb || count === 0) return
+    const offset = shouldLoop ? -currentRef.current * slideSizeValue : -1 * (nonLoopSnapOffsets?.[currentRef.current] ?? slideSizeValue * currentRef.current)
     webOffsetRef.current = offset
-    if (vertical) {
-      webTranslateYAnim.setValue(offset)
-    } else {
-      webTranslateXAnim.setValue(offset)
-    }
+    if (vertical) webTranslateYAnim.setValue(offset)
+    else webTranslateXAnim.setValue(offset)
   }, [isWeb, count, nonLoopSnapOffsets, shouldLoop, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
 
   if (count === 0) {
@@ -885,18 +829,11 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
               },
             ]}
           >
-            {displayData.map((item, index) => {
-              const key = getItemKey(item, index)
-              const content = data ? renderDataItem({ item, index }) : renderChildItem({ item, index })
-              return (
-                <View
-                  key={key}
-                  style={[itemSizeStyle, styles.webSlideWrapper]}
-                >
-                  {content}
-                </View>
-              )
-            })}
+            {displayData.map((item, index) => (
+              <View key={getItemKey(item, index)} style={[itemSizeStyle, styles.webSlideWrapper]}>
+                {data && renderDataItem({ item, index }) || renderChildItem({ item, index })}
+              </View>
+            ))}
           </Animated.View>
         </View>
         <View pointerEvents="none" style={styles.indicatorOverlay}>
@@ -925,7 +862,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
         maxToRenderPerBatch={3}
         windowSize={5}
         updateCellsBatchingPeriod={16}
-        snapToInterval={slideSizePct === 100 && trackOffsetPct === 0 ? slideSizeValue : undefined}
+        snapToInterval={slideSizePct === 100 && trackOffsetPct === 0 && slideSizeValue || undefined}
         snapToOffsets={snapToOffsets}
         snapToAlignment="start"
         decelerationRate="fast"
@@ -965,10 +902,10 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
             }
           })
         }}
-        style={isWeb ? ({ cursor: 'grab' } as unknown as ViewStyle) : undefined}
+        style={isWeb && ({ cursor: 'grab' } as unknown as ViewStyle) || undefined}
         contentContainerStyle={[
-          isWeb ? ({ userSelect: 'none' } as unknown as ViewStyle) : undefined,
-          !isWeb ? nativeTrackContentPaddingStyle : undefined,
+          isWeb && ({ userSelect: 'none' } as unknown as ViewStyle) || undefined,
+          !isWeb && nativeTrackContentPaddingStyle || undefined,
         ]}
         testID={`${testID}-flatlist`}
       />
@@ -979,7 +916,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: React.Ref<SwiperInstance>) =
   )
 }
 
-const Swiper = React.forwardRef(SwiperImpl) as unknown as SwiperComponent
+const Swiper = forwardRef(SwiperImpl) as unknown as SwiperComponent
 
 Swiper.displayName = 'Swiper'
 

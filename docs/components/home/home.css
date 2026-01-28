@@ -1,0 +1,189 @@
+.home-container {
+  display: flex;
+  align-items: stretch;
+}
+
+.home-left,
+.home-right {
+  width: 50%;
+  box-sizing: border-box;
+  height: calc(100vh - 60px);
+}
+
+.home-left {
+  display: flex;
+  padding: 50px;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-right {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--mdoc-background-color, #fff);
+}
+
+.home-right-content {
+  width: 826px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 40px 60px;
+  flex: none;
+}
+
+/* 瀑布流标题 */
+.home-masonry-title {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--mdoc-heading-color, #1f2937);
+}
+
+/* 瀑布流布局 - 使用 CSS columns */
+.home-masonry {
+  column-count: 3;
+  column-gap: 32px;
+  column-fill: balance;
+}
+
+.home-card-small,
+.home-card-medium,
+.home-card-large {
+  break-inside: avoid;
+  margin-bottom: 28px;
+  display: inline-block;
+  width: 100%;
+}
+
+.home-card-small {
+  min-height: 140px;
+}
+
+.home-card-medium {
+  min-height: 200px;
+}
+
+/* 性能卡片需更高以完整显示 Circle */
+.home-card-performance {
+  min-height: 240px;
+}
+
+/* 组件体积红圈强调 */
+.home-volume-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 6px 12px;
+  border: 2px solid #ef4444;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.home-card-large {
+  min-height: 300px;
+}
+
+/* 响应式调整列数 */
+@media (min-width: 1400px) {
+  .home-masonry {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 1400px) and (min-width: 1000px) {
+  .home-masonry {
+    column-count: 2;
+  }
+}
+
+.home-primary-color {
+  color: #3f45ff;
+  font-weight: 600;
+}
+
+.home-card-gradient {
+  background: linear-gradient(135deg, #3f45ff 10%, #7367f0 100%) !important;
+  border: none !important;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+.home-switch-group {
+  background-color: var(--mdoc-background-color, #fff);
+  border: 1px solid var(--mdoc-border-color, #ebedf0);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.home-calendar {
+  --calendar-selected-day-background-color: #3f45ff;
+  height: 380px !important;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.home-tabs {
+  --tabs-nav-background-color: #3f45ff;
+  --tab-active-text-color: #fff;
+  --tab-text-color: #c2e0ff;
+  --tabs-bottom-bar-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+}
+
+.home-slider {
+  /* Slider container styles */
+}
+
+.home-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 全屏页面样式 */
+:global(.home-full-page) {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+}
+
+:global(.home-full-page) .mdoc-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+}
+
+@media (max-width: 1000px) {
+  .home-masonry {
+    column-count: 1;
+  }
+}
+
+@media (max-width: 1200px) {
+  .home-container {
+    flex-direction: column;
+  }
+
+  .home-left {
+    width: 100%;
+    padding: 40px 20px;
+    height: auto;
+  }
+
+  .home-right {
+    width: 100%;
+    position: relative;
+    height: auto;
+  }
+
+  .home-right-content {
+    width: 100%;
+    max-width: 100%;
+    padding: 24px 40px;
+  }
+}

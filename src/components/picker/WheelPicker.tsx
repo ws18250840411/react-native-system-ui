@@ -12,9 +12,27 @@ import {
 
 import { clamp } from '../../utils'
 import { indexToOffset, offsetToIndex, shouldMomentum, momentumTarget } from './core'
-import styles from './styles'
 import type { PickerOption } from './types'
 import { findEnabledIndex } from './utils'
+
+const styles = StyleSheet.create({
+  column: {
+    flex: 1,
+  },
+  option: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  indicator: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    zIndex: 3,
+  },
+})
+
 
 type WheelPickerRender<T> = (item: T | null, index: number) => React.ReactNode
 

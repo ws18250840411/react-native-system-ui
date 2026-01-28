@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { type FC } from 'react'
 
 import type { TabPaneProps } from './types'
 
-const TabPane: React.FC<TabPaneProps> = () => null
+const TabPane: FC<TabPaneProps> = () => null
 
 TabPane.displayName = 'Tabs.TabPane'
 

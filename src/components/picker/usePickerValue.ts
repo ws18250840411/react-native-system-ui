@@ -1,4 +1,4 @@
-import React from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
 import { normalizePicker, prepareColumns, shallowEqualArray, toArrayValue } from './utils'
@@ -20,21 +20,21 @@ export const usePickerValue = ({
   onChange,
   onConfirm,
 }: UsePickerValueParams) => {
-  const preparedColumns = React.useMemo(() => prepareColumns(columns), [columns])
+  const preparedColumns = useMemo(() => prepareColumns(columns), [columns])
   const isControlled = valueProp !== undefined
 
-  const [innerValue, setInnerValue] = React.useState<PickerValue[]>(() => {
-    const initial = toArrayValue(valueProp ?? defaultValue ?? [])
+  const [innerValue, setInnerValue] = useState<PickerValue[]>(() => {
+    const initial = toArrayValue(valueProp ?? defaultValue)
     return normalizePicker(preparedColumns, initial).values
   })
-  const innerValueRef = React.useRef(innerValue)
+  const innerValueRef = useRef(innerValue)
 
-  const commitValue = React.useCallback((next: PickerValue[]) => {
+  const commitValue = useCallback((next: PickerValue[]) => {
     innerValueRef.current = next
     setInnerValue(next)
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isControlled) return
     const next = toArrayValue(valueProp)
     if (!shallowEqualArray(innerValueRef.current, next)) {
@@ -42,12 +42,12 @@ export const usePickerValue = ({
     }
   }, [commitValue, isControlled, valueProp])
 
-  const normalized = React.useMemo(
+  const normalized = useMemo(
     () => normalizePicker(preparedColumns, innerValue),
     [preparedColumns, innerValue],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isControlled) return
     if (!shallowEqualArray(innerValue, normalized.values)) {
       commitValue(normalized.values)
@@ -61,13 +61,12 @@ export const usePickerValue = ({
     emitConfirmOnAutoSelect,
     innerValue,
     isControlled,
-    normalized.options,
-    normalized.values,
+    normalized,
     onChange,
     onConfirm,
   ])
 
-  const handleSelect = React.useCallback(
+  const handleSelect = useCallback(
     (option: PickerOption, columnIndex: number) => {
       const next = [...innerValueRef.current]
       next[columnIndex] = option.value
@@ -84,9 +83,9 @@ export const usePickerValue = ({
     [commitValue, onChange, preparedColumns],
   )
 
-  const handleConfirm = React.useCallback(() => {
+  const handleConfirm = useCallback(() => {
     onConfirm?.(normalized.values, normalized.options)
-  }, [normalized.options, normalized.values, onConfirm])
+  }, [normalized, onConfirm])
 
   return {
     normalized,

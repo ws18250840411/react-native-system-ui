@@ -1,15 +1,15 @@
 export default [
   {
     "name": "picker",
-    "size": 12408
+    "size": 12199
   },
   {
     "name": "swiper",
-    "size": 11125
+    "size": 10812
   },
   {
     "name": "tabs",
-    "size": 10779
+    "size": 10570
   },
   {
     "name": "form",
@@ -33,7 +33,7 @@ export default [
   },
   {
     "name": "uploader",
-    "size": 6351
+    "size": 6354
   },
   {
     "name": "dialog",
@@ -153,7 +153,7 @@ export default [
   },
   {
     "name": "search",
-    "size": 2830
+    "size": 2816
   },
   {
     "name": "circle",

@@ -1,4 +1,16 @@
-import React from 'react'
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  Children,
+  isValidElement,
+  Fragment,
+  type ForwardRefRenderFunction,
+} from 'react'
 import {
   Animated,
   Pressable,
@@ -79,42 +91,26 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const isJumbo = type === 'jumbo'
   const isCard = type === 'card'
   const renderTitle = isFunction(pane.title) ? pane.title(isActive) : pane.title ?? pane.name
-  const renderDescription = isFunction(pane.description)
-    ? pane.description(isActive)
-    : pane.description
+  const renderDescription = isFunction(pane.description) ? pane.description(isActive) : pane.description
 
   const activeTitleColor = titleActiveColor ?? (isCard ? tokens.colors.cardActiveText : isCapsule ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive)
   const inactiveTitleColor = titleInactiveColor ?? (isCard ? color ?? tokens.colors.cardBorder : isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
   const textColor = pane.disabled ? tokens.colors.textDisabled : isActive ? activeTitleColor : inactiveTitleColor
 
-  const descriptionColor = isDisabled
-    ? tokens.colors.textDisabled
-    : isJumbo
-      ? isActive
-        ? tokens.colors.jumboDescriptionActive
-        : tokens.colors.jumboDescription
-      : isActive
-        ? tokens.colors.descriptionActive
-        : tokens.colors.description
+  const descriptionColor = isDisabled ? tokens.colors.textDisabled : isJumbo ? (isActive ? tokens.colors.jumboDescriptionActive : tokens.colors.jumboDescription) : (isActive ? tokens.colors.descriptionActive : tokens.colors.description)
 
   const shouldFlex = !scrollable && (align !== 'start' || isCard)
   const horizontalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingHorizontal
   const verticalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingVertical
   const labelWrapperStyles: ViewStyle[] = [styles.labelWrapper]
-  const labelTextWrapperStyles: ViewStyle[] | null = isCapsule
-    ? [
-      {
-        flex: 1,
-        alignSelf: 'stretch',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: tokens.capsule.radius,
-        backgroundColor: isActive
-          ? color ?? tokens.colors.capsuleActiveBackground
-          : tokens.colors.capsuleBackground,
-      },
-    ]
-    : null
+  const labelTextWrapperStyles: ViewStyle[] | null = isCapsule ? [{
+    flex: 1,
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: tokens.capsule.radius,
+    backgroundColor: isActive ? color ?? tokens.colors.capsuleActiveBackground : tokens.colors.capsuleBackground,
+  }] : null
   if (isJumbo) {
     labelWrapperStyles.push(styles.labelWrapperJumbo)
   }
@@ -144,121 +140,72 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
     <Pressable
       {...ariaPress.interactionProps}
       onLayout={event => onLayout(pane.name, event)}
-      style={[
-        styles.tabItem,
-        shouldFlex ? styles.flexItem : null,
-        {
+        style={[styles.tabItem, shouldFlex ? styles.flexItem : null, {
           paddingHorizontal: horizontalPadding,
           paddingVertical: verticalPadding,
-        },
-        isCard
-          ? {
-            borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-            borderRightColor: color ?? tokens.colors.cardBorder,
-            backgroundColor: isActive
-              ? color ?? tokens.colors.cardActiveBackground
-              : tokens.colors.cardBackground,
-          }
-          : null,
-        tabStyle,
-      ]}
+        }, isCard ? {
+          borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth,
+          borderRightColor: color ?? tokens.colors.cardBorder,
+          backgroundColor: isActive ? color ?? tokens.colors.cardActiveBackground : tokens.colors.cardBackground,
+        } : null, tabStyle]}
     >
       <View style={labelWrapperStyles}>
         {labelTextWrapperStyles ? (
           <View style={labelTextWrapperStyles}>
-            <Text
-              style={[
-                styles.title,
-                {
-                  color: textColor,
-                  fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
-                  fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
-                  lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
-                  textAlign: 'center',
-                },
-                ellipsis && !isJumbo ? styles.ellipsis : null,
-                titleStyle,
-              ]}
-              numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
-            >
+            <Text style={[styles.title, {
+              color: textColor,
+              fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
+              fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+              lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
+              textAlign: 'center',
+            }, ellipsis && !isJumbo ? styles.ellipsis : null, titleStyle]} numberOfLines={ellipsis && !isJumbo ? 1 : undefined}>
               {renderTitle}
             </Text>
           </View>
         ) : (
-          <Text
-            style={[
-              styles.title,
-              {
-                color: textColor,
-                fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
-                fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
-                lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
-                textAlign: 'center',
-              },
-              ellipsis && !isJumbo ? styles.ellipsis : null,
-              titleStyle,
-            ]}
-            numberOfLines={ellipsis && !isJumbo ? 1 : undefined}
-          >
+          <Text style={[styles.title, {
+            color: textColor,
+            fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
+            fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+            lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
+            textAlign: 'center',
+          }, ellipsis && !isJumbo ? styles.ellipsis : null, titleStyle]} numberOfLines={ellipsis && !isJumbo ? 1 : undefined}>
             {renderTitle}
           </Text>
         )}
-        {isRenderable(renderDescription)
-          ? isText(renderDescription)
-            ? (
-              <Text
-                style={[
-                  styles.description,
-                  isJumbo
-                    ? {
-                      color: descriptionColor,
-                      fontSize: tokens.typography.descriptionSize,
-                      marginTop: 8,
-                      textAlign: 'center',
-                      backgroundColor: isActive
-                        ? tokens.colors.jumboDescriptionActiveBackground
-                        : tokens.colors.jumboDescriptionBackground,
-                      paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-                      paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-                      borderRadius: tokens.jumbo.descriptionRadius,
-                    }
-                    : {
-                      color: descriptionColor,
-                      fontSize: tokens.typography.descriptionSize,
-                      marginTop: 2,
-                      textAlign: 'center',
-                    },
-                  descriptionStyle,
-                ]}
-              >
-                {renderDescription}
-              </Text>
-            )
-            : (
-              <View
-                style={[
-                  styles.description,
-                  isJumbo
-                    ? {
-                      marginTop: 8,
-                      alignItems: 'center',
-                      backgroundColor: isActive
-                        ? tokens.colors.jumboDescriptionActiveBackground
-                        : tokens.colors.jumboDescriptionBackground,
-                      paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-                      paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-                      borderRadius: tokens.jumbo.descriptionRadius,
-                    }
-                    : {
-                      marginTop: 2,
-                      alignItems: 'center',
-                    },
-                ]}
-              >
-                {renderDescription}
-              </View>
-            )
-          )}
+        {isRenderable(renderDescription) && (isText(renderDescription) ? (
+          <Text style={[styles.description, isJumbo ? {
+            color: descriptionColor,
+            fontSize: tokens.typography.descriptionSize,
+            marginTop: 8,
+            textAlign: 'center',
+            backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
+            paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+            paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+            borderRadius: tokens.jumbo.descriptionRadius,
+          } : {
+            color: descriptionColor,
+            fontSize: tokens.typography.descriptionSize,
+            marginTop: 2,
+            textAlign: 'center',
+          }, descriptionStyle]}>
+            {renderDescription}
+          </Text>
+        ) : (
+          <View style={[styles.description, isJumbo ? {
+            marginTop: 8,
+            alignItems: 'center',
+            backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
+            paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+            paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+            borderRadius: tokens.jumbo.descriptionRadius,
+          } : {
+            marginTop: 2,
+            alignItems: 'center',
+          }]}>
+            {renderDescription}
+          </View>
+        ))}
         {isRenderable(pane.badge) && (
           <View style={styles.badge}>
             {isText(pane.badge) ? (
@@ -273,9 +220,9 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   )
 }
 
-const TabBarItem = React.memo(TabBarItemInner)
+const TabBarItem = memo(TabBarItemInner)
 
-const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref) => {
+const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref) => {
   const {
     tokensOverride,
     children,
@@ -337,15 +284,15 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       : { autoHeight: true, preventScroll: true }
   const isSwipeable = !!swipeableConfig
 
-  const panes = React.useMemo<ParsedPane[]>(() => {
+  const panes = useMemo<ParsedPane[]>(() => {
     const result: ParsedPane[] = []
     let paneIndex = 0
 
     const walk = (nodes: React.ReactNode) => {
-      React.Children.forEach(nodes, (node) => {
-        if (!React.isValidElement(node)) return
+      Children.forEach(nodes, (node) => {
+        if (!isValidElement(node)) return
         const element = node as React.ReactElement<{ children?: React.ReactNode }>
-        if (element.type === React.Fragment) {
+        if (element.type === Fragment) {
           walk(element.props.children)
           return
         }
@@ -386,19 +333,14 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     trigger: 'onChange',
   })
 
-  const currentName =
-    activeValue == null
-      ? firstPaneName
-      : panes.some(pane => pane.name === activeValue)
-        ? activeValue
-        : firstPaneName
+  const currentName = activeValue == null ? firstPaneName : (panes.some(pane => pane.name === activeValue) ? activeValue : firstPaneName)
 
-  const currentNameRef = React.useRef<TabsValue | undefined | null>(currentName)
-  React.useEffect(() => {
+  const currentNameRef = useRef<TabsValue | undefined | null>(currentName)
+  useEffect(() => {
     currentNameRef.current = currentName
   }, [currentName])
 
-  const nameIndexMap = React.useMemo(() => {
+  const nameIndexMap = useMemo(() => {
     const map = new Map<TabsValue, number>()
     panes.forEach(pane => {
       map.set(pane.name, pane.index)
@@ -406,18 +348,15 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     return map
   }, [panes])
 
-  const activeIndex =
-    currentName == null
-      ? -1
-      : nameIndexMap.get(currentName) ?? -1
+  const activeIndex = currentName == null ? -1 : (nameIndexMap.get(currentName) ?? -1)
 
-  const visitedRef = React.useRef<Set<TabsValue>>(new Set())
-  React.useEffect(() => {
+  const visitedRef = useRef<Set<TabsValue>>(new Set())
+  useEffect(() => {
     if (currentName == null) return
     visitedRef.current.add(currentName)
   }, [currentName])
 
-  React.useEffect(() => {
+  useEffect(() => {
     const validNames = new Set(panes.map(pane => pane.name))
     Array.from(paneLayoutMap.current.keys()).forEach(name => {
       if (!validNames.has(name)) paneLayoutMap.current.delete(name)
@@ -429,13 +368,13 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const shouldTrackPaneLayouts = isSwipeable && swipeableConfig?.autoHeight
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!shouldTrackPaneLayouts) {
       paneLayoutMap.current.clear()
     }
   }, [shouldTrackPaneLayouts])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isSwipeable || !swipeableConfig?.autoHeight) {
       setSwipeableHeight(undefined)
       return
@@ -448,24 +387,24 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     }
   }, [currentName, isSwipeable, swipeableConfig?.autoHeight])
 
-  const layoutMap = React.useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
-  const navContainerWidthRef = React.useRef(0)
-  const navContentWidthRef = React.useRef(0)
-  const navContentSizeSyncFrameRef = React.useRef<number | null>(null)
-  const paneLayoutMap = React.useRef<Map<TabsValue, { height: number }>>(new Map())
-  const swipeableScrollRef = React.useRef<any>(null)
-  const swipeableChangeByScrollRef = React.useRef(false)
-  const [containerWidth, setContainerWidth] = React.useState(0)
-  const [swipeableHeight, setSwipeableHeight] = React.useState<number | undefined>(undefined)
+  const layoutMap = useRef<Map<TabsValue, { x: number; width: number }>>(new Map())
+  const navContainerWidthRef = useRef(0)
+  const navContentWidthRef = useRef(0)
+  const navContentSizeSyncFrameRef = useRef<number | null>(null)
+  const paneLayoutMap = useRef<Map<TabsValue, { height: number }>>(new Map())
+  const swipeableScrollRef = useRef<any>(null)
+  const swipeableChangeByScrollRef = useRef(false)
+  const [containerWidth, setContainerWidth] = useState(0)
+  const [swipeableHeight, setSwipeableHeight] = useState<number | undefined>(undefined)
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       cancelFrame(navContentSizeSyncFrameRef.current)
       navContentSizeSyncFrameRef.current = null
     }
   }, [])
 
-  const scrollable = React.useMemo(() => {
+  const scrollable = useMemo(() => {
     if (isBoolean(scrollableProp)) {
       return scrollableProp
     }
@@ -511,125 +450,89 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     navContentWidthRef,
   })
 
-  const handleTabLayout = React.useCallback(
-    (name: TabsValue, event: LayoutChangeEvent) => {
-      const { x, width } = event.nativeEvent.layout
-      layoutMap.current.set(name, { x, width })
-      if (name === currentNameRef.current) {
-        const shouldAnimate = indicatorInitializedRef.current
-        const didAnimate = animateIndicator(name, !shouldAnimate)
-        if (didAnimate && !indicatorInitializedRef.current) {
-          indicatorInitializedRef.current = true
-        }
-      }
-    },
-    [animateIndicator, indicatorInitializedRef],
-  )
+  const handleTabLayout = useCallback((name: TabsValue, event: LayoutChangeEvent) => {
+    const { x, width } = event.nativeEvent.layout
+    layoutMap.current.set(name, { x, width })
+    if (name === currentNameRef.current) {
+      const shouldAnimate = indicatorInitializedRef.current
+      const didAnimate = animateIndicator(name, !shouldAnimate)
+      if (didAnimate && !indicatorInitializedRef.current) indicatorInitializedRef.current = true
+    }
+  }, [animateIndicator, indicatorInitializedRef])
 
-  const handleNavContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
+  const handleNavContainerLayout = useCallback((event: LayoutChangeEvent) => {
     const { width } = event.nativeEvent.layout
     navContainerWidthRef.current = width
     if (!scrollable && align !== 'start' && type === 'line' && currentName !== undefined && currentName !== null) {
       const shouldAnimate = indicatorInitializedRef.current
       const didAnimate = animateIndicator(currentName, !shouldAnimate)
-      if (didAnimate && !indicatorInitializedRef.current) {
-        indicatorInitializedRef.current = true
-      }
+      if (didAnimate && !indicatorInitializedRef.current) indicatorInitializedRef.current = true
     }
   }, [align, animateIndicator, currentName, scrollable, type, indicatorInitializedRef])
 
-  const handleContainerLayout = React.useCallback((event: LayoutChangeEvent) => {
+  const handleContainerLayout = useCallback((event: LayoutChangeEvent) => {
     const nextWidth = event.nativeEvent.layout.width
-    setContainerWidth(prev => (prev === nextWidth ? prev : nextWidth))
+    setContainerWidth(prev => prev === nextWidth ? prev : nextWidth)
   }, [])
 
-  const runBeforeChange = React.useCallback(
-    (name: TabsValue) => {
-      if (!beforeChange) {
-        return Promise.resolve(true)
-      }
-      try {
-        return Promise.resolve(beforeChange(name))
-          .then(res => res !== false)
-          .catch(error => {
-            if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Tabs] beforeChange 抛出异常：', error)
-            return false
-          })
-      } catch (error) {
-        if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Tabs] beforeChange 抛出异常：', error)
-        return Promise.resolve(false)
-      }
-    },
-    [beforeChange],
-  )
+  const runBeforeChange = useCallback((name: TabsValue) => {
+    if (!beforeChange) return Promise.resolve(true)
+    try {
+      return Promise.resolve(beforeChange(name))
+        .then(res => res !== false)
+        .catch(error => {
+          if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Tabs] beforeChange 抛出异常：', error)
+          return false
+        })
+    } catch (error) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Tabs] beforeChange 抛出异常：', error)
+      return Promise.resolve(false)
+    }
+  }, [beforeChange])
 
-  const changeSeqRef = React.useRef(0)
-  const requestChange = React.useCallback(
-    (name: TabsValue, index: number) => {
-      changeSeqRef.current += 1
-      const seq = changeSeqRef.current
-      runBeforeChange(name).then(canChange => {
-        if (!canChange) return
-        if (changeSeqRef.current !== seq) return
-        setActiveValue(name, index)
-      })
-    },
-    [runBeforeChange, setActiveValue],
-  )
+  const changeSeqRef = useRef(0)
+  const requestChange = useCallback((name: TabsValue, index: number) => {
+    changeSeqRef.current += 1
+    const seq = changeSeqRef.current
+    runBeforeChange(name).then(canChange => {
+      if (!canChange) return
+      if (changeSeqRef.current !== seq) return
+      setActiveValue(name, index)
+    })
+  }, [runBeforeChange, setActiveValue])
 
-  const handlePaneLayout = React.useCallback(
-    (name: TabsValue, event: LayoutChangeEvent) => {
-      if (isSwipeable && swipeableConfig?.autoHeight) {
-        const { height } = event.nativeEvent.layout
-        paneLayoutMap.current.set(name, { height })
-        if (name === currentName) {
-          setSwipeableHeight(height)
-        }
-      }
-    },
-    [currentName, isSwipeable, swipeableConfig?.autoHeight],
-  )
+  const handlePaneLayout = useCallback((name: TabsValue, event: LayoutChangeEvent) => {
+    if (isSwipeable && swipeableConfig?.autoHeight) {
+      const { height } = event.nativeEvent.layout
+      paneLayoutMap.current.set(name, { height })
+      if (name === currentName) setSwipeableHeight(height)
+    }
+  }, [currentName, isSwipeable, swipeableConfig?.autoHeight])
 
-  const swipeEndIndexRef = React.useRef<number | null>(null)
-  React.useEffect(() => {
+  const swipeEndIndexRef = useRef<number | null>(null)
+  useEffect(() => {
     swipeEndIndexRef.current = null
   }, [currentName])
 
-  const handleSwipeEnd = React.useCallback(
-    (offsetX: number) => {
-      if (!isSwipeable || containerWidth <= 0) {
-        return
-      }
-      const pageIndex = Math.round(offsetX / containerWidth)
-      if (swipeEndIndexRef.current === pageIndex) {
-        return
-      }
-      swipeEndIndexRef.current = pageIndex
-      const nextPane = panes[pageIndex]
-      if (!nextPane || nextPane.name === currentNameRef.current) {
-        return
-      }
-      swipeableChangeByScrollRef.current = true
-      requestChange(nextPane.name, nextPane.index)
-    },
-    [containerWidth, isSwipeable, panes, requestChange],
-  )
+  const handleSwipeEnd = useCallback((offsetX: number) => {
+    if (!isSwipeable || containerWidth <= 0) return
+    const pageIndex = Math.round(offsetX / containerWidth)
+    if (swipeEndIndexRef.current === pageIndex) return
+    swipeEndIndexRef.current = pageIndex
+    const nextPane = panes[pageIndex]
+    if (!nextPane || nextPane.name === currentNameRef.current) return
+    swipeableChangeByScrollRef.current = true
+    requestChange(nextPane.name, nextPane.index)
+  }, [containerWidth, isSwipeable, panes, requestChange])
 
-  const handleSwipeMomentumScrollEnd = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      handleSwipeEnd(event.nativeEvent.contentOffset.x)
-    },
-    [handleSwipeEnd],
-  )
+  const handleSwipeMomentumScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    handleSwipeEnd(event.nativeEvent.contentOffset.x)
+  }, [handleSwipeEnd])
+  const handleSwipeScrollEndDrag = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    handleSwipeEnd(event.nativeEvent.contentOffset.x)
+  }, [handleSwipeEnd])
 
-  const handleSwipeScrollEndDrag = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      handleSwipeEnd(event.nativeEvent.contentOffset.x)
-    },
-    [handleSwipeEnd],
-  )
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isSwipeable || !swipeableScrollRef.current || containerWidth <= 0) {
       return
     }
@@ -647,47 +550,32 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
     node.scrollTo({ x: containerWidth * activeIndex, y: 0, animated: true })
   }, [activeIndex, containerWidth, isSwipeable])
 
-  const handleSelect = React.useCallback(
-    (pane: ParsedPane, index: number, event?: unknown) => {
-      const payload = {
-        name: pane.name,
-        index,
-        disabled: !!pane.disabled,
-        event,
-      }
-      onClickTab?.(payload)
-      if (pane.disabled || pane.name === currentNameRef.current) {
-        return
-      }
-      requestChange(pane.name, index)
-    },
-    [onClickTab, requestChange],
-  )
+  const handleSelect = useCallback((pane: ParsedPane, index: number, event?: unknown) => {
+    const payload = { name: pane.name, index, disabled: !!pane.disabled, event }
+    onClickTab?.(payload)
+    if (pane.disabled || pane.name === currentNameRef.current) return
+    requestChange(pane.name, index)
+  }, [onClickTab, requestChange])
 
-  const scrollTo = React.useCallback(
-    (name: TabsValue, _options?: { immediate?: boolean }) => {
-      const target = panes.find(pane => pane.name === name && !pane.disabled)
-      if (!target) {
-        return
-      }
-      setActiveValue(target.name, target.index)
-    },
-    [panes, setActiveValue],
-  )
+  const scrollTo = useCallback((name: TabsValue, _options?: { immediate?: boolean }) => {
+    const target = panes.find(pane => pane.name === name && !pane.disabled)
+    if (!target) return
+    setActiveValue(target.name, target.index)
+  }, [panes, setActiveValue])
 
-  React.useImperativeHandle(ref, () => ({
+  useImperativeHandle(ref, () => ({
     scrollTo,
   }), [scrollTo])
 
-  const firstRenderRef = React.useRef(true)
-  React.useEffect(() => {
+  const firstRenderRef = useRef(true)
+  useEffect(() => {
     if (firstRenderRef.current) {
       firstRenderRef.current = false
       scrollIntoView(true)
     }
   }, [scrollIntoView])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!firstRenderRef.current) {
       scrollIntoView()
     }
@@ -715,20 +603,14 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
   }
 
   const indicatorNode = showIndicator ? (
-    <Animated.View
-      testID="rv-tabs-indicator"
-      style={[
-        styles.indicator,
-        {
-          height: resolvedLineHeight,
-          borderRadius: indicatorCornerRadius,
-          backgroundColor: indicatorColor,
-          width: indicatorWidth,
-          bottom: indicatorBottom,
-          transform: [{ translateX: indicatorX }],
-        },
-      ]}
-    />
+    <Animated.View testID="rv-tabs-indicator" style={[styles.indicator, {
+      height: resolvedLineHeight,
+      borderRadius: indicatorCornerRadius,
+      backgroundColor: indicatorColor,
+      width: indicatorWidth,
+      bottom: indicatorBottom,
+      transform: [{ translateX: indicatorX }],
+    }]} />
   ) : null
 
   const navItems = panes.map(pane => (
@@ -791,35 +673,22 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
 
   const navContent = (
     <View
-      style={[
-        styles.wrap,
-        borderEnabled && type === 'line'
-          ? { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: tokens.colors.border }
-          : null,
-        {
-          backgroundColor: background,
-        },
-        tabBarStyle,
-      ]}
+      style={[styles.wrap, borderEnabled && type === 'line' ? { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: tokens.colors.border } : null, {
+        backgroundColor: background,
+      }, tabBarStyle]}
     >
       {navLeft && <View style={styles.navSide}>{navLeft}</View>}
       <View
-        style={[
-          styles.nav,
-          {
-            minHeight: navHeight + navPaddingBottom,
-            paddingBottom: navPaddingBottom,
-          },
-          type === 'card'
-            ? {
-              borderWidth: StyleSheet.hairlineWidth,
-              borderRadius: tokens.card.radius,
-              borderColor: color ?? tokens.colors.cardBorder,
-              marginHorizontal: tokens.card.marginHorizontal,
-              overflow: 'hidden',
-            }
-            : null,
-        ]}
+        style={[styles.nav, {
+          minHeight: navHeight + navPaddingBottom,
+          paddingBottom: navPaddingBottom,
+        }, type === 'card' ? {
+          borderWidth: StyleSheet.hairlineWidth,
+          borderRadius: tokens.card.radius,
+          borderColor: color ?? tokens.colors.cardBorder,
+          marginHorizontal: tokens.card.marginHorizontal,
+          overflow: 'hidden',
+        } : null]}
         onLayout={handleNavContainerLayout}
       >
         {navBody}
@@ -839,13 +708,8 @@ const TabsBaseInner: React.ForwardRefRenderFunction<TabsRef, TabsProps> = (props
       isSwipeable && swipeableConfig?.autoHeight
         ? (event: LayoutChangeEvent) => handlePaneLayout(pane.name, event)
         : undefined
-    const paneStyles = [
-      styles.pane,
-      isSwipeable ? styles.swipeablePane : null,
-      isSwipeable && containerWidth > 0 && { width: containerWidth },
-      !isSwipeable && !isActive ? styles.hiddenPane : null,
-    ]
-    const paneContent = shouldRender ? pane.children : lazyRenderPlaceholder || null
+    const paneStyles = [styles.pane, isSwipeable ? styles.swipeablePane : null, isSwipeable && containerWidth > 0 && { width: containerWidth }, !isSwipeable && !isActive ? styles.hiddenPane : null]
+    const paneContent = shouldRender ? pane.children : (lazyRenderPlaceholder || null)
     return (
       <View
         key={pane.key}

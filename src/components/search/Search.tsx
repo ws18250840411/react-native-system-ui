@@ -3,7 +3,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  type TextStyle,
   View,
 } from 'react-native'
 import { Search as SearchIcon } from 'react-native-system-icon'
@@ -13,7 +12,7 @@ import { isText } from '../../utils'
 import { useLocale } from '../config-provider/useLocale'
 import Field, { type FieldInstance, type FieldProps } from '../field'
 import { useSearchTokens } from './tokens'
-import type { SearchProps, SearchRef, SearchShape } from './types'
+import type { SearchProps, SearchRef } from './types'
 
 const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const locale = useLocale()

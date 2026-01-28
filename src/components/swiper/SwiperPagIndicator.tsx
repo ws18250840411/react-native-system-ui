@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo, type ReactElement } from 'react'
 import { View, StyleSheet, type StyleProp, type ViewStyle, type ViewProps } from 'react-native'
 
 import { createComponentTokensHook } from '../../design-system'
@@ -66,7 +66,7 @@ export interface SwiperPagIndicatorProps extends ViewProps {
   tokensOverride?: DeepPartial<SwiperPagIndicatorTokens>
 }
 
-const SwiperPagIndicator = React.memo<SwiperPagIndicatorProps>(
+const SwiperPagIndicator = memo<SwiperPagIndicatorProps>(
   ({
     total,
     current,
@@ -78,9 +78,9 @@ const SwiperPagIndicator = React.memo<SwiperPagIndicatorProps>(
     ...rest
   }) => {
     const tokens = useSwiperPagIndicatorTokens(tokensOverride)
-    const dots: React.ReactElement[] = []
-    const resolvedActiveColor = activeColor ?? tokens.colors.active
-    const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
+    const dots: ReactElement[] = []
+    const resolvedActiveColor = activeColor || tokens.colors.active
+    const resolvedInactiveColor = inactiveColor || tokens.colors.inactive
     const dotMargin = tokens.spacing.dotMargin
 
     const containerPositionStyle = vertical
@@ -89,25 +89,18 @@ const SwiperPagIndicator = React.memo<SwiperPagIndicatorProps>(
 
     for (let i = 0; i < total; i++) {
       const isActive = current === i
-      const size = isActive
-        ? tokens.sizing.dotSizeActive
-        : tokens.sizing.dotSizeInactive
-
+      const size = isActive ? tokens.sizing.dotSizeActive : tokens.sizing.dotSizeInactive
       dots.push(
         <View
           key={i}
-          style={[
-            {
-              marginHorizontal: dotMargin,
-              marginVertical: dotMargin,
-              backgroundColor: isActive
-                ? resolvedActiveColor
-                : resolvedInactiveColor,
-              width: size,
-              height: size,
-              borderRadius: size / 2,
-            },
-          ]}
+          style={[{
+            marginHorizontal: dotMargin,
+            marginVertical: dotMargin,
+            backgroundColor: isActive ? resolvedActiveColor : resolvedInactiveColor,
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+          }]}
         />
       )
     }

@@ -134,7 +134,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
         >
           {renderLabel()}
         </Text>
-      )}
+      ) : null}
     </Pressable>
   )
 }

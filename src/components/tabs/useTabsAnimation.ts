@@ -1,4 +1,4 @@
-import React from 'react'
+import { useCallback, useEffect, useRef, type MutableRefObject } from 'react'
 import { Animated } from 'react-native'
 import type { TabsValue } from './types'
 
@@ -13,8 +13,8 @@ interface UseTabsAnimationParams {
   resolvedLineHeight: number
   resolvedDuration: number
   currentName?: TabsValue | null
-  layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>
-  navContainerWidthRef: React.MutableRefObject<number>
+  layoutMap: MutableRefObject<Map<TabsValue, { x: number; width: number }>>
+  navContainerWidthRef: MutableRefObject<number>
 }
 
 export const useTabsAnimation = ({
@@ -25,24 +25,23 @@ export const useTabsAnimation = ({
   panes,
   nameIndexMap,
   resolvedLineWidth,
-  resolvedLineHeight,
   resolvedDuration,
   currentName,
   layoutMap,
   navContainerWidthRef,
 }: UseTabsAnimationParams) => {
-  const indicatorX = React.useRef(new Animated.Value(0)).current
-  const indicatorWidth = React.useRef(new Animated.Value(0)).current
-  const indicatorInitializedRef = React.useRef(false)
+  const indicatorX = useRef(new Animated.Value(0)).current
+  const indicatorWidth = useRef(new Animated.Value(0)).current
+  const indicatorInitializedRef = useRef(false)
 
-  const animateIndicator = React.useCallback(
+  const animateIndicator = useCallback(
     (name?: TabsValue, immediate?: boolean) => {
       if (name == null || type !== 'line') return false
       const shouldUseEqualWidth =
         !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
       const index = nameIndexMap.get(name) ?? -1
       const equalTabWidth = shouldUseEqualWidth ? navContainerWidthRef.current / panes.length : 0
-      let layout = shouldUseEqualWidth
+      const layout = shouldUseEqualWidth
         ? { x: Math.max(index, 0) * equalTabWidth, width: equalTabWidth }
         : layoutMap.current.get(name)
       if (!layout || index < 0) {
@@ -64,10 +63,10 @@ export const useTabsAnimation = ({
       ]).start()
       return true
     },
-    [align, animated, indicatorWidth, indicatorX, nameIndexMap, panes.length, resolvedDuration, resolvedLineWidth, scrollable, type],
+    [align, animated, indicatorWidth, indicatorX, nameIndexMap, panes.length, resolvedDuration, resolvedLineWidth, scrollable, type, layoutMap, navContainerWidthRef],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentName == null) return
     const shouldAnimate = indicatorInitializedRef.current
     const didAnimate = animateIndicator(currentName, !shouldAnimate)

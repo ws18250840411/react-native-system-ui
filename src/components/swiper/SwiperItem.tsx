@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { forwardRef } from 'react'
 import { View, StyleSheet } from 'react-native'
 import type { SwiperItemProps } from './types'
 
-const SwiperItem = React.forwardRef<View, SwiperItemProps>((props, ref) => {
+const SwiperItem = forwardRef<View, SwiperItemProps>((props, ref) => {
   const { style, children, testID } = props
 
   return (

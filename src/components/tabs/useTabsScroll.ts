@@ -1,4 +1,4 @@
-import React from 'react'
+import { useCallback, useEffect, useRef, type MutableRefObject } from 'react'
 import { Animated, ScrollView, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native'
 import { cancelFrame, requestFrame } from './utils'
 import type { TabsValue } from './types'
@@ -8,9 +8,9 @@ interface UseTabsScrollParams {
   animated: boolean
   currentName?: TabsValue | null
   resolvedDuration: number
-  layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>
-  navContainerWidthRef: React.MutableRefObject<number>
-  navContentWidthRef: React.MutableRefObject<number>
+  layoutMap: MutableRefObject<Map<TabsValue, { x: number; width: number }>>
+  navContainerWidthRef: MutableRefObject<number>
+  navContentWidthRef: MutableRefObject<number>
 }
 
 export const useTabsScroll = ({
@@ -22,14 +22,14 @@ export const useTabsScroll = ({
   navContainerWidthRef,
   navContentWidthRef,
 }: UseTabsScrollParams) => {
-  const navScrollRef = React.useRef<ScrollView>(null)
-  const navScrollX = React.useRef(new Animated.Value(0)).current
-  const navScrollAnimRef = React.useRef<Animated.CompositeAnimation | null>(null)
-  const navAutoScrollingRef = React.useRef(false)
-  const navLastScrollXRef = React.useRef(0)
-  const navAutoScrollFrameRef = React.useRef<number | null>(null)
+  const navScrollRef = useRef<ScrollView>(null)
+  const navScrollX = useRef(new Animated.Value(0)).current
+  const navScrollAnimRef = useRef<Animated.CompositeAnimation | null>(null)
+  const navAutoScrollingRef = useRef(false)
+  const navLastScrollXRef = useRef(0)
+  const navAutoScrollFrameRef = useRef<number | null>(null)
 
-  const scrollIntoView = React.useCallback(
+  const scrollIntoView = useCallback(
     (immediate?: boolean) => {
       if (!scrollable || currentName == null) return
       const layout = layoutMap.current.get(currentName)
@@ -76,10 +76,10 @@ export const useTabsScroll = ({
         navLastScrollXRef.current = clampedX
       })
     },
-    [animated, currentName, navScrollX, resolvedDuration, scrollable],
+    [animated, currentName, navScrollX, resolvedDuration, scrollable, layoutMap, navContainerWidthRef, navContentWidthRef],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!scrollable) return
     const listenerId = navScrollX.addListener(({ value }) => {
       navLastScrollXRef.current = value
@@ -90,14 +90,14 @@ export const useTabsScroll = ({
     }
   }, [navScrollX, scrollable])
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       cancelFrame(navAutoScrollFrameRef.current)
       navAutoScrollFrameRef.current = null
     }
   }, [])
 
-  const handleNavScrollBeginDrag = React.useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleNavScrollBeginDrag = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     navAutoScrollingRef.current = false
     if (navScrollAnimRef.current) {
       navScrollAnimRef.current.stop()
@@ -106,7 +106,7 @@ export const useTabsScroll = ({
     navLastScrollXRef.current = event.nativeEvent.contentOffset.x
   }, [])
 
-  const handleNavScroll = React.useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleNavScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (navAutoScrollingRef.current) {
       return
     }

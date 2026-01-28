@@ -256,7 +256,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   }
 
   const webInputRef = React.useRef<HTMLInputElement | null>(null)
-  const webHandlerRef = React.useRef<(files: File[]) => void>(() => { })
+  const webHandlerRef = React.useRef<(files: File[]) => void>(() => {})
   webHandlerRef.current = handleWebFiles
 
   React.useEffect(() => {
@@ -532,7 +532,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
               </View>
             ))}
           </>
-        )}
+        ) : null}
 
         {canShowUpload ? (
           <Pressable
@@ -552,11 +552,11 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
                 {uploadIcon ?? <Text style={[styles.uploadIcon, { color: tokens.colors.icon }]}>+</Text>}
                 {uploadText ? (
                   <Text style={[styles.uploadText, { color: tokens.colors.text }]}>{uploadText}</Text>
-                )}
+                ) : null}
               </View>
             )}
           </Pressable>
-        )}
+        ) : null}
       </View>
       {previewFullImage ? (
         <ImagePreview
