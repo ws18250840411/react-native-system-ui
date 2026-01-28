@@ -60,16 +60,11 @@ const normalizeMultiple = (
     const current = rawValue[index]
     const defaultIndex = defaults[index] !== undefined ? opts.findIndex(item => item.value === defaults[index]) : -1
     const currentIndex = opts.findIndex(item => item.value === current)
-    
-    // 如果 currentIndex >= 0，说明当前值在选项中，直接使用
-    // 否则尝试使用 defaultValue，再否则使用第一个选项
     const startIndex = currentIndex >= 0 ? currentIndex : defaultIndex >= 0 ? defaultIndex : 0
     const targetIndex = findEnabledIndex(opts, startIndex)
     const target = targetIndex >= 0 ? opts[targetIndex] : undefined
-    
-    // 修正：只有当当前值存在且未被禁用时，才保留当前值
-    const isCurrentValid = currentIndex >= 0 && !opts[currentIndex]?.disabled
-    values[index] = (isCurrentValid ? current : (target?.value ?? defaults[index] ?? opts[0]?.value)) as PickerValue
+    const valid = currentIndex >= 0 && !opts[currentIndex]?.disabled
+    values[index] = (valid ? current : (target?.value ?? defaults[index] ?? opts[0]?.value)) as PickerValue
     options[index] = target
   })
 
@@ -87,13 +82,9 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
 
   let currentOptions: PickerOption[] | undefined = rootOptions
   let depth = 0
-  
-  // 限制最大深度，防止数据异常导致死循环
   while (currentOptions && currentOptions.length && depth < 10) {
     columns.push(currentOptions)
     const current = rawValue[depth]
-    
-    // 使用更宽松的匹配逻辑，并优先保证匹配到 startIndex
     const startIndex = currentOptions.findIndex(item => 
       item.value === current || String(item.value) === String(current)
     )
@@ -153,9 +144,9 @@ export const prepareColumns = (columnsInput: PickerColumns = []): PreparedPicker
         columnsList.push(col as PickerOption[])
         defaults.push(undefined)
       } else if (isColumnWithOptions(col as unknown as PickerColumn | PickerOption)) {
-        const column = col as unknown as { options: PickerOption[]; defaultValue?: PickerValue }
-        columnsList.push(column.options ?? [])
-        defaults.push(column.defaultValue)
+        const c = col as { options?: PickerOption[]; defaultValue?: PickerValue }
+        columnsList.push(c.options ?? [])
+        defaults.push(c.defaultValue)
       }
     })
   }

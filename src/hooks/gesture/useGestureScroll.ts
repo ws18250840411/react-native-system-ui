@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
 import { Animated } from 'react-native'
 
@@ -49,24 +49,24 @@ export const useGestureScroll = (
     onMomentumScrollEnd,
   } = options
 
-  const scrollValue = React.useRef(new Animated.Value(0)).current
-  const lastOffsetRef = React.useRef(0)
-  const lastTimestampRef = React.useRef<number | null>(null)
-  const velocityRef = React.useRef(0)
-  const directionRef = React.useRef<ScrollDirection>(null)
+  const scrollValue = useRef(new Animated.Value(0)).current
+  const lastOffsetRef = useRef(0)
+  const lastTimestampRef = useRef<number | null>(null)
+  const velocityRef = useRef(0)
+  const directionRef = useRef<ScrollDirection>(null)
 
-  const [direction, setDirection] = React.useState<ScrollDirection>(null)
-  const [isDragging, setIsDragging] = React.useState(false)
-  const [isMomentum, setIsMomentum] = React.useState(false)
+  const [direction, setDirection] = useState<ScrollDirection>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isMomentum, setIsMomentum] = useState(false)
 
-  const updateDirection = React.useCallback((next: ScrollDirection) => {
+  const updateDirection = useCallback((next: ScrollDirection) => {
     if (directionRef.current !== next) {
       directionRef.current = next
       setDirection(next)
     }
   }, [])
 
-  const handleScroll = React.useCallback(
+  const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       onScroll?.(event)
       const contentOffset = event.nativeEvent.contentOffset
@@ -91,7 +91,7 @@ export const useGestureScroll = (
     [axis, onScroll, updateDirection]
   )
 
-  const animatedScrollHandler = React.useMemo(() => {
+  const animatedScrollHandler = useMemo(() => {
     const mapping =
       axis === 'x'
         ? [{ nativeEvent: { contentOffset: { x: scrollValue } } }]
@@ -103,7 +103,7 @@ export const useGestureScroll = (
     })
   }, [axis, handleScroll, scrollValue])
 
-  const handleScrollBeginDrag = React.useCallback(
+  const handleScrollBeginDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setIsDragging(true)
       onScrollBeginDrag?.(event)
@@ -111,7 +111,7 @@ export const useGestureScroll = (
     [onScrollBeginDrag]
   )
 
-  const handleScrollEndDrag = React.useCallback(
+  const handleScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setIsDragging(false)
       onScrollEndDrag?.(event)
@@ -119,7 +119,7 @@ export const useGestureScroll = (
     [onScrollEndDrag]
   )
 
-  const handleMomentumBegin = React.useCallback(
+  const handleMomentumBegin = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setIsMomentum(true)
       onMomentumScrollBegin?.(event)
@@ -127,7 +127,7 @@ export const useGestureScroll = (
     [onMomentumScrollBegin]
   )
 
-  const handleMomentumEnd = React.useCallback(
+  const handleMomentumEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setIsMomentum(false)
       onMomentumScrollEnd?.(event)
@@ -135,7 +135,7 @@ export const useGestureScroll = (
     [onMomentumScrollEnd]
   )
 
-  const resetOffset = React.useCallback(
+  const resetOffset = useCallback(
     (value = 0) => {
       scrollValue.stopAnimation()
       scrollValue.setValue(value)
@@ -147,10 +147,10 @@ export const useGestureScroll = (
     [scrollValue, updateDirection]
   )
 
-  const getVelocity = React.useCallback(() => velocityRef.current, [])
-  const getCurrentOffset = React.useCallback(() => lastOffsetRef.current, [])
+  const getVelocity = useCallback(() => velocityRef.current, [])
+  const getCurrentOffset = useCallback(() => lastOffsetRef.current, [])
 
-  const scrollProps = React.useMemo(
+  const scrollProps = useMemo(
     () => ({
       onScroll: animatedScrollHandler,
       scrollEventThrottle,

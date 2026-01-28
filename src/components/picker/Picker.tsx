@@ -1,13 +1,101 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
 
 import Loading from '../loading'
 import { withAlpha, isFiniteNumber, isObject, isText } from '../../utils'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
-import { usePickerValue } from './usePickerValue'
-import type { PickerColumnProps, PickerColumns, PickerOption, PickerProps } from './types'
-import { findEnabledIndex } from './utils'
+import type { PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
+import { findEnabledIndex, normalizePicker, prepareColumns, shallowEqualArray, toArrayValue } from './utils'
+
+export function usePickerValue({
+  columns,
+  valueProp,
+  defaultValue,
+  emitConfirmOnAutoSelect = true,
+  onChange,
+  onConfirm,
+}: {
+  columns?: PickerColumns
+  valueProp?: PickerProps['value']
+  defaultValue?: PickerProps['defaultValue']
+  emitConfirmOnAutoSelect?: boolean
+  onChange?: PickerProps['onChange']
+  onConfirm?: PickerProps['onConfirm']
+}) {
+  const preparedColumns = useMemo(() => prepareColumns(columns), [columns])
+  const isControlled = valueProp !== undefined
+
+  const [innerValue, setInnerValue] = useState<PickerValue[]>(() => {
+    const initial = toArrayValue(valueProp ?? defaultValue)
+    return normalizePicker(preparedColumns, initial).values
+  })
+  const innerValueRef = useRef(innerValue)
+
+  const commitValue = useCallback((next: PickerValue[]) => {
+    innerValueRef.current = next
+    setInnerValue(next)
+  }, [])
+
+  useEffect(() => {
+    if (!isControlled) return
+    const next = toArrayValue(valueProp)
+    if (!shallowEqualArray(innerValueRef.current, next)) {
+      commitValue(next)
+    }
+  }, [commitValue, isControlled, valueProp])
+
+  const normalized = useMemo(
+    () => normalizePicker(preparedColumns, innerValue),
+    [preparedColumns, innerValue],
+  )
+
+  useEffect(() => {
+    if (isControlled) return
+    if (!shallowEqualArray(innerValue, normalized.values)) {
+      commitValue(normalized.values)
+      onChange?.(normalized.values, normalized.options)
+      if (emitConfirmOnAutoSelect) {
+        onConfirm?.(normalized.values, normalized.options)
+      }
+    }
+  }, [
+    commitValue,
+    emitConfirmOnAutoSelect,
+    innerValue,
+    isControlled,
+    normalized,
+    onChange,
+    onConfirm,
+  ])
+
+  const handleSelect = useCallback(
+    (option: PickerOption, columnIndex: number) => {
+      const next = [...innerValueRef.current]
+      next[columnIndex] = option.value
+
+      if (preparedColumns.type === 'cascade') {
+        next.length = columnIndex + 1
+      }
+
+      const final = normalizePicker(preparedColumns, next)
+      if (shallowEqualArray(innerValueRef.current, final.values)) return
+      commitValue(final.values)
+      onChange?.(final.values, final.options)
+    },
+    [commitValue, onChange, preparedColumns],
+  )
+
+  const handleConfirm = useCallback(() => {
+    onConfirm?.(normalized.values, normalized.options)
+  }, [normalized, onConfirm])
+
+  return {
+    normalized,
+    handleSelect,
+    handleConfirm,
+  }
+}
 
 const getVisibleCount = (count: number) => {
   const normalized = isFiniteNumber(count) ? Math.max(3, Math.floor(count)) : 5
@@ -102,13 +190,13 @@ const PickerColumn: React.FC<
     } = props
     const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
-    const selectedIndex = React.useMemo(() => {
+    const selectedIndex = useMemo(() => {
       if (!options.length) return 0
       const idx = options.findIndex(option => option.value === value)
       return findEnabledIndex(options, idx >= 0 ? idx : 0)
     }, [options, value])
 
-    const handleChange = React.useCallback((index: number) => {
+    const handleChange = useCallback((index: number) => {
       const target = findEnabledIndex(options, index)
       const option = options[target]
       if (!option || option.disabled) return

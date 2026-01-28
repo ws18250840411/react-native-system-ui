@@ -24,10 +24,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "RnSystemUi",
-    "react-vant",
-    "react-native-aria-main",
-    "react-native-wheely-master",
-    "react-native-xiaoshu-main"
+    "RnSystemUi"
   ]
 }

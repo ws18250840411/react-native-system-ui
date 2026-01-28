@@ -19,7 +19,7 @@ const createBadgeTokens = ({
   layout: {
     wrapper: {
       position: 'relative',
-      alignSelf: 'flex-start', // Ensure wrapper shrinks to children
+      alignSelf: 'flex-start',
     },
     badgeAbsolute: {
       position: 'absolute',

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useContext } from 'react'
 
 export interface SidebarContextValue {
   activeIndex: number
@@ -7,4 +8,4 @@ export interface SidebarContextValue {
 
 export const SidebarContext = React.createContext<SidebarContextValue | null>(null)
 
-export const useSidebarContext = () => React.useContext(SidebarContext)
+export const useSidebarContext = () => useContext(SidebarContext)

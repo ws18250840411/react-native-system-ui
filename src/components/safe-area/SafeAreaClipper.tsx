@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useContext, useMemo } from 'react'
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context'
 
 const useSafeAreaInsetsOrZero = () => {
-  const insets = React.useContext(SafeAreaInsetsContext)
+  const insets = useContext(SafeAreaInsetsContext)
   return (
     insets ?? {
       top: 0,
@@ -48,7 +48,7 @@ export const useSafeAreaClip = ({
   const isTop = position === 'top'
   const topOffset = isTop ? insets.top : 0
   const clipTop = Boolean(enabled && isTop && topOffset > 0)
-  const topInset = React.useMemo(
+  const topInset = useMemo(
     () =>
       !clipTop && isTop && topOffset > 0
         ? (

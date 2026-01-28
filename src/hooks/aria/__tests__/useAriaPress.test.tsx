@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useImperativeHandle } from 'react'
 import renderer from 'react-test-renderer'
 
 import {
@@ -25,7 +25,7 @@ jest.mock('@react-native-aria/focus', () => ({
 const TestComponent = React.forwardRef<UseAriaPressResult | null, { options?: UseAriaPressOptions }>(
   ({ options }, ref) => {
     const value = useAriaPress(options)
-    React.useImperativeHandle(ref, () => value, [value])
+    useImperativeHandle(ref, () => value, [value])
     return null
   }
 )
@@ -121,4 +121,3 @@ describe('useAriaPress', () => {
     expect(ref.current?.interactionProps.onFocus).toBeUndefined()
   })
 })
-

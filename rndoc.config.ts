@@ -57,7 +57,7 @@ const manualChunks = (id: string) => {
 }
 
 export default defineConfig({
-  title: 'react-native-system-ui',
+  title: 'SysUI',
   description: '基于rndoc打造的React组件库',
   locales: false,
   build: {

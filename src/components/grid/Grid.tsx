@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { View } from 'react-native'
 
 import { createHairlineView } from '../../utils'
@@ -66,7 +66,7 @@ export const Grid: React.FC<GridProps> = props => {
     />
   )
 
-  const contextValue = React.useMemo(
+  const contextValue = useMemo(
     () => ({
       columnNum,
       gutter,
@@ -102,7 +102,7 @@ export const Grid: React.FC<GridProps> = props => {
       <View
         style={[
           tokens.layout.container,
-          gutter && { paddingLeft: gutter },
+          gutter ? { paddingLeft: gutter } : undefined,
           style,
         ]}
         {...rest}

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { Animated, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -50,23 +50,23 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     defaultValue: {},
   })
 
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null)
-  const activeIndexRef = React.useRef<number | null>(null)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const activeIndexRef = useRef<number | null>(null)
 
-  const [panel, setPanel] = React.useState<React.ReactNode>(null)
-  const [mounted, setMounted] = React.useState(false)
-  const [barHeight, setBarHeight] = React.useState(0)
-  const barRef = React.useRef<View>(null)
-  const [barFrame, setBarFrame] = React.useState<{
+  const [panel, setPanel] = useState<React.ReactNode>(null)
+  const [mounted, setMounted] = useState(false)
+  const [barHeight, setBarHeight] = useState(0)
+  const barRef = useRef<View>(null)
+  const [barFrame, setBarFrame] = useState<{
     x: number
     y: number
     width: number
     height: number
   } | null>(null)
-  const [barWidth, setBarWidth] = React.useState(0)
+  const [barWidth, setBarWidth] = useState(0)
   const { height: windowHeight, width: windowWidth } = useWindowDimensions()
 
-  const panelRegistryRef = React.useRef(new Map<number, React.ReactNode>())
+  const panelRegistryRef = useRef(new Map<number, React.ReactNode>())
 
   const zIndex = parseNumber(zIndexProp, 10)
   const durationMs =
@@ -75,10 +75,10 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   const threshold =
     thresholdRaw !== undefined && thresholdRaw > 0 ? Math.floor(thresholdRaw) : undefined
 
-  const progress = React.useRef(new Animated.Value(0)).current
-  const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
+  const progress = useRef(new Animated.Value(0)).current
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null)
 
-  const runAnimation = React.useCallback(
+  const runAnimation = useCallback(
     (toValue: number, onFinished?: () => void) => {
       animationRef.current?.stop()
       if (durationMs === 0) {
@@ -100,14 +100,14 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     [durationMs, progress],
   )
 
-  const registerPanel = React.useCallback((index: number, content: React.ReactNode) => {
+  const registerPanel = useCallback((index: number, content: React.ReactNode) => {
     panelRegistryRef.current.set(index, content)
     if (activeIndexRef.current === index) {
       setPanel(content)
     }
   }, [])
 
-  const showItem = React.useCallback(
+  const showItem = useCallback(
     (index: number) => {
       if (disabled) return
       activeIndexRef.current = index
@@ -117,12 +117,12 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     [disabled],
   )
 
-  const closeMenu = React.useCallback(() => {
+  const closeMenu = useCallback(() => {
     activeIndexRef.current = null
     setActiveIndex(null)
   }, [])
 
-  const toggleItem = React.useCallback(
+  const toggleItem = useCallback(
     (index: number) => {
       if (disabled) return
       if (activeIndexRef.current === index) {
@@ -134,7 +134,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     [closeMenu, disabled, showItem],
   )
 
-  React.useImperativeHandle(
+  useImperativeHandle(
     ref,
     () => ({
       toggleItem,
@@ -144,7 +144,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     [closeMenu, showItem, toggleItem],
   )
 
-  const requestMeasure = React.useCallback((fallbackHeight?: number) => {
+  const requestMeasure = useCallback((fallbackHeight?: number) => {
     const node = barRef.current
 
     if (!node) {
@@ -182,8 +182,8 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     })
   }, [barHeight, barWidth, windowWidth])
 
-  const prevActiveIndexRef = React.useRef<number | null>(null)
-  React.useEffect(() => {
+  const prevActiveIndexRef = useRef<number | null>(null)
+  useEffect(() => {
     const prev = prevActiveIndexRef.current
     prevActiveIndexRef.current = activeIndex
     if (activeIndex !== null && prev === null) {
@@ -205,12 +205,12 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     }
   }, [activeIndex, onClose, onClosed, onOpen, onOpened, progress, requestMeasure, runAnimation])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mounted) return
     requestMeasure()
   }, [mounted, requestMeasure, windowHeight])
 
-  React.useEffect(
+  useEffect(
     () => () => {
       animationRef.current?.stop()
     },
@@ -219,7 +219,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const barScrollable = threshold !== undefined && React.Children.count(children) > threshold
 
-  const contextValue = React.useMemo(
+  const contextValue = useMemo(
     () => ({
       activeIndex,
       registerPanel,
@@ -258,17 +258,17 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
   const resolvedBarBottom = resolvedBarTop + resolvedBarHeight
   const bottomInset = Math.max(0, windowHeight - resolvedBarTop)
 
-  const insetStyle = React.useMemo(
+  const insetStyle = useMemo(
     () => (direction === 'up' ? { bottom: bottomInset } : { top: resolvedBarBottom }),
     [bottomInset, direction, resolvedBarBottom],
   )
-  const panelPositionStyle = React.useMemo(
+  const panelPositionStyle = useMemo(
     () => ({ left: resolvedBarLeft, width: resolvedBarWidth }),
     [resolvedBarLeft, resolvedBarWidth],
   )
   const panelRadiusStyle = direction === 'up' ? styles.panelUp : styles.panelDown
 
-  const panelAnimatedStyle = React.useMemo(() => {
+  const panelAnimatedStyle = useMemo(() => {
     const offset = 8
     const translate = progress.interpolate({
       inputRange: [0, 1],
@@ -286,7 +286,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
 
   const resolvedZIndex = stackZIndex ?? zIndex
 
-  const barChildren = React.useMemo(
+  const barChildren = useMemo(
     () =>
       React.Children.map(children, (child, index) => {
         if (!React.isValidElement(child)) return child
@@ -296,7 +296,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     [barScrollable, children],
   )
 
-  const barStyle = React.useMemo(
+  const barStyle = useMemo(
     () => [
       styles.barWrapper,
       {
@@ -319,7 +319,7 @@ const DropdownMenu = React.forwardRef<DropdownMenuInstance, DropdownMenuProps>((
     ],
   )
 
-  const handleBarLayout = React.useCallback(
+  const handleBarLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number; width: number } } }) => {
       const { height, width } = event.nativeEvent.layout
       setBarHeight(height)

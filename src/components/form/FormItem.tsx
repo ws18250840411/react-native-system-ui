@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
 
 import { isFunction, isString } from '../../utils'
 import { FormContext } from './FormContext'
@@ -27,7 +27,7 @@ export const FormItem: React.FC<FormItemProps> = ({
   children,
 }) => {
   const renderProps = typeof children === 'function'
-  const context = React.useContext(FormContext)
+  const context = useContext(FormContext)
 
   if (!context) {
     if (renderProps) {
@@ -45,15 +45,15 @@ export const FormItem: React.FC<FormItemProps> = ({
   }
 
   const normalizedRules = rules ?? EMPTY_RULES
-  const prevValuesRef = React.useRef<Record<string, unknown>>(context.values)
+  const prevValuesRef = useRef<Record<string, unknown>>(context.values)
 
-  React.useEffect(() => {
+  useEffect(() => {
     prevValuesRef.current = context.values
   }, [context.values])
 
   const shouldRender = !shouldUpdate || shouldUpdate(prevValuesRef.current, context.values)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!name) return undefined
     return context.registerField(name, {
       rules: normalizedRules,

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useImperativeHandle } from 'react'
 import renderer from 'react-test-renderer'
 
 import {
@@ -21,7 +21,7 @@ jest.mock('@react-native-aria/toggle', () => ({
 const TestComponent = React.forwardRef<UseAriaToggleResult | null, { options: UseAriaToggleOptions }>(
   ({ options }, ref) => {
     const value = useAriaToggle(options)
-    React.useImperativeHandle(ref, () => value, [value])
+    useImperativeHandle(ref, () => value, [value])
     return null
   }
 )
@@ -70,4 +70,3 @@ describe('useAriaToggle', () => {
     expect(mockUseToggle.mock.calls[0][2]).toBe(externalRef)
   })
 })
-

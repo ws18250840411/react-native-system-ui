@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { SafeAreaView, StyleSheet, View, type LayoutChangeEvent } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
@@ -37,15 +37,14 @@ const TabbarBase: React.FC<TabbarProps> = props => {
   const placeholder = placeholderProp ?? tokens.defaults.placeholder
   const iconSize = iconSizeProp ?? tokens.icon.size
 
-  // 与 Vant 行为对齐：fixed 时默认开启 safe-area-inset-bottom
   const enableSafeAreaInsetBottom = safeAreaInsetBottom ?? fixed
 
-  const items = React.useMemo(
+  const items = useMemo(
     () =>
       React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<TabbarItemProps>[],
     [children],
   )
-  const firstName = React.useMemo(
+  const firstName = useMemo(
     () => (items.length ? ((items[0].props.name ?? 0) as TabbarValue) : undefined),
     [items],
   )
@@ -56,18 +55,18 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     trigger: 'onChange',
   })
 
-  const itemNames = React.useMemo(
+  const itemNames = useMemo(
     () => items.map((item, index) => (item.props.name ?? index) as TabbarValue),
     [items],
   )
-  const currentName = React.useMemo(() => {
+  const currentName = useMemo(() => {
     if (activeValue === undefined || activeValue === null) return firstName
     return itemNames.some((name) => name === activeValue) ? activeValue : firstName
   }, [activeValue, firstName, itemNames])
 
-  const [barHeight, setBarHeight] = React.useState(tokens.layout.height)
+  const [barHeight, setBarHeight] = useState(tokens.layout.height)
   const enablePlaceholder = fixed && placeholder
-  const handleLayout = React.useCallback(
+  const handleLayout = useCallback(
     (event: LayoutChangeEvent) => {
       if (!enablePlaceholder) return
       const nextHeight = event.nativeEvent.layout.height
@@ -75,11 +74,11 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     },
     [enablePlaceholder],
   )
-  const onSelect = React.useCallback(
+  const onSelect = useCallback(
     (name: TabbarValue, index: number) => setActiveValue(name, index),
     [setActiveValue],
   )
-  const contextValue = React.useMemo(
+  const contextValue = useMemo(
     () => ({
       activeValue: currentName,
       activeColor: activeColor ?? tokens.colors.active,
@@ -100,7 +99,7 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     ],
   )
 
-  const clonedChildren = React.useMemo(
+  const clonedChildren = useMemo(
     () =>
       items.map((item, index) => {
         const name = (item.props.name ?? index) as TabbarValue

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 import { Pressable, SafeAreaView, Text, View, type LayoutChangeEvent } from 'react-native'
 import { ArrowLeft } from 'react-native-system-icon'
 
@@ -48,9 +48,9 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   const handlePressLeft = onPressLeft ?? onClickLeft
   const handlePressRight = onPressRight ?? onClickRight
 
-  const [height, setHeight] = React.useState(tokens.sizing.height)
+  const [height, setHeight] = useState(tokens.sizing.height)
   const enablePlaceholder = fixed && placeholder
-  const handleLayout = React.useCallback(
+  const handleLayout = useCallback(
     (event: LayoutChangeEvent) => {
       if (!enablePlaceholder) return
       const nextHeight = event.nativeEvent.layout.height

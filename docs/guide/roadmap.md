@@ -1,28 +1,30 @@
-# React Native System UI 路线图
+# 路线图
 
-> 目标：在 2026 Q1 前用 React Native 交付一套高质量的移动端组件集，依托 `@react-native-aria` 提供一致的可访问能力，并同步交付文档与测试。
+里程碑划分与组件状态表，用于跟踪进度与规划。
 
-## 1. 当前基线（2025-11-25）
+> 目标：在 React Native 上交付高质量移动端组件集，依托 `@react-native-aria` 提供一致可访问能力，并同步文档与测试。
 
-- **已完成功能**：`Button、Badge、Cell、Collapse、ConfigProvider、Dialog、Divider、Empty、Flex、Grid、Loading、NoticeBar、Popup、Portal、Progress、Slider、Space、Tag、Toast、Typography`，均已提供 docs + demo。
-- **设计系统**：`ThemeProvider` 下发 foundations + `components` overrides；`themePresets` 已提供 light/dark/aurora 三套示例便于切换。
-- **基础设施缺口**
-  1. `@react-native-aria` 统一封装：`useAriaPress/useAriaToggle/useAriaListBox/useAriaOverlay` 已抽象并补文档+单测，但需要在更多组件中验证。
-  2. Overlay 栈：Portal 已具雏形，堆叠管理/BackHandler/滚动锁 + 单测已补齐，但动画预设与焦点锁定仍未落地。
-  3. 手势与动画：现仅有 `usePresenceAnimation`（淡入淡出），缺通用的弹性/弹簧预设、手势同步（可能依赖 `react-native-gesture-handler`/`reanimated`）。
-  4. 表单上下文：尚无 `Form`、`useFormContext`、校验策略，需要确定状态管理（优先考虑 `react-hook-form` 还是轻量自研）。
+## 1. 当前基线
 
-## 2. 里程碑切分
+- **已交付组件**：基础与展示：Button、Badge、Cell、Collapse、Divider、Empty、Flex、Grid、Space、Tag、Typography、Loading、NoticeBar、Popup、Portal、Progress、Slider、Toast、Dialog 等；表单与输入：Form、Field、Input、Checkbox、Radio、Switch、Stepper、Rate、Picker、Calendar、Search 等；导航与反馈：Tabs、NavBar、Tabbar、ActionSheet、Notify、Overlay 等；设计系统：ConfigProvider、ThemeProvider、themePresets。均已提供文档与 demo。详细列表见仓库 README「已交付能力」。
+- **设计系统**：ThemeProvider 下发 foundations 与 components overrides；themePresets 提供 light / dark / aurora 三套预设。
+- **待补齐能力**
+  1. **A11y**：useAriaPress / useAriaToggle / useAriaListBox / useAriaOverlay 已抽象并补文档与单测，待在更多组件中接入。
+  2. **Overlay**：Portal 与栈管理、BackHandler、滚动锁已就绪，动画预设与焦点锁定待落地。
+  3. **手势与动画**：当前仅有 usePresenceAnimation（淡入淡出），弹性/弹簧预设与手势同步待补充。
+  4. **表单**：Form、useFormContext、校验策略待定，状态管理方案待选型。
 
-| Milestone | 时间窗口 | 目标 | 关键输出 |
+## 2. 里程碑
+
+| 阶段 | 时间 | 目标 | 关键产出 |
 | --- | --- | --- | --- |
-| M0 基建封装 | Week 0-1 | 统一 tokens、overlay、aria hooks，补充主题文档 | `useAria*` Hook 集合、Overlay 管理器、动画预设、`docs/guide/architecture.md` 增补 |
-| M1 表单与输入 | Week 1-3 | 完成 Field/Input/Form + Checkbox/Radio/Switch/Stepper/Rate/Search/Selector/NumberKeyboard | 组件实现 + 单测 + docs（≥3 demo） |
-| M2 导航 & 行为 | Week 3-5 | Tabs/Tabbar/NavBar/Sidebar/IndexBar/DropdownMenu/ActionSheet/ShareSheet | Overlay/手势复用验证；通知/弹层交互一致 |
-| M3 数据选择 & 列表 | Week 5-7 | Picker/DatetimePicker/Calendar/Cascader/Area/List/PullRefresh/SwipeCell/Swiper/Image/ImagePreview/Uploader/Skeleton | 列表滚动、懒加载、图片占位策略 |
-| M4 业务组件 & 发行 | Week 7+ | SubmitBar/Sku/ProductCard/Coupon/FloatingPanel/Ball/WaterMark 等；准备 beta/GA | 业务 demo、性能调优、Release Note、主题示例 |
+| M0 基建 | Week 0-1 | tokens / overlay / aria hooks 统一，主题文档补全 | useAria* 集合、Overlay 管理、动画预设、架构文档 |
+| M1 表单与输入 | Week 1-3 | Field/Input/Form 及 Checkbox/Radio/Switch/Stepper/Rate/Search/Selector/NumberKeyboard | 组件 + 单测 + 文档（≥3 demo） |
+| M2 导航与行为 | Week 3-5 | Tabs/Tabbar/NavBar/Sidebar/IndexBar/DropdownMenu/ActionSheet/ShareSheet | Overlay 与手势复用、弹层交互一致 |
+| M3 数据与列表 | Week 5-7 | Picker/DatetimePicker/Calendar/Cascader/Area/List/PullRefresh/SwipeCell/Swiper/Image/ImagePreview/Uploader/Skeleton | 列表滚动、懒加载、图片占位 |
+| M4 业务与发行 | Week 7+ | SubmitBar/Sku/ProductCard/Coupon/FloatingPanel/WaterMark 等；beta/GA 准备 | 业务 demo、性能调优、Release Note |
 
-## 3. 组件状态表
+## 3. 组件状态
 
 | 分类 | 组件 | 状态 | 优先级 | 依赖/前置 | 备注 |
 | --- | --- | --- | --- | --- | --- |
@@ -43,11 +45,11 @@
 | 业务组件 | SubmitBar, Sku, ProductCard, Coupon, CouponCell, CountDown, Pagination, FloatingPanel, WaterMark | ⏳ 计划中 | P2 | 依赖输入 & 弹层 | 可与业务需求同步迭代 |
 | 其他 | Hooks（useCountdown、useFloatingPanel 等） | ⏳ 计划中 | P2 | 组件完成度 | 与业务组件并行 |
 
-> 状态说明：✅ 已完成 / ⏳ 进行中或计划中。优先级：P0（阻塞性）、P1（高）、P2（中）。
+> 图例：✅ 已完成 / ⏳ 进行中或计划中。优先级 P0（阻塞）/ P1（高）/ P2（中）。
 
 ## 4. 工作流约定
 
-1. **组件 Checklist**：Token → Props → 实现 → Docs → Demo → Test → 主题可调 → 交互验证（iOS/Android/Web）。
-2. **文档同步**：新增组件时同步创建 `docs/components/<component>/*.md + demo`，中文描述 + API 表保持统一规范。
-3. **测试策略**：逻辑层使用 `react-test-renderer`；涉及手势的组件需补 e2e（Detox）或录屏验证；Overlay/动画需快照 + 定时器测试。
-4. **版本节奏**：每完成一个里程碑发布 `alpha.x`；在 M3 完成后尝试 `beta`，M4 完成后发布 `1.0.0`。
+1. **组件交付**：Token → Props → 实现 → Docs → Demo → Test → 主题可调 → 多端验证（iOS/Android/Web）。
+2. **文档**：新增组件同步维护 `docs/components/<component>`，描述与 API 表统一规范。
+3. **测试**：逻辑层 `react-test-renderer`；手势类补 e2e 或录屏；Overlay/动画用快照与定时器测试。
+4. **版本**：每里程碑发布 alpha.x；M3 后试 beta，M4 后 1.0.0。

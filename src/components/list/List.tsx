@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { isFunction, isRenderable, isText, isUndefined } from '../../utils'
@@ -41,23 +41,23 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
 
   const loadingControlled = !isUndefined(loading)
   const errorControlled = !isUndefined(error)
-  const [innerLoading, setInnerLoading] = React.useState(false)
-  const [innerError, setInnerError] = React.useState(false)
+  const [innerLoading, setInnerLoading] = useState(false)
+  const [innerError, setInnerError] = useState(false)
   const mergedLoading = loadingControlled ? !!loading : innerLoading
   const mergedError = errorControlled ? !!error : innerError
 
-  const loadingRef = React.useRef(false)
-  const mergedLoadingRef = React.useRef(mergedLoading)
-  const mergedErrorRef = React.useRef(mergedError)
-  const containerMainSizeRef = React.useRef(0)
-  const contentMainSizeRef = React.useRef(0)
+  const loadingRef = useRef(false)
+  const mergedLoadingRef = useRef(mergedLoading)
+  const mergedErrorRef = useRef(mergedError)
+  const containerMainSizeRef = useRef(0)
+  const contentMainSizeRef = useRef(0)
 
-  React.useEffect(() => {
+  useEffect(() => {
     mergedLoadingRef.current = mergedLoading
     mergedErrorRef.current = mergedError
   }, [mergedLoading, mergedError])
 
-  const triggerLoad = React.useCallback(async (isRetry: boolean) => {
+  const triggerLoad = useCallback(async (isRetry: boolean) => {
     if (!onLoad || finished) return
     if (loadingRef.current || mergedLoadingRef.current) return
     if (mergedErrorRef.current && !isRetry) return
@@ -75,7 +75,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     }
   }, [errorControlled, finished, loadingControlled, onLoad])
 
-  const check = React.useCallback(() => {
+  const check = useCallback(() => {
     if (mergedLoadingRef.current || mergedErrorRef.current) return
     if (!containerMainSizeRef.current) return
     if (contentMainSizeRef.current <= containerMainSizeRef.current && !finished) {
@@ -83,9 +83,9 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     }
   }, [finished, triggerLoad])
 
-  React.useImperativeHandle(ref, () => ({ check }), [check])
+  useImperativeHandle(ref, () => ({ check }), [check])
 
-  const handleScroll = React.useCallback((event: any) => {
+  const handleScroll = useCallback((event: any) => {
     onScroll?.(event)
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent
     const distance = horizontal
@@ -94,13 +94,13 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     if (distance <= offset) triggerLoad(false)
   }, [horizontal, offset, onScroll, triggerLoad])
 
-  const handleContentSizeChange = React.useCallback((width: number, height: number) => {
+  const handleContentSizeChange = useCallback((width: number, height: number) => {
     onContentSizeChange?.(width, height)
     contentMainSizeRef.current = horizontal ? width : height
     if (immediateCheck) check()
   }, [check, horizontal, immediateCheck, onContentSizeChange])
 
-  const handleLayout = React.useCallback((event: any) => {
+  const handleLayout = useCallback((event: any) => {
     onLayout?.(event)
     const { layout } = event.nativeEvent
     containerMainSizeRef.current = horizontal ? layout.width : layout.height

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {
   Pressable,
   Text,
@@ -13,7 +13,7 @@ import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
 export const GridItem: React.FC<GridItemProps> = props => {
-  const context = React.useContext(GridContext)
+  const context = useContext(GridContext)
   if (!context) throw new Error('GridItem must be used within Grid')
 
   const {

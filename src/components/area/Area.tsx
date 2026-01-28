@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 
 import Picker from '../picker'
 import type { PickerOption, PickerValue } from '../picker/types'
@@ -20,7 +20,7 @@ const normalizeCascadeValue = (
     const nextOption: PickerOption | undefined = options.find(o => String(o.value) === wanted) ?? options[0]
     if (!nextOption) break
     result.push(String(nextOption.value))
-    options = (nextOption.children as PickerOption[] | undefined) ?? undefined
+    options = nextOption.children as PickerOption[] | undefined
   }
   return result
 }
@@ -39,29 +39,29 @@ const Area: React.FC<AreaProps> = props => {
 
   const resolvedColumnsNum = columnsNum === 1 || columnsNum === 2 || columnsNum === 3 ? columnsNum : 3
   const { province_list, city_list, county_list } = areaList
-  const columns = React.useMemo(
+  const columns = useMemo(
     () => buildAreaColumns({ province_list, city_list, county_list }, resolvedColumnsNum),
     [province_list, city_list, county_list, resolvedColumnsNum]
   )
 
-  const normalizedValue = React.useMemo(() => {
+  const normalizedValue = useMemo(() => {
     if (value === undefined) return undefined
     return normalizeCascadeValue(columns as PickerOption[], value, resolvedColumnsNum)
   }, [columns, resolvedColumnsNum, value])
 
-  const normalizedDefaultValue = React.useMemo(() => {
+  const normalizedDefaultValue = useMemo(() => {
     if (defaultValue === undefined) return undefined
     return normalizeCascadeValue(columns as PickerOption[], defaultValue, resolvedColumnsNum)
   }, [columns, defaultValue, resolvedColumnsNum])
 
-  const handleChange = React.useCallback(
+  const handleChange = useCallback(
     (values: PickerValue[], options: (PickerOption | undefined)[]) => {
       onChange?.(values.map(String), options as (AreaOption | undefined)[])
     },
     [onChange]
   )
 
-  const handleConfirm = React.useCallback(
+  const handleConfirm = useCallback(
     (values: PickerValue[], options: (PickerOption | undefined)[]) => {
       onConfirm?.(values.map(String), options as (AreaOption | undefined)[])
     },

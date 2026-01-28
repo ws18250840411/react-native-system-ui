@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Platform,
@@ -10,12 +10,9 @@ import {
 
 import { useUploaderTokens } from './tokens'
 import type {
-  UploaderBeforeRead,
   UploaderInstance,
   UploaderItemStatus,
-  UploaderMaxSize,
   UploaderProps,
-  UploaderResultType,
   UploaderValueItem,
 } from './types'
 import { useControllableValue } from '../../hooks'
@@ -87,18 +84,18 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     defaultValue: [],
   })
   const items = toArray(rawItems ?? [])
-  const itemsRef = React.useRef(items)
-  React.useEffect(() => {
+  const itemsRef = useRef(items)
+  useEffect(() => {
     itemsRef.current = items
   }, [items])
 
-  const normalizeKeyRef = React.useRef(0)
+  const normalizeKeyRef = useRef(0)
   const normalizeItem = (item: UploaderValueItem, keyFallback?: string | number) => {
     const key = item.key ?? keyFallback ?? `rv-uploader-${normalizeKeyRef.current++}`
     return item.key === key ? item : { ...item, key }
   }
 
-  const objectUrlsRef = React.useRef(new Set<string>())
+  const objectUrlsRef = useRef(new Set<string>())
   const createObjectUrl = (file: File) => {
     if (typeof URL === 'undefined' || !isFunction(URL.createObjectURL)) return undefined
     const url = URL.createObjectURL(file)
@@ -114,8 +111,8 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     objectUrlsRef.current.delete(url)
   }
 
-  const prevItemUrlsRef = React.useRef<Set<string>>(new Set())
-  React.useEffect(() => {
+  const prevItemUrlsRef = useRef<Set<string>>(new Set())
+  useEffect(() => {
     const current = new Set<string>()
     items.forEach(item => {
       if (isString(item.url)) {
@@ -132,7 +129,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     prevItemUrlsRef.current = current
   }, [items])
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       objectUrlsRef.current.forEach(url => {
         if (typeof URL !== 'undefined' && isFunction(URL.revokeObjectURL)) {
@@ -157,15 +154,15 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   const maxSizeValue = normalizeMaxSize(maxSize, Number.MAX_VALUE) as NormalizedMaxSize
   const sizeValue = parseNumber(previewSize, tokens.size)
 
-  const idRef = React.useRef(0)
-  const [tasks, setTasks] = React.useState<InternalTask[]>([])
-  const tasksRef = React.useRef(tasks)
-  React.useEffect(() => {
+  const idRef = useRef(0)
+  const [tasks, setTasks] = useState<InternalTask[]>([])
+  const tasksRef = useRef(tasks)
+  useEffect(() => {
     tasksRef.current = tasks
   }, [tasks])
 
-  const [previewVisible, setPreviewVisible] = React.useState(false)
-  const [previewIndex, setPreviewIndex] = React.useState(0)
+  const [previewVisible, setPreviewVisible] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   const imageFiles = items.filter(item => isImageFile(item, isImageUrl?.(item)))
   const previewImages = imageFiles
@@ -255,11 +252,11 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     })
   }
 
-  const webInputRef = React.useRef<HTMLInputElement | null>(null)
-  const webHandlerRef = React.useRef<(files: File[]) => void>(() => {})
+  const webInputRef = useRef<HTMLInputElement | null>(null)
+  const webHandlerRef = useRef<(files: File[]) => void>(() => {})
   webHandlerRef.current = handleWebFiles
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (Platform.OS !== 'web') return
     if (typeof document === 'undefined') return
 
@@ -293,7 +290,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     }
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     const input = webInputRef.current
     if (!input) return
     input.accept = accept
@@ -334,7 +331,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
 
   const closeImagePreview = () => setPreviewVisible(false)
 
-  React.useImperativeHandle(ref, () => ({
+  useImperativeHandle(ref, () => ({
     chooseFile,
     closeImagePreview,
   }), [chooseFile])

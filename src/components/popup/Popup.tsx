@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Dimensions,
@@ -130,7 +130,6 @@ const renderHeaderNode = (
 const renderWithSafeArea = (
   children: React.ReactNode,
   opts: { safeArea: boolean; safeAreaInsetTop: boolean; safeAreaInsetBottom: boolean },
-  safeAreaTopRef?: React.RefObject<View>,
   onSafeAreaTopLayout?: (event: LayoutChangeEvent) => void
 ) => {
   if (opts.safeArea) {
@@ -144,7 +143,6 @@ const renderWithSafeArea = (
     <>
       {opts.safeAreaInsetTop ? (
         <SafeAreaView
-          ref={safeAreaTopRef}
           style={[styles.safeInsetTop, { pointerEvents: 'none' }]}
           onLayout={onSafeAreaTopLayout}
         />
@@ -209,7 +207,7 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const tokens = usePopupTokens(tokensOverride)
 
-  const dynamicStyles = React.useMemo(() => {
+  const dynamicStyles = useMemo(() => {
     const shadow = createPlatformShadow({
       color: tokens.shadow.color,
       opacity: tokens.shadow.opacity,
@@ -284,21 +282,21 @@ export const Popup: React.FC<PopupProps> = props => {
     }
   }, [tokens])
 
-  const [mounted, setMounted] = React.useState(visible)
-  const [interactionVisible, setInteractionVisible] = React.useState(visible)
+  const [mounted, setMounted] = useState(visible)
+  const [interactionVisible, setInteractionVisible] = useState(visible)
   const isOpen = visible || interactionVisible
   const canCloseOnOverlay = shouldCloseOnOverlay && (onClose || beforeClose)
-  const progress = React.useRef(new Animated.Value(0)).current
-  const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
-  const animationSeqRef = React.useRef(0)
-  const prevVisible = React.useRef(visible)
-  const closingRef = React.useRef(false)
+  const progress = useRef(new Animated.Value(0)).current
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null)
+  const animationSeqRef = useRef(0)
+  const prevVisible = useRef(visible)
+  const closingRef = useRef(false)
 
   const isVertical = placement === 'top' || placement === 'bottom'
   const isHorizontal = placement === 'left' || placement === 'right'
   const direction = placement === 'top' || placement === 'left' ? -1 : 1
 
-  const runAnimation = React.useCallback(
+  const runAnimation = useCallback(
     (show: boolean) => {
       animationSeqRef.current += 1
       const currentSeq = animationSeqRef.current
@@ -328,7 +326,7 @@ export const Popup: React.FC<PopupProps> = props => {
     [destroyOnClose, duration, onClosed, onOpened, progress]
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (visible) {
       setMounted(true)
       setInteractionVisible(true)
@@ -339,21 +337,21 @@ export const Popup: React.FC<PopupProps> = props => {
     }
   }, [runAnimation, visible])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (visible && !prevVisible.current) {
       onOpen?.()
     }
     prevVisible.current = visible
   }, [onOpen, visible])
 
-  React.useEffect(
+  useEffect(
     () => () => {
       animationRef.current?.stop()
     },
     []
   )
 
-  const requestClose = React.useCallback(
+  const requestClose = useCallback(
     async (reason: 'close-icon' | 'overlay' | 'close') => {
       if (closingRef.current) return
       closingRef.current = true
@@ -372,7 +370,7 @@ export const Popup: React.FC<PopupProps> = props => {
     [beforeClose, onClose]
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!closeOnPopstate) {
       return
     }
@@ -383,7 +381,7 @@ export const Popup: React.FC<PopupProps> = props => {
     return addPopStateListener(handler)
   }, [closeOnPopstate, requestClose, visible])
 
-  const handleStackClose = React.useCallback(() => {
+  const handleStackClose = useCallback(() => {
     requestClose('close')
   }, [requestClose])
 
@@ -408,21 +406,21 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const { onLayout: overlayOnLayout, ...overlayRestProps } = overlayProps
 
-  const stopPropagationResponder = React.useCallback(() => true, [])
+  const stopPropagationResponder = useCallback(() => true, [])
 
   const contentInteractionProps = stopPropagation
     ? { ...overlayRestProps, onStartShouldSetResponder: stopPropagationResponder }
     : overlayRestProps
 
   const config = placementConfig[placement]
-  const radiusStyle = React.useMemo(
+  const radiusStyle = useMemo(
     () => buildRadius(round, placement, tokens.radius.round),
     [placement, round, tokens.radius.round],
   )
 
   const { animated: overlayOpacity } = usePresenceAnimation(visible, { duration })
 
-  const translateDistance = React.useMemo(() => {
+  const translateDistance = useMemo(() => {
     if (placement === 'left' || placement === 'right') {
       return Dimensions.get('window').width
     }
@@ -432,7 +430,7 @@ export const Popup: React.FC<PopupProps> = props => {
     return 0
   }, [placement])
 
-  const translateTransform = React.useMemo(() => {
+  const translateTransform = useMemo(() => {
     if (!shouldTranslate) return null
     const outputRange: [number, number] = [translateDistance * direction, 0]
     return config.axis === 'y'
@@ -440,12 +438,12 @@ export const Popup: React.FC<PopupProps> = props => {
       : { translateX: progress.interpolate({ inputRange: [0, 1], outputRange }) }
   }, [config.axis, direction, progress, shouldTranslate, translateDistance])
 
-  const baseTransform = React.useMemo(
+  const baseTransform = useMemo(
     () => (translateTransform ? [translateTransform] : []),
     [translateTransform],
   )
 
-  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = React.useMemo(() => {
+  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = useMemo(() => {
     const extraTransform = contentAnimationStyle?.transform
     const transform = Array.isArray(extraTransform) ? [...baseTransform, ...extraTransform] : baseTransform
     const baseStyle = { ...contentAnimationStyle, transform }
@@ -458,15 +456,15 @@ export const Popup: React.FC<PopupProps> = props => {
     return baseStyle
   }, [baseTransform, contentAnimationStyle, placement, progress])
 
-  const handleContentLayout = React.useCallback(
+  const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {
       overlayOnLayout?.(event)
     },
     [overlayOnLayout]
   )
 
-  const [safeAreaTopHeight, setSafeAreaTopHeight] = React.useState(0)
-  const handleSafeAreaTopLayout = React.useCallback(
+  const [safeAreaTopHeight, setSafeAreaTopHeight] = useState(0)
+  const handleSafeAreaTopLayout = useCallback(
     (event: LayoutChangeEvent) => {
       setSafeAreaTopHeight(event.nativeEvent.layout.height)
     },
@@ -563,7 +561,6 @@ export const Popup: React.FC<PopupProps> = props => {
       {renderWithSafeArea(
         contentBody,
         { safeArea, safeAreaInsetTop, safeAreaInsetBottom },
-        undefined,
         safeAreaInsetTop ? handleSafeAreaTopLayout : undefined
       )}
     </Animated.View>
@@ -574,7 +571,7 @@ export const Popup: React.FC<PopupProps> = props => {
   return (
     <Portal>
       <View
-        style={[styles.portalRoot, resolvedZIndex && { zIndex: resolvedZIndex }]}
+        style={[styles.portalRoot, resolvedZIndex ? { zIndex: resolvedZIndex } : undefined]}
         pointerEvents="box-none"
       >
         <View

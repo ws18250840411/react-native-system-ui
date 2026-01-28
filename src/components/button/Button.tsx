@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext, useMemo } from 'react'
 import {
   ActivityIndicator,
   Platform,
@@ -40,7 +40,7 @@ const resolveSpinnerSize = (
 
 export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
   (props, forwardedRef) => {
-    const group = React.useContext(ButtonGroupContext)
+    const group = useContext(ButtonGroupContext)
 
     const {
       text,
@@ -115,7 +115,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const hasGradientSyntax =
       gradientString?.toLowerCase().includes('gradient') ?? false
     const normalizedColor = hasGradientSyntax
-      ? extractFirstColorToken(gradientString) ?? undefined
+      ? extractFirstColorToken(gradientString)
       : buttonColorOverride
     const allowsGradientFill =
       derivedMode === 'contained' ||
@@ -143,22 +143,14 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
             ? normalizedColor ?? tone.border
             : buttonTokens.colors.backgroundTransparent
 
-    // 解析文字颜色
     let resolvedTextColor = textColor
 
     if (!resolvedTextColor) {
       if (derivedMode === 'contained-tonal') {
         resolvedTextColor = tone.tonalText
       } else if (derivedMode === 'contained' || derivedMode === 'elevated') {
-        // 实心按钮逻辑：
-        // 1. 自定义背景色：默认为白色文字（假设自定义背景通常为深色/品牌色）
-        // 2. 预设类型：读取 token 配置（Primary/Danger 等默认为白色，Default 默认为深色）
         resolvedTextColor = normalizedColor ? '#ffffff' : tone.text
       } else {
-        // 文本/边框按钮逻辑：
-        // 1. 自定义颜色：跟随自定义颜色
-        // 2. Default 类型：使用深色文本
-        // 3. 其他类型：使用主题色（Primary/Danger 等）
         resolvedTextColor = normalizedColor ?? (type === 'default' ? tone.text : tone.border)
       }
     }
@@ -234,14 +226,14 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         ? ({ backgroundImage: gradientString } as unknown as ViewStyle)
         : undefined
 
-    const iconWrapperStyle = React.useMemo(
+    const iconWrapperStyle = useMemo(
       () =>
         iconPosition === 'left'
           ? { marginRight: buttonTokens.spacing.iconGap }
           : { marginLeft: buttonTokens.spacing.iconGap },
       [buttonTokens.spacing.iconGap, iconPosition]
     )
-    const loadingIconWrapperStyle = React.useMemo(
+    const loadingIconWrapperStyle = useMemo(
       () => ({ marginRight: buttonTokens.spacing.iconGap }),
       [buttonTokens.spacing.iconGap]
     )
@@ -297,7 +289,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           ? text
           : children
 
-    const sharedLabelTextStyle = React.useMemo(
+    const sharedLabelTextStyle = useMemo(
       () => ({
         fontFamily: buttonTokens.typography.fontFamily,
         fontWeight: buttonTokens.typography.fontWeight,
@@ -392,7 +384,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           ? buttonTokens.states.pressedOpacity
           : 1
 
-    const containerStyle = React.useMemo(
+    const containerStyle = useMemo(
       () => ({
         minHeight: sizeTokens.height,
         paddingHorizontal: sizeTokens.paddingHorizontal,
@@ -412,14 +404,14 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         sizeTokens.paddingHorizontal,
       ]
     )
-    const rippleClipStyle = React.useMemo(
+    const rippleClipStyle = useMemo(
       () =>
         Platform.OS === 'android' && borderRadius > 0 && !shouldShowShadow
           ? { overflow: 'hidden' as const }
           : null,
       [borderRadius, shouldShowShadow]
     )
-    const baseContainerStyle = React.useMemo(
+    const baseContainerStyle = useMemo(
       () => [
         buttonTokens.layout.base,
         containerStyle,
@@ -453,7 +445,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         : type === 'default' && !normalizedColor
           ? withAlpha(resolvedTextColor, 0.15)
           : buttonTokens.colors.ripple)
-    const resolvedAndroidRipple = React.useMemo(
+    const resolvedAndroidRipple = useMemo(
       () =>
         Platform.OS === 'android'
           ? androidRippleProp ?? { color: defaultRippleColor, borderless: false }

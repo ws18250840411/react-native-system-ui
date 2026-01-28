@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { Platform, View } from 'react-native'
 
@@ -34,7 +34,7 @@ export const ButtonGroup = React.memo<ButtonGroupProps>(({
   const isHorizontal = direction === 'horizontal'
   const supportsGap = Platform.OS === 'web'
 
-  const groupValue = React.useMemo(
+  const groupValue = useMemo(
     () => ({
       type,
       size,
@@ -51,7 +51,7 @@ export const ButtonGroup = React.memo<ButtonGroupProps>(({
     [type, size, plain, block, round, square, shadow, disabled, iconPosition, hairline, mode]
   )
 
-  const containerStyle = React.useMemo(() => {
+  const containerStyle = useMemo(() => {
     const base: ViewStyle = {
       flexDirection: isHorizontal ? 'row' : 'column',
       alignItems: 'center',
@@ -72,7 +72,7 @@ export const ButtonGroup = React.memo<ButtonGroupProps>(({
     return [base, style]
   }, [isHorizontal, block, supportsGap, gap, style])
 
-  const content = React.useMemo(() => {
+  const content = useMemo(() => {
     if (supportsGap) {
       return children
     }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Pressable, Text, View } from 'react-native'
 
 import { usePaginationTokens } from './tokens'
@@ -50,7 +50,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         : 1
   const currentPage = clamp(page, 1, count)
 
-  const pages = React.useMemo(() => {
+  const pages = useMemo(() => {
     const items: PaginationPageItem[] = []
     if (mode !== 'multi') return items
 
@@ -80,7 +80,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     return items
   }, [mode, count, showPageSizeNumber, currentPage, forceEllipses])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (page !== currentPage) {
       setPage(currentPage)
     }

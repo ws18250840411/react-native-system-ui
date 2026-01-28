@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Pressable,
@@ -53,22 +53,21 @@ export const Notify: React.FC<NotifyProps> = props => {
   const resolvedBackground = background ?? variant.background
   const resolvedTextColor = color ?? variant.text
   const resolvedDuration = durationProp ?? tokens.defaults.duration
-  const topInsetStyle = React.useMemo(
+  const topInsetStyle = useMemo(
     () => ({ backgroundColor: resolvedBackground }),
     [resolvedBackground]
   )
 
-  // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
   const { mounted, animated } = usePresenceAnimation(visible, {
     duration: tokens.defaults.animationDuration,
     appear: true,
   })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'notify', zIndex })
 
-  const prevVisibleRef = React.useRef(visible)
-  const closingRef = React.useRef(false)
+  const prevVisibleRef = useRef(visible)
+  const closingRef = useRef(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     let openedTimer: ReturnType<typeof setTimeout> | null = null
     if (visible) {
       closingRef.current = false
@@ -85,14 +84,14 @@ export const Notify: React.FC<NotifyProps> = props => {
     }
   }, [onOpen, onOpened, tokens.defaults.animationDuration, visible])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mounted && closingRef.current) {
       closingRef.current = false
       onClosed?.()
     }
   }, [mounted, onClosed])
 
-  React.useEffect(() => {
+  useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
     if (visible && resolvedDuration > 0) {
       timer = setTimeout(() => {
@@ -105,7 +104,7 @@ export const Notify: React.FC<NotifyProps> = props => {
   }, [onClose, resolvedDuration, visible])
 
   const interactive = closeOnClick || isFunction(onClick)
-  const handlePress = React.useCallback(() => {
+  const handlePress = useCallback(() => {
     onClick?.()
     if (closeOnClick) onClose?.()
   }, [closeOnClick, onClick, onClose])
@@ -119,8 +118,8 @@ export const Notify: React.FC<NotifyProps> = props => {
     },
   })
 
-  const [barHeight, setBarHeight] = React.useState(0)
-  const handleLayout = React.useCallback((event: LayoutChangeEvent) => {
+  const [barHeight, setBarHeight] = useState(0)
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const height = event.nativeEvent.layout.height
     if (!height) return
     setBarHeight(prev => (prev === height ? prev : height))

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -113,7 +113,7 @@ export const Collapse = ((props: CollapseProps) => {
   const normalizedValue = normalizeValue(value)
   const normalizedDefault = normalizeValue(defaultValue) ?? []
 
-  const [internalValue, setInternalValue] = React.useState<string[]>(() =>
+  const [internalValue, setInternalValue] = useState<string[]>(() =>
     accordion ? normalizedDefault.slice(0, 1) : normalizedDefault,
   )
 
@@ -123,7 +123,7 @@ export const Collapse = ((props: CollapseProps) => {
       : normalizedValue ?? []
     : internalValue
 
-  const toggle = React.useCallback(
+  const toggle = useCallback(
     (name: string, expand?: boolean) => {
       if (disabled) return
       const current = activeKeys
@@ -154,7 +154,7 @@ export const Collapse = ((props: CollapseProps) => {
     [accordion, activeKeys, controlled, disabled, onChange],
   )
 
-  const contextValue = React.useMemo<CollapseContextValue>(() => ({
+  const contextValue = useMemo<CollapseContextValue>(() => ({
     activeKeys,
     toggle,
     accordion,
@@ -165,7 +165,7 @@ export const Collapse = ((props: CollapseProps) => {
     tokens,
   }), [accordion, activeKeys, border, disabled, expandIcon, iconPosition, tokens, toggle])
 
-  const renderedChildren = React.useMemo(() => {
+  const renderedChildren = useMemo(() => {
     const items = React.Children.toArray(children)
     return items.map((child, index) => {
       if (!React.isValidElement(child)) return child
@@ -205,7 +205,7 @@ const Hairline: React.FC<{
 }
 
 const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps>((props, ref) => {
-  const context = React.useContext(CollapseContext)
+  const context = useContext(CollapseContext)
   if (!context) {
     throw new Error('Collapse.Panel must be used within Collapse')
   }
@@ -213,10 +213,8 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const {
     activeKeys,
     toggle,
-    accordion,
     iconPosition,
     expandIcon,
-    border,
     disabled: collapseDisabled,
     tokens,
   } = context
@@ -247,14 +245,14 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const mergedDisabled = collapseDisabled || disabled
   const { colors, spacing, typography } = tokens
 
-  const [contentHeight, setContentHeight] = React.useState(0)
-  const animation = React.useRef(new Animated.Value(isActive ? 1 : 0)).current
-  const rotate = React.useMemo(
+  const [contentHeight, setContentHeight] = useState(0)
+  const animation = useRef(new Animated.Value(isActive ? 1 : 0)).current
+  const rotate = useMemo(
     () => animation.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '-90deg'] }),
     [animation],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.timing(animation, {
       toValue: isActive ? 1 : 0,
       duration: tokens.defaults.animationDuration,
@@ -266,12 +264,12 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const resolvedLabel = description ?? label
   const resolvedValue = extra ?? value
 
-  const handleToggle = React.useCallback(() => {
+  const handleToggle = useCallback(() => {
     if (mergedDisabled || readOnly) return
     toggle(nameKey)
   }, [mergedDisabled, nameKey, readOnly, toggle])
 
-  React.useImperativeHandle(
+  useImperativeHandle(
     ref,
     () => ({
       toggle: (expand?: boolean) => {
@@ -296,7 +294,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     }),
   }
 
-  const renderExpandIcon = React.useCallback(() => {
+  const renderExpandIcon = useCallback(() => {
     if (isFunction(expandIcon)) {
       return expandIcon(isActive)
     }
@@ -314,7 +312,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     )
   }, [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotate])
 
-  const contentNode = React.useMemo(() => {
+  const contentNode = useMemo(() => {
     if (!isText(children)) return children
     return (
       <Text

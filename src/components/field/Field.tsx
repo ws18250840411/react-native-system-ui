@@ -1,8 +1,7 @@
-import React from 'react'
+import React, { useCallback, useId, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   Platform,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -17,85 +16,6 @@ import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 import type { DialogShowOptions } from '../dialog'
 import { alignMap, mapKeyboardType } from './utils'
-
-const styles = StyleSheet.create({
-  body: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  controlWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    minWidth: 0,
-  },
-  input: {
-    flex: 1,
-    minWidth: 0,
-    padding: 0,
-    margin: 0,
-    borderWidth: 0,
-    outlineStyle: 'solid',
-    outlineWidth: 0,
-    outlineColor: 'transparent',
-    backgroundColor: 'transparent',
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-  },
-  textarea: {
-    flex: 1,
-    padding: 0,
-    margin: 0,
-    borderWidth: 0,
-    outlineStyle: 'solid',
-    outlineWidth: 0,
-    outlineColor: 'transparent',
-    backgroundColor: 'transparent',
-    textAlignVertical: 'top',
-  },
-  children: {
-    justifyContent: 'center',
-  },
-  leftIcon: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rightIcon: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  prefix: {
-    justifyContent: 'center',
-  },
-  suffix: {
-    justifyContent: 'center',
-  },
-  affixText: {
-    includeFontPadding: false,
-  },
-  clearIcon: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  labelWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 0,
-    flexGrow: 0,
-    minWidth: 0,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minWidth: 0,
-  },
-  tooltip: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  message: {},
-  wordLimit: {},
-})
 
 export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) => {
   const {
@@ -172,7 +92,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const rows = rowsProp ?? tokens.defaults.rows
   const formatTrigger = formatTriggerProp ?? tokens.defaults.formatTrigger
 
-  const mergedTitleStyle = React.useMemo(
+  const mergedTitleStyle = useMemo(
     () => [
       {
         width: labelWidth,
@@ -195,14 +115,14 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const isTextarea = type === 'textarea'
   const isControlled = valueProp !== undefined
-  const [internalValue, setInternalValue] = React.useState(defaultValue)
+  const [internalValue, setInternalValue] = useState(defaultValue)
   const value = isControlled ? valueProp ?? '' : internalValue
-  const [focused, setFocused] = React.useState(false)
-  const [pressingClear, setPressingClear] = React.useState(false)
-  const inputRef = React.useRef<TextInput>(null)
-  const introId = React.useId()
-  const errorId = React.useId()
-  const describedBy = React.useMemo(() => {
+  const [focused, setFocused] = useState(false)
+  const [pressingClear, setPressingClear] = useState(false)
+  const inputRef = useRef<TextInput>(null)
+  const introId = useId()
+  const errorId = useId()
+  const describedBy = useMemo(() => {
     const ids = [
       isRenderable(errorMessage) ? errorId : null,
       isRenderable(resolvedDescription) ? introId : null,
@@ -228,15 +148,15 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     ? Math.max(tokens.sizes.textareaMinHeight, minRows * lineHeight)
     : undefined
   const maxHeight = isTextarea && maxRows ? Math.max(tokens.sizes.textareaMinHeight, maxRows * lineHeight) : undefined
-  const [textareaHeight, setTextareaHeight] = React.useState<number | undefined>(minHeight)
+  const [textareaHeight, setTextareaHeight] = useState<number | undefined>(minHeight)
 
-  const formatValue = React.useCallback(
+  const formatValue = useCallback(
     (inputValue: string, trigger: 'onChange' | 'onBlur' = 'onChange') =>
       formatter && trigger === formatTrigger ? formatter(inputValue) : inputValue,
     [formatTrigger, formatter],
   )
 
-  const updateValue = React.useCallback(
+  const updateValue = useCallback(
     (next: string, trigger: 'onChange' | 'onBlur' = 'onChange') => {
       const formatted = formatValue(next, trigger)
       if (!isControlled) {
@@ -247,7 +167,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     [formatValue, isControlled, onChangeText],
   )
 
-  React.useImperativeHandle(
+  useImperativeHandle(
     ref,
     () => ({
       focus: () => inputRef.current?.focus(),
@@ -268,7 +188,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     (clearTrigger === 'always' ||
       (clearTrigger === 'focus' && (focused || pressingClear)))
 
-  const handleChangeText = React.useCallback((text: string) => {
+  const handleChangeText = useCallback((text: string) => {
     let next = text ?? ''
 
     if (type === 'number' || type === 'digit') {
@@ -284,7 +204,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     updateValue(next, 'onChange')
   }, [maxLength, onOverlimit, type, updateValue])
 
-  const handleFocus = React.useCallback((event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
+  const handleFocus = useCallback((event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
     setFocused(true)
     onFocus?.(event)
     if (readOnly) {
@@ -292,18 +212,18 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     }
   }, [onFocus, readOnly])
 
-  const handleBlur = React.useCallback((event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
+  const handleBlur = useCallback((event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
     updateValue(value ?? '', 'onBlur')
     setFocused(false)
     onBlur?.(event)
   }, [onBlur, updateValue, value])
 
-  const handlePressIn = React.useCallback((event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => {
+  const handlePressIn = useCallback((event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => {
     onPressIn?.(event)
     onClickInput?.()
   }, [onClickInput, onPressIn])
 
-  const handleContentSizeChange = React.useCallback((event: { nativeEvent: { contentSize: { height: number } } }) => {
+  const handleContentSizeChange = useCallback((event: { nativeEvent: { contentSize: { height: number } } }) => {
     if (!isTextarea) return
     const contentHeight = event.nativeEvent.contentSize?.height ?? 0
     if (!contentHeight) return
@@ -320,7 +240,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     setTextareaHeight(nextHeight)
   }, [autoSize, isTextarea, maxHeight, minHeight])
 
-  const handleClear = React.useCallback(() => {
+  const handleClear = useCallback(() => {
     updateValue('')
     inputRef.current?.clear?.()
     inputRef.current?.focus?.()
@@ -351,7 +271,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     )
 
     return (
-      <View style={styles.labelRow}>
+      <View style={tokens.layout.labelRow}>
         {content}
         {isRenderable(tooltip) ? renderTooltip() : null}
       </View>
@@ -374,7 +294,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
     return (
       <Pressable
-        style={[styles.tooltip, { marginLeft: tokens.spacing.rightIconGap }]}
+        style={[tokens.layout.tooltip, { marginLeft: tokens.spacing.rightIconGap }]}
         onPress={() => Dialog.show(dialogProps)}
         accessibilityRole="button"
       >
@@ -388,7 +308,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     const content = (
       <View
         style={[
-          styles.leftIcon,
+          tokens.layout.leftIcon,
           {
             marginRight: tokens.spacing.leftIconGap,
             minWidth: tokens.sizes.icon,
@@ -411,7 +331,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     const node = (
       <View
         style={[
-          styles.rightIcon,
+          tokens.layout.rightIcon,
           {
             paddingHorizontal: tokens.spacing.rightIconGap,
           },
@@ -442,7 +362,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     return (
       <Pressable
         style={[
-          styles.clearIcon,
+          tokens.layout.clearIcon,
           {
             paddingHorizontal: tokens.spacing.rightIconGap,
           },
@@ -462,11 +382,11 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const renderControl = () => {
     if (isRenderable(children)) {
-      return <View style={[styles.children, { minHeight: tokens.sizes.controlMinHeight }]}>{children}</View>
+      return <View style={[tokens.layout.children, { minHeight: tokens.sizes.controlMinHeight }]}>{children}</View>
     }
 
     const inputStyles = [
-      isTextarea ? styles.textarea : styles.input,
+      isTextarea ? tokens.layout.textarea : tokens.layout.input,
       {
         color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
         fontSize: tokens.typography.inputSize,
@@ -523,7 +443,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       return (
         <Text
           style={[
-            styles.wordLimit,
+            tokens.layout.wordLimit,
             {
               color: tokens.colors.wordLimit,
               fontSize: tokens.typography.wordLimitSize ?? 12,
@@ -548,7 +468,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         <Text
           nativeID={errorId}
           style={[
-            styles.message,
+            tokens.layout.message,
             {
               color: tokens.colors.error,
               fontSize: tokens.typography.messageSize,
@@ -567,7 +487,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       <View
         nativeID={errorId}
         style={[
-          styles.message,
+          tokens.layout.message,
           {
             alignSelf: alignMap[errorMessageAlign],
             marginTop: tokens.spacing.messageMarginTop,
@@ -587,7 +507,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
         <Text
           nativeID={introId}
           style={[
-            styles.message,
+            tokens.layout.message,
             {
               color: tokens.colors.intro,
               fontSize: tokens.typography.introSize,
@@ -608,7 +528,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     )
   }
 
-  const contentWrapperStyle = React.useMemo(
+  const contentWrapperStyle = useMemo(
     () => [
       {
         width: '100%' as const,
@@ -624,7 +544,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       return (
         <Text
           style={[
-            styles.affixText,
+            tokens.layout.affixText,
             {
               color: tokens.colors.input,
               fontSize: tokens.typography.inputSize,
@@ -663,19 +583,19 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       onPress={onClick}
       android_ripple={androidRipple}
     >
-      <View style={styles.body}>
+      <View style={tokens.layout.body}>
         {prefix ? (
-          <View style={[styles.prefix, { paddingRight: tokens.spacing.prefixGap }]}>
+          <View style={[tokens.layout.prefix, { paddingRight: tokens.spacing.prefixGap }]}>
             {renderAffix(prefix)}
           </View>
         ) : null}
-        <View style={[styles.controlWrapper, { minHeight: tokens.sizes.controlMinHeight }]}>
+        <View style={[tokens.layout.controlWrapper, { minHeight: tokens.sizes.controlMinHeight }]}>
           {renderControl()}
           {renderClearIcon()}
         </View>
         {renderRightIcon()}
         {resolvedSuffix ? (
-          <View style={[styles.suffix, { paddingLeft: tokens.spacing.suffixGap }]}>
+          <View style={[tokens.layout.suffix, { paddingLeft: tokens.spacing.suffixGap }]}>
             {renderAffix(resolvedSuffix)}
           </View>
         ) : null}

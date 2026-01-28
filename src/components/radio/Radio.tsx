@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useContext, useEffect, useRef } from 'react'
 import {
   Pressable,
   Text,
@@ -38,7 +38,7 @@ export const Radio = React.memo((props: RadioProps) => {
   } = props
 
   const tokens = useRadioTokens(tokensOverride)
-  const group = React.useContext(RadioGroupContext)
+  const group = useContext(RadioGroupContext)
 
   const optionValue = value ?? name
   const serializedValue = optionValue == null ? undefined : String(optionValue)
@@ -59,7 +59,7 @@ export const Radio = React.memo((props: RadioProps) => {
 
   const standaloneKey = serializedValue ?? 'standalone'
 
-  const inputRef = React.useRef<View>(null)
+  const inputRef = useRef<View>(null)
   const resolvedAccessibilityLabel =
     accessibilityLabel ??
     ariaLabel ??
@@ -81,7 +81,7 @@ export const Radio = React.memo((props: RadioProps) => {
     },
   } as unknown as Parameters<typeof useRadio>[1]
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isGroup && group && serializedValue !== undefined) {
       group.registerValue(serializedValue, optionValue ?? serializedValue)
       return () => group.unregisterValue(serializedValue)
@@ -114,7 +114,7 @@ export const Radio = React.memo((props: RadioProps) => {
 
   const inputOnPress = inputProps?.onPress
 
-  const handlePress = React.useCallback(
+  const handlePress = useCallback(
     (e: GestureResponderEvent) => {
       onClick?.(e)
       if (resolvedDisabled) return

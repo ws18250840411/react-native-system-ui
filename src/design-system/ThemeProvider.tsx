@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import type { DeepPartial } from '../types'
 import { ThemeContext, type ThemeComponents } from './ThemeContext'
@@ -27,7 +27,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   value,
   children,
 }) => {
-  const resolved = React.useMemo(() => {
+  const resolved = useMemo(() => {
     const foundations = isThemeTokens(value)
       ? value
       : createTokens(value?.foundations)

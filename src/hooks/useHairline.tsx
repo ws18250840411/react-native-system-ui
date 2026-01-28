@@ -1,8 +1,7 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   StyleSheet,
   View,
-  type DimensionValue,
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
@@ -46,7 +45,7 @@ export const useHairline = ({
   width,
   defaultPaddingHorizontal = 0,
 }: UseHairlineOptions) => {
-  return React.useMemo(() => {
+  return useMemo(() => {
     if (!show) return null
 
     const flattened = StyleSheet.flatten(containerStyle) as

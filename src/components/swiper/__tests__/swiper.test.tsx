@@ -4,8 +4,9 @@ jest.mock('react-native', () => {
   const React = require('react')
   const actual = jest.requireActual('react-native')
   mockScrollToIndex = jest.fn()
-  const FlatList = React.forwardRef((_props: any, ref: any) => {
-    React.useImperativeHandle(ref, () => ({ scrollToIndex: mockScrollToIndex }))
+  const { forwardRef, useImperativeHandle } = React
+  const FlatList = forwardRef((_props: any, ref: any) => {
+    useImperativeHandle(ref, () => ({ scrollToIndex: mockScrollToIndex }))
     return null
   })
   FlatList.displayName = 'FlatList'

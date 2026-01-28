@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { Animated, Platform, Text, View, type ViewStyle } from 'react-native'
 import Svg, { Circle as SvgCircle } from 'react-native-svg'
 import { isText, clamp, parseNumber, parsePercentage } from '../../utils'
@@ -78,7 +78,7 @@ export const Circle: React.FC<CircleProps> = props => {
   const baseStyle = [tokens.layout.root, { width: resolvedSize, height: resolvedSize }, style]
   const contentStyle = [tokens.layout.content, { width: resolvedSize, height: resolvedSize }]
 
-  const content = React.useMemo(() => {
+  const content = useMemo(() => {
     if (children == null || children === false) return null
     const childArray = React.Children.toArray(children)
     if (childArray.every(isText)) {
@@ -160,9 +160,9 @@ export const Circle: React.FC<CircleProps> = props => {
   const safeDuration = Math.max(0, animationDuration ?? tokens.defaults.animationDuration)
   const dashOffsetTarget = (clockwise ? 1 : -1) * circumference * (1 - rate / 100)
 
-  const dashOffset = React.useRef(new Animated.Value(dashOffsetTarget)).current
+  const dashOffset = useRef(new Animated.Value(dashOffsetTarget)).current
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!animated || safeDuration <= 0) {
       dashOffset.setValue(dashOffsetTarget)
       return

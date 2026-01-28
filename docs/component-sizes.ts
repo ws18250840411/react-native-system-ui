@@ -1,242 +1,248 @@
+/**
+ * 组件体积数据（由 scripts/generate-docs-size-data.mjs 生成）
+ * 数据源: dist/es
+ * 口径: 各组件目录下 .ts/.tsx/.js 文件分别 gzip 后相加（字节），非实际打包单 chunk 体积。
+ * 更接近真实体积请先执行 pnpm run build 再执行 pnpm run docs:update-size（将使用 dist/es）。
+ */
 export default [
   {
-    "name": "picker",
-    "size": 12199
+    "name": "swiper",
+    "size": 10070
   },
   {
-    "name": "swiper",
-    "size": 10812
+    "name": "picker",
+    "size": 9849
   },
   {
     "name": "tabs",
-    "size": 10570
-  },
-  {
-    "name": "form",
-    "size": 7184
-  },
-  {
-    "name": "cascader",
-    "size": 7014
+    "size": 9066
   },
   {
     "name": "dropdown-menu",
-    "size": 6981
+    "size": 6457
   },
   {
-    "name": "slider",
-    "size": 6948
+    "name": "form",
+    "size": 6337
+  },
+  {
+    "name": "cascader",
+    "size": 6130
   },
   {
     "name": "button",
-    "size": 6706
+    "size": 5845
+  },
+  {
+    "name": "slider",
+    "size": 5826
   },
   {
     "name": "uploader",
-    "size": 6354
+    "size": 5740
   },
   {
     "name": "dialog",
-    "size": 6174
-  },
-  {
-    "name": "field",
-    "size": 6158
-  },
-  {
-    "name": "popup",
-    "size": 5768
+    "size": 5571
   },
   {
     "name": "calendar",
-    "size": 5556
+    "size": 5227
   },
   {
-    "name": "checkbox",
-    "size": 5471
+    "name": "field",
+    "size": 5134
   },
   {
     "name": "number-keyboard",
-    "size": 5359
+    "size": 4949
   },
   {
     "name": "index-bar",
-    "size": 5174
+    "size": 4928
+  },
+  {
+    "name": "popup",
+    "size": 4920
+  },
+  {
+    "name": "checkbox",
+    "size": 4884
   },
   {
     "name": "stepper",
-    "size": 5154
-  },
-  {
-    "name": "toast",
-    "size": 4822
+    "size": 4653
   },
   {
     "name": "radio",
-    "size": 4645
+    "size": 4302
   },
   {
     "name": "image-preview",
-    "size": 4588
+    "size": 4223
   },
   {
     "name": "notify",
-    "size": 4566
+    "size": 4217
+  },
+  {
+    "name": "toast",
+    "size": 4206
   },
   {
     "name": "cell",
-    "size": 4492
+    "size": 4095
   },
   {
     "name": "tabbar",
-    "size": 4321
-  },
-  {
-    "name": "collapse",
-    "size": 4093
-  },
-  {
-    "name": "notice-bar",
-    "size": 4013
-  },
-  {
-    "name": "pull-refresh",
-    "size": 3955
+    "size": 3972
   },
   {
     "name": "grid",
-    "size": 3787
+    "size": 3690
+  },
+  {
+    "name": "notice-bar",
+    "size": 3680
+  },
+  {
+    "name": "pull-refresh",
+    "size": 3596
+  },
+  {
+    "name": "collapse",
+    "size": 3506
   },
   {
     "name": "action-sheet",
-    "size": 3711
-  },
-  {
-    "name": "overlay",
-    "size": 3619
+    "size": 3312
   },
   {
     "name": "password-input",
-    "size": 3585
-  },
-  {
-    "name": "image",
-    "size": 3479
+    "size": 3265
   },
   {
     "name": "rate",
-    "size": 3465
+    "size": 3212
   },
   {
-    "name": "portal",
-    "size": 3410
+    "name": "image",
+    "size": 3182
   },
   {
     "name": "sidebar",
-    "size": 3150
+    "size": 3175
   },
   {
-    "name": "selector",
-    "size": 3124
+    "name": "overlay",
+    "size": 3161
   },
   {
     "name": "datetime-picker",
-    "size": 3076
+    "size": 2989
+  },
+  {
+    "name": "portal",
+    "size": 2976
   },
   {
     "name": "typography",
-    "size": 2988
+    "size": 2787
+  },
+  {
+    "name": "selector",
+    "size": 2767
   },
   {
     "name": "share-sheet",
-    "size": 2937
-  },
-  {
-    "name": "search",
-    "size": 2816
-  },
-  {
-    "name": "circle",
-    "size": 2731
+    "size": 2616
   },
   {
     "name": "nav-bar",
-    "size": 2668
+    "size": 2590
   },
   {
     "name": "pagination",
-    "size": 2577
+    "size": 2555
+  },
+  {
+    "name": "search",
+    "size": 2545
+  },
+  {
+    "name": "circle",
+    "size": 2486
   },
   {
     "name": "loading",
-    "size": 2526
+    "size": 2443
   },
   {
     "name": "progress",
-    "size": 2420
-  },
-  {
-    "name": "badge",
-    "size": 2402
-  },
-  {
-    "name": "skeleton",
     "size": 2371
   },
   {
+    "name": "badge",
+    "size": 2369
+  },
+  {
+    "name": "skeleton",
+    "size": 2290
+  },
+  {
     "name": "switch",
-    "size": 2366
+    "size": 2279
   },
   {
     "name": "water-mark",
-    "size": 2337
-  },
-  {
-    "name": "space",
-    "size": 2321
-  },
-  {
-    "name": "flex",
-    "size": 2246
+    "size": 2274
   },
   {
     "name": "list",
-    "size": 2181
+    "size": 2160
+  },
+  {
+    "name": "space",
+    "size": 2139
   },
   {
     "name": "tag",
-    "size": 2102
+    "size": 2096
+  },
+  {
+    "name": "flex",
+    "size": 2049
   },
   {
     "name": "config-provider",
-    "size": 1846
+    "size": 1807
   },
   {
     "name": "empty",
-    "size": 1656
-  },
-  {
-    "name": "area",
-    "size": 1628
+    "size": 1663
   },
   {
     "name": "avatar",
-    "size": 1596
+    "size": 1602
   },
   {
-    "name": "input",
-    "size": 1582
+    "name": "area",
+    "size": 1580
   },
   {
     "name": "divider",
-    "size": 1553
+    "size": 1576
   },
   {
-    "name": "safe-area",
-    "size": 1487
+    "name": "input",
+    "size": 1523
   },
   {
     "name": "count-down",
-    "size": 1157
+    "size": 1239
+  },
+  {
+    "name": "safe-area",
+    "size": 1195
   }
 ]

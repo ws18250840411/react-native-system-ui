@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import {
   FlatList,
   Pressable,
@@ -93,10 +93,10 @@ const Cascader: React.FC<CascaderProps> = props => {
   })
 
 
-  const keys = React.useMemo(() => getFieldKeys(fieldNames), [fieldNames])
+  const keys = useMemo(() => getFieldKeys(fieldNames), [fieldNames])
 
   const cascaderValue = Array.isArray(value) ? value : []
-  const [panelValue, setPanelValue] = React.useState<CascaderValue[]>(cascaderValue)
+  const [panelValue, setPanelValue] = useState<CascaderValue[]>(cascaderValue)
   const resolvedCloseable = closeable ?? tokens.defaults.closeable
 
   const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
@@ -109,28 +109,28 @@ const Cascader: React.FC<CascaderProps> = props => {
   const currentValue = poppable ? panelValue : cascaderValue
   const { tabs, items, depth } = useCascaderExtend(options, keys, currentValue)
   const { width: windowWidth } = useWindowDimensions()
-  const [measuredWidth, setMeasuredWidth] = React.useState(0)
+  const [measuredWidth, setMeasuredWidth] = useState(0)
 
-  const handleTabsLayout = React.useCallback((e: LayoutChangeEvent) => {
+  const handleTabsLayout = useCallback((e: LayoutChangeEvent) => {
     const width = e.nativeEvent.layout.width
     if (!width) return
     setMeasuredWidth(prev => (prev === width ? prev : width))
   }, [])
 
-  const confirmedRows = React.useMemo(
+  const confirmedRows = useMemo(
     () => resolveSelectedRows(options, keys, cascaderValue),
     [cascaderValue, keys, options],
   )
 
-  const [activeTab, setActiveTab] = React.useState(0)
+  const [activeTab, setActiveTab] = useState(0)
 
-  React.useEffect(() => {
+  useEffect(() => {
     let tabIndex = Array.isArray(currentValue) ? currentValue.length : 0
     if (tabIndex >= depth) tabIndex = Math.max(depth - 1, 0)
     setActiveTab(prev => (prev === tabIndex ? prev : tabIndex))
   }, [currentValue, depth])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!poppable) {
       setPanelValue(cascaderValue)
       return
@@ -140,13 +140,13 @@ const Cascader: React.FC<CascaderProps> = props => {
     }
   }, [cascaderValue, poppable, popupVisible])
 
-  const openPopup = React.useCallback(() => {
+  const openPopup = useCallback(() => {
     if (!poppable || popupVisible) return
     setPanelValue(cascaderValue)
     setPopupVisible(true)
   }, [cascaderValue, poppable, popupVisible, setPopupVisible])
 
-  const closePopup = React.useCallback(
+  const closePopup = useCallback(
     (notify?: boolean) => {
       if (!poppable || !popupVisible) return
       setPopupVisible(false)
@@ -155,7 +155,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     [onClose, poppable, popupVisible, setPopupVisible],
   )
 
-  const togglePopup = React.useCallback(() => {
+  const togglePopup = useCallback(() => {
     if (!poppable) return
     popupVisible ? closePopup(true) : openPopup()
   }, [closePopup, openPopup, poppable, popupVisible])
@@ -163,7 +163,7 @@ const Cascader: React.FC<CascaderProps> = props => {
   const isRenderProp = isFunction(children)
   const renderProp = isRenderProp ? (children as CascaderRenderProps) : null
 
-  const handleClickTab = React.useCallback(
+  const handleClickTab = useCallback(
     (event: TabsClickEvent) => {
       const index = isNumber(event.index) ? event.index : Number(event.name)
       if (Number.isNaN(index)) return
@@ -174,7 +174,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     [items, keys.textKey, onClickTab, placeholder],
   )
 
-  const handleTabChange = React.useCallback(
+  const handleTabChange = useCallback(
     (tabValue: TabsValue, indexFromEvent?: number) => {
       const index = isNumber(indexFromEvent) ? indexFromEvent : Number(tabValue)
       if (Number.isNaN(index)) return
@@ -184,7 +184,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     [onTabChange],
   )
 
-  const handleSelect = React.useCallback(
+  const handleSelect = useCallback(
     (option: CascaderOption, tabIndex: number) => {
       if (option.disabled) return
       const optionValue = option[keys.valueKey]
@@ -230,7 +230,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     ],
   )
 
-  const getEmptyText = React.useCallback(
+  const getEmptyText = useCallback(
     (tabIndex: number) => {
       if (tabIndex <= 0) return placeholder
       const parent = items[tabIndex - 1]
@@ -425,7 +425,7 @@ const Cascader: React.FC<CascaderProps> = props => {
   const resolvedOverlay = popupOverlay ?? true
   const resolvedCloseOnOverlayPress = overrideCloseOnOverlayPress ?? closeOnClickOverlay
 
-  const cascaderActions = React.useMemo(
+  const cascaderActions = useMemo(
     () => ({
       open: openPopup,
       close: () => closePopup(true),
@@ -434,7 +434,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     [closePopup, openPopup, togglePopup],
   )
 
-  const enhanceTriggerNode = React.useCallback(
+  const enhanceTriggerNode = useCallback(
     (node: React.ReactNode) => {
       if (!React.isValidElement(node)) return node
       const props = node.props as { onPress?: () => void; onClick?: () => void }
@@ -608,7 +608,7 @@ const CascaderOptionList = React.memo(
       )
     }
 
-    const renderItem = React.useCallback(
+    const renderItem = useCallback(
       ({ item }: { item: CascaderOption }) => (
         <CascaderOptionItem
           option={item}
@@ -624,7 +624,7 @@ const CascaderOptionList = React.memo(
       [activeColor, keys, onSelect, optionRender, selectedValue, tabIndex, tokens],
     )
 
-    const keyExtractor = React.useCallback(
+    const keyExtractor = useCallback(
       (item: CascaderOption) => String(item[keys.valueKey]),
       [keys.valueKey],
     )

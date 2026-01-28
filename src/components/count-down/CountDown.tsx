@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useImperativeHandle } from 'react'
 import { Text, View } from 'react-native'
 
 import { useCountDown } from '../../hooks'
@@ -42,14 +42,14 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     resetTime()
     return () => {
       pause()
     }
   }, [autoStart, normalizedTime, pause, reset, start])
 
-  React.useImperativeHandle(ref, () => ({ start, pause, reset: resetTime }))
+  useImperativeHandle(ref, () => ({ start, pause, reset: resetTime }))
 
   const defaultTextStyle = tokens.layout.text
   const content = isFunction(children) ? children(current) : formatDuration(format, current)

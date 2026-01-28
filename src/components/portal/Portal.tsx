@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext, useLayoutEffect, useRef } from 'react'
 
 import { PortalContext } from './PortalContext'
 import {
@@ -12,13 +12,13 @@ export interface PortalProps {
   children?: React.ReactNode
 }
 
-const usePortalManager = () => React.useContext(PortalContext) ?? globalManager
+const usePortalManager = () => useContext(PortalContext) ?? globalManager
 
 const PortalComponent: React.FC<PortalProps> = ({ children }) => {
   const manager = usePortalManager()
-  const keyRef = React.useRef<number | null>(null)
+  const keyRef = useRef<number | null>(null)
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (manager === globalManager) {
       void ensureGlobalPortalHost()
     }
@@ -33,7 +33,7 @@ const PortalComponent: React.FC<PortalProps> = ({ children }) => {
     }
   }, [manager])
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (keyRef.current === null) return
     manager.update(keyRef.current, children ?? null)
   }, [children, manager])

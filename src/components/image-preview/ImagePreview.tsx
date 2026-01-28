@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { Image as RNImage, Platform, Pressable, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native'
 
 import Popup from '../popup'
@@ -77,14 +77,14 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
   } = props
 
   const { colors } = useImagePreviewTokens(tokensOverride)
-  const swiperRef = React.useRef<SwiperInstance>(null)
-  const popupCloseReason = React.useRef<ImagePreviewCloseReason>('close')
-  const tapStartRef = React.useRef<{ x: number; y: number } | null>(null)
-  const tapMovedRef = React.useRef(false)
+  const swiperRef = useRef<SwiperInstance>(null)
+  const popupCloseReason = useRef<ImagePreviewCloseReason>('close')
+  const tapStartRef = useRef<{ x: number; y: number } | null>(null)
+  const tapMovedRef = useRef(false)
   const imagesLen = images.length
-  const [active, setActive] = React.useState(() => clampIndex(startPosition, imagesLen))
+  const [active, setActive] = useState(() => clampIndex(startPosition, imagesLen))
   const safeActive = clampIndex(active, imagesLen)
-  const latestRef = React.useRef({
+  const latestRef = useRef({
     images,
     index: safeActive,
     beforeClose,
@@ -97,16 +97,16 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     onClose,
   }
 
-  const resolvedImages = React.useMemo<ImageSourcePropType[]>(
+  const resolvedImages = useMemo<ImageSourcePropType[]>(
     () => images.map(img => (isString(img) ? { uri: img } : img)),
     [images],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     setActive(current => clampIndex(current, imagesLen))
   }, [imagesLen])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!visible) return
     const next = clampIndex(startPosition, imagesLen)
     setActive(next)
@@ -118,14 +118,14 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     }
   }, [imagesLen, startPosition, visible])
 
-  const runBeforeClose = React.useCallback(async (reason: ImagePreviewCloseReason) => {
+  const runBeforeClose = useCallback(async (reason: ImagePreviewCloseReason) => {
     const { beforeClose: currentBeforeClose, images: currentImages, index } = latestRef.current
     if (!currentBeforeClose) return true
     const result = await currentBeforeClose({ reason, index, image: currentImages[index] })
     return result !== false
   }, [])
 
-  const emitClose = React.useCallback(
+  const emitClose = useCallback(
     async (reason: ImagePreviewCloseReason, bypassCheck = false) => {
       const { onClose: currentOnClose, images: currentImages, index } = latestRef.current
       if (!bypassCheck) {
@@ -137,7 +137,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     [runBeforeClose],
   )
 
-  const handlePopupBeforeClose = React.useCallback(
+  const handlePopupBeforeClose = useCallback(
     async (reason: 'close-icon' | 'overlay' | 'close') => {
       const mapped: ImagePreviewCloseReason =
         reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
@@ -147,11 +147,11 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     [runBeforeClose],
   )
 
-  const handlePopupClose = React.useCallback(() => {
+  const handlePopupClose = useCallback(() => {
     void emitClose(popupCloseReason.current, true)
   }, [emitClose])
 
-  React.useImperativeHandle(ref, () => ({
+  useImperativeHandle(ref, () => ({
     swipeTo: (index: number, animated = true) => {
       const next = clampIndex(index, imagesLen)
       setActive(next)
@@ -159,28 +159,28 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     },
   }), [imagesLen])
 
-  const handleSwiperChange = React.useCallback((idx: number) => {
+  const handleSwiperChange = useCallback((idx: number) => {
     if (safeActive === idx) return
     setActive(idx)
     onChange?.(idx)
   }, [onChange, safeActive])
 
-  const handleImagePress = React.useCallback(() => {
+  const handleImagePress = useCallback(() => {
     if (closeOnlyClickCloseIcon) return
     void emitClose('content')
   }, [closeOnlyClickCloseIcon, emitClose])
 
-  const resetTap = React.useCallback(() => {
+  const resetTap = useCallback(() => {
     tapStartRef.current = null
     tapMovedRef.current = false
   }, [])
 
-  const markTapStart = React.useCallback((x: number, y: number) => {
+  const markTapStart = useCallback((x: number, y: number) => {
     tapStartRef.current = { x, y }
     tapMovedRef.current = false
   }, [])
 
-  const markTapMove = React.useCallback((x: number, y: number) => {
+  const markTapMove = useCallback((x: number, y: number) => {
     const start = tapStartRef.current
     if (!start) return
     const dx = x - start.x
@@ -190,7 +190,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     }
   }, [])
 
-  const tryTapEnd = React.useCallback((x: number, y: number) => {
+  const tryTapEnd = useCallback((x: number, y: number) => {
     const start = tapStartRef.current
     const moved = tapMovedRef.current
     resetTap()
@@ -201,7 +201,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     handleImagePress()
   }, [handleImagePress, resetTap])
 
-  const pressableHandlers = React.useMemo<PressableHandlers>(() => {
+  const pressableHandlers = useMemo<PressableHandlers>(() => {
     const handlers: PressableHandlers = {
       onTouchStart: e => {
         const { pageX, pageY } = e.nativeEvent
@@ -237,7 +237,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     return handlers
   }, [markTapMove, markTapStart, resetTap, tryTapEnd])
 
-  const renderIndex = React.useCallback(
+  const renderIndex = useCallback(
     (current: number, total: number) => {
       if (!showIndex || total === 0) return null
       const indexText = `${current + 1} / ${total}`

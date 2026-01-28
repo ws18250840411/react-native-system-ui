@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import {
   Animated,
   Pressable,
@@ -48,7 +48,7 @@ export const Overlay: React.FC<OverlayProps> = props => {
   )
   const { mounted, animated } = usePresenceAnimation(visible, { duration: resolvedDuration })
 
-  const handlePress = React.useCallback(() => {
+  const handlePress = useCallback(() => {
     if (onPress) {
       onPress()
       return

@@ -145,9 +145,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
       return itemsData
     }
     return [
-      ...itemsData.slice(-1), // 末尾的复制
-      ...itemsData, // 原始数据
-      ...itemsData.slice(0, 1), // 开头的复制
+      ...itemsData.slice(-1),
+      ...itemsData,
+      ...itemsData.slice(0, 1),
     ]
   }, [shouldLoop, itemsData, count])
 
@@ -232,8 +232,6 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     panResponder,
     stopWebSnapAnim,
     cancelWebRaf,
-    flushWebTranslate,
-    scheduleWebTranslate,
     webSnapAnimRef,
   } = useSwiperWeb({
     isWeb,

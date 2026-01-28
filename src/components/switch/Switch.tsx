@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   ActivityIndicator,
   Animated,
@@ -67,10 +67,10 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
 
   const isChecked = Object.is(value, activeValue)
 
-  const progress = React.useRef(new Animated.Value(isChecked ? 1 : 0)).current
-  const colorProgress = React.useRef(new Animated.Value(isChecked ? 1 : 0)).current
+  const progress = useRef(new Animated.Value(isChecked ? 1 : 0)).current
+  const colorProgress = useRef(new Animated.Value(isChecked ? 1 : 0)).current
 
-  React.useEffect(() => {
+  useEffect(() => {
     const toValue = isChecked ? 1 : 0
     progress.stopAnimation()
     colorProgress.stopAnimation()

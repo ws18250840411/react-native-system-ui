@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 
 import type { DropdownMenuDirection } from './types'
 
@@ -19,7 +19,7 @@ export interface DropdownMenuContextValue {
 export const DropdownMenuContext = React.createContext<DropdownMenuContextValue | null>(null)
 
 export const useDropdownMenuContext = () => {
-  const ctx = React.useContext(DropdownMenuContext)
+  const ctx = useContext(DropdownMenuContext)
   if (!ctx) throw new Error('DropdownItem must be used within DropdownMenu')
   return ctx
 }

@@ -1,8 +1,90 @@
+import { StyleSheet } from 'react-native'
+
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { FieldClearTrigger, FieldControlAlign, FieldFormatTrigger, FieldInputAlign } from './types'
 
+const fieldLayout = StyleSheet.create({
+  body: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  controlWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+  input: {
+    flex: 1,
+    minWidth: 0,
+    padding: 0,
+    margin: 0,
+    borderWidth: 0,
+    outlineStyle: 'solid',
+    outlineWidth: 0,
+    outlineColor: 'transparent',
+    backgroundColor: 'transparent',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  textarea: {
+    flex: 1,
+    padding: 0,
+    margin: 0,
+    borderWidth: 0,
+    outlineStyle: 'solid',
+    outlineWidth: 0,
+    outlineColor: 'transparent',
+    backgroundColor: 'transparent',
+    textAlignVertical: 'top',
+  },
+  children: {
+    justifyContent: 'center',
+  },
+  leftIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rightIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  prefix: {
+    justifyContent: 'center',
+  },
+  suffix: {
+    justifyContent: 'center',
+  },
+  affixText: {
+    includeFontPadding: false,
+  },
+  clearIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  labelWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
+    flexGrow: 0,
+    minWidth: 0,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+  tooltip: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  message: {},
+  wordLimit: {},
+})
+
 export interface FieldTokens {
+  layout: typeof fieldLayout
   defaults: {
     labelWidth: number
     labelAlign: FieldInputAlign
@@ -53,11 +135,11 @@ export interface FieldTokens {
 }
 
 const createFieldTokens = (foundations: Foundations): FieldTokens => {
-  const { palette, spacing, fontSize, typography } = foundations
+  const { palette, spacing, fontSize } = foundations
 
   return {
+    layout: fieldLayout,
     defaults: {
-      // 统一使用 72px（可通过 props 或主题覆写）
       labelWidth: 72,
       labelAlign: 'left',
       inputAlign: 'left',
@@ -65,13 +147,11 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
       clearTrigger: 'focus',
       formatTrigger: 'onChange',
       rows: 2,
-      // TextArea 行高参考 Web 默认 20px，便于按 px 换算 rows
       textareaLineHeight: 20,
     },
     colors: {
       label: palette.default[700],
       input: palette.default[800],
-      // 对齐 React Vant placeholder 变量 @gray-5 (#c8c9cc)
       placeholder: palette.default[300] ?? '#c8c9cc',
       error: palette.danger[500],
       disabled: palette.default[500],
@@ -79,16 +159,14 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
       tooltip: palette.default[500],
       clear: palette.default[500],
       rightIcon: palette.default[500],
-      // React Vant 字数统计文案约为 #646566
       wordLimit: palette.default[600] ?? '#646566',
     },
     spacing: {
-      // labelGap 设为 0，确保总宽度即为 labelWidth
       labelGap: spacing.none,
-      leftIconGap: spacing.xs, // 4
-      rightIconGap: spacing.sm * 1, // 8
-      prefixGap: spacing.sm * 1, // 8
-      suffixGap: spacing.sm * 1, // 8
+      leftIconGap: spacing.xs,
+      rightIconGap: spacing.sm * 1,
+      prefixGap: spacing.sm * 1,
+      suffixGap: spacing.sm * 1,
       messageMarginTop: spacing.none,
       introMarginTop: spacing.none,
       wordLimitMarginTop: spacing.none,
@@ -100,7 +178,6 @@ const createFieldTokens = (foundations: Foundations): FieldTokens => {
       placeholderSize: fontSize.sm,
       messageSize: 12,
       introSize: 12,
-      // 对齐官方 12px
       wordLimitSize: fontSize.xs,
     },
     sizes: {

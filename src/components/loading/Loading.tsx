@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   Animated,
   Easing,
@@ -35,9 +35,9 @@ export const Loading: React.FC<LoadingProps> = props => {
   const type = typeProp ?? tokens.defaults.type
   const vertical = verticalProp ?? tokens.defaults.vertical
 
-  const spinValue = React.useRef(new Animated.Value(0)).current
+  const spinValue = useRef(new Animated.Value(0)).current
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (type === 'spinner' || type === 'circular' || type === 'ball') {
       spinValue.setValue(0)
       const animation = Animated.loop(

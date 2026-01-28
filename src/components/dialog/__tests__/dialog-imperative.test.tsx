@@ -62,18 +62,19 @@ jest.mock('../../portal/Portal', () => {
 
 jest.mock('../Dialog', () => {
   const React = require('react')
+  const { useEffect, useRef } = React
   let currentProps: any = null
 
   const MockDialog = (props: any) => {
     currentProps = props
-    const prevVisibleRef = React.useRef(props.visible)
-    React.useEffect(() => {
+    const prevVisibleRef = useRef(props.visible)
+    useEffect(() => {
       if (prevVisibleRef.current && !props.visible) {
         props.onClosed?.()
       }
       prevVisibleRef.current = props.visible
     }, [props.visible, props.onClosed])
-    React.useEffect(() => {
+    useEffect(() => {
       return () => {
         if (currentProps === props) {
           currentProps = null

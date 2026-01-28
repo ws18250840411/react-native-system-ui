@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Pressable, StyleSheet, Text, View, type DimensionValue, type ViewStyle } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
@@ -22,11 +22,11 @@ const ShareSheetOptionItem: React.FC<{
   tokens: ShareSheetTokens
   onSelect: (option: ShareSheetOption, index: number) => void
 }> = ({ option, index, columns, tokens, onSelect }) => {
-  const optionWidthStyle = React.useMemo<ViewStyle>(
+  const optionWidthStyle = useMemo<ViewStyle>(
     () => ({ width: `${100 / columns}%` as DimensionValue }),
     [columns],
   )
-  const iconStyle = React.useMemo(
+  const iconStyle = useMemo(
     () => ({ width: tokens.sizing.icon, height: tokens.sizing.icon }),
     [tokens.sizing.icon],
   )
@@ -130,8 +130,8 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   } = props
 
   const tokens = useShareSheetTokens(tokensOverride)
-  const groups = React.useMemo(() => normalizeOptions(options), [options])
-  const resolvedColumns = React.useMemo(
+  const groups = useMemo(() => normalizeOptions(options), [options])
+  const resolvedColumns = useMemo(
     () => (isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4),
     [columns],
   )
@@ -140,30 +140,30 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   const hasDescription = isValidNode(description)
   const hasCancelText = isValidNode(cancelText)
 
-  const close = React.useCallback((isCancel?: boolean) => {
+  const close = useCallback((isCancel?: boolean) => {
     if (isCancel) onCancel?.()
     onClose?.()
   }, [onCancel, onClose])
 
-  const handleSelect = React.useCallback((option: ShareSheetOption, index: number) => {
+  const handleSelect = useCallback((option: ShareSheetOption, index: number) => {
     onSelect?.(option, index)
     option.onPress?.(option)
     if (closeOnSelect) close()
   }, [close, closeOnSelect, onSelect])
 
-  const onPopupClose = React.useCallback(() => close(true), [close])
+  const onPopupClose = useCallback(() => close(true), [close])
 
-  const wrapperStyle = React.useMemo(
+  const wrapperStyle = useMemo(
     () => [styles.wrapper, { backgroundColor: tokens.colors.background }],
     [tokens.colors.background],
   )
 
-  const groupRowStyle = React.useMemo(
+  const groupRowStyle = useMemo(
     () => [styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }],
     [tokens.spacing.gap],
   )
 
-  const groupNodes = React.useMemo(() => {
+  const groupNodes = useMemo(() => {
     if (!groups.length) return null
     let globalIndex = 0
     return groups.map((group, groupIndex) => (
@@ -205,7 +205,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
     tokens.spacing.horizontal,
   ])
 
-  const headerNode = React.useMemo(() => {
+  const headerNode = useMemo(() => {
     if (!hasTitle && !hasDescription) return null
     return (
       <View style={styles.header}>

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { Portal } from '../portal/Portal'
 import { deepMerge, isString, isUndefined } from '../../utils'
@@ -89,13 +89,13 @@ interface DialogPortalProps {
 }
 
 const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, portalKeyRef }) => {
-  const [visible, setVisible] = React.useState(true)
+  const [visible, setVisible] = useState(true)
 
-  const close = React.useCallback(() => {
+  const close = useCallback(() => {
     setVisible(false)
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!portalKeyRef.current) return
     attachCloser(portalKeyRef.current, close)
     return () => {
@@ -106,7 +106,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     }
   }, [close, portalKeyRef])
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (portalKeyRef.current) {
         unregisterEntry(portalKeyRef.current)
@@ -114,7 +114,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     }
   }, [portalKeyRef])
 
-  const handleCancel = React.useCallback(async () => {
+  const handleCancel = useCallback(async () => {
     const allowed = await runHook(() => options.beforeClose?.('cancel'))
     if (!allowed) return
     const shouldClose = await runHook(options.onCancel)
@@ -125,7 +125,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     close()
   }, [close, meta, options.beforeClose, options.onCancel])
 
-  const handleConfirm = React.useCallback(async () => {
+  const handleConfirm = useCallback(async () => {
     const allowed = await runHook(() => options.beforeClose?.('confirm'))
     if (!allowed) return
     const shouldClose = await runHook(options.onConfirm)
@@ -136,7 +136,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     close()
   }, [close, meta, options.beforeClose, options.onConfirm])
 
-  const handleClose = React.useCallback(async () => {
+  const handleClose = useCallback(async () => {
     const allowed = await runHook(() => options.beforeClose?.('close'))
     if (!allowed) return
     const shouldClose = await runHook(options.onClose)
@@ -147,7 +147,7 @@ const DialogPortalInstance: React.FC<DialogPortalProps> = ({ options, meta, port
     close()
   }, [close, meta, options.beforeClose, options.onClose])
 
-  const handleClosed = React.useCallback(() => {
+  const handleClosed = useCallback(() => {
     options.onClosed?.()
     if (portalKeyRef.current) {
       Portal.remove(portalKeyRef.current)

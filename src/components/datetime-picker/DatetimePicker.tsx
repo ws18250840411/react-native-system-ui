@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import Picker from '../picker'
 import { Popup, type PopupProps } from '../popup/Popup'
@@ -23,8 +23,8 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
     trigger: 'onPopupVisibleChange',
   })
 
-  const close = React.useCallback(() => setPopupVisible(false), [setPopupVisible])
-  const renderPopup = React.useCallback(
+  const close = useCallback(() => setPopupVisible(false), [setPopupVisible])
+  const renderPopup = useCallback(
     (node: React.ReactElement, popup?: boolean, popupProps?: Omit<PopupProps, 'visible' | 'children'>) => {
       if (!popup) return node
       return (
@@ -55,7 +55,7 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
       ...pickerProps
     } = props
 
-    const handleConfirm = React.useCallback(
+    const handleConfirm = useCallback(
       (value: string) => {
         onConfirm?.(value)
         if (popup) close()
@@ -63,7 +63,7 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
       [close, onConfirm, popup],
     )
 
-    const handleCancel = React.useCallback(() => {
+    const handleCancel = useCallback(() => {
       onCancel?.()
       if (popup) close()
     }, [close, onCancel, popup])
@@ -86,7 +86,7 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
     ...pickerProps
   } = props
 
-  const handleConfirm = React.useCallback(
+  const handleConfirm = useCallback(
     (value: Date) => {
       onConfirm?.(value)
       if (popup) close()
@@ -94,7 +94,7 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
     [close, onConfirm, popup],
   )
 
-  const handleCancel = React.useCallback(() => {
+  const handleCancel = useCallback(() => {
     onCancel?.()
     if (popup) close()
   }, [close, onCancel, popup])
@@ -122,7 +122,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     ...pickerProps
   } = props
 
-  const formatValue = React.useCallback(
+  const formatValue = useCallback(
     (dateValue?: Date) => {
       const fallback = isValidDate(dateValue) ? dateValue : new Date()
       const time = clamp(fallback.getTime(), minDate.getTime(), maxDate.getTime())
@@ -142,15 +142,15 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     [maxDate, minDate, type],
   )
 
-  const [currentDate, setCurrentDate] = React.useState<Date>(() =>
+  const [currentDate, setCurrentDate] = useState<Date>(() =>
     formatValue(value ?? defaultValue),
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentDate(prev => (value && isValidDate(value) ? formatValue(value) : formatValue(prev)))
   }, [formatValue, value])
 
-  const { originColumns, columns, pickerValue } = React.useMemo(() => {
+  const { originColumns, columns, pickerValue } = useMemo(() => {
     const getBoundary = (boundaryType: 'min' | 'max', date: Date) => {
       const boundaryDate = boundaryType === 'min' ? minDate : maxDate
       const boundary = {
@@ -254,7 +254,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     return { originColumns, columns, pickerValue }
   }, [columnsOrder, currentDate, filter, formatter, maxDate, minDate, type])
 
-  const buildDateFromValues = React.useCallback(
+  const buildDateFromValues = useCallback(
     (values: string[]) => {
       const getValue = (columnType: DatetimePickerColumnType) => {
         const index = originColumns.findIndex(column => column.type === columnType)
@@ -292,7 +292,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     [currentDate, formatValue, originColumns, type],
   )
 
-  const handleChange = React.useCallback(
+  const handleChange = useCallback(
     (values: (string | number)[]) => {
       const next = buildDateFromValues(values.map(String))
       setCurrentDate(next)
@@ -301,7 +301,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     [buildDateFromValues, onChange],
   )
 
-  const handleConfirm = React.useCallback(() => onConfirm?.(currentDate), [currentDate, onConfirm])
+  const handleConfirm = useCallback(() => onConfirm?.(currentDate), [currentDate, onConfirm])
 
   return (
     <Picker
@@ -333,8 +333,8 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     ...pickerProps
   } = props
 
-  const timeRef = React.useRef<string>('')
-  const formatTime = React.useCallback(
+  const timeRef = useRef<string>('')
+  const formatTime = useCallback(
     (timeValue?: string) => {
       const [hour = 0, minute = 0] = (timeValue ?? '').split(':').map(num => parseInt(num, 10))
       const nextHour = clamp(Number.isNaN(hour) ? minHour : hour, minHour, maxHour)
@@ -344,13 +344,13 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     [maxHour, maxMinute, minHour, minMinute],
   )
 
-  const [currentTime, setCurrentTime] = React.useState(() => {
+  const [currentTime, setCurrentTime] = useState(() => {
     const initial = formatTime(value ?? defaultValue)
     timeRef.current = initial
     return initial
   })
 
-  React.useEffect(() => {
+  useEffect(() => {
     const next = isString(value) ? formatTime(value) : formatTime(timeRef.current)
     if (next !== timeRef.current) {
       timeRef.current = next
@@ -358,7 +358,7 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     }
   }, [formatTime, value])
 
-  const [hourValues, minuteValues] = React.useMemo(() => {
+  const [hourValues, minuteValues] = useMemo(() => {
     let hours = times(maxHour - minHour + 1, index => padZero(minHour + index))
     let minutes = times(maxMinute - minMinute + 1, index => padZero(minMinute + index))
     if (filter) {
@@ -368,7 +368,7 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     return [hours, minutes] as [string[], string[]]
   }, [filter, maxHour, maxMinute, minHour, minMinute])
 
-  const columns = React.useMemo(
+  const columns = useMemo(
     () => [
       hourValues.map(value => ({ label: formatter('hour', value), value })),
       minuteValues.map(value => ({ label: formatter('minute', value), value })),
@@ -376,7 +376,7 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     [formatter, hourValues, minuteValues],
   )
 
-  const handleChange = React.useCallback(
+  const handleChange = useCallback(
     (values: (string | number)[]) => {
       const nextHour = values[0] ?? hourValues[0]
       const nextMinute = values[1] ?? minuteValues[0]
@@ -388,8 +388,8 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     [hourValues, minuteValues, onChange],
   )
 
-  const handleConfirm = React.useCallback(() => onConfirm?.(timeRef.current), [onConfirm])
-  const pickerValue = React.useMemo(() => currentTime.split(':'), [currentTime])
+  const handleConfirm = useCallback(() => onConfirm?.(timeRef.current), [onConfirm])
+  const pickerValue = useMemo(() => currentTime.split(':'), [currentTime])
 
   return (
     <Picker

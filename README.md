@@ -1,13 +1,12 @@
 # react-native-system-ui
 
-React Native 端的移动组件库，交互与 API 借鉴社区成熟方案，同时借鉴 **react-native-xiaoshu** 的原子化设计，目标是产出“极简、强韧、低心智”体验的系统化 UI 资产。
+面向 React Native 的设计系统级组件库。Tokens + ThemeProvider 主题体系，按需引入、体积可控；API 统一可组合，支持可访问性与多端一致。
 
-## 愿景 / Goals
+## 特性
 
-- ✅ 用统一的设计让成熟的移动端交互体验可以在原生端复用，同时尊重 React Native 的运行特性（无 less、依赖 StyleSheet）。
-- ✅ 提供轻量的设计系统（tokens + provider + hooks），组件不直接耦合具体样式，利于按需复用与主题定制。
-- ✅ 默认约束与 API 语义尽量贴近主流移动端组件库，保证迁移成本低。
-- ✅ 文档与示例聚焦“如何落地 + 如何扩展”，减少探索成本。
+- **设计系统**：Design Tokens + ThemeProvider，无 less、基于 StyleSheet，组件不耦合具体样式，利于主题定制与按需复用。
+- **体积可控**：支持 Tree Shaking 与按需引入，单组件体积可控；详见文档站「组件体积」。
+- **API 统一**：语义贴近主流移动端组件库，迁移成本低；文档与示例聚焦落地与扩展。
 
 ## 快速开始
 
@@ -18,7 +17,7 @@ pnpm add react-native-system-ui react-native-svg
 # 如需在业务中直接使用图标组件（可 Tree Shaking）
 pnpm add react-native-system-icon
 
-# 同时保证项目已安装 react 和 react-native（>=19 / >=0.79）
+# 同时保证项目已安装 react 和 react-native（>=18.2 / >=0.79）
 ```
 
 ```tsx
@@ -81,7 +80,7 @@ export const AuroraBranding = () => (
 )
 ```
 
-`themePresets.light` 等价于默认主题，`themePresets.dark` 提供深色配色，`themePresets.aurora` 演示品牌化圆角/字体的组合，可直接交由 `ThemeProvider` 或 `ConfigProvider` 注入。
+`themePresets.light` 等价于默认主题，`themePresets.dark` 提供深色配色，`themePresets.aurora` 演示品牌化圆角/字体，通过 `ThemeProvider` 配置。
 
 ## 架构总览
 
@@ -92,36 +91,30 @@ export const AuroraBranding = () => (
 
 > 这一层次化结构让“设计语言”与“交互实现”各司其职，可快速扩展到 40+ 组件而不失控。
 
-## 目前进度
+## 已交付能力
 
-- ✳️ **Design System v0.1**：仅提供配色/间距/排版等基础变量与 `ThemeProvider` 通道，组件 token 由各自目录维护。
-- ✳️ **Button 组件**：完整覆盖常见按钮的 `type/size/plain/block/round/square/shadow` 语义，支持 `color`、`loading`、`icon` 等能力。
-- ✳️ **Flex 组件**：提供 24 栅格的 RN 封装，支持 `gutter`/`direction`/`wrap`/`Flex.Item span` 等能力。
-- ✳️ **Space 组件**：覆盖 `gap`、`divider`、`direction`、`wrap`、`align`、`justify` 等交互，并提供一套完整文档及 demo。
-- ✳️ **Cell 组件**：实现 `Cell`/`Cell.Group` 组合、`icon/isLink/arrowDirection/size` 等语义，兼容必填星号与自定义内容。
-- ✳️ **Divider 组件**：支持水平/垂直、虚线、细边框与文本定位 (`left/center/right`)，并开放 `lineColor` 与文本样式扩展。
-- ✳️ **Tag 组件**：支持 `type/size/plain/round/mark/closeable` API，可自定义 `color/textColor` 及关闭图标。
-- ✳️ **Checkbox 组件**：支持受控/非受控、`Checkbox.Group`、`shape/checkedColor/direction/max` 等能力。
-- ✳️ **Radio 组件**：基于 `Radio.Group` 实现单选分组，支持 `direction`、`checkedColor`、`labelPosition` 等配置。
-- ✳️ **Badge 组件**：提供数字/红点、`max` 截断、`offset` 偏移、自定义 `content`/`color` 与独立展示模式。
-- ✳️ **Grid 组件**：支持 `columnNum/gutter/square/border/direction/reverse` 等语义，`Grid.Item` 兼容 `badge/dot` 与 children 自定义内容。
-- ✳️ **Typography 组件**：提供 `Text/Title/Link`，支持 `type/size/ellipsis/strong/underline` 以及展开/收起、多语义排版。
-- ✳️ **图标**：使用 `react-native-system-icon` 按需引入图标组件（支持 Tree Shaking），支持 RN/Web。
-- ✳️ **Loading 组件**：实现 `circular/spinner` 两种指示器、`color/size/text/vertical` 等配置，满足过渡加载场景。
-- ✳️ **Empty 组件**：提供 `image/description/children` 语义，占位符支持默认/错误/网络/搜索以及自定义插画。
-- ✳️ **Progress 组件**：复刻 `percentage/strokeWidth/color/pivot` 语义，支持文案与置灰配置。
-- ✳️ **NoticeBar 组件**：支持滚动/换行、`mode=closeable|link`、自定义左右图标及配色。
-- ✳️ **Toast 组件**：提供受控与 `Toast.show/success/fail/loading/clear` 静态调用，支持遮罩、禁止点击与多种状态图标。
-- ✳️ **Dialog 组件**：封装确认/取消弹窗、圆角按钮主题、遮罩与关闭按钮，并提供 `Dialog.show/alert/confirm/clear` 静态调用。
-- ✳️ **Slider 组件**：支持单/双滑块、滚动/垂直/反向、步长与自定义按钮，拖动事件支持开始/结束回调。
-- ✳️ **ConfigProvider**：统一封装主题与多语言，支持 `theme` tokens 覆盖与 `locale` 切换。
-- ✳️ **文档**：Quick Start、架构说明、Aria Hooks、Button 指南已经上线（`docs/`）。
+- **设计系统**：ThemeProvider、createTokens、themePresets（light/dark/aurora），组件自管 tokens。
+- **基础与展示**：Button、Badge、Cell、Collapse、Divider、Empty、Flex、Grid、Space、Tag、Typography、Loading、NoticeBar、Popup、Portal、Progress、Slider、Toast、Dialog 等，均提供文档与 demo。
+- **表单与输入**：Form、Field、Input、Checkbox、Radio、Switch、Stepper、Rate、Picker、Calendar、Search 等。
+- **导航与反馈**：Tabs、NavBar、Tabbar、ActionSheet、Notify、Overlay 等。
+- **文档**：快速上手、架构设计、路线图及组件文档站（`docs/`）。
 
-## 路线图（下一步）
+详细组件列表与状态见 [指南 / 路线图](./docs/guide/roadmap.md)。
 
-1. **基础交互组件**：Cell、Space、Typography —— 打通排版体系；图标使用 `react-native-system-icon`。
-2. **反馈组件**：Toast、Loading、Dialog —— 依赖 Portal 能力（计划内）。
-3. **表单组件**：Field、Switch、Checkbox —— 与 rc-form 生态对接。
-4. **暗色模式**：扩展 tokens palette，支持按需切换。
+## 组件体积
 
-欢迎 issue / PR，一起把高质量的移动端交互体验带到原生世界。
+基于 `dist/es` 各组件目录 gzip 后相加（字节），非实际打包单 chunk 体积。当前体积较大的组件（Top 5）：
+
+| 组件 | gzip 体积 |
+| --- | --- |
+| picker | ~10 KB |
+| swiper | ~10 KB |
+| tabs | ~9 KB |
+| dropdown-menu | ~6.5 KB |
+| form | ~6.3 KB |
+
+完整列表与口径说明见文档站首页「组件体积」区域。
+
+## 版本与反馈
+
+当前为 v0.0.1，欢迎 issue / PR。

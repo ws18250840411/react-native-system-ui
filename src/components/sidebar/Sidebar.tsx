@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Text, View } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
@@ -12,7 +12,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
   const { children, sideStyle, style, tokensOverride, ...rest } = props
   const tokens = useSidebarTokens(tokensOverride)
 
-  const items = React.useMemo(() => {
+  const items = useMemo(() => {
     const out: { element: React.ReactElement<SidebarItemProps>; index: number }[] = []
     const list = React.Children.toArray(children)
     for (let i = 0; i < list.length; i++) {
@@ -39,7 +39,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
     }
   }
 
-  const contextValue = React.useMemo(
+  const contextValue = useMemo(
     () => ({
       activeIndex: currentIndex,
       onSelect: setActiveIndex,
@@ -47,7 +47,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
     [currentIndex, setActiveIndex]
   )
 
-  const clonedItems = React.useMemo(() => {
+  const clonedItems = useMemo(() => {
     return items.map(item => {
       const key = item.element.key ?? item.index
       const merged = mergeTokensOverride(tokensOverride, item.element.props.tokensOverride)
@@ -55,7 +55,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
     })
   }, [items, tokensOverride])
 
-  const activeItem = React.useMemo(() => {
+  const activeItem = useMemo(() => {
     return items.find(item => item.index === currentIndex)?.element
   }, [currentIndex, items])
 

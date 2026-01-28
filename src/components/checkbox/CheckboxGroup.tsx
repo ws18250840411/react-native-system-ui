@@ -1,4 +1,4 @@
-import React, { useImperativeHandle } from 'react'
+import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState } from '@react-stately/checkbox'
@@ -43,7 +43,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
   const gap = Math.max(0, gapProp ?? tokens.spacing.groupGap)
   const supportsGap = Platform.OS === 'web'
 
-  const registryRef = React.useRef(new Map<string, RegistryItem>())
+  const registryRef = useRef(new Map<string, RegistryItem>())
 
   const state = useCheckboxGroupState({
     value: value?.map(serialize),
@@ -70,11 +70,11 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     'aria-disabled': disabled,
   }
 
-  const registerValue = React.useCallback((key: string, raw: CheckboxValue, itemDisabled?: boolean) => {
+  const registerValue = useCallback((key: string, raw: CheckboxValue, itemDisabled?: boolean) => {
     registryRef.current.set(key, { value: raw, disabled: itemDisabled })
   }, [])
 
-  const unregisterValue = React.useCallback((key: string) => {
+  const unregisterValue = useCallback((key: string) => {
     registryRef.current.delete(key)
   }, [])
 
@@ -91,7 +91,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     return isLast ? tokens.layout.groupItem : [tokens.layout.groupItem, { marginBottom: gap }]
   }
 
-  const toggleAll = React.useCallback(
+  const toggleAll = useCallback(
     (options: boolean | { checked?: boolean; skipDisabled?: boolean } = {}) => {
       const opts = isBoolean(options) ? { checked: options } : options
       const { checked: targetChecked, skipDisabled } = opts
@@ -124,7 +124,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
 
   useImperativeHandle(ref, () => ({ toggleAll }), [toggleAll])
 
-  const contextValue = React.useMemo(
+  const contextValue = useMemo(
     () => ({
       state,
       direction,

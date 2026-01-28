@@ -1,5 +1,7 @@
 # 快速上手
 
+安装依赖、配置 ThemeProvider 并引入第一个组件的标准流程。
+
 ## 安装依赖
 
 ```bash
@@ -13,9 +15,9 @@ pnpm add react-native-system-icon
 yarn add react-native-system-icon
 ```
 
-请确保宿主工程已经安装 `react@>=19.0` 与 `react-native@>=0.79`。
+前置要求：宿主工程已安装 `react@>=18.2.0`、`react-native@>=0.79`。
 
-## 包裹 ThemeProvider
+## 配置 ThemeProvider
 
 ```tsx | pure
 import { ThemeProvider } from 'react-native-system-ui'
@@ -25,9 +27,9 @@ export const Providers = ({ children }: { children: React.ReactNode }) => (
 )
 ```
 
-`ThemeProvider` 会把 tokens 下发给所有组件，未包裹时会自动回落到默认主题。
+未包裹时组件自动使用默认主题；包裹后通过 Context 下发 tokens。
 
-## 使用第一个组件
+## 引入组件
 
 ```tsx | pure
 import { Button } from 'react-native-system-ui'
@@ -37,9 +39,9 @@ export const Page = () => (
 )
 ```
 
-## 自定义 Tokens
+## 自定义主题
 
-在大多数场景中，只需直接套用内置预设即可：
+内置预设可直接使用：
 
 ```tsx | pure
 import { ThemeProvider, themePresets } from 'react-native-system-ui'
@@ -49,9 +51,7 @@ export const DarkLayout = ({ children }: { children: React.ReactNode }) => (
 )
 ```
 
-除了默认的 `light` 外，还提供 `dark` 与品牌化的 `aurora` 预设，方便快速交付多主题界面。
-
-需要完全控制 tokens 时，可继续使用 `createTokens`：
+内置 `light` / `dark` / `aurora` 三套预设。需完全自定义时使用 `createTokens`：
 
 ```tsx | pure
 import { ThemeProvider, createTokens } from 'react-native-system-ui'
@@ -84,10 +84,10 @@ export const App = ({ children }: { children: React.ReactNode }) => (
 )
 ```
 
-`createTokens` 只负责基础 tokens 的深合并；组件级 overrides 则通过 `ThemeProvider value.components` 传入，由对应组件目录消费。
+`createTokens` 负责 foundations 深合并；组件级覆盖通过 `value.components` 传入。
 
-## 推荐开发流程
+## 开发约定
 
-1. **从设计系统开始**：如果需要新的维度（如新的间距命名），优先在 foundations 中定义再被组件消费。
-2. **在组件目录内暴露 hooks**：例如 `button/useButtonTokens.ts`，把 tokens 推导逻辑收敛在组件内部，而不是放到公共骨架。
-3. **及时同步文档**：组件完成后在 `docs/components/{component}.md` 增加说明与示例。
+1. **Tokens 先行**：新设计维度（如间距、圆角）在 foundations 中定义，由组件消费。
+2. **组件内聚**：tokens 推导逻辑放在组件目录内（如 `useXXXTokens`），不抽到公共层。
+3. **文档同步**：组件交付时同步更新 `docs/components/<component>` 说明与示例。

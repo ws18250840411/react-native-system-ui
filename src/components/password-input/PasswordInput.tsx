@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   Pressable,
   StyleSheet,
@@ -136,22 +136,22 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const tokens = usePasswordInputTokens(tokensOverride)
     const { colors, radii, sizing, typography, opacity, spacing } = tokens
 
-    const inputRef = React.useRef<TextInput>(null)
-    const [cursorVisible, setCursorVisible] = React.useState(true)
-    const blinkTimer = React.useRef<ReturnType<typeof setInterval> | null>(null)
-    const [focused, setFocused] = React.useState(autoFocus)
+    const inputRef = useRef<TextInput>(null)
+    const [cursorVisible, setCursorVisible] = useState(true)
+    const blinkTimer = useRef<ReturnType<typeof setInterval> | null>(null)
+    const [focused, setFocused] = useState(autoFocus)
 
-    const keyboardType = React.useMemo(
+    const keyboardType = useMemo(
       () => (type === 'number' ? 'number-pad' : 'default'),
       [type],
     )
-    const inputMode = React.useMemo(() => (type === 'number' ? 'numeric' : 'text'), [type])
+    const inputMode = useMemo(() => (type === 'number' ? 'numeric' : 'text'), [type])
 
     const [code = '', setCode] = useControllableValue<string>(
       props,
       { defaultValue: '' }
     )
-    const normalizeValue = React.useCallback(
+    const normalizeValue = useCallback(
       (nextValue: unknown) => {
         let next =
           nextValue === null || nextValue === undefined
@@ -169,9 +169,9 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       },
       [lengthSafe, type],
     )
-    const normalizedCode = React.useMemo(() => normalizeValue(code), [code, normalizeValue])
+    const normalizedCode = useMemo(() => normalizeValue(code), [code, normalizeValue])
 
-    const updateValue = React.useCallback(
+    const updateValue = useCallback(
       (nextValue: string) => {
         const normalized = normalizeValue(nextValue)
         if (normalized === normalizedCode) return
@@ -181,18 +181,18 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       [normalizeValue, normalizedCode, setCode, validator],
     )
 
-    const focusInput = React.useCallback(() => {
+    const focusInput = useCallback(() => {
       if (disabled) return
       inputRef.current?.focus()
     }, [disabled])
-    const blurInput = React.useCallback(() => {
+    const blurInput = useCallback(() => {
       inputRef.current?.blur()
     }, [])
-    const clearInput = React.useCallback(() => {
+    const clearInput = useCallback(() => {
       updateValue('')
     }, [updateValue])
 
-    React.useImperativeHandle(
+    useImperativeHandle(
       ref,
       () => ({
         focus: focusInput,
@@ -202,7 +202,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       [blurInput, clearInput, focusInput],
     )
 
-    React.useEffect(() => {
+    useEffect(() => {
       if (!autoFocus || disabled) return
       const timer = setTimeout(() => {
         inputRef.current?.focus()
@@ -210,26 +210,26 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       return () => clearTimeout(timer)
     }, [autoFocus, disabled])
 
-    const handleChangeText = React.useCallback((text: string) => {
+    const handleChangeText = useCallback((text: string) => {
       updateValue(text ?? '')
     }, [updateValue])
 
-    const handleFocus = React.useCallback(() => {
+    const handleFocus = useCallback(() => {
       setFocused(true)
       onFocus?.()
     }, [onFocus])
 
-    const handleBlur = React.useCallback(() => {
+    const handleBlur = useCallback(() => {
       setFocused(false)
       onBlur?.()
     }, [onBlur])
 
-    const prevSubmitRef = React.useRef({
+    const prevSubmitRef = useRef({
       value: normalizedCode,
       length: lengthSafe,
     })
 
-    React.useEffect(() => {
+    useEffect(() => {
       const prev = prevSubmitRef.current
       prevSubmitRef.current = { value: normalizedCode, length: lengthSafe }
 
@@ -242,7 +242,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       inputRef.current?.blur()
     }, [lengthSafe, normalizedCode, onSubmit])
 
-    React.useEffect(() => {
+    useEffect(() => {
       const shouldBlink = showCursor && focused && !disabled
       if (blinkTimer.current) {
         clearInterval(blinkTimer.current)
@@ -266,7 +266,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       }
     }, [disabled, focused, showCursor])
 
-    const cells = React.useMemo(
+    const cells = useMemo(
       () =>
         Array.from({ length: lengthSafe }, (_, index) => {
           const char = normalizedCode?.[index]
@@ -282,7 +282,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       [disabled, focused, lengthSafe, normalizedCode, showCursor],
     )
 
-    const gutterValue = React.useMemo(
+    const gutterValue = useMemo(
       () => Math.max(0, parseNumberLike(gutter, 0) ?? 0),
       [gutter],
     )
@@ -292,7 +292,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const tipColor = errorInfo ? colors.error : colors.muted
 
     const backgroundColor = hasGutter ? 'transparent' : colors.background
-    const cellTextBase = React.useMemo(
+    const cellTextBase = useMemo(
       () => ({
         color: colors.text,
         fontSize: sizing.cellTextSize,
@@ -302,7 +302,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       [colors.text, sizing.cellTextSize, typography.cellTextWeight, typography.fontFamily],
     )
 
-    const wrapperStyle = React.useMemo(
+    const wrapperStyle = useMemo(
       () => [
         styles.wrapper,
         {
@@ -325,7 +325,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       ],
     )
 
-    const securityStyle = React.useMemo(
+    const securityStyle = useMemo(
       () => [
         styles.security,
         {

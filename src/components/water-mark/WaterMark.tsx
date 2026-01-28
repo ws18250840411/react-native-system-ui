@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { LayoutChangeEvent } from 'react-native'
 import { Image, Text, View, useWindowDimensions } from 'react-native'
 
@@ -39,8 +39,8 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
   const zIndex = resolveFiniteNumber(zIndexProp, tokens.defaults.zIndex)
   const fullPage = fullPageProp ?? tokens.defaults.fullPage
   const window = useWindowDimensions()
-  const [layoutSize, setLayoutSize] = React.useState({ width: 0, height: 0 })
-  const lastLayoutRef = React.useRef({ width: 0, height: 0 })
+  const [layoutSize, setLayoutSize] = useState({ width: 0, height: 0 })
+  const lastLayoutRef = useRef({ width: 0, height: 0 })
   const size = fullPage ? window : layoutSize
 
   const resolvedGapX = resolveNonNegativeNumber(gapX, tokens.defaults.gapX)
@@ -88,20 +88,20 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     onLayoutCalculated?.({ width: nextWidth, height: nextHeight })
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!fullPage) return
     if (!isFiniteNumber(window.width) || !isFiniteNumber(window.height)) return
     if (window.width <= 0 || window.height <= 0) return
     onLayoutCalculated?.({ width: window.width, height: window.height })
   }, [fullPage, onLayoutCalculated, window.width, window.height])
 
-  const zIndexStyle = React.useMemo(() => ({ zIndex }), [zIndex])
-  const cellStyle = React.useMemo(
+  const zIndexStyle = useMemo(() => ({ zIndex }), [zIndex])
+  const cellStyle = useMemo(
     () => ({ width: cellWidth, height: cellHeight }),
     [cellWidth, cellHeight]
   )
-  const oddRowStyle = React.useMemo(() => ({ paddingLeft: cellWidth / 2 }), [cellWidth])
-  const markStyle = React.useMemo(
+  const oddRowStyle = useMemo(() => ({ paddingLeft: cellWidth / 2 }), [cellWidth])
+  const markStyle = useMemo(
     () => ({
       width: markWidth,
       height: markHeight,
@@ -109,7 +109,7 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     }),
     [markHeight, markWidth, resolvedRotate]
   )
-  const imageStyle = React.useMemo(
+  const imageStyle = useMemo(
     () => ({
       width: markWidth,
       height: markHeight,
@@ -117,7 +117,7 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     }),
     [markHeight, markWidth, resolvedOpacity]
   )
-  const textBaseStyle = React.useMemo(
+  const textBaseStyle = useMemo(
     () => ({
       fontSize: normalizedFontSize,
       color: resolvedColor,
@@ -127,8 +127,8 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     }),
     [font?.family, font?.weight, normalizedFontSize, resolvedColor, resolvedOpacity]
   )
-  const rowIndexes = React.useMemo(() => Array.from({ length: rows }, (_, i) => i), [rows])
-  const colIndexes = React.useMemo(() => Array.from({ length: cols }, (_, i) => i), [cols])
+  const rowIndexes = useMemo(() => Array.from({ length: rows }, (_, i) => i), [rows])
+  const colIndexes = useMemo(() => Array.from({ length: cols }, (_, i) => i), [cols])
 
   return (
     <View

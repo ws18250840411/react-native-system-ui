@@ -1,4 +1,4 @@
-import React from 'react'
+import { useRef } from 'react'
 
 import InternalForm, { FormSubscribe, useWatch } from './Form'
 import { FormItem } from './FormItem'
@@ -8,7 +8,7 @@ import type { FormInstance } from './types'
 const Form = Object.assign(InternalForm, {
   Item: FormItem,
   List: FormList,
-  useForm: () => React.useRef<FormInstance | null>(null),
+  useForm: () => useRef<FormInstance | null>(null),
   Subscribe: FormSubscribe,
   useWatch,
 })

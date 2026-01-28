@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, PanResponder, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
@@ -35,16 +35,16 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const tokens = usePullRefreshTokens(tokensOverride)
   const { colors, sizing } = tokens
 
-  const translateY = React.useRef(new Animated.Value(0)).current
-  const headHeightNumber = React.useMemo(
+  const translateY = useRef(new Animated.Value(0)).current
+  const headHeightNumber = useMemo(
     () => Math.max(0, parseNumberLike(headHeight, sizing.headHeight) ?? sizing.headHeight),
     [headHeight, sizing.headHeight],
   )
-  const pullDistanceNumber = React.useMemo(
+  const pullDistanceNumber = useMemo(
     () => Math.max(0, parseNumberLike(pullDistance, headHeightNumber) ?? headHeightNumber),
     [headHeightNumber, pullDistance],
   )
-  const successDurationMs = React.useMemo(
+  const successDurationMs = useMemo(
     () =>
       Math.max(
         0,
@@ -52,28 +52,28 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       ),
     [successDuration],
   )
-  const animationDurationMs = React.useMemo(
+  const animationDurationMs = useMemo(
     () => Math.max(0, parseNumberLike(animationDuration, 300) ?? 300),
     [animationDuration],
   )
 
   const isControlled = !isUndefined(refreshing)
-  const [innerRefreshing, setInnerRefreshing] = React.useState(!!defaultRefreshing)
+  const [innerRefreshing, setInnerRefreshing] = useState(!!defaultRefreshing)
   const mergedRefreshing = isControlled ? !!refreshing : innerRefreshing
 
-  const scrollTopRef = React.useRef(0)
-  const draggingRef = React.useRef(false)
-  const webDragRafRef = React.useRef<number | null>(null)
-  const webDragPendingRef = React.useRef<number | null>(null)
-  const [distance, setDistance] = React.useState(0)
-  const [showSuccess, setShowSuccess] = React.useState(false)
-  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const refreshEndTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const mergedRefreshingRef = React.useRef(mergedRefreshing)
-  const refreshTriggeredRef = React.useRef(false)
-  const refreshSucceededRef = React.useRef(false)
+  const scrollTopRef = useRef(0)
+  const draggingRef = useRef(false)
+  const webDragRafRef = useRef<number | null>(null)
+  const webDragPendingRef = useRef<number | null>(null)
+  const [distance, setDistance] = useState(0)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const refreshEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mergedRefreshingRef = useRef(mergedRefreshing)
+  const refreshTriggeredRef = useRef(false)
+  const refreshSucceededRef = useRef(false)
 
-  const setDistanceValue = React.useCallback((nextDistance: number, animate = false) => {
+  const setDistanceValue = useCallback((nextDistance: number, animate = false) => {
     const normalized = Math.max(0, Math.round(nextDistance))
 
     if (isWeb) {
@@ -92,14 +92,14 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     setDistance(prev => (Math.abs(prev - normalized) < 1 ? prev : normalized))
   }, [animationDurationMs, isWeb, translateY])
 
-  const flushWebDrag = React.useCallback(() => {
+  const flushWebDrag = useCallback(() => {
     const pending = webDragPendingRef.current
     if (pending == null) return
     webDragPendingRef.current = null
     setDistanceValue(pending)
   }, [setDistanceValue])
 
-  const cancelWebDrag = React.useCallback(() => {
+  const cancelWebDrag = useCallback(() => {
     if (webDragRafRef.current != null && typeof cancelAnimationFrame === 'function') {
       cancelAnimationFrame(webDragRafRef.current)
     }
@@ -107,7 +107,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     webDragPendingRef.current = null
   }, [])
 
-  const scheduleWebDrag = React.useCallback(
+  const scheduleWebDrag = useCallback(
     (nextDistance: number) => {
       if (!isWeb || typeof requestAnimationFrame !== 'function') {
         setDistanceValue(nextDistance)
@@ -123,7 +123,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     [flushWebDrag, isWeb, setDistanceValue],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current)
@@ -135,20 +135,20 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     }
   }, [cancelWebDrag])
 
-  const setRefreshing = React.useCallback((value: boolean) => {
+  const setRefreshing = useCallback((value: boolean) => {
     if (!isControlled) setInnerRefreshing(value)
   }, [isControlled])
 
-  React.useEffect(() => {
+  useEffect(() => {
     mergedRefreshingRef.current = mergedRefreshing
   }, [mergedRefreshing])
 
-  const resolveStatusText = React.useCallback((text: PullRefreshStatusText | undefined, fallback: React.ReactNode) => {
+  const resolveStatusText = useCallback((text: PullRefreshStatusText | undefined, fallback: React.ReactNode) => {
     const resolved = isUndefined(text) ? fallback : text
     return isFunction(resolved) ? resolved({ distance }) : resolved
   }, [distance])
 
-  const triggerSuccess = React.useCallback(() => {
+  const triggerSuccess = useCallback(() => {
     if (successText === null || successText === undefined || successText === false) return
     if (successDurationMs <= 0) return
     setShowSuccess(true)
@@ -160,7 +160,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     }, successDurationMs)
   }, [successDurationMs, successText])
 
-  const handleRefresh = React.useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     if (disabled || mergedRefreshing) return
     if (!isFunction(onRefresh)) return
     setShowSuccess(false)
@@ -187,8 +187,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     }
   }, [disabled, mergedRefreshing, onRefresh, onRefreshEnd, setRefreshing, triggerSuccess])
 
-  // Web 端没有原生下拉回弹与 RefreshControl，需要用拖拽手势模拟内容下移。
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isWeb) return
     if (draggingRef.current) return
 
@@ -205,13 +204,13 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     setDistanceValue(0, true)
   }, [disabled, headHeightNumber, isWeb, mergedRefreshing, setDistanceValue, showSuccess])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isWeb) return
     if (!mergedRefreshing && !showSuccess) return
     setDistanceValue(0)
   }, [isWeb, mergedRefreshing, setDistanceValue, showSuccess])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!refreshTriggeredRef.current) return
     if (mergedRefreshing) return
     if (!refreshSucceededRef.current) {
@@ -229,7 +228,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     refreshSucceededRef.current = false
   }, [mergedRefreshing, showSuccess, triggerSuccess])
 
-  const status: PullRefreshStatus = React.useMemo(
+  const status: PullRefreshStatus = useMemo(
     () =>
       mergedRefreshing
         ? 'loading'
@@ -243,8 +242,8 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     [disabled, distance, mergedRefreshing, pullDistanceNumber, showSuccess],
   )
 
-  const opacity = React.useRef(new Animated.Value(status === 'normal' ? 0 : 1)).current
-  React.useEffect(() => {
+  const opacity = useRef(new Animated.Value(status === 'normal' ? 0 : 1)).current
+  useEffect(() => {
     const toValue = status === 'normal' ? 0 : 1
     opacity.stopAnimation()
     if (animationDurationMs <= 0) {
@@ -254,7 +253,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     Animated.timing(opacity, { toValue, duration: animationDurationMs, useNativeDriver: nativeDriverEnabled }).start()
   }, [animationDurationMs, opacity, status])
 
-  const statusNode = React.useMemo(() => {
+  const statusNode = useMemo(() => {
     switch (status) {
       case 'pulling':
         return resolveStatusText(pullingText, locale.vanPullRefresh.pulling)
@@ -270,13 +269,13 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   }, [loadingText, locale.vanPullRefresh.loading, locale.vanPullRefresh.loosing, locale.vanPullRefresh.pulling, loosingText, pullingText, resolveStatusText, status, successText])
 
   const shouldReserveHead = (status === 'loading' || status === 'success') && distance === 0
-  const flattenedContainerStyle = React.useMemo(
+  const flattenedContainerStyle = useMemo(
     () =>
       StyleSheet.flatten(scrollProps.contentContainerStyle) as { paddingTop?: unknown } | null,
     [scrollProps.contentContainerStyle],
   )
   const basePaddingTop = isNumber(flattenedContainerStyle?.paddingTop) ? flattenedContainerStyle.paddingTop : 0
-  const contentContainerStyle = React.useMemo(
+  const contentContainerStyle = useMemo(
     () =>
       shouldReserveHead
         ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
@@ -285,7 +284,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   )
 
   const onScrollProp = scrollProps.onScroll
-  const handleScroll = React.useCallback(
+  const handleScroll = useCallback(
     (event: Parameters<NonNullable<React.ComponentProps<typeof ScrollView>['onScroll']>>[0]) => {
       onScrollProp?.(event)
       const offset = event.nativeEvent.contentOffset?.y ?? 0
@@ -303,7 +302,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     [disabled, isWeb, mergedRefreshing, onRefresh, onScrollProp, setDistanceValue, showSuccess],
   )
 
-  const panResponder = React.useMemo(() => {
+  const panResponder = useMemo(() => {
     if (!isWeb || !isFunction(onRefresh)) return null
     const easeDistance = (raw: number) => {
       const pullDistance = pullDistanceNumber

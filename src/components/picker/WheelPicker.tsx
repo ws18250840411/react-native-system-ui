@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   FlatList,
   Platform,
@@ -11,9 +11,44 @@ import {
 } from 'react-native'
 
 import { clamp } from '../../utils'
-import { indexToOffset, offsetToIndex, shouldMomentum, momentumTarget } from './core'
 import type { PickerOption } from './types'
 import { findEnabledIndex } from './utils'
+
+const adjustIndex = (index: number, options: PickerOption[]) => {
+  const total = options.length
+  if (!total) return 0
+  const i = clamp(index, 0, total - 1)
+  const next = findEnabledIndex(options, i)
+  return next >= 0 ? next : i
+}
+
+const indexToOffset = (index: number, itemHeight: number) => -index * itemHeight
+
+const offsetToIndex = (offset: number, itemHeight: number, total: number, options: PickerOption[]) => {
+  const minOffset = -Math.max(0, total - 1) * itemHeight
+  const off = clamp(offset, minOffset, 0)
+  let index = Math.round(-off / itemHeight)
+  index = adjustIndex(index, options)
+  const snapOffset = indexToOffset(index, itemHeight)
+  return { index, snapOffset }
+}
+
+const shouldMomentum = (distance: number, duration: number) =>
+  duration < 500 && Math.abs(distance) > 8
+
+const momentumTarget = (
+  distance: number,
+  duration: number,
+  currentOffset: number,
+  itemHeight: number,
+  minOffset: number,
+) => {
+  const speed = Math.abs(distance / duration)
+  const extra = (speed / 0.0025) * (distance < 0 ? -1 : 1)
+  const target = clamp(currentOffset + extra, minOffset, 0)
+  const snapIndex = Math.round(-target / itemHeight)
+  return indexToOffset(snapIndex, itemHeight)
+}
 
 const styles = StyleSheet.create({
   column: {
@@ -75,7 +110,7 @@ const WheelPickerInner = <T extends PickerOption,>({
   swipeDuration = 300,
 }: WheelPickerProps<T>) => {
   const isWeb = Platform.OS === 'web'
-  const listRef = React.useRef<FlatList<T>>(null)
+  const listRef = useRef<FlatList<T>>(null)
   const spacerHeight = visibleRest * itemHeight
   const total = data.length
   const maxIndex = Math.max(0, total - 1)
@@ -94,20 +129,20 @@ const WheelPickerInner = <T extends PickerOption,>({
   const batchingPeriod = total > visibleCount * 20 ? 32 : 16
   const effectiveScrollThrottle = total > visibleCount * 20 ? 32 : scrollEventThrottle
   const webVirtualEnabled = total > visibleCount * 4
-  const Spacer = React.useCallback(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
+  const Spacer = useCallback(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
 
-  const dragEndTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const momentumRef = React.useRef(false)
-  const lastOffsetRef = React.useRef(0)
+  const dragEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const momentumRef = useRef(false)
+  const lastOffsetRef = useRef(0)
 
-  const clearDragEndTimer = React.useCallback(() => {
+  const clearDragEndTimer = useCallback(() => {
     if (dragEndTimerRef.current) {
       clearTimeout(dragEndTimerRef.current)
       dragEndTimerRef.current = null
     }
   }, [])
 
-  const emitIndexFromOffset = React.useCallback(
+  const emitIndexFromOffset = useCallback(
     (offsetY: number, animated: boolean) => {
       if (readOnly) return
       const { index, snapOffset } = offsetToIndex(-offsetY, itemHeight, total, data)
@@ -115,46 +150,44 @@ const WheelPickerInner = <T extends PickerOption,>({
       if (Math.abs(nextOffset - offsetY) > 0.5) {
         listRef.current?.scrollToOffset({ offset: nextOffset, animated })
       }
-      // 移除索引比较，总是触发 onChange，让上层的 handleSelect 来决定是否需要更新
-      // 这对于级联选择器很重要，即使索引相同，也可能需要重新计算后续列
       onChange(index)
     },
     [data, itemHeight, onChange, readOnly, total],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     const offset = safeSelectedIndex * itemHeight
     listRef.current?.scrollToOffset({ offset, animated: false })
   }, [itemHeight, safeSelectedIndex])
 
-  const [webOffset, setWebOffset] = React.useState(() => indexToOffset(safeSelectedIndex, itemHeight))
-  const webOffsetRef = React.useRef(webOffset)
-  const startOffsetRef = React.useRef(0)
-  const startTimeRef = React.useRef(0)
-  const [webTransition, setWebTransition] = React.useState(0)
-  const [webVelocityBucket, setWebVelocityBucket] = React.useState(0)
-  const webVelocityBucketRef = React.useRef(0)
-  const lastWheelTimeRef = React.useRef<number | null>(null)
-  const wheelDeltaRef = React.useRef(0)
-  const wheelRafRef = React.useRef<number | null>(null)
-  const pendingIndexRef = React.useRef<number | null>(null)
-  const pendingTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const rafIdRef = React.useRef<number | null>(null)
-  const isInteractingRef = React.useRef(false)
-  const notifyInteractStart = React.useCallback(() => {
+  const [webOffset, setWebOffset] = useState(() => indexToOffset(safeSelectedIndex, itemHeight))
+  const webOffsetRef = useRef(webOffset)
+  const startOffsetRef = useRef(0)
+  const startTimeRef = useRef(0)
+  const [webTransition, setWebTransition] = useState(0)
+  const [webVelocityBucket, setWebVelocityBucket] = useState(0)
+  const webVelocityBucketRef = useRef(0)
+  const lastWheelTimeRef = useRef<number | null>(null)
+  const wheelDeltaRef = useRef(0)
+  const wheelRafRef = useRef<number | null>(null)
+  const pendingIndexRef = useRef<number | null>(null)
+  const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const rafIdRef = useRef<number | null>(null)
+  const isInteractingRef = useRef(false)
+  const notifyInteractStart = useCallback(() => {
     if (readOnly) return
     if (isInteractingRef.current) return
     isInteractingRef.current = true
     onInteractStart?.()
   }, [onInteractStart, readOnly])
 
-  const notifyInteractEnd = React.useCallback(() => {
+  const notifyInteractEnd = useCallback(() => {
     if (!isInteractingRef.current) return
     isInteractingRef.current = false
     onInteractEnd?.()
   }, [onInteractEnd])
 
-  const stopRaf = React.useCallback(() => {
+  const stopRaf = useCallback(() => {
     if (rafIdRef.current != null && typeof cancelAnimationFrame !== 'undefined') {
       cancelAnimationFrame(rafIdRef.current)
       rafIdRef.current = null
@@ -165,14 +198,14 @@ const WheelPickerInner = <T extends PickerOption,>({
     }
   }, [])
 
-  const clearPendingTimer = React.useCallback(() => {
+  const clearPendingTimer = useCallback(() => {
     if (pendingTimerRef.current) {
       clearTimeout(pendingTimerRef.current)
       pendingTimerRef.current = null
     }
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       clearDragEndTimer()
       clearPendingTimer()
@@ -180,7 +213,7 @@ const WheelPickerInner = <T extends PickerOption,>({
     }
   }, [clearDragEndTimer, clearPendingTimer, stopRaf])
 
-  const setVelocityBucket = React.useCallback((velocity: number) => {
+  const setVelocityBucket = useCallback((velocity: number) => {
     const next = getVelocityBucket(velocity)
     if (next !== webVelocityBucketRef.current) {
       webVelocityBucketRef.current = next
@@ -188,7 +221,7 @@ const WheelPickerInner = <T extends PickerOption,>({
     }
   }, [])
 
-  const updateWheelVelocity = React.useCallback(
+  const updateWheelVelocity = useCallback(
     (delta: number) => {
       const now = Date.now()
       const last = lastWheelTimeRef.current
@@ -201,7 +234,7 @@ const WheelPickerInner = <T extends PickerOption,>({
     [setVelocityBucket],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isWeb) return
     clearPendingTimer()
     pendingIndexRef.current = null
@@ -211,7 +244,7 @@ const WheelPickerInner = <T extends PickerOption,>({
     setWebOffset(next)
   }, [clearPendingTimer, isWeb, itemHeight, safeSelectedIndex, setWebTransition])
 
-  const finalizePendingChange = React.useCallback(() => {
+  const finalizePendingChange = useCallback(() => {
     if (readOnly) return
     const nextIndex = pendingIndexRef.current
     if (nextIndex == null) return
@@ -219,12 +252,10 @@ const WheelPickerInner = <T extends PickerOption,>({
     clearPendingTimer()
     setWebTransition(0)
     notifyInteractEnd()
-    // 移除索引比较，总是触发 onChange，让上层的 handleSelect 来决定是否需要更新
-    // 这对于级联选择器很重要，即使索引相同，也可能需要重新计算后续列
     onChange(nextIndex)
   }, [clearPendingTimer, onChange, readOnly, setWebTransition])
 
-  const startWebSnap = React.useCallback(
+  const startWebSnap = useCallback(
     (targetIndex: number) => {
       if (readOnly) return
       notifyInteractStart()
@@ -244,7 +275,7 @@ const WheelPickerInner = <T extends PickerOption,>({
     [clearPendingTimer, finalizePendingChange, itemHeight, maxIndex, readOnly, swipeDuration],
   )
 
-  const handleWheel = React.useCallback(
+  const handleWheel = useCallback(
     (event: { nativeEvent?: { deltaY?: number } }) => {
       if (readOnly) return
       const delta = event.nativeEvent?.deltaY ?? 0
@@ -262,20 +293,18 @@ const WheelPickerInner = <T extends PickerOption,>({
         const direction = queued > 0 ? 1 : -1
         const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data)
         const nextIndex = clamp(index + direction, 0, maxIndex)
-        // 移除索引比较，总是调用 startWebSnap，让 finalizePendingChange 和 handleSelect 来决定是否需要更新
-        // 这对于级联选择器很重要，即使索引相同，也可能需要重新计算后续列
         startWebSnap(nextIndex)
       })
     },
     [data, itemHeight, maxIndex, readOnly, startWebSnap, total, updateWheelVelocity],
   )
 
-  const keyExtractor = React.useCallback(
+  const keyExtractor = useCallback(
     (item: T, idx: number) => `${idx}-${String(item.value ?? '')}`,
     [],
   )
 
-  const renderListItem = React.useCallback(
+  const renderListItem = useCallback(
     ({ item, index }: { item: T; index: number }) => {
       const content = renderItem(item, index)
       return (
@@ -287,12 +316,12 @@ const WheelPickerInner = <T extends PickerOption,>({
     [itemHeight, renderItem],
   )
 
-  const webIndex = React.useMemo(
+  const webIndex = useMemo(
     () => clamp(Math.round(-webOffset / itemHeight), 0, maxIndex),
     [itemHeight, maxIndex, webOffset],
   )
 
-  const webRender = React.useMemo(() => {
+  const webRender = useMemo(() => {
     if (!isWeb || total <= 0) {
       return { items: null as React.ReactNode, topSpacer: null as React.ReactNode, bottomSpacer: null as React.ReactNode }
     }
@@ -325,11 +354,11 @@ const WheelPickerInner = <T extends PickerOption,>({
     }
   }, [data, isWeb, itemHeight, maxIndex, renderItem, total, visibleCount, webIndex, webVirtualEnabled, webVelocityBucket])
 
-  const webTransform = React.useMemo(
+  const webTransform = useMemo(
     () => ({ transform: [{ translateY: webOffset }] }),
     [webOffset],
   )
-  const webTransitionStyle = React.useMemo<ViewStyle | undefined>(
+  const webTransitionStyle = useMemo<ViewStyle | undefined>(
     () =>
       webTransition
         ? ({
@@ -341,7 +370,7 @@ const WheelPickerInner = <T extends PickerOption,>({
         : undefined,
     [webTransition],
   )
-  const handleWebTransitionEnd = React.useCallback(
+  const handleWebTransitionEnd = useCallback(
     (event: { nativeEvent?: { propertyName?: string } } & { propertyName?: string }) => {
       const propertyName = event.nativeEvent?.propertyName ?? event.propertyName
       if (propertyName && propertyName !== 'transform' && propertyName !== 'webkitTransform') return
@@ -350,7 +379,7 @@ const WheelPickerInner = <T extends PickerOption,>({
     [finalizePendingChange],
   )
 
-  const panResponder = React.useMemo(
+  const panResponder = useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => !readOnly,

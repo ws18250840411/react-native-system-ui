@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { useMemo } from 'react'
 import { Platform } from 'react-native'
 import { useFocus, useFocusRing } from '@react-native-aria/focus'
 import { useHover, usePress, type PressEvents } from '@react-native-aria/interactions'
@@ -79,7 +79,7 @@ export const useAriaPress = ({
   }
   const { focusProps: focusRingProps, isFocusVisible } = useFocusRingCompat({ isDisabled: disabled })
 
-  const interactionProps = React.useMemo(() => {
+  const interactionProps = useMemo(() => {
     let merged: Record<string, unknown> = pressProps as unknown as Record<string, unknown>
     if (allowHover) {
       merged = mergePropsCompat(merged, hoverProps as Record<string, unknown>)
@@ -97,7 +97,7 @@ export const useAriaPress = ({
     return merged
   }, [allowFocus, allowHover, disabled, extraProps, focusProps, focusRingProps, hoverProps, pressProps])
 
-  const states = React.useMemo(
+  const states = useMemo(
     () => ({
       hovered: !!isHovered,
       pressed: !!isPressed,

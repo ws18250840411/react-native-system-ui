@@ -1,4 +1,4 @@
-import React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing } from 'react-native'
 
 import { nativeDriverEnabled } from '../platform'
@@ -17,12 +17,12 @@ export const usePresenceAnimation = (
   visible: boolean,
   { duration = 180, easing = Easing.out(Easing.cubic), appear = false }: PresenceOptions = {}
 ) => {
-  const [mounted, setMounted] = React.useState(visible)
-  const animated = React.useRef(new Animated.Value(visible && !appear ? 1 : 0)).current
+  const [mounted, setMounted] = useState(visible)
+  const animated = useRef(new Animated.Value(visible && !appear ? 1 : 0)).current
   const useNativeDriver = nativeDriverEnabled
-  const animationIdRef = React.useRef(0)
+  const animationIdRef = useRef(0)
 
-  React.useEffect(() => {
+  useEffect(() => {
     animationIdRef.current += 1
     const animationId = animationIdRef.current
     animated.stopAnimation()

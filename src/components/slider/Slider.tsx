@@ -1,7 +1,7 @@
 import { useSlider, useSliderThumb } from '@react-native-aria/slider'
 import { isRTL } from '@react-native-aria/utils'
 import { useSliderState } from '@react-stately/slider'
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { GestureResponderEvent, LayoutChangeEvent, PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
@@ -10,7 +10,6 @@ import { useSliderTokens } from './tokens'
 import { parseNumber, isFunction, isFiniteNumber } from '../../utils'
 import { useAriaPress } from '../../hooks'
 import {
-  clampValue,
   isSameLayout,
   normalizeValue,
   toSliderValue,
@@ -70,7 +69,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
   webGestureStyle,
   enhanceHandlers,
 }) => {
-  const inputRef = React.useRef(null)
+  const inputRef = useRef(null)
   const { thumbProps, inputProps } = useSliderThumb(
     {
       index,
@@ -85,8 +84,8 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
 
   const rawThumbViewProps = thumbProps as unknown as HandlerBag | undefined
   const handlers = enhanceHandlers(rawThumbViewProps, index) ?? rawThumbViewProps ?? {}
-  const translate = React.useMemo(() => -size / 2, [size])
-  const thumbStyle = React.useMemo(() => {
+  const translate = useMemo(() => -size / 2, [size])
+  const thumbStyle = useMemo(() => {
     const next: ViewStyle = {
       width: size,
       height: size,
@@ -107,7 +106,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
     }
     return next
   }, [activeColor, content, orientation, size, thumbBackgroundColor, thumbElevation, translate, visualPercent])
-  const indicatorStyle = React.useMemo(
+  const indicatorStyle = useMemo(
     () => ({
       width: indicatorSize,
       height: indicatorSize,
@@ -170,8 +169,8 @@ export const Slider: React.FC<SliderProps> = props => {
 
   const tokens = useSliderTokens(tokensOverride)
   const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
-  const trackRef = React.useRef<React.ElementRef<typeof Pressable> | null>(null)
-  const measureRafRef = React.useRef<number | null>(null)
+  const trackRef = useRef<React.ElementRef<typeof Pressable> | null>(null)
+  const measureRafRef = useRef<number | null>(null)
 
   const resolvedMin = parseNumber(min, 0)
   const resolvedMax = parseNumber(max, 100)
@@ -192,32 +191,32 @@ export const Slider: React.FC<SliderProps> = props => {
   const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
   const scope = Math.max(resolvedMax - resolvedMin, 0.00001)
 
-  const normalized = React.useMemo(
+  const normalized = useMemo(
     () => normalizeValue(valueProp, range, resolvedMin, resolvedMax),
     [valueProp, range, resolvedMin, resolvedMax]
   )
   const isControlled = valueProp !== undefined
 
-  const formatOutput = React.useCallback(
+  const formatOutput = useCallback(
     (values: readonly number[]) => toSliderValue(values, range, resolvedMin),
     [range, resolvedMin],
   )
 
-  const handleStateChange = React.useCallback(
+  const handleStateChange = useCallback(
     (values: readonly number[]) => {
       onChange?.(formatOutput(values))
     },
     [formatOutput, onChange],
   )
 
-  const handleStateChangeEnd = React.useCallback(
+  const handleStateChangeEnd = useCallback(
     (values: readonly number[]) => {
       onChangeAfter?.(formatOutput(values))
     },
     [formatOutput, onChangeAfter],
   )
 
-  const sliderStateOptions = React.useMemo(
+  const sliderStateOptions = useMemo(
     () => ({
       minValue: resolvedMin,
       maxValue: resolvedMax,
@@ -245,9 +244,9 @@ export const Slider: React.FC<SliderProps> = props => {
 
   const state = useSliderState(sliderStateOptions)
 
-  const [trackLayout, setTrackLayout] = React.useState<TrackLayout>({ width: 0, height: 0, x: 0, y: 0 })
+  const [trackLayout, setTrackLayout] = useState<TrackLayout>({ width: 0, height: 0, x: 0, y: 0 })
 
-  const handleTrackLayout = React.useCallback((event: LayoutChangeEvent) => {
+  const handleTrackLayout = useCallback((event: LayoutChangeEvent) => {
     const { layout } = event.nativeEvent
     const next = {
       width: Math.max(layout.width, 1),
@@ -278,7 +277,7 @@ export const Slider: React.FC<SliderProps> = props => {
     })
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (measureRafRef.current != null && typeof cancelAnimationFrame === 'function') {
         cancelAnimationFrame(measureRafRef.current)
@@ -303,7 +302,7 @@ export const Slider: React.FC<SliderProps> = props => {
   const trackPressableProps = trackProps as unknown as Partial<React.ComponentProps<typeof Pressable>>
   const { style: trackAriaStyle, onLayout: trackAriaOnLayout, ...restTrackProps } = trackPressableProps
 
-  const handleTrackPress = React.useCallback((event: GestureResponderEvent) => {
+  const handleTrackPress = useCallback((event: GestureResponderEvent) => {
     if (ariaDisabled) return
     if (!state.values.every((_, i) => !state.isThumbDragging(i))) return
 
@@ -354,20 +353,20 @@ export const Slider: React.FC<SliderProps> = props => {
   })
 
   const currentValue = formatOutput(state.values)
-  const currentValueRef = React.useRef<SliderValue>(currentValue)
+  const currentValueRef = useRef<SliderValue>(currentValue)
   currentValueRef.current = currentValue
 
-  const dragStartedRef = React.useRef<boolean[]>([])
-  const dragStartValueRef = React.useRef<(SliderValue | undefined)[]>([])
-  const moveRafIdRef = React.useRef<(number | null)[]>([])
-  const movePendingArgsRef = React.useRef<(unknown[] | null)[]>([])
-  const enhancedHandlersCacheRef = React.useRef<WeakMap<object, Map<number, HandlerBag>>>(new WeakMap())
+  const dragStartedRef = useRef<boolean[]>([])
+  const dragStartValueRef = useRef<(SliderValue | undefined)[]>([])
+  const moveRafIdRef = useRef<(number | null)[]>([])
+  const movePendingArgsRef = useRef<(unknown[] | null)[]>([])
+  const enhancedHandlersCacheRef = useRef<WeakMap<object, Map<number, HandlerBag>>>(new WeakMap())
 
-  React.useEffect(() => {
+  useEffect(() => {
     enhancedHandlersCacheRef.current = new WeakMap()
   }, [onDragStart, onDragEnd])
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       const cancel = typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : undefined
       if (!cancel) return
@@ -379,7 +378,7 @@ export const Slider: React.FC<SliderProps> = props => {
     }
   }, [])
 
-  const enhanceHandlers = React.useCallback(
+  const enhanceHandlers = useCallback(
     (handlers: HandlerBag | undefined, index: number) => {
       if (!handlers) return handlers
       if (!onDragStart && !onDragEnd) {
@@ -495,11 +494,11 @@ export const Slider: React.FC<SliderProps> = props => {
   )
 
   const values = state.values as readonly number[]
-  const thumbPercents = React.useMemo(
+  const thumbPercents = useMemo(
     () => values.map(value => (((value ?? resolvedMin) - resolvedMin) / scope) * 100),
     [resolvedMin, scope, values],
   )
-  const thumbVisualPercents = React.useMemo(
+  const thumbVisualPercents = useMemo(
     () =>
       thumbPercents.map(percent =>
         orientation === 'vertical'
@@ -513,7 +512,7 @@ export const Slider: React.FC<SliderProps> = props => {
     [orientation, reverse, reverseX, thumbPercents],
   )
 
-  const activeRange = React.useMemo(() => {
+  const activeRange = useMemo(() => {
     const first = thumbVisualPercents[0] ?? 0
     const second = thumbVisualPercents[1] ?? first
     return range && thumbVisualPercents.length > 1
@@ -523,7 +522,7 @@ export const Slider: React.FC<SliderProps> = props => {
         : { offset: first, size: 100 - first }
   }, [orientation, range, reverse, reverseX, thumbVisualPercents])
 
-  const activeTrackStyle = React.useMemo(() => {
+  const activeTrackStyle = useMemo(() => {
     const next: ViewStyle = {
       backgroundColor: resolvedActiveColor,
       borderRadius: tokens.track.radius,
@@ -542,7 +541,7 @@ export const Slider: React.FC<SliderProps> = props => {
     return next
   }, [activeRange.offset, activeRange.size, orientation, resolvedActiveColor, tokens.track.radius])
 
-  const trackBaseStyle = React.useMemo(
+  const trackBaseStyle = useMemo(
     () =>
       orientation === 'vertical'
         ? [
@@ -563,20 +562,20 @@ export const Slider: React.FC<SliderProps> = props => {
     : button ?? thumb
   const leftThumbContent = leftButton ?? leftThumb ?? sharedThumb
   const rightThumbContent = rightButton ?? rightThumb ?? sharedThumb
-  const resolveThumbContent = React.useCallback(
+  const resolveThumbContent = useCallback(
     (index: number, total: number) =>
       total > 1 ? (index === 0 ? leftThumbContent : rightThumbContent) : sharedThumb,
     [leftThumbContent, rightThumbContent, sharedThumb],
   )
 
-  const webGestureStyle: ViewStyle | undefined = React.useMemo(
+  const webGestureStyle: ViewStyle | undefined = useMemo(
     () =>
       Platform.OS === 'web'
         ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'none', userSelect: 'none' } as unknown as ViewStyle)
         : undefined,
     [orientation],
   )
-  const baseTrackPressableStyle: StyleProp<ViewStyle> = React.useMemo(
+  const baseTrackPressableStyle: StyleProp<ViewStyle> = useMemo(
     () => [
       styles.trackPressable,
       orientation === 'vertical' ? styles.trackPressableVertical : null,
@@ -584,14 +583,14 @@ export const Slider: React.FC<SliderProps> = props => {
     ],
     [orientation, webGestureStyle],
   )
-  const trackPressableStyleFn = React.useCallback(
+  const trackPressableStyleFn = useCallback(
     (pressableState: PressableStateCallbackType): StyleProp<ViewStyle> => [
       baseTrackPressableStyle,
       (trackAriaStyle as (state: PressableStateCallbackType) => unknown)(pressableState) as StyleProp<ViewStyle>,
     ],
     [baseTrackPressableStyle, trackAriaStyle],
   )
-  const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] = React.useMemo(
+  const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] = useMemo(
     () =>
       trackAriaStyle && isFunction(trackAriaStyle)
         ? trackPressableStyleFn
@@ -599,7 +598,7 @@ export const Slider: React.FC<SliderProps> = props => {
     [baseTrackPressableStyle, trackAriaStyle, trackPressableStyleFn],
   )
 
-  const containerStyles = React.useMemo(
+  const containerStyles = useMemo(
     () => [
       styles.container,
       { paddingVertical: tokens.spacing.containerPaddingVertical },

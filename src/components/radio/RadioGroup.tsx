@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useRadioGroup } from '@react-native-aria/radio'
 import { useRadioGroupState } from '@react-stately/radio'
@@ -32,11 +32,11 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
   const direction = directionProp ?? tokens.defaults.groupDirection
   const gap = Math.max(0, gapProp ?? tokens.spacing.groupGap)
 
-  const registryRef = React.useRef(new Map<string, RadioValue>())
-  const registerValue = React.useCallback((key: string, raw: RadioValue) => {
+  const registryRef = useRef(new Map<string, RadioValue>())
+  const registerValue = useCallback((key: string, raw: RadioValue) => {
     registryRef.current.set(key, raw)
   }, [])
-  const unregisterValue = React.useCallback((key: string) => {
+  const unregisterValue = useCallback((key: string) => {
     registryRef.current.delete(key)
   }, [])
 
@@ -92,7 +92,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     }
     : null
 
-  const contextValue = React.useMemo(
+  const contextValue = useMemo(
     () => ({
       state,
       direction,

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Pressable, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 
 import { isNumericLike, isRenderable } from '../../utils'
@@ -28,7 +28,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   const resolvedShowZero = showZero ?? tokens.defaults.showZero
   const hasChildren = React.Children.count(children) > 0
 
-  const { visible, formattedContent } = React.useMemo(() => {
+  const { visible, formattedContent } = useMemo(() => {
     const numericContent = isNumericLike(content) ? Number(content) : null
     const shouldHide = numericContent === 0 && !resolvedShowZero
     const isVisible = dot || (isRenderable(content) && !shouldHide)
@@ -44,9 +44,9 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     return { visible: true, formattedContent: finalContent }
   }, [content, dot, max, resolvedShowZero])
 
-  const [size, setSize] = React.useState({ width: 0, height: 0 })
+  const [size, setSize] = useState({ width: 0, height: 0 })
 
-  const handleLayout = React.useCallback(
+  const handleLayout = useCallback(
     (e: LayoutChangeEvent) => {
       const { width, height } = e.nativeEvent.layout
       if (width !== size.width || height !== size.height) {
@@ -56,7 +56,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     [size.width, size.height]
   )
 
-  const transformStyle = React.useMemo(() => {
+  const transformStyle = useMemo(() => {
     if (!hasChildren) return undefined
     if (dot) {
       const half = tokens.sizing.dotSize / 2
@@ -71,7 +71,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     }
   }, [hasChildren, dot, tokens.sizing.dotSize, size.width, size.height])
 
-  const baseBadgeStyle = React.useMemo(() => {
+  const baseBadgeStyle = useMemo(() => {
     if (dot) {
       return {
         width: tokens.sizing.dotSize,
@@ -92,7 +92,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     }
   }, [dot, color, tokens])
 
-  const mergedTextStyle = React.useMemo(
+  const mergedTextStyle = useMemo(
     () => [
       tokens.layout.text,
       {
@@ -107,13 +107,13 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     [textColor, tokens, userTextStyle]
   )
 
-  const offsetStyle = React.useMemo(() => {
+  const offsetStyle = useMemo(() => {
     if (!offset) return undefined
     const [x, y] = offset
     return (hasChildren ? { right: x, top: y } : { marginLeft: x, marginTop: y }) as ViewStyle
   }, [offset, hasChildren])
 
-  const badgeElement = React.useMemo(() => {
+  const badgeElement = useMemo(() => {
     if (!visible) return null
 
     return (

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useImperativeHandle } from 'react'
 import renderer, { act } from 'react-test-renderer'
 
 import type { UseGestureScrollOptions, UseGestureScrollResult } from '../useGestureScroll'
@@ -7,7 +7,7 @@ import { useGestureScroll } from '../useGestureScroll'
 const TestComponent = React.forwardRef<UseGestureScrollResult | null, { options?: UseGestureScrollOptions }>(
   ({ options }, ref) => {
     const value = useGestureScroll(options)
-    React.useImperativeHandle(ref, () => value, [value])
+    useImperativeHandle(ref, () => value, [value])
     return null
   }
 )

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useImperativeHandle } from 'react'
 import renderer from 'react-test-renderer'
 
 import { type UseAriaOverlayResult, useAriaOverlay } from '../useAriaOverlay'
@@ -12,7 +12,7 @@ jest.mock('@react-native-aria/overlays', () => ({
 const TestComponent = React.forwardRef<UseAriaOverlayResult | null, Parameters<typeof useAriaOverlay>[0]>(
   (options, ref) => {
     const value = useAriaOverlay(options)
-    React.useImperativeHandle(ref, () => value, [value])
+    useImperativeHandle(ref, () => value, [value])
     return null
   }
 )
@@ -63,4 +63,3 @@ describe('useAriaOverlay', () => {
     })
   })
 })
-

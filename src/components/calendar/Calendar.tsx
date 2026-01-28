@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Pressable, Text, View, type TextStyle } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -98,28 +98,28 @@ const Calendar: React.FC<CalendarProps> = props => {
     ...popupRestProps
   } = popupPropsOverrides ?? {}
 
-  const closePopup = React.useCallback(() => {
+  const closePopup = useCallback(() => {
     if (!poppable) return
     setPopupVisible(false)
   }, [poppable, setPopupVisible])
 
-  const handlePopupOpen = React.useCallback(() => {
+  const handlePopupOpen = useCallback(() => {
     popupOnOpen?.()
     onOpen?.()
   }, [popupOnOpen, onOpen])
 
-  const handlePopupOpened = React.useCallback(() => {
+  const handlePopupOpened = useCallback(() => {
     popupOnOpened?.()
     onOpened?.()
   }, [popupOnOpened, onOpened])
 
-  const handlePopupClose = React.useCallback(() => {
+  const handlePopupClose = useCallback(() => {
     closePopup()
     popupOnClose?.()
     onClose?.()
   }, [closePopup, popupOnClose, onClose])
 
-  const handlePopupClosed = React.useCallback(() => {
+  const handlePopupClosed = useCallback(() => {
     popupOnClosed?.()
     onClosed?.()
   }, [popupOnClosed, onClosed])
@@ -133,12 +133,12 @@ const Calendar: React.FC<CalendarProps> = props => {
     defaultValuePropName: 'defaultValue',
     trigger: 'onSelect',
   })
-  const value = React.useMemo(
+  const value = useMemo(
     () => normalizeValue(toArrayValue(selectedValue), type),
     [selectedValue, type]
   )
 
-  const [currentMonth, setCurrentMonth] = React.useState(() => {
+  const [currentMonth, setCurrentMonth] = useState(() => {
     const initial = value.length ? value[0] : new Date()
     return clampMonth(initial, minDate, maxDate)
   })
@@ -147,7 +147,7 @@ const Calendar: React.FC<CalendarProps> = props => {
   const minDateTime = minDate.getTime()
   const maxDateTime = maxDate.getTime()
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!value.length) {
       return
     }
@@ -155,30 +155,30 @@ const Calendar: React.FC<CalendarProps> = props => {
     setCurrentMonth(prev => (isSameMonth(first, prev) ? prev : first))
   }, [firstValueTime, minDateTime, maxDateTime])
 
-  const monthDays = React.useMemo(
+  const monthDays = useMemo(
     () => buildMonth(currentMonth, weekStartsOn),
     [currentMonth, weekStartsOn]
   )
 
-  const minDay = React.useMemo(() => startOfDay(minDate).getTime(), [minDate])
-  const maxDay = React.useMemo(() => startOfDay(maxDate).getTime(), [maxDate])
+  const minDay = useMemo(() => startOfDay(minDate).getTime(), [minDate])
+  const maxDay = useMemo(() => startOfDay(maxDate).getTime(), [maxDate])
 
-  const weekLabels = React.useMemo(
+  const weekLabels = useMemo(
     () => reorderWeekdays(weekdays ?? tokens.defaults.weekdays, weekStartsOn, tokens.defaults.weekdays),
     [tokens.defaults.weekdays, weekdays, weekStartsOn]
   )
 
-  const monthLabel = React.useMemo(
+  const monthLabel = useMemo(
     () => (formatMonthTitle ? formatMonthTitle(currentMonth) : formatMonth(currentMonth)),
     [formatMonthTitle, currentMonth]
   )
 
-  const minMonthStart = React.useMemo(() => startOfMonth(minDate), [minDate])
-  const maxMonthStart = React.useMemo(() => startOfMonth(maxDate), [maxDate])
+  const minMonthStart = useMemo(() => startOfMonth(minDate), [minDate])
+  const maxMonthStart = useMemo(() => startOfMonth(maxDate), [maxDate])
   const canGoPrev = currentMonth.getTime() > minMonthStart.getTime()
   const canGoNext = currentMonth.getTime() < maxMonthStart.getTime()
 
-  const goToMonth = React.useCallback(
+  const goToMonth = useCallback(
     (delta: number) => {
       setCurrentMonth(prev =>
         clampMonth(new Date(prev.getFullYear(), prev.getMonth() + delta, 1), minDate, maxDate)
@@ -190,7 +190,7 @@ const Calendar: React.FC<CalendarProps> = props => {
   const confirmDisabled = type === 'range' ? value.length < 2 : value.length === 0
   const columnPadding = tokens.spacing.column / 2
 
-  const maybeAutoConfirm = React.useCallback(
+  const maybeAutoConfirm = useCallback(
     (next: Date[]) => {
       if (showConfirm) return
       if (type === 'range' && next.length < 2) return
@@ -204,7 +204,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     [showConfirm, type, onConfirm, poppable, closeOnConfirm, closePopup]
   )
 
-  const handleConfirm = React.useCallback(() => {
+  const handleConfirm = useCallback(() => {
     if (showConfirm && confirmDisabled) {
       return
     }
@@ -214,7 +214,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     }
   }, [showConfirm, confirmDisabled, onConfirm, value, type, poppable, closeOnConfirm, closePopup])
 
-  const isSelectionAllowed = React.useCallback(
+  const isSelectionAllowed = useCallback(
     (next: Date[]) => {
       if (type === 'range' && next.length === 2) {
         const [start, end] = next
@@ -235,7 +235,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     [type, allowSameDay, maxRange, onOverRange]
   )
 
-  const handleSelectDay = React.useCallback((day: Date) => {
+  const handleSelectDay = useCallback((day: Date) => {
     const dayTime = startOfDay(day).getTime()
     if (dayTime < minDay || dayTime > maxDay) {
       return
@@ -279,16 +279,16 @@ const Calendar: React.FC<CalendarProps> = props => {
     }
   }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelectedValue, showConfirm, maybeAutoConfirm])
 
-  const valueTimes = React.useMemo(
+  const valueTimes = useMemo(
     () => value.map(item => startOfDay(item).getTime()),
     [value]
   )
-  const selectedSet = React.useMemo(() => new Set(valueTimes), [valueTimes])
+  const selectedSet = useMemo(() => new Set(valueTimes), [valueTimes])
   const rangeBounds = type === 'range' && valueTimes.length === 2
     ? [valueTimes[0], valueTimes[1]]
     : null
 
-  const renderDay = React.useCallback((day: Date | null, index: number) => {
+  const renderDay = useCallback((day: Date | null, index: number) => {
     if (!day) {
       return (
         <View

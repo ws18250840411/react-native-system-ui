@@ -1,4 +1,4 @@
-import React from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { isFunction } from '../utils/validate'
 
 export interface UseControllableValueOptions<T> {
@@ -28,7 +28,7 @@ function useControllableValue<T = unknown, P extends object = UseControllableVal
   const isControlled = hasProp(props, valuePropName)
   const value = propsRecord[valuePropName] as T
 
-  const [internalValue, setInternalValue] = React.useState<T>(() => {
+  const [internalValue, setInternalValue] = useState<T>(() => {
     if (isControlled) {
       return value
     }
@@ -40,12 +40,12 @@ function useControllableValue<T = unknown, P extends object = UseControllableVal
 
   const mergedValue = isControlled ? value : internalValue
 
-  const handlerRef = React.useRef(propsRecord[trigger])
-  React.useEffect(() => {
+  const handlerRef = useRef(propsRecord[trigger])
+  useEffect(() => {
     handlerRef.current = propsRecord[trigger]
   }, [props, trigger])
 
-  const triggerChange = React.useCallback(
+  const triggerChange = useCallback(
     (nextValue: T, ...args: unknown[]) => {
       if (!isControlled) {
         setInternalValue(nextValue)

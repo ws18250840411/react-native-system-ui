@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import Portal from '../portal/Portal'
 import ImagePreview from './ImagePreview'
@@ -28,13 +28,13 @@ interface ImagePreviewPortalProps {
 }
 
 const ImagePreviewPortal: React.FC<ImagePreviewPortalProps> = ({ id, options }) => {
-  const [visible, setVisible] = React.useState(true)
+  const [visible, setVisible] = useState(true)
 
-  const close = React.useCallback(() => {
+  const close = useCallback(() => {
     setVisible(false)
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     closers.set(id, close)
     return () => {
       const current = closers.get(id)
@@ -44,7 +44,7 @@ const ImagePreviewPortal: React.FC<ImagePreviewPortalProps> = ({ id, options }) 
     }
   }, [close, id])
 
-  const handleClose = React.useCallback(
+  const handleClose = useCallback(
     (params: CloseParams) => {
       options.onClose?.(params)
       setVisible(false)
@@ -52,7 +52,7 @@ const ImagePreviewPortal: React.FC<ImagePreviewPortalProps> = ({ id, options }) 
     [options],
   )
 
-  const handleClosed = React.useCallback(() => {
+  const handleClosed = useCallback(() => {
     options.onClosed?.()
     removeInstance(id)
   }, [id, options])

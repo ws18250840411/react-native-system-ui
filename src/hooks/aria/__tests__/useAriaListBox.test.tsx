@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useImperativeHandle } from 'react'
 import renderer from 'react-test-renderer'
 
 import {
@@ -23,7 +23,7 @@ const TestComponent = React.forwardRef<
   { options: UseAriaListBoxOptions<any> }
 >(({ options }, ref) => {
   const value = useAriaListBox(options)
-  React.useImperativeHandle(ref, () => value, [value])
+  useImperativeHandle(ref, () => value, [value])
   return null
 })
 
@@ -56,4 +56,3 @@ describe('useAriaListBox', () => {
     expect(ref.current?.labelProps).toBe(labelProps)
   })
 })
-

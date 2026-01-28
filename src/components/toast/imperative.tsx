@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import Portal from '../portal/Portal'
 import { isFunction, isString, isText } from '../../utils'
@@ -80,21 +80,21 @@ interface ToastPortalProps {
 }
 
 const ToastPortal: React.FC<ToastPortalProps> = ({ id, options }) => {
-  const [visible, setVisible] = React.useState(true)
+  const [visible, setVisible] = useState(true)
 
-  React.useEffect(() => {
+  useEffect(() => {
     toastControllers.set(id, { close: () => setVisible(false) })
     return () => {
       toastControllers.delete(id)
     }
   }, [id])
 
-  const handleClose = React.useCallback(() => {
+  const handleClose = useCallback(() => {
     options.onClose?.()
     setVisible(false)
   }, [options])
 
-  const handleClosed = React.useCallback(() => {
+  const handleClosed = useCallback(() => {
     options.onClosed?.()
     removeToast(id)
   }, [id, options])

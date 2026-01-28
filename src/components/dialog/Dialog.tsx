@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
 import { useLocale } from '../config-provider/useLocale'
@@ -125,7 +125,7 @@ export const Dialog: React.FC<DialogProps> = props => {
   const confirmLoading = confirmProps?.loading
   const cancelText = cancelButtonText ?? locale.cancel
   const confirmText = confirmButtonText ?? locale.confirm
-  const actionSeqRef = React.useRef(0)
+  const actionSeqRef = useRef(0)
 
   const runBeforeClose = (action: 'confirm' | 'cancel' | 'close') => {
     if (!beforeClose) return true
@@ -177,9 +177,9 @@ export const Dialog: React.FC<DialogProps> = props => {
     runAction('confirm', onConfirm)
   }
 
-  const scaleAnim = React.useRef(new Animated.Value(0.7)).current
+  const scaleAnim = useRef(new Animated.Value(0.7)).current
 
-  React.useEffect(() => {
+  useEffect(() => {
     scaleAnim.setValue(visible ? 0.7 : 1)
     Animated.timing(scaleAnim, {
       toValue: visible ? 1 : 0.9,
@@ -389,11 +389,11 @@ export const Dialog: React.FC<DialogProps> = props => {
         </Pressable>
       ) : null}
       {hasTitle ? (
-        <View style={titleWrapperStyle ?? undefined}>
+        <View style={titleWrapperStyle}>
           {React.isValidElement(title) ? (
             title
           ) : (
-            <Text style={titleTextStyle ?? undefined}>{title}</Text>
+            <Text style={titleTextStyle}>{title}</Text>
           )}
         </View>
       ) : null}

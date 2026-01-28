@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -72,28 +72,28 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     trigger: 'onChange',
   })
   const value = mergedValue ?? ''
-  const maxlength = React.useMemo(() => {
+  const maxlength = useMemo(() => {
     const parsed = parseNumberLike(maxlengthProp, undefined)
     if (parsed === undefined || !Number.isFinite(parsed) || parsed < 0) return undefined
     return Math.floor(parsed)
   }, [maxlengthProp])
-  const valueRef = React.useRef(value)
-  const maxlengthRef = React.useRef(maxlength)
+  const valueRef = useRef(value)
+  const maxlengthRef = useRef(maxlength)
   valueRef.current = value
   maxlengthRef.current = maxlength
 
   const isCustomTheme = theme === 'custom'
   const resolvedCloseText = isCustomTheme ? closeButtonText ?? '完成' : closeButtonText
 
-  const closeSelf = React.useCallback(() => {
+  const closeSelf = useCallback(() => {
     onClose?.()
     if (blurOnClose) {
       onBlur?.()
     }
   }, [blurOnClose, onBlur, onClose])
 
-  const prevVisible = React.useRef(visible)
-  React.useEffect(() => {
+  const prevVisible = useRef(visible)
+  useEffect(() => {
     if (visible && !prevVisible.current) {
       onShow?.()
     }
@@ -103,7 +103,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     prevVisible.current = visible
   }, [visible, onShow, onHide])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (visible) {
       keyboardRegistry.add(closeSelf)
       keyboardRegistry.forEach(fn => {
@@ -119,7 +119,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     }
   }, [visible, closeSelf])
 
-  const keys = React.useMemo(() => {
+  const keys = useMemo(() => {
     const shouldShuffle = randomKeyOrder && visible
     const numbers = shouldShuffle ? shuffle(NUMBER_KEYS) : NUMBER_KEYS
     const main: KeyboardKey[] = numbers.map(text => ({ text, type: '' }))
@@ -147,7 +147,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     return main
   }, [extraKey, isCustomTheme, randomKeyOrder, showDeleteKey, visible])
 
-  const handleInput = React.useCallback(
+  const handleInput = useCallback(
     (text?: string, type?: NumberKeyboardKeyType) => {
       if (type === 'delete') {
         const currentValue = valueRef.current
@@ -170,7 +170,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     [closeSelf, onDelete, onInput, setMergedValue],
   )
 
-  const wrapperShadow = React.useMemo(
+  const wrapperShadow = useMemo(
     () =>
       createPlatformShadow({
         color: shadow.color,
@@ -184,7 +184,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
 
   const keyGap = spacing.keyGap
 
-  const renderKey = React.useCallback(
+  const renderKey = useCallback(
     (key: KeyboardKey, index: number, isClose = false, fullWidth = false, customHeight?: number) => {
       const isPlaceholder = key.type === '' && !key.text
       const disabled = isPlaceholder || (isClose && closeButtonLoading)
@@ -306,15 +306,15 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     ],
   )
 
-  const animated = React.useRef(new Animated.Value(visible ? 1 : 0)).current
-  const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
-  const animationSeqRef = React.useRef(0)
-  const [contentHeight, setContentHeight] = React.useState(0)
-  const [shouldRender, setShouldRender] = React.useState(visible)
+  const animated = useRef(new Animated.Value(visible ? 1 : 0)).current
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null)
+  const animationSeqRef = useRef(0)
+  const [contentHeight, setContentHeight] = useState(0)
+  const [shouldRender, setShouldRender] = useState(visible)
 
   const effectiveDuration = transition === false ? 0 : transitionDuration
 
-  React.useEffect(() => {
+  useEffect(() => {
     animationSeqRef.current += 1
     const currentSeq = animationSeqRef.current
     if (visible) {
@@ -339,7 +339,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     }
   }, [animated, visible, effectiveDuration])
 
-  const translateY = React.useMemo(
+  const translateY = useMemo(
     () =>
       animated.interpolate({
         inputRange: [0, 1],
@@ -348,14 +348,14 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     [animated, contentHeight],
   )
 
-  const handleLayout = React.useCallback((e: LayoutChangeEvent) => {
+  const handleLayout = useCallback((e: LayoutChangeEvent) => {
     const { height } = e.nativeEvent.layout
     setContentHeight(prev => (Math.abs(height - prev) > 0.5 ? height : prev))
   }, [])
 
   const hasHeader = !isCustomTheme && (title || closeButtonText)
   const doubleKeyHeight = sizing.keyHeight * 2 + keyGap
-  const memo = React.useMemo(() => {
+  const memo = useMemo(() => {
     const headerPaddingStyle = { paddingHorizontal: spacing.titlePadding }
     const defaultContainerStyle = [
       styles.defaultRow,

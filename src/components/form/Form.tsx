@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { View } from 'react-native'
 
 import { isPromiseLike, isNumber, isString, isText } from '../../utils'
@@ -79,21 +79,21 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     ...rest
   } = props
 
-  const defaultInitialValuesRef = React.useRef<Record<string, unknown>>({})
+  const defaultInitialValuesRef = useRef<Record<string, unknown>>({})
   const mergedInitialValues = initialValuesProp ?? defaultInitialValuesRef.current
-  const [values, setValues] = React.useState<Record<string, unknown>>(mergedInitialValues)
-  const [errors, setErrors] = React.useState<Record<string, string[]>>({})
-  const lastInitialValuesRef = React.useRef<Record<string, unknown>>(mergedInitialValues)
-  const fieldsRef = React.useRef<Record<string, RegisteredFieldOptions & { name: NamePath }>>({})
-  const dependencyGraphRef = React.useRef(new Map<string, Set<string>>())
-  const valuesRef = React.useRef(values)
-  const errorsRef = React.useRef(errors)
-  const validationSeqRef = React.useRef<Record<string, number>>({})
-  const subscribersRef = React.useRef(
+  const [values, setValues] = useState<Record<string, unknown>>(mergedInitialValues)
+  const [errors, setErrors] = useState<Record<string, string[]>>({})
+  const lastInitialValuesRef = useRef<Record<string, unknown>>(mergedInitialValues)
+  const fieldsRef = useRef<Record<string, RegisteredFieldOptions & { name: NamePath }>>({})
+  const dependencyGraphRef = useRef(new Map<string, Set<string>>())
+  const valuesRef = useRef(values)
+  const errorsRef = useRef(errors)
+  const validationSeqRef = useRef<Record<string, number>>({})
+  const subscribersRef = useRef(
     new Set<(changed: Record<string, unknown>, all: Record<string, unknown>) => void>(),
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (shallowEqual(lastInitialValuesRef.current, mergedInitialValues)) {
       return
     }
@@ -104,7 +104,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     setErrors({})
   }, [mergedInitialValues])
 
-  const setFieldErrors = React.useCallback((name: NamePath, nextErrors: string[]) => {
+  const setFieldErrors = useCallback((name: NamePath, nextErrors: string[]) => {
     const key = serializeNamePath(name)
     setErrors(prev => {
       const prevErrors = prev[key]
@@ -124,7 +124,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     })
   }, [])
 
-  const registerField = React.useCallback((name: NamePath, options: RegisteredFieldOptions) => {
+  const registerField = useCallback((name: NamePath, options: RegisteredFieldOptions) => {
     const key = serializeNamePath(name)
     const prev = fieldsRef.current[key]
     if (prev?.dependencies?.length) {
@@ -183,11 +183,11 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     }
   }, [setFieldErrors])
 
-  const notify = React.useCallback((changedValues: Record<string, unknown>, nextValues: Record<string, unknown>) => {
+  const notify = useCallback((changedValues: Record<string, unknown>, nextValues: Record<string, unknown>) => {
     subscribersRef.current.forEach(listener => listener(changedValues, nextValues))
   }, [])
 
-  const runFieldValidation = React.useCallback(
+  const runFieldValidation = useCallback(
     async (
       name: NamePath,
       trigger?: string,
@@ -240,7 +240,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     [setFieldErrors],
   )
 
-  const validateFields = React.useCallback(
+  const validateFields = useCallback(
     async (names?: NamePath[]) => {
       const fieldNames = names ?? Object.values(fieldsRef.current).map(item => item.name)
       const results = await Promise.all(fieldNames.map(name => runFieldValidation(name)))
@@ -253,7 +253,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     [runFieldValidation],
   )
 
-  const setFieldValue = React.useCallback(
+  const setFieldValue = useCallback(
     (name: NamePath, value: unknown, trigger?: string) => {
       const nameKey = serializeNamePath(name)
       setValues(prev => {
@@ -278,7 +278,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     [notify, onValuesChange, runFieldValidation],
   )
 
-  const formApi = React.useMemo<FormInstance>(() => ({
+  const formApi = useMemo<FormInstance>(() => ({
     submit: async () => {
       try {
         const result = await validateFields()
@@ -332,18 +332,18 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     getFieldError: (name: NamePath) => errorsRef.current[serializeNamePath(name)] ?? [],
   }), [notify, onFinish, onValuesChange, validateFields, runFieldValidation])
 
-  React.useImperativeHandle(ref, () => formApi, [formApi])
+  useImperativeHandle(ref, () => formApi, [formApi])
 
-  const getFieldError = React.useCallback((name: NamePath) => errors[serializeNamePath(name)], [errors])
+  const getFieldError = useCallback((name: NamePath) => errors[serializeNamePath(name)], [errors])
 
-  const getFieldValue = React.useCallback((name: NamePath) => getValueByName(values, name), [values])
+  const getFieldValue = useCallback((name: NamePath) => getValueByName(values, name), [values])
 
-  const contextValidateField = React.useCallback(
+  const contextValidateField = useCallback(
     (name: NamePath, trigger?: string) => runFieldValidation(name, trigger),
     [runFieldValidation],
   )
 
-  const contextValue = React.useMemo(
+  const contextValue = useMemo(
     () => ({
       values,
       getFieldValue,
@@ -377,9 +377,9 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 InternalForm.displayName = 'Form'
 
 export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRefObject<FormInstance | null>) => {
-  const context = React.useContext(FormContext)
+  const context = useContext(FormContext)
 
-  const names = React.useMemo(() => {
+  const names = useMemo(() => {
     if (name === undefined) return undefined
     if (!Array.isArray(name)) return [name]
     return name.length && isText(name[0])
@@ -387,7 +387,7 @@ export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRe
       : (name as NamePath[])
   }, [name])
 
-  const getSnapshot = React.useCallback(
+  const getSnapshot = useCallback(
     (allValues?: Record<string, unknown>) => {
       const source = allValues ?? context?.getFieldsValue?.() ?? formRef?.current?.getFieldsValue?.() ?? {}
       if (!names) return source
@@ -399,9 +399,9 @@ export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRe
     [context, formRef, names],
   )
 
-  const [value, setValue] = React.useState(() => getSnapshot())
+  const [value, setValue] = useState(() => getSnapshot())
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!context?.subscribe) return undefined
     return context.subscribe((changed, all) => {
       if (!names || names.some(key => serializeNamePath(key) in changed)) {
@@ -414,10 +414,10 @@ export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRe
 }
 
 export const FormSubscribe: React.FC<FormSubscribeProps> = ({ to, children }) => {
-  const context = React.useContext(FormContext)
-  const [changed, setChanged] = React.useState<Record<string, unknown>>({})
+  const context = useContext(FormContext)
+  const [changed, setChanged] = useState<Record<string, unknown>>({})
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!context?.subscribe) return undefined
     return context.subscribe(next => {
       if (to && !Object.keys(next).some(key => to.includes(key))) return

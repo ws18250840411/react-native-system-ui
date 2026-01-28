@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 
 import { isBoolean, isFiniteNumber } from '../../utils'
 import Field from '../field'
@@ -24,14 +24,14 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
   } = props
 
   const tokens = useInputTokens(tokensOverride)
-  const inputRef = React.useRef<FieldInstance | null>(null)
+  const inputRef = useRef<FieldInstance | null>(null)
 
-  const handleChangeText = React.useCallback((value: string) => {
+  const handleChangeText = useCallback((value: string) => {
     onChange?.(value)
     onChangeText?.(value)
   }, [onChange, onChangeText])
 
-  React.useImperativeHandle(
+  useImperativeHandle(
     ref,
     () => ({
       focus: () => inputRef.current?.focus?.(),
@@ -44,20 +44,20 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
     [],
   )
 
-  const resolvedInputAlign = React.useMemo(
+  const resolvedInputAlign = useMemo(
     () => align ?? inputAlignProp ?? tokens.defaults.inputAlign,
     [align, inputAlignProp, tokens.defaults.inputAlign],
   )
-  const resolvedClearTrigger = React.useMemo(
+  const resolvedClearTrigger = useMemo(
     () => clearTriggerOverride ?? tokens.defaults.clearTrigger,
     [clearTriggerOverride, tokens.defaults.clearTrigger],
   )
-  const resolvedKeyboardType = React.useMemo(
+  const resolvedKeyboardType = useMemo(
     () => keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined),
     [keyboardTypeProp, type],
   )
 
-  const fieldStyle = React.useMemo(
+  const fieldStyle = useMemo(
     () => [
       {
         paddingHorizontal: tokens.spacing.paddingHorizontal,
@@ -98,12 +98,12 @@ const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref
   const fieldTokens = useFieldTokens(rest.fieldTokensOverride)
 
   const lineHeight = fieldTokens.defaults.textareaLineHeight
-  const toRows = React.useCallback((height?: number) => {
+  const toRows = useCallback((height?: number) => {
     if (!isFiniteNumber(height) || height <= 0) return undefined
     return Math.max(1, Math.round(height / lineHeight))
   }, [lineHeight])
 
-  const resolvedAutoSize = React.useMemo<boolean | FieldAutosizeConfig | undefined>(() => {
+  const resolvedAutoSize = useMemo<boolean | FieldAutosizeConfig | undefined>(() => {
     if (!autoSize || isBoolean(autoSize)) {
       return autoSize
     }

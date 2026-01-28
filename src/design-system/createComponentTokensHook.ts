@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { useMemo } from 'react'
 
 import type { DeepPartial } from '../types'
 import { deepMerge } from '../utils/deepMerge'
@@ -13,7 +13,7 @@ export const createComponentTokensHook = <K extends ThemeComponentKey>(
   return (overrides?: DeepPartial<ThemeComponentTokensMap[K]>) => {
     const { foundations, components } = useTheme()
     const componentOverrides = components?.[key]
-    return React.useMemo(() => {
+    return useMemo(() => {
       const base = createBaseTokens(foundations)
       const merged =
         componentOverrides && overrides
@@ -23,4 +23,3 @@ export const createComponentTokensHook = <K extends ThemeComponentKey>(
     }, [componentOverrides, foundations, overrides])
   }
 }
-

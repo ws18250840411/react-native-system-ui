@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   Animated,
   Pressable,
@@ -88,8 +88,8 @@ export const Toast: React.FC<ToastProps> = props => {
   const durationMs = isFiniteNumber(duration) ? Math.max(0, duration) : 0
   const { mounted, animated } = usePresenceAnimation(visible, { duration: tokens.animationDuration })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'toast' })
-  const prevVisibleRef = React.useRef(visible)
-  const closingRef = React.useRef(false)
+  const prevVisibleRef = useRef(visible)
+  const closingRef = useRef(false)
   const positionOffset = windowHeight > 0 ? Math.round(windowHeight * 0.2) : 60
   const needsSafeAreaTop =
     safeAreaInsetTopProp !== undefined ? safeAreaInsetTopProp : position === 'top'
@@ -102,7 +102,7 @@ export const Toast: React.FC<ToastProps> = props => {
         ? { justifyContent: 'flex-end', paddingBottom: positionOffset }
         : { justifyContent: 'center' }
 
-  React.useEffect(() => {
+  useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
     if (visible) {
       if (durationMs > 0) {
@@ -116,7 +116,7 @@ export const Toast: React.FC<ToastProps> = props => {
     }
   }, [durationMs, onClose, visible])
 
-  React.useEffect(() => {
+  useEffect(() => {
     let openedTimer: ReturnType<typeof setTimeout> | null = null
     if (visible) {
       closingRef.current = false
@@ -135,7 +135,7 @@ export const Toast: React.FC<ToastProps> = props => {
     }
   }, [onOpen, onOpened, tokens.animationDuration, visible])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mounted && closingRef.current) {
       closingRef.current = false
       onClosed?.()
@@ -206,7 +206,7 @@ export const Toast: React.FC<ToastProps> = props => {
         style={[
           styles.backdrop,
           positionStyle,
-          stackZIndex && { zIndex: stackZIndex },
+          stackZIndex ? { zIndex: stackZIndex } : undefined,
         ]}
         pointerEvents={forbidClick || overlay || closeOnClick ? 'auto' : 'none'}
       >

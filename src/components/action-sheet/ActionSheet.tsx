@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useRef } from 'react'
 import { Pressable, Text, View, type PressableStateCallbackType } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
@@ -75,7 +75,7 @@ const ActionSheetItem: React.FC<{
   const disabled = !!action.disabled
   const loading = !!action.loading
   const { colors, spacing, typography } = tokens
-  const handlePress = React.useCallback(() => onActionPress(action, index), [action, index, onActionPress])
+  const handlePress = useCallback(() => onActionPress(action, index), [action, index, onActionPress])
   const actionPress = useAriaPress({
     disabled: disabled || loading,
     onPress: handlePress,
@@ -232,10 +232,10 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
   const hasDescription = isRenderable(description)
   const hasCancelText = isRenderable(cancelText)
 
-  const lastPopupCloseReasonRef = React.useRef<ActionSheetCloseAction>('close')
-  const closingRef = React.useRef(false)
+  const lastPopupCloseReasonRef = useRef<ActionSheetCloseAction>('close')
+  const closingRef = useRef(false)
 
-  const runBeforeClose = React.useCallback(
+  const runBeforeClose = useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
       if (!beforeClose) return true
       try {
@@ -247,7 +247,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     [beforeClose],
   )
 
-  const emitClose = React.useCallback(
+  const emitClose = useCallback(
     (reason: ActionSheetCloseAction) => {
       if (onClose) {
         if (reason === 'cancel') {
@@ -261,7 +261,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     [onCancel, onClose]
   )
 
-  const requestClose = React.useCallback(
+  const requestClose = useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
       if (closingRef.current) return
       closingRef.current = true
@@ -276,7 +276,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     [emitClose, runBeforeClose],
   )
 
-  const handlePopupBeforeClose = React.useCallback(
+  const handlePopupBeforeClose = useCallback(
     (reason: 'close-icon' | 'overlay' | 'close') => {
       const action: ActionSheetCloseAction =
         reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
@@ -286,19 +286,19 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     [runBeforeClose]
   )
 
-  const handlePopupClose = React.useCallback(() => {
+  const handlePopupClose = useCallback(() => {
     emitClose(lastPopupCloseReasonRef.current)
   }, [emitClose])
 
-  const handleCancel = React.useCallback(() => {
+  const handleCancel = useCallback(() => {
     void requestClose('cancel')
   }, [requestClose])
 
-  const handleCloseIcon = React.useCallback(() => {
+  const handleCloseIcon = useCallback(() => {
     void requestClose('close-icon')
   }, [requestClose])
 
-  const handleActionPress = React.useCallback(
+  const handleActionPress = useCallback(
     (action: ActionSheetAction, index: number) => {
       if (action.disabled || action.loading) {
         return

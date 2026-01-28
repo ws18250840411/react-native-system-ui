@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, ViewStyle } from 'react-native'
 import { SvgUri } from 'react-native-svg'
@@ -149,12 +149,12 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   const showError = showErrorProp ?? tokens.defaults.showError
   const loadingText = loadingTextProp ?? tokens.defaults.loadingText
   const errorText = errorTextProp ?? tokens.defaults.errorText
-  const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = React.useMemo(
+  const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = useMemo(
     () => splitImageStyle(style),
     [style]
   )
 
-  const actualSource = React.useMemo(() => {
+  const actualSource = useMemo(() => {
     if (source) return source
     if (src) return { uri: src }
     return undefined
@@ -162,15 +162,15 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
 
   const resolvedAccessibilityLabel = alt ?? accessibilityLabel ?? ariaLabel
 
-  const [status, setStatus] = React.useState<'idle' | 'loading' | 'loaded' | 'error'>(() =>
+  const [status, setStatus] = useState<'idle' | 'loading' | 'loaded' | 'error'>(() =>
     actualSource ? 'loading' : 'idle'
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     setStatus(actualSource ? 'loading' : 'idle')
   }, [actualSource])
 
-  const handleLoad = React.useCallback(
+  const handleLoad = useCallback(
     (event: RNImageOnLoadEvent) => {
       setStatus('loaded')
       onLoad?.(event)
@@ -178,7 +178,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     [onLoad]
   )
 
-  const handleError = React.useCallback(
+  const handleError = useCallback(
     (event: RNImageOnErrorEvent) => {
       setStatus('error')
       onError?.(event)
@@ -186,11 +186,11 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     [onError]
   )
 
-  const handleSvgLoad = React.useCallback(() => {
+  const handleSvgLoad = useCallback(() => {
     handleLoad({ nativeEvent: {} } as unknown as RNImageOnLoadEvent)
   }, [handleLoad])
 
-  const handleSvgError = React.useCallback(
+  const handleSvgError = useCallback(
     (error: Error) => {
       handleError({ nativeEvent: { error } } as unknown as RNImageOnErrorEvent)
     },
@@ -198,7 +198,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   )
 
   const uri = resolveSourceUri(actualSource)
-  const isSvg = React.useMemo(() => {
+  const isSvg = useMemo(() => {
     const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
     return (
       isString(normalizedUri) &&
@@ -217,7 +217,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     if (node == null || node === false) return null
     if (isText(node)) {
       return (
-        <Text style={[tokens.layout.label, { color }, marginTop && { marginTop }]}>
+        <Text style={[tokens.layout.label, { color }, marginTop ? { marginTop } : undefined]}>
           {node}
         </Text>
       )

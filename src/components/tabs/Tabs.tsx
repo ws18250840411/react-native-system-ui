@@ -29,7 +29,6 @@ import { useAriaPress, useControllableValue } from '../../hooks'
 import { parseNumberLike, isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
-import TabPane from './TabPane'
 import { cancelFrame, requestFrame, isTabPaneElement } from './utils'
 import { useTabsAnimation } from './useTabsAnimation'
 import { useTabsScroll } from './useTabsScroll'
@@ -436,7 +435,6 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
 
   const {
     navScrollRef,
-    navScrollX,
     scrollIntoView,
     handleNavScrollBeginDrag,
     handleNavScroll,
@@ -583,7 +581,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
 
   const borderEnabled = border ?? false
   const showIndicator = type === 'line'
-  const navHeight = React.useMemo(() => {
+  const navHeight = useMemo(() => {
     if (type === 'jumbo') {
       return tokens.jumbo.height
     }

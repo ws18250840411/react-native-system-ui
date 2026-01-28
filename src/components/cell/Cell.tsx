@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {
   Pressable,
   Text,
@@ -69,7 +69,7 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
     } = props
 
     const tokens = useCellTokens(tokensOverride)
-    const group = React.useContext(CellGroupContext)
+    const group = useContext(CellGroupContext)
     const border = borderProp ?? tokens.defaults.border
     const size = sizeProp ?? tokens.defaults.size
     const arrowDirection = arrowDirectionProp ?? tokens.defaults.arrowDirection
@@ -248,10 +248,9 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       </>
     )
 
-    const resolvedOnPress = onPress ?? undefined
     const { interactionProps, states } = useAriaPress({
       disabled: !isInteractive,
-      onPress: resolvedOnPress,
+      onPress: onPress ?? undefined,
     })
 
     const Component = isInteractive ? Pressable : View

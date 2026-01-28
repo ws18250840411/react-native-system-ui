@@ -1,6 +1,6 @@
-import * as React from "react"
+import { useMemo } from 'react'
 
-import type { CascaderOption, CascaderValue } from "./types"
+import type { CascaderOption, CascaderValue } from './types'
 
 interface FieldKeys {
   textKey: string
@@ -9,7 +9,7 @@ interface FieldKeys {
 }
 
 export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKeys, value: CascaderValue[]) => {
-  const depth = React.useMemo(() => {
+  const depth = useMemo(() => {
     let maxDepth = 1
     const traverse = (opts: CascaderOption[] | undefined, level: number) => {
       if (!opts || !opts.length) return
@@ -26,15 +26,15 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
     return maxDepth
   }, [keys.childrenKey, options])
 
-  const tabs = React.useMemo(() => {
+  const tabs = useMemo(() => {
     if (!value || !value.length) return [options]
     return value.reduce<CascaderOption[][]>(
       (acc, val, index) => {
-        if (val === undefined || val === null) return acc
+        if (val == null) return acc
         const current = acc[index]
         if (!current) return acc
         const next = current.find(option => option[keys.valueKey] === value[index])
-        const children = (next?.[keys.childrenKey] as CascaderOption[] | undefined) ?? undefined
+        const children = next?.[keys.childrenKey] as CascaderOption[] | undefined
         if (children) acc.push(children)
         return acc
       },
@@ -42,7 +42,7 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
     )
   }, [keys.childrenKey, keys.valueKey, options, value])
 
-  const items = React.useMemo(() => {
+  const items = useMemo(() => {
     if (!value || !value.length) return []
     return value.map((val, index) => tabs[index]?.find(option => option[keys.valueKey] === val))
   }, [keys.valueKey, tabs, value])

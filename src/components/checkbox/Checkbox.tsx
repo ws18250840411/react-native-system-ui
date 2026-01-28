@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext, useEffect, useImperativeHandle, useRef } from 'react'
 import { Platform, Pressable, Text, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
@@ -33,7 +33,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   } = props
 
   const tokens = useCheckboxTokens(tokensOverride)
-  const group = React.useContext(CheckboxGroupContext)
+  const group = useContext(CheckboxGroupContext)
   const bindGroup = bindGroupProp ?? tokens.defaults.bindGroup
 
   const resolvedShape = shape ?? group?.shape ?? tokens.defaults.shape
@@ -47,10 +47,9 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   const rawValue = value ?? name
   const serializedValue = rawValue == null ? undefined : String(rawValue)
 
-  const internalRef = React.useRef<View>(null)
+  const internalRef = useRef<View>(null)
 
-  // Merge refs
-  React.useImperativeHandle(ref, () => internalRef.current!)
+  useImperativeHandle(ref, () => internalRef.current!)
 
   const standaloneState = useToggleState({
     isSelected: props.checked,
@@ -62,7 +61,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
 
   const { onBlur, onFocus, ...compatibleRest } = rest
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (group && bindGroup && serializedValue !== undefined && rawValue !== undefined) {
       group.registerValue(serializedValue, rawValue, resolvedDisabled)
       return () => group.unregisterValue(serializedValue)
@@ -153,7 +152,6 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
           return
         }
 
-        // Fallback: should be rare, but keeps behavior predictable.
         if (isGroup && group && serializedValue !== undefined) {
           if (isChecked) group.state.removeValue(serializedValue)
           else group.state.addValue(serializedValue)
@@ -287,7 +285,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
           tokens.layout.container,
           style,
           Platform.OS === 'web' && ({ cursor: 'pointer' } as unknown as ViewStyle),
-          pressed && { opacity: 0.8 } // Optional: add simple feedback
+          pressed && { opacity: 0.8 }
         ]}
         hitSlop={hitSlop}
       >

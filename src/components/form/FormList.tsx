@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useContext, useEffect, useRef } from 'react'
 
 import { FormContext } from './FormContext'
 import { getValueByName } from './utils'
@@ -23,10 +23,10 @@ export interface FormListProps {
 }
 
 export const FormList: React.FC<FormListProps> = ({ name, initialValue, children }) => {
-  const context = React.useContext(FormContext)
-  const keyRef = React.useRef(0)
+  const context = useContext(FormContext)
+  const keyRef = useRef(0)
 
-  const ensureInitial = React.useCallback(() => {
+  const ensureInitial = useCallback(() => {
     if (!context) return
     const current = getValueByName(context.values, name)
     if (current === undefined && initialValue !== undefined) {
@@ -34,7 +34,7 @@ export const FormList: React.FC<FormListProps> = ({ name, initialValue, children
     }
   }, [context, initialValue, name])
 
-  React.useEffect(() => {
+  useEffect(() => {
     ensureInitial()
   }, [ensureInitial])
 

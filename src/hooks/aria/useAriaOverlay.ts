@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useMemo, useRef } from 'react'
 import { useOverlay } from '@react-native-aria/overlays'
 import { mergeProps } from '@react-native-aria/utils'
 import type { ViewProps } from 'react-native'
@@ -33,7 +34,7 @@ export const useAriaOverlay = ({
   shouldCloseOnInteractOutside,
   overlayProps: overlayPropOverrides,
 }: UseAriaOverlayOptions): UseAriaOverlayResult => {
-  const overlayRef = React.useRef<unknown>(null)
+  const overlayRef = useRef<unknown>(null)
 
   const { overlayProps } = useOverlay(
     {
@@ -45,7 +46,7 @@ export const useAriaOverlay = ({
     overlayRef as unknown as React.RefObject<HTMLElement>
   )
 
-  const resolvedOverlayProps = React.useMemo(
+  const resolvedOverlayProps = useMemo(
     () =>
       (mergeProps(
         overlayProps ?? {},

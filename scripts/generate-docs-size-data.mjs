@@ -3,7 +3,7 @@ import path from 'node:path'
 import zlib from 'node:zlib'
 
 const ROOT = process.cwd()
-const DIST_DIR = path.join(ROOT, 'dist/es/components')
+const DIST_DIR = path.join(ROOT, 'dist/es')
 const SRC_DIR = path.join(ROOT, 'src/components')
 const OUTPUT_FILE = path.join(ROOT, 'docs/component-sizes.ts')
 
@@ -72,9 +72,20 @@ const main = () => {
   // Sort by size descending
   sizes.sort((a, b) => b.size - a.size)
 
-  const content = `export default ${JSON.stringify(sizes, null, 2)}`
+  const sourceLabel = targetDir === DIST_DIR ? 'dist/es' : 'src/components'
+  const header = `/**
+ * 组件体积数据（由 scripts/generate-docs-size-data.mjs 生成）
+ * 数据源: ${sourceLabel}
+ * 口径: 各组件目录下 .ts/.tsx/.js 文件分别 gzip 后相加（字节），非实际打包单 chunk 体积。
+ * 更接近真实体积请先执行 pnpm run build 再执行 pnpm run docs:update-size（将使用 dist/es）。
+ */
+export default `
+  const content = header + JSON.stringify(sizes, null, 2)
   fs.writeFileSync(OUTPUT_FILE, content)
-  console.log(`Generated ${OUTPUT_FILE} with ${sizes.length} components`)
+  console.log(`Generated ${OUTPUT_FILE} with ${sizes.length} components (source: ${sourceLabel})`)
+  if (targetDir === SRC_DIR) {
+    console.log('Tip: Run "pnpm run build" then "pnpm run docs:update-size" for sizes from built output (dist/es).')
+  }
 }
 
 main()

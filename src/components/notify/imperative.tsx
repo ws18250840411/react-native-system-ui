@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import Portal from '../portal/Portal'
 import { isFunction, isString, isText } from '../../utils'
@@ -70,9 +70,9 @@ interface NotifyPortalProps {
 }
 
 const NotifyPortal: React.FC<NotifyPortalProps> = ({ id, options }) => {
-  const [visible, setVisible] = React.useState(true)
+  const [visible, setVisible] = useState(true)
 
-  React.useEffect(() => {
+  useEffect(() => {
     notifyControllers.set(id, { close: () => setVisible(false) })
     return () => {
       notifyControllers.delete(id)

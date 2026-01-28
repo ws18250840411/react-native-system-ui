@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 import {
   Pressable,
   StyleSheet,
@@ -48,9 +48,9 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const [value, triggerChange] = useControllableValue<string>(props, { defaultValue: '' })
 
   const inputValue = value ?? ''
-  const resolvedInputAlign = React.useMemo(() => align ?? inputAlign, [align, inputAlign])
+  const resolvedInputAlign = useMemo(() => align ?? inputAlign, [align, inputAlign])
 
-  const handleChange = React.useCallback(
+  const handleChange = useCallback(
     (next: string) => {
       triggerChange(next)
       onChangeText?.(next)
@@ -58,14 +58,14 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     [onChangeText, triggerChange],
   )
 
-  const handleCancel = React.useCallback(() => {
+  const handleCancel = useCallback(() => {
     handleChange('')
     onCancel?.()
   }, [handleChange, onCancel])
 
   type SubmitEvent = Parameters<NonNullable<FieldProps['onSubmitEditing']>>[0]
 
-  const handleSubmit = React.useCallback(
+  const handleSubmit = useCallback(
     (event: SubmitEvent) => {
       onSearch?.(inputValue)
       onSubmitEditing?.(event)
@@ -73,22 +73,22 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     [inputValue, onSearch, onSubmitEditing],
   )
 
-  const resolvedBackground = React.useMemo(
+  const resolvedBackground = useMemo(
     () => background ?? tokens.colors.background,
     [background, tokens.colors.background],
   )
-  const resolvedLeftIcon = React.useMemo(
+  const resolvedLeftIcon = useMemo(
     () =>
       leftIcon ?? (
         <SearchIcon size={tokens.icon.size} fill={tokens.colors.icon} color={tokens.colors.icon} />
       ),
     [leftIcon, tokens.colors.icon, tokens.icon.size],
   )
-  const resolvedClearTrigger = React.useMemo(
+  const resolvedClearTrigger = useMemo(
     () => clearTrigger ?? tokens.defaults.clearTrigger,
     [clearTrigger, tokens.defaults.clearTrigger],
   )
-  const resolvedReturnKeyType = React.useMemo(
+  const resolvedReturnKeyType = useMemo(
     () => returnKeyType ?? 'search',
     [returnKeyType],
   )
@@ -97,8 +97,8 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const shouldRenderCancelAction = shouldShowAction && !action && !isCustomActionText
   const radius = shape === 'round' ? tokens.radius.round : tokens.radius.square
 
-  const inputRef = React.useRef<FieldInstance>(null)
-  React.useImperativeHandle(
+  const inputRef = useRef<FieldInstance>(null)
+  useImperativeHandle(
     ref,
     () => ({
       focus: () => inputRef.current?.focus(),
@@ -117,7 +117,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     },
   })
 
-  const containerStyles = React.useMemo(
+  const containerStyles = useMemo(
     () => [
       styles.container,
       {
@@ -135,7 +135,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     ],
   )
 
-  const contentStyles = React.useMemo(
+  const contentStyles = useMemo(
     () => [
       styles.content,
       {
@@ -153,7 +153,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     ],
   )
 
-  const labelNode = React.useMemo(() => {
+  const labelNode = useMemo(() => {
     if (!label) return null
     if (isText(label)) {
       return (
@@ -178,7 +178,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     tokens.typography.labelWeight,
   ])
 
-  const actionNode = React.useMemo(() => {
+  const actionNode = useMemo(() => {
     if (action) {
       return (
         <View style={[styles.actionWrapper, { marginLeft: tokens.spacing.actionGap }]}>

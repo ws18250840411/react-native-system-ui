@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useImperativeHandle } from 'react'
 import renderer, { act } from 'react-test-renderer'
 
-import { usePickerValue } from '../usePickerValue'
+import { usePickerValue } from '../Picker'
 import type { PickerOption } from '../types'
 
 type Handle = {
@@ -63,7 +63,7 @@ const Harness = React.forwardRef<Handle, { onChange: jest.Mock }>((props, ref) =
     onChange: props.onChange,
   })
 
-  React.useImperativeHandle(
+  useImperativeHandle(
     ref,
     () => ({
       select: handleSelect,
@@ -93,4 +93,3 @@ describe('usePickerValue', () => {
     expect(onChange).toHaveBeenLastCalledWith(['2', '2-1', '2-1-1'], expect.anything())
   })
 })
-

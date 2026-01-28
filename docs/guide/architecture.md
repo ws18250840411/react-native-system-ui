@@ -1,42 +1,47 @@
 # 架构设计
 
-> 目标：在 React Native 中复刻成熟移动端组件的语义与体验，同时借鉴 react-native-xiaoshu 在布局、tokens、hooks 上的“可扩展骨架”。
+库的分层结构、设计系统与组件扩展约定。
 
-## 三层骨架
+> 目标：在 React Native 上复刻成熟移动端语义与体验，以 tokens + ThemeProvider + 组件内 hooks 形成可扩展骨架。
+
+## 三层结构
 
 1. **Design System（`src/design-system`）**
-   - 只保存基础 design tokens（颜色、间距、排版、圆角等）以及 `ThemeProvider`，负责把 foundations + `value.components` 下发到 Context。
-   - `createTokens` 仅用于生成 foundations，组件级 overrides 不在这里出现；如需现成主题，可直接使用 `themePresets`。
+   - 仅包含基础 design tokens（颜色、间距、排版、圆角等）与 `ThemeProvider`，向 Context 下发 foundations 与 `value.components`。
+   - foundations 由 `createTokens` 生成；现成主题使用 `themePresets`。
 2. **Components（`src/components`）**
-   - 每个组件目录自管理 tokens：`tokens.ts` 描述默认值，`useXXXTokens.ts` 负责把 foundations + overrides 合并，组件实现只依赖这些本地工具。
-   - Button 是首个样例：`button/tokens.ts` 与 `button/useButtonTokens.ts` 完全封装了按钮的设计变量。
+   - 各组件目录自管 tokens：`tokens.ts` 定义默认值，`useXXXTokens` 合并 foundations 与 overrides，组件只依赖本地 tokens。
+   - 示例：`button/tokens.ts` + `button/useButtonTokens.ts` 封装按钮设计变量。
 3. **Hooks（`src/hooks`）**
-   - `usePresenceAnimation` 提供统一的显隐动效，`src/hooks/aria/*` 则封装 `@react-native-aria` 能力。
-   - 具体使用方式参见《Guide / Aria Hooks》，遵循“集中导出 + 配套单测”的约束。
+   - `usePresenceAnimation` 统一显隐动效；`src/hooks/aria/*` 封装 `@react-native-aria`，集中导出并配套单测。
 
 ![architecture](https://dummyimage.com/800x260/eff3ff/5b63ff&text=theme+->+system+->+components)
 
-## 与参考实现 / react-native-xiaoshu 的映射
+## 与参考实现的对应关系
 
-| 参考实现（Web 端） | React Native System UI | React Native Xiaoshu | 说明 |
-| --- | --- | --- | --- |
-| `createNamespace` + less variables | `ThemeProvider` + 每个组件自建 tokens (`src/components/*/tokens.ts`) | `Theme.useStyle` | 用 foundations 替代 less 变量，借鉴 Xiaoshu 的 `varCreator/styleCreator` 思路但将实现留在组件目录。 |
-| `Button` type/size/plain/block | `type / size / plain / block / round / square / shadow` | `Button` type/size/danger | API 命名保持统一，只在必要时贴合 React Native（如 `shadow` 映射到 `elevation`）。 |
-| `ConfigProvider` | `ThemeProvider` | `Provider` | Provider 仅负责 tokens，无全局副作用。 |
+| 参考实现（Web） | React Native System UI | 说明 |
+| --- | --- | --- |
+| less 变量 / createNamespace | ThemeProvider + 各组件自建 tokens | foundations 替代 less，实现留在组件目录。 |
+| Button type/size/plain/block | type / size / plain / block / round / square / shadow | API 命名统一，必要时贴合 RN（如 shadow → elevation）。 |
+| ConfigProvider | ThemeProvider | 仅负责 tokens 下发，无全局副作用。 |
 
 ## 命名规范
 
-- **Type**：`default / primary / success / info / warning / danger`。
-- **Size**：`large / normal / small / mini`。
-- **Plain/Color**：`plain + color/textColor` 组合取代 web 端的 `plain + hairline + color` 行为。
-- **Shadow**：`boolean | 1 | 2 | 3`，可映射到 RN 的阴影 & elevation。
+- **Type**：`default / primary / success / info / warning / danger`
+- **Size**：`large / normal / small / mini`
+- **Plain/Color**：`plain + color/textColor` 替代 web 端 hairline 行为
+- **Shadow**：`boolean | 1 | 2 | 3`，映射 RN 阴影与 elevation
 
 ## 组件开发 Checklist
 
-1. 设计 tokens（metrics / states / defaults）。
-2. 定义 props（优先沿用既有命名规范）。
-3. 在组件目录实现 `useXXXTokens` + 纯函数推导样式。
-4. 提供至少 3 个文档示例（基础态 / 强调态 / 自定义主题）。
-5. 编写 `react-test-renderer` 单测验证核心样式。
+1. 定义 tokens（metrics / states / defaults）
+2. 定义 props（沿用既有命名规范）
+3. 实现 `useXXXTokens` + 纯函数推导样式
+4. 文档示例不少于 3 个（基础 / 强调 / 自定义主题）
+5. 使用 `react-test-renderer` 单测覆盖核心样式
 
-依靠以上约束，可以持续扩展组件能力，无须再在 React Native 中维护一套 less/变量体系。
+<!-- 覆盖主题限制，使本页内容可完整展示 -->
+<style>
+.doc-md-content { height: auto !important; min-height: 100%; }
+.doc-container-markdown { overflow-y: visible !important; }
+</style>

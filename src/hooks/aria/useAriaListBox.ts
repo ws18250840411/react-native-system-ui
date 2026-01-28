@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useMemo, useRef } from 'react'
 import { useListBox } from '@react-native-aria/listbox'
 import { useListState, type ListState } from '@react-stately/list'
 import type { AriaListBoxProps } from '@react-types/listbox'
@@ -24,9 +25,9 @@ export interface UseAriaListBoxResult<T> {
 export const useAriaListBox = <T extends object>(
   props: UseAriaListBoxOptions<T>
 ): UseAriaListBoxResult<T> => {
-  const ref = React.useRef<unknown>(null)
+  const ref = useRef<unknown>(null)
   const { label, ...rest } = props
-  const resolvedProps = React.useMemo(() => {
+  const resolvedProps = useMemo(() => {
     if (label == null) return rest
     const ariaLabel = typeof label === 'string' ? label : undefined
     return {
@@ -41,11 +42,11 @@ export const useAriaListBox = <T extends object>(
     ref as unknown as React.RefObject<HTMLElement>
   )
 
-  const resolvedListBoxProps = React.useMemo(
+  const resolvedListBoxProps = useMemo(
     () => listBoxProps as unknown as Record<string, unknown>,
     [listBoxProps],
   )
-  const resolvedLabelProps = React.useMemo(
+  const resolvedLabelProps = useMemo(
     () => labelProps as unknown as Record<string, unknown>,
     [labelProps],
   )

@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import React, { act } from 'react'
+import React, { act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 
 import { Checkbox } from '..'
@@ -35,7 +35,7 @@ describe('Checkbox (DOM)', () => {
 
   it('toggles controlled state when clicking label', () => {
     function Controlled() {
-      const [checked, setChecked] = React.useState(false)
+      const [checked, setChecked] = useState(false)
       return (
         <Checkbox checked={checked} onChange={setChecked}>
           复选框

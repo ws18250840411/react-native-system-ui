@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -64,20 +64,20 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const content = text ?? children
   const isTextContent = isText(content)
   const isVertical = direction === 'vertical'
-  const [visible, setVisible] = React.useState(true)
+  const [visible, setVisible] = useState(true)
 
   const { onLayout: textOnLayout, ...restTextProps } = textProps ?? {}
 
-  const [contentWidth, setContentWidth] = React.useState(0)
-  const [containerWidth, setContainerWidth] = React.useState(0)
-  const translateX = React.useRef(new Animated.Value(0)).current
+  const [contentWidth, setContentWidth] = useState(0)
+  const [containerWidth, setContainerWidth] = useState(0)
+  const translateX = useRef(new Animated.Value(0)).current
 
   const resolvedDelay = Math.max(0, parseNumber(delay, 1))
   const resolvedSpeed = parseNumber(speed, 60)
   const resolvedVerticalInterval = Math.max(0, parseNumber(verticalInterval, 3000))
   const resolvedVerticalDuration = Math.max(0, parseNumber(verticalDuration, 300))
 
-  const verticalItems = React.useMemo(() => {
+  const verticalItems = useMemo(() => {
     if (!isVertical) return []
     if (items && items.length) return items
     const childArray = React.Children.toArray(children)
@@ -86,22 +86,22 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   }, [children, isVertical, items, text])
 
   const hasVerticalLoop = isVertical && verticalItems.length > 1
-  const verticalTrackItems = React.useMemo(
+  const verticalTrackItems = useMemo(
     () => (hasVerticalLoop ? [...verticalItems, verticalItems[0]] : verticalItems),
     [hasVerticalLoop, verticalItems]
   )
-  const verticalTranslateY = React.useRef(new Animated.Value(0)).current
-  const [itemHeight, setItemHeight] = React.useState(0)
+  const verticalTranslateY = useRef(new Animated.Value(0)).current
+  const [itemHeight, setItemHeight] = useState(0)
 
-  const setContentWidthSafe = React.useCallback((next: number) => {
+  const setContentWidthSafe = useCallback((next: number) => {
     setContentWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next))
   }, [])
 
-  const setContainerWidthSafe = React.useCallback((next: number) => {
+  const setContainerWidthSafe = useCallback((next: number) => {
     setContainerWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next))
   }, [])
 
-  const handleClose = React.useCallback(() => {
+  const handleClose = useCallback(() => {
     setVisible(false)
     onClose?.()
   }, [onClose])
@@ -121,7 +121,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     extraProps: onPress ? { accessibilityRole: 'button' } : undefined,
   })
 
-  const rightNode = React.useMemo(() => {
+  const rightNode = useMemo(() => {
     if (mode === 'closeable') {
       return (
         <Pressable hitSlop={8} {...closePress.interactionProps}>
@@ -137,7 +137,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const hasLeft = isRenderable(leftIcon)
   const hasRight = Boolean(rightNode)
 
-  const effectiveContainerWidth = React.useMemo(
+  const effectiveContainerWidth = useMemo(
     () =>
       Math.max(
         0,
@@ -147,12 +147,12 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
       ),
     [containerWidth, hasLeft, hasRight, tokens.spacing.sidePadding],
   )
-  const shouldScroll = React.useMemo(
+  const shouldScroll = useMemo(
     () => !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth),
     [contentWidth, effectiveContainerWidth, isVertical, scrollable, wrapable],
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!visible) {
       translateX.stopAnimation()
       return
@@ -208,7 +208,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     isVertical,
   ])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!visible) {
       verticalTranslateY.stopAnimation()
       return
@@ -261,13 +261,13 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     verticalTranslateY,
   ])
 
-  const handleItemLayout = React.useCallback((event: LayoutChangeEvent) => {
+  const handleItemLayout = useCallback((event: LayoutChangeEvent) => {
     const height = event?.nativeEvent?.layout?.height
     if (!height) return
     setItemHeight(prev => (prev === 0 || Math.abs(prev - height) >= 0.5 ? height : prev))
   }, [])
 
-  const verticalContentNode = React.useMemo(() => {
+  const verticalContentNode = useMemo(() => {
     if (!isVertical) return null
     if (verticalTrackItems.length === 0) return null
 
@@ -294,7 +294,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
 
     return (
       <View
-        style={[styles.verticalViewport, itemHeight && { height: itemHeight }]}
+        style={[styles.verticalViewport, itemHeight ? { height: itemHeight } : undefined]}
         pointerEvents="none"
       >
         <Animated.View
@@ -340,14 +340,14 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     verticalTranslateY,
   ])
 
-  const handleContainerLayout = React.useCallback(
+  const handleContainerLayout = useCallback(
     (event: LayoutChangeEvent) => {
       setContainerWidthSafe(event.nativeEvent.layout.width)
     },
     [setContainerWidthSafe],
   )
 
-  const handleTextLayout = React.useCallback(
+  const handleTextLayout = useCallback(
     (event: LayoutChangeEvent) => {
       setContentWidthSafe(event.nativeEvent.layout.width)
       textOnLayout?.(event)
@@ -355,7 +355,7 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     [setContentWidthSafe, textOnLayout],
   )
 
-  const handleNodeLayout = React.useCallback(
+  const handleNodeLayout = useCallback(
     (event: LayoutChangeEvent) => setContentWidthSafe(event.nativeEvent.layout.width),
     [setContentWidthSafe],
   )

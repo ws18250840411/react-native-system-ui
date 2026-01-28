@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import {
   Pressable,
   StyleSheet,
@@ -146,9 +146,9 @@ export const Rate = React.memo((props: RateProps) => {
     return clamp(nextScore, minScore, resolvedCount)
   }
 
-  const lastMoveValueRef = React.useRef<number | null>(null)
-  const gestureStartRef = React.useRef<{ pageX: number; pageY: number } | null>(null)
-  const gestureDirectionRef = React.useRef<'' | 'horizontal' | 'vertical'>('')
+  const lastMoveValueRef = useRef<number | null>(null)
+  const gestureStartRef = useRef<{ pageX: number; pageY: number } | null>(null)
+  const gestureDirectionRef = useRef<'' | 'horizontal' | 'vertical'>('')
 
   const onStartShouldSetResponderCapture = (event: GestureResponderEvent) => {
     if (!interactive || !touchable) return false

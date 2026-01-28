@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useMemo, useRef } from 'react'
 import { useToggle } from '@react-native-aria/toggle'
 import type { ToggleState } from '@react-stately/toggle'
 import { useToggleState } from '@react-stately/toggle'
@@ -20,14 +21,14 @@ export interface UseAriaToggleResult {
 export const useAriaToggle = (
   props: UseAriaToggleOptions
 ): UseAriaToggleResult => {
-  const inputRef = props.inputRef ?? React.useRef<unknown>(null)
+  const inputRef = props.inputRef ?? useRef<unknown>(null)
   const state = useToggleState(props)
   const { inputProps } = useToggle(
     props,
     state,
     inputRef as unknown as React.RefObject<HTMLInputElement>
   )
-  const resolvedInputProps = React.useMemo(
+  const resolvedInputProps = useMemo(
     () => inputProps as unknown as Record<string, unknown>,
     [inputProps],
   )
