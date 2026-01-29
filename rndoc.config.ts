@@ -92,6 +92,11 @@ export default defineConfig({
 
       return {
         ...config,
+        define: {
+          ...(config.define ?? {}),
+          // 浏览器环境没有 global，react-native-web Animated 等会用到 global，用 globalThis 替代
+          global: 'globalThis',
+        },
         resolve: {
           ...resolve,
           alias: nextAlias,
