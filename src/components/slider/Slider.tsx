@@ -7,7 +7,8 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
 import type { SliderProps, SliderValue } from './types'
 import { useSliderTokens } from './tokens'
-import { parseNumber, isFunction, isFiniteNumber } from '../../utils'
+import { parseNumber } from '../../utils/number'
+import { isFunction, isFiniteNumber } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
 import {
   isSameLayout,

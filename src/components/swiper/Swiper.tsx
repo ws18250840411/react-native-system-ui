@@ -26,7 +26,8 @@ import {
   type LayoutChangeEvent,
   type ViewStyle,
 } from 'react-native'
-import { clamp, isFiniteNumber } from '../../utils'
+import { clamp } from '../../utils/number'
+import { isFiniteNumber } from '../../utils/validate'
 import type { SwiperProps, SwiperInstance } from './types'
 import SwiperItem from './SwiperItem'
 import SwiperPagIndicator from './SwiperPagIndicator'

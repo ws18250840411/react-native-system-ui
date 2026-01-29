@@ -26,7 +26,8 @@ import {
 } from 'react-native'
 
 import { useAriaPress, useControllableValue } from '../../hooks'
-import { parseNumberLike, isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils'
+import { parseNumberLike } from '../../utils/number'
+import { isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
 import { cancelFrame, requestFrame, isTabPaneElement } from './utils'

@@ -12,7 +12,8 @@ import {
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import { useControllableValue } from '../../hooks'
-import { parseNumberLike, isString, isText } from '../../utils'
+import { parseNumberLike } from '../../utils/number'
+import { isString, isText } from '../../utils/validate'
 
 import type { PasswordInputProps, PasswordInputRef } from './types'
 

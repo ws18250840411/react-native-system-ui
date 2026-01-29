@@ -2,7 +2,7 @@ import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
-import { isFunction, isPlainObject, isRenderable, isText } from '../../utils'
+import { isFunction, isPlainObject, isRenderable, isText } from '../../utils/validate'
 import Badge from '../badge'
 import { useTabbarContext } from './TabbarContext'
 import { useTabbarTokens } from './tokens'

@@ -4,7 +4,8 @@ import { Pressable, Text, View } from 'react-native'
 import { usePaginationTokens } from './tokens'
 import type { PaginationProps, PaginationPageItem } from './types'
 import { useControllableValue } from '../../hooks'
-import { clamp, isText } from '../../utils'
+import { clamp } from '../../utils/number'
+import { isText } from '../../utils/validate'
 
 const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
   const {

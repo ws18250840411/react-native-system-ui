@@ -18,7 +18,9 @@ import type {
 import { useControllableValue } from '../../hooks'
 import Image from '../image'
 import ImagePreview from '../image-preview'
-import { parseNumber, toArray, isFunction, isString } from '../../utils'
+import { toArray } from '../../utils/array'
+import { parseNumber } from '../../utils/number'
+import { isFunction, isString } from '../../utils/validate'
 import {
   isImageFile,
   resolveSource,

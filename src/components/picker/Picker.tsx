@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
 
 import Loading from '../loading'
-import { withAlpha, isFiniteNumber, isObject, isText } from '../../utils'
+import { withAlpha } from '../../utils/color'
+import { isFiniteNumber, isObject, isText } from '../../utils/validate'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
 import type { PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
@@ -333,7 +334,7 @@ const Picker: React.FC<PickerProps> = props => {
   const wrapperHeight = itemHeight * visibleItemCount
   const maskVisibleCount = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
   const indicatorOffset = itemHeight * maskVisibleCount
-  const maskHeight = Math.max(itemHeight * 2, indicatorOffset)
+  const maskHeight = indicatorOffset
   const hasColumns = normalized.columns.length > 0
   const effectiveMaskColor = maskColor ?? tokens.colors.mask
   const columnsContent = hasColumns ? normalized.columns.map((column, columnIndex) => {

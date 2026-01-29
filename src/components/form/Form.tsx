@@ -1,7 +1,8 @@
 import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { View } from 'react-native'
 
-import { isPromiseLike, isNumber, isString, isText } from '../../utils'
+import { isPromiseLike } from '../../utils/promise'
+import { isNumber, isString, isText } from '../../utils/validate'
 import { FormContext } from './FormContext'
 import type {
   FormInstance,

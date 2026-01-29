@@ -8,7 +8,7 @@ import {
 import { Search as SearchIcon } from 'react-native-system-icon'
 
 import { useAriaPress, useControllableValue } from '../../hooks'
-import { isText } from '../../utils'
+import { isText } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'
 import Field, { type FieldInstance, type FieldProps } from '../field'
 import { useSearchTokens } from './tokens'

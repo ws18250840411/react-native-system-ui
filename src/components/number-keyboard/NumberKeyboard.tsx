@@ -3,7 +3,8 @@ import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type
 
 import { useControllableValue } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
-import { parseNumberLike, createPlatformShadow } from '../../utils'
+import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import { parseNumberLike } from '../../utils/number'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'

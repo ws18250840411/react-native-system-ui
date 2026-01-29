@@ -3,7 +3,9 @@ import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View,
 
 import { useLocale } from '../config-provider/useLocale'
 import { nativeDriverEnabled } from '../../platform'
-import { createHairlineView, isPromiseLike, isNumber, isValidNode } from '../../utils'
+import { createHairlineView } from '../../utils/hairline'
+import { isPromiseLike } from '../../utils/promise'
+import { isNumber, isValidNode } from '../../utils/validate'
 import { Close } from 'react-native-system-icon'
 import Button from '../button'
 import Popup from '../popup'
