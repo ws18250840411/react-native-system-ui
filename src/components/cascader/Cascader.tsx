@@ -40,6 +40,15 @@ const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
   childrenKey: fieldNames?.children ?? "children",
 })
 
+const isSameValueArray = (a: CascaderValue[], b: CascaderValue[]) => {
+  if (a === b) return true
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
 const Cascader: React.FC<CascaderProps> = props => {
   const {
     tokensOverride,
@@ -125,24 +134,25 @@ const Cascader: React.FC<CascaderProps> = props => {
   const [activeTab, setActiveTab] = useState(0)
 
   useEffect(() => {
-    let tabIndex = Array.isArray(currentValue) ? currentValue.length : 0
+    const currentLength = Array.isArray(currentValue) ? currentValue.length : 0
+    let tabIndex = currentLength
     if (tabIndex >= depth) tabIndex = Math.max(depth - 1, 0)
     setActiveTab(prev => (prev === tabIndex ? prev : tabIndex))
-  }, [currentValue, depth])
+  }, [currentValue.length, depth])
 
   useEffect(() => {
     if (!poppable) {
-      setPanelValue(cascaderValue)
+      setPanelValue(prev => (isSameValueArray(prev, cascaderValue) ? prev : cascaderValue))
       return
     }
     if (!popupVisible) {
-      setPanelValue(cascaderValue)
+      setPanelValue(prev => (isSameValueArray(prev, cascaderValue) ? prev : cascaderValue))
     }
   }, [cascaderValue, poppable, popupVisible])
 
   const openPopup = useCallback(() => {
     if (!poppable || popupVisible) return
-    setPanelValue(cascaderValue)
+    setPanelValue(prev => (isSameValueArray(prev, cascaderValue) ? prev : cascaderValue))
     setPopupVisible(true)
   }, [cascaderValue, poppable, popupVisible, setPopupVisible])
 

@@ -77,6 +77,50 @@ describe('Swiper', () => {
     expect(jest.getTimerCount()).toBeGreaterThan(0)
   })
 
+  it('restarts autoplay after momentum ends', () => {
+    const tree = renderer.create(
+      <Swiper autoplay={1000}>
+        <Swiper.Item><Text>1</Text></Swiper.Item>
+        <Swiper.Item><Text>2</Text></Swiper.Item>
+        <Swiper.Item><Text>3</Text></Swiper.Item>
+      </Swiper>
+    )
+
+    const flatList = tree.root.findByType(FlatList)
+
+    expect(jest.getTimerCount()).toBeGreaterThan(0)
+
+    act(() => {
+      flatList.props.onScrollBeginDrag?.()
+    })
+
+    expect(jest.getTimerCount()).toBe(0)
+
+    act(() => {
+      flatList.props.onMomentumScrollBegin?.()
+    })
+
+    act(() => {
+      flatList.props.onScrollEndDrag?.({
+        nativeEvent: { contentOffset: { x: 100, y: 0 } },
+      })
+    })
+
+    act(() => {
+      jest.runOnlyPendingTimers()
+    })
+
+    expect(jest.getTimerCount()).toBe(0)
+
+    act(() => {
+      flatList.props.onMomentumScrollEnd?.({
+        nativeEvent: { contentOffset: { x: 100, y: 0 } },
+      })
+    })
+
+    expect(jest.getTimerCount()).toBeGreaterThan(0)
+  })
+
   it('disables loop when not enough items', () => {
     const tree = renderer.create(
       <Swiper>
