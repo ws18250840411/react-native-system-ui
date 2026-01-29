@@ -159,6 +159,7 @@
 }
 
 .home-primary-color {
+  margin: 0 1px;
   color: #3f45ff;
   font-weight: 600;
 }

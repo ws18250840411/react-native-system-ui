@@ -87,7 +87,7 @@ const Home = () => {
             面向 React Native 的<span className="home-primary-color">设计系统级</span>组件库
           </p>
           <p className="home-hero-desc">
-            Tokens + ThemeProvider 主题体系，按需引入、体积可控；API 统一可组合，支持可访问性与多端一致。
+            Tokens + ThemeProvider 主题体系，按需引入、体积小；API 统一可组合、高效可靠，支持可访问性与多端一致。
           </p>
           <div className="home-hero-actions">
             <Button
@@ -229,33 +229,33 @@ const Home = () => {
               <View style={[styles.cardBody, styles.cardBodyCentered]}>
                 <Typography.Text strong style={cardTitleStyle}>标签页</Typography.Text>
                 <View style={{ width: '100%', marginTop: 12 }}>
-                <Tabs scrollable>
-                  <Tabs.TabPane title="基础组件" name="basic">
-                    <View style={{ paddingVertical: 16 }}>
-                      <Typography.Text>按钮、单元格、标签等基础组件。</Typography.Text>
-                    </View>
-                  </Tabs.TabPane>
-                  <Tabs.TabPane title="表单组件" name="form">
-                    <View style={{ paddingVertical: 16 }}>
-                      <Typography.Text>输入框、选择器、开关等表单控件。</Typography.Text>
-                    </View>
-                  </Tabs.TabPane>
-                  <Tabs.TabPane title="展示组件" name="display">
-                    <View style={{ paddingVertical: 16 }}>
-                      <Typography.Text>图片、进度条、环形进度等。</Typography.Text>
-                    </View>
-                  </Tabs.TabPane>
-                  <Tabs.TabPane title="导航组件" name="nav">
-                    <View style={{ paddingVertical: 16 }}>
-                      <Typography.Text>标签页、导航栏、标签栏等导航组件。</Typography.Text>
-                    </View>
-                  </Tabs.TabPane>
-                  <Tabs.TabPane title="反馈组件" name="feedback">
-                    <View style={{ paddingVertical: 16 }}>
-                      <Typography.Text>轻提示、弹窗、通知等反馈组件。</Typography.Text>
-                    </View>
-                  </Tabs.TabPane>
-                </Tabs>
+                  <Tabs scrollable>
+                    <Tabs.TabPane title="基础组件" name="basic">
+                      <View style={{ paddingVertical: 16 }}>
+                        <Typography.Text>按钮、单元格、标签等基础组件。</Typography.Text>
+                      </View>
+                    </Tabs.TabPane>
+                    <Tabs.TabPane title="表单组件" name="form">
+                      <View style={{ paddingVertical: 16 }}>
+                        <Typography.Text>输入框、选择器、开关等表单控件。</Typography.Text>
+                      </View>
+                    </Tabs.TabPane>
+                    <Tabs.TabPane title="展示组件" name="display">
+                      <View style={{ paddingVertical: 16 }}>
+                        <Typography.Text>图片、进度条、环形进度等。</Typography.Text>
+                      </View>
+                    </Tabs.TabPane>
+                    <Tabs.TabPane title="导航组件" name="nav">
+                      <View style={{ paddingVertical: 16 }}>
+                        <Typography.Text>标签页、导航栏、标签栏等导航组件。</Typography.Text>
+                      </View>
+                    </Tabs.TabPane>
+                    <Tabs.TabPane title="反馈组件" name="feedback">
+                      <View style={{ paddingVertical: 16 }}>
+                        <Typography.Text>轻提示、弹窗、通知等反馈组件。</Typography.Text>
+                      </View>
+                    </Tabs.TabPane>
+                  </Tabs>
                 </View>
               </View>
             </View>
@@ -297,7 +297,7 @@ const Home = () => {
               <View style={[styles.cardBody, styles.cardBodyCentered]}>
                 <Typography.Text strong style={cardTitleStyle}>表单</Typography.Text>
                 <View style={{ width: '100%', marginTop: 12 }}>
-                <Form ref={formRef}>
+                  <Form ref={formRef}>
                     <Form.Item name="username" label="用户名">
                       <Input placeholder="请输入用户名" clearable />
                     </Form.Item>
@@ -312,7 +312,7 @@ const Home = () => {
                         重置
                       </Button>
                     </Space>
-                </Form>
+                  </Form>
                 </View>
               </View>
             </View>
