@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
-import { isFunction, isRenderable, isText, isUndefined } from '../../utils'
+import { isFunction, isRenderable, isText, isUndefined } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'
 import Loading from '../loading'
 import type { ListProps, ListRef } from './types'
