@@ -240,9 +240,5 @@ export default [
   {
     "name": "count-down",
     "size": 1239
-  },
-  {
-    "name": "safe-area",
-    "size": 1195
   }
 ]
