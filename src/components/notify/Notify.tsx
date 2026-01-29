@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React from 'react'
 import {
   Animated,
   Pressable,
@@ -7,12 +7,12 @@ import {
   View,
   type LayoutChangeEvent,
 } from 'react-native'
+
 import { isFunction, isText } from '../../utils'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
-import { SafeAreaClipProvider } from '../safe-area'
 import type { NotifyProps, NotifyPosition } from './types'
 import { useNotifyTokens } from './tokens'
 
@@ -49,25 +49,23 @@ export const Notify: React.FC<NotifyProps> = props => {
   const safeAreaInsetBottom =
     props.safeAreaInsetBottom ??
     (position === 'bottom' ? tokens.defaults.safeAreaInsetBottom : false)
+
   const variant = tokens.colors.variants[type]
   const resolvedBackground = background ?? variant.background
   const resolvedTextColor = color ?? variant.text
   const resolvedDuration = durationProp ?? tokens.defaults.duration
-  const topInsetStyle = useMemo(
-    () => ({ backgroundColor: resolvedBackground }),
-    [resolvedBackground]
-  )
 
+  // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
   const { mounted, animated } = usePresenceAnimation(visible, {
     duration: tokens.defaults.animationDuration,
     appear: true,
   })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'notify', zIndex })
 
-  const prevVisibleRef = useRef(visible)
-  const closingRef = useRef(false)
+  const prevVisibleRef = React.useRef(visible)
+  const closingRef = React.useRef(false)
 
-  useEffect(() => {
+  React.useEffect(() => {
     let openedTimer: ReturnType<typeof setTimeout> | null = null
     if (visible) {
       closingRef.current = false
@@ -84,14 +82,14 @@ export const Notify: React.FC<NotifyProps> = props => {
     }
   }, [onOpen, onOpened, tokens.defaults.animationDuration, visible])
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!mounted && closingRef.current) {
       closingRef.current = false
       onClosed?.()
     }
   }, [mounted, onClosed])
 
-  useEffect(() => {
+  React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
     if (visible && resolvedDuration > 0) {
       timer = setTimeout(() => {
@@ -104,10 +102,10 @@ export const Notify: React.FC<NotifyProps> = props => {
   }, [onClose, resolvedDuration, visible])
 
   const interactive = closeOnClick || isFunction(onClick)
-  const handlePress = useCallback(() => {
+  const handlePress = () => {
     onClick?.()
     if (closeOnClick) onClose?.()
-  }, [closeOnClick, onClick, onClose])
+  }
   const accessibilityRole = interactive ? 'button' : 'alert'
   const press = useAriaPress({
     disabled: !interactive,
@@ -118,14 +116,14 @@ export const Notify: React.FC<NotifyProps> = props => {
     },
   })
 
-  const [barHeight, setBarHeight] = useState(0)
-  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+  const [barHeight, setBarHeight] = React.useState(0)
+  const handleLayout = (event: LayoutChangeEvent) => {
     const height = event.nativeEvent.layout.height
     if (!height) return
     setBarHeight(prev => (prev === height ? prev : height))
-  }, [])
+  }
 
-  const translateDistance = Math.max(barHeight, tokens.sizing.minHeight)
+  const translateDistance = barHeight || tokens.sizing.minHeight
   const translateY =
     position === 'bottom'
       ? animated.interpolate({
@@ -143,7 +141,7 @@ export const Notify: React.FC<NotifyProps> = props => {
 
   const resolvedZIndex = stackZIndex ?? zIndex
 
-  const renderBar = (topInsetNode: React.ReactNode) => (
+  const bar = (
     <Animated.View
       testID="rv-notify-bar"
       accessibilityRole={!interactive ? accessibilityRole : undefined}
@@ -159,7 +157,7 @@ export const Notify: React.FC<NotifyProps> = props => {
         style,
       ]}
     >
-      {topInsetNode}
+      {safeAreaInsetTop ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
       <View
         style={[
           tokens.layout.content,
@@ -192,16 +190,15 @@ export const Notify: React.FC<NotifyProps> = props => {
             )
           : null}
       </View>
-      {safeAreaInsetBottom && <SafeAreaView style={tokens.layout.safeArea} />}
+      {safeAreaInsetBottom ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
     </Animated.View>
   )
 
   return (
     <Portal>
-      <SafeAreaClipProvider
-        enabled={safeAreaInsetTop}
-        position={position}
-        topInsetStyle={topInsetStyle}
+      <View
+        testID="rv-notify"
+        pointerEvents={interactive ? 'box-none' : 'none'}
         style={[
           tokens.layout.portal,
           position === 'bottom' ? { bottom: 0 } : { top: 0 },
@@ -210,25 +207,14 @@ export const Notify: React.FC<NotifyProps> = props => {
             : null,
         ]}
       >
-        {({ clipTop, topInset }) => {
-          const topInsetNode = clipTop
-            ? null
-            : safeAreaInsetTop
-              ? <SafeAreaView style={tokens.layout.safeArea} />
-              : topInset
-          return (
-            <View testID="rv-notify" pointerEvents={interactive ? 'box-none' : 'none'}>
-              {interactive ? (
-                <Pressable {...press.interactionProps} disabled={!interactive}>
-                  {renderBar(topInsetNode)}
-                </Pressable>
-              ) : (
-                renderBar(topInsetNode)
-              )}
-            </View>
-          )
-        }}
-      </SafeAreaClipProvider>
+        {interactive ? (
+          <Pressable {...press.interactionProps} disabled={!interactive}>
+            {bar}
+          </Pressable>
+        ) : (
+          bar
+        )}
+      </View>
     </Portal>
   )
 }
