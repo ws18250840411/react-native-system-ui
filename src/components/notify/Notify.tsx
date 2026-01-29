@@ -2,14 +2,14 @@ import React from 'react'
 import {
   Animated,
   Pressable,
-  SafeAreaView,
   Text,
   View,
   type LayoutChangeEvent,
+  type ViewStyle,
 } from 'react-native'
 
 import { isFunction, isText } from '../../utils'
-import { useAriaPress } from '../../hooks'
+import { useAriaPress, useSafeAreaPadding } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../overlay'
@@ -40,6 +40,11 @@ export const Notify: React.FC<NotifyProps> = props => {
   } = props
 
   const tokens = useNotifyTokens(tokensOverride)
+  const paddingVertical = tokens.spacing.paddingVertical
+  const safeAreaPadding = useSafeAreaPadding({
+    top: paddingVertical,
+    bottom: paddingVertical,
+  })
   const type = typeProp ?? tokens.defaults.type
   const position: NotifyPosition = positionProp ?? tokens.defaults.position
   const closeOnClick = closeOnClickProp ?? tokens.defaults.closeOnClick
@@ -49,6 +54,14 @@ export const Notify: React.FC<NotifyProps> = props => {
   const safeAreaInsetBottom =
     props.safeAreaInsetBottom ??
     (position === 'bottom' ? tokens.defaults.safeAreaInsetBottom : false)
+  const safeTop =
+    !safeAreaInsetTop || position !== 'top'
+      ? paddingVertical
+      : safeAreaPadding.paddingTop
+  const safeBottom =
+    !safeAreaInsetBottom || position !== 'bottom'
+      ? paddingVertical
+      : safeAreaPadding.paddingBottom
 
   const variant = tokens.colors.variants[type]
   const resolvedBackground = background ?? variant.background
@@ -61,6 +74,7 @@ export const Notify: React.FC<NotifyProps> = props => {
     appear: true,
   })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'notify', zIndex })
+  const resolvedZIndex = stackZIndex ?? zIndex
 
   const prevVisibleRef = React.useRef(visible)
   const closingRef = React.useRef(false)
@@ -139,8 +153,6 @@ export const Notify: React.FC<NotifyProps> = props => {
 
   if (!mounted) return null
 
-  const resolvedZIndex = stackZIndex ?? zIndex
-
   const bar = (
     <Animated.View
       testID="rv-notify-bar"
@@ -153,17 +165,18 @@ export const Notify: React.FC<NotifyProps> = props => {
           backgroundColor: resolvedBackground,
           opacity: animated,
           transform: [{ translateY }],
-        },
+          paddingTop: position === 'top' ? safeTop : paddingVertical,
+          paddingBottom: position === 'bottom' ? safeBottom : paddingVertical,
+        } as ViewStyle,
         style,
       ]}
     >
-      {safeAreaInsetTop ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
       <View
         style={[
           tokens.layout.content,
           {
             paddingHorizontal: tokens.spacing.paddingHorizontal,
-            paddingVertical: tokens.spacing.paddingVertical,
+            paddingVertical: 0,
             minHeight: tokens.sizing.minHeight,
           },
         ]}
@@ -190,7 +203,6 @@ export const Notify: React.FC<NotifyProps> = props => {
             )
           : null}
       </View>
-      {safeAreaInsetBottom ? <SafeAreaView style={tokens.layout.safeArea} /> : null}
     </Animated.View>
   )
 

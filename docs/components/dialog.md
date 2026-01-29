@@ -9,7 +9,7 @@ simulator:
 
 弹出模态框，常用于消息提示、消息确认，或在当前页面内完成特定的交互操作。
 
-弹出框组件支持函数调用和组件调用两种方式。
+弹出框组件支持函数调用和组件调用两种方式。使用前需在应用根节点包裹 **ConfigProvider** 或 **Portal.Host**，否则弹层无法挂载。详见 [ConfigProvider](./config-provider.md) / [Portal](./portal.md)。
 
 ### 函数调用
 

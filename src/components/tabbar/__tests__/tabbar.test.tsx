@@ -1,6 +1,7 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { SafeAreaView, StyleSheet, Text } from 'react-native'
+import { StyleSheet, Text } from 'react-native'
+import { SafeAreaView } from '../../safe-area-view'
 
 import Tabbar from '..'
 

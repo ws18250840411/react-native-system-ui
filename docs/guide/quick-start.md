@@ -1,6 +1,6 @@
 # 快速上手
 
-安装依赖、配置 ThemeProvider 并引入第一个组件的标准流程。
+安装依赖、配置根节点并引入第一个组件的标准流程。
 
 ## 安装依赖
 
@@ -17,7 +17,23 @@ yarn add react-native-system-icon
 
 前置要求：宿主工程已安装 `react@>=18.2.0`、`react-native@>=0.79`。
 
-## 配置 ThemeProvider
+## 配置根节点（推荐 ConfigProvider）
+
+**优先使用 ConfigProvider**，这样 Button、Toast、Popup、Dialog 等都能直接使用，无需再配挂载点。
+
+```tsx | pure
+import { ConfigProvider } from 'react-native-system-ui'
+
+export const Providers = ({ children }: { children: React.ReactNode }) => (
+  <ConfigProvider>{children}</ConfigProvider>
+)
+```
+
+ConfigProvider 内置 **ThemeProvider**（主题）与 **PortalHost**（弹层挂载点），一次配置即可支持所有基础组件和弹层（Toast / Popup / Dialog / Notify 等）。若根节点只包 ThemeProvider 而没挂 PortalHost，弹层会无法显示。
+
+### 也可以单独使用 ThemeProvider
+
+仅做主题、且确定不用 Toast/Popup/Dialog 等弹层时，可以只用 ThemeProvider：
 
 ```tsx | pure
 import { ThemeProvider } from 'react-native-system-ui'
@@ -27,7 +43,15 @@ export const Providers = ({ children }: { children: React.ReactNode }) => (
 )
 ```
 
-未包裹时组件自动使用默认主题；包裹后通过 Context 下发 tokens。
+**ConfigProvider 与 ThemeProvider 差异：**
+
+| 能力 | ConfigProvider | ThemeProvider |
+| --- | --- | --- |
+| 主题（tokens） | ✅ 内置 ThemeProvider | ✅ |
+| 弹层挂载点（PortalHost） | ✅ 内置 | ❌ 需再包一层 `<Portal.Host>` |
+| 语言包（locale） | ✅ | ❌ |
+
+若一开始用了 ThemeProvider，后来要接 Toast/Popup/Dialog，要么在根节点再包一层 `<Portal.Host>`，要么改为使用 ConfigProvider。详见 [ConfigProvider](../components/config-provider.md) 与 [Portal](../components/portal.md)。
 
 ## 引入组件
 
@@ -41,20 +65,20 @@ export const Page = () => (
 
 ## 自定义主题
 
-内置预设可直接使用：
+使用 ConfigProvider 时，通过 `theme` 传入主题即可；内置预设可直接用：
 
 ```tsx | pure
-import { ThemeProvider, themePresets } from 'react-native-system-ui'
+import { ConfigProvider, themePresets } from 'react-native-system-ui'
 
 export const DarkLayout = ({ children }: { children: React.ReactNode }) => (
-  <ThemeProvider value={themePresets.dark}>{children}</ThemeProvider>
+  <ConfigProvider theme={themePresets.dark}>{children}</ConfigProvider>
 )
 ```
 
 内置 `light` / `dark` / `aurora` 三套预设。需完全自定义时使用 `createTokens`：
 
 ```tsx | pure
-import { ThemeProvider, createTokens } from 'react-native-system-ui'
+import { ConfigProvider, createTokens } from 'react-native-system-ui'
 
 const foundations = createTokens({
   palette: {
@@ -66,8 +90,8 @@ const foundations = createTokens({
 })
 
 export const App = ({ children }: { children: React.ReactNode }) => (
-  <ThemeProvider
-    value={{
+  <ConfigProvider
+    theme={{
       foundations,
       components: {
         button: {
@@ -80,11 +104,11 @@ export const App = ({ children }: { children: React.ReactNode }) => (
     }}
   >
     {children}
-  </ThemeProvider>
+  </ConfigProvider>
 )
 ```
 
-`createTokens` 负责 foundations 深合并；组件级覆盖通过 `value.components` 传入。
+`createTokens` 负责 foundations 深合并；组件级覆盖通过 `theme.components` 传入。若使用 ThemeProvider，则把 `theme` 改为 `value`、用 `<ThemeProvider value={...}>` 即可。
 
 ## 开发约定
 

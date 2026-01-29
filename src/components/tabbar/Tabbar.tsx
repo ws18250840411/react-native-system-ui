@@ -1,9 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { SafeAreaView, StyleSheet, View, type LayoutChangeEvent } from 'react-native'
+import { StyleSheet, View, type LayoutChangeEvent } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
 import { createHairlineBorderTop } from '../../utils/hairline'
+import { SafeAreaView } from '../safe-area-view'
 import { TabbarContext } from './TabbarContext'
 import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarProps, TabbarValue } from './types'

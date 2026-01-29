@@ -3,7 +3,6 @@ import {
   BackHandler,
   Platform,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -15,6 +14,7 @@ import renderer, { act } from 'react-test-renderer'
 
 import Popup, { type PopupPlacement } from '..'
 import { PortalHost } from '../../portal'
+import { SafeAreaView } from '../../safe-area-view'
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null

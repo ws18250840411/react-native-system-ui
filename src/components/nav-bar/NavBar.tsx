@@ -1,10 +1,11 @@
 import React, { useCallback, useState } from 'react'
-import { Pressable, SafeAreaView, Text, View, type LayoutChangeEvent } from 'react-native'
+import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native'
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineBorderBottom } from '../../utils/hairline'
 import { isRenderable, isText } from '../../utils/validate'
+import { SafeAreaView } from '../safe-area-view'
 import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
 

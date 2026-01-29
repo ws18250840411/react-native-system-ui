@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, Pressable, SafeAreaView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
+import { Animated, Easing, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
@@ -7,6 +7,7 @@ import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { parseNumberLike } from '../../utils/number'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
+import { SafeAreaView } from '../safe-area-view'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
 
@@ -463,7 +464,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     ) : (
       defaultNode
     )
-    const safeAreaNode = safeAreaInsetBottom && <SafeAreaView style={{ width: '100%' }} />
+    const safeAreaNode = safeAreaInsetBottom && <SafeAreaView edge="bottom" />
     return { headerNode, bodyNode, safeAreaNode }
   }, [
     colors.title,

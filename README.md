@@ -20,15 +20,31 @@ pnpm add react-native-system-icon
 # 同时保证项目已安装 react 和 react-native（>=18.2 / >=0.79）
 ```
 
-```tsx
-import { ThemeProvider, Button } from 'react-native-system-ui'
+**优先使用 ConfigProvider** 包裹根节点，这样 Button、Toast、Popup、Dialog 等都能直接使用，无需再配弹层挂载点。
 
-export const Demo = () => (
-  <ThemeProvider>
-    <Button text="提交" type="primary" shadow />
-  </ThemeProvider>
+```tsx
+import { ConfigProvider, Button, Toast } from 'react-native-system-ui'
+
+export const App = () => (
+  <ConfigProvider>
+    <Button text="提交" onPress={() => Toast.show('你好')} type="primary" shadow />
+  </ConfigProvider>
 )
 ```
+
+ConfigProvider 内置 **ThemeProvider**（主题）与 **PortalHost**（弹层挂载点）。若只包 ThemeProvider 而没挂 PortalHost，Toast/Popup/Dialog 会无法显示。
+
+### 也可以单独使用 ThemeProvider
+
+仅做主题、且确定不用弹层时，可只用 ThemeProvider；之后若要接 Toast/Popup/Dialog，需再包一层 `<Portal.Host>` 或改用 ConfigProvider。
+
+| 能力 | ConfigProvider | ThemeProvider |
+| --- | --- | --- |
+| 主题（tokens） | ✅ 内置 | ✅ |
+| 弹层挂载点（PortalHost） | ✅ 内置 | ❌ 需再包 `<Portal.Host>` |
+| 语言包（locale） | ✅ | ❌ |
+
+详见 [ConfigProvider](./docs/components/config-provider.md) / [Portal](./docs/components/portal.md)。
 
 ### 自定义 Tokens
 
@@ -93,7 +109,7 @@ export const AuroraBranding = () => (
 
 ## 已交付能力
 
-- **设计系统**：ThemeProvider、createTokens、themePresets（light/dark/aurora），组件自管 tokens。
+- **设计系统**：ConfigProvider、ThemeProvider、createTokens、themePresets（light/dark/aurora），组件自管 tokens。使用 Toast/Popup/Dialog 等弹层时推荐用 ConfigProvider 包裹根节点（内置 PortalHost）。
 - **基础与展示**：Button、Badge、Cell、Collapse、Divider、Empty、Flex、Grid、Space、Tag、Typography、Loading、NoticeBar、Popup、Portal、Progress、Slider、Toast、Dialog 等，均提供文档与 demo。
 - **表单与输入**：Form、Field、Input、Checkbox、Radio、Switch、Stepper、Rate、Picker、Calendar、Search 等。
 - **导航与反馈**：Tabs、NavBar、Tabbar、ActionSheet、Notify、Overlay 等。

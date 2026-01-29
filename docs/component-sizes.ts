@@ -1,65 +1,65 @@
 /**
- * 组件体积数据（由 scripts/generate-docs-size-data.mjs 生成）
- * 数据源: dist/es
+ * 组件体积数据（由 scripts/generate-docs-size-data.mjs 生成，以组件为主）
+ * 数据源: dist/es/components
  * 口径: 各组件目录下 .ts/.tsx/.js 文件分别 gzip 后相加（字节），非实际打包单 chunk 体积。
- * 更接近真实体积请先执行 pnpm run build 再执行 pnpm run docs:update-size（将使用 dist/es）。
+ * 先执行 pnpm run build 再执行 pnpm run docs:update-size 将使用 dist/es/components。
  */
 export default [
   {
     "name": "swiper",
-    "size": 10037
+    "size": 10047
   },
   {
     "name": "picker",
-    "size": 9849
+    "size": 9860
   },
   {
     "name": "tabs",
-    "size": 9062
+    "size": 9074
   },
   {
     "name": "dropdown-menu",
-    "size": 6457
+    "size": 6468
   },
   {
     "name": "form",
-    "size": 6337
+    "size": 6348
   },
   {
     "name": "cascader",
-    "size": 6130
+    "size": 6255
   },
   {
     "name": "button",
-    "size": 5845
+    "size": 5866
   },
   {
     "name": "slider",
-    "size": 5826
+    "size": 5838
   },
   {
     "name": "uploader",
-    "size": 5740
+    "size": 5758
   },
   {
     "name": "dialog",
-    "size": 5571
+    "size": 5587
   },
   {
     "name": "calendar",
-    "size": 5227
+    "size": 5232
   },
   {
     "name": "field",
-    "size": 5195
+    "size": 5210
   },
   {
     "name": "number-keyboard",
-    "size": 4945
+    "size": 4979
   },
   {
     "name": "index-bar",
-    "size": 4928
+    "size": 4955
   },
   {
     "name": "popup",
@@ -78,16 +78,16 @@ export default [
     "size": 4302
   },
   {
-    "name": "image-preview",
-    "size": 4223
-  },
-  {
     "name": "notify",
-    "size": 4217
+    "size": 4275
   },
   {
     "name": "toast",
-    "size": 4206
+    "size": 4233
+  },
+  {
+    "name": "image-preview",
+    "size": 4230
   },
   {
     "name": "cell",
@@ -95,19 +95,19 @@ export default [
   },
   {
     "name": "tabbar",
-    "size": 3972
+    "size": 3999
+  },
+  {
+    "name": "notice-bar",
+    "size": 3693
   },
   {
     "name": "grid",
     "size": 3690
   },
   {
-    "name": "notice-bar",
-    "size": 3680
-  },
-  {
     "name": "pull-refresh",
-    "size": 3596
+    "size": 3610
   },
   {
     "name": "collapse",
@@ -119,7 +119,7 @@ export default [
   },
   {
     "name": "password-input",
-    "size": 3265
+    "size": 3274
   },
   {
     "name": "rate",
@@ -135,7 +135,7 @@ export default [
   },
   {
     "name": "overlay",
-    "size": 3161
+    "size": 3164
   },
   {
     "name": "datetime-picker",
@@ -155,19 +155,19 @@ export default [
   },
   {
     "name": "share-sheet",
-    "size": 2616
+    "size": 2629
   },
   {
     "name": "nav-bar",
-    "size": 2590
+    "size": 2627
   },
   {
     "name": "pagination",
-    "size": 2555
+    "size": 2568
   },
   {
     "name": "search",
-    "size": 2545
+    "size": 2551
   },
   {
     "name": "circle",
@@ -175,7 +175,7 @@ export default [
   },
   {
     "name": "loading",
-    "size": 2443
+    "size": 2453
   },
   {
     "name": "progress",
@@ -199,7 +199,7 @@ export default [
   },
   {
     "name": "list",
-    "size": 2160
+    "size": 2166
   },
   {
     "name": "space",
@@ -235,10 +235,14 @@ export default [
   },
   {
     "name": "input",
-    "size": 1523
+    "size": 1529
   },
   {
     "name": "count-down",
     "size": 1239
+  },
+  {
+    "name": "safe-area-view",
+    "size": 455
   }
 ]

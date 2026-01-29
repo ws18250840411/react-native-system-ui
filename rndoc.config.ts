@@ -63,6 +63,7 @@ export default defineConfig({
   locales: false,
   build: {
     rn: true,
+    entry: 'src/index.ts',
     disableTypeCheck: true,
     extraBabelPresets: [
       resolveFromRndoc('@babel/preset-typescript'),

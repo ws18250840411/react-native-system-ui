@@ -17,6 +17,8 @@ simulator:
 import { Notify } from 'react-native-system-ui'
 ```
 
+> 使用 Notify 前，需在应用根节点包裹 **ConfigProvider** 或 **Portal.Host**，否则弹层无法挂载。推荐使用 [ConfigProvider](./config-provider.md)。
+
 ## 代码演示
 
 ### 基础用法

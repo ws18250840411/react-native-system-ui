@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import {
 
 import { useControllableValue } from '../../hooks'
 import { isFiniteNumber, isUndefined } from '../../utils/validate'
+import { SafeAreaView } from '../safe-area-view'
 import type { IndexAnchorProps, IndexBarInstance, IndexBarProps, IndexBarValue } from './types'
 import { useIndexBarTokens } from './tokens'
 

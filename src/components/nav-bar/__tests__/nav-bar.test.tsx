@@ -1,7 +1,8 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { SafeAreaView, Text } from 'react-native'
+import { Text } from 'react-native'
 
+import { SafeAreaView } from '../../safe-area-view'
 import NavBar from '..'
 
 describe('NavBar', () => {

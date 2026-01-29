@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react'
 import {
   Animated,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -13,6 +12,7 @@ import {
 } from 'react-native'
 
 import Portal from '../portal/Portal'
+import { SafeAreaView } from '../safe-area-view'
 import { useAriaPress } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Loading from '../loading'
@@ -220,7 +220,7 @@ export const Toast: React.FC<ToastProps> = props => {
             onMoveShouldSetResponder={() => true}
           />
         ) : null}
-        {needsSafeAreaTop && <SafeAreaView style={{ width: '100%' }} pointerEvents="none" />}
+        {needsSafeAreaTop && <SafeAreaView edge="top" pointerEvents="none" />}
         <Pressable disabled={!closeOnClick} {...toastPress.interactionProps}>
           <Animated.View
             style={[
@@ -251,7 +251,7 @@ export const Toast: React.FC<ToastProps> = props => {
               : null}
           </Animated.View>
         </Pressable>
-        {needsSafeAreaBottom && <SafeAreaView style={{ width: '100%' }} pointerEvents="none" />}
+        {needsSafeAreaBottom && <SafeAreaView edge="bottom" pointerEvents="none" />}
       </View>
     </Portal>
   )

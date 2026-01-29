@@ -96,7 +96,7 @@ const showNotify = (input?: NotifyInput, fallbackType: NotifyType = 'primary'): 
   const opts = mergeOptions(parseOptions(input), fallbackType)
 
   if (!allowMultiple) {
-    activeKeys.forEach(key => closeNotify(key))
+    Array.from(activeKeys).forEach(key => removeNotify(key))
   }
 
   const key = Portal.add(null)

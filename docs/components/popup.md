@@ -15,6 +15,8 @@ simulator:
 import { Popup } from 'react-native-system-ui'
 ```
 
+> Popup 基于 Portal 渲染，使用前需在应用根节点包裹 **ConfigProvider** 或 **Portal.Host**，否则弹层无法挂载。推荐使用 [ConfigProvider](./config-provider.md)（内置主题与 PortalHost）。
+
 ## 代码演示
 
 ### 基础用法
@@ -53,11 +55,7 @@ import { Popup } from 'react-native-system-ui'
 
 <code title="标题弹窗" src="./popup/demo/title.tsx"></code>
 
-### 安全区域
-
-通过 `safeArea` 或 `safeAreaInsetTop/Bottom` 适配刘海屏与底部 Home Indicator，确保弹层内容不被遮挡。
-
-<code title="安全区域" src="./popup/demo/safeArea.tsx"></code>
+通过 `safeArea` 或 `safeAreaInsetTop` / `safeAreaInsetBottom` 可适配刘海屏与底部安全区，见下方 API。
 
 ## API
 
@@ -80,7 +78,7 @@ import { Popup } from 'react-native-system-ui'
 | `round` | 是否根据位置自动设置圆角 | `boolean` | `false` |
 | `title` | 弹出层标题 | `ReactNode` | - |
 | `description` | 弹出层描述 | `ReactNode` | - |
-| `safeArea` | 是否使用 `SafeAreaView` 包裹内容 | `boolean` | `false` |
+| `safeArea` | 是否使用安全区内边距包裹内容 | `boolean` | `false` |
 | `safeAreaInsetTop` | 内容顶部是否预留安全区 | `boolean` | `false` |
 | `safeAreaInsetBottom` | 内容底部是否预留安全区 | `boolean` | `false` |
 | `lockScroll` | 是否锁定背景滚动/点击 | `boolean` | `true` |

@@ -1,9 +1,10 @@
 import React from "react"
 import renderer, { act } from "react-test-renderer"
-import { Pressable, SafeAreaView, Text } from "react-native"
+import { Pressable, Text } from "react-native"
 
 import NumberKeyboard from ".."
 import { PortalHost } from "../../portal"
+import { SafeAreaView } from "../../safe-area-view"
 import Loading from "../../loading"
 
 const mountedTrees: renderer.ReactTestRenderer[] = []

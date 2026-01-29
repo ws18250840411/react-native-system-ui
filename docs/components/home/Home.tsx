@@ -115,7 +115,7 @@ const Home = () => {
         <section className="home-size-section home-size-section-left">
           <h3 className="home-size-title">组件体积（gzip）</h3>
           <p className="home-size-note">
-            按需引入后单组件约 {formatSize(avgSize)}（各目录 gzip 相加估算）。支持 Tree Shaking，实际打包体积以构建结果为准。
+            按需引入后单组件约 {formatSize(avgSize)}（各组件目录 gzip 相加估算）。支持 Tree Shaking，实际打包体积以构建结果为准。
           </p>
           <div className="home-size-list">
             {sortedBySize.map((item) => (

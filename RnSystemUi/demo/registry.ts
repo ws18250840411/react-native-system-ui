@@ -189,7 +189,6 @@ import PopupDemoBeforeClose from '../../docs/components/popup/demo/beforeClose'
 import PopupDemoCloseable from '../../docs/components/popup/demo/closeable'
 import PopupDemoPlacement from '../../docs/components/popup/demo/placement'
 import PopupDemoRound from '../../docs/components/popup/demo/round'
-import PopupDemoSafeArea from '../../docs/components/popup/demo/safeArea'
 import PopupDemoTitle from '../../docs/components/popup/demo/title'
 import PortalDemoBasic from '../../docs/components/portal/demo/basic'
 import PortalDemoMultiple from '../../docs/components/portal/demo/multiple'
@@ -750,11 +749,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "title",
         title: "标题弹窗",
         Component: PopupDemoTitle,
-      },
-      {
-        id: "safeArea",
-        title: "安全区域",
-        Component: PopupDemoSafeArea,
       },
     ],
   },

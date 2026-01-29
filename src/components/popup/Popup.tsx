@@ -4,7 +4,6 @@ import {
   Dimensions,
   Easing,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -16,6 +15,7 @@ import {
 } from 'react-native'
 
 import type { DeepPartial } from '../../types'
+import { SafeAreaView } from '../safe-area-view'
 import { addPopStateListener, nativeDriverEnabled } from '../../platform'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { isRenderable, isText } from '../../utils/validate'
@@ -134,22 +134,21 @@ const renderWithSafeArea = (
   onSafeAreaTopLayout?: (event: LayoutChangeEvent) => void
 ) => {
   if (opts.safeArea) {
-    return (
-      <SafeAreaView style={styles.safeAreaView}>
-        {children}
-      </SafeAreaView>
-    )
+    return <SafeAreaView>{children}</SafeAreaView>
   }
   return (
     <>
       {opts.safeAreaInsetTop ? (
         <SafeAreaView
-          style={[styles.safeInsetTop, { pointerEvents: 'none' }]}
+          edge="top"
           onLayout={onSafeAreaTopLayout}
+          pointerEvents="none"
         />
       ) : null}
       {children}
-      {opts.safeAreaInsetBottom && <SafeAreaView style={[styles.safeInsetBottom, { pointerEvents: 'none' }]} />}
+      {opts.safeAreaInsetBottom && (
+        <SafeAreaView edge="bottom" pointerEvents="none" />
+      )}
     </>
   )
 }
@@ -653,15 +652,6 @@ const styles = StyleSheet.create({
   },
   lockLayer: {
     ...StyleSheet.absoluteFillObject,
-  },
-  safeAreaView: {
-    width: '100%',
-  },
-  safeInsetTop: {
-    width: '100%',
-  },
-  safeInsetBottom: {
-    width: '100%',
   },
 })
 
