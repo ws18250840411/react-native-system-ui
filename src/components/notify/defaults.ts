@@ -6,6 +6,6 @@ export const notifyDefaults = {
   duration: 3000,
   closeOnClick: false,
   animationDuration: 220,
-  safeAreaInsetTop: false,
-  safeAreaInsetBottom: false,
+  safeAreaInsetTop: true,
+  safeAreaInsetBottom: true,
 } satisfies NotifyTokens['defaults']

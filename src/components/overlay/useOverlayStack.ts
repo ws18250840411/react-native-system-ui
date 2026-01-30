@@ -26,7 +26,18 @@ export const useOverlayStack = ({
 }: UseOverlayStackOptions): UseOverlayStackResult => {
   const entries = useOverlayEntries()
   const entryRef = useRef<OverlayStackEntry | null>(null)
-  const stableOptions = options
+  const optionsRef = useRef(options)
+  if (
+    optionsRef.current.onClose !== options.onClose ||
+    optionsRef.current.closeOnBack !== options.closeOnBack ||
+    optionsRef.current.lockScroll !== options.lockScroll ||
+    optionsRef.current.zIndex !== options.zIndex ||
+    optionsRef.current.type !== options.type ||
+    optionsRef.current.meta !== options.meta
+  ) {
+    optionsRef.current = options
+  }
+  const stableOptions = optionsRef.current
 
   useEffect(() => {
     if (!visible) {

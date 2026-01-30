@@ -247,7 +247,10 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
             {iconElement}
           </View>
         )
-      } catch {
+      } catch (error) {
+        if (typeof __DEV__ !== 'undefined' && __DEV__) {
+          console.warn('[Button] Failed to render icon:', error)
+        }
         return null
       }
     }

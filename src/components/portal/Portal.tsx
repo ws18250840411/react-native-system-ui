@@ -13,6 +13,7 @@ export interface PortalProps {
 }
 
 const usePortalManager = () => useContext(PortalContext) ?? globalManager
+let hasWarnedNoHost = false
 
 const PortalComponent: React.FC<PortalProps> = ({ children }) => {
   const manager = usePortalManager()
@@ -20,6 +21,16 @@ const PortalComponent: React.FC<PortalProps> = ({ children }) => {
 
   useLayoutEffect(() => {
     if (manager === globalManager) {
+      if (
+        typeof document === 'undefined' &&
+        !portalStore.hasHosts() &&
+        !hasWarnedNoHost &&
+        typeof __DEV__ !== 'undefined' &&
+        __DEV__
+      ) {
+        hasWarnedNoHost = true
+        console.warn('[Portal] 请在根节点挂载 <PortalHost> 以保证遮罩层正常工作')
+      }
       void ensureGlobalPortalHost()
     }
 

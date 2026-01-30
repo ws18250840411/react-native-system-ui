@@ -24,7 +24,7 @@ const baseOptions: NotifyShowOptions = {
   position: 'top',
   duration: 3000,
   safeAreaInsetTop: true,
-  safeAreaInsetBottom: false,
+  safeAreaInsetBottom: true,
 }
 
 let currentOptions: NotifyShowOptions = { ...baseOptions }

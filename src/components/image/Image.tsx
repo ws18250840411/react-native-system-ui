@@ -147,11 +147,21 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   const fit = fitProp ?? tokens.defaults.fit
   const showLoading = showLoadingProp ?? tokens.defaults.showLoading
   const showError = showErrorProp ?? tokens.defaults.showError
-  const loadingText = loadingTextProp ?? tokens.defaults.loadingText
-  const errorText = errorTextProp ?? tokens.defaults.errorText
+  const loadingText = loadingTextProp !== undefined ? loadingTextProp : tokens.defaults.loadingText
+  const errorText = errorTextProp !== undefined ? errorTextProp : tokens.defaults.errorText
   const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = splitImageStyle(style)
 
   const actualSource = source ? source : src ? { uri: src } : undefined
+  const sourceKey = (() => {
+    if (source) {
+      if (typeof source === 'number') return `res:${source}`
+      const uri = resolveSourceUri(source)
+      if (uri) return `uri:${uri}`
+      return 'source:unknown'
+    }
+    if (src) return `src:${src}`
+    return 'none'
+  })()
 
   const resolvedAccessibilityLabel = alt ?? accessibilityLabel ?? ariaLabel
 
@@ -161,7 +171,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
 
   useEffect(() => {
     setStatus(actualSource ? 'loading' : 'idle')
-  }, [actualSource])
+  }, [sourceKey])
 
   const handleLoad = useCallback(
     (event: RNImageOnLoadEvent) => {

@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   Animated,
+  Platform,
   Pressable,
   Text,
   View,
@@ -25,6 +26,7 @@ export const Notify: React.FC<NotifyProps> = props => {
     type: typeProp,
     duration: durationProp,
     position: positionProp,
+    offset: offsetProp,
     color,
     background,
     zIndex,
@@ -54,14 +56,25 @@ export const Notify: React.FC<NotifyProps> = props => {
   const safeAreaInsetBottom =
     props.safeAreaInsetBottom ??
     (position === 'bottom' ? tokens.defaults.safeAreaInsetBottom : false)
-  const safeTop =
-    !safeAreaInsetTop || position !== 'top'
-      ? paddingVertical
-      : safeAreaPadding.paddingTop
-  const safeBottom =
-    !safeAreaInsetBottom || position !== 'bottom'
-      ? paddingVertical
-      : safeAreaPadding.paddingBottom
+  const safeTop = safeAreaInsetTop && position === 'top'
+    ? safeAreaPadding.paddingTop
+    : paddingVertical
+  const safeBottom = safeAreaInsetBottom && position === 'bottom'
+    ? safeAreaPadding.paddingBottom
+    : paddingVertical
+  const offset = typeof offsetProp === 'number' && Number.isFinite(offsetProp) ? Math.max(0, offsetProp) : 0
+  const safeBottomInset =
+    safeAreaInsetBottom && position === 'bottom' && typeof safeBottom === 'number'
+      ? Math.max(0, safeBottom - paddingVertical) + offset
+      : offset
+  const webTopPadding =
+    Platform.OS === 'web' && position === 'top'
+      ? (typeof safeTop === 'string' ? `calc(${safeTop} + ${offset}px)` : safeTop + offset)
+      : undefined
+  const webBottomPadding =
+    Platform.OS === 'web' && safeAreaInsetBottom && position === 'bottom'
+      ? (typeof safeBottom === 'string' ? `calc(${safeBottom} + ${offset}px)` : safeBottom + offset)
+      : undefined
 
   const variant = tokens.colors.variants[type]
   const resolvedBackground = background ?? variant.background
@@ -124,6 +137,8 @@ export const Notify: React.FC<NotifyProps> = props => {
     }
   }, [onClose, resolvedDuration, visible])
 
+  const contentHeight = barHeight > 0 ? barHeight : tokens.sizing.minHeight
+
   const interactive = closeOnClick || isFunction(onClick)
   const handlePress = () => {
     onClick?.()
@@ -139,73 +154,89 @@ export const Notify: React.FC<NotifyProps> = props => {
     },
   })
 
-  const translateDistance = Math.max(barHeight, tokens.sizing.minHeight)
-  const translateY =
-    position === 'bottom'
-      ? animated.interpolate({
-        inputRange: [0, 1],
-        outputRange: [translateDistance, 0],
-      })
-      : animated.interpolate({
-        inputRange: [0, 1],
-        outputRange: [-translateDistance, 0],
-      })
+  const translateY = useMemo(
+    () =>
+      position === 'bottom'
+        ? animated.interpolate({
+          inputRange: [0, 1],
+          outputRange: [contentHeight, 0],
+        })
+        : animated.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-contentHeight, 0],
+        }),
+    [animated, contentHeight, position],
+  )
 
   const hasMessage = message !== undefined && message !== null && message !== false && message !== ''
 
   if (!mounted) return null
 
   const bar = (
-    <Animated.View
-      testID="rv-notify-bar"
-      accessibilityRole={!interactive ? accessibilityRole : undefined}
-      accessibilityLiveRegion={!interactive ? 'assertive' : undefined}
-      onLayout={handleLayout}
+    <View
       style={[
         tokens.layout.container,
-        {
-          backgroundColor: resolvedBackground,
-          opacity: animated,
-          transform: [{ translateY }],
-          paddingTop: position === 'top' ? safeTop : paddingVertical,
-          paddingBottom: position === 'bottom' ? safeBottom : paddingVertical,
-        } as ViewStyle,
-        style,
+        position === 'top'
+          ? ({ paddingTop: webTopPadding ?? (typeof safeTop === 'number' ? safeTop + offset : safeTop) } as ViewStyle)
+          : null,
+        webBottomPadding !== undefined
+          ? ({ paddingBottom: webBottomPadding } as ViewStyle)
+          : null,
       ]}
     >
-      <View
-        style={[
-          tokens.layout.content,
-          {
-            paddingHorizontal: tokens.spacing.paddingHorizontal,
-            paddingVertical: tokens.spacing.none,
-            minHeight: tokens.sizing.minHeight,
-          },
-        ]}
-      >
-        {hasMessage
-          ? isText(message)
-            ? (
-              <Text
-                style={[
-                  tokens.layout.text,
-                  {
-                    color: resolvedTextColor,
-                    fontSize: tokens.typography.fontSize,
-                    lineHeight: tokens.typography.lineHeight,
-                  },
-                  textStyle,
-                ]}
-              >
-                {message}
-              </Text>
-            )
-            : (
-              message
-            )
-          : null}
+      <View style={{ height: contentHeight, overflow: 'hidden' }}>
+        <Animated.View
+          testID="rv-notify-bar"
+          accessibilityRole={!interactive ? accessibilityRole : undefined}
+          accessibilityLiveRegion={!interactive ? 'assertive' : undefined}
+          onLayout={handleLayout}
+          style={[
+            tokens.layout.container,
+            {
+              opacity: animated,
+              transform: [{ translateY }],
+            } as ViewStyle,
+            style,
+          ]}
+        >
+          <View style={{ backgroundColor: resolvedBackground }}>
+            <View
+              style={[
+                tokens.layout.content,
+                {
+                  paddingHorizontal: tokens.spacing.paddingHorizontal,
+                  paddingVertical,
+                  minHeight: tokens.sizing.minHeight,
+                },
+              ]}
+            >
+              {hasMessage
+                ? isText(message)
+                  ? (
+                    <Text
+                      style={[
+                        tokens.layout.text,
+                        {
+                          color: resolvedTextColor,
+                          fontSize: tokens.typography.fontSize,
+                          lineHeight: tokens.typography.lineHeight,
+                        },
+                        textStyle,
+                      ]}
+                    >
+                      {message}
+                    </Text>
+                  )
+                  : (
+                    message
+                  )
+                : null}
+            </View>
+          </View>
+        </Animated.View>
       </View>
-    </Animated.View>
+      {position === 'bottom' ? <View style={{ height: safeBottomInset }} /> : null}
+    </View>
   )
 
   return (

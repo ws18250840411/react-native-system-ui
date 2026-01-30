@@ -46,6 +46,7 @@ export interface NotifyProps {
   type?: NotifyType
   duration?: number
   position?: NotifyPosition
+  offset?: number
   color?: string
   background?: string
   safeAreaInsetTop?: boolean

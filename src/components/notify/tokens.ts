@@ -10,7 +10,7 @@ export const createNotifyTokens = (foundations: Foundations): NotifyTokens => ({
     closeOnClick: false,
     animationDuration: 180,
     safeAreaInsetTop: true,
-    safeAreaInsetBottom: false,
+    safeAreaInsetBottom: true,
   },
   layout: {
     portal: {
