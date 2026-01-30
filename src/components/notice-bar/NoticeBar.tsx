@@ -218,38 +218,31 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
       verticalTranslateY.setValue(0)
       return
     }
-    let cancelled = false
-    let timeout: ReturnType<typeof setTimeout> | null = null
-    let nextIndex = 1
-
-    const schedule = () => {
-      timeout = setTimeout(() => {
+    const steps: Animated.CompositeAnimation[] = []
+    for (let i = 1; i <= verticalItems.length; i += 1) {
+      steps.push(
+        Animated.delay(resolvedVerticalInterval),
         Animated.timing(verticalTranslateY, {
-          toValue: -itemHeight * nextIndex,
+          toValue: -itemHeight * i,
           duration: resolvedVerticalDuration,
           easing: Easing.linear,
           useNativeDriver: nativeDriverEnabled,
-        }).start(({ finished }) => {
-          if (cancelled || !finished) {
-            return
-          }
-          nextIndex += 1
-          if (nextIndex > verticalItems.length) {
-            verticalTranslateY.setValue(0)
-            nextIndex = 1
-          }
-          schedule()
-        })
-      }, resolvedVerticalInterval)
+        }),
+      )
     }
+    steps.push(
+      Animated.timing(verticalTranslateY, {
+        toValue: 0,
+        duration: 0,
+        useNativeDriver: nativeDriverEnabled,
+      }),
+    )
 
-    schedule()
+    const loopAnimation = Animated.loop(Animated.sequence(steps))
+    loopAnimation.start()
 
     return () => {
-      cancelled = true
-      if (timeout) {
-        clearTimeout(timeout)
-      }
+      loopAnimation.stop()
       verticalTranslateY.stopAnimation()
     }
   }, [

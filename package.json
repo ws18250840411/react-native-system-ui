@@ -1,6 +1,6 @@
 {
   "name": "react-native-system-ui",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "面向 React Native 的设计系统级组件库，Tokens + ThemeProvider 主题体系，按需引入、体积小；API 统一可组合、高效可靠，支持可访问性与多端一致。",
   "main": "./dist/cjs/index.js",
   "module": "./dist/es/index.js",

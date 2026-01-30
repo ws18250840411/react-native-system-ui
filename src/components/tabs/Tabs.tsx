@@ -174,7 +174,7 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
           </Text>
         )}
         {isRenderable(renderDescription) && (isText(renderDescription) ? (
-          <Text style={[styles.description, isJumbo ? {
+          <Text style={[styles.descriptionText, isJumbo ? {
             color: descriptionColor,
             fontSize: tokens.typography.descriptionSize,
             marginTop: tokens.spacing.jumboDescriptionMarginTop,
@@ -192,7 +192,7 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
             {renderDescription}
           </Text>
         ) : (
-          <View style={[styles.description, isJumbo ? {
+          <View style={[styles.descriptionView, isJumbo ? {
             marginTop: tokens.spacing.jumboDescriptionMarginTop,
             alignItems: 'center',
             backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
@@ -826,8 +826,10 @@ const styles = StyleSheet.create({
   title: {
     includeFontPadding: false,
   },
-  description: {
+  descriptionText: {
     includeFontPadding: false,
+  },
+  descriptionView: {
   },
   ellipsis: {
     maxWidth: '100%',

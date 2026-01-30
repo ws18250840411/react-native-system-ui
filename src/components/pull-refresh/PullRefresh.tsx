@@ -66,6 +66,8 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const draggingRef = useRef(false)
   const webDragRafRef = useRef<number | null>(null)
   const webDragPendingRef = useRef<number | null>(null)
+  const webStateUpdateAtRef = useRef(0)
+  const webStateUpdateValueRef = useRef(0)
   const [distance, setDistance] = useState(0)
   const [showSuccess, setShowSuccess] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -74,31 +76,54 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const refreshTriggeredRef = useRef(false)
   const refreshSucceededRef = useRef(false)
 
+  const normalizeDistance = useCallback((nextDistance: number) => Math.max(0, Math.round(nextDistance)), [])
+
+  const updateDistanceState = useCallback((normalized: number) => {
+    setDistance(prev => (Math.abs(prev - normalized) < 1 ? prev : normalized))
+  }, [])
+
+  const applyWebTranslate = useCallback((normalized: number, animate = false) => {
+    translateY.stopAnimation()
+    if (animate && animationDurationMs > 0) {
+      Animated.timing(translateY, {
+        toValue: normalized,
+        duration: animationDurationMs,
+        useNativeDriver: false,
+      }).start()
+    } else {
+      translateY.setValue(normalized)
+    }
+  }, [animationDurationMs, translateY])
+
   const setDistanceValue = useCallback((nextDistance: number, animate = false) => {
-    const normalized = Math.max(0, Math.round(nextDistance))
+    const normalized = normalizeDistance(nextDistance)
 
     if (isWeb) {
-      translateY.stopAnimation()
-      if (animate && animationDurationMs > 0) {
-        Animated.timing(translateY, {
-          toValue: normalized,
-          duration: animationDurationMs,
-          useNativeDriver: false,
-        }).start()
-      } else {
-        translateY.setValue(normalized)
-      }
+      applyWebTranslate(normalized, animate)
     }
 
-    setDistance(prev => (Math.abs(prev - normalized) < 1 ? prev : normalized))
-  }, [animationDurationMs, isWeb, translateY])
+    updateDistanceState(normalized)
+    return normalized
+  }, [applyWebTranslate, isWeb, normalizeDistance, updateDistanceState])
 
   const flushWebDrag = useCallback(() => {
     const pending = webDragPendingRef.current
     if (pending == null) return
     webDragPendingRef.current = null
-    setDistanceValue(pending)
-  }, [setDistanceValue])
+    const normalized = normalizeDistance(pending)
+    if (isWeb) {
+      applyWebTranslate(normalized)
+    }
+    const now = Date.now()
+    if (
+      now - webStateUpdateAtRef.current >= 32 ||
+      Math.abs(normalized - webStateUpdateValueRef.current) >= 4
+    ) {
+      webStateUpdateAtRef.current = now
+      webStateUpdateValueRef.current = normalized
+      updateDistanceState(normalized)
+    }
+  }, [applyWebTranslate, isWeb, normalizeDistance, updateDistanceState])
 
   const cancelWebDrag = useCallback(() => {
     if (webDragRafRef.current != null && typeof cancelAnimationFrame === 'function') {

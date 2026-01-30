@@ -27,6 +27,7 @@ export interface AvatarTokens {
   colors: {
     background: string
     text: string
+    transparent: string
   }
   typography: {
     fontWeight: TextStyle['fontWeight']

@@ -15,7 +15,7 @@ export default [
   },
   {
     "name": "tabs",
-    "size": 9150
+    "size": 9190
   },
   {
     "name": "dropdown-menu",
@@ -31,7 +31,7 @@ export default [
   },
   {
     "name": "uploader",
-    "size": 6040
+    "size": 6041
   },
   {
     "name": "button",
@@ -98,16 +98,16 @@ export default [
     "size": 3995
   },
   {
-    "name": "notice-bar",
-    "size": 3693
+    "name": "pull-refresh",
+    "size": 3757
   },
   {
     "name": "grid",
     "size": 3690
   },
   {
-    "name": "pull-refresh",
-    "size": 3610
+    "name": "notice-bar",
+    "size": 3652
   },
   {
     "name": "collapse",

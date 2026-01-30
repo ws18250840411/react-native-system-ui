@@ -505,7 +505,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
                     style={({ pressed }) => [
                       styles.preview,
                       frameStyle,
-                      pressed && styles.pressed,
+                      pressed && { opacity: tokens.opacity.pressed },
                     ]}
                     onPress={() => handlePreview(item, index)}
                     testID={`rv-uploader-preview-${index}`}

@@ -82,7 +82,11 @@ export const useTabsScroll = ({
   useEffect(() => {
     if (!scrollable) return
     const listenerId = navScrollX.addListener(({ value }) => {
+      const prev = navLastScrollXRef.current
       navLastScrollXRef.current = value
+      if (Math.abs(value - prev) < 0.5) {
+        return
+      }
       navScrollRef.current?.scrollTo({ x: value, y: 0, animated: false })
     })
     return () => {
