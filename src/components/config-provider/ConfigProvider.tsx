@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react'
+import React, { useContext } from 'react'
 
 import { ThemeProvider } from '../../design-system/ThemeProvider'
 import { PortalHost } from '../portal'
@@ -11,7 +11,7 @@ const ConfigProviderBase: React.FC<ConfigProviderProps> = ({
   children,
 }) => {
   const parentLocale = useContext(LocaleContext)
-  const resolvedLocale = useMemo(() => locale ?? parentLocale, [locale, parentLocale])
+  const resolvedLocale = locale ?? parentLocale
 
   return (
     <ThemeProvider value={theme}>

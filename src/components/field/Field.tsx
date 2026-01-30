@@ -1,4 +1,4 @@
-import React, { useCallback, useId, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useId, useImperativeHandle, useRef, useState } from 'react'
 import {
   Platform,
   Pressable,
@@ -93,21 +93,18 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const rows = rowsProp ?? tokens.defaults.rows
   const formatTrigger = formatTriggerProp ?? tokens.defaults.formatTrigger
 
-  const mergedTitleStyle = useMemo(
-    () => [
-      {
-        width: labelWidth,
-        minWidth: labelWidth,
-        maxWidth: labelWidth,
-        flexBasis: labelWidth,
-        marginRight: tokens.spacing.labelGap,
-        flexShrink: 0,
-        flexGrow: 0,
-      },
-      titleStyle,
-    ],
-    [labelWidth, titleStyle, tokens.spacing.labelGap],
-  )
+  const mergedTitleStyle = [
+    {
+      width: labelWidth,
+      minWidth: labelWidth,
+      maxWidth: labelWidth,
+      flexBasis: labelWidth,
+      marginRight: tokens.spacing.labelGap,
+      flexShrink: 0,
+      flexGrow: 0,
+    },
+    titleStyle,
+  ]
 
   const resolvedSuffix = suffixProp ?? button
   const resolvedDescription = intro ?? description
@@ -123,13 +120,13 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const inputRef = useRef<TextInput>(null)
   const introId = useId()
   const errorId = useId()
-  const describedBy = useMemo(() => {
+  const describedBy = (() => {
     const ids = [
       isRenderable(errorMessage) ? errorId : null,
       isRenderable(resolvedDescription) ? introId : null,
     ].filter(Boolean) as string[]
     return ids.length ? ids : undefined
-  }, [errorId, errorMessage, introId, resolvedDescription])
+  })()
 
   const lineHeight = tokens.defaults.textareaLineHeight
   const autoSizeConfig = autoSize && isObject(autoSize) ? autoSize : undefined
@@ -529,16 +526,13 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     )
   }
 
-  const contentWrapperStyle = useMemo(
-    () => [
-      {
-        width: '100%' as const,
-        justifyContent: alignMap[controlAlign],
-      },
-      contentStyle,
-    ],
-    [contentStyle, controlAlign],
-  )
+  const contentWrapperStyle = [
+    {
+      width: '100%' as const,
+      justifyContent: alignMap[controlAlign],
+    },
+    contentStyle,
+  ]
 
   const renderAffix = (node: React.ReactNode) => {
     if (isText(node)) {

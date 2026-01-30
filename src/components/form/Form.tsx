@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { View } from 'react-native'
 
 import { isPromiseLike } from '../../utils/promise'
@@ -279,7 +279,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     [notify, onValuesChange, runFieldValidation],
   )
 
-  const formApi = useMemo<FormInstance>(() => ({
+  const formApi: FormInstance = {
     submit: async () => {
       try {
         const result = await validateFields()
@@ -331,7 +331,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     },
     validateFields,
     getFieldError: (name: NamePath) => errorsRef.current[serializeNamePath(name)] ?? [],
-  }), [notify, onFinish, onValuesChange, validateFields, runFieldValidation])
+  }
 
   useImperativeHandle(ref, () => formApi, [formApi])
 
@@ -344,26 +344,23 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     [runFieldValidation],
   )
 
-  const contextValue = useMemo(
-    () => ({
-      values,
-      getFieldValue,
-      setFieldValue,
-      registerField,
-      getFieldError,
-      validateField: contextValidateField,
-      getFieldsValue: () => values,
-      subscribe: (listener: (changed: Record<string, unknown>, all: Record<string, unknown>) => void) => {
-        subscribersRef.current.add(listener)
-        return () => subscribersRef.current.delete(listener)
-      },
-      form: formApi,
-      colon,
-      labelWidth,
-      showValidateMessage,
-    }),
-    [values, setFieldValue, registerField, getFieldError, contextValidateField, formApi, colon, labelWidth, showValidateMessage],
-  )
+  const contextValue = {
+    values,
+    getFieldValue,
+    setFieldValue,
+    registerField,
+    getFieldError,
+    validateField: contextValidateField,
+    getFieldsValue: () => values,
+    subscribe: (listener: (changed: Record<string, unknown>, all: Record<string, unknown>) => void) => {
+      subscribersRef.current.add(listener)
+      return () => subscribersRef.current.delete(listener)
+    },
+    form: formApi,
+    colon,
+    labelWidth,
+    showValidateMessage,
+  }
 
   return (
     <FormContext.Provider value={contextValue}>
@@ -380,13 +377,14 @@ InternalForm.displayName = 'Form'
 export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRefObject<FormInstance | null>) => {
   const context = useContext(FormContext)
 
-  const names = useMemo(() => {
-    if (name === undefined) return undefined
-    if (!Array.isArray(name)) return [name]
-    return name.length && isText(name[0])
-      ? [name as NamePath]
-      : (name as NamePath[])
-  }, [name])
+  const names =
+    name === undefined
+      ? undefined
+      : !Array.isArray(name)
+        ? [name]
+        : name.length && isText(name[0])
+          ? [name as NamePath]
+          : (name as NamePath[])
 
   const getSnapshot = useCallback(
     (allValues?: Record<string, unknown>) => {

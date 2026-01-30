@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
 
 import Loading from '../loading'
@@ -24,7 +24,7 @@ export function usePickerValue({
   onChange?: PickerProps['onChange']
   onConfirm?: PickerProps['onConfirm']
 }) {
-  const preparedColumns = useMemo(() => prepareColumns(columns), [columns])
+  const preparedColumns = prepareColumns(columns)
   const isControlled = valueProp !== undefined
 
   const [innerValue, setInnerValue] = useState<PickerValue[]>(() => {
@@ -46,10 +46,7 @@ export function usePickerValue({
     }
   }, [commitValue, isControlled, valueProp])
 
-  const normalized = useMemo(
-    () => normalizePicker(preparedColumns, innerValue),
-    [preparedColumns, innerValue],
-  )
+  const normalized = normalizePicker(preparedColumns, innerValue)
 
   useEffect(() => {
     if (isControlled) return
@@ -191,11 +188,11 @@ const PickerColumn: React.FC<
     } = props
     const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
-    const selectedIndex = useMemo(() => {
+    const selectedIndex = (() => {
       if (!options.length) return 0
       const idx = options.findIndex(option => option.value === value)
       return findEnabledIndex(options, idx >= 0 ? idx : 0)
-    }, [options, value])
+    })()
 
     const handleChange = useCallback((index: number) => {
       const target = findEnabledIndex(options, index)
@@ -271,7 +268,6 @@ const Picker: React.FC<PickerProps> = props => {
     emitConfirmOnAutoSelect = true,
     maskColor,
     maskType = tokens.defaults.maskType,
-    interactionMode = 'auto',
     onChange,
     onConfirm,
     onCancel,

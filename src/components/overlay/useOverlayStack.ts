@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 
 import type { OverlayStackEntry, OverlayStackMountOptions } from './OverlayStackStore'
 import { overlayStackStore } from './OverlayStackStore'
@@ -26,17 +26,7 @@ export const useOverlayStack = ({
 }: UseOverlayStackOptions): UseOverlayStackResult => {
   const entries = useOverlayEntries()
   const entryRef = useRef<OverlayStackEntry | null>(null)
-  const stableOptions = useMemo(
-    () => options,
-    [
-      options.onClose,
-      options.closeOnBack,
-      options.lockScroll,
-      options.zIndex,
-      options.type,
-      options.meta,
-    ]
-  )
+  const stableOptions = options
 
   useEffect(() => {
     if (!visible) {

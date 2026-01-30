@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import {
   Pressable,
   StyleSheet,
@@ -182,8 +182,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
             }
             commit()
           })
-          .catch(error => {
-            if (typeof __DEV__ !== 'undefined' && __DEV__) console.error(error)
+          .catch(() => {
             commit()
           })
           .finally(() => {
@@ -200,8 +199,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       }
 
       return commit()
-    } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) console.error(error)
+    } catch {
       return commit()
     }
   }, [beforeChange, decimalLength, setInputText, setValue])
@@ -324,18 +322,12 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const plusDisabled = disabledForAll || disablePlus || (maxNumber !== undefined && currentForCompare >= maxNumber)
   const radius = tokens.radii.default
 
-  const buttonBaseStyle = useMemo(
-    () => ({ width: resolvedButtonSize, height: resolvedButtonSize }),
-    [resolvedButtonSize],
-  )
-  const inputBoxStyle = useMemo(
-    () => ({
-      width: resolvedInputWidth,
-      height: resolvedButtonSize,
-      marginHorizontal: tokens.spacing.gap,
-    }),
-    [resolvedButtonSize, resolvedInputWidth, tokens.spacing.gap],
-  )
+  const buttonBaseStyle = { width: resolvedButtonSize, height: resolvedButtonSize }
+  const inputBoxStyle = {
+    width: resolvedInputWidth,
+    height: resolvedButtonSize,
+    marginHorizontal: tokens.spacing.gap,
+  }
 
   const getButtonStyle = useCallback((type: 'plus' | 'minus', state: PressableStateCallbackType) => {
     const isPlus = type === 'plus'
@@ -597,9 +589,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
     showPlus,
   ])
 
-  const inputNode = useMemo(() => {
-    if (!showInput) return null
-
+  const inputNode = !showInput ? null : (() => {
     const editable = !disabledForAll && !disableInput
     const inputDisabled = disabledForAll || disableInput
 
@@ -641,26 +631,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         onPressIn={handleInputPressIn}
       />
     )
-  }, [
-    disableInput,
-    disabledForAll,
-    handleBlur,
-    handleChangeText,
-    handleFocus,
-    handleInputPressIn,
-    inputBoxStyle,
-    inputProps,
-    inputStyle,
-    inputValue,
-    integer,
-    placeholder,
-    showInput,
-    theme,
-    tokens.colors.background,
-    tokens.colors.inputDisabledBackground,
-    tokens.colors.inputDisabledText,
-    tokens.colors.inputText,
-  ])
+  })()
 
   return (
     <View {...rest} style={[styles.container, style]}>

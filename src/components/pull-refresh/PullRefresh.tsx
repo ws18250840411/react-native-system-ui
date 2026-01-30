@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Animated, PanResponder, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
@@ -37,26 +37,13 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
   const { colors, sizing } = tokens
 
   const translateY = useRef(new Animated.Value(0)).current
-  const headHeightNumber = useMemo(
-    () => Math.max(0, parseNumberLike(headHeight, sizing.headHeight) ?? sizing.headHeight),
-    [headHeight, sizing.headHeight],
+  const headHeightNumber = Math.max(0, parseNumberLike(headHeight, sizing.headHeight) ?? sizing.headHeight)
+  const pullDistanceNumber = Math.max(0, parseNumberLike(pullDistance, headHeightNumber) ?? headHeightNumber)
+  const successDurationMs = Math.max(
+    0,
+    parseNumberLike(successDuration, DEFAULT_SUCCESS_DURATION) ?? DEFAULT_SUCCESS_DURATION,
   )
-  const pullDistanceNumber = useMemo(
-    () => Math.max(0, parseNumberLike(pullDistance, headHeightNumber) ?? headHeightNumber),
-    [headHeightNumber, pullDistance],
-  )
-  const successDurationMs = useMemo(
-    () =>
-      Math.max(
-        0,
-        parseNumberLike(successDuration, DEFAULT_SUCCESS_DURATION) ?? DEFAULT_SUCCESS_DURATION,
-      ),
-    [successDuration],
-  )
-  const animationDurationMs = useMemo(
-    () => Math.max(0, parseNumberLike(animationDuration, 300) ?? 300),
-    [animationDuration],
-  )
+  const animationDurationMs = Math.max(0, parseNumberLike(animationDuration, 300) ?? 300)
 
   const isControlled = !isUndefined(refreshing)
   const [innerRefreshing, setInnerRefreshing] = useState(!!defaultRefreshing)
@@ -254,19 +241,15 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     refreshSucceededRef.current = false
   }, [mergedRefreshing, showSuccess, triggerSuccess])
 
-  const status: PullRefreshStatus = useMemo(
-    () =>
-      mergedRefreshing
-        ? 'loading'
-        : showSuccess
-          ? 'success'
-          : disabled || distance === 0
-            ? 'normal'
-            : distance < pullDistanceNumber
-              ? 'pulling'
-              : 'loosing',
-    [disabled, distance, mergedRefreshing, pullDistanceNumber, showSuccess],
-  )
+  const status: PullRefreshStatus = mergedRefreshing
+    ? 'loading'
+    : showSuccess
+      ? 'success'
+      : disabled || distance === 0
+        ? 'normal'
+        : distance < pullDistanceNumber
+          ? 'pulling'
+          : 'loosing'
 
   const opacity = useRef(new Animated.Value(status === 'normal' ? 0 : 1)).current
   useEffect(() => {
@@ -279,7 +262,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     Animated.timing(opacity, { toValue, duration: animationDurationMs, useNativeDriver: nativeDriverEnabled }).start()
   }, [animationDurationMs, opacity, status])
 
-  const statusNode = useMemo(() => {
+  const statusNode = (() => {
     switch (status) {
       case 'pulling':
         return resolveStatusText(pullingText, locale.vanPullRefresh.pulling)
@@ -292,22 +275,15 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       default:
         return null
     }
-  }, [loadingText, locale.vanPullRefresh.loading, locale.vanPullRefresh.loosing, locale.vanPullRefresh.pulling, loosingText, pullingText, resolveStatusText, status, successText])
+  })()
 
   const shouldReserveHead = (status === 'loading' || status === 'success') && distance === 0
-  const flattenedContainerStyle = useMemo(
-    () =>
-      StyleSheet.flatten(scrollProps.contentContainerStyle) as { paddingTop?: unknown } | null,
-    [scrollProps.contentContainerStyle],
-  )
+  const flattenedContainerStyle =
+    StyleSheet.flatten(scrollProps.contentContainerStyle) as { paddingTop?: unknown } | null
   const basePaddingTop = isNumber(flattenedContainerStyle?.paddingTop) ? flattenedContainerStyle.paddingTop : 0
-  const contentContainerStyle = useMemo(
-    () =>
-      shouldReserveHead
-        ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
-        : scrollProps.contentContainerStyle,
-    [basePaddingTop, headHeightNumber, scrollProps.contentContainerStyle, shouldReserveHead],
-  )
+  const contentContainerStyle = shouldReserveHead
+    ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
+    : scrollProps.contentContainerStyle
 
   const onScrollProp = scrollProps.onScroll
   const handleScroll = useCallback(
@@ -328,7 +304,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     [disabled, isWeb, mergedRefreshing, onRefresh, onScrollProp, setDistanceValue, showSuccess],
   )
 
-  const panResponder = useMemo(() => {
+  const panResponder = (() => {
     if (!isWeb || !isFunction(onRefresh)) return null
     const easeDistance = (raw: number) => {
       const pullDistance = pullDistanceNumber
@@ -392,17 +368,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         setDistanceValue(0, true)
       },
     })
-  }, [
-    disabled,
-    handleRefresh,
-    headHeightNumber,
-    isWeb,
-    pullDistanceNumber,
-    cancelWebDrag,
-    scheduleWebDrag,
-    setDistanceValue,
-    showSuccess,
-  ])
+  })()
 
   return (
     <ScrollView

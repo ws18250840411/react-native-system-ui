@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
+import React, { useCallback, useImperativeHandle, useRef } from 'react'
 import {
   Pressable,
   StyleSheet,
@@ -48,7 +48,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const [value, triggerChange] = useControllableValue<string>(props, { defaultValue: '' })
 
   const inputValue = value ?? ''
-  const resolvedInputAlign = useMemo(() => align ?? inputAlign, [align, inputAlign])
+  const resolvedInputAlign = align ?? inputAlign
 
   const handleChange = useCallback(
     (next: string) => {
@@ -73,25 +73,11 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     [inputValue, onSearch, onSubmitEditing],
   )
 
-  const resolvedBackground = useMemo(
-    () => background ?? tokens.colors.background,
-    [background, tokens.colors.background],
-  )
-  const resolvedLeftIcon = useMemo(
-    () =>
-      leftIcon ?? (
-        <SearchIcon size={tokens.icon.size} fill={tokens.colors.icon} color={tokens.colors.icon} />
-      ),
-    [leftIcon, tokens.colors.icon, tokens.icon.size],
-  )
-  const resolvedClearTrigger = useMemo(
-    () => clearTrigger ?? tokens.defaults.clearTrigger,
-    [clearTrigger, tokens.defaults.clearTrigger],
-  )
-  const resolvedReturnKeyType = useMemo(
-    () => returnKeyType ?? 'search',
-    [returnKeyType],
-  )
+  const resolvedBackground = background ?? tokens.colors.background
+  const resolvedLeftIcon =
+    leftIcon ?? <SearchIcon size={tokens.icon.size} fill={tokens.colors.icon} color={tokens.colors.icon} />
+  const resolvedClearTrigger = clearTrigger ?? tokens.defaults.clearTrigger
+  const resolvedReturnKeyType = returnKeyType ?? 'search'
   const shouldShowAction = !!action || showAction
   const isCustomActionText = React.isValidElement(actionText)
   const shouldRenderCancelAction = shouldShowAction && !action && !isCustomActionText
@@ -117,121 +103,71 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     },
   })
 
-  const containerStyles = useMemo(
-    () => [
-      styles.container,
-      {
-        paddingHorizontal: tokens.spacing.paddingHorizontal,
-        paddingVertical: tokens.spacing.paddingVertical,
-        backgroundColor: resolvedBackground,
-      },
-      containerStyle,
-    ],
-    [
-      containerStyle,
-      resolvedBackground,
-      tokens.spacing.paddingHorizontal,
-      tokens.spacing.paddingVertical,
-    ],
+  const containerStyles = [
+    styles.container,
+    {
+      paddingHorizontal: tokens.spacing.paddingHorizontal,
+      paddingVertical: tokens.spacing.paddingVertical,
+      backgroundColor: resolvedBackground,
+    },
+    containerStyle,
+  ]
+
+  const contentStyles = [
+    styles.content,
+    {
+      borderRadius: radius,
+      paddingHorizontal: tokens.spacing.contentPaddingHorizontal,
+      paddingVertical: tokens.spacing.contentPaddingVertical,
+      backgroundColor: tokens.colors.contentBackground,
+    },
+  ]
+
+  const labelNode = !label ? null : isText(label) ? (
+    <Text
+      style={{
+        marginRight: tokens.spacing.labelGap,
+        color: tokens.colors.label,
+        fontSize: tokens.typography.label,
+        fontWeight: tokens.typography.labelWeight,
+      }}
+    >
+      {label}
+    </Text>
+  ) : (
+    <View style={{ marginRight: tokens.spacing.labelGap }}>{label}</View>
   )
 
-  const contentStyles = useMemo(
-    () => [
-      styles.content,
-      {
-        borderRadius: radius,
-        paddingHorizontal: tokens.spacing.contentPaddingHorizontal,
-        paddingVertical: tokens.spacing.contentPaddingVertical,
-        backgroundColor: tokens.colors.contentBackground,
-      },
-    ],
-    [
-      radius,
-      tokens.colors.contentBackground,
-      tokens.spacing.contentPaddingHorizontal,
-      tokens.spacing.contentPaddingVertical,
-    ],
-  )
-
-  const labelNode = useMemo(() => {
-    if (!label) return null
-    if (isText(label)) {
-      return (
-        <Text
-          style={{
-            marginRight: tokens.spacing.labelGap,
-            color: tokens.colors.label,
-            fontSize: tokens.typography.label,
-            fontWeight: tokens.typography.labelWeight,
-          }}
-        >
-          {label}
-        </Text>
-      )
-    }
-    return <View style={{ marginRight: tokens.spacing.labelGap }}>{label}</View>
-  }, [
-    label,
-    tokens.colors.label,
-    tokens.spacing.labelGap,
-    tokens.typography.label,
-    tokens.typography.labelWeight,
-  ])
-
-  const actionNode = useMemo(() => {
-    if (action) {
-      return (
-        <View style={[styles.actionWrapper, { marginLeft: tokens.spacing.actionGap }]}>
-          {action}
-        </View>
-      )
-    }
-    if (!shouldShowAction) return null
-
-    if (isCustomActionText) {
-      return (
-        <View style={[styles.actionWrapper, { marginLeft: tokens.spacing.actionGap }]}>
-          {actionText}
-        </View>
-      )
-    }
-
-    return (
-      <Pressable
-        style={[
-          styles.actionWrapper,
-          {
-            marginLeft: tokens.spacing.actionGap,
-            opacity: cancelActionPress.states.pressed ? tokens.opacity.actionPressed : 1,
-          },
-        ]}
-        {...cancelActionPress.interactionProps}
+  const actionNode = action ? (
+    <View style={[styles.actionWrapper, { marginLeft: tokens.spacing.actionGap }]}>
+      {action}
+    </View>
+  ) : !shouldShowAction ? null : isCustomActionText ? (
+    <View style={[styles.actionWrapper, { marginLeft: tokens.spacing.actionGap }]}>
+      {actionText}
+    </View>
+  ) : (
+    <Pressable
+      style={[
+        styles.actionWrapper,
+        {
+          marginLeft: tokens.spacing.actionGap,
+          opacity: cancelActionPress.states.pressed ? tokens.opacity.actionPressed : 1,
+        },
+      ]}
+      {...cancelActionPress.interactionProps}
+    >
+      <Text
+        style={{
+          color: tokens.colors.action,
+          fontSize: tokens.typography.action,
+          fontWeight: tokens.typography.actionWeight,
+        }}
       >
-        <Text
-          style={{
-            color: tokens.colors.action,
-            fontSize: tokens.typography.action,
-            fontWeight: tokens.typography.actionWeight,
-          }}
-        >
-          {actionText ?? locale.cancel}
-        </Text>
-      </Pressable>
-    )
-  }, [
-    action,
-    actionText,
-    cancelActionPress.interactionProps,
-    cancelActionPress.states.pressed,
-    isCustomActionText,
-    locale.cancel,
-    shouldShowAction,
-    tokens.colors.action,
-    tokens.opacity.actionPressed,
-    tokens.spacing.actionGap,
-    tokens.typography.action,
-    tokens.typography.actionWeight,
-  ])
+        {actionText ?? locale.cancel}
+      </Text>
+    </Pressable>
+  )
 
   return (
     <View style={containerStyles}>

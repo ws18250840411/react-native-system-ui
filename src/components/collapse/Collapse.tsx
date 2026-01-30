@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -154,7 +154,7 @@ export const Collapse = ((props: CollapseProps) => {
     [accordion, activeKeys, controlled, disabled, onChange],
   )
 
-  const contextValue = useMemo<CollapseContextValue>(() => ({
+  const contextValue: CollapseContextValue = {
     activeKeys,
     toggle,
     accordion,
@@ -163,9 +163,9 @@ export const Collapse = ((props: CollapseProps) => {
     border,
     disabled,
     tokens,
-  }), [accordion, activeKeys, border, disabled, expandIcon, iconPosition, tokens, toggle])
+  }
 
-  const renderedChildren = useMemo(() => {
+  const renderedChildren = (() => {
     const items = React.Children.toArray(children)
     return items.map((child, index) => {
       if (!React.isValidElement(child)) return child
@@ -175,7 +175,7 @@ export const Collapse = ((props: CollapseProps) => {
       const name = (child.props as CollapsePanelProps).name ?? String(index)
       return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { name, index })
     })
-  }, [children])
+  })()
 
   return (
     <CollapseContext.Provider value={contextValue}>
@@ -247,10 +247,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
 
   const [contentHeight, setContentHeight] = useState(0)
   const animation = useRef(new Animated.Value(isActive ? 1 : 0)).current
-  const rotate = useMemo(
-    () => animation.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '-90deg'] }),
-    [animation],
-  )
+  const rotate = animation.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '-90deg'] })
 
   useEffect(() => {
     Animated.timing(animation, {
@@ -312,20 +309,17 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     )
   }, [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotate])
 
-  const contentNode = useMemo(() => {
-    if (!isText(children)) return children
-    return (
-      <Text
-        style={{
-          color: mergedDisabled ? colors.disabled : colors.description,
-          fontSize: typography.descriptionSize,
-          lineHeight: Math.round(typography.descriptionSize * 1.5),
-        }}
-      >
-        {children}
-      </Text>
-    )
-  }, [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize])
+  const contentNode = !isText(children) ? children : (
+    <Text
+      style={{
+        color: mergedDisabled ? colors.disabled : colors.description,
+        fontSize: typography.descriptionSize,
+        lineHeight: Math.round(typography.descriptionSize * 1.5),
+      }}
+    >
+      {children}
+    </Text>
+  )
 
   const showItemBorder = Boolean(panelBorder)
   const showTopBorder = index > 0 && showItemBorder

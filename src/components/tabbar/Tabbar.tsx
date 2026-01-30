@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
@@ -40,15 +40,9 @@ const TabbarBase: React.FC<TabbarProps> = props => {
 
   const enableSafeAreaInsetBottom = safeAreaInsetBottom ?? fixed
 
-  const items = useMemo(
-    () =>
-      React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<TabbarItemProps>[],
-    [children],
-  )
-  const firstName = useMemo(
-    () => (items.length ? ((items[0].props.name ?? 0) as TabbarValue) : undefined),
-    [items],
-  )
+  const items =
+    React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<TabbarItemProps>[]
+  const firstName = items.length ? ((items[0].props.name ?? 0) as TabbarValue) : undefined
   const [activeValue, setActiveValue] = useControllableValue<TabbarValue>(props, {
     defaultValue: firstName,
     valuePropName: 'value',
@@ -56,14 +50,13 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     trigger: 'onChange',
   })
 
-  const itemNames = useMemo(
-    () => items.map((item, index) => (item.props.name ?? index) as TabbarValue),
-    [items],
-  )
-  const currentName = useMemo(() => {
-    if (activeValue === undefined || activeValue === null) return firstName
-    return itemNames.some((name) => name === activeValue) ? activeValue : firstName
-  }, [activeValue, firstName, itemNames])
+  const itemNames = items.map((item, index) => (item.props.name ?? index) as TabbarValue)
+  const currentName =
+    activeValue === undefined || activeValue === null
+      ? firstName
+      : itemNames.some((name) => name === activeValue)
+        ? activeValue
+        : firstName
 
   const [barHeight, setBarHeight] = useState(tokens.layout.height)
   const enablePlaceholder = fixed && placeholder
@@ -79,41 +72,25 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     (name: TabbarValue, index: number) => setActiveValue(name, index),
     [setActiveValue],
   )
-  const contextValue = useMemo(
-    () => ({
-      activeValue: currentName,
-      activeColor: activeColor ?? tokens.colors.active,
-      inactiveColor: inactiveColor ?? tokens.colors.inactive,
-      fontSize: tokens.typography.fontSize,
-      fontWeight: tokens.typography.fontWeight,
-      onSelect,
-    }),
-    [
-      activeColor,
-      currentName,
-      inactiveColor,
-      onSelect,
-      tokens.colors.active,
-      tokens.colors.inactive,
-      tokens.typography.fontSize,
-      tokens.typography.fontWeight,
-    ],
-  )
+  const contextValue = {
+    activeValue: currentName,
+    activeColor: activeColor ?? tokens.colors.active,
+    inactiveColor: inactiveColor ?? tokens.colors.inactive,
+    fontSize: tokens.typography.fontSize,
+    fontWeight: tokens.typography.fontWeight,
+    onSelect,
+  }
 
-  const clonedChildren = useMemo(
-    () =>
-      items.map((item, index) => {
-        const name = (item.props.name ?? index) as TabbarValue
-        return React.cloneElement(item, {
-          key: item.key ?? name,
-          name,
-          index,
-          iconSize,
-          tokensOverride: mergeTokensOverride(tokensOverride, item.props.tokensOverride),
-        })
-      }),
-    [iconSize, items, tokensOverride],
-  )
+  const clonedChildren = items.map((item, index) => {
+    const name = (item.props.name ?? index) as TabbarValue
+    return React.cloneElement(item, {
+      key: item.key ?? name,
+      name,
+      index,
+      iconSize,
+      tokensOverride: mergeTokensOverride(tokensOverride, item.props.tokensOverride),
+    })
+  })
 
   if (items.length === 0) return null
 

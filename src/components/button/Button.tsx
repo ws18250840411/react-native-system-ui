@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react'
+import React, { useContext } from 'react'
 import {
   ActivityIndicator,
   Platform,
@@ -229,17 +229,11 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         ? ({ backgroundImage: gradientString } as unknown as ViewStyle)
         : undefined
 
-    const iconWrapperStyle = useMemo(
-      () =>
-        iconPosition === 'left'
-          ? { marginRight: buttonTokens.spacing.iconGap }
-          : { marginLeft: buttonTokens.spacing.iconGap },
-      [buttonTokens.spacing.iconGap, iconPosition]
-    )
-    const loadingIconWrapperStyle = useMemo(
-      () => ({ marginRight: buttonTokens.spacing.iconGap }),
-      [buttonTokens.spacing.iconGap]
-    )
+    const iconWrapperStyle =
+      iconPosition === 'left'
+        ? { marginRight: buttonTokens.spacing.iconGap }
+        : { marginLeft: buttonTokens.spacing.iconGap }
+    const loadingIconWrapperStyle = { marginRight: buttonTokens.spacing.iconGap }
 
     const renderIcon = () => {
       if (!icon) return null
@@ -253,10 +247,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
             {iconElement}
           </View>
         )
-      } catch (error) {
-        if (typeof __DEV__ !== 'undefined' && __DEV__) {
-          console.warn('[Button] Failed to render icon:', error)
-        }
+      } catch {
         return null
       }
     }
@@ -292,24 +283,14 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           ? text
           : children
 
-    const sharedLabelTextStyle = useMemo(
-      () => ({
-        fontFamily: buttonTokens.typography.fontFamily,
-        fontWeight: buttonTokens.typography.fontWeight,
-        fontSize: sizeTokens.fontSize,
-        lineHeight: sizeTokens.fontSize * buttonTokens.typography.lineHeightMultiplier,
-        color: resolvedTextColor,
-        textTransform: uppercase ? 'uppercase' : undefined,
-      }),
-      [
-        buttonTokens.typography.fontFamily,
-        buttonTokens.typography.fontWeight,
-        buttonTokens.typography.lineHeightMultiplier,
-        resolvedTextColor,
-        sizeTokens.fontSize,
-        uppercase,
-      ]
-    )
+    const sharedLabelTextStyle = {
+      fontFamily: buttonTokens.typography.fontFamily,
+      fontWeight: buttonTokens.typography.fontWeight,
+      fontSize: sizeTokens.fontSize,
+      lineHeight: sizeTokens.fontSize * buttonTokens.typography.lineHeightMultiplier,
+      color: resolvedTextColor,
+      textTransform: uppercase ? 'uppercase' : undefined,
+    }
 
     const renderText = () => {
       if (label === undefined || label === null) {
@@ -387,54 +368,28 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           ? buttonTokens.states.pressedOpacity
           : 1
 
-    const containerStyle = useMemo(
-      () => ({
-        minHeight: sizeTokens.height,
-        paddingHorizontal: sizeTokens.paddingHorizontal,
-        borderRadius,
-        backgroundColor,
-        borderColor,
-        borderWidth: resolvedBorderWidth,
-        opacity: resolvedOpacity,
-      }),
-      [
-        backgroundColor,
-        borderColor,
-        borderRadius,
-        resolvedBorderWidth,
-        resolvedOpacity,
-        sizeTokens.height,
-        sizeTokens.paddingHorizontal,
-      ]
-    )
-    const rippleClipStyle = useMemo(
-      () =>
-        Platform.OS === 'android' && borderRadius > 0 && !shouldShowShadow
-          ? { overflow: 'hidden' as const }
-          : null,
-      [borderRadius, shouldShowShadow]
-    )
-    const baseContainerStyle = useMemo(
-      () => [
-        buttonTokens.layout.base,
-        containerStyle,
-        rippleClipStyle,
-        block ? buttonTokens.layout.block : null,
-        shadowStyle,
-        gradientWebStyle,
-        style,
-      ],
-      [
-        block,
-        buttonTokens.layout.base,
-        buttonTokens.layout.block,
-        containerStyle,
-        gradientWebStyle,
-        rippleClipStyle,
-        shadowStyle,
-        style,
-      ]
-    )
+    const containerStyle = {
+      minHeight: sizeTokens.height,
+      paddingHorizontal: sizeTokens.paddingHorizontal,
+      borderRadius,
+      backgroundColor,
+      borderColor,
+      borderWidth: resolvedBorderWidth,
+      opacity: resolvedOpacity,
+    }
+    const rippleClipStyle =
+      Platform.OS === 'android' && borderRadius > 0 && !shouldShowShadow
+        ? { overflow: 'hidden' as const }
+        : null
+    const baseContainerStyle = [
+      buttonTokens.layout.base,
+      containerStyle,
+      rippleClipStyle,
+      block ? buttonTokens.layout.block : null,
+      shadowStyle,
+      gradientWebStyle,
+      style,
+    ]
 
     const mergedAccessibilityState = {
       ...accessibilityState,
@@ -448,13 +403,10 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
         : type === 'default' && !normalizedColor
           ? withAlpha(resolvedTextColor, 0.15)
           : buttonTokens.colors.ripple)
-    const resolvedAndroidRipple = useMemo(
-      () =>
-        Platform.OS === 'android'
-          ? androidRippleProp ?? { color: defaultRippleColor, borderless: false }
-          : androidRippleProp,
-      [androidRippleProp, defaultRippleColor]
-    )
+    const resolvedAndroidRipple =
+      Platform.OS === 'android'
+        ? androidRippleProp ?? { color: defaultRippleColor, borderless: false }
+        : androidRippleProp
 
     return (
       <Pressable

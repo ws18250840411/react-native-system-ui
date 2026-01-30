@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Animated, StyleSheet, View, type ViewStyle } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
@@ -57,11 +57,8 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   const rowWidth = rowWidthProp ?? tokens.defaults.rowWidth
   const round = roundProp ?? false
 
-  const rows = useMemo(
-    () => (isFiniteNumber(row) ? Math.max(0, Math.floor(row)) : 0),
-    [row],
-  )
-  const rowWidths = useMemo(() => {
+  const rows = isFiniteNumber(row) ? Math.max(0, Math.floor(row)) : 0
+  const rowWidths = (() => {
     const widths = resolveSeries(rows, rowWidth, tokens.defaults.rowWidth)
     if (
       !Array.isArray(rowWidth) &&
@@ -71,24 +68,12 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
       widths[rows - 1] = tokens.defaults.lastRowWidth
     }
     return widths
-  }, [props.rowWidth, rowWidth, rows, tokens.defaults.lastRowWidth, tokens.defaults.rowWidth])
-  const rowHeights = useMemo(
-    () => resolveSeries(rows, rowHeight, tokens.defaults.rowHeight),
-    [rowHeight, rows, tokens.defaults.rowHeight],
-  )
+  })()
+  const rowHeights = resolveSeries(rows, rowHeight, tokens.defaults.rowHeight)
 
-  const titleHeight = useMemo(
-    () => rowHeights[0] ?? tokens.defaults.rowHeight,
-    [rowHeights, tokens.defaults.rowHeight],
-  )
-  const resolvedAvatarSize = useMemo(
-    () => normalize(avatarSize, tokens.defaults.avatarSize),
-    [avatarSize, tokens.defaults.avatarSize],
-  )
-  const resolvedTitleWidth = useMemo(
-    () => normalize(titleWidth, tokens.defaults.titleWidth),
-    [titleWidth, tokens.defaults.titleWidth],
-  )
+  const titleHeight = rowHeights[0] ?? tokens.defaults.rowHeight
+  const resolvedAvatarSize = normalize(avatarSize, tokens.defaults.avatarSize)
+  const resolvedTitleWidth = normalize(titleWidth, tokens.defaults.titleWidth)
 
   const animated = useRef(new Animated.Value(0)).current
 
@@ -116,78 +101,63 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
     return () => loop.stop()
   }, [animate, animated, loading, tokens.animation.duration])
 
-  const animatedStyle = useMemo(() => {
-    if (!loading || !animate) return undefined
-    return {
-      opacity: animated.interpolate({
-        inputRange: [0, 1],
-        outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
-      }),
-    } as unknown as ViewStyle
-  }, [animate, animated, loading, tokens.animation.maxOpacity, tokens.animation.minOpacity])
+  const animatedStyle = !loading || !animate ? undefined : ({
+    opacity: animated.interpolate({
+      inputRange: [0, 1],
+      outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
+    }),
+  } as unknown as ViewStyle)
 
-  const containerStyles = useMemo(
-    () => [styles.container, { gap: tokens.spacing.containerGap }, style],
-    [style, tokens.spacing.containerGap],
+  const containerStyles = [styles.container, { gap: tokens.spacing.containerGap }, style]
+
+  const avatarNode = !avatar ? null : (
+    <Animated.View
+      style={[
+        {
+          width: resolvedAvatarSize as ViewStyle['width'],
+          height: resolvedAvatarSize as ViewStyle['height'],
+          borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
+          backgroundColor: tokens.colors.block,
+        },
+        animatedStyle,
+      ]}
+    />
   )
 
-  const avatarNode = useMemo(() => {
-    if (!avatar) return null
-    return (
-      <Animated.View
-        style={[
-          {
-            width: resolvedAvatarSize as ViewStyle['width'],
-            height: resolvedAvatarSize as ViewStyle['height'],
-            borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
-            backgroundColor: tokens.colors.block,
-          },
-          animatedStyle,
-        ]}
-      />
-    )
-  }, [animatedStyle, avatar, avatarShape, resolvedAvatarSize, tokens.colors.block, tokens.radius])
+  const titleNode = !title ? null : (
+    <Animated.View
+      style={[
+        {
+          width: resolvedTitleWidth as ViewStyle['width'],
+          height: titleHeight as ViewStyle['height'],
+          backgroundColor: tokens.colors.block,
+          borderRadius: round ? tokens.radius : 0,
+        },
+        animatedStyle,
+      ]}
+    />
+  )
 
-  const titleNode = useMemo(() => {
-    if (!title) return null
-    return (
-      <Animated.View
-        style={[
-          {
-            width: resolvedTitleWidth as ViewStyle['width'],
-            height: titleHeight as ViewStyle['height'],
-            backgroundColor: tokens.colors.block,
-            borderRadius: round ? tokens.radius : 0,
-          },
-          animatedStyle,
-        ]}
-      />
-    )
-  }, [animatedStyle, round, resolvedTitleWidth, title, titleHeight, tokens.colors.block, tokens.radius])
-
-  const rowNodes = useMemo(() => {
-    if (rows <= 0) return null
-    return (
-      <View style={styles.rows}>
-        {rowWidths.map((width, index) => (
-          <Animated.View
-            key={index}
-            testID={`rv-skeleton-row-${index}`}
-            style={[
-              {
-                width: width as ViewStyle['width'],
-                height: rowHeights[index] as ViewStyle['height'],
-                marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
-                backgroundColor: tokens.colors.block,
-                borderRadius: round ? tokens.radius : 0,
-              },
-              animatedStyle,
-            ]}
-          />
-        ))}
-      </View>
-    )
-  }, [animatedStyle, rowHeights, rowWidths, round, rows, title, tokens.colors.block, tokens.radius, tokens.spacing.rowGap])
+  const rowNodes = rows <= 0 ? null : (
+    <View style={styles.rows}>
+      {rowWidths.map((width, index) => (
+        <Animated.View
+          key={index}
+          testID={`rv-skeleton-row-${index}`}
+          style={[
+            {
+              width: width as ViewStyle['width'],
+              height: rowHeights[index] as ViewStyle['height'],
+              marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
+              backgroundColor: tokens.colors.block,
+              borderRadius: round ? tokens.radius : 0,
+            },
+            animatedStyle,
+          ]}
+        />
+      ))}
+    </View>
+  )
 
   if (!loading) {
     return (

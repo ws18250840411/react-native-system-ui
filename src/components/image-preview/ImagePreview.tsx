@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Image as RNImage, Platform, Pressable, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native'
 
 import Popup from '../popup'
@@ -97,10 +97,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     onClose,
   }
 
-  const resolvedImages = useMemo<ImageSourcePropType[]>(
-    () => images.map(img => (isString(img) ? { uri: img } : img)),
-    [images],
-  )
+  const resolvedImages: ImageSourcePropType[] = images.map(img => (isString(img) ? { uri: img } : img))
 
   useEffect(() => {
     setActive(current => clampIndex(current, imagesLen))
@@ -201,41 +198,37 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     handleImagePress()
   }, [handleImagePress, resetTap])
 
-  const pressableHandlers = useMemo<PressableHandlers>(() => {
-    const handlers: PressableHandlers = {
-      onTouchStart: e => {
-        const { pageX, pageY } = e.nativeEvent
-        if (pageX != null && pageY != null) markTapStart(pageX, pageY)
-      },
-      onTouchMove: e => {
-        const { pageX, pageY } = e.nativeEvent
-        if (pageX != null && pageY != null) markTapMove(pageX, pageY)
-      },
-      onTouchEnd: e => {
-        const { pageX, pageY } = e.nativeEvent
-        if (pageX != null && pageY != null) tryTapEnd(pageX, pageY)
-      },
-      onTouchCancel: resetTap,
-    }
+  const pressableHandlers: PressableHandlers = {
+    onTouchStart: e => {
+      const { pageX, pageY } = e.nativeEvent
+      if (pageX != null && pageY != null) markTapStart(pageX, pageY)
+    },
+    onTouchMove: e => {
+      const { pageX, pageY } = e.nativeEvent
+      if (pageX != null && pageY != null) markTapMove(pageX, pageY)
+    },
+    onTouchEnd: e => {
+      const { pageX, pageY } = e.nativeEvent
+      if (pageX != null && pageY != null) tryTapEnd(pageX, pageY)
+    },
+    onTouchCancel: resetTap,
+  }
 
-    if (IS_WEB) {
-      handlers.onMouseDown = e => {
-        const ne = e.nativeEvent
-        if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
-      }
-      handlers.onMouseMove = e => {
-        const ne = e.nativeEvent
-        if (ne?.buttons !== 1) return
-        if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
-      }
-      handlers.onMouseUp = e => {
-        const ne = e.nativeEvent
-        if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
-      }
+  if (IS_WEB) {
+    pressableHandlers.onMouseDown = e => {
+      const ne = e.nativeEvent
+      if (ne?.pageX != null && ne?.pageY != null) markTapStart(ne.pageX, ne.pageY)
     }
-
-    return handlers
-  }, [markTapMove, markTapStart, resetTap, tryTapEnd])
+    pressableHandlers.onMouseMove = e => {
+      const ne = e.nativeEvent
+      if (ne?.buttons !== 1) return
+      if (ne?.pageX != null && ne?.pageY != null) markTapMove(ne.pageX, ne.pageY)
+    }
+    pressableHandlers.onMouseUp = e => {
+      const ne = e.nativeEvent
+      if (ne?.pageX != null && ne?.pageY != null) tryTapEnd(ne.pageX, ne.pageY)
+    }
+  }
 
   const renderIndex = useCallback(
     (current: number, total: number) => {

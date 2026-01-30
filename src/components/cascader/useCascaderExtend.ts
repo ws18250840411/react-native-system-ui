@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+
 
 import type { CascaderOption, CascaderValue } from './types'
 
@@ -9,7 +9,7 @@ interface FieldKeys {
 }
 
 export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKeys, value: CascaderValue[]) => {
-  const depth = useMemo(() => {
+  const depth = (() => {
     let maxDepth = 1
     const traverse = (opts: CascaderOption[] | undefined, level: number) => {
       if (!opts || !opts.length) return
@@ -24,9 +24,9 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
     }
     traverse(options, 1)
     return maxDepth
-  }, [keys.childrenKey, options])
+  })()
 
-  const tabs = useMemo(() => {
+  const tabs = (() => {
     if (!value || !value.length) return [options]
     return value.reduce<CascaderOption[][]>(
       (acc, val, index) => {
@@ -40,12 +40,11 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
       },
       [options],
     )
-  }, [keys.childrenKey, keys.valueKey, options, value])
+  })()
 
-  const items = useMemo(() => {
-    if (!value || !value.length) return []
-    return value.map((val, index) => tabs[index]?.find(option => option[keys.valueKey] === val))
-  }, [keys.valueKey, tabs, value])
+  const items = !value || !value.length
+    ? []
+    : value.map((val, index) => tabs[index]?.find(option => option[keys.valueKey] === val))
 
   return { tabs, items, depth }
 }

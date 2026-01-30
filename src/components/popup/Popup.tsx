@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -207,80 +207,60 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const tokens = usePopupTokens(tokensOverride)
 
-  const dynamicStyles = useMemo(() => {
-    const shadow = createPlatformShadow({
-      color: tokens.shadow.color,
-      opacity: tokens.shadow.opacity,
-      radius: tokens.shadow.radius,
-      offsetY: tokens.shadow.offsetY,
-      elevation: tokens.shadow.elevation,
-    })
+  const shadow = createPlatformShadow({
+    color: tokens.shadow.color,
+    opacity: tokens.shadow.opacity,
+    radius: tokens.shadow.radius,
+    offsetY: tokens.shadow.offsetY,
+    elevation: tokens.shadow.elevation,
+  })
 
-    const popup: ViewStyle = {
+  const dynamicStyles = {
+    popup: {
       backgroundColor: tokens.colors.background,
       padding: tokens.spacing.padding,
       ...shadow,
-    }
-
-    const title: TextStyle = {
+    } as ViewStyle,
+    title: {
       color: tokens.colors.title,
       fontSize: tokens.typography.titleSize,
       fontWeight: tokens.typography.titleWeight,
       marginHorizontal: tokens.spacing.descriptionHorizontal,
       textAlign: 'center',
-    }
-
-    const titleWrapper: ViewStyle = {
+    } as TextStyle,
+    titleWrapper: {
       marginTop: tokens.spacing.titleTop,
       marginBottom: tokens.spacing.titleBottom,
       marginHorizontal: tokens.spacing.descriptionHorizontal,
       alignItems: 'center',
-    }
-
-    const description: TextStyle = {
+    } as ViewStyle,
+    description: {
       color: tokens.colors.description,
       fontSize: tokens.typography.descriptionSize,
       lineHeight: tokens.typography.descriptionLineHeight,
-    }
-
-    const descriptionWrapper: ViewStyle = {
+    } as TextStyle,
+    descriptionWrapper: {
       marginHorizontal: tokens.spacing.descriptionHorizontal,
       marginBottom: tokens.spacing.descriptionBottom,
-    }
-
-    const closeIconBase: ViewStyle = {
+    } as ViewStyle,
+    closeIconBase: {
       minWidth: tokens.spacing.closeIconSize,
       minHeight: tokens.spacing.closeIconSize,
       padding: tokens.spacing.closeIconPadding,
-    }
-
-    const closeIconDefault: ViewStyle = {
+    } as ViewStyle,
+    closeIconDefault: {
       width: tokens.spacing.closeIconSize,
       height: tokens.spacing.closeIconSize,
-    }
-
-    const popupSide: ViewStyle = {
+    } as ViewStyle,
+    popupSide: {
       width: tokens.layout.sideWidth,
       maxWidth: tokens.layout.maxWidth,
-    }
-
-    const popupCenter: ViewStyle = {
+    } as ViewStyle,
+    popupCenter: {
       minWidth: tokens.layout.minWidth,
       maxWidth: tokens.layout.centerMaxWidth,
-    }
-
-    return {
-      popup,
-      title,
-      titleWrapper,
-      description,
-      descriptionWrapper,
-      closeIconBase,
-      closeIconDefault,
-      popupSide,
-      popupCenter,
-    }
-  }, [tokens])
+    } as ViewStyle,
+  }
 
   const [mounted, setMounted] = useState(visible)
   const [interactionVisible, setInteractionVisible] = useState(visible)
@@ -413,38 +393,29 @@ export const Popup: React.FC<PopupProps> = props => {
     : overlayRestProps
 
   const config = placementConfig[placement]
-  const radiusStyle = useMemo(
-    () => buildRadius(round, placement, tokens.radius.round),
-    [placement, round, tokens.radius.round],
-  )
+  const radiusStyle = buildRadius(round, placement, tokens.radius.round)
 
   const { animated: overlayOpacity } = usePresenceAnimation(visible, { duration })
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
-  const translateDistance = useMemo(() => {
-    if (placement === 'left' || placement === 'right') {
-      return windowWidth
-    }
-    if (placement === 'top' || placement === 'bottom') {
-      return windowHeight
-    }
-    return 0
-  }, [placement, windowHeight, windowWidth])
+  const translateDistance =
+    placement === 'left' || placement === 'right'
+      ? windowWidth
+      : placement === 'top' || placement === 'bottom'
+        ? windowHeight
+        : 0
 
-  const translateTransform = useMemo(() => {
+  const translateTransform = (() => {
     if (!shouldTranslate) return null
     const outputRange: [number, number] = [translateDistance * direction, 0]
     return config.axis === 'y'
       ? { translateY: progress.interpolate({ inputRange: [0, 1], outputRange }) }
       : { translateX: progress.interpolate({ inputRange: [0, 1], outputRange }) }
-  }, [config.axis, direction, progress, shouldTranslate, translateDistance])
+  })()
 
-  const baseTransform = useMemo(
-    () => (translateTransform ? [translateTransform] : []),
-    [translateTransform],
-  )
+  const baseTransform = translateTransform ? [translateTransform] : []
 
-  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = useMemo(() => {
+  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = (() => {
     const extraTransform = contentAnimationStyle?.transform
     const transform = Array.isArray(extraTransform) ? [...baseTransform, ...extraTransform] : baseTransform
     const baseStyle = { ...contentAnimationStyle, transform }
@@ -455,7 +426,7 @@ export const Popup: React.FC<PopupProps> = props => {
       return { ...baseStyle, opacity: 1 }
     }
     return baseStyle
-  }, [baseTransform, contentAnimationStyle, placement, progress])
+  })()
 
   const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {

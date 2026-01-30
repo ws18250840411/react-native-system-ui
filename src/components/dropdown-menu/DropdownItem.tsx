@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, useMemo, useRef } from 'react'
+import React, { useEffect, useImperativeHandle, useRef } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -62,7 +62,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
       ? activeTextColor
       : tokens.colors.placeholder
 
-  const panelContent = useMemo(() => {
+  const panelContent = (() => {
     if (children) {
       return (
         <View
@@ -187,21 +187,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
         })}
       </View>
     )
-  }, [
-    children,
-    options,
-    panelStyle,
-    tokens,
-    value,
-    activeIcon,
-    activeTextColor,
-    closeMenu,
-    closeOnSelect,
-    menuValue,
-    name,
-    onMenuChange,
-    triggerChange,
-  ])
+  })()
 
   useEffect(() => {
     registerPanel(index, panelContent)

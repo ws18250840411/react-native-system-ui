@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import {
   FlatList,
   Pressable,
@@ -102,7 +102,7 @@ const Cascader: React.FC<CascaderProps> = props => {
   })
 
 
-  const keys = useMemo(() => getFieldKeys(fieldNames), [fieldNames])
+  const keys = getFieldKeys(fieldNames)
 
   const cascaderValue = Array.isArray(value) ? value : []
   const [panelValue, setPanelValue] = useState<CascaderValue[]>(cascaderValue)
@@ -126,10 +126,7 @@ const Cascader: React.FC<CascaderProps> = props => {
     setMeasuredWidth(prev => (prev === width ? prev : width))
   }, [])
 
-  const confirmedRows = useMemo(
-    () => resolveSelectedRows(options, keys, cascaderValue),
-    [cascaderValue, keys, options],
-  )
+  const confirmedRows = resolveSelectedRows(options, keys, cascaderValue)
 
   const [activeTab, setActiveTab] = useState(0)
 
@@ -435,14 +432,11 @@ const Cascader: React.FC<CascaderProps> = props => {
   const resolvedOverlay = popupOverlay ?? true
   const resolvedCloseOnOverlayPress = overrideCloseOnOverlayPress ?? closeOnClickOverlay
 
-  const cascaderActions = useMemo(
-    () => ({
-      open: openPopup,
-      close: () => closePopup(true),
-      toggle: togglePopup,
-    }),
-    [closePopup, openPopup, togglePopup],
-  )
+  const cascaderActions = {
+    open: openPopup,
+    close: () => closePopup(true),
+    toggle: togglePopup,
+  }
 
   const enhanceTriggerNode = useCallback(
     (node: React.ReactNode) => {

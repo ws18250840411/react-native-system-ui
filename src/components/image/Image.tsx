@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, ViewStyle } from 'react-native'
 import { SvgUri } from 'react-native-svg'
@@ -149,16 +149,9 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   const showError = showErrorProp ?? tokens.defaults.showError
   const loadingText = loadingTextProp ?? tokens.defaults.loadingText
   const errorText = errorTextProp ?? tokens.defaults.errorText
-  const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = useMemo(
-    () => splitImageStyle(style),
-    [style]
-  )
+  const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = splitImageStyle(style)
 
-  const actualSource = useMemo(() => {
-    if (source) return source
-    if (src) return { uri: src }
-    return undefined
-  }, [source, src])
+  const actualSource = source ? source : src ? { uri: src } : undefined
 
   const resolvedAccessibilityLabel = alt ?? accessibilityLabel ?? ariaLabel
 
@@ -198,15 +191,12 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   )
 
   const uri = resolveSourceUri(actualSource)
-  const isSvg = useMemo(() => {
-    const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
-    return (
-      isString(normalizedUri) &&
-      (normalizedUri.endsWith('.svg') ||
-        normalizedUri.includes('.svg?') ||
-        normalizedUri.includes('/svg?'))
-    )
-  }, [uri])
+  const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
+  const isSvg = !!normalizedUri && (
+    normalizedUri.endsWith('.svg') ||
+    normalizedUri.includes('.svg?') ||
+    normalizedUri.includes('/svg?')
+  )
 
   const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize
   const resolvedErrorIconSize = iconSizeProp ?? tokens.defaults.iconSize

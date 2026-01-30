@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { LayoutChangeEvent } from 'react-native'
 import { Image, Text, View, useWindowDimensions } from 'react-native'
 
@@ -95,40 +95,28 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     onLayoutCalculated?.({ width: window.width, height: window.height })
   }, [fullPage, onLayoutCalculated, window.width, window.height])
 
-  const zIndexStyle = useMemo(() => ({ zIndex }), [zIndex])
-  const cellStyle = useMemo(
-    () => ({ width: cellWidth, height: cellHeight }),
-    [cellWidth, cellHeight]
-  )
-  const oddRowStyle = useMemo(() => ({ paddingLeft: cellWidth / 2 }), [cellWidth])
-  const markStyle = useMemo(
-    () => ({
-      width: markWidth,
-      height: markHeight,
-      transform: [{ rotate: `${resolvedRotate}deg` }],
-    }),
-    [markHeight, markWidth, resolvedRotate]
-  )
-  const imageStyle = useMemo(
-    () => ({
-      width: markWidth,
-      height: markHeight,
-      opacity: resolvedOpacity,
-    }),
-    [markHeight, markWidth, resolvedOpacity]
-  )
-  const textBaseStyle = useMemo(
-    () => ({
-      fontSize: normalizedFontSize,
-      color: resolvedColor,
-      opacity: resolvedOpacity,
-      fontFamily: font?.family,
-      fontWeight: font?.weight,
-    }),
-    [font?.family, font?.weight, normalizedFontSize, resolvedColor, resolvedOpacity]
-  )
-  const rowIndexes = useMemo(() => Array.from({ length: rows }, (_, i) => i), [rows])
-  const colIndexes = useMemo(() => Array.from({ length: cols }, (_, i) => i), [cols])
+  const zIndexStyle = { zIndex }
+  const cellStyle = { width: cellWidth, height: cellHeight }
+  const oddRowStyle = { paddingLeft: cellWidth / 2 }
+  const markStyle = {
+    width: markWidth,
+    height: markHeight,
+    transform: [{ rotate: `${resolvedRotate}deg` }],
+  }
+  const imageStyle = {
+    width: markWidth,
+    height: markHeight,
+    opacity: resolvedOpacity,
+  }
+  const textBaseStyle = {
+    fontSize: normalizedFontSize,
+    color: resolvedColor,
+    opacity: resolvedOpacity,
+    fontFamily: font?.family,
+    fontWeight: font?.weight,
+  }
+  const rowIndexes = Array.from({ length: rows }, (_, i) => i)
+  const colIndexes = Array.from({ length: cols }, (_, i) => i)
 
   return (
     <View

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react'
+import React, { useCallback, useRef } from 'react'
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useRadioGroup } from '@react-native-aria/radio'
 import { useRadioGroupState } from '@react-stately/radio'
@@ -92,18 +92,15 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     }
     : null
 
-  const contextValue = useMemo(
-    () => ({
-      state,
-      direction,
-      iconSize,
-      checkedColor,
-      labelDisabled,
-      registerValue,
-      unregisterValue,
-    }),
-    [state, direction, iconSize, checkedColor, labelDisabled]
-  )
+  const contextValue = {
+    state,
+    direction,
+    iconSize,
+    checkedColor,
+    labelDisabled,
+    registerValue,
+    unregisterValue,
+  }
 
   return (
     <RadioGroupContext.Provider

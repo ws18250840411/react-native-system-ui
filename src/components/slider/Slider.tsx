@@ -1,7 +1,7 @@
 import { useSlider, useSliderThumb } from '@react-native-aria/slider'
 import { isRTL } from '@react-native-aria/utils'
 import { useSliderState } from '@react-stately/slider'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import type { GestureResponderEvent, LayoutChangeEvent, PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
@@ -85,37 +85,31 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
 
   const rawThumbViewProps = thumbProps as unknown as HandlerBag | undefined
   const handlers = enhanceHandlers(rawThumbViewProps, index) ?? rawThumbViewProps ?? {}
-  const translate = useMemo(() => -size / 2, [size])
-  const thumbStyle = useMemo(() => {
-    const next: ViewStyle = {
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-      borderColor: activeColor,
-      transform: [{ translateX: translate }, { translateY: translate }],
-    }
-    if (orientation === 'vertical') {
-      next.top = `${visualPercent}%`
-      next.left = '50%'
-    } else {
-      next.left = `${visualPercent}%`
-      next.top = '50%'
-    }
-    if (!content) {
-      next.backgroundColor = thumbBackgroundColor
-      next.elevation = thumbElevation
-    }
-    return next
-  }, [activeColor, content, orientation, size, thumbBackgroundColor, thumbElevation, translate, visualPercent])
-  const indicatorStyle = useMemo(
-    () => ({
-      width: indicatorSize,
-      height: indicatorSize,
-      borderRadius: indicatorSize / 2,
-      backgroundColor: indicatorColor,
-    }),
-    [indicatorColor, indicatorSize],
-  )
+  const translate = -size / 2
+  const thumbStyle: ViewStyle = {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    borderColor: activeColor,
+    transform: [{ translateX: translate }, { translateY: translate }],
+  }
+  if (orientation === 'vertical') {
+    thumbStyle.top = `${visualPercent}%`
+    thumbStyle.left = '50%'
+  } else {
+    thumbStyle.left = `${visualPercent}%`
+    thumbStyle.top = '50%'
+  }
+  if (!content) {
+    thumbStyle.backgroundColor = thumbBackgroundColor
+    thumbStyle.elevation = thumbElevation
+  }
+  const indicatorStyle = {
+    width: indicatorSize,
+    height: indicatorSize,
+    borderRadius: indicatorSize / 2,
+    backgroundColor: indicatorColor,
+  }
   const accessibilityProps = createAccessibilityProps(inputProps) as unknown as Partial<React.ComponentProps<typeof View>>
 
   return (
@@ -192,10 +186,7 @@ export const Slider: React.FC<SliderProps> = props => {
   const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
   const scope = Math.max(resolvedMax - resolvedMin, 0.00001)
 
-  const normalized = useMemo(
-    () => normalizeValue(valueProp, range, resolvedMin, resolvedMax),
-    [valueProp, range, resolvedMin, resolvedMax]
-  )
+  const normalized = normalizeValue(valueProp, range, resolvedMin, resolvedMax)
   const isControlled = valueProp !== undefined
 
   const formatOutput = useCallback(
@@ -217,31 +208,18 @@ export const Slider: React.FC<SliderProps> = props => {
     [formatOutput, onChangeAfter],
   )
 
-  const sliderStateOptions = useMemo(
-    () => ({
-      minValue: resolvedMin,
-      maxValue: resolvedMax,
-      step: resolvedStep,
-      isDisabled: ariaDisabled,
-      numberFormatter: defaultNumberFormatter,
-      orientation,
-      value: isControlled ? normalized : undefined,
-      defaultValue: !isControlled ? normalized : undefined,
-      onChange: handleStateChange,
-      onChangeEnd: handleStateChangeEnd,
-    }),
-    [
-      ariaDisabled,
-      handleStateChange,
-      handleStateChangeEnd,
-      isControlled,
-      normalized,
-      orientation,
-      resolvedMax,
-      resolvedMin,
-      resolvedStep,
-    ],
-  )
+  const sliderStateOptions = {
+    minValue: resolvedMin,
+    maxValue: resolvedMax,
+    step: resolvedStep,
+    isDisabled: ariaDisabled,
+    numberFormatter: defaultNumberFormatter,
+    orientation,
+    value: isControlled ? normalized : undefined,
+    defaultValue: !isControlled ? normalized : undefined,
+    onChange: handleStateChange,
+    onChangeEnd: handleStateChangeEnd,
+  }
 
   const state = useSliderState(sliderStateOptions)
 
@@ -495,25 +473,19 @@ export const Slider: React.FC<SliderProps> = props => {
   )
 
   const values = state.values as readonly number[]
-  const thumbPercents = useMemo(
-    () => values.map(value => (((value ?? resolvedMin) - resolvedMin) / scope) * 100),
-    [resolvedMin, scope, values],
-  )
-  const thumbVisualPercents = useMemo(
-    () =>
-      thumbPercents.map(percent =>
-        orientation === 'vertical'
-          ? reverse
-            ? percent
-            : 100 - percent
-          : reverseX
-            ? 100 - percent
-            : percent,
-      ),
-    [orientation, reverse, reverseX, thumbPercents],
-  )
+  const thumbPercents = values.map(value => (((value ?? resolvedMin) - resolvedMin) / scope) * 100)
+  const thumbVisualPercents =
+    thumbPercents.map(percent =>
+      orientation === 'vertical'
+        ? reverse
+          ? percent
+          : 100 - percent
+        : reverseX
+          ? 100 - percent
+          : percent,
+    )
 
-  const activeRange = useMemo(() => {
+  const activeRange = (() => {
     const first = thumbVisualPercents[0] ?? 0
     const second = thumbVisualPercents[1] ?? first
     return range && thumbVisualPercents.length > 1
@@ -521,41 +493,35 @@ export const Slider: React.FC<SliderProps> = props => {
       : (orientation === 'horizontal' ? !reverseX : reverse)
         ? { offset: 0, size: first }
         : { offset: first, size: 100 - first }
-  }, [orientation, range, reverse, reverseX, thumbVisualPercents])
+  })()
 
-  const activeTrackStyle = useMemo(() => {
-    const next: ViewStyle = {
-      backgroundColor: resolvedActiveColor,
-      borderRadius: tokens.track.radius,
-    }
-    if (orientation === 'vertical') {
-      next.left = 0
-      next.width = '100%'
-      next.height = `${Math.max(activeRange.size, 0)}%`
-      next.top = `${Math.max(activeRange.offset, 0)}%`
-    } else {
-      next.top = 0
-      next.height = '100%'
-      next.width = `${Math.max(activeRange.size, 0)}%`
-      next.left = `${Math.max(activeRange.offset, 0)}%`
-    }
-    return next
-  }, [activeRange.offset, activeRange.size, orientation, resolvedActiveColor, tokens.track.radius])
+  const activeTrackStyle: ViewStyle = {
+    backgroundColor: resolvedActiveColor,
+    borderRadius: tokens.track.radius,
+  }
+  if (orientation === 'vertical') {
+    activeTrackStyle.left = 0
+    activeTrackStyle.width = '100%'
+    activeTrackStyle.height = `${Math.max(activeRange.size, 0)}%`
+    activeTrackStyle.top = `${Math.max(activeRange.offset, 0)}%`
+  } else {
+    activeTrackStyle.top = 0
+    activeTrackStyle.height = '100%'
+    activeTrackStyle.width = `${Math.max(activeRange.size, 0)}%`
+    activeTrackStyle.left = `${Math.max(activeRange.offset, 0)}%`
+  }
 
-  const trackBaseStyle = useMemo(
-    () =>
-      orientation === 'vertical'
-        ? [
-          styles.trackVertical,
-          {
-            width: resolvedTrackHeight,
-            backgroundColor: resolvedInactiveColor,
-            alignSelf: 'center' as const,
-          },
-        ]
-        : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }],
-    [orientation, resolvedInactiveColor, resolvedTrackHeight],
-  )
+  const trackBaseStyle =
+    orientation === 'vertical'
+      ? [
+        styles.trackVertical,
+        {
+          width: resolvedTrackHeight,
+          backgroundColor: resolvedInactiveColor,
+          alignSelf: 'center' as const,
+        },
+      ]
+      : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }]
 
   const isButtonFunction = isFunction(button)
   const sharedThumb = isButtonFunction
@@ -569,21 +535,15 @@ export const Slider: React.FC<SliderProps> = props => {
     [leftThumbContent, rightThumbContent, sharedThumb],
   )
 
-  const webGestureStyle: ViewStyle | undefined = useMemo(
-    () =>
-      Platform.OS === 'web'
-        ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'none', userSelect: 'none' } as unknown as ViewStyle)
-        : undefined,
-    [orientation],
-  )
-  const baseTrackPressableStyle: StyleProp<ViewStyle> = useMemo(
-    () => [
-      styles.trackPressable,
-      orientation === 'vertical' ? styles.trackPressableVertical : null,
-      webGestureStyle,
-    ],
-    [orientation, webGestureStyle],
-  )
+  const webGestureStyle: ViewStyle | undefined =
+    Platform.OS === 'web'
+      ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'none', userSelect: 'none' } as unknown as ViewStyle)
+      : undefined
+  const baseTrackPressableStyle: StyleProp<ViewStyle> = [
+    styles.trackPressable,
+    orientation === 'vertical' ? styles.trackPressableVertical : null,
+    webGestureStyle,
+  ]
   const trackPressableStyleFn = useCallback(
     (pressableState: PressableStateCallbackType): StyleProp<ViewStyle> => [
       baseTrackPressableStyle,
@@ -591,35 +551,21 @@ export const Slider: React.FC<SliderProps> = props => {
     ],
     [baseTrackPressableStyle, trackAriaStyle],
   )
-  const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] = useMemo(
-    () =>
-      trackAriaStyle && isFunction(trackAriaStyle)
-        ? trackPressableStyleFn
-        : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>),
-    [baseTrackPressableStyle, trackAriaStyle, trackPressableStyleFn],
-  )
+  const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] =
+    trackAriaStyle && isFunction(trackAriaStyle)
+      ? trackPressableStyleFn
+      : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
 
-  const containerStyles = useMemo(
-    () => [
-      styles.container,
-      { paddingVertical: tokens.spacing.containerPaddingVertical },
-      orientation === 'vertical' && [
-        styles.verticalContainer,
-        { minHeight: tokens.layout.verticalMinHeight, width: tokens.layout.verticalWidth },
-      ],
-      disabled && { opacity: tokens.states.disabledOpacity },
-      style,
+  const containerStyles = [
+    styles.container,
+    { paddingVertical: tokens.spacing.containerPaddingVertical },
+    orientation === 'vertical' && [
+      styles.verticalContainer,
+      { minHeight: tokens.layout.verticalMinHeight, width: tokens.layout.verticalWidth },
     ],
-    [
-      disabled,
-      orientation,
-      style,
-      tokens.layout.verticalMinHeight,
-      tokens.layout.verticalWidth,
-      tokens.spacing.containerPaddingVertical,
-      tokens.states.disabledOpacity,
-    ],
-  )
+    disabled && { opacity: tokens.states.disabledOpacity },
+    style,
+  ]
 
   return (
     <View

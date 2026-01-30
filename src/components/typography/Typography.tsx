@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Linking, Text, View } from 'react-native'
 import type { GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextLayoutEventData, TextProps, TextStyle } from 'react-native'
 import { isBoolean, isNumber, isPlainObject } from '../../utils'
@@ -83,17 +83,16 @@ const TypographyTextBaseInner = React.forwardRef<Text, TypographyTextProps>((pro
     ? tokens.sizing.titles[level].lineHeight
     : fontSize * tokens.sizing.lineHeightMultiplier
 
-  const baseStyle = useMemo<StyleProp<TextStyle>>(() => {
-    const textDecorationLine =
-      underline && deleted
-        ? 'underline line-through'
-        : underline
-          ? 'underline'
-          : deleted
-            ? 'line-through'
-            : undefined
-
-    const computedStyle: TextStyle = {
+  const textDecorationLine =
+    underline && deleted
+      ? 'underline line-through'
+      : underline
+        ? 'underline'
+        : deleted
+          ? 'line-through'
+          : undefined
+  const baseStyle: StyleProp<TextStyle> = [
+    {
       color: resolvedColor,
       fontSize,
       lineHeight,
@@ -103,27 +102,9 @@ const TypographyTextBaseInner = React.forwardRef<Text, TypographyTextProps>((pro
       textDecorationLine,
       textAlign: center ? 'center' : undefined,
       opacity: disabled ? tokens.opacity.disabled : 1,
-    }
-
-    return [
-      computedStyle,
-      style,
-    ]
-  }, [
-    resolvedColor,
-    fontSize,
-    lineHeight,
-    tokens.typography.fontFamily,
-    tokens.opacity.disabled,
-    tokens.typography.weight.regular,
-    tokens.typography.weight.strong,
-    strong,
-    center,
-    disabled,
-    underline,
-    deleted,
+    },
     style,
-  ])
+  ]
 
   const hasActionText = !!ellipsisConfig && (ellipsisConfig.expandText || ellipsisConfig.collapseText)
   const shouldShowAction = hasActionText && (isTruncated || expanded || isWeb)
@@ -137,30 +118,19 @@ const TypographyTextBaseInner = React.forwardRef<Text, TypographyTextProps>((pro
     })
   }, [ellipsisConfig])
 
-  const actionLabel = useMemo(() => {
-    if (!ellipsisConfig) return undefined
-    return expanded
+  const actionLabel = !ellipsisConfig
+    ? undefined
+    : expanded
       ? ellipsisConfig.collapseText ?? ellipsisConfig.expandText
       : ellipsisConfig.expandText ?? ellipsisConfig.collapseText
-  }, [ellipsisConfig, expanded])
-
-  const actionTextStyle = useMemo<TextStyle>(() => ({
+  const actionTextStyle: TextStyle = {
     color: tokens.colors.primary,
     fontSize: tokens.sizing.sizes.sm,
     fontWeight: tokens.typography.weight.medium,
     marginLeft: tokens.sizing.actionMarginLeft,
     includeFontPadding: false,
-  }), [
-    tokens.colors.primary,
-    tokens.sizing.sizes.sm,
-    tokens.typography.weight.medium,
-    tokens.sizing.actionMarginLeft,
-  ])
-
-  const textStyle = useMemo<StyleProp<TextStyle>>(() => {
-    if (!shouldShowAction) return baseStyle
-    return [baseStyle, FLEX_SHRINK_STYLE]
-  }, [shouldShowAction, baseStyle])
+  }
+  const textStyle: StyleProp<TextStyle> = shouldShowAction ? [baseStyle, FLEX_SHRINK_STYLE] : baseStyle
 
   const textNode = (
     <Text
@@ -227,10 +197,7 @@ const TypographyLink = React.forwardRef<Text, TypographyLinkProps>((props, ref) 
     if (href) {
       try {
         await Linking.openURL(href)
-      } catch (error) {
-        if (typeof __DEV__ !== 'undefined' && __DEV__) {
-          console.warn('[Typography.Link] Failed to open url', error)
-        }
+      } catch {
       }
     }
   }, [onPress, href])

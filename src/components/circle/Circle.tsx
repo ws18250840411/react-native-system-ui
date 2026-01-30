@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Animated, Platform, Text, View, type ViewStyle } from 'react-native'
 import Svg, { Circle as SvgCircle } from 'react-native-svg'
 import { isText, clamp, parseNumber, parsePercentage } from '../../utils'
@@ -78,7 +78,7 @@ export const Circle: React.FC<CircleProps> = props => {
   const baseStyle = [tokens.layout.root, { width: resolvedSize, height: resolvedSize }, style]
   const contentStyle = [tokens.layout.content, { width: resolvedSize, height: resolvedSize }]
 
-  const content = useMemo(() => {
+  const content = (() => {
     if (children == null || children === false) return null
     const childArray = React.Children.toArray(children)
     if (childArray.every(isText)) {
@@ -99,7 +99,7 @@ export const Circle: React.FC<CircleProps> = props => {
       )
     }
     return children
-  }, [children, textStyle, tokens.colors.text, tokens.layout.text, tokens.typography.fontSize, tokens.typography.lineHeight])
+  })()
 
   if (Platform.OS === 'web') {
     const safeStroke = Math.min(resolvedStrokeWidth, resolvedSize / 2)

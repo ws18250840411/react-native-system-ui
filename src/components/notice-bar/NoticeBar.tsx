@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -78,19 +78,16 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const resolvedVerticalInterval = Math.max(0, parseNumber(verticalInterval, 3000))
   const resolvedVerticalDuration = Math.max(0, parseNumber(verticalDuration, 300))
 
-  const verticalItems = useMemo(() => {
+  const verticalItems = (() => {
     if (!isVertical) return []
     if (items && items.length) return items
     const childArray = React.Children.toArray(children)
     if (childArray.length) return childArray
     return text !== undefined ? [text] : []
-  }, [children, isVertical, items, text])
+  })()
 
   const hasVerticalLoop = isVertical && verticalItems.length > 1
-  const verticalTrackItems = useMemo(
-    () => (hasVerticalLoop ? [...verticalItems, verticalItems[0]] : verticalItems),
-    [hasVerticalLoop, verticalItems]
-  )
+  const verticalTrackItems = hasVerticalLoop ? [...verticalItems, verticalItems[0]] : verticalItems
   const verticalTranslateY = useRef(new Animated.Value(0)).current
   const [itemHeight, setItemHeight] = useState(0)
 
@@ -122,36 +119,25 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     extraProps: onPress ? { accessibilityRole: 'button' } : undefined,
   })
 
-  const rightNode = useMemo(() => {
-    if (mode === 'closeable') {
-      return (
-        <Pressable hitSlop={8} {...closePress.interactionProps}>
-          <Close size={16} fill={resolvedColor} color={resolvedColor} />
-        </Pressable>
-      )
-    }
-    if (mode === 'link') {
-      return <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
-    }
-    return rightIcon || null
-  }, [closePress.interactionProps, mode, resolvedColor, rightIcon])
+  const rightNode = mode === 'closeable'
+    ? (
+      <Pressable hitSlop={8} {...closePress.interactionProps}>
+        <Close size={16} fill={resolvedColor} color={resolvedColor} />
+      </Pressable>
+    )
+    : mode === 'link'
+      ? <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
+      : rightIcon || null
   const hasLeft = isRenderable(leftIcon)
   const hasRight = Boolean(rightNode)
 
-  const effectiveContainerWidth = useMemo(
-    () =>
-      Math.max(
-        0,
-        containerWidth -
-          (hasLeft ? tokens.spacing.sidePadding : 0) -
-          (hasRight ? tokens.spacing.sidePadding : 0),
-      ),
-    [containerWidth, hasLeft, hasRight, tokens.spacing.sidePadding],
+  const effectiveContainerWidth = Math.max(
+    0,
+    containerWidth -
+      (hasLeft ? tokens.spacing.sidePadding : 0) -
+      (hasRight ? tokens.spacing.sidePadding : 0),
   )
-  const shouldScroll = useMemo(
-    () => !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth),
-    [contentWidth, effectiveContainerWidth, isVertical, scrollable, wrapable],
-  )
+  const shouldScroll = !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth)
 
   useEffect(() => {
     if (!visible) {
@@ -261,11 +247,8 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     setItemHeight(prev => (prev === 0 || Math.abs(prev - height) >= 0.5 ? height : prev))
   }, [])
 
-  const verticalContentNode = useMemo(() => {
-    if (!isVertical) return null
-    if (verticalTrackItems.length === 0) return null
-
-    if (!hasVerticalLoop) {
+  const verticalContentNode = !isVertical || verticalTrackItems.length === 0 ? null : !hasVerticalLoop
+    ? (() => {
       const single = verticalTrackItems[0]
       if (isText(single)) {
         return (
@@ -284,9 +267,8 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         )
       }
       return single
-    }
-
-    return (
+    })()
+    : (
       <View
         style={[styles.verticalViewport, itemHeight ? { height: itemHeight } : undefined]}
         pointerEvents="none"
@@ -321,18 +303,6 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         </Animated.View>
       </View>
     )
-  }, [
-    handleItemLayout,
-    hasVerticalLoop,
-    isVertical,
-    itemHeight,
-    resolvedColor,
-    restTextProps,
-    textOnLayout,
-    tokens.typography.fontSize,
-    verticalTrackItems,
-    verticalTranslateY,
-  ])
 
   const handleContainerLayout = useCallback(
     (event: LayoutChangeEvent) => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
+import React, { useCallback, useImperativeHandle, useRef } from 'react'
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState } from '@react-stately/checkbox'
@@ -124,21 +124,18 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
 
   useImperativeHandle(ref, () => ({ toggleAll }), [toggleAll])
 
-  const contextValue = useMemo(
-    () => ({
-      state,
-      direction,
-      shape,
-      iconSize,
-      iconRender,
-      checkedColor,
-      labelDisabled,
-      max,
-      registerValue,
-      unregisterValue,
-    }),
-    [state, direction, shape, iconSize, iconRender, checkedColor, labelDisabled, max]
-  )
+  const contextValue = {
+    state,
+    direction,
+    shape,
+    iconSize,
+    iconRender,
+    checkedColor,
+    labelDisabled,
+    max,
+    registerValue,
+    unregisterValue,
+  }
 
   return (
     <CheckboxGroupContext.Provider

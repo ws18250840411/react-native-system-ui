@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 
 import Picker from '../picker'
 import type { PickerOption, PickerValue } from '../picker/types'
@@ -39,20 +39,15 @@ const Area: React.FC<AreaProps> = props => {
 
   const resolvedColumnsNum = columnsNum === 1 || columnsNum === 2 || columnsNum === 3 ? columnsNum : 3
   const { province_list, city_list, county_list } = areaList
-  const columns = useMemo(
-    () => buildAreaColumns({ province_list, city_list, county_list }, resolvedColumnsNum),
-    [province_list, city_list, county_list, resolvedColumnsNum]
-  )
+  const columns = buildAreaColumns({ province_list, city_list, county_list }, resolvedColumnsNum)
 
-  const normalizedValue = useMemo(() => {
-    if (value === undefined) return undefined
-    return normalizeCascadeValue(columns as PickerOption[], value, resolvedColumnsNum)
-  }, [columns, resolvedColumnsNum, value])
+  const normalizedValue =
+    value === undefined ? undefined : normalizeCascadeValue(columns as PickerOption[], value, resolvedColumnsNum)
 
-  const normalizedDefaultValue = useMemo(() => {
-    if (defaultValue === undefined) return undefined
-    return normalizeCascadeValue(columns as PickerOption[], defaultValue, resolvedColumnsNum)
-  }, [columns, defaultValue, resolvedColumnsNum])
+  const normalizedDefaultValue =
+    defaultValue === undefined
+      ? undefined
+      : normalizeCascadeValue(columns as PickerOption[], defaultValue, resolvedColumnsNum)
 
   const handleChange = useCallback(
     (values: PickerValue[], options: (PickerOption | undefined)[]) => {

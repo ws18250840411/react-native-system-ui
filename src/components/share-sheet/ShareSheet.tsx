@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 import { Pressable, StyleSheet, Text, View, type DimensionValue, type ViewStyle } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
@@ -23,14 +23,8 @@ const ShareSheetOptionItem: React.FC<{
   tokens: ShareSheetTokens
   onSelect: (option: ShareSheetOption, index: number) => void
 }> = ({ option, index, columns, tokens, onSelect }) => {
-  const optionWidthStyle = useMemo<ViewStyle>(
-    () => ({ width: `${100 / columns}%` as DimensionValue }),
-    [columns],
-  )
-  const iconStyle = useMemo(
-    () => ({ width: tokens.sizing.icon, height: tokens.sizing.icon }),
-    [tokens.sizing.icon],
-  )
+  const optionWidthStyle: ViewStyle = { width: `${100 / columns}%` as DimensionValue }
+  const iconStyle = { width: tokens.sizing.icon, height: tokens.sizing.icon }
   const press = useAriaPress({
     onPress: () => onSelect(option, index),
     extraProps: {
@@ -158,11 +152,8 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   } = props
 
   const tokens = useShareSheetTokens(tokensOverride)
-  const groups = useMemo(() => normalizeOptions(options), [options])
-  const resolvedColumns = useMemo(
-    () => (isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4),
-    [columns],
-  )
+  const groups = normalizeOptions(options)
+  const resolvedColumns = isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4
 
   const hasTitle = isValidNode(title)
   const hasDescription = isValidNode(description)
@@ -181,17 +172,11 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
 
   const onPopupClose = useCallback(() => close(true), [close])
 
-  const wrapperStyle = useMemo(
-    () => [styles.wrapper, { backgroundColor: tokens.colors.background }],
-    [tokens.colors.background],
-  )
+  const wrapperStyle = [styles.wrapper, { backgroundColor: tokens.colors.background }]
 
-  const groupRowStyle = useMemo(
-    () => [styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }],
-    [tokens.spacing.gap],
-  )
+  const groupRowStyle = [styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }]
 
-  const groupNodes = useMemo(() => {
+  const groupNodes = (() => {
     if (!groups.length) return null
     let globalIndex = 0
     return groups.map((group, groupIndex) => (
@@ -223,88 +208,61 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
         </View>
       </View>
     ))
-  }, [
-    groupRowStyle,
-    groups,
-    handleSelect,
-    resolvedColumns,
-    tokens,
-    tokens.colors.border,
-    tokens.spacing.horizontal,
-  ])
+  })()
 
-  const headerNode = useMemo(() => {
-    if (!hasTitle && !hasDescription) return null
-    return (
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: tokens.spacing.headerPaddingTop,
-            paddingHorizontal: tokens.spacing.headerPaddingHorizontal,
-            paddingBottom: tokens.spacing.headerPaddingBottom,
-          },
-        ]}
-      >
-        {hasTitle
-          ? isText(title)
-            ? (
-              <Text
-                style={[
-                  styles.title,
-                  {
-                    color: tokens.colors.title,
-                    fontSize: tokens.typography.title,
-                    marginTop: tokens.spacing.titleMarginTop,
-                  },
-                ]}
-              >
-                {title}
-              </Text>
-            )
-            : (
-              <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{title}</View>
-            )
-          : null}
-        {hasDescription
-          ? isText(description)
-            ? (
-              <Text
-                style={[
-                  styles.description,
-                  {
-                    color: tokens.colors.description,
-                    fontSize: tokens.typography.description,
-                    marginTop: tokens.spacing.descriptionMarginTop,
-                  },
-                ]}
-              >
-                {description}
-              </Text>
-            )
-            : (
-              <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{description}</View>
-            )
-          : null}
-      </View>
-    )
-  }, [
-    description,
-    hasDescription,
-    hasTitle,
-    title,
-    tokens.colors.description,
-    tokens.colors.title,
-    tokens.spacing.descriptionMarginTop,
-    tokens.spacing.headerPaddingBottom,
-    tokens.spacing.headerPaddingHorizontal,
-    tokens.spacing.headerPaddingTop,
-    tokens.spacing.nodeMarginTop,
-    tokens.spacing.popupPadding,
-    tokens.spacing.titleMarginTop,
-    tokens.typography.description,
-    tokens.typography.title,
-  ])
+  const headerNode = !hasTitle && !hasDescription ? null : (
+    <View
+      style={[
+        styles.header,
+        {
+          paddingTop: tokens.spacing.headerPaddingTop,
+          paddingHorizontal: tokens.spacing.headerPaddingHorizontal,
+          paddingBottom: tokens.spacing.headerPaddingBottom,
+        },
+      ]}
+    >
+      {hasTitle
+        ? isText(title)
+          ? (
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: tokens.colors.title,
+                  fontSize: tokens.typography.title,
+                  marginTop: tokens.spacing.titleMarginTop,
+                },
+              ]}
+            >
+              {title}
+            </Text>
+          )
+          : (
+            <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{title}</View>
+          )
+        : null}
+      {hasDescription
+        ? isText(description)
+          ? (
+            <Text
+              style={[
+                styles.description,
+                {
+                  color: tokens.colors.description,
+                  fontSize: tokens.typography.description,
+                  marginTop: tokens.spacing.descriptionMarginTop,
+                },
+              ]}
+            >
+              {description}
+            </Text>
+          )
+          : (
+            <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{description}</View>
+          )
+        : null}
+    </View>
+  )
 
   return (
     <Popup

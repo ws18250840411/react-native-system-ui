@@ -92,10 +92,6 @@ const hostStack: PortalLayer[] = []
 const portalEntries = new Map<number, PortalEntry>()
 const emptyEntries: PortalEntry[] = []
 let nextPortalKey = 1
-let warnedNative = false
-const isJestEnv =
-  typeof globalThis !== 'undefined' &&
-  (globalThis as any)?.process?.env?.JEST_ENV === 'true'
 let snapshotDirty = true
 let snapshotCache = emptyEntries
 const markSnapshotDirty = () => {
@@ -200,7 +196,6 @@ const clearPortals = () => {
     markSnapshotDirty()
     syncCurrentHost()
   }
-  warnedNative = false
   maybeTeardownAutoHost()
 }
 
@@ -285,12 +280,6 @@ export const ensureGlobalPortalHost = () => {
   }
 
   if (typeof document === 'undefined') {
-    if (!warnedNative) {
-      warnedNative = true
-      if ((typeof __DEV__ !== 'undefined' && __DEV__) || isJestEnv) {
-        console.warn('[Portal] 请在根节点挂载 <PortalHost> 或 <ConfigProvider> 以启用静态组件能力。')
-      }
-    }
     return Promise.resolve()
   }
 
@@ -313,11 +302,8 @@ export const ensureGlobalPortalHost = () => {
       autoHostRoot.render(<PortalHost fixed />)
       maybeTeardownAutoHost()
     })
-    .catch(error => {
+    .catch(() => {
       teardownAutoHost()
-      if ((typeof __DEV__ !== 'undefined' && __DEV__) || isJestEnv) {
-        console.warn('[Portal] 无法自动挂载 PortalHost:', error)
-      }
     })
     .finally(() => {
       hostPromise = null

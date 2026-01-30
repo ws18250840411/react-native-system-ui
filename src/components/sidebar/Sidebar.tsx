@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { Text, View } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
@@ -12,7 +12,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
   const { children, sideStyle, style, tokensOverride, ...rest } = props
   const tokens = useSidebarTokens(tokensOverride)
 
-  const items = useMemo(() => {
+  const items = (() => {
     const out: { element: React.ReactElement<SidebarItemProps>; index: number }[] = []
     const list = React.Children.toArray(children)
     for (let i = 0; i < list.length; i++) {
@@ -21,7 +21,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
       out.push({ element: child, index: i })
     }
     return out
-  }, [children])
+  })()
 
   const firstIndex = items[0]?.index ?? 0
   const [activeIndex, setActiveIndex] = useControllableValue<number>(props, {
@@ -39,25 +39,18 @@ const SidebarBase: React.FC<SidebarProps> = props => {
     }
   }
 
-  const contextValue = useMemo(
-    () => ({
-      activeIndex: currentIndex,
-      onSelect: setActiveIndex,
-    }),
-    [currentIndex, setActiveIndex]
-  )
+  const contextValue = {
+    activeIndex: currentIndex,
+    onSelect: setActiveIndex,
+  }
 
-  const clonedItems = useMemo(() => {
-    return items.map(item => {
-      const key = item.element.key ?? item.index
-      const merged = mergeTokensOverride(tokensOverride, item.element.props.tokensOverride)
-      return React.cloneElement(item.element, { key, index: item.index, tokensOverride: merged })
-    })
-  }, [items, tokensOverride])
+  const clonedItems = items.map(item => {
+    const key = item.element.key ?? item.index
+    const merged = mergeTokensOverride(tokensOverride, item.element.props.tokensOverride)
+    return React.cloneElement(item.element, { key, index: item.index, tokensOverride: merged })
+  })
 
-  const activeItem = useMemo(() => {
-    return items.find(item => item.index === currentIndex)?.element
-  }, [currentIndex, items])
+  const activeItem = items.find(item => item.index === currentIndex)?.element
 
   const activeContentStyle = activeItem?.props?.contentStyle
   const activeContent = activeItem?.props?.children

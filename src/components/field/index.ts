@@ -1,7 +1,6 @@
 import Field from './Field'
 import { CellGroup as FieldGroup } from '../cell'
 
-export { useFieldTokens } from './tokens'
 export { FieldGroup }
 export type {
   FieldProps,
@@ -16,6 +15,7 @@ export type {
   FieldControlAlign,
   FieldGroupProps,
 } from './types'
+export { useFieldTokens } from './tokens'
 
 export default Field
 export { Field }

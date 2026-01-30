@@ -326,9 +326,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
           return [...prev, ...next.slice(0, available).map(item => normalizeItem(item))]
         })
       })
-      .catch(error => {
-        if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Uploader] onUpload rejected:', error)
-      })
+      .catch(() => {})
   }
 
   const closeImagePreview = () => setPreviewVisible(false)

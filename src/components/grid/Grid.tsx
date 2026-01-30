@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { View } from 'react-native'
 
 import { createHairlineView } from '../../utils'
@@ -66,36 +66,20 @@ export const Grid: React.FC<GridProps> = props => {
     />
   )
 
-  const contextValue = useMemo(
-    () => ({
-      columnNum,
-      gutter,
-      border,
-      center,
-      square,
-      direction,
-      reverse,
-      clickable,
-      iconSize,
-      iconColor,
-      count: childArray.length,
-      tokens,
-    }),
-    [
-      border,
-      center,
-      childArray.length,
-      clickable,
-      columnNum,
-      direction,
-      gutter,
-      iconColor,
-      iconSize,
-      reverse,
-      square,
-      tokens,
-    ]
-  )
+  const contextValue = {
+    columnNum,
+    gutter,
+    border,
+    center,
+    square,
+    direction,
+    reverse,
+    clickable,
+    iconSize,
+    iconColor,
+    count: childArray.length,
+    tokens,
+  }
 
   return (
     <GridContext.Provider value={contextValue}>

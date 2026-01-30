@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import {
   Pressable,
   StyleSheet,
@@ -149,11 +149,8 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const blinkTimer = useRef<ReturnType<typeof setInterval> | null>(null)
     const [focused, setFocused] = useState(autoFocus)
 
-    const keyboardType = useMemo(
-      () => (type === 'number' ? 'number-pad' : 'default'),
-      [type],
-    )
-    const inputMode = useMemo(() => (type === 'number' ? 'numeric' : 'text'), [type])
+    const keyboardType = type === 'number' ? 'number-pad' : 'default'
+    const inputMode = type === 'number' ? 'numeric' : 'text'
 
     const [code = '', setCode] = useControllableValue<string>(
       props,
@@ -177,7 +174,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       },
       [lengthSafe, type],
     )
-    const normalizedCode = useMemo(() => normalizeValue(code), [code, normalizeValue])
+    const normalizedCode = normalizeValue(code)
 
     const updateValue = useCallback(
       (nextValue: string) => {
@@ -274,81 +271,54 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
       }
     }, [disabled, focused, showCursor])
 
-    const cells = useMemo(
-      () =>
-        Array.from({ length: lengthSafe }, (_, index) => {
-          const char = normalizedCode?.[index]
-          const isFilled = !!char
-          const showBlink =
-            showCursor &&
-            focused &&
-            !disabled &&
-            normalizedCode.length === index &&
-            index < lengthSafe
-          return { key: index, char, isFilled, showBlink }
-        }),
-      [disabled, focused, lengthSafe, normalizedCode, showCursor],
-    )
+    const cells = Array.from({ length: lengthSafe }, (_, index) => {
+      const char = normalizedCode?.[index]
+      const isFilled = !!char
+      const showBlink =
+        showCursor &&
+        focused &&
+        !disabled &&
+        normalizedCode.length === index &&
+        index < lengthSafe
+      return { key: index, char, isFilled, showBlink }
+    })
 
-    const gutterValue = useMemo(
-      () => Math.max(0, parseNumberLike(gutter, 0) ?? 0),
-      [gutter],
-    )
+    const gutterValue = Math.max(0, parseNumberLike(gutter, 0) ?? 0)
     const hasGutter = gutterValue > 0
 
     const tip = errorInfo ?? info
     const tipColor = errorInfo ? colors.error : colors.muted
 
     const backgroundColor = hasGutter ? colors.transparent : colors.background
-    const hiddenInputProps = useMemo(
-      () => ({ ...HIDDEN_INPUT_PROPS, underlineColorAndroid: colors.transparent }),
-      [colors.transparent],
-    )
-    const cellTextBase = useMemo(
-      () => ({
-        color: colors.text,
-        fontSize: sizing.cellTextSize,
-        fontWeight: typography.cellTextWeight,
-        fontFamily: typography.fontFamily,
-      }),
-      [colors.text, sizing.cellTextSize, typography.cellTextWeight, typography.fontFamily],
-    )
+    const hiddenInputProps = { ...HIDDEN_INPUT_PROPS, underlineColorAndroid: colors.transparent }
+    const cellTextBase = {
+      color: colors.text,
+      fontSize: sizing.cellTextSize,
+      fontWeight: typography.cellTextWeight,
+      fontFamily: typography.fontFamily,
+    }
 
-    const wrapperStyle = useMemo(
-      () => [
-        styles.wrapper,
-        {
-          backgroundColor,
-          borderRadius: radii.wrapper,
-          paddingHorizontal: spacing.none,
-          opacity: disabled ? opacity.disabled : 1,
-        },
-        !hasGutter && {
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.border,
-        },
-      ],
-      [
+    const wrapperStyle = [
+      styles.wrapper,
+      {
         backgroundColor,
-        colors.border,
-        disabled,
-        hasGutter,
-        opacity.disabled,
-        radii.wrapper,
-        spacing.none,
-      ],
-    )
+        borderRadius: radii.wrapper,
+        paddingHorizontal: spacing.none,
+        opacity: disabled ? opacity.disabled : 1,
+      },
+      !hasGutter && {
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+      },
+    ]
 
-    const securityStyle = useMemo(
-      () => [
-        styles.security,
-        {
-          borderRadius: hasGutter ? 0 : radii.wrapper,
-          backgroundColor,
-        },
-      ],
-      [backgroundColor, hasGutter, radii.wrapper],
-    )
+    const securityStyle = [
+      styles.security,
+      {
+        borderRadius: hasGutter ? 0 : radii.wrapper,
+        backgroundColor,
+      },
+    ]
 
     return (
       <View style={style}>

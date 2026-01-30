@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Pressable, Text, View, type TextStyle } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -133,10 +133,7 @@ const Calendar: React.FC<CalendarProps> = props => {
     defaultValuePropName: 'defaultValue',
     trigger: 'onSelect',
   })
-  const value = useMemo(
-    () => normalizeValue(toArrayValue(selectedValue), type),
-    [selectedValue, type]
-  )
+  const value = normalizeValue(toArrayValue(selectedValue), type)
 
   const [currentMonth, setCurrentMonth] = useState(() => {
     const initial = value.length ? value[0] : new Date()
@@ -155,26 +152,21 @@ const Calendar: React.FC<CalendarProps> = props => {
     setCurrentMonth(prev => (isSameMonth(first, prev) ? prev : first))
   }, [firstValueTime, minDateTime, maxDateTime])
 
-  const monthDays = useMemo(
-    () => buildMonth(currentMonth, weekStartsOn),
-    [currentMonth, weekStartsOn]
+  const monthDays = buildMonth(currentMonth, weekStartsOn)
+
+  const minDay = startOfDay(minDate).getTime()
+  const maxDay = startOfDay(maxDate).getTime()
+
+  const weekLabels = reorderWeekdays(
+    weekdays ?? tokens.defaults.weekdays,
+    weekStartsOn,
+    tokens.defaults.weekdays,
   )
 
-  const minDay = useMemo(() => startOfDay(minDate).getTime(), [minDate])
-  const maxDay = useMemo(() => startOfDay(maxDate).getTime(), [maxDate])
+  const monthLabel = formatMonthTitle ? formatMonthTitle(currentMonth) : formatMonth(currentMonth)
 
-  const weekLabels = useMemo(
-    () => reorderWeekdays(weekdays ?? tokens.defaults.weekdays, weekStartsOn, tokens.defaults.weekdays),
-    [tokens.defaults.weekdays, weekdays, weekStartsOn]
-  )
-
-  const monthLabel = useMemo(
-    () => (formatMonthTitle ? formatMonthTitle(currentMonth) : formatMonth(currentMonth)),
-    [formatMonthTitle, currentMonth]
-  )
-
-  const minMonthStart = useMemo(() => startOfMonth(minDate), [minDate])
-  const maxMonthStart = useMemo(() => startOfMonth(maxDate), [maxDate])
+  const minMonthStart = startOfMonth(minDate)
+  const maxMonthStart = startOfMonth(maxDate)
   const canGoPrev = currentMonth.getTime() > minMonthStart.getTime()
   const canGoNext = currentMonth.getTime() < maxMonthStart.getTime()
 
@@ -279,11 +271,8 @@ const Calendar: React.FC<CalendarProps> = props => {
     }
   }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelectedValue, showConfirm, maybeAutoConfirm])
 
-  const valueTimes = useMemo(
-    () => value.map(item => startOfDay(item).getTime()),
-    [value]
-  )
-  const selectedSet = useMemo(() => new Set(valueTimes), [valueTimes])
+  const valueTimes = value.map(item => startOfDay(item).getTime())
+  const selectedSet = new Set(valueTimes)
   const rangeBounds = type === 'range' && valueTimes.length === 2
     ? [valueTimes[0], valueTimes[1]]
     : null

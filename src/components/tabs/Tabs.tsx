@@ -3,7 +3,6 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
   Children,
@@ -291,7 +290,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
       : { autoHeight: true, preventScroll: true }
   const isSwipeable = !!swipeableConfig
 
-  const panes = useMemo<ParsedPane[]>(() => {
+  const panes = (() => {
     const result: ParsedPane[] = []
     let paneIndex = 0
 
@@ -304,16 +303,6 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
           return
         }
         if (!isTabPaneElement(element)) {
-          if (typeof __DEV__ !== 'undefined' && __DEV__) {
-            const type = element.type
-            const childName =
-              typeof type === 'string'
-                ? type
-                : (type as { displayName?: string; name?: string }).displayName ??
-                (type as { displayName?: string; name?: string }).name ??
-                'Unknown'
-            console.warn('[Tabs] children 只能是 <Tabs.TabPane />，已忽略：', childName)
-          }
           return
         }
         const paneProps = element.props
@@ -330,7 +319,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
 
     walk(children)
     return result
-  }, [children])
+  })()
 
   const firstPaneName = panes[0]?.name
   const [activeValue, setActiveValue] = useControllableValue<TabsValue>(props, {
@@ -347,13 +336,13 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     currentNameRef.current = currentName
   }, [currentName])
 
-  const nameIndexMap = useMemo(() => {
+  const nameIndexMap = (() => {
     const map = new Map<TabsValue, number>()
     panes.forEach(pane => {
       map.set(pane.name, pane.index)
     })
     return map
-  }, [panes])
+  })()
 
   const activeIndex = currentName == null ? -1 : (nameIndexMap.get(currentName) ?? -1)
 
@@ -411,12 +400,9 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     }
   }, [])
 
-  const scrollable = useMemo(() => {
-    if (isBoolean(scrollableProp)) {
-      return scrollableProp
-    }
-    return panes.length > resolvedSwipeThreshold || ellipsis === false
-  }, [ellipsis, panes.length, resolvedSwipeThreshold, scrollableProp])
+  const scrollable = isBoolean(scrollableProp)
+    ? scrollableProp
+    : panes.length > resolvedSwipeThreshold || ellipsis === false
 
   const indicatorColor = color ?? tokens.colors.indicator
   const indicatorCornerRadius = resolvedLineHeight ? resolvedLineHeight / 2 : tokens.indicator.radius
@@ -486,12 +472,8 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     try {
       return Promise.resolve(beforeChange(name))
         .then(res => res !== false)
-        .catch(error => {
-          if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Tabs] beforeChange 抛出异常：', error)
-          return false
-        })
+        .catch(() => false)
     } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[Tabs] beforeChange 抛出异常：', error)
       return Promise.resolve(false)
     }
   }, [beforeChange])
@@ -589,15 +571,12 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
 
   const borderEnabled = border ?? false
   const showIndicator = type === 'line'
-  const navHeight = useMemo(() => {
-    if (type === 'jumbo') {
-      return tokens.jumbo.height
-    }
-    if (type === 'card') {
-      return tokens.card.height
-    }
-    return tokens.tabList.height
-  }, [type, tokens])
+  const navHeight =
+    type === 'jumbo'
+      ? tokens.jumbo.height
+      : type === 'card'
+        ? tokens.card.height
+        : tokens.tabList.height
   const navPaddingBottom =
     Platform.OS === 'web' && type !== 'line' && type !== 'card'
       ? tokens.tabList.paddingBottom

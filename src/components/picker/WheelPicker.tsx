@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   FlatList,
   Platform,
@@ -316,12 +316,9 @@ const WheelPickerInner = <T extends PickerOption,>({
     [itemHeight, renderItem],
   )
 
-  const webIndex = useMemo(
-    () => clamp(Math.round(-webOffset / itemHeight), 0, maxIndex),
-    [itemHeight, maxIndex, webOffset],
-  )
+  const webIndex = clamp(Math.round(-webOffset / itemHeight), 0, maxIndex)
 
-  const webRender = useMemo(() => {
+  const webRender = (() => {
     if (!isWeb || total <= 0) {
       return { items: null as React.ReactNode, topSpacer: null as React.ReactNode, bottomSpacer: null as React.ReactNode }
     }
@@ -352,24 +349,18 @@ const WheelPickerInner = <T extends PickerOption,>({
       topSpacer: topHeight > 0 && <View style={{ height: topHeight }} />,
       bottomSpacer: bottomHeight > 0 && <View style={{ height: bottomHeight }} />,
     }
-  }, [data, isWeb, itemHeight, maxIndex, renderItem, total, visibleCount, webIndex, webVirtualEnabled, webVelocityBucket])
+  })()
 
-  const webTransform = useMemo(
-    () => ({ transform: [{ translateY: webOffset }] }),
-    [webOffset],
-  )
-  const webTransitionStyle = useMemo<ViewStyle | undefined>(
-    () =>
-      webTransition
-        ? ({
-          transitionProperty: 'transform',
-          transitionDuration: `${webTransition}ms`,
-          transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
-          willChange: 'transform',
-        } as unknown as ViewStyle)
-        : undefined,
-    [webTransition],
-  )
+  const webTransform = { transform: [{ translateY: webOffset }] }
+  const webTransitionStyle: ViewStyle | undefined =
+    webTransition
+      ? ({
+        transitionProperty: 'transform',
+        transitionDuration: `${webTransition}ms`,
+        transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
+        willChange: 'transform',
+      } as unknown as ViewStyle)
+      : undefined
   const handleWebTransitionEnd = useCallback(
     (event: { nativeEvent?: { propertyName?: string } } & { propertyName?: string }) => {
       const propertyName = event.nativeEvent?.propertyName ?? event.propertyName
@@ -379,9 +370,7 @@ const WheelPickerInner = <T extends PickerOption,>({
     [finalizePendingChange],
   )
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
+  const panResponder = PanResponder.create({
         onStartShouldSetPanResponder: () => !readOnly,
         onMoveShouldSetPanResponder: () => !readOnly,
         onPanResponderGrant: () => {
@@ -428,9 +417,7 @@ const WheelPickerInner = <T extends PickerOption,>({
           notifyInteractEnd()
           setWebTransition(0)
         },
-      }),
-    [data, itemHeight, maxIndex, minOffset, notifyInteractEnd, notifyInteractStart, readOnly, setVelocityBucket, startWebSnap, stopRaf, total],
-  )
+      })
 
   if (isWeb) {
     return (

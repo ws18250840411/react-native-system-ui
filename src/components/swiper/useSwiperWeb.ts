@@ -1,4 +1,4 @@
-import { useRef, useCallback, useMemo, useEffect, type MutableRefObject } from 'react'
+import { useRef, useCallback, useEffect, type MutableRefObject } from 'react'
 import { Animated, PanResponder } from 'react-native'
 import { clamp } from '../../utils'
 import { stopWebEvent, type WebCancelableEvent } from './utils'
@@ -125,12 +125,16 @@ export const useSwiperWeb = ({
     webOffsetRef.current = nextOffset
   }, [])
 
-  const webTrackTransform = useMemo(() => {
-    if (vertical) return trackOffsetPx ? [{ translateY: trackOffsetPx }, { translateY: webTranslateYAnim }] : [{ translateY: webTranslateYAnim }]
-    return trackOffsetPx ? [{ translateX: trackOffsetPx }, { translateX: webTranslateXAnim }] : [{ translateX: webTranslateXAnim }]
-  }, [trackOffsetPx, vertical, webTranslateXAnim, webTranslateYAnim])
+  const webTrackTransform =
+    vertical
+      ? trackOffsetPx
+        ? [{ translateY: trackOffsetPx }, { translateY: webTranslateYAnim }]
+        : [{ translateY: webTranslateYAnim }]
+      : trackOffsetPx
+        ? [{ translateX: trackOffsetPx }, { translateX: webTranslateXAnim }]
+        : [{ translateX: webTranslateXAnim }]
 
-  const panResponder = useMemo(() => {
+  const panResponder = (() => {
     if (!isWeb) return null
 
     return PanResponder.create({
@@ -202,7 +206,7 @@ export const useSwiperWeb = ({
         panLatestRef.current.onDragEnd?.()
       },
     })
-  }, [isWeb, cancelWebRaf, stopWebSnapAnim, scheduleWebTranslate, flushWebTranslate, swipeToRef])
+  })()
 
   useEffect(() => {
     return () => {
