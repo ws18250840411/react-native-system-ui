@@ -74,6 +74,7 @@ export default defineConfig({
       const resolve = config.resolve ?? {}
       const alias = resolve.alias ?? []
       const extensions = resolve.extensions ?? []
+      const existingOnwarn = config?.build?.rollupOptions?.onwarn
 
       const normalized = Array.isArray(alias)
         ? alias.slice()
@@ -97,6 +98,23 @@ export default defineConfig({
           ...(config.define ?? {}),
           // 浏览器环境没有 global，react-native-web Animated 等会用到 global，用 globalThis 替代
           global: 'globalThis',
+        },
+        build: {
+          ...(config.build ?? {}),
+          rollupOptions: {
+            ...(config.build?.rollupOptions ?? {}),
+            onwarn: (warning: any, defaultHandler: (warning: any) => void) => {
+              const message = warning?.message ?? ''
+              if (typeof message === 'string' && message.includes('Module level directives cause errors when bundled')) {
+                return
+              }
+              if (typeof existingOnwarn === 'function') {
+                existingOnwarn(warning, defaultHandler)
+                return
+              }
+              defaultHandler(warning)
+            },
+          },
         },
         resolve: {
           ...resolve,

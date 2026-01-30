@@ -11,15 +11,15 @@ export default [
   },
   {
     "name": "picker",
-    "size": 9860
+    "size": 9881
   },
   {
     "name": "tabs",
-    "size": 9074
+    "size": 9150
   },
   {
     "name": "dropdown-menu",
-    "size": 6468
+    "size": 6701
   },
   {
     "name": "form",
@@ -30,6 +30,10 @@ export default [
     "size": 6255
   },
   {
+    "name": "uploader",
+    "size": 6040
+  },
+  {
     "name": "button",
     "size": 5866
   },
@@ -38,12 +42,8 @@ export default [
     "size": 5838
   },
   {
-    "name": "uploader",
-    "size": 5758
-  },
-  {
     "name": "dialog",
-    "size": 5587
+    "size": 5593
   },
   {
     "name": "calendar",
@@ -54,16 +54,16 @@ export default [
     "size": 5210
   },
   {
-    "name": "number-keyboard",
-    "size": 4973
+    "name": "index-bar",
+    "size": 5068
   },
   {
-    "name": "index-bar",
-    "size": 4949
+    "name": "number-keyboard",
+    "size": 4987
   },
   {
     "name": "popup",
-    "size": 4914
+    "size": 4943
   },
   {
     "name": "checkbox",
@@ -71,23 +71,23 @@ export default [
   },
   {
     "name": "stepper",
-    "size": 4653
+    "size": 4677
+  },
+  {
+    "name": "image-preview",
+    "size": 4444
+  },
+  {
+    "name": "notify",
+    "size": 4314
   },
   {
     "name": "radio",
     "size": 4302
   },
   {
-    "name": "notify",
-    "size": 4275
-  },
-  {
-    "name": "image-preview",
-    "size": 4230
-  },
-  {
     "name": "toast",
-    "size": 4228
+    "size": 4286
   },
   {
     "name": "cell",
@@ -114,12 +114,12 @@ export default [
     "size": 3509
   },
   {
-    "name": "action-sheet",
-    "size": 3312
+    "name": "password-input",
+    "size": 3346
   },
   {
-    "name": "password-input",
-    "size": 3274
+    "name": "action-sheet",
+    "size": 3312
   },
   {
     "name": "rate",
@@ -146,6 +146,10 @@ export default [
     "size": 2976
   },
   {
+    "name": "share-sheet",
+    "size": 2811
+  },
+  {
     "name": "typography",
     "size": 2787
   },
@@ -154,20 +158,16 @@ export default [
     "size": 2767
   },
   {
-    "name": "share-sheet",
-    "size": 2629
-  },
-  {
     "name": "nav-bar",
     "size": 2614
   },
   {
-    "name": "pagination",
-    "size": 2568
+    "name": "search",
+    "size": 2573
   },
   {
-    "name": "search",
-    "size": 2551
+    "name": "pagination",
+    "size": 2568
   },
   {
     "name": "circle",
@@ -223,7 +223,7 @@ export default [
   },
   {
     "name": "avatar",
-    "size": 1602
+    "size": 1608
   },
   {
     "name": "area",

@@ -85,21 +85,21 @@
   "exports": {
     ".": {
       "react-native": "./dist/es/index.js",
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/es/index.js",
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/es/index.js"
+      "require": "./dist/cjs/index.js"
     },
     "./design-system": {
       "react-native": "./dist/es/design-system/index.js",
+      "types": "./dist/types/design-system/index.d.ts",
       "import": "./dist/es/design-system/index.js",
-      "require": "./dist/cjs/design-system/index.js",
-      "default": "./dist/es/design-system/index.js"
+      "require": "./dist/cjs/design-system/index.js"
     },
     "./hooks": {
       "react-native": "./dist/es/hooks/index.js",
+      "types": "./dist/types/hooks/index.d.ts",
       "import": "./dist/es/hooks/index.js",
-      "require": "./dist/cjs/hooks/index.js",
-      "default": "./dist/es/hooks/index.js"
+      "require": "./dist/cjs/hooks/index.js"
     },
     "./action-sheet": {
       "react-native": "./dist/es/components/action-sheet/index.js",

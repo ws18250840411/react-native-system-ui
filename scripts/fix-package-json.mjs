@@ -44,23 +44,29 @@ const normalizeExport = (value, exportKey) => {
   }
 
   if (exportKey !== './package.json' && !('types' in entry)) {
-    const typesTarget = toTypesPath(entry['react-native'] ?? entry.import ?? entry.default ?? entry.require)
+    const typesTarget = toTypesPath(entry['react-native'] ?? entry.import ?? entry.require ?? entry.default)
     if (typesTarget) {
       entry.types = typesTarget
     }
   }
 
-  return entry
+  if ('import' in entry || 'require' in entry) {
+    delete entry.default
+  }
+
+  const orderedEntry = {}
+  if ('react-native' in entry) orderedEntry['react-native'] = entry['react-native']
+  if ('types' in entry) orderedEntry.types = entry.types
+  if ('import' in entry) orderedEntry.import = entry.import
+  if ('require' in entry) orderedEntry.require = entry.require
+  if ('default' in entry) orderedEntry.default = entry.default
+  return orderedEntry
 }
 
 if (pkg.exports && typeof pkg.exports === 'object') {
   const nextExports = {}
   for (const [key, value] of Object.entries(pkg.exports)) {
     let entry = normalizeExport(value, key)
-    if (entry && typeof entry === 'object' && 'default' in entry && ('import' in entry || 'require' in entry)) {
-      const { default: d, ...rest } = entry
-      entry = { ...rest, default: d }
-    }
     nextExports[key] = entry
   }
   pkg.exports = nextExports
