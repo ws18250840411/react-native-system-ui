@@ -44,8 +44,8 @@ export const Notify: React.FC<NotifyProps> = props => {
   const tokens = useNotifyTokens(tokensOverride)
   const paddingVertical = tokens.spacing.paddingVertical
   const safeAreaPadding = useSafeAreaPadding({
-    top: paddingVertical,
-    bottom: paddingVertical,
+    top: 0,
+    bottom: 0,
   })
   const type = typeProp ?? tokens.defaults.type
   const position: NotifyPosition = positionProp ?? tokens.defaults.position
@@ -58,22 +58,24 @@ export const Notify: React.FC<NotifyProps> = props => {
     (position === 'bottom' ? tokens.defaults.safeAreaInsetBottom : false)
   const safeTop = safeAreaInsetTop && position === 'top'
     ? safeAreaPadding.paddingTop
-    : paddingVertical
+    : 0
   const safeBottom = safeAreaInsetBottom && position === 'bottom'
     ? safeAreaPadding.paddingBottom
-    : paddingVertical
+    : 0
   const offset = typeof offsetProp === 'number' && Number.isFinite(offsetProp) ? Math.max(0, offsetProp) : 0
+  const addOffset = (value: number | string, delta: number) =>
+    typeof value === 'string' ? `calc(${value} + ${delta}px)` : value + delta
   const safeBottomInset =
     safeAreaInsetBottom && position === 'bottom' && typeof safeBottom === 'number'
-      ? Math.max(0, safeBottom - paddingVertical) + offset
+      ? safeBottom + offset
       : offset
   const webTopPadding =
     Platform.OS === 'web' && position === 'top'
-      ? (typeof safeTop === 'string' ? `calc(${safeTop} + ${offset}px)` : safeTop + offset)
+      ? addOffset(safeTop, offset)
       : undefined
   const webBottomPadding =
     Platform.OS === 'web' && safeAreaInsetBottom && position === 'bottom'
-      ? (typeof safeBottom === 'string' ? `calc(${safeBottom} + ${offset}px)` : safeBottom + offset)
+      ? addOffset(safeBottom, offset)
       : undefined
 
   const variant = tokens.colors.variants[type]
@@ -177,7 +179,7 @@ export const Notify: React.FC<NotifyProps> = props => {
       style={[
         tokens.layout.container,
         position === 'top'
-          ? ({ paddingTop: webTopPadding ?? (typeof safeTop === 'number' ? safeTop + offset : safeTop) } as ViewStyle)
+          ? ({ paddingTop: webTopPadding ?? addOffset(safeTop, offset) } as ViewStyle)
           : null,
         webBottomPadding !== undefined
           ? ({ paddingBottom: webBottomPadding } as ViewStyle)
