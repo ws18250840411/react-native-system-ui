@@ -384,12 +384,14 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
 
   const renderStatus = (status: UploaderItemStatus | undefined) => {
     if (!status) return null
-    const baseStyle = [styles.status, { backgroundColor: tokens.colors.maskBackground }]
+    const baseStyle = [statusStyle, { backgroundColor: tokens.colors.maskBackground }]
     if (status === 'pending') {
       return (
         <View style={baseStyle} testID="rv-uploader-status-pending">
           <ActivityIndicator color={tokens.colors.maskText} />
-          <Text style={[styles.statusText, { color: tokens.colors.maskText }]}>
+          <Text
+            style={[styles.statusText, { color: tokens.colors.maskText, fontSize: tokens.typography.statusTextSize }]}
+          >
             {statusTextRender?.(status) ?? statusDefaults.pending}
           </Text>
         </View>
@@ -398,7 +400,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     if (status === 'failed') {
       return (
         <View style={baseStyle} testID="rv-uploader-status-failed">
-          <Text style={[styles.statusText, { color: tokens.colors.failed }]}>
+          <Text style={[styles.statusText, { color: tokens.colors.failed, fontSize: tokens.typography.statusTextSize }]}>
             {statusTextRender?.(status) ?? statusDefaults.failed}
           </Text>
         </View>
@@ -418,13 +420,37 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     backgroundColor: tokens.colors.background,
     borderColor: tokens.colors.border,
   }
-  const placeholderNameStyle = [styles.placeholderName, { color: tokens.colors.text }]
-  const deleteStyle = [styles.delete, { backgroundColor: tokens.colors.deleteBackground }]
+  const placeholderStyle = [
+    styles.placeholder,
+    { paddingHorizontal: tokens.spacing.placeholderPaddingHorizontal },
+  ]
+  const placeholderNameStyle = [
+    styles.placeholderName,
+    {
+      color: tokens.colors.text,
+      fontSize: tokens.typography.placeholderNameSize,
+      marginTop: tokens.spacing.placeholderNameMarginTop,
+    },
+  ]
+  const deleteStyle = [
+    styles.delete,
+    {
+      backgroundColor: tokens.colors.deleteBackground,
+      borderRadius: tokens.radii.deleteButton,
+      top: tokens.spacing.deleteOffset,
+      right: tokens.spacing.deleteOffset,
+      minWidth: tokens.sizing.deleteMinSize,
+      minHeight: tokens.sizing.deleteMinSize,
+      paddingHorizontal: tokens.spacing.deletePaddingHorizontal,
+    },
+  ]
   const deleteIconStyle = { color: tokens.colors.deleteIcon }
+  const statusStyle = [styles.status, { gap: tokens.spacing.statusGap }]
+  const uploadContentStyle = [styles.uploadContent, { gap: tokens.spacing.uploadContentGap }]
 
   const renderPlaceholder = (name?: string) => (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderIcon}>FILE</Text>
+    <View style={placeholderStyle}>
+      <Text style={[styles.placeholderIcon, { fontSize: tokens.typography.placeholderIconSize }]}>FILE</Text>
       {name && (
         <Text style={placeholderNameStyle} numberOfLines={1}>
           {name}
@@ -539,18 +565,24 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
               styles.upload,
               boxStyle,
               frameStyle,
-              pressed && styles.pressed,
-              uploadDisabled && styles.disabled,
+              pressed && { opacity: tokens.opacity.pressed },
+              uploadDisabled && { opacity: tokens.opacity.disabled },
             ]}
             onPress={handleUploadPress}
             disabled={uploadDisabled}
             testID="rv-uploader-upload"
           >
             {children ?? (
-              <View style={styles.uploadContent}>
-                {uploadIcon ?? <Text style={[styles.uploadIcon, { color: tokens.colors.icon }]}>+</Text>}
+              <View style={uploadContentStyle}>
+                {uploadIcon ?? (
+                  <Text style={[styles.uploadIcon, { color: tokens.colors.icon, fontSize: tokens.typography.uploadIconSize }]}>
+                    +
+                  </Text>
+                )}
                 {uploadText ? (
-                  <Text style={[styles.uploadText, { color: tokens.colors.text }]}>{uploadText}</Text>
+                  <Text style={[styles.uploadText, { color: tokens.colors.text, fontSize: tokens.typography.uploadTextSize }]}>
+                    {uploadText}
+                  </Text>
                 ) : null}
               </View>
             )}
@@ -588,12 +620,6 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
   },
-  pressed: {
-    opacity: 0.85,
-  },
-  disabled: {
-    opacity: 0.65,
-  },
   image: {
     width: '100%',
     height: '100%',
@@ -602,16 +628,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 6,
   },
   placeholderIcon: {
-    fontSize: 20,
     fontWeight: '600',
   },
-  placeholderName: {
-    marginTop: 6,
-    fontSize: 11,
-  },
+  placeholderName: {},
   cover: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
@@ -621,21 +642,13 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
   },
   statusText: {
-    fontSize: 12,
   },
   delete: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    minWidth: 20,
-    minHeight: 20,
-    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
   },
   upload: {
     borderWidth: StyleSheet.hairlineWidth,
@@ -645,14 +658,11 @@ const styles = StyleSheet.create({
   uploadContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
   },
   uploadIcon: {
-    fontSize: 24,
     fontWeight: '600',
   },
   uploadText: {
-    fontSize: 12,
   },
 })
 

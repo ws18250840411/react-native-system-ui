@@ -25,6 +25,7 @@ export interface DialogTokens {
     footerGap: number
     roundFooterPadding: number
     roundFooterGap: number
+    closeIconPadding: number
   }
   sizes: {
     minWidth: number
@@ -73,6 +74,7 @@ export const createDialogTokens = (foundations: Foundations): DialogTokens => {
       footerGap: spacing.md,
       roundFooterPadding: spacing.md,
       roundFooterGap: spacing.sm,
+      closeIconPadding: spacing.xs,
     },
     sizes: {
       minWidth: 280,

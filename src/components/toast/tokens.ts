@@ -7,6 +7,7 @@ export interface ToastTokens {
     text: string
     backdrop: string
     variants: Record<ToastType, string>
+    transparent: string
   }
   fontSize: number
   lineHeight: number
@@ -20,6 +21,9 @@ export interface ToastTokens {
   defaultPadding: number
   defaultWidth: number
   defaultMinHeight: number
+  pressedOpacity: number
+  positionOffsetRatio: number
+  positionOffsetMin: number
   // Animation duration
   animationDuration: number
 }
@@ -38,6 +42,7 @@ export const createToastTokens = (foundations: Foundations): ToastTokens => {
         fail: backdrop,
         loading: backdrop,
       },
+      transparent: 'transparent',
     },
     fontSize: foundations.fontSize.sm,
     lineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
@@ -51,6 +56,9 @@ export const createToastTokens = (foundations: Foundations): ToastTokens => {
     defaultPadding: foundations.spacing.lg,
     defaultWidth: 88,
     defaultMinHeight: 88,
+    pressedOpacity: 0.85,
+    positionOffsetRatio: 0.2,
+    positionOffsetMin: 60,
     animationDuration: 160,
   }
 }

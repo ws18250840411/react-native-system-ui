@@ -6,8 +6,6 @@ import { isNumber } from '../../utils'
 import { useAvatarTokens } from './tokens'
 import type { AvatarProps } from './types'
 
-const transparentContainerStyle = { backgroundColor: 'transparent' } as const
-
 export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, AvatarProps>(
   (props, ref) => {
     const {
@@ -39,6 +37,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       ? Math.min(avatarWidth, avatarHeight) / 2
       : Math.max(tokens.radii.squareMin, Math.min(avatarWidth, avatarHeight) / tokens.radii.squareDivisor)
 
+    const transparentContainerStyle = { backgroundColor: tokens.colors.transparent } as const
     const fallbackText = text ? text.trim().slice(0, 2).toUpperCase() : undefined
     const fallbackContent = icon ? (
       <View

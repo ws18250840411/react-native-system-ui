@@ -22,6 +22,7 @@ export interface SearchTokens {
     actionGap: number
     contentPaddingHorizontal: number
     contentPaddingVertical: number
+    none: number
   }
   radius: {
     square: number
@@ -59,6 +60,7 @@ const createSearchTokens = (foundations: Foundations): SearchTokens => {
       actionGap: spacing.sm,
       contentPaddingHorizontal: spacing.sm,
       contentPaddingVertical: spacing.xs,
+      none: spacing.none,
     },
     radius: { square: radii.md, round: radii.pill },
     typography: {

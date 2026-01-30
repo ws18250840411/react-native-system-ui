@@ -47,13 +47,22 @@ const ShareSheetOptionItem: React.FC<{
       ]}
       {...press.interactionProps}
     >
-      <View style={[styles.icon, iconStyle]}>
+      <View style={[styles.icon, iconStyle, { marginHorizontal: tokens.spacing.iconMarginHorizontal }]}>
         {option.icon}
       </View>
       {isValidNode(option.name)
         ? isText(option.name)
           ? (
-            <Text style={[styles.optionText, { color: tokens.colors.option, fontSize: tokens.typography.option }]}>
+            <Text
+              style={[
+                styles.optionText,
+                {
+                  color: tokens.colors.option,
+                  fontSize: tokens.typography.option,
+                  paddingHorizontal: tokens.spacing.optionTextPaddingHorizontal,
+                },
+              ]}
+            >
               {option.name}
             </Text>
           )
@@ -68,13 +77,19 @@ const ShareSheetOptionItem: React.FC<{
                 color: tokens.colors.optionDesc,
                 marginTop: tokens.spacing.gap,
                 fontSize: tokens.typography.optionDesc,
+                paddingHorizontal: tokens.spacing.optionDescPaddingHorizontal,
               },
             ]}
           >
             {option.description}
           </Text>
         ) : (
-          <View style={[styles.optionDescNode, { marginTop: tokens.spacing.gap }]}>
+          <View
+            style={[
+              styles.optionDescNode,
+              { marginTop: tokens.spacing.gap, paddingHorizontal: tokens.spacing.optionDescPaddingHorizontal },
+            ]}
+          >
             {option.description}
           </View>
         )
@@ -95,9 +110,21 @@ const ShareSheetCancel: React.FC<{
 
   return (
     <View style={{ backgroundColor: tokens.colors.divider }}>
-      <Pressable style={[styles.cancel, { backgroundColor: tokens.colors.background }]} {...cancelPress.interactionProps}>
+      <Pressable
+        style={[
+          styles.cancel,
+          {
+            backgroundColor: tokens.colors.background,
+            paddingVertical: tokens.spacing.cancelPaddingVertical,
+            marginTop: tokens.spacing.cancelMarginTop,
+          },
+        ]}
+        {...cancelPress.interactionProps}
+      >
         {isText(cancelText) ? (
-          <Text style={[styles.cancelText, { color: tokens.colors.option }]}>{cancelText}</Text>
+          <Text style={[styles.cancelText, { color: tokens.colors.option, fontSize: tokens.typography.cancel }]}>
+            {cancelText}
+          </Text>
         ) : (
           cancelText
         )}
@@ -209,21 +236,34 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   const headerNode = useMemo(() => {
     if (!hasTitle && !hasDescription) return null
     return (
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: tokens.spacing.headerPaddingTop,
+            paddingHorizontal: tokens.spacing.headerPaddingHorizontal,
+            paddingBottom: tokens.spacing.headerPaddingBottom,
+          },
+        ]}
+      >
         {hasTitle
           ? isText(title)
             ? (
               <Text
                 style={[
                   styles.title,
-                  { color: tokens.colors.title, fontSize: tokens.typography.title },
+                  {
+                    color: tokens.colors.title,
+                    fontSize: tokens.typography.title,
+                    marginTop: tokens.spacing.titleMarginTop,
+                  },
                 ]}
               >
                 {title}
               </Text>
             )
             : (
-              <View style={styles.node}>{title}</View>
+              <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{title}</View>
             )
           : null}
         {hasDescription
@@ -235,6 +275,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
                   {
                     color: tokens.colors.description,
                     fontSize: tokens.typography.description,
+                    marginTop: tokens.spacing.descriptionMarginTop,
                   },
                 ]}
               >
@@ -242,7 +283,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
               </Text>
             )
             : (
-              <View style={styles.node}>{description}</View>
+              <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{description}</View>
             )
           : null}
       </View>
@@ -254,6 +295,13 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
     title,
     tokens.colors.description,
     tokens.colors.title,
+    tokens.spacing.descriptionMarginTop,
+    tokens.spacing.headerPaddingBottom,
+    tokens.spacing.headerPaddingHorizontal,
+    tokens.spacing.headerPaddingTop,
+    tokens.spacing.nodeMarginTop,
+    tokens.spacing.popupPadding,
+    tokens.spacing.titleMarginTop,
     tokens.typography.description,
     tokens.typography.title,
   ])
@@ -268,7 +316,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
       overlay={overlay}
       lockScroll={lockScroll}
       onClose={onPopupClose}
-      style={[styles.popupOverride, popupStyle]}
+      style={[styles.popupOverride, { padding: tokens.spacing.popupPadding }, popupStyle]}
     >
       <View style={wrapperStyle}>
         {headerNode}
@@ -290,29 +338,22 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
 
 const styles = StyleSheet.create({
   popupOverride: {
-    padding: 0,
   },
   wrapper: {
     width: '100%',
   },
   header: {
-    paddingTop: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
     alignItems: 'center',
   },
   title: {
     fontWeight: 'normal',
     textAlign: 'center',
-    marginTop: 4,
   },
   description: {
     textAlign: 'center',
-    marginTop: 4,
   },
   node: {
     alignItems: 'center',
-    marginTop: 4,
   },
   optionsRow: {
     flexDirection: 'row',
@@ -325,28 +366,21 @@ const styles = StyleSheet.create({
   icon: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 12,
   },
   optionText: {
     fontWeight: '500',
     textAlign: 'center',
-    paddingHorizontal: 4,
   },
   optionDesc: {
     textAlign: 'center',
-    paddingHorizontal: 16,
   },
   optionDescNode: {
     alignItems: 'center',
-    paddingHorizontal: 16,
   },
   cancel: {
-    paddingVertical: 14,
-    marginTop: 8,
     alignItems: 'center',
   },
   cancelText: {
-    fontSize: 16,
     fontWeight: '500',
   },
 })

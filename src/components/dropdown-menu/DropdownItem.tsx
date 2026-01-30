@@ -65,7 +65,13 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
   const panelContent = useMemo(() => {
     if (children) {
       return (
-        <View style={[styles.customPanel, panelStyle]}>
+        <View
+          style={[
+            styles.customPanel,
+            { padding: tokens.spacing.customPanelPadding },
+            panelStyle,
+          ]}
+        >
           {children}
         </View>
       )
@@ -85,18 +91,30 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
             : iconElement
         }
         if (isText(activeIcon)) {
-          return <Text style={[styles.indicator, { color }]}>{activeIcon}</Text>
+          return (
+            <Text style={[styles.indicator, { color, marginLeft: tokens.spacing.indicatorMarginLeft }]}>
+              {activeIcon}
+            </Text>
+          )
         }
-        return <View style={styles.indicator}>{activeIcon}</View>
+        return <View style={[styles.indicator, { marginLeft: tokens.spacing.indicatorMarginLeft }]}>{activeIcon}</View>
       }
-      return <Text style={[styles.indicator, { color }]}>✓</Text>
+      return (
+        <Text style={[styles.indicator, { color, marginLeft: tokens.spacing.indicatorMarginLeft }]}>
+          ✓
+        </Text>
+      )
     }
 
     const renderOptionIcon = (optionIcon: DropdownOption['icon']) => {
       if (!optionIcon) return null
       if (React.isValidElement(optionIcon)) return optionIcon
       if (isText(optionIcon)) {
-        return <Text style={styles.optionIconText}>{optionIcon}</Text>
+        return (
+          <Text style={[styles.optionIconText, { fontSize: tokens.sizing.optionFontSize }]}>
+            {optionIcon}
+          </Text>
+        )
       }
       return optionIcon
     }
@@ -114,7 +132,13 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     }
 
     return (
-      <View style={[styles.optionPanel, panelStyle]}>
+      <View
+        style={[
+          styles.optionPanel,
+          { paddingHorizontal: tokens.spacing.panelPaddingHorizontal },
+          panelStyle,
+        ]}
+      >
         {options.map(option => {
           const active = value === option.value
           const optionText = getOptionText(option)
@@ -126,19 +150,33 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
           return (
             <Pressable
               key={String(option.value)}
-              style={[styles.optionRow, createHairlineBorderBottom('rgba(0,0,0,0.06)')]}
+              style={[
+                styles.optionRow,
+                {
+                  paddingVertical: tokens.spacing.optionRowPaddingVertical,
+                  paddingHorizontal: tokens.spacing.optionRowPaddingHorizontal,
+                },
+                createHairlineBorderBottom('rgba(0,0,0,0.06)'),
+              ]}
               onPress={() => handleSelect(option)}
               disabled={option.disabled}
               testID={`rv-dropdown-option-${option.value}`}
             >
               <View style={styles.optionLeft}>
                 {option.icon ? (
-                  <View style={styles.optionIcon}>
+                  <View style={[styles.optionIcon, { marginRight: tokens.spacing.optionIconMarginRight }]}>
                     {renderOptionIcon(option.icon)}
                   </View>
                 ) : null}
                 {isText(optionText) ? (
-                  <Text style={[styles.optionText, { color: optionColor }]}>{optionText}</Text>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: optionColor, fontSize: tokens.sizing.optionFontSize },
+                    ]}
+                  >
+                    {optionText}
+                  </Text>
                 ) : (
                   <View style={styles.optionTextNode}>{optionText}</View>
                 )}
@@ -218,15 +256,35 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
 
   const arrowStyle = [
     styles.arrow,
-    { borderTopColor: tokens.colors.arrow },
+    {
+      borderTopColor: tokens.colors.arrow,
+      marginLeft: tokens.spacing.arrowMarginLeft,
+      width: tokens.sizing.arrowSize,
+      height: tokens.sizing.arrowSize,
+      borderLeftWidth: tokens.sizing.arrowBorderWidth,
+      borderRightWidth: tokens.sizing.arrowBorderWidth,
+      borderTopWidth: tokens.sizing.arrowBorderHeight,
+      borderLeftColor: tokens.colors.transparent,
+      borderRightColor: tokens.colors.transparent,
+      opacity: tokens.opacity.arrowInactive,
+    },
     isActive && styles.arrowActive,
-    isActive && { borderBottomColor: activeColor ?? tokens.colors.activeText },
+    isActive && {
+      borderBottomColor: activeColor ?? tokens.colors.activeText,
+      borderBottomWidth: tokens.sizing.arrowBorderHeight,
+      borderTopColor: tokens.colors.transparent,
+      opacity: tokens.opacity.arrowActive,
+    },
   ]
 
   return (
     <Pressable
       {...rest}
-      style={[styles.item, barScrollable ? styles.itemScrollable : null, style]}
+      style={[
+        styles.item,
+        barScrollable ? [styles.itemScrollable, { paddingHorizontal: tokens.spacing.itemScrollablePaddingHorizontal }] : null,
+        style,
+      ]}
       onPress={handleToggle}
       accessibilityRole="button"
       testID={`rv-dropdown-trigger-${index}`}
@@ -258,39 +316,22 @@ const styles = StyleSheet.create({
   },
   itemScrollable: {
     flex: 0,
-    paddingHorizontal: 12,
   },
   titleNode: {
     flexShrink: 1,
     minWidth: 0,
   },
   arrow: {
-    marginLeft: 4,
-    width: 6,
-    height: 6,
-    borderLeftWidth: 3,
-    borderRightWidth: 3,
-    borderTopWidth: 4,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    opacity: 0.8,
   },
   arrowActive: {
     borderTopWidth: 0,
-    borderBottomWidth: 4,
-    borderBottomColor: 'currentColor',
-    borderTopColor: 'transparent',
-    opacity: 1,
   },
   optionPanel: {
-    paddingHorizontal: 0,
   },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
   },
   optionLeft: {
     flex: 1,
@@ -299,22 +340,17 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   optionIcon: {
-    marginRight: 8,
   },
   optionIconText: {
-    fontSize: 16,
   },
   optionText: {
-    fontSize: 16,
   },
   optionTextNode: {
     flex: 1,
   },
   indicator: {
-    marginLeft: 12,
   },
   customPanel: {
-    padding: 16,
   },
 })
 

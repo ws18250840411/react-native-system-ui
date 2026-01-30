@@ -38,7 +38,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     ...rest
   } = props
 
-  const { colors, layout } = useIndexBarTokens(tokensOverride)
+  const { colors, layout, typography } = useIndexBarTokens(tokensOverride)
   const scrollRef = useRef<ScrollView>(null)
   const scrollYRef = useRef(0)
   const anchorLayouts = useRef<Map<IndexBarValue, number>>(new Map())
@@ -239,10 +239,13 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
         {
           backgroundColor: colors.stickyBackground,
           height: layout.stickyHeight,
+          paddingHorizontal: layout.stickyPaddingHorizontal,
         },
       ]}
     >
-      <Text style={[styles.stickyText, { color: highlight }]}>{activeAnchor.props.title ?? activeAnchor.props.index}</Text>
+      <Text style={[styles.stickyText, { color: highlight, fontSize: typography.stickyTextSize }]}>
+        {activeAnchor.props.title ?? activeAnchor.props.index}
+      </Text>
     </View>
   ) : null
 
@@ -267,7 +270,9 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
           indicatorStyle,
         ]}
       >
-        <Text style={[styles.indicatorText, { color: colors.indicatorText }]}>{indicator.label}</Text>
+        <Text style={[styles.indicatorText, { color: colors.indicatorText, fontSize: typography.indicatorTextSize }]}>
+          {indicator.label}
+        </Text>
       </View>
     )
   }, [
@@ -278,6 +283,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     indicatorSize,
     indicatorStyle,
     showIndicator,
+    typography.indicatorTextSize,
     zIndex,
   ])
 
@@ -381,6 +387,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
           {
             width: layout.indexWidth,
             paddingVertical: layout.paddingVertical,
+            paddingHorizontal: layout.indexListPaddingHorizontal,
             zIndex,
           },
         ]}
@@ -402,7 +409,13 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
             <Pressable
               key={String(item)}
               testID={`rv-indexbar-nav-${String(item)}`}
-              style={styles.indexItem}
+              style={[
+                styles.indexItem,
+                {
+                  paddingVertical: layout.indexItemPaddingVertical,
+                  paddingHorizontal: layout.indexItemPaddingHorizontal,
+                },
+              ]}
               hitSlop={layout.spacing}
               onLayout={event => handleIndexItemLayout(item, event)}
               onPress={() => handlePressIn(item)}
@@ -413,7 +426,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
                 <Text
                   style={[
                     styles.indexText,
-                    { color: isActive ? highlight : colors.text },
+                    { color: isActive ? highlight : colors.text, fontSize: typography.indexTextSize },
                     indexTextStyle,
                   ]}
                 >
@@ -440,17 +453,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 2,
   },
   indexItem: {
-    paddingVertical: 1,
-    paddingHorizontal: 0,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   indexText: {
-    fontSize: 12,
   },
   indicator: {
     position: 'absolute',
@@ -461,7 +470,6 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
   },
   indicatorText: {
-    fontSize: 18,
     fontWeight: '600',
   },
   stickyWrapper: {
@@ -472,10 +480,8 @@ const styles = StyleSheet.create({
   },
   sticky: {
     justifyContent: 'center',
-    paddingHorizontal: 16,
   },
   stickyText: {
-    fontSize: 14,
     fontWeight: '600',
   },
 })

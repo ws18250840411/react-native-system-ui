@@ -380,7 +380,11 @@ export const Dialog: React.FC<DialogProps> = props => {
         <Pressable
           style={[
             styles.closeIcon,
-            { top: tokens.spacing.paddingTop / 2, right: tokens.spacing.paddingHorizontal / 2 },
+            {
+              top: tokens.spacing.paddingTop / 2,
+              right: tokens.spacing.paddingHorizontal / 2,
+              padding: tokens.spacing.closeIconPadding,
+            },
           ]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           onPress={handleCloseIcon}
@@ -466,7 +470,6 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     position: 'absolute',
-    padding: 4,
     zIndex: 1,
   },
 })

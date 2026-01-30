@@ -90,7 +90,9 @@ export const Toast: React.FC<ToastProps> = props => {
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'toast' })
   const prevVisibleRef = useRef(visible)
   const closingRef = useRef(false)
-  const positionOffset = windowHeight > 0 ? Math.round(windowHeight * 0.2) : 60
+  const positionOffset = windowHeight > 0
+    ? Math.round(windowHeight * tokens.positionOffsetRatio)
+    : tokens.positionOffsetMin
   const needsSafeAreaTop =
     safeAreaInsetTopProp !== undefined ? safeAreaInsetTopProp : position === 'top'
   const needsSafeAreaBottom =
@@ -190,7 +192,7 @@ export const Toast: React.FC<ToastProps> = props => {
     }
   const toastStyle = {
     borderRadius: tokens.radius,
-    opacity: closeOnClick && toastPress.states.pressed ? 0.85 : animated,
+    opacity: closeOnClick && toastPress.states.pressed ? tokens.pressedOpacity : animated,
     backgroundColor: tokens.colors.variants[type],
     maxWidth: tokens.maxWidth,
     ...boxStyle,
@@ -205,6 +207,7 @@ export const Toast: React.FC<ToastProps> = props => {
       <View
         style={[
           styles.backdrop,
+          { backgroundColor: tokens.colors.transparent },
           positionStyle,
           stackZIndex ? { zIndex: stackZIndex } : undefined,
         ]}
@@ -213,7 +216,12 @@ export const Toast: React.FC<ToastProps> = props => {
         {overlay || forbidClick ? (
           <Pressable
             testID="rv-toast-overlay"
-            style={[styles.overlay, overlay && { backgroundColor: colors.backdrop }, overlayStyle]}
+            style={[
+              styles.overlay,
+              { backgroundColor: tokens.colors.transparent },
+              overlay && { backgroundColor: colors.backdrop },
+              overlayStyle,
+            ]}
             pointerEvents="auto"
             onPress={overlay && closeOnClickOverlay ? handleClose : undefined}
             onStartShouldSetResponder={() => true}
@@ -261,11 +269,9 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: 'transparent',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'transparent',
   },
   toast: {
     alignItems: 'center',

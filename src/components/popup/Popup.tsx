@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
-  Dimensions,
   Easing,
   Pressable,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
   type LayoutChangeEvent,
   type StyleProp,
   type TextStyle,
@@ -251,7 +251,7 @@ export const Popup: React.FC<PopupProps> = props => {
     const closeIconBase: ViewStyle = {
       minWidth: tokens.spacing.closeIconSize,
       minHeight: tokens.spacing.closeIconSize,
-      padding: 6,
+      padding: tokens.spacing.closeIconPadding,
     }
 
     const closeIconDefault: ViewStyle = {
@@ -420,15 +420,16 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const { animated: overlayOpacity } = usePresenceAnimation(visible, { duration })
 
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const translateDistance = useMemo(() => {
     if (placement === 'left' || placement === 'right') {
-      return Dimensions.get('window').width
+      return windowWidth
     }
     if (placement === 'top' || placement === 'bottom') {
-      return Dimensions.get('window').height
+      return windowHeight
     }
     return 0
-  }, [placement])
+  }, [placement, windowHeight, windowWidth])
 
   const translateTransform = useMemo(() => {
     if (!shouldTranslate) return null

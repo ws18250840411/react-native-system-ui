@@ -55,15 +55,15 @@ export default [
   },
   {
     "name": "number-keyboard",
-    "size": 4979
+    "size": 4973
   },
   {
     "name": "index-bar",
-    "size": 4955
+    "size": 4949
   },
   {
     "name": "popup",
-    "size": 4920
+    "size": 4914
   },
   {
     "name": "checkbox",
@@ -82,12 +82,12 @@ export default [
     "size": 4275
   },
   {
-    "name": "toast",
-    "size": 4233
-  },
-  {
     "name": "image-preview",
     "size": 4230
+  },
+  {
+    "name": "toast",
+    "size": 4228
   },
   {
     "name": "cell",
@@ -95,7 +95,7 @@ export default [
   },
   {
     "name": "tabbar",
-    "size": 3999
+    "size": 3995
   },
   {
     "name": "notice-bar",
@@ -159,7 +159,7 @@ export default [
   },
   {
     "name": "nav-bar",
-    "size": 2627
+    "size": 2614
   },
   {
     "name": "pagination",
@@ -243,6 +243,6 @@ export default [
   },
   {
     "name": "safe-area-view",
-    "size": 455
+    "size": 449
   }
 ]

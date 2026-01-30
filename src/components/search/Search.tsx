@@ -251,9 +251,21 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
             errorMessage={errorMessage}
             inputAlign={resolvedInputAlign}
             border={false}
-            style={[styles.field, fieldStyle]}
-            contentStyle={[styles.fieldContent, fieldContentStyle]}
-            inputStyle={[styles.input, inputStyle]}
+            style={[
+              styles.field,
+              { paddingHorizontal: tokens.spacing.none, paddingVertical: tokens.spacing.none },
+              fieldStyle,
+            ]}
+            contentStyle={[
+              styles.fieldContent,
+              { paddingVertical: tokens.spacing.none },
+              fieldContentStyle,
+            ]}
+            inputStyle={[
+              styles.input,
+              { paddingVertical: tokens.spacing.none },
+              inputStyle,
+            ]}
             onSubmitEditing={handleSubmit}
             returnKeyType={resolvedReturnKeyType}
             {...restFieldProps}
@@ -283,14 +295,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   field: {
-    paddingHorizontal: 0,
-    paddingVertical: 0,
   },
   fieldContent: {
-    paddingVertical: 0,
   },
   input: {
-    paddingVertical: 0,
   },
   actionWrapper: {
     justifyContent: 'center',

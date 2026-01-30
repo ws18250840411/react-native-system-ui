@@ -24,6 +24,7 @@ export interface NumberKeyboardTokens {
     keyHeight: number
     closeHeight: number
     fontSize: number
+    titleFontSize: number
   }
   radii: {
     key: number
@@ -38,7 +39,7 @@ export interface NumberKeyboardTokens {
 }
 
 const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
-  const { palette, spacing, radii } = foundations
+  const { palette, spacing, radii, fontSize } = foundations
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     colors: {
@@ -63,6 +64,7 @@ const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
       keyHeight: 54,
       closeHeight: 44,
       fontSize: 28,
+      titleFontSize: fontSize.md,
     },
     radii: {
       key: radii.xs,

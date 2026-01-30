@@ -21,6 +21,7 @@ export interface PickerTokens {
     confirm: string
     cancel: string
     mask: string
+    loadingMask: string
   }
   spacing: {
     toolbarHeight: number
@@ -35,6 +36,7 @@ export interface PickerTokens {
   }
   radius: {
     toolbar: number
+    container: number
   }
 }
 
@@ -58,6 +60,7 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
       confirm: palette.primary[600],
       cancel: palette.default[600],
       mask: '#ffffff',
+      loadingMask: 'rgba(255,255,255,0.65)',
     },
     spacing: {
       toolbarHeight: 44,
@@ -72,6 +75,7 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
     },
     radius: {
       toolbar: radii.none,
+      container: radii.xs,
     },
   }
 }

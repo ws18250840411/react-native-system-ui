@@ -76,7 +76,7 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
     beforeClose,
   } = props
 
-  const { colors } = useImagePreviewTokens(tokensOverride)
+  const { colors, layout, radii, typography, spacing } = useImagePreviewTokens(tokensOverride)
   const swiperRef = useRef<SwiperInstance>(null)
   const popupCloseReason = useRef<ImagePreviewCloseReason>('close')
   const tapStartRef = useRef<{ x: number; y: number } | null>(null)
@@ -242,18 +242,40 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       if (!showIndex || total === 0) return null
       const indexText = `${current + 1} / ${total}`
       return (
-        <View style={styles.index} testID="rv-image-preview-index">
-          <View style={[styles.indexBadge, { backgroundColor: colors.indexBackground }]}>
+        <View style={[styles.index, { top: spacing.indexTop }]} testID="rv-image-preview-index">
+          <View
+            style={[
+              styles.indexBadge,
+              {
+                backgroundColor: colors.indexBackground,
+                borderRadius: radii.indexBadge,
+                paddingHorizontal: spacing.indexPaddingHorizontal,
+                paddingVertical: spacing.indexPaddingVertical,
+              },
+            ]}
+          >
             {indexRender ? (
               indexRender({ index: current, len: total })
             ) : (
-              <Text style={[styles.indexText, { color: colors.indexText }]}>{indexText}</Text>
+              <Text style={[styles.indexText, { color: colors.indexText, fontSize: typography.indexTextSize }]}>
+                {indexText}
+              </Text>
             )}
           </View>
         </View>
       )
     },
-    [colors.indexBackground, colors.indexText, indexRender, showIndex],
+    [
+      colors.indexBackground,
+      colors.indexText,
+      indexRender,
+      radii.indexBadge,
+      showIndex,
+      spacing.indexPaddingHorizontal,
+      spacing.indexPaddingVertical,
+      spacing.indexTop,
+      typography.indexTextSize,
+    ],
   )
 
   const lazyBuffer = lazyRender ? Math.max(0, lazyRenderBuffer | 0) : 0
@@ -276,7 +298,10 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       safeAreaInsetTop={safeAreaInsetTop}
       safeAreaInsetBottom={safeAreaInsetBottom}
       overlayTestID="rv-image-preview-overlay"
-      style={styles.popup}
+      style={[
+        styles.popup,
+        { backgroundColor: colors.transparent, padding: layout.popupPadding, borderRadius: layout.popupRadius },
+      ]}
       beforeClose={handlePopupBeforeClose}
       onClose={handlePopupClose}
       onClosed={onClosed}
@@ -334,8 +359,6 @@ export default ImagePreview
 
 const styles = StyleSheet.create({
   popup: {
-    padding: 0,
-    borderRadius: 0,
     position: 'absolute',
     top: 0,
     left: 0,
@@ -345,7 +368,6 @@ const styles = StyleSheet.create({
     height: '100%',
     maxWidth: '100%',
     maxHeight: '100%',
-    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
@@ -376,19 +398,13 @@ const styles = StyleSheet.create({
   },
   index: {
     position: 'absolute',
-    top: 24,
     left: 0,
     right: 0,
     alignItems: 'center',
     zIndex: 1,
   },
-  indexBadge: {
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
+  indexBadge: {},
   indexText: {
-    fontSize: 14,
     fontWeight: '500',
   },
 })

@@ -58,6 +58,14 @@ export interface TabsTokens {
     descriptionSize: number
     jumboTitleSize: number
     jumboLineHeight: number
+    badgeTextSize: number
+  }
+  spacing: {
+    navSidePaddingHorizontal: number
+    navBottomMarginTop: number
+    descriptionMarginTop: number
+    jumboDescriptionMarginTop: number
+    badgeMarginTop: number
   }
   indicator: {
     height: number
@@ -146,6 +154,14 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       descriptionSize: fontSize.xs,
       jumboTitleSize: fontSize.md,
       jumboLineHeight: Math.round(fontSize.md * 1.6),
+      badgeTextSize: fontSize.xxs,
+    },
+    spacing: {
+      navSidePaddingHorizontal: spacing.sm,
+      navBottomMarginTop: spacing.sm,
+      descriptionMarginTop: spacing.xxs,
+      jumboDescriptionMarginTop: spacing.sm,
+      badgeMarginTop: spacing.xs,
     },
     indicator: {
       height: 3,

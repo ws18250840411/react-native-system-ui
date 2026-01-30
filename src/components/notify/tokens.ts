@@ -60,11 +60,12 @@ export const createNotifyTokens = (foundations: Foundations): NotifyTokens => ({
     ),
   },
   sizing: {
-    minHeight: 40,
+    minHeight: 35,
   },
   spacing: {
-    paddingVertical: foundations.spacing.sm,
+    paddingVertical: foundations.spacing.ssm,
     paddingHorizontal: foundations.spacing.md,
+    none: foundations.spacing.none,
   },
 })
 

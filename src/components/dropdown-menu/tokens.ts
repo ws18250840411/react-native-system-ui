@@ -12,17 +12,34 @@ export interface DropdownMenuTokens {
     mask: string
     divider: string
     barBackground: string
+    transparent: string
   }
   spacing: {
     horizontal: number
     vertical: number
     titlePadding: number
+    customPanelPadding: number
+    optionRowPaddingHorizontal: number
+    optionRowPaddingVertical: number
+    itemScrollablePaddingHorizontal: number
+    arrowMarginLeft: number
+    optionIconMarginRight: number
+    indicatorMarginLeft: number
+    panelPaddingHorizontal: number
   }
   sizing: {
     barHeight: number
     titleFontSize: number
     titleLineHeight: number
     panelMaxHeight: number
+    optionFontSize: number
+    arrowSize: number
+    arrowBorderWidth: number
+    arrowBorderHeight: number
+  }
+  opacity: {
+    arrowInactive: number
+    arrowActive: number
   }
   shadow: {
     shadowColor: string
@@ -46,17 +63,34 @@ const createTokens = (foundations: Foundations): DropdownMenuTokens => {
       mask: 'rgba(0,0,0,0.45)',
       divider: palette.default[200],
       barBackground: '#ffffff',
+      transparent: 'transparent',
     },
     spacing: {
       horizontal: spacing.md,
       vertical: spacing.sm,
       titlePadding: spacing.xs,
+      customPanelPadding: spacing.lg,
+      optionRowPaddingHorizontal: spacing.lg,
+      optionRowPaddingVertical: 10,
+      itemScrollablePaddingHorizontal: spacing.md,
+      arrowMarginLeft: spacing.xs,
+      optionIconMarginRight: spacing.sm,
+      indicatorMarginLeft: spacing.md,
+      panelPaddingHorizontal: spacing.none,
     },
     sizing: {
       barHeight: 48,
       titleFontSize: 15,
       titleLineHeight: fontSize.lg * typography.lineHeightMultiplier,
       panelMaxHeight: 320,
+      optionFontSize: fontSize.md,
+      arrowSize: 6,
+      arrowBorderWidth: 3,
+      arrowBorderHeight: 4,
+    },
+    opacity: {
+      arrowInactive: 0.8,
+      arrowActive: 1,
     },
     shadow: {
       shadowColor: 'rgba(100, 101, 102, 0.12)',

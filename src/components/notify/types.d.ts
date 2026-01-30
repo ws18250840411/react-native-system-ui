@@ -36,6 +36,7 @@ export interface NotifyTokens {
   spacing: {
     paddingVertical: number
     paddingHorizontal: number
+    none: number
   }
 }
 

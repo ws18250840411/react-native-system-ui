@@ -6,7 +6,7 @@ import { useIndexBarTokens } from './tokens'
 
 const IndexAnchor: React.FC<IndexAnchorProps> = props => {
   const { index, title, children, active, highlightColor, onLayoutCapture, style, onLayout, tokensOverride, ...rest } = props
-  const { colors, layout } = useIndexBarTokens(tokensOverride)
+  const { colors, layout, typography } = useIndexBarTokens(tokensOverride)
   const textColor = active && highlightColor ? highlightColor : colors.anchorText
 
   return (
@@ -24,10 +24,11 @@ const IndexAnchor: React.FC<IndexAnchorProps> = props => {
           {
             height: layout.anchorHeight,
             backgroundColor: colors.anchorBackground,
+            paddingHorizontal: layout.anchorPaddingHorizontal,
           },
         ]}
       >
-        <Text style={[styles.title, { color: textColor }]}>
+        <Text style={[styles.title, { color: textColor, fontSize: typography.anchorTitleSize }]}>
           {title ?? index}
         </Text>
       </View>
@@ -42,10 +43,8 @@ const styles = StyleSheet.create({
   },
   header: {
     justifyContent: 'center',
-    paddingHorizontal: 16,
   },
   title: {
-    fontSize: 14,
     fontWeight: '600',
   },
 })

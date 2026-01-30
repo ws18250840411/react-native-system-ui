@@ -25,6 +25,7 @@ export interface StepperTokens {
     inputText: string
     inputDisabledText: string
     inputDisabledBackground: string
+    transparent: string
   }
   radii: {
     default: number
@@ -40,6 +41,7 @@ export interface StepperTokens {
   }
   spacing: {
     gap: number
+    none: number
   }
 }
 
@@ -68,6 +70,7 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
       inputText: palette.default[900],
       inputDisabledText: palette.default[400],
       inputDisabledBackground: palette.default[100],
+      transparent: 'transparent',
     },
     radii: {
       default: radii.md,
@@ -83,6 +86,7 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
     },
     spacing: {
       gap: 2,
+      none: foundations.spacing.none,
     },
   }
 }

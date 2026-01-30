@@ -438,7 +438,14 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     const closeNode = renderKey({ type: 'close' }, 1000, true, true, doubleKeyHeight)
     const headerNode = hasHeader ? (
       <View style={[styles.header, headerPaddingStyle]}>
-        <Text style={[styles.title, styles.titleOverlay, { color: colors.title }]} numberOfLines={1}>
+        <Text
+          style={[
+            styles.title,
+            styles.titleOverlay,
+            { color: colors.title, fontSize: sizing.titleFontSize },
+          ]}
+          numberOfLines={1}
+        >
           {title}
         </Text>
         {resolvedCloseText ? (
@@ -526,7 +533,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   title: {
-    fontSize: 16,
     fontWeight: '600',
   },
   titleOverlay: {

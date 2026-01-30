@@ -361,7 +361,15 @@ const Picker: React.FC<PickerProps> = props => {
   }) : null
 
   return (
-    <View {...rest} style={[styles.container, { backgroundColor: tokens.colors.background }, style]} testID={testID}>
+    <View
+      {...rest}
+      style={[
+        styles.container,
+        { backgroundColor: tokens.colors.background, borderRadius: tokens.radius.container },
+        style,
+      ]}
+      testID={testID}
+    >
       {toolbarPosition === 'top' && toolbar}
       <View style={[styles.body, { height: wrapperHeight }]}>
         <View style={styles.columns} pointerEvents={loading ? 'none' : 'auto'}>
@@ -381,7 +389,7 @@ const Picker: React.FC<PickerProps> = props => {
           )}
         </View>
         {loading && (
-          <View style={styles.loading}>
+          <View style={[styles.loading, { backgroundColor: tokens.colors.loadingMask }]}>
             <Loading />
           </View>
         )}
@@ -392,9 +400,7 @@ const Picker: React.FC<PickerProps> = props => {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: 4,
-  },
+  container: {},
   body: {
     position: 'relative',
     overflow: 'hidden',
@@ -449,7 +455,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.65)',
   },
 })
 

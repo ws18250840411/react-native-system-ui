@@ -24,6 +24,7 @@ export interface PopupTokens {
     closeIconTop: number
     closeIconRight: number
     closeIconSize: number
+    closeIconPadding: number
   }
   typography: {
     titleSize: number
@@ -70,6 +71,7 @@ export const createPopupTokens = (foundations: Foundations): PopupTokens => {
       closeIconTop: spacing.md,
       closeIconRight: spacing.md,
       closeIconSize: 36,
+      closeIconPadding: spacing.ssm,
     },
     typography: {
       titleSize: fontSize.md,

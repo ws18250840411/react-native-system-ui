@@ -605,7 +605,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
 
     const inputBackground =
       theme === 'round'
-        ? 'transparent'
+        ? tokens.colors.transparent
         : inputDisabled
           ? tokens.colors.inputDisabledBackground
           : tokens.colors.background
@@ -623,7 +623,12 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
         style={[
           styles.input,
           inputBoxStyle,
-          { backgroundColor: inputBackground, color: inputTextColor },
+          {
+            backgroundColor: inputBackground,
+            color: inputTextColor,
+            paddingHorizontal: tokens.spacing.none,
+            paddingVertical: tokens.spacing.none,
+          },
           inputStyle,
         ]}
         value={inputValue}
@@ -678,8 +683,6 @@ const styles = StyleSheet.create({
   buttonText: {},
   input: {
     textAlign: 'center',
-    paddingHorizontal: 0,
-    paddingVertical: 0,
   },
 })
 

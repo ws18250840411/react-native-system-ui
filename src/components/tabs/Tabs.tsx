@@ -177,7 +177,7 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
           <Text style={[styles.description, isJumbo ? {
             color: descriptionColor,
             fontSize: tokens.typography.descriptionSize,
-            marginTop: 8,
+            marginTop: tokens.spacing.jumboDescriptionMarginTop,
             textAlign: 'center',
             backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
             paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
@@ -186,30 +186,37 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
           } : {
             color: descriptionColor,
             fontSize: tokens.typography.descriptionSize,
-            marginTop: 2,
+            marginTop: tokens.spacing.descriptionMarginTop,
             textAlign: 'center',
           }, descriptionStyle]}>
             {renderDescription}
           </Text>
         ) : (
           <View style={[styles.description, isJumbo ? {
-            marginTop: 8,
+            marginTop: tokens.spacing.jumboDescriptionMarginTop,
             alignItems: 'center',
             backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
             paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
             paddingVertical: tokens.jumbo.descriptionPaddingVertical,
             borderRadius: tokens.jumbo.descriptionRadius,
           } : {
-            marginTop: 2,
+            marginTop: tokens.spacing.descriptionMarginTop,
             alignItems: 'center',
           }]}>
             {renderDescription}
           </View>
         ))}
         {isRenderable(pane.badge) && (
-          <View style={styles.badge}>
+          <View style={[styles.badge, { marginTop: tokens.spacing.badgeMarginTop }]}>
             {isText(pane.badge) ? (
-              <Text style={[styles.badgeText, { color: tokens.colors.badgeText }]}>{pane.badge}</Text>
+              <Text
+                style={[
+                  styles.badgeText,
+                  { color: tokens.colors.badgeText, fontSize: tokens.typography.badgeTextSize },
+                ]}
+              >
+                {pane.badge}
+              </Text>
             ) : (
               pane.badge
             )}
@@ -676,7 +683,11 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
         backgroundColor: background,
       }, tabBarStyle]}
     >
-      {navLeft && <View style={styles.navSide}>{navLeft}</View>}
+      {navLeft && (
+        <View style={[styles.navSide, { paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }]}>
+          {navLeft}
+        </View>
+      )}
       <View
         style={[styles.nav, {
           minHeight: navHeight + navPaddingBottom,
@@ -692,7 +703,11 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
       >
         {navBody}
       </View>
-      {navRight && <View style={styles.navSide}>{navRight}</View>}
+      {navRight && (
+        <View style={[styles.navSide, { paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }]}>
+          {navRight}
+        </View>
+      )}
     </View>
   )
 
@@ -751,7 +766,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
   return (
     <View {...rest} style={[styles.container, style]} onLayout={handleContainerLayout}>
       {navContent}
-      {navBottom && <View style={styles.navBottom}>{navBottom}</View>}
+      {navBottom && <View style={[styles.navBottom, { marginTop: tokens.spacing.navBottomMarginTop }]}>{navBottom}</View>}
       {contentNode}
     </View>
   )
@@ -781,10 +796,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navSide: {
-    paddingHorizontal: 8,
   },
   navBottom: {
-    marginTop: 8,
   },
   labelWrapper: {
     justifyContent: 'center',
@@ -814,7 +827,6 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   description: {
-    marginTop: 2,
     includeFontPadding: false,
   },
   ellipsis: {
@@ -822,10 +834,8 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   badge: {
-    marginTop: 4,
   },
   badgeText: {
-    fontSize: 10,
   },
   indicator: {
     position: 'absolute',

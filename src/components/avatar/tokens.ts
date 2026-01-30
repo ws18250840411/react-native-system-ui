@@ -29,6 +29,7 @@ export const createAvatarTokens = (foundations: Foundations): AvatarTokens => ({
     colors: {
         background: foundations.palette.default[100],
         text: foundations.palette.default[800],
+        transparent: "transparent",
     },
     typography: {
         fontWeight: "600",

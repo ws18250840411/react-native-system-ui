@@ -11,6 +11,15 @@ const writeJson = (filePath, data) => {
 
 const pkg = readJson(packageJsonPath)
 
+const toTypesPath = target => {
+  if (typeof target !== 'string') return undefined
+  const next = target
+    .replace('/dist/es/', '/dist/types/')
+    .replace('/dist/cjs/', '/dist/types/')
+    .replace(/\.js$/, '.d.ts')
+  return next.endsWith('.d.ts') ? next : undefined
+}
+
 const normalizeExport = (value, exportKey) => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return value
 
@@ -31,6 +40,13 @@ const normalizeExport = (value, exportKey) => {
       'import': `./dist/es/components/${name}/index.js`,
       'require': `./dist/cjs/components/${name}/index.js`,
       'default': `./dist/es/components/${name}/index.js`
+    }
+  }
+
+  if (exportKey !== './package.json' && !('types' in entry)) {
+    const typesTarget = toTypesPath(entry['react-native'] ?? entry.import ?? entry.default ?? entry.require)
+    if (typesTarget) {
+      entry.types = typesTarget
     }
   }
 

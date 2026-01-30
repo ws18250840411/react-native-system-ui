@@ -68,10 +68,19 @@ export const Notify: React.FC<NotifyProps> = props => {
   const resolvedTextColor = color ?? variant.text
   const resolvedDuration = durationProp ?? tokens.defaults.duration
 
+  const [barHeight, setBarHeight] = React.useState(0)
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const height = event.nativeEvent.layout.height
+    if (!height) return
+    setBarHeight(prev => (prev === height ? prev : height))
+  }
+
   // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
+  const canAnimate = barHeight > 0
   const { mounted, animated } = usePresenceAnimation(visible, {
     duration: tokens.defaults.animationDuration,
     appear: true,
+    canAnimate,
   })
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'notify', zIndex })
   const resolvedZIndex = stackZIndex ?? zIndex
@@ -130,14 +139,7 @@ export const Notify: React.FC<NotifyProps> = props => {
     },
   })
 
-  const [barHeight, setBarHeight] = React.useState(0)
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const height = event.nativeEvent.layout.height
-    if (!height) return
-    setBarHeight(prev => (prev === height ? prev : height))
-  }
-
-  const translateDistance = barHeight || tokens.sizing.minHeight
+  const translateDistance = Math.max(barHeight, tokens.sizing.minHeight)
   const translateY =
     position === 'bottom'
       ? animated.interpolate({
@@ -176,7 +178,7 @@ export const Notify: React.FC<NotifyProps> = props => {
           tokens.layout.content,
           {
             paddingHorizontal: tokens.spacing.paddingHorizontal,
-            paddingVertical: 0,
+            paddingVertical: tokens.spacing.none,
             minHeight: tokens.sizing.minHeight,
           },
         ]}

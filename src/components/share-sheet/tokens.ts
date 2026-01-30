@@ -15,6 +15,18 @@ export interface ShareSheetTokens {
     horizontal: number
     vertical: number
     gap: number
+    popupPadding: number
+    headerPaddingTop: number
+    headerPaddingHorizontal: number
+    headerPaddingBottom: number
+    titleMarginTop: number
+    descriptionMarginTop: number
+    nodeMarginTop: number
+    iconMarginHorizontal: number
+    optionTextPaddingHorizontal: number
+    optionDescPaddingHorizontal: number
+    cancelPaddingVertical: number
+    cancelMarginTop: number
   }
   sizing: {
     icon: number
@@ -24,6 +36,7 @@ export interface ShareSheetTokens {
     description: number
     option: number
     optionDesc: number
+    cancel: number
   }
 }
 
@@ -43,6 +56,18 @@ const createTokens = (foundations: Foundations): ShareSheetTokens => {
       horizontal: spacing.md,
       vertical: spacing.sm,
       gap: spacing.xs,
+      popupPadding: 0,
+      headerPaddingTop: spacing.sm,
+      headerPaddingHorizontal: spacing.lg,
+      headerPaddingBottom: spacing.md,
+      titleMarginTop: spacing.xs,
+      descriptionMarginTop: spacing.xs,
+      nodeMarginTop: spacing.xs,
+      iconMarginHorizontal: spacing.md,
+      optionTextPaddingHorizontal: spacing.xs,
+      optionDescPaddingHorizontal: spacing.lg,
+      cancelPaddingVertical: 14,
+      cancelMarginTop: spacing.sm,
     },
     sizing: {
       icon: 48,
@@ -52,6 +77,7 @@ const createTokens = (foundations: Foundations): ShareSheetTokens => {
       description: fontSize.xs,
       option: fontSize.xs,
       optionDesc: fontSize.xxs,
+      cancel: fontSize.md,
     },
   }
 }

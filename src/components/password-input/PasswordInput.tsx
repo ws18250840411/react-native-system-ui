@@ -19,7 +19,6 @@ import type { PasswordInputProps, PasswordInputRef } from './types'
 
 const HIDDEN_INPUT_PROPS: TextInputProps = {
   caretHidden: true,
-  underlineColorAndroid: 'transparent',
   autoCorrect: false,
   spellCheck: false,
   importantForAutofill: 'no',
@@ -36,9 +35,11 @@ export interface PasswordInputTokens {
     error: string
     cursor: string
     background: string
+    transparent: string
   }
   radii: {
     wrapper: number
+    cellGutter: number
   }
   sizing: {
     cellHeight: number
@@ -57,9 +58,11 @@ export interface PasswordInputTokens {
   }
   opacity: {
     disabled: number
+    hidden: number
   }
   spacing: {
     infoMarginTop: number
+    none: number
   }
 }
 
@@ -71,9 +74,11 @@ const createPasswordInputTokens = (foundations: Foundations): PasswordInputToken
     error: foundations.palette.danger[500],
     cursor: foundations.palette.default[800],
     background: '#ffffff',
+    transparent: 'transparent',
   },
   radii: {
     wrapper: foundations.radii.sm,
+    cellGutter: foundations.radii.none,
   },
   sizing: {
     cellHeight: 50,
@@ -92,9 +97,11 @@ const createPasswordInputTokens = (foundations: Foundations): PasswordInputToken
   },
   opacity: {
     disabled: 0.6,
+    hidden: 0,
   },
   spacing: {
     infoMarginTop: foundations.spacing.sm,
+    none: foundations.spacing.none,
   },
 })
 
@@ -292,7 +299,11 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
     const tip = errorInfo ?? info
     const tipColor = errorInfo ? colors.error : colors.muted
 
-    const backgroundColor = hasGutter ? 'transparent' : colors.background
+    const backgroundColor = hasGutter ? colors.transparent : colors.background
+    const hiddenInputProps = useMemo(
+      () => ({ ...HIDDEN_INPUT_PROPS, underlineColorAndroid: colors.transparent }),
+      [colors.transparent],
+    )
     const cellTextBase = useMemo(
       () => ({
         color: colors.text,
@@ -309,6 +320,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
         {
           backgroundColor,
           borderRadius: radii.wrapper,
+          paddingHorizontal: spacing.none,
           opacity: disabled ? opacity.disabled : 1,
         },
         !hasGutter && {
@@ -323,6 +335,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
         hasGutter,
         opacity.disabled,
         radii.wrapper,
+        spacing.none,
       ],
     )
 
@@ -367,7 +380,7 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
               if (hasGutter) {
                 baseCell.push(
                   styles.cellGutter,
-                  { borderColor: colors.border },
+                  { borderColor: colors.border, borderRadius: radii.cellGutter },
                   index > 0 && { marginLeft: gutterValue },
                 )
               } else if (index < lengthSafe - 1) {
@@ -427,8 +440,8 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
               maxLength={lengthSafe}
               autoFocus={false}
               secureTextEntry={mask}
-              {...HIDDEN_INPUT_PROPS}
-              style={styles.hiddenInput}
+              {...hiddenInputProps}
+              style={[styles.hiddenInput, { opacity: opacity.hidden }]}
               onChangeText={handleChangeText}
               onFocus={handleFocus}
               onBlur={handleBlur}
@@ -455,7 +468,6 @@ export default PasswordInput
 const styles = StyleSheet.create({
   wrapper: {
     alignSelf: 'stretch',
-    paddingHorizontal: 0,
   },
   security: {
     flexDirection: 'row',
@@ -470,7 +482,6 @@ const styles = StyleSheet.create({
   },
   cellGutter: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 0,
   },
   cursor: {
     position: 'absolute',
@@ -478,7 +489,6 @@ const styles = StyleSheet.create({
   },
   hiddenInput: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0,
   },
   infoWrapper: {
     alignItems: 'center',
