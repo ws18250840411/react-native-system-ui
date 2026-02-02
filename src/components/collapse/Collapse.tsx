@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -154,7 +154,7 @@ export const Collapse = ((props: CollapseProps) => {
     [accordion, activeKeys, controlled, disabled, onChange],
   )
 
-  const contextValue: CollapseContextValue = {
+  const contextValue: CollapseContextValue = useMemo(() => ({
     activeKeys,
     toggle,
     accordion,
@@ -163,9 +163,9 @@ export const Collapse = ((props: CollapseProps) => {
     border,
     disabled,
     tokens,
-  }
+  }), [accordion, activeKeys, border, disabled, expandIcon, iconPosition, tokens, toggle])
 
-  const renderedChildren = (() => {
+  const renderedChildren = useMemo(() => {
     const items = React.Children.toArray(children)
     return items.map((child, index) => {
       if (!React.isValidElement(child)) return child
@@ -175,7 +175,7 @@ export const Collapse = ((props: CollapseProps) => {
       const name = (child.props as CollapsePanelProps).name ?? String(index)
       return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { name, index })
     })
-  })()
+  }, [children])
 
   return (
     <CollapseContext.Provider value={contextValue}>
@@ -277,19 +277,19 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     [mergedDisabled, nameKey, readOnly, toggle],
   )
 
-  const handleContentLayout = (event: LayoutChangeEvent) => {
+  const handleContentLayout = useCallback((event: LayoutChangeEvent) => {
     const nextHeight = event.nativeEvent.layout.height
     if (isNumber(nextHeight) && Number.isFinite(nextHeight) && nextHeight !== contentHeight) {
       setContentHeight(nextHeight)
     }
-  }
+  }, [contentHeight])
 
-  const animatedStyle = {
+  const animatedStyle = useMemo(() => ({
     height: animation.interpolate({
       inputRange: [0, 1],
       outputRange: [0, contentHeight],
     }),
-  }
+  }), [animation, contentHeight])
 
   const renderExpandIcon = useCallback(() => {
     if (isFunction(expandIcon)) {
@@ -309,17 +309,19 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     )
   }, [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotate])
 
-  const contentNode = !isText(children) ? children : (
-    <Text
-      style={{
-        color: mergedDisabled ? colors.disabled : colors.description,
-        fontSize: typography.descriptionSize,
-        lineHeight: Math.round(typography.descriptionSize * 1.5),
-      }}
-    >
-      {children}
-    </Text>
-  )
+  const contentNode = useMemo(() => (
+    !isText(children) ? children : (
+      <Text
+        style={{
+          color: mergedDisabled ? colors.disabled : colors.description,
+          fontSize: typography.descriptionSize,
+          lineHeight: Math.round(typography.descriptionSize * 1.5),
+        }}
+      >
+        {children}
+      </Text>
+    )
+  ), [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize])
 
   const showItemBorder = Boolean(panelBorder)
   const showTopBorder = index > 0 && showItemBorder

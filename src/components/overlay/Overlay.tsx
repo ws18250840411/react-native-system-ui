@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import {
   Animated,
   Pressable,
@@ -67,9 +67,18 @@ export const Overlay: React.FC<OverlayProps> = props => {
 
   if (!mounted) return null
 
-  const resolvedZIndex = stackZIndex ?? parseNumberLike(zIndex)
-  const styleBackgroundColor = StyleSheet.flatten(style)?.backgroundColor as string | undefined
-  const resolvedColor = color ?? styleBackgroundColor ?? tokens.colors.backdrop
+  const resolvedZIndex = useMemo(
+    () => stackZIndex ?? parseNumberLike(zIndex),
+    [stackZIndex, zIndex]
+  )
+  const styleBackgroundColor = useMemo(
+    () => StyleSheet.flatten(style)?.backgroundColor as string | undefined,
+    [style]
+  )
+  const resolvedColor = useMemo(
+    () => color ?? styleBackgroundColor ?? tokens.colors.backdrop,
+    [color, styleBackgroundColor, tokens.colors.backdrop]
+  )
 
   return (
     <Portal>

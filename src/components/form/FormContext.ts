@@ -3,7 +3,6 @@ import React from 'react'
 import type { FormInstance, NamePath, RegisteredFieldOptions } from './types'
 
 export interface FormContextValue {
-  values: Record<string, unknown>
   getFieldValue: (name: NamePath) => unknown
   setFieldValue: (name: NamePath, value: unknown, trigger?: string) => void
   registerField: (name: NamePath, options: RegisteredFieldOptions) => () => void

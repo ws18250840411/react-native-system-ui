@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   ActivityIndicator,
   Animated,
@@ -40,23 +40,35 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
   const tokens = useSwitchTokens(tokensOverride)
   const disabled = disabledProp ?? tokens.defaults.disabled
   const loading = loadingProp ?? tokens.defaults.loading
-  const activeValue = (activeValueProp ?? tokens.defaults.activeValue) as V
-  const inactiveValue = (inactiveValueProp ?? tokens.defaults.inactiveValue) as V
-  const resolvedSize = Math.max(0, parseNumber(size, tokens.defaults.size))
+  const activeValue = useMemo(
+    () => (activeValueProp ?? tokens.defaults.activeValue) as V,
+    [activeValueProp, tokens.defaults.activeValue]
+  )
+  const inactiveValue = useMemo(
+    () => (inactiveValueProp ?? tokens.defaults.inactiveValue) as V,
+    [inactiveValueProp, tokens.defaults.inactiveValue]
+  )
+  const resolvedSize = useMemo(
+    () => Math.max(0, parseNumber(size, tokens.defaults.size)),
+    [size, tokens.defaults.size]
+  )
 
   const borderWidth = tokens.borders.width
-  const inset = Math.max(0, tokens.spacing.inset)
+  const inset = useMemo(() => Math.max(0, tokens.spacing.inset), [tokens.spacing.inset])
 
   const trackHeight = resolvedSize
-  const trackWidth = trackHeight * 2
-  const trackRadius = trackHeight / 2
+  const trackWidth = useMemo(() => trackHeight * 2, [trackHeight])
+  const trackRadius = useMemo(() => trackHeight / 2, [trackHeight])
 
-  const innerHeight = Math.max(0, trackHeight - borderWidth * 2)
-  const innerWidth = Math.max(0, trackWidth - borderWidth * 2)
+  const innerHeight = useMemo(() => Math.max(0, trackHeight - borderWidth * 2), [borderWidth, trackHeight])
+  const innerWidth = useMemo(() => Math.max(0, trackWidth - borderWidth * 2), [borderWidth, trackWidth])
 
-  const handleSize = Math.max(0, innerHeight - inset * 2)
-  const handleRadius = handleSize / 2
-  const translateDistance = Math.max(0, innerWidth - handleSize - inset * 2)
+  const handleSize = useMemo(() => Math.max(0, innerHeight - inset * 2), [innerHeight, inset])
+  const handleRadius = useMemo(() => handleSize / 2, [handleSize])
+  const translateDistance = useMemo(
+    () => Math.max(0, innerWidth - handleSize - inset * 2),
+    [handleSize, innerWidth, inset]
+  )
 
   const [value, triggerChange] = useControllableValue<V>(props, {
     valuePropName: 'checked',
@@ -93,27 +105,36 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
     return () => animation.stop()
   }, [colorProgress, isChecked, progress, tokens.animation.duration])
 
-  const translateX = progress.interpolate({
+  const translateX = useMemo(() => progress.interpolate({
     inputRange: [0, 1],
     outputRange: [0, translateDistance],
-  })
+  }), [progress, translateDistance])
 
-  const resolvedActiveColor = activeColor ?? tokens.colors.activeTrack
-  const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactiveTrack
-  const trackColor = isChecked ? resolvedActiveColor : resolvedInactiveColor
-  const animatedTrackColor = colorProgress.interpolate({
+  const resolvedActiveColor = useMemo(
+    () => activeColor ?? tokens.colors.activeTrack,
+    [activeColor, tokens.colors.activeTrack]
+  )
+  const resolvedInactiveColor = useMemo(
+    () => inactiveColor ?? tokens.colors.inactiveTrack,
+    [inactiveColor, tokens.colors.inactiveTrack]
+  )
+  const trackColor = useMemo(
+    () => (isChecked ? resolvedActiveColor : resolvedInactiveColor),
+    [isChecked, resolvedActiveColor, resolvedInactiveColor]
+  )
+  const animatedTrackColor = useMemo(() => colorProgress.interpolate({
     inputRange: [0, 1],
     outputRange: [resolvedInactiveColor, resolvedActiveColor],
-  })
+  }), [colorProgress, resolvedActiveColor, resolvedInactiveColor])
 
-  const handlePress = (event: GestureResponderEvent) => {
+  const handlePress = useCallback((event: GestureResponderEvent) => {
     if (disabled) return
     onClick?.(event)
     if (loading) return
     const next = isChecked ? inactiveValue : activeValue
     if (Object.is(next, value)) return
     triggerChange(next)
-  }
+  }, [activeValue, disabled, inactiveValue, isChecked, loading, onClick, triggerChange, value])
   const { interactionProps } = useAriaPress({
     disabled,
     onPress: handlePress,

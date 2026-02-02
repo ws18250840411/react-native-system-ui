@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
@@ -40,9 +40,14 @@ const TabbarBase: React.FC<TabbarProps> = props => {
 
   const enableSafeAreaInsetBottom = safeAreaInsetBottom ?? fixed
 
-  const items =
-    React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<TabbarItemProps>[]
-  const firstName = items.length ? ((items[0].props.name ?? 0) as TabbarValue) : undefined
+  const items = useMemo(
+    () => React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<TabbarItemProps>[],
+    [children]
+  )
+  const firstName = useMemo(
+    () => (items.length ? ((items[0].props.name ?? 0) as TabbarValue) : undefined),
+    [items]
+  )
   const [activeValue, setActiveValue] = useControllableValue<TabbarValue>(props, {
     defaultValue: firstName,
     valuePropName: 'value',
@@ -50,13 +55,19 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     trigger: 'onChange',
   })
 
-  const itemNames = items.map((item, index) => (item.props.name ?? index) as TabbarValue)
-  const currentName =
-    activeValue === undefined || activeValue === null
-      ? firstName
-      : itemNames.some((name) => name === activeValue)
-        ? activeValue
-        : firstName
+  const itemNames = useMemo(
+    () => items.map((item, index) => (item.props.name ?? index) as TabbarValue),
+    [items]
+  )
+  const currentName = useMemo(
+    () =>
+      activeValue === undefined || activeValue === null
+        ? firstName
+        : itemNames.some((name) => name === activeValue)
+          ? activeValue
+          : firstName,
+    [activeValue, firstName, itemNames]
+  )
 
   const [barHeight, setBarHeight] = useState(tokens.layout.height)
   const enablePlaceholder = fixed && placeholder
@@ -72,52 +83,83 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     (name: TabbarValue, index: number) => setActiveValue(name, index),
     [setActiveValue],
   )
-  const contextValue = {
+  const contextValue = useMemo(() => ({
     activeValue: currentName,
     activeColor: activeColor ?? tokens.colors.active,
     inactiveColor: inactiveColor ?? tokens.colors.inactive,
     fontSize: tokens.typography.fontSize,
     fontWeight: tokens.typography.fontWeight,
     onSelect,
-  }
+  }), [
+    activeColor,
+    currentName,
+    inactiveColor,
+    onSelect,
+    tokens.colors.active,
+    tokens.colors.inactive,
+    tokens.typography.fontSize,
+    tokens.typography.fontWeight,
+  ])
 
-  const clonedChildren = items.map((item, index) => {
-    const name = (item.props.name ?? index) as TabbarValue
-    return React.cloneElement(item, {
-      key: item.key ?? name,
-      name,
-      index,
-      iconSize,
-      tokensOverride: mergeTokensOverride(tokensOverride, item.props.tokensOverride),
-    })
-  })
+  const clonedChildren = useMemo(
+    () =>
+      items.map((item, index) => {
+        const name = (item.props.name ?? index) as TabbarValue
+        return React.cloneElement(item, {
+          key: item.key ?? name,
+          name,
+          index,
+          iconSize,
+          tokensOverride: mergeTokensOverride(tokensOverride, item.props.tokensOverride),
+        })
+      }),
+    [iconSize, items, tokensOverride]
+  )
 
   if (items.length === 0) return null
 
   const ContentWrapper = enableSafeAreaInsetBottom ? SafeAreaView : View
 
+  const placeholderStyle = useMemo(() => ({ height: barHeight }), [barHeight])
+  const containerStyle = useMemo(
+    () => [styles.container, fixed && [styles.fixed, { zIndex }], style],
+    [fixed, style, zIndex]
+  )
+  const barStyle = useMemo(() => ([
+    styles.bar,
+    {
+      backgroundColor: background,
+      paddingHorizontal: tokens.layout.paddingHorizontal,
+      minHeight: tokens.layout.height,
+    },
+    border ? createHairlineBorderTop(tokens.colors.border) : null,
+    contentStyle,
+  ]), [
+    background,
+    border,
+    contentStyle,
+    tokens.colors.border,
+    tokens.layout.height,
+    tokens.layout.paddingHorizontal,
+  ])
+  const rowStyle = useMemo(
+    () => [styles.row, { minHeight: tokens.layout.height }],
+    [tokens.layout.height]
+  )
+
   return (
     <>
-      {enablePlaceholder && <View testID="rv-tabbar-placeholder" style={{ height: barHeight }} />}
+      {enablePlaceholder && <View testID="rv-tabbar-placeholder" style={placeholderStyle} />}
       <View
         {...rest}
-        style={[styles.container, fixed && [styles.fixed, { zIndex }], style]}
+        style={containerStyle}
         onLayout={handleLayout}
       >
         <ContentWrapper
-          style={[
-            styles.bar,
-            {
-              backgroundColor: background,
-              paddingHorizontal: tokens.layout.paddingHorizontal,
-              minHeight: tokens.layout.height,
-            },
-            border ? createHairlineBorderTop(tokens.colors.border) : null,
-            contentStyle,
-          ]}
+          style={barStyle}
         >
           <TabbarContext.Provider value={contextValue}>
-            <View style={[styles.row, { minHeight: tokens.layout.height }]} accessibilityRole="tablist">
+            <View style={rowStyle} accessibilityRole="tablist">
               {clonedChildren}
             </View>
           </TabbarContext.Provider>

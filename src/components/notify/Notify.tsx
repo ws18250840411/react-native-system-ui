@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import {
   Animated,
   Platform,
@@ -84,11 +84,11 @@ export const Notify: React.FC<NotifyProps> = props => {
   const resolvedDuration = durationProp ?? tokens.defaults.duration
 
   const [barHeight, setBarHeight] = React.useState(0)
-  const handleLayout = (event: LayoutChangeEvent) => {
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const height = event.nativeEvent.layout.height
     if (!height) return
     setBarHeight(prev => (prev === height ? prev : height))
-  }
+  }, [])
 
   // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
   const canAnimate = barHeight > 0
@@ -142,10 +142,10 @@ export const Notify: React.FC<NotifyProps> = props => {
   const contentHeight = barHeight > 0 ? barHeight : tokens.sizing.minHeight
 
   const interactive = closeOnClick || isFunction(onClick)
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     onClick?.()
     if (closeOnClick) onClose?.()
-  }
+  }, [closeOnClick, onClick, onClose])
   const accessibilityRole = interactive ? 'button' : 'alert'
   const press = useAriaPress({
     disabled: !interactive,
@@ -174,7 +174,7 @@ export const Notify: React.FC<NotifyProps> = props => {
 
   if (!mounted) return null
 
-  const bar = (
+  const bar = useMemo(() => (
     <View
       style={[
         tokens.layout.container,
@@ -239,7 +239,34 @@ export const Notify: React.FC<NotifyProps> = props => {
       </View>
       {position === 'bottom' ? <View style={{ height: safeBottomInset }} /> : null}
     </View>
-  )
+  ), [
+    accessibilityRole,
+    animated,
+    contentHeight,
+    handleLayout,
+    hasMessage,
+    interactive,
+    message,
+    offset,
+    paddingVertical,
+    position,
+    resolvedBackground,
+    resolvedTextColor,
+    safeBottomInset,
+    safeTop,
+    style,
+    textStyle,
+    tokens.layout.container,
+    tokens.layout.content,
+    tokens.layout.text,
+    tokens.sizing.minHeight,
+    tokens.spacing.paddingHorizontal,
+    tokens.typography.fontSize,
+    tokens.typography.lineHeight,
+    translateY,
+    webBottomPadding,
+    webTopPadding,
+  ])
 
   return (
     <Portal>

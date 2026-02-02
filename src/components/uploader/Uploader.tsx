@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Platform,
@@ -166,10 +166,16 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   const [previewVisible, setPreviewVisible] = useState(false)
   const [previewIndex, setPreviewIndex] = useState(0)
 
-  const imageFiles = items.filter(item => isImageFile(item, isImageUrl?.(item)))
-  const previewImages = imageFiles
-    .map(item => item.source ?? item.url ?? item.thumbnail)
-    .filter((value): value is NonNullable<typeof value> => value !== null && value !== undefined)
+  const imageFiles = useMemo(
+    () => items.filter(item => isImageFile(item, isImageUrl?.(item))),
+    [isImageUrl, items]
+  )
+  const previewImages = useMemo(
+    () => imageFiles
+      .map(item => item.source ?? item.url ?? item.thumbnail)
+      .filter((value): value is NonNullable<typeof value> => value !== null && value !== undefined),
+    [imageFiles]
+  )
 
   const handleWebFiles = async (files: File[]) => {
     if (uploadDisabled) return
@@ -308,7 +314,7 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
   const canShowUpload =
     showUpload && (maxCountValue === 0 || items.length + tasks.length < maxCountValue)
 
-  const chooseFile = () => {
+  const chooseFile = useCallback(() => {
     if (uploadDisabled) return
     if (Platform.OS === 'web' && webInputRef.current) {
       webInputRef.current.click()
@@ -327,9 +333,9 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
         })
       })
       .catch(() => {})
-  }
+  }, [maxCountValue, normalizeItem, onUpload, updateItems, uploadDisabled])
 
-  const closeImagePreview = () => setPreviewVisible(false)
+  const closeImagePreview = useCallback(() => setPreviewVisible(false), [])
 
   useImperativeHandle(ref, () => ({
     chooseFile,
@@ -375,10 +381,10 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     setPreviewVisible(true)
   }
 
-  const closePreview = () => {
+  const closePreview = useCallback(() => {
     setPreviewVisible(false)
     onClosePreview?.()
-  }
+  }, [onClosePreview])
 
   const renderStatus = (status: UploaderItemStatus | undefined) => {
     if (!status) return null
@@ -407,46 +413,65 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
     return null
   }
 
-  const boxStyle = {
+  const boxStyle = useMemo(() => ({
     width: sizeValue,
     height: sizeValue,
     marginRight: tokens.gap,
     marginBottom: tokens.gap,
-  }
-  const frameStyle = {
+  }), [sizeValue, tokens.gap])
+  const frameStyle = useMemo(() => ({
     borderRadius: tokens.radius,
     backgroundColor: tokens.colors.background,
     borderColor: tokens.colors.border,
-  }
-  const placeholderStyle = [
-    styles.placeholder,
-    { paddingHorizontal: tokens.spacing.placeholderPaddingHorizontal },
-  ]
-  const placeholderNameStyle = [
-    styles.placeholderName,
-    {
-      color: tokens.colors.text,
-      fontSize: tokens.typography.placeholderNameSize,
-      marginTop: tokens.spacing.placeholderNameMarginTop,
-    },
-  ]
-  const deleteStyle = [
-    styles.delete,
-    {
-      backgroundColor: tokens.colors.deleteBackground,
-      borderRadius: tokens.radii.deleteButton,
-      top: tokens.spacing.deleteOffset,
-      right: tokens.spacing.deleteOffset,
-      minWidth: tokens.sizing.deleteMinSize,
-      minHeight: tokens.sizing.deleteMinSize,
-      paddingHorizontal: tokens.spacing.deletePaddingHorizontal,
-    },
-  ]
-  const deleteIconStyle = { color: tokens.colors.deleteIcon }
-  const statusStyle = [styles.status, { gap: tokens.spacing.statusGap }]
-  const uploadContentStyle = [styles.uploadContent, { gap: tokens.spacing.uploadContentGap }]
+  }), [tokens.colors.background, tokens.colors.border, tokens.radius])
+  const placeholderStyle = useMemo(
+    () => [styles.placeholder, { paddingHorizontal: tokens.spacing.placeholderPaddingHorizontal }],
+    [tokens.spacing.placeholderPaddingHorizontal]
+  )
+  const placeholderNameStyle = useMemo(
+    () => [
+      styles.placeholderName,
+      {
+        color: tokens.colors.text,
+        fontSize: tokens.typography.placeholderNameSize,
+        marginTop: tokens.spacing.placeholderNameMarginTop,
+      },
+    ],
+    [
+      tokens.colors.text,
+      tokens.spacing.placeholderNameMarginTop,
+      tokens.typography.placeholderNameSize,
+    ]
+  )
+  const deleteStyle = useMemo(
+    () => [
+      styles.delete,
+      {
+        backgroundColor: tokens.colors.deleteBackground,
+        borderRadius: tokens.radii.deleteButton,
+        top: tokens.spacing.deleteOffset,
+        right: tokens.spacing.deleteOffset,
+        minWidth: tokens.sizing.deleteMinSize,
+        minHeight: tokens.sizing.deleteMinSize,
+        paddingHorizontal: tokens.spacing.deletePaddingHorizontal,
+      },
+    ],
+    [
+      tokens.colors.deleteBackground,
+      tokens.radii.deleteButton,
+      tokens.spacing.deleteOffset,
+      tokens.spacing.deletePaddingHorizontal,
+      tokens.sizing.deleteMinSize,
+    ]
+  )
+  const deleteIconStyle = useMemo(() => ({ color: tokens.colors.deleteIcon }), [tokens.colors.deleteIcon])
+  const statusStyle = useMemo(() => [styles.status, { gap: tokens.spacing.statusGap }], [tokens.spacing.statusGap])
+  const uploadContentStyle = useMemo(
+    () => [styles.uploadContent, { gap: tokens.spacing.uploadContentGap }],
+    [tokens.spacing.uploadContentGap]
+  )
 
-  const renderPlaceholder = (name?: string) => (
+  const renderPlaceholder = useCallback((name?: string) => (
     <View style={placeholderStyle}>
       <Text style={[styles.placeholderIcon, { fontSize: tokens.typography.placeholderIconSize }]}>FILE</Text>
       {name && (
@@ -455,16 +480,16 @@ const Uploader = React.forwardRef<UploaderInstance, UploaderProps>((props, ref) 
         </Text>
       )}
     </View>
-  )
+  ), [placeholderNameStyle, placeholderStyle, tokens.typography.placeholderIconSize])
 
-  const renderDelete = (onPress: () => void, testID: string) =>
+  const renderDelete = useCallback((onPress: () => void, testID: string) =>
     deleteRender ? (
       deleteRender(onPress)
     ) : (
       <Pressable hitSlop={8} onPress={onPress} testID={testID}>
         <Text style={deleteIconStyle}>×</Text>
       </Pressable>
-    )
+    ), [deleteIconStyle, deleteRender])
 
   const removeTask = (id: number) => {
     setTasks(prev => {

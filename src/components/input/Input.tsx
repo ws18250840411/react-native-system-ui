@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, useRef } from 'react'
+import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 
 import { isBoolean, isFiniteNumber } from '../../utils/validate'
 import Field from '../field'
@@ -44,18 +44,30 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
     [],
   )
 
-  const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
-  const resolvedClearTrigger = clearTriggerOverride ?? tokens.defaults.clearTrigger
-  const resolvedKeyboardType = keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined)
+  const resolvedInputAlign = useMemo(
+    () => align ?? inputAlignProp ?? tokens.defaults.inputAlign,
+    [align, inputAlignProp, tokens.defaults.inputAlign]
+  )
+  const resolvedClearTrigger = useMemo(
+    () => clearTriggerOverride ?? tokens.defaults.clearTrigger,
+    [clearTriggerOverride, tokens.defaults.clearTrigger]
+  )
+  const resolvedKeyboardType = useMemo(
+    () => keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined),
+    [keyboardTypeProp, type]
+  )
 
-  const fieldStyle = [
-    {
-      paddingHorizontal: tokens.spacing.paddingHorizontal,
-      paddingVertical: tokens.spacing.paddingVertical,
-      backgroundColor: tokens.colors.background,
-    },
-    style,
-  ]
+  const fieldStyle = useMemo(
+    () => [
+      {
+        paddingHorizontal: tokens.spacing.paddingHorizontal,
+        paddingVertical: tokens.spacing.paddingVertical,
+        backgroundColor: tokens.colors.background,
+      },
+      style,
+    ],
+    [style, tokens.colors.background, tokens.spacing.paddingHorizontal, tokens.spacing.paddingVertical]
+  )
 
   return (
     <Field
@@ -86,14 +98,17 @@ const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref
     return Math.max(1, Math.round(height / lineHeight))
   }, [lineHeight])
 
-  const resolvedAutoSize: boolean | FieldAutosizeConfig | undefined =
-    !autoSize || isBoolean(autoSize)
-      ? autoSize
-      : (() => {
-        const minRows = toRows(autoSize.minHeight)
-        const maxRows = toRows(autoSize.maxHeight)
-        return minRows || maxRows ? { minRows, maxRows } : undefined
-      })()
+  const resolvedAutoSize: boolean | FieldAutosizeConfig | undefined = useMemo(
+    () =>
+      !autoSize || isBoolean(autoSize)
+        ? autoSize
+        : (() => {
+          const minRows = toRows(autoSize.minHeight)
+          const maxRows = toRows(autoSize.maxHeight)
+          return minRows || maxRows ? { minRows, maxRows } : undefined
+        })(),
+    [autoSize, toRows]
+  )
 
   return <InputComponent ref={ref} {...rest} type="textarea" autoSize={resolvedAutoSize} />
 })

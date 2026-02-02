@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { isFunction, isRenderable, isText, isUndefined } from '../../utils/validate'
@@ -37,7 +37,10 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
   const immediateCheck = immediateCheckProp ?? tokens.defaults.immediateCheck
   const horizontal = !!scrollProps.horizontal
 
-  const loadingText = isUndefined(loadingTextProp) ? locale.loading : loadingTextProp
+  const loadingText = useMemo(
+    () => (isUndefined(loadingTextProp) ? locale.loading : loadingTextProp),
+    [loadingTextProp, locale.loading]
+  )
 
   const loadingControlled = !isUndefined(loading)
   const errorControlled = !isUndefined(error)
@@ -107,7 +110,78 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
     if (immediateCheck) check()
   }, [check, horizontal, immediateCheck, onLayout])
 
-  const retry = () => triggerLoad(true)
+  const retry = useCallback(() => triggerLoad(true), [triggerLoad])
+
+  const footerNode = useMemo(() => (
+    <View
+      style={[tokens.layout.footer, { paddingVertical: tokens.spacing.footerPaddingVertical }]}
+      testID="rv-list-footer"
+    >
+      {mergedLoading ? (
+        isText(loadingText)
+          ? (
+            <Loading size={tokens.sizing.loadingIndicator} testID="rv-list-loading">
+              {loadingText}
+            </Loading>
+          )
+          : (
+            <View
+              style={tokens.layout.loadingInline}
+              testID="rv-list-loading"
+            >
+              <Loading size={tokens.sizing.loadingIndicator} />
+              {loadingText && <View style={{ marginLeft: tokens.spacing.inlineGap }}>{loadingText}</View>}
+            </View>
+          )
+      ) : null}
+      {mergedError ? (
+        isFunction(errorText) ? (
+          errorText(retry)
+        ) : isRenderable(errorText) ? (
+          isText(errorText) ? (
+            <Text
+              testID="rv-list-error"
+              onPress={retry}
+              accessibilityRole="button"
+              style={{ color: tokens.colors.errorText }}
+            >
+              {errorText}
+            </Text>
+          ) : (
+            <Pressable testID="rv-list-error" onPress={retry} accessibilityRole="button">
+              {errorText}
+            </Pressable>
+          )
+        ) : null
+      ) : null}
+      {finished && !mergedLoading && !mergedError && isRenderable(finishedText) ? (
+        isText(finishedText) ? (
+          <Text testID="rv-list-finished" style={{ color: tokens.colors.finishedText }}>
+            {finishedText}
+          </Text>
+        ) : (
+          <View testID="rv-list-finished">
+            {finishedText}
+          </View>
+        )
+      ) : null}
+    </View>
+  ), [
+    errorText,
+    finished,
+    finishedText,
+    loadingText,
+    mergedError,
+    mergedLoading,
+    retry,
+    tokens.colors.errorText,
+    tokens.colors.finishedText,
+    tokens.layout.footer,
+    tokens.layout.loadingInline,
+    tokens.sizing.loadingIndicator,
+    tokens.spacing.footerPaddingVertical,
+    tokens.spacing.inlineGap,
+  ])
 
   return (
     <ScrollComponent
@@ -119,59 +193,7 @@ const List = React.forwardRef<ListRef, ListProps>((props, ref) => {
       onLayout={handleLayout}
     >
       {children}
-      <View
-        style={[tokens.layout.footer, { paddingVertical: tokens.spacing.footerPaddingVertical }]}
-        testID="rv-list-footer"
-      >
-        {mergedLoading ? (
-          isText(loadingText)
-            ? (
-              <Loading size={tokens.sizing.loadingIndicator} testID="rv-list-loading">
-                {loadingText}
-              </Loading>
-            )
-            : (
-              <View
-                style={tokens.layout.loadingInline}
-                testID="rv-list-loading"
-              >
-                <Loading size={tokens.sizing.loadingIndicator} />
-                {loadingText && <View style={{ marginLeft: tokens.spacing.inlineGap }}>{loadingText}</View>}
-              </View>
-            )
-        ) : null}
-        {mergedError ? (
-          isFunction(errorText) ? (
-            errorText(retry)
-          ) : isRenderable(errorText) ? (
-            isText(errorText) ? (
-              <Text
-                testID="rv-list-error"
-                onPress={retry}
-                accessibilityRole="button"
-                style={{ color: tokens.colors.errorText }}
-              >
-                {errorText}
-              </Text>
-            ) : (
-              <Pressable testID="rv-list-error" onPress={retry} accessibilityRole="button">
-                {errorText}
-              </Pressable>
-            )
-          ) : null
-        ) : null}
-        {finished && !mergedLoading && !mergedError && isRenderable(finishedText) ? (
-          isText(finishedText) ? (
-            <Text testID="rv-list-finished" style={{ color: tokens.colors.finishedText }}>
-              {finishedText}
-            </Text>
-          ) : (
-            <View testID="rv-list-finished">
-              {finishedText}
-            </View>
-          )
-        ) : null}
-      </View>
+      {footerNode}
     </ScrollComponent>
   )
 })

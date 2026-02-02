@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Pressable, StyleSheet, Text, View, type DimensionValue, type ViewStyle } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
@@ -22,9 +22,15 @@ const ShareSheetOptionItem: React.FC<{
   columns: number
   tokens: ShareSheetTokens
   onSelect: (option: ShareSheetOption, index: number) => void
-}> = ({ option, index, columns, tokens, onSelect }) => {
-  const optionWidthStyle: ViewStyle = { width: `${100 / columns}%` as DimensionValue }
-  const iconStyle = { width: tokens.sizing.icon, height: tokens.sizing.icon }
+}> = React.memo(({ option, index, columns, tokens, onSelect }) => {
+  const optionWidthStyle: ViewStyle = useMemo(
+    () => ({ width: `${100 / columns}%` as DimensionValue }),
+    [columns]
+  )
+  const iconStyle = useMemo(
+    () => ({ width: tokens.sizing.icon, height: tokens.sizing.icon }),
+    [tokens.sizing.icon]
+  )
   const press = useAriaPress({
     onPress: () => onSelect(option, index),
     extraProps: {
@@ -90,13 +96,13 @@ const ShareSheetOptionItem: React.FC<{
       ) : null}
     </Pressable>
   )
-}
+})
 
 const ShareSheetCancel: React.FC<{
   cancelText: React.ReactNode
   tokens: ShareSheetTokens
   onPress: () => void
-}> = ({ cancelText, tokens, onPress }) => {
+}> = React.memo(({ cancelText, tokens, onPress }) => {
   const cancelPress = useAriaPress({
     onPress,
     extraProps: { testID: 'rv-share-sheet-cancel', accessibilityRole: 'button' },
@@ -125,7 +131,7 @@ const ShareSheetCancel: React.FC<{
       </Pressable>
     </View>
   )
-}
+})
 
 const ShareSheet: React.FC<ShareSheetProps> = props => {
   const {
@@ -152,8 +158,11 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   } = props
 
   const tokens = useShareSheetTokens(tokensOverride)
-  const groups = normalizeOptions(options)
-  const resolvedColumns = isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4
+  const groups = useMemo(() => normalizeOptions(options), [options])
+  const resolvedColumns = useMemo(
+    () => (isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4),
+    [columns]
+  )
 
   const hasTitle = isValidNode(title)
   const hasDescription = isValidNode(description)
@@ -172,11 +181,17 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
 
   const onPopupClose = useCallback(() => close(true), [close])
 
-  const wrapperStyle = [styles.wrapper, { backgroundColor: tokens.colors.background }]
+  const wrapperStyle = useMemo(
+    () => [styles.wrapper, { backgroundColor: tokens.colors.background }],
+    [tokens.colors.background]
+  )
 
-  const groupRowStyle = [styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }]
+  const groupRowStyle = useMemo(
+    () => [styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }],
+    [tokens.spacing.gap]
+  )
 
-  const groupNodes = (() => {
+  const groupNodes = useMemo(() => {
     if (!groups.length) return null
     let globalIndex = 0
     return groups.map((group, groupIndex) => (
@@ -208,60 +223,83 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
         </View>
       </View>
     ))
-  })()
+  }, [groups, groupRowStyle, handleSelect, resolvedColumns, tokens])
 
-  const headerNode = !hasTitle && !hasDescription ? null : (
-    <View
-      style={[
-        styles.header,
-        {
-          paddingTop: tokens.spacing.headerPaddingTop,
-          paddingHorizontal: tokens.spacing.headerPaddingHorizontal,
-          paddingBottom: tokens.spacing.headerPaddingBottom,
-        },
-      ]}
-    >
-      {hasTitle
-        ? isText(title)
-          ? (
-            <Text
-              style={[
-                styles.title,
-                {
-                  color: tokens.colors.title,
-                  fontSize: tokens.typography.title,
-                  marginTop: tokens.spacing.titleMarginTop,
-                },
-              ]}
-            >
-              {title}
-            </Text>
-          )
-          : (
-            <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{title}</View>
-          )
-        : null}
-      {hasDescription
-        ? isText(description)
-          ? (
-            <Text
-              style={[
-                styles.description,
-                {
-                  color: tokens.colors.description,
-                  fontSize: tokens.typography.description,
-                  marginTop: tokens.spacing.descriptionMarginTop,
-                },
-              ]}
-            >
-              {description}
-            </Text>
-          )
-          : (
-            <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{description}</View>
-          )
-        : null}
-    </View>
+  const headerNode = useMemo(() => {
+    if (!hasTitle && !hasDescription) return null
+    return (
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: tokens.spacing.headerPaddingTop,
+            paddingHorizontal: tokens.spacing.headerPaddingHorizontal,
+            paddingBottom: tokens.spacing.headerPaddingBottom,
+          },
+        ]}
+      >
+        {hasTitle
+          ? isText(title)
+            ? (
+              <Text
+                style={[
+                  styles.title,
+                  {
+                    color: tokens.colors.title,
+                    fontSize: tokens.typography.title,
+                    marginTop: tokens.spacing.titleMarginTop,
+                  },
+                ]}
+              >
+                {title}
+              </Text>
+            )
+            : (
+              <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{title}</View>
+            )
+          : null}
+        {hasDescription
+          ? isText(description)
+            ? (
+              <Text
+                style={[
+                  styles.description,
+                  {
+                    color: tokens.colors.description,
+                    fontSize: tokens.typography.description,
+                    marginTop: tokens.spacing.descriptionMarginTop,
+                  },
+                ]}
+              >
+                {description}
+              </Text>
+            )
+            : (
+              <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{description}</View>
+            )
+          : null}
+      </View>
+    )
+  }, [
+    description,
+    hasDescription,
+    hasTitle,
+    title,
+    tokens.colors.description,
+    tokens.colors.title,
+    tokens.spacing.descriptionMarginTop,
+    tokens.spacing.headerPaddingBottom,
+    tokens.spacing.headerPaddingHorizontal,
+    tokens.spacing.headerPaddingTop,
+    tokens.spacing.nodeMarginTop,
+    tokens.spacing.titleMarginTop,
+    tokens.typography.description,
+    tokens.typography.title,
+  ])
+
+  const popupStyleMemo = useMemo(
+    () => [styles.popupOverride, { padding: tokens.spacing.popupPadding }, popupStyle],
+    [popupStyle, tokens.spacing.popupPadding]
   )
 
   return (
@@ -274,7 +312,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
       overlay={overlay}
       lockScroll={lockScroll}
       onClose={onPopupClose}
-      style={[styles.popupOverride, { padding: tokens.spacing.popupPadding }, popupStyle]}
+      style={popupStyleMemo}
     >
       <View style={wrapperStyle}>
         {headerNode}

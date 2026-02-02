@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -78,16 +78,19 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
   const resolvedVerticalInterval = Math.max(0, parseNumber(verticalInterval, 3000))
   const resolvedVerticalDuration = Math.max(0, parseNumber(verticalDuration, 300))
 
-  const verticalItems = (() => {
+  const verticalItems = useMemo(() => {
     if (!isVertical) return []
     if (items && items.length) return items
     const childArray = React.Children.toArray(children)
     if (childArray.length) return childArray
     return text !== undefined ? [text] : []
-  })()
+  }, [children, isVertical, items, text])
 
   const hasVerticalLoop = isVertical && verticalItems.length > 1
-  const verticalTrackItems = hasVerticalLoop ? [...verticalItems, verticalItems[0]] : verticalItems
+  const verticalTrackItems = useMemo(
+    () => (hasVerticalLoop ? [...verticalItems, verticalItems[0]] : verticalItems),
+    [hasVerticalLoop, verticalItems]
+  )
   const verticalTranslateY = useRef(new Animated.Value(0)).current
   const [itemHeight, setItemHeight] = useState(0)
 
@@ -119,15 +122,18 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     extraProps: onPress ? { accessibilityRole: 'button' } : undefined,
   })
 
-  const rightNode = mode === 'closeable'
-    ? (
-      <Pressable hitSlop={8} {...closePress.interactionProps}>
-        <Close size={16} fill={resolvedColor} color={resolvedColor} />
-      </Pressable>
-    )
-    : mode === 'link'
-      ? <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
-      : rightIcon || null
+  const rightNode = useMemo(
+    () => mode === 'closeable'
+      ? (
+        <Pressable hitSlop={8} {...closePress.interactionProps}>
+          <Close size={16} fill={resolvedColor} color={resolvedColor} />
+        </Pressable>
+      )
+      : mode === 'link'
+        ? <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
+        : rightIcon || null,
+    [closePress.interactionProps, mode, resolvedColor, rightIcon]
+  )
   const hasLeft = isRenderable(leftIcon)
   const hasRight = Boolean(rightNode)
 
@@ -247,8 +253,9 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     setItemHeight(prev => (prev === 0 || Math.abs(prev - height) >= 0.5 ? height : prev))
   }, [])
 
-  const verticalContentNode = !isVertical || verticalTrackItems.length === 0 ? null : !hasVerticalLoop
-    ? (() => {
+  const verticalContentNode = useMemo(() => {
+    if (!isVertical || verticalTrackItems.length === 0) return null
+    if (!hasVerticalLoop) {
       const single = verticalTrackItems[0]
       if (isText(single)) {
         return (
@@ -267,8 +274,8 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         )
       }
       return single
-    })()
-    : (
+    }
+    return (
       <View
         style={[styles.verticalViewport, itemHeight ? { height: itemHeight } : undefined]}
         pointerEvents="none"
@@ -303,6 +310,18 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
         </Animated.View>
       </View>
     )
+  }, [
+    handleItemLayout,
+    hasVerticalLoop,
+    isVertical,
+    itemHeight,
+    resolvedColor,
+    restTextProps,
+    textOnLayout,
+    tokens.typography.fontSize,
+    verticalTrackItems,
+    verticalTranslateY,
+  ])
 
   const handleContainerLayout = useCallback(
     (event: LayoutChangeEvent) => {

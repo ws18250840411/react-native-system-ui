@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, ViewStyle } from 'react-native'
 import { SvgUri } from 'react-native-svg'
@@ -149,10 +149,16 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   const showError = showErrorProp ?? tokens.defaults.showError
   const loadingText = loadingTextProp !== undefined ? loadingTextProp : tokens.defaults.loadingText
   const errorText = errorTextProp !== undefined ? errorTextProp : tokens.defaults.errorText
-  const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = splitImageStyle(style)
+  const { container: containerLayoutStyle, image: imageStyleWithoutLayout } = useMemo(
+    () => splitImageStyle(style),
+    [style]
+  )
 
-  const actualSource = source ? source : src ? { uri: src } : undefined
-  const sourceKey = (() => {
+  const actualSource = useMemo(
+    () => (source ? source : src ? { uri: src } : undefined),
+    [source, src]
+  )
+  const sourceKey = useMemo(() => {
     if (source) {
       if (typeof source === 'number') return `res:${source}`
       const uri = resolveSourceUri(source)
@@ -161,7 +167,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     }
     if (src) return `src:${src}`
     return 'none'
-  })()
+  }, [source, src])
 
   const resolvedAccessibilityLabel = alt ?? accessibilityLabel ?? ariaLabel
 
@@ -200,16 +206,25 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     [handleError]
   )
 
-  const uri = resolveSourceUri(actualSource)
-  const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
-  const isSvg = !!normalizedUri && (
-    normalizedUri.endsWith('.svg') ||
-    normalizedUri.includes('.svg?') ||
-    normalizedUri.includes('/svg?')
+  const uri = useMemo(() => resolveSourceUri(actualSource), [actualSource])
+  const normalizedUri = useMemo(() => (isString(uri) ? uri.toLowerCase() : undefined), [uri])
+  const isSvg = useMemo(
+    () => !!normalizedUri && (
+      normalizedUri.endsWith('.svg') ||
+      normalizedUri.includes('.svg?') ||
+      normalizedUri.includes('/svg?')
+    ),
+    [normalizedUri]
   )
 
-  const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize
-  const resolvedErrorIconSize = iconSizeProp ?? tokens.defaults.iconSize
+  const resolvedLoadingSize = useMemo(
+    () => (isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize),
+    [loadingSize, tokens.defaults.loadingIndicatorBaseSize]
+  )
+  const resolvedErrorIconSize = useMemo(
+    () => iconSizeProp ?? tokens.defaults.iconSize,
+    [iconSizeProp, tokens.defaults.iconSize]
+  )
   const containerRole = onPress ? 'button' : undefined
   const pressableProps: Pick<PressableProps, 'onPress'> | null = onPress ? { onPress } : null
 
@@ -225,7 +240,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     return marginTop ? <View style={{ marginTop }}>{node}</View> : node
   }
 
-  const containerStyles: StyleProp<ViewStyle> = [
+  const containerStyles: StyleProp<ViewStyle> = useMemo(() => ([
     tokens.layout.container,
     {
       width: width as ViewStyle['width'],
@@ -235,7 +250,17 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     round ? { borderRadius: tokens.defaults.roundRadius } : isNumber(radius) ? { borderRadius: radius } : undefined,
     containerStyle,
     containerLayoutStyle,
-  ]
+  ]), [
+    containerLayoutStyle,
+    containerStyle,
+    height,
+    radius,
+    round,
+    tokens.colors.background,
+    tokens.defaults.roundRadius,
+    tokens.layout.container,
+    width,
+  ])
 
   const imageAccessibilityLabel = !onPress ? resolvedAccessibilityLabel : undefined
 

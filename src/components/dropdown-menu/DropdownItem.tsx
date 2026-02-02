@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -218,14 +218,14 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     prevActiveRef.current = isActive
   }, [isActive, onClose, onOpen])
 
-  const handleToggle = () => {
+  const handleToggle = useCallback(() => {
     if (itemDisabled) return
     if (isActive) {
       closeMenu()
     } else {
       toggleItem(index)
     }
-  }
+  }, [closeMenu, index, isActive, itemDisabled, toggleItem])
 
   useImperativeHandle(
     ref,
@@ -244,7 +244,7 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     [closeMenu, handleToggle, index, isActive, itemDisabled, showItem],
   )
 
-  const titleStyle = [
+  const titleStyle = useMemo(() => ([
     {
       fontSize: tokens.sizing.titleFontSize,
       lineHeight: tokens.sizing.titleLineHeight,
@@ -252,9 +252,9 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
     },
     textStyle,
     { color: displayColor },
-  ]
+  ]), [displayColor, textStyle, tokens.sizing.titleFontSize, tokens.sizing.titleLineHeight, tokens.spacing.titlePadding])
 
-  const arrowStyle = [
+  const arrowStyle = useMemo(() => ([
     styles.arrow,
     {
       borderTopColor: tokens.colors.arrow,
@@ -275,7 +275,19 @@ const DropdownItem = React.forwardRef<DropdownItemInstance, DropdownItemProps>((
       borderTopColor: tokens.colors.transparent,
       opacity: tokens.opacity.arrowActive,
     },
-  ]
+  ]), [
+    activeColor,
+    isActive,
+    tokens.colors.activeText,
+    tokens.colors.arrow,
+    tokens.colors.transparent,
+    tokens.opacity.arrowActive,
+    tokens.opacity.arrowInactive,
+    tokens.sizing.arrowBorderHeight,
+    tokens.sizing.arrowBorderWidth,
+    tokens.sizing.arrowSize,
+    tokens.spacing.arrowMarginLeft,
+  ])
 
   return (
     <Pressable

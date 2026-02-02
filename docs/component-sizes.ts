@@ -19,7 +19,7 @@ export default [
   },
   {
     "name": "dropdown-menu",
-    "size": 6553
+    "size": 6592
   },
   {
     "name": "form",
@@ -34,12 +34,12 @@ export default [
     "size": 5994
   },
   {
-    "name": "slider",
-    "size": 5676
+    "name": "button",
+    "size": 5703
   },
   {
-    "name": "button",
-    "size": 5638
+    "name": "slider",
+    "size": 5676
   },
   {
     "name": "dialog",
@@ -70,16 +70,16 @@ export default [
     "size": 4835
   },
   {
+    "name": "notify",
+    "size": 4579
+  },
+  {
     "name": "stepper",
     "size": 4567
   },
   {
     "name": "image-preview",
     "size": 4400
-  },
-  {
-    "name": "notify",
-    "size": 4314
   },
   {
     "name": "toast",
@@ -122,16 +122,16 @@ export default [
     "size": 3257
   },
   {
+    "name": "image",
+    "size": 3236
+  },
+  {
     "name": "rate",
     "size": 3212
   },
   {
-    "name": "image",
-    "size": 3143
-  },
-  {
     "name": "overlay",
-    "size": 3112
+    "size": 3202
   },
   {
     "name": "sidebar",
@@ -142,12 +142,12 @@ export default [
     "size": 2948
   },
   {
-    "name": "selector",
-    "size": 2751
+    "name": "portal",
+    "size": 2891
   },
   {
-    "name": "portal",
-    "size": 2700
+    "name": "selector",
+    "size": 2751
   },
   {
     "name": "share-sheet",

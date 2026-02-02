@@ -1,7 +1,7 @@
 import { useSlider, useSliderThumb } from '@react-native-aria/slider'
 import { isRTL } from '@react-native-aria/utils'
 import { useSliderState } from '@react-stately/slider'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { GestureResponderEvent, LayoutChangeEvent, PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
@@ -208,7 +208,7 @@ export const Slider: React.FC<SliderProps> = props => {
     [formatOutput, onChangeAfter],
   )
 
-  const sliderStateOptions = {
+  const sliderStateOptions = useMemo(() => ({
     minValue: resolvedMin,
     maxValue: resolvedMax,
     step: resolvedStep,
@@ -219,7 +219,17 @@ export const Slider: React.FC<SliderProps> = props => {
     defaultValue: !isControlled ? normalized : undefined,
     onChange: handleStateChange,
     onChangeEnd: handleStateChangeEnd,
-  }
+  }), [
+    ariaDisabled,
+    handleStateChange,
+    handleStateChangeEnd,
+    isControlled,
+    normalized,
+    orientation,
+    resolvedMax,
+    resolvedMin,
+    resolvedStep,
+  ])
 
   const state = useSliderState(sliderStateOptions)
 
@@ -473,9 +483,12 @@ export const Slider: React.FC<SliderProps> = props => {
   )
 
   const values = state.values as readonly number[]
-  const thumbPercents = values.map(value => (((value ?? resolvedMin) - resolvedMin) / scope) * 100)
-  const thumbVisualPercents =
-    thumbPercents.map(percent =>
+  const thumbPercents = useMemo(
+    () => values.map(value => (((value ?? resolvedMin) - resolvedMin) / scope) * 100),
+    [resolvedMin, scope, values]
+  )
+  const thumbVisualPercents = useMemo(
+    () => thumbPercents.map(percent =>
       orientation === 'vertical'
         ? reverse
           ? percent
@@ -483,9 +496,11 @@ export const Slider: React.FC<SliderProps> = props => {
         : reverseX
           ? 100 - percent
           : percent,
-    )
+    ),
+    [orientation, reverse, reverseX, thumbPercents]
+  )
 
-  const activeRange = (() => {
+  const activeRange = useMemo(() => {
     const first = thumbVisualPercents[0] ?? 0
     const second = thumbVisualPercents[1] ?? first
     return range && thumbVisualPercents.length > 1
@@ -493,35 +508,41 @@ export const Slider: React.FC<SliderProps> = props => {
       : (orientation === 'horizontal' ? !reverseX : reverse)
         ? { offset: 0, size: first }
         : { offset: first, size: 100 - first }
-  })()
+  }, [orientation, range, reverse, reverseX, thumbVisualPercents])
 
-  const activeTrackStyle: ViewStyle = {
-    backgroundColor: resolvedActiveColor,
-    borderRadius: tokens.track.radius,
-  }
-  if (orientation === 'vertical') {
-    activeTrackStyle.left = 0
-    activeTrackStyle.width = '100%'
-    activeTrackStyle.height = `${Math.max(activeRange.size, 0)}%`
-    activeTrackStyle.top = `${Math.max(activeRange.offset, 0)}%`
-  } else {
-    activeTrackStyle.top = 0
-    activeTrackStyle.height = '100%'
-    activeTrackStyle.width = `${Math.max(activeRange.size, 0)}%`
-    activeTrackStyle.left = `${Math.max(activeRange.offset, 0)}%`
-  }
+  const activeTrackStyle: ViewStyle = useMemo(() => {
+    const base: ViewStyle = {
+      backgroundColor: resolvedActiveColor,
+      borderRadius: tokens.track.radius,
+    }
+    if (orientation === 'vertical') {
+      base.left = 0
+      base.width = '100%'
+      base.height = `${Math.max(activeRange.size, 0)}%`
+      base.top = `${Math.max(activeRange.offset, 0)}%`
+    } else {
+      base.top = 0
+      base.height = '100%'
+      base.width = `${Math.max(activeRange.size, 0)}%`
+      base.left = `${Math.max(activeRange.offset, 0)}%`
+    }
+    return base
+  }, [activeRange.offset, activeRange.size, orientation, resolvedActiveColor, tokens.track.radius])
 
-  const trackBaseStyle =
-    orientation === 'vertical'
-      ? [
-        styles.trackVertical,
-        {
-          width: resolvedTrackHeight,
-          backgroundColor: resolvedInactiveColor,
-          alignSelf: 'center' as const,
-        },
-      ]
-      : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }]
+  const trackBaseStyle = useMemo(
+    () =>
+      orientation === 'vertical'
+        ? [
+          styles.trackVertical,
+          {
+            width: resolvedTrackHeight,
+            backgroundColor: resolvedInactiveColor,
+            alignSelf: 'center' as const,
+          },
+        ]
+        : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }],
+    [orientation, resolvedInactiveColor, resolvedTrackHeight]
+  )
 
   const isButtonFunction = isFunction(button)
   const sharedThumb = isButtonFunction
@@ -535,15 +556,21 @@ export const Slider: React.FC<SliderProps> = props => {
     [leftThumbContent, rightThumbContent, sharedThumb],
   )
 
-  const webGestureStyle: ViewStyle | undefined =
-    Platform.OS === 'web'
-      ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'none', userSelect: 'none' } as unknown as ViewStyle)
-      : undefined
-  const baseTrackPressableStyle: StyleProp<ViewStyle> = [
-    styles.trackPressable,
-    orientation === 'vertical' ? styles.trackPressableVertical : null,
-    webGestureStyle,
-  ]
+  const webGestureStyle: ViewStyle | undefined = useMemo(
+    () =>
+      Platform.OS === 'web'
+        ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'none', userSelect: 'none' } as unknown as ViewStyle)
+        : undefined,
+    [orientation]
+  )
+  const baseTrackPressableStyle: StyleProp<ViewStyle> = useMemo(
+    () => [
+      styles.trackPressable,
+      orientation === 'vertical' ? styles.trackPressableVertical : null,
+      webGestureStyle,
+    ],
+    [orientation, webGestureStyle]
+  )
   const trackPressableStyleFn = useCallback(
     (pressableState: PressableStateCallbackType): StyleProp<ViewStyle> => [
       baseTrackPressableStyle,
@@ -556,7 +583,7 @@ export const Slider: React.FC<SliderProps> = props => {
       ? trackPressableStyleFn
       : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
 
-  const containerStyles = [
+  const containerStyles = useMemo(() => ([
     styles.container,
     { paddingVertical: tokens.spacing.containerPaddingVertical },
     orientation === 'vertical' && [
@@ -565,7 +592,15 @@ export const Slider: React.FC<SliderProps> = props => {
     ],
     disabled && { opacity: tokens.states.disabledOpacity },
     style,
-  ]
+  ]), [
+    disabled,
+    orientation,
+    style,
+    tokens.layout.verticalMinHeight,
+    tokens.layout.verticalWidth,
+    tokens.spacing.containerPaddingVertical,
+    tokens.states.disabledOpacity,
+  ])
 
   return (
     <View

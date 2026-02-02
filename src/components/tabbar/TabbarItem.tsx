@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
@@ -39,7 +39,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
   const color = isActive ? context.activeColor : context.inactiveColor
   const resolvedIconSize = iconSize ?? tokens.icon.size
 
-  const applyIconTheme = (node: React.ReactNode) => {
+  const applyIconTheme = useCallback((node: React.ReactNode) => {
     if (!React.isValidElement(node)) return node
 
     const element = node as React.ReactElement<Record<string, unknown>>
@@ -55,17 +55,18 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     }
 
     return React.cloneElement(element, nextProps)
-  }
+  }, [color, resolvedIconSize])
 
-  const renderIcon = () => {
+  const renderIcon = useCallback(() => {
     if (!icon) return null
     const raw = isFunction(icon) ? icon(isActive) : icon
     return applyIconTheme(raw)
-  }
+  }, [applyIconTheme, icon, isActive])
 
-  const renderLabel = () => {
-    return isFunction(children) ? children(isActive) : children
-  }
+  const renderLabel = useCallback(
+    () => (isFunction(children) ? children(isActive) : children),
+    [children, isActive]
+  )
 
   const ariaPress = useAriaPress({
     disabled,
@@ -82,9 +83,12 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     },
   })
 
-  const shouldRenderBadge = dot || isRenderable(badge)
+  const shouldRenderBadge = useMemo(
+    () => dot || isRenderable(badge),
+    [badge, dot]
+  )
 
-  const renderBadge = () => {
+  const renderBadge = useCallback(() => {
     if (isRenderable(badge)) {
       if (isText(badge)) {
         return <Badge content={badge} />
@@ -96,39 +100,41 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
       return badge as React.ReactNode
     }
     return <Badge dot />
-  }
+  }, [badge, dot])
+
+  const itemStyle = useMemo(() => ([
+    styles.item,
+    {
+      height: tokens.layout.height,
+      paddingVertical: tokens.layout.paddingVertical,
+      opacity: disabled ? 0.5 : 1,
+    },
+    style,
+  ]), [disabled, style, tokens.layout.height, tokens.layout.paddingVertical])
+
+  const labelStyle = useMemo(() => ([
+    styles.label,
+    {
+      color,
+      fontSize: context.fontSize,
+      fontWeight: context.fontWeight,
+      lineHeight: context.fontSize,
+    },
+    textStyle,
+  ]), [color, context.fontSize, context.fontWeight, textStyle])
 
   return (
     <Pressable
       {...rest}
       {...ariaPress.interactionProps}
-      style={[
-        styles.item,
-        {
-          height: tokens.layout.height,
-          paddingVertical: tokens.layout.paddingVertical,
-          opacity: disabled ? 0.5 : 1,
-        },
-        style,
-      ]}
+      style={itemStyle}
     >
       <View style={[styles.iconWrapper, iconStyle]}>
         {renderIcon()}
         {shouldRenderBadge && <View style={styles.badge}>{renderBadge()}</View>}
       </View>
       {isRenderable(children) ? (
-        <Text
-          style={[
-            styles.label,
-            {
-              color,
-              fontSize: context.fontSize,
-              fontWeight: context.fontWeight,
-              lineHeight: context.fontSize,
-            },
-            textStyle,
-          ]}
-        >
+        <Text style={labelStyle}>
           {renderLabel()}
         </Text>
       ) : null}

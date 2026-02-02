@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   type LayoutChangeEvent,
@@ -37,42 +37,69 @@ export const Progress = memo((props: ProgressProps) => {
 
   const tokens = useProgressTokens(tokensOverride)
 
-  const percentage = clamp(
-    parsePercentage(percentageProp ?? tokens.defaults.percentage),
-    0,
-    100
+  const percentage = useMemo(
+    () => clamp(parsePercentage(percentageProp ?? tokens.defaults.percentage), 0, 100),
+    [percentageProp, tokens.defaults.percentage]
   )
-  const height =
-    parseNumberLike(strokeWidth, tokens.sizing.height) ?? tokens.sizing.height
-  const inactive = inactiveProp ?? tokens.defaults.inactive
-  const showPivot = showPivotProp ?? tokens.defaults.showPivot
-  const shouldAnimate =
-    (animated ?? transitionProp ?? tokens.defaults.transition) && !inactive
-  const duration = Math.max(
-    0,
-    animationDurationProp ?? tokens.defaults.animationDuration
+  const height = useMemo(
+    () => parseNumberLike(strokeWidth, tokens.sizing.height) ?? tokens.sizing.height,
+    [strokeWidth, tokens.sizing.height]
+  )
+  const inactive = useMemo(
+    () => inactiveProp ?? tokens.defaults.inactive,
+    [inactiveProp, tokens.defaults.inactive]
+  )
+  const showPivot = useMemo(
+    () => showPivotProp ?? tokens.defaults.showPivot,
+    [showPivotProp, tokens.defaults.showPivot]
+  )
+  const shouldAnimate = useMemo(
+    () => (animated ?? transitionProp ?? tokens.defaults.transition) && !inactive,
+    [animated, inactive, tokens.defaults.transition, transitionProp]
+  )
+  const duration = useMemo(
+    () => Math.max(0, animationDurationProp ?? tokens.defaults.animationDuration),
+    [animationDurationProp, tokens.defaults.animationDuration]
   )
 
   const isGradient = Platform.OS === 'web' && isString(color) && GRADIENT_REGEX.test(color)
 
-  const resolvedTrackColor = trackColor ?? tokens.colors.track
-  const resolvedIndicatorColor = inactive
-    ? tokens.colors.track
-    : !isGradient
-      ? (color ?? tokens.colors.indicator)
-      : undefined
+  const resolvedTrackColor = useMemo(
+    () => trackColor ?? tokens.colors.track,
+    [tokens.colors.track, trackColor]
+  )
+  const resolvedIndicatorColor = useMemo(
+    () => (inactive
+      ? tokens.colors.track
+      : !isGradient
+        ? (color ?? tokens.colors.indicator)
+        : undefined),
+    [color, inactive, isGradient, tokens.colors.indicator, tokens.colors.track]
+  )
 
-  const resolvedPivotBg =
-    pivotColor ??
-    (isGradient
-      ? inactive
-        ? tokens.colors.track
-        : tokens.colors.indicator
-      : (resolvedIndicatorColor as string))
-  const resolvedPivotTextColor = textColor ?? tokens.colors.pivotText
+  const resolvedPivotBg = useMemo(
+    () =>
+      pivotColor ??
+      (isGradient
+        ? inactive
+          ? tokens.colors.track
+          : tokens.colors.indicator
+        : (resolvedIndicatorColor as string)),
+    [inactive, isGradient, pivotColor, resolvedIndicatorColor, tokens.colors.indicator, tokens.colors.track]
+  )
+  const resolvedPivotTextColor = useMemo(
+    () => textColor ?? tokens.colors.pivotText,
+    [textColor, tokens.colors.pivotText]
+  )
 
-  const pivotContent = pivotText ?? `${percentage}%`
-  const hasPivot = showPivot && pivotContent !== null && pivotContent !== false
+  const pivotContent = useMemo(
+    () => pivotText ?? `${percentage}%`,
+    [percentage, pivotText]
+  )
+  const hasPivot = useMemo(
+    () => showPivot && pivotContent !== null && pivotContent !== false,
+    [pivotContent, showPivot]
+  )
 
   const animatedValue = useRef(new Animated.Value(percentage)).current
 
@@ -108,17 +135,17 @@ export const Progress = memo((props: ProgressProps) => {
     []
   )
 
-  const trackStyle = [
+  const trackStyle = useMemo(() => ([
     tokens.layout.track,
     {
       height,
       backgroundColor: resolvedTrackColor,
       borderRadius: height / 2,
     },
-  ]
+  ]), [height, resolvedTrackColor, tokens.layout.track])
 
-  let pivotNode = null
-  if (hasPivot) {
+  const pivotNode = useMemo(() => {
+    if (!hasPivot) return null
     const { track: trackW, pivot: pivotW } = layout
     const pivotContainerStyle = [
       tokens.layout.pivot,
@@ -156,7 +183,7 @@ export const Progress = memo((props: ProgressProps) => {
       }
     }
 
-    pivotNode = (
+    return (
       <Animated.View
         style={[pivotContainerStyle, transformStyle]}
         pointerEvents="none"
@@ -180,12 +207,39 @@ export const Progress = memo((props: ProgressProps) => {
         )}
       </Animated.View>
     )
-  }
+  }, [
+    animatedValue,
+    hasPivot,
+    height,
+    layout,
+    onPivotLayout,
+    pivotContent,
+    pivotStyle,
+    resolvedPivotBg,
+    resolvedPivotTextColor,
+    tokens.layout.pivot,
+    tokens.layout.pivotText,
+    tokens.sizing.pivotPaddingHorizontal,
+    tokens.sizing.pivotPaddingVertical,
+    tokens.typography.pivotFontSize,
+  ])
 
-  const indicatorWidth = animatedValue.interpolate({
+  const indicatorWidth = useMemo(() => animatedValue.interpolate({
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],
-  })
+  }), [animatedValue])
+
+  const indicatorBaseStyle = useMemo(() => ([
+    tokens.layout.indicator,
+    {
+      height,
+      backgroundColor: resolvedIndicatorColor,
+      borderRadius: height / 2,
+      ...(isGradient && ({ backgroundImage: color } as unknown as ViewStyle)),
+    },
+    indicatorStyle,
+    { width: indicatorWidth },
+  ]), [color, height, indicatorStyle, indicatorWidth, isGradient, resolvedIndicatorColor, tokens.layout.indicator])
 
   return (
     <View
@@ -199,17 +253,7 @@ export const Progress = memo((props: ProgressProps) => {
         onLayout={hasPivot ? onTrackLayout : undefined}
       >
         <Animated.View
-          style={[
-            tokens.layout.indicator,
-            {
-              height,
-              backgroundColor: resolvedIndicatorColor,
-              borderRadius: height / 2,
-              ...(isGradient && ({ backgroundImage: color } as unknown as ViewStyle)),
-            },
-            indicatorStyle,
-            { width: indicatorWidth },
-          ]}
+          style={indicatorBaseStyle}
         />
       </View>
       {pivotNode}

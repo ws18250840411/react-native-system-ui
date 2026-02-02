@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   Pressable,
   ScrollView,
@@ -52,9 +52,15 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
   const [stickyVisible, setStickyVisible] = useState(false)
   const [indicator, setIndicator] = useState<{ visible: boolean; label?: string }>({ visible: false })
 
-  const anchors = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<IndexAnchorProps>[]
+  const anchors = useMemo(
+    () => React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<IndexAnchorProps>[],
+    [children]
+  )
 
-  const navItems: IndexBarValue[] = indexList?.length ? indexList : anchors.map(anchor => anchor.props.index)
+  const navItems: IndexBarValue[] = useMemo(
+    () => (indexList?.length ? indexList : anchors.map(anchor => anchor.props.index)),
+    [anchors, indexList]
+  )
 
   const firstIndex = navItems[0]
   const [activeIndex, setActiveIndex] = useControllableValue<IndexBarValue>(props, {
@@ -228,47 +234,53 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
   const highlight = highlightColor ?? colors.activeText
   const activeAnchor = anchors.find(anchor => anchor.props.index === displayIndex)
 
-  const stickyNode = sticky && stickyVisible && activeAnchor ? (
-    <View
-      style={[
-        styles.sticky,
-        {
-          backgroundColor: colors.stickyBackground,
-          height: layout.stickyHeight,
-          paddingHorizontal: layout.stickyPaddingHorizontal,
-        },
-      ]}
-    >
-      <Text style={[styles.stickyText, { color: highlight, fontSize: typography.stickyTextSize }]}>
-        {activeAnchor.props.title ?? activeAnchor.props.index}
-      </Text>
-    </View>
-  ) : null
+  const stickyNode = useMemo(() => {
+    if (!sticky || !stickyVisible || !activeAnchor) return null
+    return (
+      <View
+        style={[
+          styles.sticky,
+          {
+            backgroundColor: colors.stickyBackground,
+            height: layout.stickyHeight,
+            paddingHorizontal: layout.stickyPaddingHorizontal,
+          },
+        ]}
+      >
+        <Text style={[styles.stickyText, { color: highlight, fontSize: typography.stickyTextSize }]}>
+          {activeAnchor.props.title ?? activeAnchor.props.index}
+        </Text>
+      </View>
+    )
+  }, [activeAnchor, colors.stickyBackground, highlight, layout.stickyHeight, layout.stickyPaddingHorizontal, sticky, stickyVisible, typography.stickyTextSize])
 
   const indicatorSize = layout.indicatorSize
-  const indicatorNode = !showIndicator || !indicator.visible ? null : (
-    <View
-      style={[
-        styles.indicator,
-        {
-          width: indicatorSize,
-          height: indicatorSize,
-          borderRadius: indicatorSize / 2,
-          backgroundColor: colors.indicatorBackground,
-          zIndex,
-          transform: [
-            { translateX: -indicatorSize / 2 },
-            { translateY: -indicatorSize / 2 },
-          ],
-        },
-        indicatorStyle,
-      ]}
-    >
-      <Text style={[styles.indicatorText, { color: colors.indicatorText, fontSize: typography.indicatorTextSize }]}>
-        {indicator.label}
-      </Text>
-    </View>
-  )
+  const indicatorNode = useMemo(() => {
+    if (!showIndicator || !indicator.visible) return null
+    return (
+      <View
+        style={[
+          styles.indicator,
+          {
+            width: indicatorSize,
+            height: indicatorSize,
+            borderRadius: indicatorSize / 2,
+            backgroundColor: colors.indicatorBackground,
+            zIndex,
+            transform: [
+              { translateX: -indicatorSize / 2 },
+              { translateY: -indicatorSize / 2 },
+            ],
+          },
+          indicatorStyle,
+        ]}
+      >
+        <Text style={[styles.indicatorText, { color: colors.indicatorText, fontSize: typography.indicatorTextSize }]}>
+          {indicator.label}
+        </Text>
+      </View>
+    )
+  }, [colors.indicatorBackground, colors.indicatorText, indicator.label, indicator.visible, indicatorSize, indicatorStyle, showIndicator, typography.indicatorTextSize, zIndex])
 
   const pickIndexFromEvent = useCallback((evt: GestureResponderEvent): IndexBarValue | null => {
     if (!navItems.length) return null
@@ -339,14 +351,14 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     indexListHeightRef.current = height
   }, [])
 
-  const anchorNodes = anchors.map(anchor =>
+  const anchorNodes = useMemo(() => anchors.map(anchor =>
     React.cloneElement(anchor, {
       key: anchor.key ?? anchor.props.index,
       active: anchor.props.index === displayIndex,
       highlightColor: highlight,
       onLayoutCapture: handleAnchorLayout,
     }),
-  )
+  ), [anchors, displayIndex, handleAnchorLayout, highlight])
 
   return (
     <View {...rest} style={[styles.container, style]}>

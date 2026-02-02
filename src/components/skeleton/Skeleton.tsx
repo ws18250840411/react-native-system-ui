@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { Animated, StyleSheet, View, type ViewStyle } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
@@ -58,7 +58,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   const round = roundProp ?? false
 
   const rows = isFiniteNumber(row) ? Math.max(0, Math.floor(row)) : 0
-  const rowWidths = (() => {
+  const rowWidths = useMemo(() => {
     const widths = resolveSeries(rows, rowWidth, tokens.defaults.rowWidth)
     if (
       !Array.isArray(rowWidth) &&
@@ -68,8 +68,11 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
       widths[rows - 1] = tokens.defaults.lastRowWidth
     }
     return widths
-  })()
-  const rowHeights = resolveSeries(rows, rowHeight, tokens.defaults.rowHeight)
+  }, [props.rowWidth, rowWidth, rows, tokens.defaults.lastRowWidth, tokens.defaults.rowWidth])
+  const rowHeights = useMemo(
+    () => resolveSeries(rows, rowHeight, tokens.defaults.rowHeight),
+    [rowHeight, rows, tokens.defaults.rowHeight]
+  )
 
   const titleHeight = rowHeights[0] ?? tokens.defaults.rowHeight
   const resolvedAvatarSize = normalize(avatarSize, tokens.defaults.avatarSize)
@@ -101,16 +104,22 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
     return () => loop.stop()
   }, [animate, animated, loading, tokens.animation.duration])
 
-  const animatedStyle = !loading || !animate ? undefined : ({
-    opacity: animated.interpolate({
-      inputRange: [0, 1],
-      outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
-    }),
-  } as unknown as ViewStyle)
+  const animatedStyle = useMemo(
+    () => (!loading || !animate ? undefined : ({
+      opacity: animated.interpolate({
+        inputRange: [0, 1],
+        outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
+      }),
+    } as unknown as ViewStyle)),
+    [animate, animated, loading, tokens.animation.maxOpacity, tokens.animation.minOpacity]
+  )
 
-  const containerStyles = [styles.container, { gap: tokens.spacing.containerGap }, style]
+  const containerStyles = useMemo(
+    () => [styles.container, { gap: tokens.spacing.containerGap }, style],
+    [style, tokens.spacing.containerGap]
+  )
 
-  const avatarNode = !avatar ? null : (
+  const avatarNode = useMemo(() => (!avatar ? null : (
     <Animated.View
       style={[
         {
@@ -122,9 +131,9 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         animatedStyle,
       ]}
     />
-  )
+  )), [animatedStyle, avatar, avatarShape, resolvedAvatarSize, tokens.colors.block, tokens.radius])
 
-  const titleNode = !title ? null : (
+  const titleNode = useMemo(() => (!title ? null : (
     <Animated.View
       style={[
         {
@@ -136,9 +145,9 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         animatedStyle,
       ]}
     />
-  )
+  )), [animatedStyle, resolvedTitleWidth, round, title, titleHeight, tokens.colors.block, tokens.radius])
 
-  const rowNodes = rows <= 0 ? null : (
+  const rowNodes = useMemo(() => (rows <= 0 ? null : (
     <View style={styles.rows}>
       {rowWidths.map((width, index) => (
         <Animated.View
@@ -157,7 +166,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         />
       ))}
     </View>
-  )
+  )), [animatedStyle, rowHeights, rowWidths, rows, round, title, tokens.colors.block, tokens.radius, tokens.spacing.rowGap])
 
   if (!loading) {
     return (

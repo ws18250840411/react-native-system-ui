@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   FlatList,
   Platform,
+  ScrollView,
   View,
   StyleSheet,
   PanResponder,
@@ -69,7 +70,47 @@ const styles = StyleSheet.create({
 })
 
 
-type WheelPickerRender<T> = (item: T | null, index: number) => React.ReactNode
+type WheelPickerRender<T> = (
+  item: T,
+  index: number,
+  meta: { active: boolean; disabled: boolean }
+) => React.ReactNode
+
+type WheelPickerItemProps<T> = {
+  item: T
+  index: number
+  itemHeight: number
+  active: boolean
+  disabled: boolean
+  renderItem: WheelPickerRender<T>
+}
+
+const WheelPickerItemInner = <T extends PickerOption>({
+  item,
+  index,
+  itemHeight,
+  active,
+  disabled,
+  renderItem,
+}: WheelPickerItemProps<T>) => {
+  const content = renderItem(item, index, { active, disabled })
+  return (
+    <View style={[styles.option, { height: itemHeight }]}>
+      {content}
+    </View>
+  )
+}
+
+const WheelPickerItem = React.memo(
+  WheelPickerItemInner,
+  (prev, next) =>
+    prev.item === next.item &&
+    prev.index === next.index &&
+    prev.itemHeight === next.itemHeight &&
+    prev.active === next.active &&
+    prev.disabled === next.disabled &&
+    prev.renderItem === next.renderItem
+) as <T extends PickerOption>(props: WheelPickerItemProps<T>) => React.JSX.Element
 
 export type WheelPickerProps<T extends PickerOption = PickerOption> = {
   data: T[]
@@ -111,6 +152,7 @@ const WheelPickerInner = <T extends PickerOption,>({
 }: WheelPickerProps<T>) => {
   const isWeb = Platform.OS === 'web'
   const listRef = useRef<FlatList<T>>(null)
+  const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null)
   const spacerHeight = visibleRest * itemHeight
   const total = data.length
   const maxIndex = Math.max(0, total - 1)
@@ -157,8 +199,9 @@ const WheelPickerInner = <T extends PickerOption,>({
 
   useEffect(() => {
     const offset = safeSelectedIndex * itemHeight
-    listRef.current?.scrollToOffset({ offset, animated: false })
-  }, [itemHeight, safeSelectedIndex])
+    if (isWeb) return
+    scrollRef.current?.scrollTo({ y: offset, animated: false })
+  }, [isWeb, itemHeight, safeSelectedIndex])
 
   const [webOffset, setWebOffset] = useState(() => indexToOffset(safeSelectedIndex, itemHeight))
   const webOffsetRef = useRef(webOffset)
@@ -305,20 +348,22 @@ const WheelPickerInner = <T extends PickerOption,>({
   )
 
   const renderListItem = useCallback(
-    ({ item, index }: { item: T; index: number }) => {
-      const content = renderItem(item, index)
-      return (
-        <View style={[styles.option, { height: itemHeight }]}>
-          {content}
-        </View>
-      )
-    },
-    [itemHeight, renderItem],
+    ({ item, index }: { item: T; index: number }) => (
+      <WheelPickerItem
+        item={item}
+        index={index}
+        itemHeight={itemHeight}
+        active={index === safeSelectedIndex}
+        disabled={!!item.disabled}
+        renderItem={renderItem}
+      />
+    ),
+    [itemHeight, renderItem, safeSelectedIndex],
   )
 
   const webIndex = clamp(Math.round(-webOffset / itemHeight), 0, maxIndex)
 
-  const webRender = (() => {
+  const webRender = useMemo(() => {
     if (!isWeb || total <= 0) {
       return { items: null as React.ReactNode, topSpacer: null as React.ReactNode, bottomSpacer: null as React.ReactNode }
     }
@@ -335,11 +380,16 @@ const WheelPickerInner = <T extends PickerOption,>({
     for (let index = startIndex; index <= endIndex; index += 1) {
       const item = data[index]
       if (!item) continue
-      const content = renderItem(item, index)
       items.push(
-        <View key={`${index}-${String(item.value ?? '')}`} style={[styles.option, { height: itemHeight }]}>
-          {content}
-        </View>,
+        <WheelPickerItem
+          key={`${index}-${String(item.value ?? '')}`}
+          item={item}
+          index={index}
+          itemHeight={itemHeight}
+          active={index === safeSelectedIndex}
+          disabled={!!item.disabled}
+          renderItem={renderItem}
+        />,
       )
     }
     const topHeight = startIndex * itemHeight
@@ -349,18 +399,33 @@ const WheelPickerInner = <T extends PickerOption,>({
       topSpacer: topHeight > 0 && <View style={{ height: topHeight }} />,
       bottomSpacer: bottomHeight > 0 && <View style={{ height: bottomHeight }} />,
     }
-  })()
+  }, [
+    data,
+    isWeb,
+    itemHeight,
+    maxIndex,
+    renderItem,
+    safeSelectedIndex,
+    total,
+    visibleCount,
+    webIndex,
+    webVelocityBucket,
+    webVirtualEnabled,
+  ])
 
-  const webTransform = { transform: [{ translateY: webOffset }] }
-  const webTransitionStyle: ViewStyle | undefined =
-    webTransition
-      ? ({
-        transitionProperty: 'transform',
-        transitionDuration: `${webTransition}ms`,
-        transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
-        willChange: 'transform',
-      } as unknown as ViewStyle)
-      : undefined
+  const webTransform = useMemo(() => ({ transform: [{ translateY: webOffset }] }), [webOffset])
+  const webTransitionStyle: ViewStyle | undefined = useMemo(
+    () =>
+      webTransition
+        ? ({
+          transitionProperty: 'transform',
+          transitionDuration: `${webTransition}ms`,
+          transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
+          willChange: 'transform',
+        } as unknown as ViewStyle)
+        : undefined,
+    [webTransition]
+  )
   const handleWebTransitionEnd = useCallback(
     (event: { nativeEvent?: { propertyName?: string } } & { propertyName?: string }) => {
       const propertyName = event.nativeEvent?.propertyName ?? event.propertyName
@@ -370,7 +435,7 @@ const WheelPickerInner = <T extends PickerOption,>({
     [finalizePendingChange],
   )
 
-  const panResponder = PanResponder.create({
+  const panResponder = useMemo(() => PanResponder.create({
         onStartShouldSetPanResponder: () => !readOnly,
         onMoveShouldSetPanResponder: () => !readOnly,
         onPanResponderGrant: () => {
@@ -417,7 +482,18 @@ const WheelPickerInner = <T extends PickerOption,>({
           notifyInteractEnd()
           setWebTransition(0)
         },
-      })
+      }), [
+    data,
+    itemHeight,
+    minOffset,
+    notifyInteractEnd,
+    notifyInteractStart,
+    readOnly,
+    setVelocityBucket,
+    startWebSnap,
+    stopRaf,
+    total,
+  ])
 
   if (isWeb) {
     return (
@@ -452,6 +528,13 @@ const WheelPickerInner = <T extends PickerOption,>({
 
   const shouldCapture = !readOnly
 
+  const contentContainerStyle = useMemo(
+    () => ({
+      paddingVertical: spacerHeight,
+    }),
+    [spacerHeight]
+  )
+
   return (
     <View
       style={[styles.column, { height: containerHeight }]}
@@ -464,21 +547,8 @@ const WheelPickerInner = <T extends PickerOption,>({
         ]}
         pointerEvents="none"
       />
-      <FlatList
-        ref={listRef}
-        data={data}
-        keyExtractor={keyExtractor}
-        initialScrollIndex={total > 0 ? safeSelectedIndex : undefined}
-        initialNumToRender={initialRenderCount}
-        maxToRenderPerBatch={maxBatchRenderCount}
-        windowSize={windowSize}
-        updateCellsBatchingPeriod={batchingPeriod}
-        renderItem={renderListItem}
-        getItemLayout={(_, index) => ({
-          length: itemHeight,
-          offset: spacerHeight + index * itemHeight,
-          index,
-        })}
+      <ScrollView
+        ref={scrollRef}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={effectiveScrollThrottle}
         decelerationRate={decelerationRate}
@@ -487,12 +557,9 @@ const WheelPickerInner = <T extends PickerOption,>({
         bounces={false}
         overScrollMode="never"
         nestedScrollEnabled
+        contentContainerStyle={contentContainerStyle}
         onStartShouldSetResponderCapture={() => shouldCapture}
         onMoveShouldSetResponderCapture={() => shouldCapture}
-        removeClippedSubviews={!isWeb}
-        collapsable={false}
-        ListHeaderComponent={Spacer}
-        ListFooterComponent={Spacer}
         onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
           lastOffsetRef.current = e.nativeEvent.contentOffset.y
         }}
@@ -527,7 +594,19 @@ const WheelPickerInner = <T extends PickerOption,>({
           notifyInteractEnd()
         }}
         scrollEnabled={!readOnly}
-      />
+      >
+        {data.map((item, index) => (
+          <WheelPickerItem
+            key={keyExtractor(item, index)}
+            item={item}
+            index={index}
+            itemHeight={itemHeight}
+            active={index === safeSelectedIndex}
+            disabled={!!item.disabled}
+            renderItem={renderItem}
+          />
+        ))}
+      </ScrollView>
     </View>
   )
 }

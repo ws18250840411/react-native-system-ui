@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   Animated,
   Pressable,
@@ -97,12 +97,15 @@ export const Toast: React.FC<ToastProps> = props => {
     safeAreaInsetTopProp !== undefined ? safeAreaInsetTopProp : position === 'top'
   const needsSafeAreaBottom =
     safeAreaInsetBottomProp !== undefined ? safeAreaInsetBottomProp : position === 'bottom'
-  const positionStyle: ViewStyle =
-    position === 'top'
-      ? { justifyContent: 'flex-start', paddingTop: positionOffset }
-      : position === 'bottom'
-        ? { justifyContent: 'flex-end', paddingBottom: positionOffset }
-        : { justifyContent: 'center' }
+  const positionStyle: ViewStyle = useMemo(
+    () =>
+      position === 'top'
+        ? { justifyContent: 'flex-start', paddingTop: positionOffset }
+        : position === 'bottom'
+          ? { justifyContent: 'flex-end', paddingBottom: positionOffset }
+          : { justifyContent: 'center' },
+    [position, positionOffset]
+  )
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
@@ -144,9 +147,9 @@ export const Toast: React.FC<ToastProps> = props => {
     }
   }, [mounted, onClosed])
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     onClose?.()
-  }
+  }, [onClose])
 
   const toastPress = useAriaPress({
     disabled: !closeOnClick,
@@ -158,7 +161,7 @@ export const Toast: React.FC<ToastProps> = props => {
     },
   })
 
-  const renderIcon = () => {
+  const iconNode = useMemo(() => {
     if (icon) return icon
     const resolvedIconSize = iconSize ?? tokens.iconSize
     switch (type) {
@@ -175,10 +178,9 @@ export const Toast: React.FC<ToastProps> = props => {
       default:
         return null
     }
-  }
-  const iconNode = renderIcon()
+  }, [colors.text, icon, iconSize, loadingIndicator, loadingType, tokens.iconSize, type])
   const isTextToast = type === 'info' && !iconNode
-  const boxStyle: ViewStyle = isTextToast
+  const boxStyle: ViewStyle = useMemo(() => (isTextToast
     ? {
       minWidth: tokens.textMinWidth,
       minHeight: 0,
@@ -189,14 +191,32 @@ export const Toast: React.FC<ToastProps> = props => {
       minWidth: tokens.defaultWidth,
       minHeight: tokens.defaultMinHeight,
       padding: tokens.defaultPadding,
-    }
-  const toastStyle = {
+    }), [
+    isTextToast,
+    tokens.defaultMinHeight,
+    tokens.defaultPadding,
+    tokens.defaultWidth,
+    tokens.textMinWidth,
+    tokens.textPaddingHorizontal,
+    tokens.textPaddingVertical,
+  ])
+  const toastStyle = useMemo(() => ({
     borderRadius: tokens.radius,
     opacity: closeOnClick && toastPress.states.pressed ? tokens.pressedOpacity : animated,
     backgroundColor: tokens.colors.variants[type],
     maxWidth: tokens.maxWidth,
     ...boxStyle,
-  } as Animated.WithAnimatedValue<ViewStyle>
+  } as Animated.WithAnimatedValue<ViewStyle>), [
+    animated,
+    boxStyle,
+    closeOnClick,
+    toastPress.states.pressed,
+    tokens.colors.variants,
+    tokens.maxWidth,
+    tokens.pressedOpacity,
+    tokens.radius,
+    type,
+  ])
 
   if (!mounted) return null
 

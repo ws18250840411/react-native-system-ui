@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Pressable, Text, View } from 'react-native'
 
 import type { SelectorProps, SelectorValue } from './types'
@@ -193,16 +193,16 @@ const SelectorImpl = <V extends SelectorValue>(props: SelectorProps<V>) => {
     defaultValue: [],
   })
 
-  const optionByValue = (() => {
+  const optionByValue = useMemo(() => {
     const map = new Map<SelectorValue, (typeof options)[number]>()
     for (const option of options) map.set(option.value, option)
     return map
-  })()
+  }, [options])
 
-  const resolvedColumns = Math.max(1, Math.floor(columns))
-  const basis = `${100 / resolvedColumns}%` as `${number}%`
-  const itemMargin = tokens.spacing.gap / 2
-  const selectedSet = new Set(value)
+  const resolvedColumns = useMemo(() => Math.max(1, Math.floor(columns)), [columns])
+  const basis = useMemo(() => `${100 / resolvedColumns}%` as `${number}%`, [resolvedColumns])
+  const itemMargin = useMemo(() => tokens.spacing.gap / 2, [tokens.spacing.gap])
+  const selectedSet = useMemo(() => new Set(value), [value])
 
   const toggleOption = useCallback(
     (option: (typeof options)[number]) => {

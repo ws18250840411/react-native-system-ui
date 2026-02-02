@@ -8,6 +8,7 @@ import React, {
   cloneElement,
   Children,
   isValidElement,
+  useMemo,
   type ReactElement,
   type RefAttributes,
   type Ref,
@@ -110,22 +111,30 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     }
   }, [])
 
-  const validChildren = children
-    ? Children.toArray(children).filter(
-      (child): child is ReactElement => {
-        if (!isValidElement(child)) return false
-        if (child.type === SwiperItem) return true
-        const type = child.type as unknown as { displayName?: string }
-        return type.displayName === 'SwiperItem'
-      }
-    )
-    : []
+  const validChildren = useMemo(
+    () =>
+      children
+        ? Children.toArray(children).filter(
+          (child): child is ReactElement => {
+            if (!isValidElement(child)) return false
+            if (child.type === SwiperItem) return true
+            const type = child.type as unknown as { displayName?: string }
+            return type.displayName === 'SwiperItem'
+          }
+        )
+        : [],
+    [children]
+  )
 
-  const itemsData = data
-    ? data
-    : validChildren.length > 0
-      ? validChildren.map((_, idx) => ({ type: 'child', index: idx }))
-      : []
+  const itemsData = useMemo(
+    () =>
+      data
+        ? data
+        : validChildren.length > 0
+          ? validChildren.map((_, idx) => ({ type: 'child', index: idx }))
+          : [],
+    [data, validChildren]
+  )
 
   const count = itemsData.length
   const slideRatio = slideSizePct / 100
@@ -133,15 +142,19 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
 
   const shouldLoop = loop && count > 1 && slideRatio * (count - 1) >= 1
 
-  const loopData = !shouldLoop || count <= 1
-    ? itemsData
-    : [
-      ...itemsData.slice(-1),
-      ...itemsData,
-      ...itemsData.slice(0, 1),
-    ]
+  const loopData = useMemo(
+    () =>
+      !shouldLoop || count <= 1
+        ? itemsData
+        : [
+          ...itemsData.slice(-1),
+          ...itemsData,
+          ...itemsData.slice(0, 1),
+        ],
+    [itemsData, shouldLoop, count]
+  )
 
-  const displayData = shouldLoop ? loopData : itemsData
+  const displayData = useMemo(() => (shouldLoop ? loopData : itemsData), [shouldLoop, loopData, itemsData])
   const displayCount = displayData.length
 
   const getDisplayIndex = useCallback(
@@ -165,18 +178,22 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const crossAxisMeasured = vertical ? containerLayout.width : containerLayout.height
   const crossAxisSize = crossAxisMeasured > 0 ? crossAxisMeasured : undefined
   const slideSizeValue = (vertical ? containerHeight : containerWidth) * slideRatio
-  const itemSizeStyle: Record<string, number> = { [vertical ? 'height' : 'width']: slideSizeValue }
-  if (crossAxisSize != null && !(autoHeight && !vertical)) {
-    itemSizeStyle[vertical ? 'width' : 'height'] = crossAxisSize
-  }
+  const itemSizeStyle = useMemo(() => {
+    const base: Record<string, number> = { [vertical ? 'height' : 'width']: slideSizeValue }
+    if (crossAxisSize != null && !(autoHeight && !vertical)) {
+      base[vertical ? 'width' : 'height'] = crossAxisSize
+    }
+    return base
+  }, [autoHeight, crossAxisSize, slideSizeValue, vertical])
   const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
   const trackOffsetPx = mainAxisMeasured > 0 ? mainAxisMeasured * offsetRatio : 0
 
-  const nativeTrackContentPaddingStyle = !trackOffsetPx
-    ? undefined
-    : vertical
+  const nativeTrackContentPaddingStyle = useMemo(() => {
+    if (!trackOffsetPx) return undefined
+    return vertical
       ? { paddingTop: trackOffsetPx, paddingBottom: trackOffsetPx }
       : { paddingLeft: trackOffsetPx, paddingRight: trackOffsetPx }
+  }, [trackOffsetPx, vertical])
 
   const stuckAtBoundaryEnabled = !!stuckAtBoundary && !shouldLoop && count > 1 && slideRatio < 1
   const mainAxisSize = vertical ? containerHeight : containerWidth
@@ -318,7 +335,10 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     setAutoHeightValue(height)
   }, [autoHeightEnabled, current, getDisplayIndex])
 
-  const containerAutoHeightStyle = autoHeightEnabled && autoHeightValue != null ? { height: autoHeightValue } : undefined
+  const containerAutoHeightStyle = useMemo(
+    () => (autoHeightEnabled && autoHeightValue != null ? { height: autoHeightValue } : undefined),
+    [autoHeightEnabled, autoHeightValue]
+  )
 
   const nativeLastAlignedMainAxisRef = useRef(0)
   useEffect(() => {
@@ -764,11 +784,11 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     return { length: slideSizeValue, offset, index }
   }, [nonLoopSnapOffsets, shouldLoop, slideSizeValue])
 
-  const snapToOffsets = (() => {
+  const snapToOffsets = useMemo(() => {
     if (slideSizePct === 100 && trackOffsetPct === 0) return undefined
     if (!shouldLoop && nonLoopSnapOffsets) return nonLoopSnapOffsets
     return displayData.map((_, index) => slideSizeValue * index)
-  })()
+  }, [displayData, nonLoopSnapOffsets, shouldLoop, slideSizePct, slideSizeValue, trackOffsetPct])
 
   useEffect(() => {
     if (!isWeb) return

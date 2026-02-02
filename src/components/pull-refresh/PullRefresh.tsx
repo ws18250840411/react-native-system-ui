@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, PanResponder, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { nativeDriverEnabled } from '../../platform'
@@ -241,15 +241,17 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     refreshSucceededRef.current = false
   }, [mergedRefreshing, showSuccess, triggerSuccess])
 
-  const status: PullRefreshStatus = mergedRefreshing
-    ? 'loading'
-    : showSuccess
-      ? 'success'
-      : disabled || distance === 0
-        ? 'normal'
-        : distance < pullDistanceNumber
-          ? 'pulling'
-          : 'loosing'
+  const status: PullRefreshStatus = useMemo(() => (
+    mergedRefreshing
+      ? 'loading'
+      : showSuccess
+        ? 'success'
+        : disabled || distance === 0
+          ? 'normal'
+          : distance < pullDistanceNumber
+            ? 'pulling'
+            : 'loosing'
+  ), [disabled, distance, mergedRefreshing, pullDistanceNumber, showSuccess])
 
   const opacity = useRef(new Animated.Value(status === 'normal' ? 0 : 1)).current
   useEffect(() => {
@@ -262,7 +264,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     Animated.timing(opacity, { toValue, duration: animationDurationMs, useNativeDriver: nativeDriverEnabled }).start()
   }, [animationDurationMs, opacity, status])
 
-  const statusNode = (() => {
+  const statusNode = useMemo(() => {
     switch (status) {
       case 'pulling':
         return resolveStatusText(pullingText, locale.vanPullRefresh.pulling)
@@ -275,15 +277,19 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       default:
         return null
     }
-  })()
+  }, [loadingText, locale.vanPullRefresh, loosingText, pullingText, resolveStatusText, status, successText])
 
   const shouldReserveHead = (status === 'loading' || status === 'success') && distance === 0
   const flattenedContainerStyle =
     StyleSheet.flatten(scrollProps.contentContainerStyle) as { paddingTop?: unknown } | null
   const basePaddingTop = isNumber(flattenedContainerStyle?.paddingTop) ? flattenedContainerStyle.paddingTop : 0
-  const contentContainerStyle = shouldReserveHead
-    ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
-    : scrollProps.contentContainerStyle
+  const contentContainerStyle = useMemo(
+    () =>
+      shouldReserveHead
+        ? [scrollProps.contentContainerStyle, { paddingTop: basePaddingTop + headHeightNumber }]
+        : scrollProps.contentContainerStyle,
+    [basePaddingTop, headHeightNumber, scrollProps.contentContainerStyle, shouldReserveHead]
+  )
 
   const onScrollProp = scrollProps.onScroll
   const handleScroll = useCallback(
@@ -304,7 +310,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
     [disabled, isWeb, mergedRefreshing, onRefresh, onScrollProp, setDistanceValue, showSuccess],
   )
 
-  const panResponder = (() => {
+  const panResponder = useMemo(() => {
     if (!isWeb || !isFunction(onRefresh)) return null
     const easeDistance = (raw: number) => {
       const pullDistance = pullDistanceNumber
@@ -368,7 +374,29 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
         setDistanceValue(0, true)
       },
     })
-  })()
+  }, [
+    cancelWebDrag,
+    disabled,
+    handleRefresh,
+    headHeightNumber,
+    isWeb,
+    onRefresh,
+    pullDistanceNumber,
+    scheduleWebDrag,
+    setDistanceValue,
+    showSuccess,
+  ])
+
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        refreshing={!!mergedRefreshing}
+        onRefresh={handleRefresh}
+        enabled={!disabled && isFunction(onRefresh)}
+      />
+    ),
+    [disabled, handleRefresh, mergedRefreshing, onRefresh]
+  )
 
   return (
     <ScrollView
@@ -376,13 +404,7 @@ const PullRefresh = React.forwardRef<ScrollView, PullRefreshProps>((props, ref) 
       ref={ref}
       style={style}
       contentContainerStyle={contentContainerStyle}
-      refreshControl={
-        <RefreshControl
-          refreshing={!!mergedRefreshing}
-          onRefresh={handleRefresh}
-          enabled={!disabled && isFunction(onRefresh)}
-        />
-      }
+      refreshControl={refreshControl}
       onScroll={handleScroll}
       scrollEventThrottle={16}
     >

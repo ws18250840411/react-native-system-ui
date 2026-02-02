@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import Picker from '../picker'
 import { Popup, type PopupProps } from '../popup/Popup'
@@ -150,7 +150,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     setCurrentDate(prev => (value && isValidDate(value) ? formatValue(value) : formatValue(prev)))
   }, [formatValue, value])
 
-  const { originColumns, columns, pickerValue } = (() => {
+  const { originColumns, columns, pickerValue } = useMemo(() => {
     const getBoundary = (boundaryType: 'min' | 'max', date: Date) => {
       const boundaryDate = boundaryType === 'min' ? minDate : maxDate
       const boundary = {
@@ -252,7 +252,7 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     })
 
     return { originColumns, columns, pickerValue }
-  })()
+  }, [columnsOrder, currentDate, filter, formatter, maxDate, minDate, type])
 
   const buildDateFromValues = useCallback(
     (values: string[]) => {
@@ -358,7 +358,7 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     }
   }, [formatTime, value])
 
-  const [hourValues, minuteValues] = (() => {
+  const [hourValues, minuteValues] = useMemo(() => {
     let hours = times(maxHour - minHour + 1, index => padZero(minHour + index))
     let minutes = times(maxMinute - minMinute + 1, index => padZero(minMinute + index))
     if (filter) {
@@ -366,12 +366,15 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
       minutes = filter('minute', minutes)
     }
     return [hours, minutes] as [string[], string[]]
-  })()
+  }, [filter, maxHour, maxMinute, minHour, minMinute])
 
-  const columns = [
-    hourValues.map(value => ({ label: formatter('hour', value), value })),
-    minuteValues.map(value => ({ label: formatter('minute', value), value })),
-  ]
+  const columns = useMemo(
+    () => [
+      hourValues.map(value => ({ label: formatter('hour', value), value })),
+      minuteValues.map(value => ({ label: formatter('minute', value), value })),
+    ],
+    [formatter, hourValues, minuteValues]
+  )
 
   const handleChange = useCallback(
     (values: (string | number)[]) => {

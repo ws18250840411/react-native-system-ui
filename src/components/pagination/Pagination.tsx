@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { Pressable, Text, View } from 'react-native'
 
 import { usePaginationTokens } from './tokens'
@@ -51,7 +51,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         : 1
   const currentPage = clamp(page, 1, count)
 
-  const pages = (() => {
+  const pages = useMemo(() => {
     const items: PaginationPageItem[] = []
     if (mode !== 'multi') return items
 
@@ -79,7 +79,7 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     }
 
     return items
-  })()
+  }, [count, currentPage, forceEllipses, mode, showPageSizeNumber])
 
   useEffect(() => {
     if (page !== currentPage) {
@@ -87,9 +87,9 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
     }
   }, [currentPage, page, setPage])
 
-  const handleSelect = (next: number) => setPage(clamp(next, 1, count))
+  const handleSelect = useCallback((next: number) => setPage(clamp(next, 1, count)), [count, setPage])
 
-  const renderPage = (item: PaginationPageItem, index: number) => {
+  const renderPage = useCallback((item: PaginationPageItem, index: number) => {
     const node = pageRender ? pageRender(item) : item.text
     const textColor = item.active ? tokens.colors.activeText : tokens.colors.text
 
@@ -119,9 +119,9 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         )}
       </Pressable>
     )
-  }
+  }, [handleSelect, pageRender, tokens.colors.activeText, tokens.colors.text, tokens.defaults.pressedOpacity, tokens.layout.item])
 
-  const renderControl = (type: 'prev' | 'next') => {
+  const renderControl = useCallback((type: 'prev' | 'next') => {
     const disabled = type === 'prev' ? currentPage <= 1 : currentPage >= count
     const target = type === 'prev' ? currentPage - 1 : currentPage + 1
     const label = type === 'prev' ? prevText : nextText
@@ -146,9 +146,23 @@ const Pagination = React.forwardRef<View, PaginationProps>((props, ref) => {
         )}
       </Pressable>
     )
-  }
+  }, [
+    count,
+    currentPage,
+    handleSelect,
+    nextText,
+    prevText,
+    tokens.colors.disabled,
+    tokens.colors.text,
+    tokens.defaults.disabledOpacity,
+    tokens.defaults.pressedOpacity,
+    tokens.layout.control,
+  ])
 
-  const descNode = mode === 'multi' ? null : pageDesc ?? `${currentPage}/${count}`
+  const descNode = useMemo(
+    () => (mode === 'multi' ? null : pageDesc ?? `${currentPage}/${count}`),
+    [count, currentPage, mode, pageDesc]
+  )
 
   return (
     <View ref={ref} style={[tokens.layout.container, style]} {...rest}>

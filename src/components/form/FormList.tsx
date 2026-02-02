@@ -1,7 +1,7 @@
-import React, { useCallback, useContext, useEffect, useRef } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 
 import { FormContext } from './FormContext'
-import { getValueByName } from './utils'
+import { FORM_ALL_FIELDS_KEY, getValueByName, serializeNamePath } from './utils'
 import type { NamePath } from './types'
 
 export interface FormListField {
@@ -25,10 +25,16 @@ export interface FormListProps {
 export const FormList: React.FC<FormListProps> = ({ name, initialValue, children }) => {
   const context = useContext(FormContext)
   const keyRef = useRef(0)
+  const nameKey = serializeNamePath(name)
+  const [listValue, setListValue] = useState<unknown[]>(() => {
+    if (!context) return []
+    const current = getValueByName(context.getFieldsValue(), name)
+    return Array.isArray(current) ? current : []
+  })
 
   const ensureInitial = useCallback(() => {
     if (!context) return
-    const current = getValueByName(context.values, name)
+    const current = getValueByName(context.getFieldsValue(), name)
     if (current === undefined && initialValue !== undefined) {
       context.setFieldValue(name, initialValue)
     }
@@ -38,12 +44,19 @@ export const FormList: React.FC<FormListProps> = ({ name, initialValue, children
     ensureInitial()
   }, [ensureInitial])
 
+  useEffect(() => {
+    if (!context?.subscribe) return undefined
+    return context.subscribe((changed, all) => {
+      if (FORM_ALL_FIELDS_KEY in changed || nameKey in changed) {
+        const nextRaw = getValueByName(all, name)
+        setListValue(Array.isArray(nextRaw) ? nextRaw : [])
+      }
+    })
+  }, [context, name, nameKey])
+
   if (!context) {
     return null
   }
-
-  const listValueRaw = getValueByName(context.values, name)
-  const listValue: unknown[] = Array.isArray(listValueRaw) ? listValueRaw : []
 
   const fields: FormListField[] = listValue.map((_, index) => ({
     name: index,

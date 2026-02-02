@@ -32,7 +32,7 @@ export interface RegisteredFieldOptions {
 export interface FormInstance {
   submit: () => Promise<Record<string, unknown> | undefined>
   getFieldsValue: () => Record<string, unknown>
-  setFieldsValue: (values: Record<string, unknown>) => void
+  setFieldsValue: (values: Record<string, unknown>, options?: { validate?: boolean }) => void
   resetFields: () => void
   validateFields: (names?: NamePath[]) => Promise<Record<string, unknown>>
   getFieldError: (name: NamePath) => string[]

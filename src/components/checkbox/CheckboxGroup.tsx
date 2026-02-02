@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, useRef } from 'react'
+import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState } from '@react-stately/checkbox'
@@ -65,10 +65,10 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
 
   const groupPropsRecord = (groupProps ?? {}) as Record<string, unknown>
   const { [' aria-disabled']: __ariaDisabledTypo, ...restGroupProps } = groupPropsRecord
-  const resolvedGroupProps = {
+  const resolvedGroupProps = useMemo(() => ({
     ...restGroupProps,
     'aria-disabled': disabled,
-  }
+  }), [disabled, restGroupProps])
 
   const registerValue = useCallback((key: string, raw: CheckboxValue, itemDisabled?: boolean) => {
     registryRef.current.set(key, { value: raw, disabled: itemDisabled })
@@ -78,10 +78,14 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     registryRef.current.delete(key)
   }, [])
 
-  const childrenArray = React.Children.toArray(children).filter(child => child != null && !isBoolean(child))
+  const childrenArray = useMemo(
+    () => React.Children.toArray(children).filter(child => child != null && !isBoolean(child)),
+    [children]
+  )
+  const childrenLength = childrenArray.length
 
-  const itemStyleForIndex = (index: number): StyleProp<ViewStyle> => {
-    const isLast = index === childrenArray.length - 1
+  const itemStyleForIndex = useCallback((index: number): StyleProp<ViewStyle> => {
+    const isLast = index === childrenLength - 1
     if (direction === 'horizontal') {
       return [
         tokens.layout.groupItem,
@@ -89,7 +93,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
       ]
     }
     return isLast ? tokens.layout.groupItem : [tokens.layout.groupItem, { marginBottom: gap }]
-  }
+  }, [childrenLength, direction, gap, tokens.layout.groupItem])
 
   const toggleAll = useCallback(
     (options: boolean | { checked?: boolean; skipDisabled?: boolean } = {}) => {
@@ -124,7 +128,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
 
   useImperativeHandle(ref, () => ({ toggleAll }), [toggleAll])
 
-  const contextValue = {
+  const contextValue = useMemo(() => ({
     state,
     direction,
     shape,
@@ -135,7 +139,55 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     max,
     registerValue,
     unregisterValue,
-  }
+  }), [
+    checkedColor,
+    direction,
+    iconRender,
+    iconSize,
+    labelDisabled,
+    max,
+    registerValue,
+    shape,
+    state,
+    unregisterValue,
+  ])
+
+  const containerStyle = useMemo(() => ([
+    direction === 'horizontal' ? tokens.layout.groupHorizontal : tokens.layout.groupVertical,
+    supportsGap
+      ? {
+        columnGap: direction === 'horizontal' ? gap : undefined,
+        rowGap: gap,
+      }
+      : null,
+    style,
+  ]), [direction, gap, style, supportsGap, tokens.layout.groupHorizontal, tokens.layout.groupVertical])
+
+  const renderedChildren = useMemo(
+    () =>
+      supportsGap
+        ? childrenArray
+        : childrenArray.map((child, index) => {
+          const key: React.Key =
+            React.isValidElement(child) && child.key !== null ? child.key : index
+          const itemStyle = itemStyleForIndex(index)
+
+          if (React.isValidElement(child) && child.type !== React.Fragment) {
+            const element = child as React.ReactElement<{ style?: StyleProp<ViewStyle> }>
+            return React.cloneElement(element, {
+              style: [element.props.style, itemStyle],
+              key,
+            })
+          }
+
+          return (
+            <View key={key} style={itemStyle}>
+              {child}
+            </View>
+          )
+        }),
+    [childrenArray, itemStyleForIndex, supportsGap]
+  )
 
   return (
     <CheckboxGroupContext.Provider
@@ -146,38 +198,9 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
         {...viewProps}
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
-        style={[
-          direction === 'horizontal' ? tokens.layout.groupHorizontal : tokens.layout.groupVertical,
-          supportsGap
-            ? {
-              columnGap: direction === 'horizontal' ? gap : undefined,
-              rowGap: gap,
-            }
-            : null,
-          style,
-        ]}
+        style={containerStyle}
       >
-        {supportsGap
-          ? childrenArray
-          : childrenArray.map((child, index) => {
-            const key: React.Key =
-              React.isValidElement(child) && child.key !== null ? child.key : index
-            const itemStyle = itemStyleForIndex(index)
-
-            if (React.isValidElement(child) && child.type !== React.Fragment) {
-              const element = child as React.ReactElement<{ style?: StyleProp<ViewStyle> }>
-              return React.cloneElement(element, {
-                style: [element.props.style, itemStyle],
-                key,
-              })
-            }
-
-            return (
-              <View key={key} style={itemStyle}>
-                {child}
-              </View>
-            )
-          })}
+        {renderedChildren}
       </View>
     </CheckboxGroupContext.Provider>
   )

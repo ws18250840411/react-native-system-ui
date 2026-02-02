@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useMemo } from 'react'
 import {
   Pressable,
   Text,
@@ -33,12 +33,12 @@ export const GridItem: React.FC<GridItemProps> = props => {
 
   const { tokens, columnNum, gutter, border, center, square, direction, reverse, clickable, iconSize, iconColor, count } = context
 
-  const widthPercent = `${100 / columnNum}%` as DimensionValue
-  const isLastColumn = (gridItemIndex + 1) % columnNum === 0
-  const rowIndex = Math.floor(gridItemIndex / columnNum)
-  const lastRowIndex = Math.floor((count - 1) / columnNum)
+  const widthPercent = useMemo(() => `${100 / columnNum}%` as DimensionValue, [columnNum])
+  const isLastColumn = useMemo(() => (gridItemIndex + 1) % columnNum === 0, [columnNum, gridItemIndex])
+  const rowIndex = useMemo(() => Math.floor(gridItemIndex / columnNum), [columnNum, gridItemIndex])
+  const lastRowIndex = useMemo(() => Math.floor((count - 1) / columnNum), [columnNum, count])
 
-  const contentWrapperStyle = [
+  const contentWrapperStyle = useMemo(() => ([
     tokens.layout.itemContentBase,
     direction === 'horizontal' ? tokens.layout.itemHorizontal : tokens.layout.itemVertical,
     center && tokens.layout.itemCenter,
@@ -50,15 +50,34 @@ export const GridItem: React.FC<GridItemProps> = props => {
       backgroundColor: tokens.colors.background,
     },
     contentStyle,
-  ]
+  ]), [
+    center,
+    contentStyle,
+    direction,
+    reverse,
+    square,
+    tokens.colors.background,
+    tokens.layout.itemContentBase,
+    tokens.layout.itemContentSquare,
+    tokens.layout.itemHorizontal,
+    tokens.layout.itemReverseColumn,
+    tokens.layout.itemReverseRow,
+    tokens.layout.itemVertical,
+    tokens.layout.itemCenter,
+    tokens.spacing.paddingHorizontal,
+    tokens.spacing.paddingVertical,
+  ])
 
   const hasText = isRenderable(text)
-  const resolvedIconColor = iconColorProp ?? iconColor ?? tokens.colors.text
+  const resolvedIconColor = useMemo(
+    () => iconColorProp ?? iconColor ?? tokens.colors.text,
+    [iconColor, iconColorProp, tokens.colors.text]
+  )
 
-  let innerContent: React.ReactNode = children
+  const innerContent = useMemo(() => {
+    if (children) return children
 
-  if (!innerContent) {
-    let iconElement = null
+    let iconElement: React.ReactNode = null
     if (icon || badge || dot) {
       const { style: badgeWrapperStyle, ...badgeRest } = badge ?? {}
       const marginKey = direction === 'vertical'
@@ -103,42 +122,68 @@ export const GridItem: React.FC<GridItemProps> = props => {
       ) : text
     )
 
-    innerContent = <>{iconElement}{textElement}</>
-  }
+    return <>{iconElement}{textElement}</>
+  }, [
+    badge,
+    center,
+    children,
+    direction,
+    dot,
+    hasText,
+    icon,
+    iconSize,
+    resolvedIconColor,
+    reverse,
+    text,
+    textStyle,
+    tokens.colors.text,
+    tokens.defaults.textNumberOfLines,
+    tokens.layout.iconWrapper,
+    tokens.layout.text,
+    tokens.spacing.iconGap,
+    tokens.typography.fontFamily,
+    tokens.typography.fontSize,
+    tokens.typography.fontWeight,
+    tokens.typography.lineHeight,
+  ])
 
-  const rightBorder = border && !gutter && !isLastColumn && (
-    <View
-      style={[
-        tokens.layout.itemBorderRight,
-        createHairlineView({ position: 'right', color: tokens.colors.border, top: 0, bottom: 0, right: 0 }),
-      ]}
-    />
-  )
+  const rightBorder = useMemo(() => (
+    border && !gutter && !isLastColumn ? (
+      <View
+        style={[
+          tokens.layout.itemBorderRight,
+          createHairlineView({ position: 'right', color: tokens.colors.border, top: 0, bottom: 0, right: 0 }),
+        ]}
+      />
+    ) : null
+  ), [border, gutter, isLastColumn, tokens.colors.border, tokens.layout.itemBorderRight])
 
-  const bottomBorder = border && !gutter && rowIndex < lastRowIndex && (
-    <View
-      style={[
-        tokens.layout.itemBorderBottom,
-        createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0, bottom: 0 }),
-      ]}
-    />
-  )
+  const bottomBorder = useMemo(() => (
+    border && !gutter && rowIndex < lastRowIndex ? (
+      <View
+        style={[
+          tokens.layout.itemBorderBottom,
+          createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0, bottom: 0 }),
+        ]}
+      />
+    ) : null
+  ), [border, gutter, lastRowIndex, rowIndex, tokens.colors.border, tokens.layout.itemBorderBottom])
 
-  const content = (
+  const content = useMemo(() => (
     <View style={contentWrapperStyle}>
       {innerContent}
       {rightBorder}
       {bottomBorder}
     </View>
-  )
+  ), [bottomBorder, contentWrapperStyle, innerContent, rightBorder])
 
-  const baseItemStyle: ViewStyle = {
+  const baseItemStyle: ViewStyle = useMemo(() => ({
     width: widthPercent,
     flexGrow: 0,
     flexShrink: 0,
     paddingRight: gutter ? gutter : undefined,
     marginTop: gutter && rowIndex > 0 ? gutter : undefined,
-  }
+  }), [gutter, rowIndex, widthPercent])
 
   const isInteractive = clickable || isFunction(onPress)
 

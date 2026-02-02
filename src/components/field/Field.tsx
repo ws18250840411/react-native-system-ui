@@ -1,4 +1,4 @@
-import React, { useCallback, useId, useImperativeHandle, useRef, useState } from 'react'
+import React, { useCallback, useId, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   Platform,
   Pressable,
@@ -93,7 +93,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const rows = rowsProp ?? tokens.defaults.rows
   const formatTrigger = formatTriggerProp ?? tokens.defaults.formatTrigger
 
-  const mergedTitleStyle = [
+  const mergedTitleStyle = useMemo(() => ([
     {
       width: labelWidth,
       minWidth: labelWidth,
@@ -104,12 +104,14 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       flexGrow: 0,
     },
     titleStyle,
-  ]
+  ]), [labelWidth, titleStyle, tokens.spacing.labelGap])
 
-  const resolvedSuffix = suffixProp ?? button
-  const resolvedDescription = intro ?? description
-  const resolvedPlaceholderColor =
-    placeholderTextColor ?? (disabled ? tokens.colors.disabled : tokens.colors.placeholder)
+  const resolvedSuffix = useMemo(() => suffixProp ?? button, [button, suffixProp])
+  const resolvedDescription = useMemo(() => intro ?? description, [description, intro])
+  const resolvedPlaceholderColor = useMemo(
+    () => placeholderTextColor ?? (disabled ? tokens.colors.disabled : tokens.colors.placeholder),
+    [disabled, placeholderTextColor, tokens.colors.disabled, tokens.colors.placeholder]
+  )
 
   const isTextarea = type === 'textarea'
   const isControlled = valueProp !== undefined
@@ -120,32 +122,46 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const inputRef = useRef<TextInput>(null)
   const introId = useId()
   const errorId = useId()
-  const describedBy = (() => {
+  const describedBy = useMemo(() => {
     const ids = [
       isRenderable(errorMessage) ? errorId : null,
       isRenderable(resolvedDescription) ? introId : null,
     ].filter(Boolean) as string[]
     return ids.length ? ids : undefined
-  })()
+  }, [errorId, errorMessage, introId, resolvedDescription])
 
   const lineHeight = tokens.defaults.textareaLineHeight
-  const autoSizeConfig = autoSize && isObject(autoSize) ? autoSize : undefined
-  const minRows = !isTextarea
-    ? 1
-    : autoSizeConfig && isDef(autoSizeConfig.minRows)
-      ? Math.max(1, autoSizeConfig.minRows!)
-      : Math.max(1, rows)
-  const maxRows =
-    !isTextarea
+  const autoSizeConfig = useMemo(
+    () => (autoSize && isObject(autoSize) ? autoSize : undefined),
+    [autoSize]
+  )
+  const minRows = useMemo(
+    () => (!isTextarea
+      ? 1
+      : autoSizeConfig && isDef(autoSizeConfig.minRows)
+        ? Math.max(1, autoSizeConfig.minRows!)
+        : Math.max(1, rows)),
+    [autoSizeConfig, isTextarea, rows]
+  )
+  const maxRows = useMemo(
+    () => (!isTextarea
       ? undefined
       : autoSizeConfig && isDef(autoSizeConfig.maxRows)
         ? Math.max(1, autoSizeConfig.maxRows!)
-        : undefined
+        : undefined),
+    [autoSizeConfig, isTextarea]
+  )
 
-  const minHeight = isTextarea
-    ? Math.max(tokens.sizes.textareaMinHeight, minRows * lineHeight)
-    : undefined
-  const maxHeight = isTextarea && maxRows ? Math.max(tokens.sizes.textareaMinHeight, maxRows * lineHeight) : undefined
+  const minHeight = useMemo(
+    () => (isTextarea
+      ? Math.max(tokens.sizes.textareaMinHeight, minRows * lineHeight)
+      : undefined),
+    [isTextarea, lineHeight, minRows, tokens.sizes.textareaMinHeight]
+  )
+  const maxHeight = useMemo(
+    () => (isTextarea && maxRows ? Math.max(tokens.sizes.textareaMinHeight, maxRows * lineHeight) : undefined),
+    [isTextarea, lineHeight, maxRows, tokens.sizes.textareaMinHeight]
+  )
   const [textareaHeight, setTextareaHeight] = useState<number | undefined>(minHeight)
 
   const formatValue = useCallback(
@@ -526,13 +542,13 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     )
   }
 
-  const contentWrapperStyle = [
+  const contentWrapperStyle = useMemo(() => ([
     {
       width: '100%' as const,
       justifyContent: alignMap[controlAlign],
     },
     contentStyle,
-  ]
+  ]), [contentStyle, controlAlign])
 
   const renderAffix = (node: React.ReactNode) => {
     if (isText(node)) {

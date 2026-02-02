@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useRef } from 'react'
 import {
   Pressable,
   Text,
@@ -60,12 +60,15 @@ export const Radio = React.memo((props: RadioProps) => {
   const standaloneKey = serializedValue ?? 'standalone'
 
   const inputRef = useRef<View>(null)
-  const resolvedAccessibilityLabel =
-    accessibilityLabel ??
-    ariaLabel ??
-    (isText(children) ? String(children) : undefined) ??
-    serializedValue ??
-    'radio'
+  const resolvedAccessibilityLabel = useMemo(
+    () =>
+      accessibilityLabel ??
+      ariaLabel ??
+      (isText(children) ? String(children) : undefined) ??
+      serializedValue ??
+      'radio',
+    [accessibilityLabel, ariaLabel, children, serializedValue]
+  )
 
   const { isSelected: standaloneSelected, setSelected: setStandaloneSelected } =
     useToggleState({
@@ -160,47 +163,68 @@ export const Radio = React.memo((props: RadioProps) => {
       : tokens.colors.border
   const backgroundColor = resolvedDisabled ? tokens.colors.disabledBackground : tokens.colors.background
 
-  const spacingStyle =
-    resolvedLabelPosition === 'left'
-      ? { marginRight: tokens.spacing.gap }
-      : { marginLeft: tokens.spacing.gap }
-  const labelColor = resolvedDisabled ? tokens.colors.labelDisabled : tokens.colors.label
-
-  const borderRadius =
-    shape === 'square' ? tokens.radii.square : tokens.radii.round
-
-  const labelNode = children === null || children === undefined || children === false ? null : (
-    <View
-      style={[tokens.layout.labelWrapper, spacingStyle]}
-      pointerEvents="none"
-      accessible={false}
-    >
-      {isText(children) ? (
-        <Text
-          accessible={false}
-          style={[
-            tokens.layout.label,
-            {
-              color: labelColor,
-              fontSize: tokens.typography.fontSize,
-              lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-              fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.fontWeight,
-            },
-            labelStyle,
-          ]}
-        >
-          {children}
-        </Text>
-      ) : (
-        children
-      )}
-    </View>
+  const spacingStyle = useMemo(
+    () =>
+      resolvedLabelPosition === 'left'
+        ? { marginRight: tokens.spacing.gap }
+        : { marginLeft: tokens.spacing.gap },
+    [resolvedLabelPosition, tokens.spacing.gap]
   )
+  const labelColor = useMemo(
+    () => (resolvedDisabled ? tokens.colors.labelDisabled : tokens.colors.label),
+    [resolvedDisabled, tokens.colors.label, tokens.colors.labelDisabled]
+  )
+
+  const borderRadius = useMemo(
+    () => (shape === 'square' ? tokens.radii.square : tokens.radii.round),
+    [shape, tokens.radii.round, tokens.radii.square]
+  )
+
+  const labelNode = useMemo(() => (
+    children === null || children === undefined || children === false ? null : (
+      <View
+        style={[tokens.layout.labelWrapper, spacingStyle]}
+        pointerEvents="none"
+        accessible={false}
+      >
+        {isText(children) ? (
+          <Text
+            accessible={false}
+            style={[
+              tokens.layout.label,
+              {
+                color: labelColor,
+                fontSize: tokens.typography.fontSize,
+                lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+                fontFamily: tokens.typography.fontFamily,
+                fontWeight: tokens.typography.fontWeight,
+              },
+              labelStyle,
+            ]}
+          >
+            {children}
+          </Text>
+        ) : (
+          children
+        )}
+      </View>
+    )
+  ), [
+    children,
+    labelColor,
+    labelStyle,
+    spacingStyle,
+    tokens.layout.label,
+    tokens.layout.labelWrapper,
+    tokens.typography.fontFamily,
+    tokens.typography.fontSize,
+    tokens.typography.fontWeight,
+    tokens.typography.lineHeightMultiplier,
+  ])
 
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
 
-  const defaultIcon = (
+  const defaultIcon = useMemo(() => (
     <View
       style={[
         tokens.layout.icon,
@@ -225,7 +249,17 @@ export const Radio = React.memo((props: RadioProps) => {
         />
       ) : null}
     </View>
-  )
+  ), [
+    backgroundColor,
+    borderColor,
+    borderRadius,
+    isChecked,
+    resolvedCheckedColor,
+    resolvedIconSize,
+    tokens.borders.width,
+    tokens.layout.icon,
+    tokens.sizing.dotScale,
+  ])
 
   const iconVisual = iconRender
     ? iconRender({

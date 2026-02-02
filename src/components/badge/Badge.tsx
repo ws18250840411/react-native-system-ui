@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Pressable, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 
 import { isNumericLike, isRenderable } from '../../utils'
@@ -28,7 +28,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   const resolvedShowZero = showZero ?? tokens.defaults.showZero
   const hasChildren = React.Children.count(children) > 0
 
-  const { visible, formattedContent } = (() => {
+  const { visible, formattedContent } = useMemo(() => {
     const numericContent = isNumericLike(content) ? Number(content) : null
     const shouldHide = numericContent === 0 && !resolvedShowZero
     const isVisible = dot || (isRenderable(content) && !shouldHide)
@@ -42,7 +42,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
         : content
 
     return { visible: true, formattedContent: finalContent }
-  })()
+  }, [content, dot, max, resolvedShowZero])
 
   const [size, setSize] = useState({ width: 0, height: 0 })
 
@@ -56,7 +56,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     [size.width, size.height]
   )
 
-  const transformStyle = (() => {
+  const transformStyle = useMemo(() => {
     if (!hasChildren) return undefined
     if (dot) {
       const half = tokens.sizing.dotSize / 2
@@ -69,27 +69,43 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
         { translateY: -size.height / 2 },
       ],
     }
-  })()
+  }, [dot, hasChildren, size.height, size.width, tokens.sizing.dotSize])
 
-  const baseBadgeStyle = dot
-    ? {
-      width: tokens.sizing.dotSize,
-      height: tokens.sizing.dotSize,
-      borderRadius: tokens.radii.dot,
-      backgroundColor: color ?? tokens.colors.dot,
-    }
-    : {
-      minWidth: tokens.sizing.minWidth,
-      minHeight: tokens.sizing.height,
-      paddingHorizontal: tokens.sizing.paddingHorizontal,
-      paddingVertical: tokens.sizing.paddingVertical,
-      borderRadius: tokens.radii.badge,
-      borderWidth: tokens.borders.width,
-      borderColor: tokens.colors.border,
-      backgroundColor: color ?? tokens.colors.background,
-    }
+  const baseBadgeStyle = useMemo(() => (
+    dot
+      ? {
+        width: tokens.sizing.dotSize,
+        height: tokens.sizing.dotSize,
+        borderRadius: tokens.radii.dot,
+        backgroundColor: color ?? tokens.colors.dot,
+      }
+      : {
+        minWidth: tokens.sizing.minWidth,
+        minHeight: tokens.sizing.height,
+        paddingHorizontal: tokens.sizing.paddingHorizontal,
+        paddingVertical: tokens.sizing.paddingVertical,
+        borderRadius: tokens.radii.badge,
+        borderWidth: tokens.borders.width,
+        borderColor: tokens.colors.border,
+        backgroundColor: color ?? tokens.colors.background,
+      }
+  ), [
+    color,
+    dot,
+    tokens.borders.width,
+    tokens.colors.background,
+    tokens.colors.border,
+    tokens.colors.dot,
+    tokens.radii.badge,
+    tokens.radii.dot,
+    tokens.sizing.dotSize,
+    tokens.sizing.height,
+    tokens.sizing.minWidth,
+    tokens.sizing.paddingHorizontal,
+    tokens.sizing.paddingVertical,
+  ])
 
-  const mergedTextStyle = [
+  const mergedTextStyle = useMemo(() => ([
     tokens.layout.text,
     {
       color: textColor ?? tokens.colors.text,
@@ -99,13 +115,22 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
       fontWeight: tokens.typography.fontWeight,
     },
     userTextStyle,
-  ]
+  ]), [
+    textColor,
+    tokens.colors.text,
+    tokens.layout.text,
+    tokens.typography.fontFamily,
+    tokens.typography.fontSize,
+    tokens.typography.fontWeight,
+    tokens.typography.lineHeight,
+    userTextStyle,
+  ])
 
-  const offsetStyle = (() => {
+  const offsetStyle = useMemo(() => {
     if (!offset) return undefined
     const [x, y] = offset
     return (hasChildren ? { right: x, top: y } : { marginLeft: x, marginTop: y }) as ViewStyle
-  })()
+  }, [hasChildren, offset])
 
   const badgeElement = !visible ? null : (
     <View

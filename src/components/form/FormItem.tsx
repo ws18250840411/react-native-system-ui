@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useRef } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 
 import { isFunction, isString } from '../../utils'
 import { FormContext } from './FormContext'
 import type { FormItemProps, FormItemRule } from './types'
-import { normalizeTrigger } from './utils'
+import { FORM_ALL_FIELDS_KEY, normalizeTrigger, serializeNamePath } from './utils'
 
 export type { FormItemProps, FormItemRule } from './types'
 
@@ -45,13 +45,39 @@ export const FormItem: React.FC<FormItemProps> = ({
   }
 
   const normalizedRules = rules ?? EMPTY_RULES
-  const prevValuesRef = useRef<Record<string, unknown>>(context.values)
+  const prevValuesRef = useRef<Record<string, unknown>>(context.getFieldsValue())
+  const [, forceUpdate] = useState(0)
+  const nameKey = name ? serializeNamePath(name) : undefined
+  const subscribeAll = renderProps && !nameKey && !shouldUpdate
 
   useEffect(() => {
-    prevValuesRef.current = context.values
-  }, [context.values])
+    if (!context?.subscribe) return undefined
+    return context.subscribe((changed, all) => {
+      if (FORM_ALL_FIELDS_KEY in changed) {
+        forceUpdate(version => version + 1)
+        return
+      }
+      if (subscribeAll) {
+        forceUpdate(version => version + 1)
+        return
+      }
+      if (shouldUpdate) {
+        if (shouldUpdate(prevValuesRef.current, all)) {
+          forceUpdate(version => version + 1)
+        }
+        return
+      }
+      if (nameKey && nameKey in changed) {
+        forceUpdate(version => version + 1)
+      }
+    })
+  }, [context, nameKey, shouldUpdate, subscribeAll])
 
-  const shouldRender = !shouldUpdate || shouldUpdate(prevValuesRef.current, context.values)
+  const currentValues = context.getFieldsValue()
+  useEffect(() => {
+    prevValuesRef.current = currentValues
+  }, [currentValues])
+  const shouldRender = !shouldUpdate || shouldUpdate(prevValuesRef.current, currentValues)
 
   useEffect(() => {
     if (!name) return undefined

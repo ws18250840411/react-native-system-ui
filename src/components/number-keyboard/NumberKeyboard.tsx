@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -121,7 +121,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     }
   }, [visible, closeSelf])
 
-  const keys = (() => {
+  const keys = useMemo(() => {
     const shouldShuffle = randomKeyOrder && visible
     const numbers = shouldShuffle ? shuffle(NUMBER_KEYS) : NUMBER_KEYS
     const main: KeyboardKey[] = numbers.map(text => ({ text, type: '' }))
@@ -147,7 +147,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     main.push({ text: ZERO_KEY, type: '' })
     main.push({ type: showDeleteKey ? 'delete' : '', text: showDeleteKey ? undefined : '' })
     return main
-  })()
+  }, [extraKey, isCustomTheme, randomKeyOrder, showDeleteKey, visible])
 
   const handleInput = useCallback(
     (text?: string, type?: NumberKeyboardKeyType) => {
@@ -172,13 +172,13 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     [closeSelf, onDelete, onInput, setMergedValue],
   )
 
-  const wrapperShadow = createPlatformShadow({
+  const wrapperShadow = useMemo(() => createPlatformShadow({
     color: shadow.color,
     opacity: shadow.opacity,
     radius: shadow.radius,
     offsetY: shadow.offsetY,
     elevation: shadow.elevation,
-  })
+  }), [shadow.color, shadow.elevation, shadow.offsetY, shadow.opacity, shadow.radius])
 
   const keyGap = spacing.keyGap
 
@@ -349,7 +349,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
 
   const hasHeader = !isCustomTheme && (title || closeButtonText)
   const doubleKeyHeight = sizing.keyHeight * 2 + keyGap
-  const memo = (() => {
+  const memo = useMemo(() => {
     const headerPaddingStyle = { paddingHorizontal: spacing.titlePadding }
     const defaultContainerStyle = [
       styles.defaultRow,
@@ -465,7 +465,23 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     )
     const safeAreaNode = safeAreaInsetBottom && <SafeAreaView edge="bottom" />
     return { headerNode, bodyNode, safeAreaNode }
-  })()
+  }, [
+    closeSelf,
+    colors.title,
+    doubleKeyHeight,
+    extraKeyRender,
+    hasHeader,
+    isCustomTheme,
+    keyGap,
+    keys,
+    renderKey,
+    resolvedCloseText,
+    safeAreaInsetBottom,
+    sizing.titleFontSize,
+    spacing.paddingHorizontal,
+    spacing.titlePadding,
+    title,
+  ])
 
   if (!shouldRender && !visible) {
     return null

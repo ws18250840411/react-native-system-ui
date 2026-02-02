@@ -5,6 +5,7 @@ import React, {
   useImperativeHandle,
   useRef,
   useState,
+  useMemo,
   Children,
   isValidElement,
   Fragment,
@@ -290,7 +291,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
       : { autoHeight: true, preventScroll: true }
   const isSwipeable = !!swipeableConfig
 
-  const panes = (() => {
+  const panes = useMemo(() => {
     const result: ParsedPane[] = []
     let paneIndex = 0
 
@@ -319,7 +320,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
 
     walk(children)
     return result
-  })()
+  }, [children])
 
   const firstPaneName = panes[0]?.name
   const [activeValue, setActiveValue] = useControllableValue<TabsValue>(props, {
@@ -336,13 +337,13 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     currentNameRef.current = currentName
   }, [currentName])
 
-  const nameIndexMap = (() => {
+  const nameIndexMap = useMemo(() => {
     const map = new Map<TabsValue, number>()
     panes.forEach(pane => {
       map.set(pane.name, pane.index)
     })
     return map
-  })()
+  }, [panes])
 
   const activeIndex = currentName == null ? -1 : (nameIndexMap.get(currentName) ?? -1)
 
@@ -587,38 +588,76 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     return null
   }
 
-  const indicatorNode = showIndicator ? (
-    <Animated.View testID="rv-tabs-indicator" style={[styles.indicator, {
-      height: resolvedLineHeight,
-      borderRadius: indicatorCornerRadius,
-      backgroundColor: indicatorColor,
-      width: indicatorWidth,
-      bottom: indicatorBottom,
-      transform: [{ translateX: indicatorX }],
-    }]} />
-  ) : null
+  const indicatorNode = useMemo(() => {
+    if (!showIndicator) return null
+    return (
+      <Animated.View testID="rv-tabs-indicator" style={[styles.indicator, {
+        height: resolvedLineHeight,
+        borderRadius: indicatorCornerRadius,
+        backgroundColor: indicatorColor,
+        width: indicatorWidth,
+        bottom: indicatorBottom,
+        transform: [{ translateX: indicatorX }],
+      }]} />
+    )
+  }, [indicatorBottom, indicatorColor, indicatorCornerRadius, indicatorWidth, indicatorX, resolvedLineHeight, showIndicator])
 
-  const navItems = panes.map(pane => (
-    <TabBarItem
-      key={pane.key}
-      pane={pane}
-      isActive={pane.name === currentName}
-      align={align}
-      scrollable={scrollable}
-      type={type}
-      ellipsis={ellipsis}
-      tokens={tokens}
-      color={color}
-      titleActiveColor={titleActiveColor}
-      titleInactiveColor={titleInactiveColor}
-      tabStyle={tabStyle}
-      titleStyle={titleStyle}
-      descriptionStyle={descriptionStyle}
-      onSelect={handleSelect}
-      onLayout={handleTabLayout}
-      isLast={pane.index === panes.length - 1}
-    />
-  ))
+  const navItems = useMemo(
+    () => panes.map(pane => (
+      <TabBarItem
+        key={pane.key}
+        pane={pane}
+        isActive={pane.name === currentName}
+        align={align}
+        scrollable={scrollable}
+        type={type}
+        ellipsis={ellipsis}
+        tokens={tokens}
+        color={color}
+        titleActiveColor={titleActiveColor}
+        titleInactiveColor={titleInactiveColor}
+        tabStyle={tabStyle}
+        titleStyle={titleStyle}
+        descriptionStyle={descriptionStyle}
+        onSelect={handleSelect}
+        onLayout={handleTabLayout}
+        isLast={pane.index === panes.length - 1}
+      />
+    )),
+    [
+      align,
+      color,
+      currentName,
+      descriptionStyle,
+      ellipsis,
+      handleSelect,
+      handleTabLayout,
+      panes,
+      scrollable,
+      tabStyle,
+      titleActiveColor,
+      titleInactiveColor,
+      titleStyle,
+      tokens,
+      type,
+    ]
+  )
+
+  const handleNavContentSizeChange = useCallback((w: number) => {
+    const prev = navContentWidthRef.current
+    navContentWidthRef.current = w
+    if (prev === 0 || firstRenderRef.current) {
+      scrollIntoView(true)
+      return
+    }
+    if (Math.abs(w - prev) > 1) {
+      cancelFrame(navContentSizeSyncFrameRef.current)
+      navContentSizeSyncFrameRef.current = requestFrame(() => {
+        navContentSizeSyncFrameRef.current = null
+        scrollIntoView()
+      })
+    }
+  }, [scrollIntoView])
 
   const navBody = scrollable ? (
     <ScrollView
@@ -629,21 +668,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
       scrollEventThrottle={16}
       onScrollBeginDrag={handleNavScrollBeginDrag}
       onScroll={handleNavScroll}
-      onContentSizeChange={(w: number) => {
-        const prev = navContentWidthRef.current
-        navContentWidthRef.current = w
-        if (prev === 0 || firstRenderRef.current) {
-          scrollIntoView(true)
-          return
-        }
-        if (Math.abs(w - prev) > 1) {
-          cancelFrame(navContentSizeSyncFrameRef.current)
-          navContentSizeSyncFrameRef.current = requestFrame(() => {
-            navContentSizeSyncFrameRef.current = null
-            scrollIntoView()
-          })
-        }
-      }}
+      onContentSizeChange={handleNavContentSizeChange}
       contentContainerStyle={styles.navContent}
     >
       {navItems}
@@ -690,7 +715,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     </View>
   )
 
-  const paneNodes = panes.map(pane => {
+  const paneNodes = useMemo(() => panes.map(pane => {
     const isActive = pane.name === currentName
     const shouldRender =
       !lazyRender || isActive || visitedRef.current.has(pane.name)
@@ -713,14 +738,17 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
         {paneContent}
       </View>
     )
-  })
+  }), [containerWidth, currentName, handlePaneLayout, isSwipeable, lazyRender, lazyRenderPlaceholder, panes, swipeableConfig?.autoHeight])
 
-  const baseContentStyle = [styles.content, contentStyle]
-  const swipeableContentStyle = [
-    styles.content,
-    contentStyle,
-    swipeableConfig?.autoHeight && swipeableHeight !== undefined && { height: swipeableHeight },
-  ]
+  const baseContentStyle = useMemo(() => [styles.content, contentStyle], [contentStyle])
+  const swipeableContentStyle = useMemo(
+    () => [
+      styles.content,
+      contentStyle,
+      swipeableConfig?.autoHeight && swipeableHeight !== undefined && { height: swipeableHeight },
+    ],
+    [contentStyle, swipeableConfig?.autoHeight, swipeableHeight]
+  )
 
   const contentNode = isSwipeable ? (
     <View style={swipeableContentStyle}>

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import { Pressable, Text, View, type PressableStateCallbackType } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
@@ -313,6 +313,84 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     [onSelect, requestClose, shouldCloseOnClickAction]
   )
 
+  const popupStyleMemo = useMemo(() => ([
+    tokens.layout.popup,
+    popupStyle,
+  ]), [popupStyle, tokens.layout.popup])
+
+  const panelStyle = useMemo(
+    () => [tokens.layout.panel, { backgroundColor: tokens.colors.background }],
+    [tokens.colors.background, tokens.layout.panel]
+  )
+
+  const headerNode = useMemo(() => (
+    hasTitle ? (
+      <ActionSheetHeader
+        title={title}
+        closeable={closeable}
+        closeIcon={closeIcon}
+        tokens={tokens}
+        onClose={handleCloseIcon}
+      />
+    ) : null
+  ), [closeIcon, closeable, handleCloseIcon, hasTitle, title, tokens])
+
+  const descriptionNode = useMemo(() => (
+    hasDescription ? (
+      <View
+        style={[
+          tokens.layout.descriptionContainer,
+          createHairlineBorderBottom(tokens.colors.border),
+        ]}
+      >
+        {isText(description) ? (
+          <Text
+            style={[
+              tokens.layout.description,
+              {
+                color: tokens.colors.description,
+                fontSize: tokens.typography.description,
+              },
+            ]}
+          >
+            {description}
+          </Text>
+        ) : (
+          <View style={tokens.layout.descriptionNode}>{description}</View>
+        )}
+      </View>
+    ) : null
+  ), [
+    description,
+    hasDescription,
+    tokens.colors.border,
+    tokens.colors.description,
+    tokens.layout.description,
+    tokens.layout.descriptionContainer,
+    tokens.layout.descriptionNode,
+    tokens.typography.description,
+  ])
+
+  const actionNodes = useMemo(
+    () => actions.map((action, index) => (
+      <ActionSheetItem
+        key={action.key ?? index}
+        action={action}
+        index={index}
+        tokens={tokens}
+        onActionPress={handleActionPress}
+      />
+    )),
+    [actions, handleActionPress, tokens]
+  )
+
+  const cancelNode = useMemo(
+    () => (hasCancelText ? (
+      <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={handleCancel} />
+    ) : null),
+    [cancelText, handleCancel, hasCancelText, tokens]
+  )
+
   return (
     <Popup
       visible={visible}
@@ -324,63 +402,17 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
       lockScroll={lockScroll}
       beforeClose={handlePopupBeforeClose}
       onClose={handlePopupClose}
-      style={[
-        tokens.layout.popup,
-        popupStyle,
-      ]}
+      style={popupStyleMemo}
       {...popupProps}
     >
-      <View
-        style={[tokens.layout.panel, { backgroundColor: tokens.colors.background }]}
-      >
-        {hasTitle ? (
-          <ActionSheetHeader
-            title={title}
-            closeable={closeable}
-            closeIcon={closeIcon}
-            tokens={tokens}
-            onClose={handleCloseIcon}
-          />
-        ) : null}
-        {hasDescription ? (
-          <View
-            style={[
-              tokens.layout.descriptionContainer,
-              createHairlineBorderBottom(tokens.colors.border),
-            ]}
-          >
-            {isText(description) ? (
-              <Text
-                style={[
-                  tokens.layout.description,
-                  {
-                    color: tokens.colors.description,
-                    fontSize: tokens.typography.description,
-                  },
-                ]}
-              >
-                {description}
-              </Text>
-            ) : (
-              <View style={tokens.layout.descriptionNode}>{description}</View>
-            )}
-          </View>
-        ) : null}
+      <View style={panelStyle}>
+        {headerNode}
+        {descriptionNode}
         <View style={tokens.layout.actions}>
-          {actions.map((action, index) => (
-            <ActionSheetItem
-              key={action.key ?? index}
-              action={action}
-              index={index}
-              tokens={tokens}
-              onActionPress={handleActionPress}
-            />
-          ))}
+          {actionNodes}
         </View>
         {children}
-        {hasCancelText ? (
-          <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={handleCancel} />
-        ) : null}
+        {cancelNode}
       </View>
     </Popup>
   )

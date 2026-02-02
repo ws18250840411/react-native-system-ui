@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
 import { useLocale } from '../config-provider/useLocale'
@@ -162,20 +162,20 @@ export const Dialog: React.FC<DialogProps> = props => {
     handler?.()
   }
 
-  const handleCloseIcon = () => {
+  const handleCloseIcon = useCallback(() => {
     onClickCloseIcon?.()
     runAction('close', onClose)
-  }
+  }, [onClickCloseIcon, onClose])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (cancelLoading) return
     runAction('cancel', onCancel)
-  }
+  }, [cancelLoading, onCancel])
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (confirmLoading) return
     runAction('confirm', onConfirm)
-  }
+  }, [confirmLoading, onConfirm])
 
   const scaleAnim = useRef(new Animated.Value(0.7)).current
 
@@ -189,38 +189,58 @@ export const Dialog: React.FC<DialogProps> = props => {
     }).start()
   }, [scaleAnim, visible])
 
-  const widthStyle = width
-    ? isNumber(width)
-      ? { width }
-      : { width: String(width) as ViewStyle['width'] }
-    : { width: '90%' as ViewStyle['width'], maxWidth: tokens.sizes.maxWidth }
+  const widthStyle = useMemo(() => (
+    width
+      ? isNumber(width)
+        ? { width }
+        : { width: String(width) as ViewStyle['width'] }
+      : { width: '90%' as ViewStyle['width'], maxWidth: tokens.sizes.maxWidth }
+  ), [tokens.sizes.maxWidth, width])
 
-  const titleWrapperStyle = hasTitle
-    ? [
-      styles.titleWrapper,
-      {
-        paddingTop: hasContent ? tokens.spacing.titlePaddingTop : tokens.spacing.titleIsolatedPadding,
-        paddingBottom: hasContent ? 0 : tokens.spacing.titleIsolatedPadding,
-        paddingHorizontal: hasContent ? tokens.spacing.paddingHorizontal : 0,
-        marginBottom: hasContent ? tokens.spacing.titleGap : 0,
-      },
-    ]
-    : null
+  const titleWrapperStyle = useMemo(() => (
+    hasTitle
+      ? [
+        styles.titleWrapper,
+        {
+          paddingTop: hasContent ? tokens.spacing.titlePaddingTop : tokens.spacing.titleIsolatedPadding,
+          paddingBottom: hasContent ? 0 : tokens.spacing.titleIsolatedPadding,
+          paddingHorizontal: hasContent ? tokens.spacing.paddingHorizontal : 0,
+          marginBottom: hasContent ? tokens.spacing.titleGap : 0,
+        },
+      ]
+      : null
+  ), [
+    hasContent,
+    hasTitle,
+    tokens.spacing.paddingHorizontal,
+    tokens.spacing.titleGap,
+    tokens.spacing.titleIsolatedPadding,
+    tokens.spacing.titlePaddingTop,
+  ])
 
-  const titleTextStyle = hasTitle
-    ? [
-      styles.title,
-      {
-        color: tokens.colors.title,
-        fontSize: tokens.typography.titleSize,
-        lineHeight: tokens.typography.titleLineHeight,
-        fontWeight: tokens.typography.titleWeight,
-      },
-      titleStyle,
-    ]
-    : null
+  const titleTextStyle = useMemo(() => (
+    hasTitle
+      ? [
+        styles.title,
+        {
+          color: tokens.colors.title,
+          fontSize: tokens.typography.titleSize,
+          lineHeight: tokens.typography.titleLineHeight,
+          fontWeight: tokens.typography.titleWeight,
+        },
+        titleStyle,
+      ]
+      : null
+  ), [
+    hasTitle,
+    titleStyle,
+    tokens.colors.title,
+    tokens.typography.titleLineHeight,
+    tokens.typography.titleSize,
+    tokens.typography.titleWeight,
+  ])
 
-  const messageTextStyle = [
+  const messageTextStyle = useMemo(() => ([
     styles.message,
     {
       color: isRoundTheme ? tokens.colors.title : tokens.colors.message,
@@ -229,29 +249,46 @@ export const Dialog: React.FC<DialogProps> = props => {
       textAlign: messageAlign,
     },
     messageStyle,
-  ]
+  ]), [
+    isRoundTheme,
+    messageAlign,
+    messageStyle,
+    tokens.colors.message,
+    tokens.colors.title,
+    tokens.typography.messageLineHeight,
+    tokens.typography.messageSize,
+  ])
 
-  const messageContentStyle = !hasChildren
-    ? {
-      alignItems:
-        messageAlign === 'center'
-          ? ('center' as const)
-          : messageAlign === 'left'
-            ? ('flex-start' as const)
-            : ('flex-end' as const),
-    }
-    : null
+  const messageContentStyle = useMemo(() => (
+    !hasChildren
+      ? {
+        alignItems:
+          messageAlign === 'center'
+            ? ('center' as const)
+            : messageAlign === 'left'
+              ? ('flex-start' as const)
+              : ('flex-end' as const),
+      }
+      : null
+  ), [hasChildren, messageAlign])
 
-  const messageWrapperStyle = [
+  const messageWrapperStyle = useMemo(() => ([
     styles.messageWrapper,
     {
       paddingTop: hasTitle ? tokens.spacing.messagePaddingTop : tokens.spacing.messagePadding,
       paddingBottom: isRoundTheme ? tokens.spacing.roundFooterPadding : tokens.spacing.messagePadding,
       paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
     },
-  ]
+  ]), [
+    hasTitle,
+    isRoundTheme,
+    tokens.spacing.messagePadding,
+    tokens.spacing.messagePaddingHorizontal,
+    tokens.spacing.messagePaddingTop,
+    tokens.spacing.roundFooterPadding,
+  ])
 
-  const footerBorderTopStyle = [
+  const footerBorderTopStyle = useMemo(() => ([
     styles.footerBorderTop,
     createHairlineView({
       position: 'top',
@@ -260,21 +297,25 @@ export const Dialog: React.FC<DialogProps> = props => {
       right: 0,
       top: 0,
     }),
-  ]
+  ]), [tokens.colors.divider])
 
   const mergedCloseOnOverlayPress = closeOnOverlayPress || closeOnClickOverlay
-  const animatedStyle = { transform: [{ scale: scaleAnim }] }
+  const animatedStyle = useMemo(() => ({ transform: [{ scale: scaleAnim }] }), [scaleAnim])
 
-  const roundFooterStyle = [
+  const roundFooterStyle = useMemo(() => ([
     styles.roundFooter,
     {
       paddingTop: tokens.spacing.messagePaddingTop,
       paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
       paddingBottom: tokens.spacing.roundFooterPadding,
     },
-  ]
+  ]), [
+    tokens.spacing.messagePaddingHorizontal,
+    tokens.spacing.messagePaddingTop,
+    tokens.spacing.roundFooterPadding,
+  ])
 
-  const roundFooterNode = hasFooterActions ? (
+  const roundFooterNode = useMemo(() => (hasFooterActions ? (
     <View style={roundFooterStyle}>
       {showCancelButton ? (
         <View
@@ -317,9 +358,26 @@ export const Dialog: React.FC<DialogProps> = props => {
         </View>
       ) : null}
     </View>
-  ) : null
+  ) : null), [
+    cancelButtonColor,
+    cancelLoading,
+    cancelProps?.disabled,
+    cancelText,
+    confirmButtonColor,
+    confirmLoading,
+    confirmProps?.disabled,
+    confirmText,
+    handleCancel,
+    handleConfirm,
+    hasFooterActions,
+    roundFooterStyle,
+    showCancelButton,
+    showConfirmButton,
+    tokens.sizes.roundButtonHeight,
+    tokens.spacing.roundFooterGap,
+  ])
 
-  const defaultFooterNode = hasFooterActions ? (
+  const defaultFooterNode = useMemo(() => (hasFooterActions ? (
     <View style={styles.footer}>
       <View style={footerBorderTopStyle} pointerEvents="none" />
       {showCancelButton ? (
@@ -345,9 +403,41 @@ export const Dialog: React.FC<DialogProps> = props => {
         />
       ) : null}
     </View>
-  ) : null
+  ) : null), [
+    cancelButtonColor,
+    cancelLoading,
+    cancelProps?.disabled,
+    cancelText,
+    confirmButtonColor,
+    confirmLoading,
+    confirmProps?.disabled,
+    confirmText,
+    footerBorderTopStyle,
+    handleCancel,
+    handleConfirm,
+    hasFooterActions,
+    showCancelButton,
+    showConfirmButton,
+    tokens,
+  ])
 
-  const footerNode = footer ?? (isRoundTheme ? roundFooterNode : defaultFooterNode)
+  const footerNode = useMemo(
+    () => footer ?? (isRoundTheme ? roundFooterNode : defaultFooterNode),
+    [defaultFooterNode, footer, isRoundTheme, roundFooterNode]
+  )
+
+  const popupStyleMemo = useMemo(
+    () => [
+      {
+        backgroundColor: tokens.colors.background,
+        borderRadius: tokens.sizes.borderRadius,
+        padding: 0,
+      },
+      widthStyle,
+      style,
+    ],
+    [style, tokens.colors.background, tokens.sizes.borderRadius, widthStyle]
+  )
 
   return (
     <Popup
@@ -363,15 +453,7 @@ export const Dialog: React.FC<DialogProps> = props => {
       onClose={onClose}
       onClosed={onClosed}
       contentAnimationStyle={animatedStyle}
-      style={[
-        {
-          backgroundColor: tokens.colors.background,
-          borderRadius: tokens.sizes.borderRadius,
-          padding: 0,
-        },
-        widthStyle,
-        style,
-      ]}
+      style={popupStyleMemo}
       {...rest}
     >
       {closeable ? (

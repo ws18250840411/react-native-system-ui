@@ -4,6 +4,8 @@ import type { NamePath } from './types'
 export const normalizeTrigger = (trigger?: string | string[]) =>
   trigger ? (Array.isArray(trigger) ? trigger : [trigger]) : []
 
+export const FORM_ALL_FIELDS_KEY = '__form_all__'
+
 export const toNamePath = (name?: NamePath): (string | number)[] => {
   if (name === undefined || name === null) return []
   if (Array.isArray(name)) return name

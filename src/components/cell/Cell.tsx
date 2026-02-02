@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useMemo } from 'react'
 import {
   Pressable,
   Text,
@@ -94,11 +94,11 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
         !!rest.onPressIn ||
         !!rest.onPressOut)
 
-    const containerStyles: StyleProp<ViewStyle> = [
+    const containerStyles: StyleProp<ViewStyle> = useMemo(() => ([
       size === 'large' ? tokens.layout.containerLarge : tokens.layout.container,
       center && tokens.layout.center,
       style,
-    ]
+    ]), [center, size, style, tokens.layout.center, tokens.layout.container, tokens.layout.containerLarge])
 
     const hairline = useHairline({
       show: showBorder,
@@ -108,11 +108,11 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       defaultPaddingHorizontal: tokens.sizing.paddingHorizontal,
     })
 
-    const customContentStyle = [
+    const customContentStyle = useMemo(() => ([
       tokens.layout.customContent,
       { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] },
       contentStyle,
-    ]
+    ]), [center, contentStyle, tokens.layout.customContent])
 
     const bodyContent = (
       <>

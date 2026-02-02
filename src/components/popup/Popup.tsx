@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -207,15 +208,15 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const tokens = usePopupTokens(tokensOverride)
 
-  const shadow = createPlatformShadow({
+  const shadow = useMemo(() => createPlatformShadow({
     color: tokens.shadow.color,
     opacity: tokens.shadow.opacity,
     radius: tokens.shadow.radius,
     offsetY: tokens.shadow.offsetY,
     elevation: tokens.shadow.elevation,
-  })
+  }), [tokens.shadow.color, tokens.shadow.elevation, tokens.shadow.offsetY, tokens.shadow.opacity, tokens.shadow.radius])
 
-  const dynamicStyles = {
+  const dynamicStyles = useMemo(() => ({
     popup: {
       backgroundColor: tokens.colors.background,
       padding: tokens.spacing.padding,
@@ -260,7 +261,27 @@ export const Popup: React.FC<PopupProps> = props => {
       minWidth: tokens.layout.minWidth,
       maxWidth: tokens.layout.centerMaxWidth,
     } as ViewStyle,
-  }
+  }), [
+    shadow,
+    tokens.colors.background,
+    tokens.colors.description,
+    tokens.colors.title,
+    tokens.layout.centerMaxWidth,
+    tokens.layout.maxWidth,
+    tokens.layout.minWidth,
+    tokens.layout.sideWidth,
+    tokens.spacing.closeIconPadding,
+    tokens.spacing.closeIconSize,
+    tokens.spacing.descriptionBottom,
+    tokens.spacing.descriptionHorizontal,
+    tokens.spacing.padding,
+    tokens.spacing.titleBottom,
+    tokens.spacing.titleTop,
+    tokens.typography.descriptionLineHeight,
+    tokens.typography.descriptionSize,
+    tokens.typography.titleSize,
+    tokens.typography.titleWeight,
+  ])
 
   const [mounted, setMounted] = useState(visible)
   const [interactionVisible, setInteractionVisible] = useState(visible)
@@ -379,7 +400,7 @@ export const Popup: React.FC<PopupProps> = props => {
     onClose: () => requestClose('overlay'),
     isDismissable: shouldCloseOnOverlay,
     overlayProps: {
-      accessibilityRole: 'dialog',
+      ...(Platform.OS === 'android' ? {} : { accessibilityRole: 'dialog' }),
       accessibilityLiveRegion: 'polite',
     },
   })
@@ -405,17 +426,17 @@ export const Popup: React.FC<PopupProps> = props => {
         ? windowHeight
         : 0
 
-  const translateTransform = (() => {
+  const translateTransform = useMemo(() => {
     if (!shouldTranslate) return null
     const outputRange: [number, number] = [translateDistance * direction, 0]
     return config.axis === 'y'
       ? { translateY: progress.interpolate({ inputRange: [0, 1], outputRange }) }
       : { translateX: progress.interpolate({ inputRange: [0, 1], outputRange }) }
-  })()
+  }, [config.axis, direction, progress, shouldTranslate, translateDistance])
 
   const baseTransform = translateTransform ? [translateTransform] : []
 
-  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = (() => {
+  const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = useMemo(() => {
     const extraTransform = contentAnimationStyle?.transform
     const transform = Array.isArray(extraTransform) ? [...baseTransform, ...extraTransform] : baseTransform
     const baseStyle = { ...contentAnimationStyle, transform }
@@ -426,7 +447,7 @@ export const Popup: React.FC<PopupProps> = props => {
       return { ...baseStyle, opacity: 1 }
     }
     return baseStyle
-  })()
+  }, [baseTransform, contentAnimationStyle, placement, progress])
 
   const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -444,9 +465,6 @@ export const Popup: React.FC<PopupProps> = props => {
   )
 
   const shouldRender = mounted || visible
-
-  if (!shouldRender) return null
-
   const hidden = !isOpen
 
   const hasCustomCloseIcon = closeIcon != null
@@ -474,45 +492,61 @@ export const Popup: React.FC<PopupProps> = props => {
     ? { left: tokens.spacing.closeIconRight }
     : { right: tokens.spacing.closeIconRight }
 
-  const headerNode = hasHeader ? (
-    <View style={[styles.header, headerPaddingStyle]}>
-      {renderHeaderNode(title, {
-        textStyle: [styles.title, dynamicStyles.title],
-        wrapperStyle: dynamicStyles.titleWrapper,
-      })}
-      {renderHeaderNode(description, {
-        textStyle: [styles.description, dynamicStyles.description],
-        wrapperStyle: dynamicStyles.descriptionWrapper,
-      })}
-    </View>
-  ) : null
+  const headerNode = useMemo(() => {
+    if (!hasHeader) return null
+    return (
+      <View style={[styles.header, headerPaddingStyle]}>
+        {renderHeaderNode(title, {
+          textStyle: [styles.title, dynamicStyles.title],
+          wrapperStyle: dynamicStyles.titleWrapper,
+        })}
+        {renderHeaderNode(description, {
+          textStyle: [styles.description, dynamicStyles.description],
+          wrapperStyle: dynamicStyles.descriptionWrapper,
+        })}
+      </View>
+    )
+  }, [description, dynamicStyles.description, dynamicStyles.descriptionWrapper, dynamicStyles.title, dynamicStyles.titleWrapper, hasHeader, headerPaddingStyle, title])
 
-  const contentBody = hasHeader ? (
+  const contentBody = useMemo(() => (hasHeader ? (
     <>
       {headerNode}
       {children}
     </>
   ) : (
     children
-  )
+  )), [children, hasHeader, headerNode])
 
-  const closeIconNode = closeable ? (
-    <Pressable
-      style={[
-        styles.closeIconBase,
-        dynamicStyles.closeIconBase,
-        closeIconVerticalStyle,
-        closeIconHorizontalStyle,
-        !hasCustomCloseIcon ? dynamicStyles.closeIconDefault : null,
-      ]}
-      hitSlop={8}
-      onPress={() => requestClose('close-icon')}
-    >
-      {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}
-    </Pressable>
-  ) : null
+  const closeIconNode = useMemo(() => {
+    if (!closeable) return null
+    return (
+      <Pressable
+        style={[
+          styles.closeIconBase,
+          dynamicStyles.closeIconBase,
+          closeIconVerticalStyle,
+          closeIconHorizontalStyle,
+          !hasCustomCloseIcon ? dynamicStyles.closeIconDefault : null,
+        ]}
+        hitSlop={8}
+        onPress={() => requestClose('close-icon')}
+      >
+        {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}
+      </Pressable>
+    )
+  }, [
+    closeIcon,
+    closeIconHorizontalStyle,
+    closeIconVerticalStyle,
+    closeable,
+    dynamicStyles.closeIconBase,
+    dynamicStyles.closeIconDefault,
+    hasCustomCloseIcon,
+    requestClose,
+    tokens.colors.closeIcon,
+  ])
 
-  const content = (
+  const content = useMemo(() => (
     <Animated.View
       ref={overlayRef as unknown as React.Ref<React.ElementRef<typeof View>>}
       {...contentInteractionProps}
@@ -536,7 +570,30 @@ export const Popup: React.FC<PopupProps> = props => {
         safeAreaInsetTop ? handleSafeAreaTopLayout : undefined
       )}
     </Animated.View>
-  )
+  ), [
+    animatedContentStyle,
+    closeIconNode,
+    contentBody,
+    contentInteractionProps,
+    dynamicStyles.popup,
+    dynamicStyles.popupCenter,
+    dynamicStyles.popupSide,
+    handleContentLayout,
+    handleSafeAreaTopLayout,
+    hidden,
+    isHorizontal,
+    isVertical,
+    overlayRef,
+    placement,
+    radiusStyle,
+    rest,
+    safeArea,
+    safeAreaInsetBottom,
+    safeAreaInsetTop,
+    style,
+  ])
+
+  if (!shouldRender) return null
 
   const resolvedZIndex = stackZIndex ?? zIndex
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Pressable, Text, View, type TextStyle } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -152,18 +152,42 @@ const Calendar: React.FC<CalendarProps> = props => {
     setCurrentMonth(prev => (isSameMonth(first, prev) ? prev : first))
   }, [firstValueTime, minDateTime, maxDateTime])
 
-  const monthDays = buildMonth(currentMonth, weekStartsOn)
+  const monthDays = useMemo(
+    () => buildMonth(currentMonth, weekStartsOn),
+    [currentMonth, weekStartsOn]
+  )
+
+  const monthDayMeta = useMemo(
+    () => monthDays.map(day => (
+      day
+        ? {
+          day,
+          key: day.toISOString(),
+          timeValue: startOfDay(day).getTime(),
+          dateValue: day.getDate(),
+        }
+        : null
+    )),
+    [monthDays]
+  )
 
   const minDay = startOfDay(minDate).getTime()
   const maxDay = startOfDay(maxDate).getTime()
 
-  const weekLabels = reorderWeekdays(
-    weekdays ?? tokens.defaults.weekdays,
-    weekStartsOn,
-    tokens.defaults.weekdays,
+  const weekLabels = useMemo(
+    () =>
+      reorderWeekdays(
+        weekdays ?? tokens.defaults.weekdays,
+        weekStartsOn,
+        tokens.defaults.weekdays,
+      ),
+    [tokens.defaults.weekdays, weekStartsOn, weekdays]
   )
 
-  const monthLabel = formatMonthTitle ? formatMonthTitle(currentMonth) : formatMonth(currentMonth)
+  const monthLabel = useMemo(
+    () => (formatMonthTitle ? formatMonthTitle(currentMonth) : formatMonth(currentMonth)),
+    [currentMonth, formatMonthTitle]
+  )
 
   const minMonthStart = startOfMonth(minDate)
   const maxMonthStart = startOfMonth(maxDate)
@@ -271,14 +295,20 @@ const Calendar: React.FC<CalendarProps> = props => {
     }
   }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelectedValue, showConfirm, maybeAutoConfirm])
 
-  const valueTimes = value.map(item => startOfDay(item).getTime())
-  const selectedSet = new Set(valueTimes)
-  const rangeBounds = type === 'range' && valueTimes.length === 2
-    ? [valueTimes[0], valueTimes[1]]
-    : null
+  const valueTimes = useMemo(
+    () => value.map(item => startOfDay(item).getTime()),
+    [value]
+  )
+  const selectedSet = useMemo(() => new Set(valueTimes), [valueTimes])
+  const rangeBounds = useMemo(
+    () => (type === 'range' && valueTimes.length === 2
+      ? [valueTimes[0], valueTimes[1]]
+      : null),
+    [type, valueTimes]
+  )
 
-  const renderDay = useCallback((day: Date | null, index: number) => {
-    if (!day) {
+  const renderDay = useCallback((meta: { day: Date; key: string; timeValue: number; dateValue: number } | null, index: number) => {
+    if (!meta) {
       return (
         <View
           key={`placeholder-${index}`}
@@ -289,7 +319,7 @@ const Calendar: React.FC<CalendarProps> = props => {
         />
       )
     }
-    const timeValue = startOfDay(day).getTime()
+    const { day, key, timeValue, dateValue } = meta
     const isDisabled = timeValue < minDay || timeValue > maxDay
     const isSelected = selectedSet.has(timeValue)
     const inRange =
@@ -317,7 +347,7 @@ const Calendar: React.FC<CalendarProps> = props => {
 
     return (
       <Pressable
-        key={day.toISOString()}
+        key={key}
         style={[
           tokens.layout.dayButton,
           { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding },
@@ -326,7 +356,7 @@ const Calendar: React.FC<CalendarProps> = props => {
         onPress={() => handleSelectDay(day)}
         testID={getCalendarDayTestId(day)}
       >
-        <Text style={dayStyle}>{day.getDate()}</Text>
+        <Text style={dayStyle}>{dateValue}</Text>
       </Pressable>
     )
   }, [selectedSet, type, rangeBounds, minDay, maxDay, tokens, color, handleSelectDay, columnPadding])
@@ -437,7 +467,7 @@ const Calendar: React.FC<CalendarProps> = props => {
         ))}
       </View>
       <View style={[tokens.layout.days, { rowGap: tokens.spacing.row }]}>
-        {monthDays.map((day, index) => renderDay(day, index))}
+        {monthDayMeta.map((meta, index) => renderDay(meta, index))}
       </View>
       {showConfirm ? (
         <Pressable
