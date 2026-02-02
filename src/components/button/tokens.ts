@@ -42,13 +42,9 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
       square: false,
       hairline: false,
       iconPosition: 'left',
-      mode: 'contained',
       loading: false,
-      loadingType: 'circular',
       loadingSize: 'small',
       disabled: false,
-      autoInsertSpace: true,
-      uppercase: false,
       allowFontScaling: true,
     },
     layout: {
@@ -147,7 +143,7 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
     states: {
       disabledOpacity: opacity.disabled,
       loadingOpacity: opacity.loading,
-      pressedOpacity: opacity.pressed,
+      pressedOpacity: 0.75,
     },
     shadows: {
       1: {

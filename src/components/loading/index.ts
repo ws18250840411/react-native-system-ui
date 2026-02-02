@@ -1,4 +1,4 @@
 import { Loading } from './Loading'
 
-export type { LoadingProps, LoadingType } from './types'
+export type { LoadingProps } from './types'
 export default Loading

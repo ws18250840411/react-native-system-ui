@@ -12,14 +12,12 @@ export type ButtonType = 'default' | 'primary' | 'success' | 'info' | 'warning' 
 export type ButtonSize = 'large' | 'normal' | 'small' | 'mini'
 export type ButtonIconPosition = 'left' | 'right'
 export type ButtonShadowLevel = 1 | 2 | 3
-export type ButtonMode = 'contained' | 'text' | 'outlined' | 'contained-tonal' | 'elevated'
 
 export type ButtonIconRender = (
   color: string,
   size: number
 ) => React.ReactNode
 
-export type ButtonLoadingType = 'circular' | 'spinner'
 export type ButtonLoadingSize = number | 'small' | 'large'
 
 export interface ButtonTokens {
@@ -32,13 +30,9 @@ export interface ButtonTokens {
     square: boolean
     hairline: boolean
     iconPosition: ButtonIconPosition
-    mode: ButtonMode
     loading: boolean
-    loadingType: ButtonLoadingType
     loadingSize: ButtonLoadingSize
     disabled: boolean
-    autoInsertSpace: boolean
-    uppercase: boolean
     allowFontScaling: boolean
   }
   layout: {
@@ -127,14 +121,8 @@ export interface ButtonProps
   loading?: boolean
   loadingText?: React.ReactNode
   loadingIndicator?: React.ReactNode
-  loadingType?: ButtonLoadingType
   loadingSize?: ButtonLoadingSize
   disabled?: boolean
-  autoInsertSpace?: boolean
-  mode?: ButtonMode
-  uppercase?: boolean
-  buttonColor?: string
-  dark?: boolean
   contentStyle?: StyleProp<ViewStyle>
   textStyle?: StyleProp<TextStyle>
   tokensOverride?: DeepPartial<ButtonTokens>

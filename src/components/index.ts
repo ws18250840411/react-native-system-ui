@@ -82,7 +82,7 @@ export type {
 export type { TypographyTokens } from './typography/types'
 export { useTypographyTokens } from './typography/tokens'
 export { default as Loading } from './loading'
-export type { LoadingProps, LoadingType } from './loading'
+export type { LoadingProps } from './loading'
 export type { LoadingTokens } from './loading/types'
 export { useLoadingTokens } from './loading/tokens'
 export { default as Empty } from './empty'

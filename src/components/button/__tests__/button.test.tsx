@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { Platform, Pressable, StyleSheet, Text } from 'react-native'
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text } from 'react-native'
 
 import Button from '..'
 import {
@@ -8,35 +8,6 @@ import {
   defaultTokens,
   type ThemeProviderProps,
 } from '../../../design-system'
-import Loading from '../../loading'
-
-const hexToRgb = (hex: string): [number, number, number] => {
-  const normalized =
-    hex.length === 4
-      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
-      : hex
-  const intVal = parseInt(normalized.slice(1), 16)
-  return [(intVal >> 16) & 255, (intVal >> 8) & 255, intVal & 255]
-}
-
-const rgbToHex = (r: number, g: number, b: number) =>
-  `#${[r, g, b]
-    .map(value => {
-      const clamped = Math.max(0, Math.min(255, Math.round(value)))
-      const hex = clamped.toString(16)
-      return hex.length === 1 ? `0${hex}` : hex
-    })
-    .join('')}`
-
-const lighten = (hex: string, amount = 0.85) => {
-  const [r, g, b] = hexToRgb(hex)
-  const mix = [
-    r * (1 - amount) + 255 * amount,
-    g * (1 - amount) + 255 * amount,
-    b * (1 - amount) + 255 * amount,
-  ]
-  return rgbToHex(mix[0], mix[1], mix[2])
-}
 
 const renderWithProvider = (
   ui: React.ReactElement,
@@ -118,29 +89,12 @@ describe('Button', () => {
     expect(flattened.minHeight).toBe(60)
   })
 
-  it('parses gradient color tokens on native platforms', () => {
-    const originalOS = Platform.OS
-      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = 'ios'
-    try {
-      const gradient = 'linear-gradient(90deg, #be99ff, #7232dd)'
-      const tree = renderWithProvider(<Button text="Gradient" color={gradient} />)
-      const pressable = tree.root.findByType(Pressable)
-      const flattened = getStyleFromPressable(pressable)
-
-      expect(flattened.backgroundColor).toBe('#be99ff')
-      expect(flattened.borderWidth).toBe(0)
-    } finally {
-      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
-    }
-  })
-
-  it('switches to spinner loading indicator when requested', () => {
+  it('renders loading indicator when loading', () => {
     const tree = renderWithProvider(
-      <Button text="Loading" loading loadingType="spinner" />
+      <Button text="Loading" loading />
     )
-
-    const spinner = tree.root.findByType(Loading)
-    expect(spinner.props.type).toBe('spinner')
+    const spinner = tree.root.findByType(ActivityIndicator)
+    expect(spinner).toBeTruthy()
   })
 
   it('uses loading opacity when loading', () => {
@@ -209,75 +163,6 @@ describe('Button', () => {
     } finally {
       ; (Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
     }
-  })
-
-  it('does not clip Android ripple when elevated shadow is enabled', () => {
-    const originalOS = Platform.OS
-      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = 'android'
-    try {
-      const tree = renderWithProvider(<Button text="Elevated" mode="elevated" type="primary" />)
-      const pressable = tree.root.findByType(Pressable)
-      const flattened = getStyleFromPressable(pressable)
-      expect(flattened.overflow).toBeUndefined()
-    } finally {
-      ; (Platform as unknown as { OS: typeof Platform.OS }).OS = originalOS
-    }
-  })
-
-  it('supports outlined mode with transparent background', () => {
-    const tree = renderWithProvider(<Button text="Outlined" mode="outlined" type="primary" />)
-    const pressable = tree.root.findByType(Pressable)
-    const flattened = getStyleFromPressable(pressable)
-    expect(flattened.backgroundColor).toBe('transparent')
-    expect(flattened.borderWidth).toBe(1)
-    expect(flattened.borderColor).toBe(defaultTokens.palette.primary[500])
-  })
-
-  it('applies contained-tonal palette colors', () => {
-    const tree = renderWithProvider(<Button text="Tonal" mode="contained-tonal" type="primary" />)
-    const pressable = tree.root.findByType(Pressable)
-    const flattened = getStyleFromPressable(pressable)
-    const expectedTonal =
-      defaultTokens.palette.primary[100] ?? lighten(defaultTokens.palette.primary[500])
-    expect(flattened.backgroundColor).toBe(expectedTonal)
-  })
-
-  it('respects uppercase prop for text labels', () => {
-    const tree = renderWithProvider(<Button text="text" uppercase />)
-    const label = tree.root.findByType(Text)
-    const flattened = StyleSheet.flatten(label.props.style)
-    expect(flattened.textTransform).toBe('uppercase')
-  })
-
-  it('applies themed default mode overrides when provided', () => {
-    const tree = renderWithProvider(
-      <Button text="ThemeOutlined" type="primary" />,
-      {
-        components: {
-          button: {
-            defaults: {
-              mode: 'outlined',
-            },
-          },
-        },
-      }
-    )
-    const pressable = tree.root.findByType(Pressable)
-    const flattened = getStyleFromPressable(pressable)
-    expect(flattened.backgroundColor).toBe('transparent')
-    expect(flattened.borderWidth).toBe(1)
-  })
-
-  it('inherits mode from Button.Group context', () => {
-    const tree = renderWithProvider(
-      <Button.Group mode="outlined">
-        <Button text="GroupItem" type="primary" />
-      </Button.Group>
-    )
-    const pressable = tree.root.findByType(Pressable)
-    const flattened = getStyleFromPressable(pressable)
-    expect(flattened.backgroundColor).toBe('transparent')
-    expect(flattened.borderWidth).toBe(1)
   })
 
   it('catches errors in custom icon render function', () => {

@@ -5,7 +5,5 @@ import { Loading, Space } from 'react-native-system-ui'
 export default () => (
   <Space gap={24}>
     <Loading />
-    <Loading type="spinner" />
-    <Loading type="ball" />
   </Space>
 )

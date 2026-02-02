@@ -5,10 +5,10 @@ import { Text, View } from 'react-native'
 import Loading from '..'
 
 describe('Loading', () => {
-  it('renders circular indicator with text', () => {
+  it('renders spinner indicator with text', () => {
     const tree = renderer.create(<Loading size={20}>加载中</Loading>)
-    const circular = tree.root.findByProps({ testID: 'rv-loading-circular' })
-    expect(circular).toBeTruthy()
+    const spinner = tree.root.findByProps({ testID: 'rv-loading-spinner' })
+    expect(spinner).toBeTruthy()
     const text = tree.root.findByType(Text)
     expect(text.props.children).toBe('加载中')
   })
@@ -20,18 +20,6 @@ describe('Loading', () => {
       </Loading>,
     )
     expect(tree.root.findByProps({ testID: 'loading-custom' })).toBeTruthy()
-  })
-
-  it('renders spinner type', () => {
-    const tree = renderer.create(<Loading type="spinner" size={24} />)
-    const spinner = tree.root.findByProps({ testID: 'rv-loading-spinner' })
-    expect(spinner).toBeTruthy()
-  })
-
-  it('renders ball type', () => {
-    const tree = renderer.create(<Loading type="ball" size={24} />)
-    const ball = tree.root.findByProps({ testID: 'rv-loading-ball' })
-    expect(ball).toBeTruthy()
   })
 
   it('supports vertical prop', () => {

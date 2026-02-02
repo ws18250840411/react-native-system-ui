@@ -1532,7 +1532,7 @@ export const componentRegistry: Record<string, ComponentEntry> = {
     demos: [
       {
         id: "type",
-        title: "加载类型",
+        title: "加载指示器",
         Component: LoadingDemoType,
       },
       {

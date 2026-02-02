@@ -2,7 +2,6 @@ import React from 'react'
 
 import type {
   ButtonIconPosition,
-  ButtonMode,
   ButtonShadowLevel,
   ButtonSize,
   ButtonType,
@@ -19,7 +18,6 @@ export interface ButtonGroupContextValue {
   disabled?: boolean
   iconPosition?: ButtonIconPosition
   hairline?: boolean
-  mode?: ButtonMode
 }
 
 export const ButtonGroupContext = React.createContext<ButtonGroupContextValue | null>(

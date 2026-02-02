@@ -146,26 +146,15 @@ describe('Toast', () => {
     expect(onClosed).toHaveBeenCalled()
   })
 
-  it('passes iconSize and loadingType to loading indicator', () => {
+  it('passes iconSize to loading indicator', () => {
     const tree = render(
       <PortalHost>
-        <Toast visible type="loading" iconSize={40} loadingType="spinner" duration={0} />
+        <Toast visible type="loading" iconSize={40} duration={0} />
       </PortalHost>
     )
 
     const loading = tree.root.findByType(Loading)
     expect(loading.props.size).toBe(40)
-    expect(loading.props.type).toBe('spinner')
-  })
-
-  it('supports loadingType ball', () => {
-    const tree = render(
-      <PortalHost>
-        <Toast visible type="loading" iconSize={24} loadingType="ball" duration={0} />
-      </PortalHost>
-    )
-    const loading = tree.root.findByType(Loading)
-    expect(loading.props.type).toBe('ball')
   })
 
   it('supports config alias on static handle', () => {

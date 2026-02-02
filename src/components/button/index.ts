@@ -11,5 +11,4 @@ export type {
   ButtonSize,
   ButtonIconPosition,
   ButtonShadowLevel,
-  ButtonMode,
 } from './types'

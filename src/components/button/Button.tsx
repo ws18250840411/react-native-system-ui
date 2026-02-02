@@ -5,14 +5,12 @@ import {
   Pressable,
   Text,
   View,
-  type ViewStyle,
 } from 'react-native'
 
-import { withAlpha, extractFirstColorToken } from '../../utils/color'
+import { withAlpha } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { ensureSpace } from '../../utils/string'
 import { isFiniteNumber, isFunction, isNumber, isString, isText } from '../../utils/validate'
-import Loading from '../loading'
 import { useAriaPress } from '../../hooks'
 import type {
   ButtonProps,
@@ -53,10 +51,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       type: typeProp,
       size: sizeProp,
       color,
-      buttonColor: buttonColorProp,
       textColor,
-      dark,
-      mode: modeProp,
       plain: plainProp,
       block: blockProp,
       round: roundProp,
@@ -66,11 +61,8 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       loading: loadingProp,
       loadingText,
       loadingIndicator,
-      loadingType: loadingTypeProp,
       loadingSize: loadingSizeProp,
       disabled: disabledProp,
-      autoInsertSpace: autoInsertSpaceProp,
-      uppercase: uppercaseProp,
       allowFontScaling: allowFontScalingProp,
       maxFontSizeMultiplier,
       rippleColor: rippleColorProp,
@@ -93,83 +85,29 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       iconPositionProp ?? group?.iconPosition ?? buttonTokens.defaults.iconPosition
     const groupShadow = group?.shadow
     const shadowValue = shadowProp ?? groupShadow
-    const hasShadowOverride = shadowProp !== undefined || groupShadow !== undefined
     const disabled = disabledProp ?? group?.disabled ?? buttonTokens.defaults.disabled
     const loading = loadingProp ?? buttonTokens.defaults.loading
-    const loadingType = loadingTypeProp ?? buttonTokens.defaults.loadingType
     const loadingSize = loadingSizeProp ?? buttonTokens.defaults.loadingSize
-    const autoInsertSpace = autoInsertSpaceProp ?? buttonTokens.defaults.autoInsertSpace
-    const uppercase = uppercaseProp ?? buttonTokens.defaults.uppercase
     const allowFontScaling = allowFontScalingProp ?? buttonTokens.defaults.allowFontScaling
-    const defaultMode = buttonTokens.defaults.mode ?? 'contained'
-    const groupMode = group?.mode
-    const shouldForcePlainTextMode = plain && !modeProp && !groupMode
-    const derivedMode = shouldForcePlainTextMode
-      ? 'text'
-      : modeProp ?? groupMode ?? defaultMode
-    const legacyPlain = shouldForcePlainTextMode
-    const buttonColorOverride = buttonColorProp ?? color
-
+    const isPlain = plain
     const tone = buttonTokens.colors.tones[type] ?? buttonTokens.colors.tones.default
     const sizeTokens = buttonTokens.sizing.sizes[size]
 
-    const gradientString =
-      isString(buttonColorOverride) ? buttonColorOverride : undefined
-    const hasGradientSyntax =
-      gradientString?.toLowerCase().includes('gradient') ?? false
-    const normalizedColor = hasGradientSyntax
-      ? extractFirstColorToken(gradientString)
-      : buttonColorOverride
-    const allowsGradientFill =
-      derivedMode === 'contained' ||
-      derivedMode === 'contained-tonal' ||
-      derivedMode === 'elevated'
-    const gradientFillEnabled = hasGradientSyntax && !legacyPlain && allowsGradientFill
-    const supportsGradientFill = Platform.OS === 'web'
+    const normalizedColor = color
 
     let backgroundColor =
       normalizedColor ??
-      (derivedMode === 'contained'
-        ? tone.background
-        : derivedMode === 'contained-tonal'
-          ? tone.tonalBackground
-          : derivedMode === 'elevated'
-            ? tone.background
-            : buttonTokens.colors.backgroundTransparent)
+      tone.background
 
-    let borderColor =
-      derivedMode === 'outlined'
-        ? normalizedColor ?? tone.border
-        : derivedMode === 'contained-tonal'
-          ? tone.tonalBorder
-          : derivedMode === 'contained' || derivedMode === 'elevated'
-            ? normalizedColor ?? tone.border
-            : buttonTokens.colors.backgroundTransparent
+    let borderColor = normalizedColor ?? tone.border
 
     let resolvedTextColor = textColor
 
     if (!resolvedTextColor) {
-      if (derivedMode === 'contained-tonal') {
-        resolvedTextColor = tone.tonalText
-      } else if (derivedMode === 'contained' || derivedMode === 'elevated') {
-        resolvedTextColor = normalizedColor ? '#ffffff' : tone.text
-      } else {
-        resolvedTextColor = normalizedColor ?? (type === 'default' ? tone.text : tone.border)
-      }
+      resolvedTextColor = normalizedColor ? '#ffffff' : tone.text
     }
 
-    if (dark === true) {
-      resolvedTextColor = buttonTokens.colors.textDark
-    } else if (dark === false) {
-      resolvedTextColor = buttonTokens.colors.textLight
-    }
-
-    if (derivedMode === 'text') {
-      backgroundColor = buttonTokens.colors.backgroundTransparent
-      borderColor = buttonTokens.colors.backgroundTransparent
-    }
-
-    if (legacyPlain) {
+    if (isPlain) {
       backgroundColor = buttonTokens.colors.backgroundPlain
       borderColor = normalizedColor ?? tone.border
       const fallbackTextColor =
@@ -177,22 +115,14 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       resolvedTextColor = textColor ?? fallbackTextColor
     }
 
-    if (gradientFillEnabled && supportsGradientFill) {
-      backgroundColor = buttonTokens.colors.backgroundTransparent
-    }
-
     const shouldRenderBorder =
-      derivedMode === 'outlined' ||
-      legacyPlain ||
-      (derivedMode === 'contained' && type === 'default')
+      isPlain || type === 'default'
     const resolvedBorderWidth =
-      gradientFillEnabled && !legacyPlain
-        ? 0
-        : shouldRenderBorder
-          ? hairline
-            ? buttonTokens.borders.hairlineWidth
-            : buttonTokens.borders.width
-          : 0
+      shouldRenderBorder
+        ? hairline
+          ? buttonTokens.borders.hairlineWidth
+          : buttonTokens.borders.width
+        : 0
 
     const borderRadius = square ? 0 : round ? sizeTokens.height / 2 : sizeTokens.radius
 
@@ -203,15 +133,10 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       resolvedShadowLevel = clampShadowLevel(shadowValue)
     } else if (shadowValue === true) {
       resolvedShadowLevel = clampShadowLevel(2)
-    } else if (!hasShadowOverride && derivedMode === 'elevated') {
-      resolvedShadowLevel = clampShadowLevel(2)
     }
     const shouldShowShadow =
       !!resolvedShadowLevel &&
-      !gradientFillEnabled &&
-      derivedMode !== 'text' &&
-      derivedMode !== 'outlined' &&
-      !legacyPlain
+      !isPlain
     const shadowTokens = resolvedShadowLevel ? buttonTokens.shadows[resolvedShadowLevel] : undefined
     const shadowStyle =
       shouldShowShadow && shadowTokens
@@ -222,11 +147,6 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           offsetY: shadowTokens.offsetY,
           elevation: shadowTokens.elevation,
         })
-        : undefined
-
-    const gradientWebStyle =
-      gradientFillEnabled && supportsGradientFill && gradientString
-        ? ({ backgroundImage: gradientString } as unknown as ViewStyle)
         : undefined
 
     const iconWrapperStyle =
@@ -257,20 +177,13 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
     const renderLoading = () => {
       const spinnerSize = resolveSpinnerSize(loadingSize, sizeTokens.iconSize)
-      const defaultIndicator = loadingType === 'spinner'
-        ? (
-          <Loading
-            type="spinner"
-            size={spinnerSize}
-            color={resolvedTextColor}
-          />
-        )
-        : (
-          <ActivityIndicator
-            size={loadingSize}
-            color={resolvedTextColor}
-          />
-        )
+      const indicatorSize = isNumber(loadingSize) ? spinnerSize : loadingSize
+      const defaultIndicator = (
+        <ActivityIndicator
+          size={indicatorSize}
+          color={resolvedTextColor}
+        />
+      )
 
       return (
         <View style={[buttonTokens.layout.iconWrapper, loadingIconWrapperStyle]}>
@@ -292,7 +205,6 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       fontSize: sizeTokens.fontSize,
       lineHeight: sizeTokens.fontSize * buttonTokens.typography.lineHeightMultiplier,
       color: resolvedTextColor,
-      textTransform: uppercase ? 'uppercase' : undefined,
     }
 
     const renderText = () => {
@@ -304,7 +216,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
 
       if (isText(label)) {
         const content =
-          isString(label) ? ensureSpace(label, autoInsertSpace) : String(label)
+          isString(label) ? ensureSpace(label, true) : String(label)
 
         return (
           <Text
@@ -390,7 +302,6 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       rippleClipStyle,
       block ? buttonTokens.layout.block : null,
       shadowStyle,
-      gradientWebStyle,
       style,
     ]
 
@@ -401,7 +312,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     }
     const defaultRippleColor =
       rippleColorProp ??
-      (derivedMode === 'text' || derivedMode === 'outlined' || legacyPlain
+      (isPlain
         ? resolvedTextColor
         : type === 'default' && !normalizedColor
           ? withAlpha(resolvedTextColor, 0.15)

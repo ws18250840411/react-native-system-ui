@@ -18,7 +18,6 @@ import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Loading from '../loading'
 import { Checked, Close } from 'react-native-system-icon'
 import { useOverlayStack } from '../overlay'
-import type { LoadingType } from '../loading'
 import type { DeepPartial } from '../../types'
 import { isFiniteNumber, isText } from '../../utils/validate'
 import { useToastTokens } from './tokens'
@@ -33,7 +32,6 @@ export interface ToastProps {
   icon?: React.ReactNode
   type?: ToastType
   iconSize?: number
-  loadingType?: LoadingType
   duration?: number
   position?: ToastPosition
   forbidClick?: boolean
@@ -62,7 +60,6 @@ export const Toast: React.FC<ToastProps> = props => {
     icon,
     type = 'info',
     iconSize,
-    loadingType = 'circular',
     duration = 2000,
     position = 'middle',
     forbidClick = false,
@@ -172,13 +169,13 @@ export const Toast: React.FC<ToastProps> = props => {
       case 'loading':
         return (
           loadingIndicator ?? (
-            <Loading type={loadingType} color={colors.text} size={resolvedIconSize} />
+            <Loading color={colors.text} size={resolvedIconSize} />
           )
         )
       default:
         return null
     }
-  }, [colors.text, icon, iconSize, loadingIndicator, loadingType, tokens.iconSize, type])
+  }, [colors.text, icon, iconSize, loadingIndicator, tokens.iconSize, type])
   const isTextToast = type === 'info' && !iconNode
   const boxStyle: ViewStyle = useMemo(() => (isTextToast
     ? {

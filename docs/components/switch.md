@@ -9,7 +9,7 @@ simulator:
 
 ## 介绍
 
-用于在打开和关闭状态之间进行切换。
+用于在打开和关闭状态之间进行切换，内部基于 React Native `Switch` 实现。
 
 ## 引入
 
@@ -30,12 +30,6 @@ import { Switch } from 'react-native-system-ui'
 通过 `disabled` 属性来禁用开关，禁用状态下开关不可点击。
 
 <code title="禁用状态" src="./switch/demo/disabled.tsx"></code>
-
-### 加载状态
-
-通过 `loading` 属性设置开关为加载状态：点击仍会触发 `onClick`，但不会触发 `onChange`（不会切换状态）。
-
-<code title="加载状态" src="./switch/demo/loading.tsx"></code>
 
 ### 自定义大小
 
@@ -67,9 +61,8 @@ import { Switch } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `checked` | 开关选中状态（受控） | `any` | - |
 | `defaultChecked` | 默认选中状态 | `any` | `false` |
-| `loading` | 是否为加载状态 | `boolean` | `false` |
 | `disabled` | 是否为禁用状态 | `boolean` | `false` |
-| `size` | 开关尺寸 | `number \| string` | `30px` |
+| `size` | 开关尺寸（基于默认尺寸等比缩放） | `number \| string` | `30px` |
 | `activeColor` | 打开时的背景色 | `string` | `#3f45ff` |
 | `inactiveColor` | 关闭时的背景色 | `string` | `white` |
 | `activeValue` | 打开时对应的值 | `any` | `true` |

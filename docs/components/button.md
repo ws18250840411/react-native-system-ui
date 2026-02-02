@@ -95,12 +95,9 @@ import { Button } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `type` | 按钮类型 | `'default' \| 'primary' \| 'success' \| 'info' \| 'warning' \| 'danger'` | `'default'` |
 | `size` | 按钮尺寸 | `'large' \| 'normal' \| 'small' \| 'mini'` | `'normal'` |
-| `mode` | 展示模式，类似 react-native-paper，可通过 `ThemeProvider` 中的 `components.button.defaults.mode` 配置全局默认值 | `'contained' \| 'text' \| 'outlined' \| 'contained-tonal' \| 'elevated'` | `'contained'`（若 `plain` 为 true 且未显式指定 `mode` 则退化为 `'text'`） |
 | `text` | 按钮文字，未传时可直接通过 `children` 传入 | `ReactNode` | - |
-| `color` | 按钮颜色，支持传入 `linear-gradient` 渐变色（等同于 `buttonColor`，保留兼容） | `string` | - |
-| `buttonColor` | 自定义按钮背景色 | `string` | - |
+| `color` | 按钮颜色 | `string` | - |
 | `textColor` | 自定义文字颜色 | `string` | 自动推导 |
-| `dark` | 是否强制文字使用浅色（`true`）或深色（`false`） | `boolean` | `undefined`（自动推导） |
 | `icon` | 按钮图标，支持函数 `(color, size) => ReactNode` | `ReactNode \| (color: string, size: number) => ReactNode` | - |
 | `iconPosition` | 图标展示位置 | `'left' \| 'right'` | `'left'` |
 | `block` | 是否为块级元素 | `boolean` | `false` |
@@ -112,18 +109,15 @@ import { Button } from 'react-native-system-ui'
 | `hairline` | 是否使用 0.5px 边框 | `boolean` | `false` |
 | `loading` | 是否为加载状态 | `boolean` | `false` |
 | `loadingText` | 加载状态提示文字 | `ReactNode` | - |
-| `loadingType` | 加载图标类型 | `'circular' \| 'spinner'` | `'circular'` |
 | `loadingSize` | 加载图标尺寸，等同于 `ActivityIndicator` 的 `size` | `'small' \| 'large' \| number` | `'small'` |
 | `loadingIndicator` | 自定义加载指示器 | `ReactNode` | `ActivityIndicator` |
-| `uppercase` | 是否将文字自动转为大写（与 react-native-paper 对齐） | `boolean` | `false` |
-| `autoInsertSpace` | 是否为两个中文字符自动插入空格 | `boolean` | `true` |
 | `contentStyle` | 内容区样式（可自定义高度、内边距等） | `StyleProp<ViewStyle>` | - |
 | `textStyle` | 文字样式 | `StyleProp<TextStyle>` | - |
 | `rippleColor` | Android 水波纹颜色 | `string` | 根据按钮类型自动推导 |
 | `allowFontScaling` | 是否允许文字随系统字体缩放 | `boolean` | `true` |
 | `maxFontSizeMultiplier` | 最大字体放大倍数 | `number` | - |
 
-> React Native 环境渲染 `linear-gradient` 字符串时会自动退化为首个颜色值，如需原生渐变可搭配第三方渐变组件。
+> 如需原生渐变可搭配第三方渐变组件。
 
 ### 事件
 
@@ -136,7 +130,6 @@ import { Button } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `type` | 统一设置按钮类型 | `'default' \| 'primary' \| 'success' \| 'info' \| 'warning' \| 'danger'` | `'default'` |
-| `mode` | 统一设置展示模式，等同子组件的 `mode` 属性 | `'contained' \| 'text' \| 'outlined' \| 'contained-tonal' \| 'elevated'` | `-` |
 | `size` | 统一设置按钮尺寸 | `'large' \| 'normal' \| 'small' \| 'mini'` | `'normal'` |
 | `plain` | 是否为朴素按钮组 | `boolean` | `false` |
 | `square` | 是否为方形按钮组 | `boolean` | `false` |
@@ -155,4 +148,3 @@ import { Button } from 'react-native-system-ui'
 
 - React Vant 的 `ButtonType` 不包含 `success`，本库额外提供 `success` 以配合主题色体系。
 - React Vant 支持 `tag`/`nativeType` 等 DOM 属性，本库在 React Native 环境不支持对应能力。
-- 本库额外提供 `mode/uppercase/autoInsertSpace` 等能力，用于对齐 React Native Paper 的按钮交互与排版策略。

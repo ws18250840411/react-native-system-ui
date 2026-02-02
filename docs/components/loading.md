@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-用于展示加载中的状态，支持圆形指示器与轮播条样式，提供清晰的 API 语义。
+用于展示加载中的状态，基于 React Native `ActivityIndicator` 提供统一的 spinner 指示器。
 
 ## 引入
 
@@ -17,11 +17,11 @@ import { Loading } from 'react-native-system-ui'
 
 ## 代码演示
 
-### 加载类型
+### 加载指示器
 
-`type` 支持 `circular` 与 `spinner` 两种表现。
+使用 `ActivityIndicator` 作为统一指示器。
 
-<code title="加载类型" src="./loading/demo/type.tsx"></code>
+<code title="加载指示器" src="./loading/demo/type.tsx"></code>
 
 ### 自定义颜色
 
@@ -51,7 +51,6 @@ import { Loading } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `type` | 加载类型 | `'circular' \| 'spinner'` | `'circular'` |
 | `size` | 指示器尺寸（px） | `number` | `30` |
 | `color` | 指示器颜色 | `string` | `tokens.colors.indicator` |
 | `textSize` | 文案字号 | `number` | `tokens.defaults.textSize` |
@@ -60,4 +59,3 @@ import { Loading } from 'react-native-system-ui'
 | `textStyle` | 文案样式 | `StyleProp<TextStyle>` | - |
 | `contentStyle` | 指示器容器样式 | `StyleProp<ViewStyle>` | - |
 
-> 当前 `spinner` 类型通过 12 根线条 + 旋转动画实现，不依赖额外原生模块，可按需通过主题 overrides 调整线条数量、长度等指标。

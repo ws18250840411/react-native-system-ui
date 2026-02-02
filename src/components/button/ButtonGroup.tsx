@@ -27,7 +27,6 @@ export const ButtonGroup = React.memo<ButtonGroupProps>(({
   disabled,
   iconPosition,
   hairline,
-  mode,
 }) => {
   const tokens = useButtonTokens()
   const gap = spacing ?? tokens.spacing.groupGap
@@ -45,8 +44,7 @@ export const ButtonGroup = React.memo<ButtonGroupProps>(({
     disabled,
     iconPosition,
     hairline,
-    mode,
-  }), [block, disabled, hairline, iconPosition, mode, plain, round, shadow, size, square, type])
+  }), [block, disabled, hairline, iconPosition, plain, round, shadow, size, square, type])
 
   const containerStyle = useMemo(() => {
     const base: ViewStyle = {

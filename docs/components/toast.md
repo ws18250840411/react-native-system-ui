@@ -73,7 +73,6 @@ toast.config({ type: 'success', message: '完成', duration: 1500 })
 | `type` | 提示类型（决定默认图标） | `'info' \| 'success' \| 'fail' \| 'loading'` | `'info'` |
 | `icon` | 自定义图标 | `ReactNode` | - |
 | `iconSize` | 内置图标/加载图标大小 | `number` | `36` |
-| `loadingType` | 加载图标类型 | `'circular' \| 'spinner'` | `'circular'` |
 | `duration` | 自动关闭延时（ms），0 表示不会自动关闭 | `number` | `2000` |
 | `position` | 显示位置 | `'top' \| 'middle' \| 'bottom'` | `'middle'` |
 | `overlay` | 是否展示半透明遮罩 | `boolean` | `false` |

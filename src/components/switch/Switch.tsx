@@ -1,22 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import {
-  ActivityIndicator,
-  Animated,
-  Easing,
-  Pressable,
-  View,
+  Switch as RNSwitch,
   type GestureResponderEvent,
-  type PressableStateCallbackType,
 } from 'react-native'
 
-import { nativeDriverEnabled } from '../../platform'
-import { useAriaPress, useControllableValue } from '../../hooks'
+import { useControllableValue } from '../../hooks'
 import { parseNumber } from '../../utils'
 import type { SwitchProps } from './types'
 import { useSwitchTokens } from './tokens'
-
-const AnimatedHandle = Animated.createAnimatedComponent(View)
-const switchEasing = Easing.bezier(0.25, 0.1, 0.25, 1)
 
 type SwitchComponent = (<V = boolean>(props: SwitchProps<V>) => React.ReactElement) & {
   displayName?: string
@@ -25,7 +16,6 @@ type SwitchComponent = (<V = boolean>(props: SwitchProps<V>) => React.ReactEleme
 const SwitchImpl = <V,>(props: SwitchProps<V>) => {
   const {
     disabled: disabledProp,
-    loading: loadingProp,
     size,
     activeColor,
     inactiveColor,
@@ -39,7 +29,6 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
 
   const tokens = useSwitchTokens(tokensOverride)
   const disabled = disabledProp ?? tokens.defaults.disabled
-  const loading = loadingProp ?? tokens.defaults.loading
   const activeValue = useMemo(
     () => (activeValueProp ?? tokens.defaults.activeValue) as V,
     [activeValueProp, tokens.defaults.activeValue]
@@ -53,23 +42,6 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
     [size, tokens.defaults.size]
   )
 
-  const borderWidth = tokens.borders.width
-  const inset = useMemo(() => Math.max(0, tokens.spacing.inset), [tokens.spacing.inset])
-
-  const trackHeight = resolvedSize
-  const trackWidth = useMemo(() => trackHeight * 2, [trackHeight])
-  const trackRadius = useMemo(() => trackHeight / 2, [trackHeight])
-
-  const innerHeight = useMemo(() => Math.max(0, trackHeight - borderWidth * 2), [borderWidth, trackHeight])
-  const innerWidth = useMemo(() => Math.max(0, trackWidth - borderWidth * 2), [borderWidth, trackWidth])
-
-  const handleSize = useMemo(() => Math.max(0, innerHeight - inset * 2), [innerHeight, inset])
-  const handleRadius = useMemo(() => handleSize / 2, [handleSize])
-  const translateDistance = useMemo(
-    () => Math.max(0, innerWidth - handleSize - inset * 2),
-    [handleSize, innerWidth, inset]
-  )
-
   const [value, triggerChange] = useControllableValue<V>(props, {
     valuePropName: 'checked',
     defaultValuePropName: 'defaultChecked',
@@ -79,37 +51,6 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
 
   const isChecked = Object.is(value, activeValue)
 
-  const progress = useRef(new Animated.Value(isChecked ? 1 : 0)).current
-  const colorProgress = useRef(new Animated.Value(isChecked ? 1 : 0)).current
-
-  useEffect(() => {
-    const toValue = isChecked ? 1 : 0
-    progress.stopAnimation()
-    colorProgress.stopAnimation()
-
-    const animation = Animated.parallel([
-      Animated.timing(progress, {
-        toValue,
-        duration: tokens.animation.duration,
-        easing: switchEasing,
-        useNativeDriver: nativeDriverEnabled,
-      }),
-      Animated.timing(colorProgress, {
-        toValue,
-        duration: tokens.animation.duration,
-        easing: switchEasing,
-        useNativeDriver: false,
-      }),
-    ])
-    animation.start()
-    return () => animation.stop()
-  }, [colorProgress, isChecked, progress, tokens.animation.duration])
-
-  const translateX = useMemo(() => progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, translateDistance],
-  }), [progress, translateDistance])
-
   const resolvedActiveColor = useMemo(
     () => activeColor ?? tokens.colors.activeTrack,
     [activeColor, tokens.colors.activeTrack]
@@ -118,76 +59,39 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
     () => inactiveColor ?? tokens.colors.inactiveTrack,
     [inactiveColor, tokens.colors.inactiveTrack]
   )
-  const trackColor = useMemo(
-    () => (isChecked ? resolvedActiveColor : resolvedInactiveColor),
-    [isChecked, resolvedActiveColor, resolvedInactiveColor]
-  )
-  const animatedTrackColor = useMemo(() => colorProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [resolvedInactiveColor, resolvedActiveColor],
-  }), [colorProgress, resolvedActiveColor, resolvedInactiveColor])
+  const scale = useMemo(() => {
+    if (!tokens.defaults.size) return 1
+    return Math.max(0, resolvedSize / tokens.defaults.size)
+  }, [resolvedSize, tokens.defaults.size])
 
-  const handlePress = useCallback((event: GestureResponderEvent) => {
+  const handleTouchEnd = useCallback((event: GestureResponderEvent) => {
     if (disabled) return
     onClick?.(event)
-    if (loading) return
+  }, [disabled, onClick])
+  const handleValueChange = useCallback(() => {
+    if (disabled) return
     const next = isChecked ? inactiveValue : activeValue
     if (Object.is(next, value)) return
     triggerChange(next)
-  }, [activeValue, disabled, inactiveValue, isChecked, loading, onClick, triggerChange, value])
-  const { interactionProps } = useAriaPress({
-    disabled,
-    onPress: handlePress,
-    extraProps: rest as Record<string, unknown>,
-  })
+  }, [activeValue, disabled, inactiveValue, isChecked, triggerChange, value])
 
   return (
-    <Pressable
-      {...interactionProps}
-      accessibilityRole="switch"
-      accessibilityState={{ checked: isChecked, disabled }}
+    <RNSwitch
+      value={isChecked}
       disabled={disabled}
-      style={({ pressed }: PressableStateCallbackType) => [
-        tokens.layout.container,
-        { opacity: disabled ? tokens.opacity.disabled : pressed ? tokens.opacity.pressed : 1 },
+      trackColor={{ false: resolvedInactiveColor, true: resolvedActiveColor }}
+      thumbColor={tokens.colors.handle}
+      ios_backgroundColor={resolvedInactiveColor}
+      style={[
+        { transform: [{ scaleX: scale }, { scaleY: scale }] },
+        { opacity: disabled ? tokens.opacity.disabled : 1 },
         style,
       ]}
-    >
-      <Animated.View
-        style={[
-          tokens.layout.track,
-          {
-            width: trackWidth,
-            height: trackHeight,
-            borderRadius: trackRadius,
-            backgroundColor: animatedTrackColor,
-            borderWidth,
-            borderColor: tokens.colors.border,
-          },
-          { pointerEvents: 'none' },
-        ]}
-      >
-        <AnimatedHandle
-          style={[
-            tokens.layout.handleOuter,
-            tokens.layout.handleInner,
-            {
-              width: handleSize,
-              height: handleSize,
-              borderRadius: handleRadius,
-              top: inset,
-              left: inset,
-              transform: [{ translateX }],
-              backgroundColor: tokens.colors.handle,
-              borderWidth,
-              borderColor: tokens.colors.border,
-            },
-          ]}
-        >
-          {loading && <ActivityIndicator size={tokens.loader.size} color={trackColor} />}
-        </AnimatedHandle>
-      </Animated.View>
-    </Pressable>
+      accessibilityRole="switch"
+      accessibilityState={{ checked: isChecked, disabled }}
+      onValueChange={handleValueChange}
+      onTouchEnd={handleTouchEnd}
+    />
   )
 }
 
