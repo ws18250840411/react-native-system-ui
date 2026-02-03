@@ -54,7 +54,7 @@ import { Input, type InputInstance } from 'react-native-system-ui'
 | `value` | 输入值（受控） | `string` | - |
 | `defaultValue` | 初始值（非受控） | `string` | `''` |
 | `placeholder` | 占位符 | `string` | - |
-| `type` | 输入类型；`number` 自动映射为 `decimal-pad`，`digit` 映射为 `number-pad`，`tel` 映射为 `phone-pad` | `text \| number \| digit \| password \| tel \| search` | `text` |
+| `type` | 输入类型；`number` 自动映射为 `decimal-pad`，`digit` 映射为 `number-pad`，`tel` 映射为 `phone-pad`（若显式传入 `keyboardType` 则以其为准） | `text \| number \| digit \| password \| tel \| search` | `text` |
 | `align` | 文本对齐方式 | `left \| center \| right` | `left` |
 | `clearable` | 是否显示清除按钮 | `boolean` | `false` |
 | `clearTrigger` | 清除按钮展示时机 | `always \| focus` | `focus` |

@@ -123,13 +123,23 @@ describe('Input', () => {
     expect(tree.root.findByProps({ testID: 'suffix' }).props.children).toBe('发送')
   })
 
-  it('maps number type to decimal keyboard and exposes imperative ref', () => {
+  it('maps number/digit/tel types to keyboard and exposes imperative ref', () => {
     const handleChange = jest.fn()
     const ref = React.createRef<InputInstance>()
     const tree = renderer.create(<Input ref={ref} type='number' defaultValue='foo' onChangeText={handleChange} />)
 
     const field = tree.root.findByType(Field)
     expect(field.props.keyboardType).toBe('decimal-pad')
+
+    act(() => {
+      tree.update(<Input ref={ref} type='digit' defaultValue='foo' onChangeText={handleChange} />)
+    })
+    expect(tree.root.findByType(Field).props.keyboardType).toBe('number-pad')
+
+    act(() => {
+      tree.update(<Input ref={ref} type='tel' defaultValue='foo' onChangeText={handleChange} />)
+    })
+    expect(tree.root.findByType(Field).props.keyboardType).toBe('phone-pad')
 
     act(() => {
       handleChange.mockClear()

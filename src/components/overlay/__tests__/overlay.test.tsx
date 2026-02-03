@@ -1,9 +1,23 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { StyleSheet } from 'react-native'
+import { Text } from 'react-native'
+
+jest.mock('@react-native-aria/overlays', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+  return {
+    OverlayContainer: ({ children, style }: { children?: React.ReactNode; style?: unknown }) => (
+      <View style={style}>{children}</View>
+    ),
+    OverlayProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  }
+})
+
+jest.mock('@react-native-aria/interactions', () => ({
+  useKeyboardDismissable: jest.fn(),
+}))
 
 import Overlay from '..'
-import { Portal, PortalHost } from '../../portal'
 
 describe('Overlay', () => {
   const roots: renderer.ReactTestRenderer[] = []
@@ -16,117 +30,33 @@ describe('Overlay', () => {
   afterEach(() => {
     act(() => {
       roots.splice(0).forEach(root => root.unmount())
-      Portal.clear()
     })
   })
 
-  it('renders when visible and triggers onPress', () => {
-    const onPress = jest.fn()
+  it('renders when isOpen is true', () => {
     const tree = render(
-      <PortalHost>
-        <Overlay visible onPress={onPress} />
-      </PortalHost>
+      <Overlay isOpen>
+        <Text testID="overlay-child">content</Text>
+      </Overlay>
     )
 
-    const pressable = tree.root.findByProps({ testID: 'rv-overlay' }) as renderer.ReactTestInstance
-    act(() => {
-      pressable.props.onPress()
-    })
-
-    expect(onPress).toHaveBeenCalled()
+    const child = tree.root.findByProps({ testID: 'overlay-child' })
+    expect(child.props.children).toBe('content')
   })
 
-  it('supports onClick as alias of onPress', () => {
-    const onClick = jest.fn()
+  it('supports visible alias', () => {
     const tree = render(
-      <PortalHost>
-        <Overlay visible onClick={onClick} />
-      </PortalHost>
+      <Overlay visible>
+        <Text testID="overlay-visible">alias</Text>
+      </Overlay>
     )
 
-    const pressable = tree.root.findByProps({ testID: 'rv-overlay' }) as renderer.ReactTestInstance
-    act(() => {
-      pressable.props.onPress()
-    })
-
-    expect(onClick).toHaveBeenCalled()
+    const child = tree.root.findByProps({ testID: 'overlay-visible' })
+    expect(child.props.children).toBe('alias')
   })
 
-  it('prefers onPress when both onPress and onClick are provided', () => {
-    const onPress = jest.fn()
-    const onClick = jest.fn()
-    const tree = render(
-      <PortalHost>
-        <Overlay visible onPress={onPress} onClick={onClick} />
-      </PortalHost>
-    )
-
-    const pressable = tree.root.findByProps({ testID: 'rv-overlay' }) as renderer.ReactTestInstance
-    act(() => {
-      pressable.props.onPress()
-    })
-
-    expect(onPress).toHaveBeenCalledTimes(1)
-    expect(onClick).not.toHaveBeenCalled()
-  })
-
-  it('renders nothing when not visible', () => {
-    const tree = render(
-      <PortalHost>
-        <Overlay visible={false} />
-      </PortalHost>
-    )
-    expect(tree.root.findAllByProps({ testID: 'rv-overlay' })).toHaveLength(0)
-  })
-
-  it('supports custom duration', async () => {
-    jest.useFakeTimers()
-    const tree = render(
-      <PortalHost>
-        <Overlay visible duration={500} />
-      </PortalHost>
-    )
-
-    act(() => {
-      jest.runAllTicks()
-    })
-
-    expect(tree.root.findAllByProps({ testID: 'rv-overlay' }).length).toBeGreaterThan(0)
-
-    act(() => {
-      tree.update(
-        <PortalHost>
-          <Overlay visible={false} duration={500} />
-        </PortalHost>
-      )
-    })
-
-    act(() => {
-      jest.advanceTimersByTime(100)
-    })
-
-    act(() => {
-      jest.advanceTimersByTime(500)
-    })
-
-    expect(tree.root.findAllByProps({ testID: 'rv-overlay' })).toHaveLength(0)
-    jest.useRealTimers()
-  })
-
-  it('supports custom zIndex', () => {
-    const tree = render(
-      <PortalHost>
-        <Overlay visible zIndex={2000} />
-      </PortalHost>
-    )
-
-    const nodesWithZIndex = tree.root.findAll(node => {
-      const style = node.props.style
-      if (!style) return false
-      const flat = Array.isArray(style) ? StyleSheet.flatten(style) : style
-      return flat.zIndex === 2000
-    })
-
-    expect(nodesWithZIndex.length).toBeGreaterThan(0)
+  it('renders nothing when not open', () => {
+    const tree = render(<Overlay isOpen={false} />)
+    expect(tree.toJSON()).toBeNull()
   })
 })

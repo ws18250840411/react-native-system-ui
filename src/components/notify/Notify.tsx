@@ -13,7 +13,7 @@ import { isFunction, isText } from '../../utils'
 import { useAriaPress, useSafeAreaPadding } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
-import { useOverlayStack } from '../overlay'
+import { useOverlayStack } from '../../hooks'
 import type { NotifyProps, NotifyPosition } from './types'
 import { useNotifyTokens } from './tokens'
 

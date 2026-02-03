@@ -151,10 +151,8 @@ export { default as Popup } from './popup'
 export type { PopupProps, PopupPlacement } from './popup'
 export type { PopupTokens } from './popup/tokens'
 export { usePopupTokens } from './popup/tokens'
-export { default as Overlay } from './overlay'
+export { default as Overlay, OverlayProvider } from './overlay'
 export type { OverlayProps } from './overlay'
-export type { OverlayTokens } from './overlay/types'
-export { useOverlayTokens } from './overlay/tokens'
 export { default as Dialog } from './dialog'
 export type {
   DialogProps,

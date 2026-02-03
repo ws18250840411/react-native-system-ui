@@ -13,11 +13,10 @@ import {
 
 import Portal from '../portal/Portal'
 import { SafeAreaView } from '../safe-area-view'
-import { useAriaPress } from '../../hooks'
+import { useAriaPress, useOverlayStack } from '../../hooks'
 import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Loading from '../loading'
 import { Checked, Close } from 'react-native-system-icon'
-import { useOverlayStack } from '../overlay'
 import type { DeepPartial } from '../../types'
 import { isFiniteNumber, isText } from '../../utils/validate'
 import { useToastTokens } from './tokens'

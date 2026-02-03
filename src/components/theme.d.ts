@@ -26,7 +26,6 @@ import type { NavBarTokens } from './nav-bar/types'
 import type { NoticeBarTokens } from './notice-bar/tokens'
 import type { NotifyTokens } from './notify/types'
 import type { NumberKeyboardTokens } from './number-keyboard/tokens'
-import type { OverlayTokens } from './overlay/types'
 import type { PaginationTokens } from './pagination/types'
 import type { PasswordInputTokens } from './password-input/PasswordInput'
 import type { PickerTokens } from './picker/tokens'
@@ -83,7 +82,6 @@ declare module '../design-system/ThemeContext' {
     noticeBar: NoticeBarTokens
     notify: NotifyTokens
     numberKeyboard: NumberKeyboardTokens
-    overlay: OverlayTokens
     pagination: PaginationTokens
     passwordInput: PasswordInputTokens
     picker: PickerTokens

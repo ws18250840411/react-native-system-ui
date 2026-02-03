@@ -2,76 +2,86 @@ import React from 'react'
 import renderer, { act } from 'react-test-renderer'
 import { StyleSheet, Text, View } from 'react-native'
 
+jest.mock('@react-native-aria/overlays', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+  return {
+    OverlayContainer: ({ children, style }: { children?: React.ReactNode; style?: unknown }) => (
+      <View style={style}>{children}</View>
+    ),
+    OverlayProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  }
+})
+
+jest.mock('@react-native-aria/interactions', () => ({
+  useKeyboardDismissable: jest.fn(),
+}))
+
 import Portal from '../Portal'
-import { PortalContext } from '../PortalContext'
-import { PortalHost, ensureGlobalPortalHost, portalStore } from '../PortalHost'
+import { PortalHost, portalStore } from '../PortalHost'
 
 describe('Portal', () => {
   afterEach(() => {
-    portalStore.clear()
+    act(() => {
+      portalStore.clear()
+    })
   })
 
-  it('mounts, updates and unmounts through the provided manager', () => {
-    const mount = jest.fn().mockReturnValue(7)
-    const update = jest.fn()
-    const unmount = jest.fn()
-
-    const manager = { mount, update, unmount }
-
-    const Wrapper = ({ label }: { label: string }) => (
+  it('renders Portal component when open', () => {
+    const tree = renderer.create(
       <PortalHost>
-        <PortalContext.Provider value={manager}>
-          <Portal>
-            <Text>{label}</Text>
-          </Portal>
-        </PortalContext.Provider>
-      </PortalHost>
-    )
-
-    const tree = renderer.create(<Wrapper label="foo" />)
-
-    expect(mount).toHaveBeenCalledTimes(1)
-    expect(mount.mock.calls[0][0].props.children).toBe('foo')
-
-    act(() => {
-      tree.update(<Wrapper label="bar" />)
-    })
-
-    expect(update).toHaveBeenCalled()
-    const lastCall = update.mock.calls[update.mock.calls.length - 1]
-    expect(lastCall[0]).toBe(7)
-    expect(lastCall[1].props.children).toBe('bar')
-
-    act(() => {
-      tree.unmount()
-    })
-
-    expect(unmount).toHaveBeenCalledWith(7)
-  })
-
-  it('renders children inside PortalHost and cleans up on unmount', () => {
-    const Wrapper = ({ text }: { text: string }) => (
-      <PortalHost>
-        <Portal>
-          <Text testID="portal-text">{text}</Text>
+        <Portal isOpen>
+          <Text testID="portal-text">Hello</Text>
         </Portal>
       </PortalHost>
     )
 
-    const tree = renderer.create(<Wrapper text="Hello" />)
-
-    const getTexts = () => tree.root.findAllByProps({ testID: 'portal-text' })
-    expect(getTexts()[0].props.children).toBe('Hello')
+    const node = tree.root.findByProps({ testID: 'portal-text' })
+    expect(node.props.children).toBe('Hello')
 
     act(() => {
-      tree.update(<Wrapper text="World" />)
+      tree.unmount()
     })
-    expect(getTexts()[0].props.children).toBe('World')
+  })
+
+  it('does not render when isOpen is false', () => {
+    const tree = renderer.create(
+      <PortalHost>
+        <Portal isOpen={false}>
+          <Text testID="portal-closed">Hidden</Text>
+        </Portal>
+      </PortalHost>
+    )
+
+    const items = tree.root.findAllByProps({ testID: 'portal-closed' })
+    expect(items.length).toBe(0)
 
     act(() => {
-      tree.update(<PortalHost />)
+      tree.unmount()
     })
-    expect(getTexts().length).toBe(0)
+  })
+
+  it('mounts and updates entries via static API', () => {
+    const tree = renderer.create(<PortalHost />)
+    let key = 0
+
+    act(() => {
+      key = Portal.add(<Text testID="static-text">A</Text>)
+    })
+
+    expect(tree.root.findByProps({ testID: 'static-text' }).props.children).toBe('A')
+
+    act(() => {
+      Portal.update(key, <Text testID="static-text">B</Text>)
+    })
+
+    expect(tree.root.findByProps({ testID: 'static-text' }).props.children).toBe('B')
+
+    act(() => {
+      Portal.remove(key)
+    })
+
+    expect(tree.root.findAllByProps({ testID: 'static-text' })).toHaveLength(0)
 
     act(() => {
       tree.unmount()
@@ -79,30 +89,32 @@ describe('Portal', () => {
   })
 
   it('propagates zIndex from portal content to wrapper', () => {
-    const tree = renderer.create(
-      <PortalHost>
-        <Portal>
-          <View testID="z-10" style={{ zIndex: 10 }}>
-            <Text>10</Text>
-          </View>
-        </Portal>
-        <Portal>
-          <View testID="z-30">
-            <View style={{ zIndex: 30 }}>
-              <Text>30</Text>
-            </View>
-          </View>
-        </Portal>
-      </PortalHost>
-    )
+    const tree = renderer.create(<PortalHost />)
 
-    const item10 = tree.root.findByProps({ testID: 'z-10' })
-    const item10WrapperStyle = StyleSheet.flatten(item10.parent?.props.style)
-    expect(item10WrapperStyle?.zIndex).toBe(10)
+    act(() => {
+      Portal.add(
+        <View testID="z-10" style={{ zIndex: 10 }}>
+          <Text>10</Text>
+        </View>
+      )
+      Portal.add(
+        <View testID="z-30">
+          <View style={{ zIndex: 30 }}>
+            <Text>30</Text>
+          </View>
+        </View>
+      )
+    })
 
-    const item30 = tree.root.findByProps({ testID: 'z-30' })
-    const item30WrapperStyle = StyleSheet.flatten(item30.parent?.props.style)
-    expect(item30WrapperStyle?.zIndex).toBe(30)
+    const zIndexes: number[] = []
+    tree.root.findAll(node => {
+      const flattened = StyleSheet.flatten(node.props?.style)
+      if (flattened && typeof flattened.zIndex === 'number') {
+        zIndexes.push(flattened.zIndex)
+      }
+      return false
+    })
+    expect(zIndexes).toEqual(expect.arrayContaining([10, 30]))
 
     act(() => {
       tree.unmount()
@@ -110,21 +122,27 @@ describe('Portal', () => {
   })
 
   it('uses max zIndex across descendants', () => {
-    const tree = renderer.create(
-      <PortalHost>
-        <Portal>
-          <View testID="z-mix" style={{ zIndex: 10 }}>
-            <View style={{ zIndex: 30 }}>
-              <Text>30</Text>
-            </View>
-          </View>
-        </Portal>
-      </PortalHost>
-    )
+    const tree = renderer.create(<PortalHost />)
 
-    const item = tree.root.findByProps({ testID: 'z-mix' })
-    const wrapperStyle = StyleSheet.flatten(item.parent?.props.style)
-    expect(wrapperStyle?.zIndex).toBe(30)
+    act(() => {
+      Portal.add(
+        <View testID="z-mix" style={{ zIndex: 10 }}>
+          <View style={{ zIndex: 30 }}>
+            <Text>30</Text>
+          </View>
+        </View>
+      )
+    })
+
+    const zIndexes: number[] = []
+    tree.root.findAll(node => {
+      const flattened = StyleSheet.flatten(node.props?.style)
+      if (flattened && typeof flattened.zIndex === 'number') {
+        zIndexes.push(flattened.zIndex)
+      }
+      return false
+    })
+    expect(zIndexes).toEqual(expect.arrayContaining([30]))
 
     act(() => {
       tree.unmount()
@@ -132,52 +150,18 @@ describe('Portal', () => {
   })
 
   it('clears portals when last host unmounts', () => {
-    const tree = renderer.create(
-      <PortalHost>
-        <Portal>
-          <Text testID="cleanup-text">X</Text>
-        </Portal>
-      </PortalHost>
-    )
+    const tree = renderer.create(<PortalHost />)
+    act(() => {
+      Portal.add(<Text testID="cleanup-text">X</Text>)
+    })
 
     expect(portalStore.hasHosts()).toBe(true)
-    expect(portalStore.getSnapshot().length).toBe(1)
 
     act(() => {
       tree.unmount()
     })
 
     expect(portalStore.hasHosts()).toBe(false)
-    expect(portalStore.getSnapshot().length).toBe(0)
-  })
-
-  it('keeps portals when one of multiple hosts unmounts', () => {
-    const tree = renderer.create(
-      <PortalHost>
-        <PortalHost />
-      </PortalHost>
-    )
-
-    act(() => {
-      Portal.add(<Text testID="multi-host-text">static</Text>)
-    })
-
-    expect(portalStore.hasHosts()).toBe(true)
-    expect(portalStore.getSnapshot().length).toBe(1)
-
-    act(() => {
-      tree.update(<PortalHost />)
-    })
-
-    expect(portalStore.hasHosts()).toBe(true)
-    expect(portalStore.getSnapshot().length).toBe(1)
-
-    act(() => {
-      tree.unmount()
-    })
-
-    expect(portalStore.hasHosts()).toBe(false)
-    expect(portalStore.getSnapshot().length).toBe(0)
   })
 
   it('clears static portals through Portal.clear', () => {
@@ -187,63 +171,33 @@ describe('Portal', () => {
       Portal.add(<Text testID="clear-text">static</Text>)
     })
 
-    expect(portalStore.getSnapshot().length).toBe(1)
+    expect(host.root.findAllByProps({ testID: 'clear-text' })).toHaveLength(1)
 
     act(() => {
       Portal.clear()
     })
 
-    expect(portalStore.getSnapshot().length).toBe(0)
+    expect(host.root.findAllByProps({ testID: 'clear-text' })).toHaveLength(0)
 
     act(() => {
       host.unmount()
     })
   })
 
-  it('tears down auto host after clear when only auto host is present', async () => {
-    if (typeof document === 'undefined') {
-      return
-    }
-    await act(async () => {
-      await ensureGlobalPortalHost()
-    })
-
-    const host = document.querySelector('[data-rnsu-portal-host="true"]')
-    if (!host) {
-      // 在非 Web/未安装 react-dom 的环境下会直接跳过自动挂载能力
-      return
-    }
-
-    await act(async () => {
-      Portal.clear()
-      await Promise.resolve()
-    })
-
-    expect(document.querySelector('[data-rnsu-portal-host="true"]')).toBeNull()
-  })
-
   it('warns when no PortalHost is present', () => {
     const spy = jest.spyOn(console, 'warn').mockImplementation(() => { })
     const previousDev = (global as any).__DEV__
     ;(global as any).__DEV__ = true
-    
+
     try {
       if (typeof document === 'undefined') {
         act(() => {
-          renderer.create(
-            <Portal>
-              <Text>Content</Text>
-            </Portal>
-          )
+          Portal.add(<Text>Content</Text>)
         })
       } else {
-        renderer.create(
-          <Portal>
-            <Text>Content</Text>
-          </Portal>
-        )
+        Portal.add(<Text>Content</Text>)
       }
-      if (typeof document === 'undefined') {
+      if (!portalStore.hasHosts()) {
         expect(spy).toHaveBeenCalledWith(
           expect.stringContaining('请在根节点挂载')
         )

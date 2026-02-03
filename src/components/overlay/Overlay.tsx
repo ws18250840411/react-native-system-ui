@@ -1,119 +1,81 @@
-import React, { useCallback, useMemo } from 'react'
-import {
-  Animated,
-  Pressable,
-  StyleSheet,
-  View,
-  type ViewStyle,
-} from 'react-native'
+import React from 'react'
+import type { ViewStyle } from 'react-native'
+import { Modal, Platform } from 'react-native'
 
-import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
-import { parseNumberLike } from '../../utils/number'
-import Portal from '../portal/Portal'
-import { useOverlayStack } from './useOverlayStack'
-import { useOverlayTokens } from './tokens'
+import { OverlayContainer } from '@react-native-aria/overlays'
+import { useKeyboardDismissable } from '@react-native-aria/interactions'
 import type { OverlayProps } from './types'
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+export const ExitAnimationContext = React.createContext({
+  exited: true,
+  setExited: (_exited: boolean) => { },
+})
 
-export const Overlay: React.FC<OverlayProps> = props => {
+export const Overlay = React.forwardRef<
+  React.ComponentRef<typeof Modal>,
+  OverlayProps
+>((props, ref) => {
   const {
-    color,
-    tokensOverride,
-    onPress,
-    onClick,
-    style,
-    zIndex,
     children,
-    visible: visibleProp,
-    duration: durationProp,
-    lockScroll: lockScrollProp,
-    closeOnBackPress: closeOnBackPressProp,
-    testID: testIDProp,
-    accessibilityLabel: accessibilityLabelProp,
+    isOpen,
+    visible,
+    useRNModal = false,
+    useRNModalOnAndroid = false,
+    isKeyboardDismissable = true,
+    animationPreset = 'fade',
+    onRequestClose,
+    style,
   } = props
 
-  const hasAction = !!onPress || !!onClick
+  const resolvedOpen = isOpen ?? visible ?? false
+  const [exited, setExited] = React.useState(!resolvedOpen)
 
-  const tokens = useOverlayTokens(tokensOverride)
-  const visible = visibleProp ?? tokens.defaults.visible
-  const lockScroll = lockScrollProp ?? tokens.defaults.lockScroll
-  const closeOnBackPress = closeOnBackPressProp ?? tokens.defaults.closeOnBackPress
-  const testID = testIDProp ?? tokens.defaults.testID
-  const accessibilityLabel = accessibilityLabelProp ?? tokens.defaults.accessibilityLabel
-  const duration = durationProp ?? tokens.defaults.duration
-  const resolvedDuration = Math.max(
-    0,
-    parseNumberLike(duration, tokens.defaults.duration) ?? tokens.defaults.duration
-  )
-  const { mounted, animated } = usePresenceAnimation(visible, { duration: resolvedDuration })
-
-  const handlePress = useCallback(() => {
-    if (onPress) {
-      onPress()
-      return
-    }
-    onClick?.()
-  }, [onClick, onPress])
-
-  const { zIndex: stackZIndex } = useOverlayStack({
-    visible: mounted,
-    onClose: hasAction ? handlePress : undefined,
-    closeOnBack: hasAction ? closeOnBackPress : false,
-    lockScroll,
-    zIndex: parseNumberLike(zIndex),
-    type: 'overlay',
+  useKeyboardDismissable({
+    enabled: Platform.OS !== 'web' && resolvedOpen && isKeyboardDismissable,
+    callback: onRequestClose ?? (() => { }),
   })
 
-  if (!mounted) return null
+  let styleObj: ViewStyle & { display?: 'flex' | 'none' } = {}
+  if (Platform.OS === 'web') {
+    styleObj.zIndex = 9999
+  }
 
-  const resolvedZIndex = useMemo(
-    () => stackZIndex ?? parseNumberLike(zIndex),
-    [stackZIndex, zIndex]
-  )
-  const styleBackgroundColor = useMemo(
-    () => StyleSheet.flatten(style)?.backgroundColor as string | undefined,
-    [style]
-  )
-  const resolvedColor = useMemo(
-    () => color ?? styleBackgroundColor ?? tokens.colors.backdrop,
-    [color, styleBackgroundColor, tokens.colors.backdrop]
-  )
+  if (animationPreset === 'slide') {
+    styleObj.overflow = 'hidden'
+    styleObj.display = 'flex'
+  } else {
+    styleObj.display = exited && !resolvedOpen ? 'none' : 'flex'
+  }
+
+  if (!resolvedOpen && exited) {
+    return null
+  }
+
+  if (useRNModal || (useRNModalOnAndroid && Platform.OS === 'android')) {
+    return (
+      <ExitAnimationContext.Provider value={{ exited, setExited }}>
+        <Modal
+          statusBarTranslucent
+          transparent
+          visible={resolvedOpen}
+          onRequestClose={onRequestClose}
+          animationType={animationPreset}
+          ref={ref}
+        >
+          {children}
+        </Modal>
+      </ExitAnimationContext.Provider>
+    )
+  }
 
   return (
-    <Portal>
-      <View
-        pointerEvents="box-none"
-        style={[
-          tokens.layout.portal,
-          resolvedZIndex !== undefined && resolvedZIndex !== null
-            ? { zIndex: resolvedZIndex }
-            : null,
-          style,
-        ]}
-      >
-        <AnimatedPressable
-          testID={testID}
-          style={[
-            tokens.layout.overlay,
-            {
-              backgroundColor: resolvedColor,
-              opacity: animated,
-              touchAction: lockScroll ? 'none' : undefined,
-            } as unknown as ViewStyle,
-          ]}
-          pointerEvents={mounted ? 'auto' : 'none'}
-          accessible={hasAction}
-          accessibilityRole={hasAction ? 'button' : undefined}
-          accessibilityLabel={hasAction ? accessibilityLabel : undefined}
-          accessibilityHint={hasAction ? '双击即可关闭遮罩' : undefined}
-          onPress={handlePress}
-        />
+    <OverlayContainer style={[style, styleObj]}>
+      <ExitAnimationContext.Provider value={{ exited, setExited }}>
         {children}
-      </View>
-    </Portal>
+      </ExitAnimationContext.Provider>
+    </OverlayContainer>
   )
-}
+})
 
 Overlay.displayName = 'Overlay'
 

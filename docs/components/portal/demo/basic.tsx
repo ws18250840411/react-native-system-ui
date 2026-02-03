@@ -7,22 +7,24 @@ export default function PortalBasicDemo() {
   const [visible, setVisible] = React.useState(false)
 
   return (
-    <Cell.Group>
-      <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
-      {visible ? (
-        <Portal>
-          <View style={styles.layer} pointerEvents="box-none">
-            <Pressable style={styles.mask} onPress={() => setVisible(false)} />
-            <View style={styles.dialog}>
-              <Text style={styles.title}>这里是 Portal 内容</Text>
-              <Button type="primary" block onPress={() => setVisible(false)}>
-                我知道了
-              </Button>
+    <Portal.Host>
+      <Cell.Group>
+        <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
+        {visible ? (
+          <Portal>
+            <View style={styles.layer} pointerEvents="box-none">
+              <Pressable style={styles.mask} onPress={() => setVisible(false)} />
+              <View style={styles.dialog}>
+                <Text style={styles.title}>这里是 Portal 内容</Text>
+                <Button type="primary" block onPress={() => setVisible(false)}>
+                  我知道了
+                </Button>
+              </View>
             </View>
-          </View>
-        </Portal>
-      ) : null}
-    </Cell.Group>
+          </Portal>
+        ) : null}
+      </Cell.Group>
+    </Portal.Host>
   )
 }
 

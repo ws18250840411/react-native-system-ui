@@ -1,7 +1,15 @@
-import React, { useEffect, useRef, useSyncExternalStore } from 'react'
-import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  DeviceEventEmitter,
+  NativeEventEmitter,
+  Platform,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from 'react-native'
 
 import { isNumber } from '../../utils'
+import { OverlayProvider } from '../overlay'
 import { PortalContext, type PortalManager } from './PortalContext'
 
 interface PortalEntry {
@@ -10,29 +18,22 @@ interface PortalEntry {
   zIndex?: number
 }
 
-interface PortalLayerProps {
-  fixed?: boolean
-  entries: PortalEntry[]
+interface PortalManagerHandle extends PortalManager {
+  mount: (children: React.ReactNode, key?: number) => number
+  clear: () => void
 }
 
-const PortalLayer: React.FC<PortalLayerProps> = ({ fixed, entries }) => (
-  <View
-    pointerEvents="box-none"
-    style={[styles.portalLayer, fixed && webFixedStyle]}
-    collapsable={false}
-  >
-    {entries.map(entry => (
-      <View
-        key={entry.key}
-        pointerEvents="box-none"
-        collapsable={false}
-        style={[styles.portalEntry, isNumber(entry.zIndex) && { zIndex: entry.zIndex }]}
-      >
-        {entry.children}
-      </View>
-    ))}
-  </View>
-)
+type Operation =
+  | { type: 'mount'; key: number; children: React.ReactNode }
+  | { type: 'update'; key: number; children: React.ReactNode }
+  | { type: 'unmount'; key: number }
+  | { type: 'clear' }
+
+const ADD_EVENT = 'RNSU_PORTAL_ADD'
+const UPDATE_EVENT = 'RNSU_PORTAL_UPDATE'
+const REMOVE_EVENT = 'RNSU_PORTAL_REMOVE'
+const CLEAR_EVENT = 'RNSU_PORTAL_CLEAR'
+const TopViewEventEmitter = DeviceEventEmitter || new NativeEventEmitter()
 
 const getMaxZIndex = (node: React.ReactNode): number | undefined => {
   if (!node) return undefined
@@ -68,132 +69,104 @@ const getMaxZIndex = (node: React.ReactNode): number | undefined => {
   return Math.max(max, childMax)
 }
 
-const hostStack: number[] = []
-const portalEntries = new Map<number, PortalEntry>()
-const emptyEntries: PortalEntry[] = []
-let nextPortalKey = 1
-let nextHostId = 1
-let snapshotDirty = true
-let snapshotCache = emptyEntries
-const listeners = new Set<() => void>()
-const markSnapshotDirty = () => {
-  snapshotDirty = true
-}
-const getEntriesSnapshot = () => {
-  if (!snapshotDirty) return snapshotCache
-  snapshotDirty = false
-  snapshotCache =
-    portalEntries.size === 0 ? emptyEntries : Array.from(portalEntries.values())
-  return snapshotCache
-}
-const emit = () => {
-  listeners.forEach(listener => {
-    listener()
-  })
-}
-
-const subscribe = (listener: () => void) => {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
-const registerHost = (hostId: number) => {
-  hostStack.push(hostId)
-  emit()
-  maybeTeardownAutoHost()
-  return () => unregisterHost(hostId)
-}
-
-const unregisterHost = (hostId: number) => {
-  const index = hostStack.lastIndexOf(hostId)
-  if (index >= 0) {
-    hostStack.splice(index, 1)
-  }
-  if (hostStack.length === 0) {
-    clearPortals()
-    return
-  }
-  emit()
-  maybeTeardownAutoHost()
-}
-
-const isActiveHost = (hostId: number) => hostStack[hostStack.length - 1] === hostId
-
-const mountPortal = (children: React.ReactNode, key?: number) => {
-  const resolvedKey = key ?? nextPortalKey++
-  portalEntries.set(resolvedKey, { key: resolvedKey, children, zIndex: getMaxZIndex(children) })
-  markSnapshotDirty()
-  emit()
-  return resolvedKey
-}
-
-const updatePortal = (key: number, children: React.ReactNode) => {
-  const prev = portalEntries.get(key)
-  if (prev) {
-    prev.children = children
-    prev.zIndex = getMaxZIndex(children)
+const applyOperation = (manager: PortalManagerHandle, operation: Operation) => {
+  if (operation.type === 'mount') {
+    manager.mount(operation.children, operation.key)
+  } else if (operation.type === 'update') {
+    manager.update(operation.key, operation.children)
+  } else if (operation.type === 'clear') {
+    manager.clear()
   } else {
-    portalEntries.set(key, { key, children, zIndex: getMaxZIndex(children) })
-  }
-  markSnapshotDirty()
-  emit()
-}
-
-const unmountPortal = (key: number) => {
-  if (portalEntries.delete(key)) {
-    markSnapshotDirty()
-    emit()
-    maybeTeardownAutoHost()
+    manager.unmount(operation.key)
   }
 }
 
-const scheduleTeardown = typeof queueMicrotask === 'function'
-  ? queueMicrotask
-  : (task: () => void) => {
-    Promise.resolve().then(task)
-  }
+const PortalManagerView = React.forwardRef<PortalManagerHandle, { fixed?: boolean }>(
+  ({ fixed }, ref) => {
+    const [entries, setEntries] = useState<PortalEntry[]>([])
+    const keySeed = useRef(0)
 
-const teardownAutoHost = () => {
-  if (!autoHostRoot || teardownScheduled) return
-  teardownScheduled = true
-  scheduleTeardown(() => {
-    teardownScheduled = false
-    if (!autoHostRoot) return
-    if (hostStack.length > 1 || portalEntries.size === 0) {
-      const root = autoHostRoot
-      const container = autoHostContainer
-      autoHostRoot = null
-      autoHostContainer = null
-      root.unmount()
-      if (container?.parentNode) {
-        container.parentNode.removeChild(container)
+    const mount = useCallback((children: React.ReactNode, key?: number) => {
+      const resolvedKey = key ?? ++keySeed.current
+      if (isNumber(key) && key >= keySeed.current) {
+        keySeed.current = key + 1
       }
-    }
-  })
-}
+      const entry: PortalEntry = {
+        key: resolvedKey,
+        children,
+        zIndex: getMaxZIndex(children),
+      }
+      setEntries(prev => [...prev, entry])
+      return resolvedKey
+    }, [])
 
-const maybeTeardownAutoHost = () => {
-  if (!autoHostRoot) return
-  if (hostStack.length > 1 || portalEntries.size === 0) {
-    teardownAutoHost()
-  }
-}
+    const update = useCallback((key: number, children: React.ReactNode) => {
+      setEntries(prev => {
+        const index = prev.findIndex(item => item.key === key)
+        const entry: PortalEntry = { key, children, zIndex: getMaxZIndex(children) }
+        if (index === -1) {
+          return [...prev, entry]
+        }
+        return [...prev.slice(0, index), entry, ...prev.slice(index + 1)]
+      })
+    }, [])
 
-const clearPortals = () => {
-  if (portalEntries.size > 0) {
-    portalEntries.clear()
-    markSnapshotDirty()
-    emit()
+    const unmount = useCallback((key: number) => {
+      setEntries(prev => prev.filter(item => item.key !== key))
+    }, [])
+
+    const clear = useCallback(() => {
+      setEntries([])
+    }, [])
+
+    React.useImperativeHandle(ref, () => ({
+      mount,
+      update,
+      unmount,
+      clear,
+    }), [mount, update, unmount, clear])
+
+    if (entries.length === 0) return null
+    return (
+      <View
+        pointerEvents="box-none"
+        style={[styles.portalLayer, fixed && webFixedStyle]}
+        collapsable={false}
+      >
+        {entries.map(entry => (
+          <View
+            key={entry.key}
+            pointerEvents="box-none"
+            collapsable={false}
+            style={[styles.portalEntry, isNumber(entry.zIndex) && { zIndex: entry.zIndex }]}
+          >
+            {entry.children}
+          </View>
+        ))}
+      </View>
+    )
   }
-  maybeTeardownAutoHost()
-}
+)
+
+let activeHostId = 0
+let nextHostId = 1
+let nextGlobalKey = 1
 
 const globalManager: PortalManager = {
-  mount: mountPortal,
-  update: updatePortal,
-  unmount: unmountPortal,
+  mount: (children: React.ReactNode, key?: number) => {
+    const resolvedKey = key ?? nextGlobalKey++
+    if (isNumber(key) && key >= nextGlobalKey) {
+      nextGlobalKey = key + 1
+    }
+    TopViewEventEmitter.emit(ADD_EVENT, { key: resolvedKey, children })
+    return resolvedKey
+  },
+  update: (key: number, children: React.ReactNode) => {
+    TopViewEventEmitter.emit(UPDATE_EVENT, { key, children })
+  },
+  unmount: (key: number) => {
+    TopViewEventEmitter.emit(REMOVE_EVENT, { key })
+  },
 }
 
 export interface PortalHostProps {
@@ -202,25 +175,104 @@ export interface PortalHostProps {
 }
 
 export const PortalHost: React.FC<PortalHostProps> = ({ children, fixed }) => {
-  const hostIdRef = useRef<number | null>(null)
-  if (hostIdRef.current === null) {
-    hostIdRef.current = nextHostId++
-  }
-  const entries = useSyncExternalStore(subscribe, getEntriesSnapshot, getEntriesSnapshot)
-  const active = isActiveHost(hostIdRef.current)
-  const resolvedEntries = active ? entries : emptyEntries
+  const hostIdRef = useRef(nextHostId++)
+  const managerRef = useRef<PortalManagerHandle | null>(null)
+  const queueRef = useRef<Operation[]>([])
+  const nextKeyRef = useRef(1)
 
-  useEffect(() => registerHost(hostIdRef.current as number), [])
+  const enqueueOrRun = useCallback((operation: Operation) => {
+    const manager = managerRef.current
+    if (manager) {
+      applyOperation(manager, operation)
+    } else {
+      queueRef.current.push(operation)
+    }
+  }, [])
+
+  const scopedManager = useMemo<PortalManager>(() => ({
+    mount: (children: React.ReactNode, key?: number) => {
+      const resolvedKey = key ?? nextKeyRef.current++
+      if (isNumber(key) && key >= nextKeyRef.current) {
+        nextKeyRef.current = key + 1
+      }
+      enqueueOrRun({ type: 'mount', key: resolvedKey, children })
+      return resolvedKey
+    },
+    update: (key: number, children: React.ReactNode) => {
+      enqueueOrRun({ type: 'update', key, children })
+    },
+    unmount: (key: number) => {
+      enqueueOrRun({ type: 'unmount', key })
+    },
+  }), [enqueueOrRun])
+
+  const handleManagerRef = useCallback((manager: PortalManagerHandle | null) => {
+    managerRef.current = manager
+    if (manager) {
+      if (queueRef.current.length > 0) {
+        const pending = queueRef.current.splice(0, queueRef.current.length)
+        pending.forEach(operation => applyOperation(manager, operation))
+      }
+      activeHostId = hostIdRef.current
+    } else {
+      if (activeHostId === hostIdRef.current) {
+        activeHostId = 0
+        portalStore.clear()
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleAdd = ({ key, children }: { key: number; children: React.ReactNode }) => {
+      if (activeHostId !== hostIdRef.current) return
+      enqueueOrRun({ type: 'mount', key, children })
+    }
+    const handleUpdate = ({ key, children }: { key: number; children: React.ReactNode }) => {
+      if (activeHostId !== hostIdRef.current) return
+      enqueueOrRun({ type: 'update', key, children })
+    }
+    const handleRemove = ({ key }: { key: number }) => {
+      if (activeHostId !== hostIdRef.current) return
+      enqueueOrRun({ type: 'unmount', key })
+    }
+    const handleClear = () => {
+      if (activeHostId !== hostIdRef.current) return
+      queueRef.current = []
+      enqueueOrRun({ type: 'clear' })
+    }
+
+    const addSub = TopViewEventEmitter.addListener(ADD_EVENT, handleAdd)
+    const updateSub = TopViewEventEmitter.addListener(UPDATE_EVENT, handleUpdate)
+    const removeSub = TopViewEventEmitter.addListener(REMOVE_EVENT, handleRemove)
+    const clearSub = TopViewEventEmitter.addListener(CLEAR_EVENT, handleClear)
+
+    return () => {
+      addSub.remove?.()
+      updateSub.remove?.()
+      removeSub.remove?.()
+      clearSub.remove?.()
+      // @ts-expect-error - RN web fallback compatibility
+      TopViewEventEmitter.removeListener?.(ADD_EVENT, handleAdd)
+      // @ts-expect-error - RN web fallback compatibility
+      TopViewEventEmitter.removeListener?.(UPDATE_EVENT, handleUpdate)
+      // @ts-expect-error - RN web fallback compatibility
+      TopViewEventEmitter.removeListener?.(REMOVE_EVENT, handleRemove)
+      // @ts-expect-error - RN web fallback compatibility
+      TopViewEventEmitter.removeListener?.(CLEAR_EVENT, handleClear)
+    }
+  }, [enqueueOrRun])
 
   return (
-    <PortalContext.Provider value={globalManager}>
-      <View style={styles.host} collapsable={false}>
-        <View style={styles.root} collapsable={false} pointerEvents="box-none">
-          {children}
+    <OverlayProvider>
+      <PortalContext.Provider value={scopedManager}>
+        <View style={styles.host} collapsable={false}>
+          <View style={styles.root} collapsable={false} pointerEvents="box-none">
+            {children}
+          </View>
+          <PortalManagerView ref={handleManagerRef} fixed={fixed} />
         </View>
-        <PortalLayer fixed={fixed} entries={resolvedEntries} />
-      </View>
-    </PortalContext.Provider>
+      </PortalContext.Provider>
+    </OverlayProvider>
   )
 }
 
@@ -245,55 +297,10 @@ const webFixedStyle: ViewStyle | undefined =
     ? ({ position: 'fixed' } as unknown as ViewStyle)
     : undefined
 
-let autoHostContainer: HTMLElement | null = null
-type AutoHostRoot = import('react-dom/client').Root
-let autoHostRoot: AutoHostRoot | null = null
-let hostPromise: Promise<void> | null = null
-let teardownScheduled = false
-
-export const ensureGlobalPortalHost = () => {
-  if (hostStack.length > 0) {
-    return Promise.resolve()
-  }
-
-  if (typeof document === 'undefined') {
-    return Promise.resolve()
-  }
-
-  if (autoHostRoot) return Promise.resolve()
-  if (hostPromise) return hostPromise
-
-  hostPromise = Promise.resolve()
-    .then(async () => {
-      if (hostStack.length > 0 || autoHostRoot) return
-
-      const doc = document
-      const { createRoot } = await import('react-dom/client')
-
-      if (hostStack.length > 0 || autoHostRoot) return
-
-      autoHostContainer = doc.createElement('div')
-      autoHostContainer.setAttribute('data-rnsu-portal-host', 'true')
-      doc.body.appendChild(autoHostContainer)
-      autoHostRoot = createRoot(autoHostContainer)
-      autoHostRoot.render(<PortalHost fixed />)
-      maybeTeardownAutoHost()
-    })
-    .catch(() => {
-      teardownAutoHost()
-    })
-    .finally(() => {
-      hostPromise = null
-    })
-
-  return hostPromise
-}
-
 export const portalManager = globalManager
 export const portalStore = {
-  clear: clearPortals,
-  getSnapshot: () => getEntriesSnapshot(),
-  subscribe,
-  hasHosts: () => hostStack.length > 0,
-  isActiveHost,
+  clear: () => {
+    TopViewEventEmitter.emit(CLEAR_EVENT)
+  },
+  hasHosts: () => activeHostId !== 0,
 }

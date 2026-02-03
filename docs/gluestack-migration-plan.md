@@ -10,6 +10,10 @@
 | Button | ✅ 完成（loading 子项） | Spinner | Loading 指示器直接用 `ActivityIndicator`；移除 `loadingType` | `src/components/button/*` + 文档 + demo + 单测 |
 | Toast | ✅ 完成（loading 子项） | Spinner | 移除 `loadingType`；移除 `ball` 单测 | `src/components/toast/*` + 文档 |
 | Switch | ✅ 完成 | Switch | 使用 RN `Switch` 作为核心实现；保留现有 API 与 loading 行为 | `src/components/switch/*` + 文档 + 单测 |
+| Portal | ✅ 完成（结构对齐） | Overlay/Portal | PortalLayer 空队列不渲染，减少层级开销 | `src/components/portal/PortalHost.tsx` |
+| Overlay | ✅ 完成（对齐核心机制） | Overlay | 基于 Gluestack Overlay 机制重构 | `src/components/overlay/*` + 文档 + 单测 |
+| Input | ✅ 完成 | Input | 补齐键盘类型映射与输入逻辑收敛 | `src/components/input/Input.tsx` |
+| Field | ✅ 完成（内部结构对齐） | Input 组合思路 | 内部结构按 Slot/Input 思路重构并收敛 | `src/components/field/Field.tsx` |
 
 ### 改动明细（便于追溯）
 
@@ -40,6 +44,16 @@
 | 2026-02-02 | Switch | 对齐 Gluestack 的 size 缩放（sm/md/lg） | `src/components/switch/Switch.tsx`, `src/components/switch/types.d.ts`, `docs/components/switch.md`, `docs/components/switch/demo/size.tsx` |
 | 2026-02-02 | Input | 补齐 `inputStyle` 透传并简化计算 | `src/components/input/Input.tsx`, `docs/components/input.md` |
 | 2026-02-02 | Checkbox | 去除冗余 useMemo，收敛计算 | `src/components/checkbox/Checkbox.tsx` |
+| 2026-02-03 | Portal | PortalLayer 空队列不渲染，减少层级开销 | `src/components/portal/PortalHost.tsx` |
+| 2026-02-03 | Portal | 补齐 OverlayContainer/Modal 行为与键盘关闭能力 | `src/components/portal/Portal.tsx`, `docs/components/portal.md`, `src/components/portal/__tests__/portal.test.tsx` |
+| 2026-02-03 | Portal | Portal 组件改为 Overlay 包装，静态 API 继续通过 Host 管理 | `src/components/portal/Portal.tsx`, `docs/components/portal.md`, `src/components/portal/__tests__/portal.test.tsx` |
+| 2026-02-03 | Portal | 事件总线驱动 Host 挂载，移除 auto host，收敛为单 Host 模式 | `src/components/portal/PortalHost.tsx`, `docs/components/portal.md`, `src/components/portal/__tests__/portal.test.tsx` |
+| 2026-02-03 | Overlay | 基于 OverlayContainer/Modal 重构实现 | `src/components/overlay/Overlay.tsx`, `src/components/overlay/types.d.ts` |
+| 2026-02-03 | Overlay | 对齐 Gluestack API（isOpen/Modal/keyboard） | `docs/components/overlay.md`, `src/components/overlay/__tests__/overlay.test.tsx` |
+| 2026-02-03 | Field | 内部结构按 Slot/Input 思路重构并收敛 | `src/components/field/Field.tsx` |
+| 2026-02-03 | Field | 修复 clearable 真机清除与失焦时序 | `src/components/field/Field.tsx` |
+| 2026-02-03 | Field | 数字输入拦截逻辑收敛（number/digit） | `src/components/field/Field.tsx` |
+| 2026-02-03 | Input | 补齐 `digit/tel` 键盘类型映射 | `src/components/input/Input.tsx` |
 
 ### 迁移优先级（先替换基础/通用）
 
@@ -108,6 +122,18 @@
 - 仅在实现层做映射；不暴露 Gluestack 原生 props。
 - 单个组件一套 `adapter`：将外部 props 归一为 Gluestack props。
 - 样式全部走 tokens：外观由我们控制，Gluestack 只负责结构和交互。
+
+### 优化要求与步骤（每个组件）
+
+- 先走读组件目录内所有文件（组件、tokens、types、index、tests、docs、demo）
+- 核心实现以 Gluestack 源码为主，优先复用其结构与交互，完善我们的api
+- 若现有 API 不被 Gluestack 支持：先评估补逻辑适配，否则删除并记录
+- 优化以可量化证据为依据：基准脚本或可复现实验结果
+- 只做实现层优化：对外 API 尽量保持不变（除非删除项）
+- 代码必须极致精简与高性能：保证体积小且符合 RN 开发规范
+- 同步更新文档、demo、类型与单测
+- 单测必须通过后再进入下一个组件
+- 变更记录写入 `gluestack-migration-plan.md`
 
 ### 迁移流程
 

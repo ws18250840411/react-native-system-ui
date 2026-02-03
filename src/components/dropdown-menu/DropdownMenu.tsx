@@ -4,7 +4,7 @@ import { Animated, Pressable, ScrollView, StyleSheet, View, useWindowDimensions 
 import { useControllableValue } from '../../hooks'
 import { measureInWindow, nativeDriverEnabled } from '../../platform'
 import Portal from '../portal/Portal'
-import { useOverlayStack } from '../overlay'
+import { useOverlayStack } from '../../hooks'
 import { createHairlineBorderBottom } from '../../utils/hairline'
 import { parseNumber, parseNumberLike } from '../../utils/number'
 import type { DropdownMenuInstance, DropdownMenuProps } from './types'

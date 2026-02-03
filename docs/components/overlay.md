@@ -12,8 +12,10 @@ simulator:
 ## 引入
 
 ```js
-import { Overlay } from 'react-native-system-ui'
+import { Overlay, OverlayProvider } from 'react-native-system-ui'
 ```
+
+> Overlay 依赖 `<OverlayProvider>` 作为宿主容器；如果你已经使用 `PortalHost`/`ConfigProvider`，则无需额外包裹。
 
 ## 代码演示
 
@@ -29,13 +31,12 @@ import { Overlay } from 'react-native-system-ui'
 
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| `visible` | 是否显示 | `boolean` | `false` |
-| `color` | 背景色 | `string` | `rgba(0, 0, 0, 0.7)` |
-| `duration` | 动画时长（ms） | `number \| string` | `300` |
-| `lockScroll` | 是否锁定页面滚动（主要影响 Web） | `boolean` | `true` |
-| `closeOnBackPress` | Android 返回键是否关闭遮罩 | `boolean` | `false` |
-| `zIndex` | 自定义层级 | `number \| string` | - |
-| `style` | 容器样式（覆盖全屏层） | `StyleProp<ViewStyle>` | - |
-| `onPress` | 点击遮罩触发 | `() => void` | - |
-| `onClick` | 同 `onPress`（与 Web/官方命名对齐） | `() => void` | - |
-| `children` | 遮罩上的自定义内容 | `ReactNode` | - |
+| `isOpen` | 是否显示 | `boolean` | `false` |
+| `visible` | `isOpen` 的兼容别名 | `boolean` | - |
+| `useRNModalOnAndroid` | Android 端是否使用 `Modal` 承载 | `boolean` | `false` |
+| `useRNModal` | 强制使用 `Modal` 承载 | `boolean` | `false` |
+| `onRequestClose` | `Modal` 关闭回调 | `() => void` | - |
+| `isKeyboardDismissable` | 是否允许点击遮罩关闭键盘 | `boolean` | `true` |
+| `animationPreset` | 动画类型（`Modal` 或 Overlay 容器展示策略） | `fade \| slide \| none` | `fade` |
+| `style` | Overlay 容器样式 | `StyleProp<ViewStyle>` | - |
+| `children` | Overlay 内部内容 | `ReactNode` | - |

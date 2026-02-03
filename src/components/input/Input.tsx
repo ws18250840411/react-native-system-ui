@@ -47,7 +47,15 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
 
   const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
   const resolvedClearTrigger = clearTriggerOverride ?? tokens.defaults.clearTrigger
-  const resolvedKeyboardType = keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined)
+  const resolvedKeyboardType = keyboardTypeProp ?? (
+    type === 'number'
+      ? 'decimal-pad'
+      : type === 'digit'
+        ? 'number-pad'
+        : type === 'tel'
+          ? 'phone-pad'
+          : undefined
+  )
   const fieldStyle = [
     {
       paddingHorizontal: tokens.spacing.paddingHorizontal,
