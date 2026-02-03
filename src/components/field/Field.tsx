@@ -15,8 +15,207 @@ import { formatNumberInput } from '../../utils/string'
 import { isDef, isFiniteNumber, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
+import type { FieldTokens } from './tokens'
 import type { DialogShowOptions } from '../dialog'
 import { alignMap, mapKeyboardType } from './utils'
+
+type FieldSlotProps = {
+  onPress?: () => void
+  style?: React.ComponentProps<typeof View>['style']
+  children?: React.ReactNode
+  accessibilityRole?: React.ComponentProps<typeof Pressable>['accessibilityRole']
+}
+
+const FieldSlot = ({
+  onPress,
+  style,
+  children,
+  accessibilityRole = 'button',
+}: FieldSlotProps) => {
+  if (!children) return null
+  return onPress ? (
+    <Pressable onPress={onPress} accessibilityRole={accessibilityRole} style={style}>
+      {children}
+    </Pressable>
+  ) : (
+    <View style={style}>{children}</View>
+  )
+}
+
+type FieldClearButtonProps = {
+  show: boolean
+  tokens: FieldTokens
+  clearIcon?: React.ReactNode
+  onPressIn?: () => void
+  onPressOut?: () => void
+  onPress?: () => void
+}
+
+const FieldClearButton = ({
+  show,
+  tokens,
+  clearIcon,
+  onPressIn,
+  onPressOut,
+  onPress,
+}: FieldClearButtonProps) => {
+  if (!show) return null
+  const webMouseDownProps =
+    Platform.OS === 'web'
+      ? ({
+          onMouseDown: (event: { preventDefault?: () => void; stopPropagation?: () => void }) => {
+            event.preventDefault?.()
+            event.stopPropagation?.()
+          },
+        } as unknown as React.ComponentProps<typeof Pressable>)
+      : undefined
+  return (
+    <Pressable
+      style={[
+        tokens.layout.clearIcon,
+        {
+          paddingHorizontal: tokens.spacing.rightIconGap,
+        },
+      ]}
+      {...webMouseDownProps}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      onPress={onPress}
+      accessibilityRole="button"
+    >
+      {React.isValidElement(clearIcon)
+        ? clearIcon
+        : <Clear size={tokens.sizes.clearIcon} fill={tokens.colors.clear} color={tokens.colors.clear} />}
+    </Pressable>
+  )
+}
+
+type FieldInputProps = {
+  inputRef: React.RefObject<TextInput | null>
+  tokens: FieldTokens
+  isTextarea: boolean
+  disabled: boolean
+  error: boolean
+  finalTextAlign: 'left' | 'center' | 'right'
+  lineHeight: number
+  textareaHeight?: number
+  minHeight?: number
+  inputStyle?: React.ComponentProps<typeof TextInput>['style']
+  value: string
+  onChangeText: (text: string) => void
+  onFocus: (event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => void
+  onBlur: (event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => void
+  onPressIn: (event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => void
+  rows: number
+  placeholderTextColor?: TextInputProps['placeholderTextColor']
+  keyboardType?: TextInputProps['keyboardType']
+  onContentSizeChange?: (event: { nativeEvent: { contentSize: { height: number } } }) => void
+  describedBy?: string[]
+  secureTextEntry?: boolean
+  editable: boolean
+  restInputProps: TextInputProps
+}
+
+const FieldInput = ({
+  inputRef,
+  tokens,
+  isTextarea,
+  disabled,
+  error,
+  finalTextAlign,
+  lineHeight,
+  textareaHeight,
+  minHeight,
+  inputStyle,
+  value,
+  onChangeText,
+  onFocus,
+  onBlur,
+  onPressIn,
+  rows,
+  placeholderTextColor,
+  keyboardType,
+  onContentSizeChange,
+  describedBy,
+  secureTextEntry,
+  editable,
+  restInputProps,
+}: FieldInputProps) => {
+  const inputStyles = [
+    isTextarea ? tokens.layout.textarea : tokens.layout.input,
+    {
+      color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
+      fontSize: tokens.typography.inputSize,
+      textAlign: finalTextAlign,
+      ...(isTextarea
+        ? {
+          lineHeight,
+          height: textareaHeight,
+          minHeight,
+        }
+        : {
+          minHeight: tokens.sizes.controlMinHeight,
+        }),
+    },
+    inputStyle,
+  ]
+
+  return (
+    <TextInput
+      ref={inputRef}
+      style={inputStyles}
+      value={value}
+      onChangeText={onChangeText}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onPressIn={onPressIn}
+      editable={editable}
+      secureTextEntry={secureTextEntry}
+      multiline={isTextarea}
+      numberOfLines={isTextarea ? rows : undefined}
+      keyboardType={keyboardType}
+      placeholderTextColor={placeholderTextColor}
+      onContentSizeChange={isTextarea ? onContentSizeChange : undefined}
+      // @ts-ignore
+      accessibilityDescribedBy={describedBy}
+      clearButtonMode="never"
+      {...restInputProps}
+    />
+  )
+}
+
+type FieldControlRowProps = {
+  tokens: FieldTokens
+  prefixNode?: React.ReactNode
+  leftIconNode?: React.ReactNode
+  controlNode: React.ReactNode
+  clearNode?: React.ReactNode
+  rightIconNode?: React.ReactNode
+  suffixNode?: React.ReactNode
+}
+
+const FieldControlRow = ({
+  tokens,
+  prefixNode,
+  leftIconNode,
+  controlNode,
+  clearNode,
+  rightIconNode,
+  suffixNode,
+}: FieldControlRowProps) => {
+  return (
+    <View style={tokens.layout.body}>
+      {prefixNode}
+      {leftIconNode}
+      <View style={[tokens.layout.controlWrapper, { minHeight: tokens.sizes.controlMinHeight }]}>
+        {controlNode}
+        {clearNode}
+      </View>
+      {rightIconNode}
+      {suffixNode}
+    </View>
+  )
+}
 
 export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) => {
   const {
@@ -255,292 +454,54 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }, [autoSize, isTextarea, maxHeight, minHeight])
 
   const handleClear = useCallback(() => {
+    setPressingClear(false)
     updateValue('')
     inputRef.current?.clear?.()
     inputRef.current?.focus?.()
     onClear?.()
   }, [onClear, updateValue])
 
-  const renderLabel = () => {
-    if (!isRenderable(label)) return null
-    const isPlain = isText(label)
-
-    const content = isPlain ? (
-      <Text
-        style={[
-          {
-            color: disabled ? tokens.colors.disabled : tokens.colors.label,
-            fontSize: tokens.typography.labelSize,
-            textAlign: labelAlign,
-          },
-          labelStyle,
-        ]}
-        numberOfLines={1}
-      >
-        {label}
-        {colon ? ':' : ''}
-      </Text>
-    ) : (
-      label
-    )
-
-    return (
-      <View style={tokens.layout.labelRow}>
-        {content}
-        {isRenderable(tooltip) ? renderTooltip() : null}
-      </View>
-    )
-  }
-
-  const renderTooltip = () => {
-    if (!isRenderable(tooltip)) return null
-    const defaultIcon = (
-      <QuestionO size={tokens.sizes.icon} fill={tokens.colors.tooltip} color={tokens.colors.tooltip} />
-    )
-    let icon: React.ReactNode = defaultIcon
-    let dialogProps: DialogShowOptions = { message: tooltip as React.ReactNode }
-
-    if (!React.isValidElement(tooltip) && !isText(tooltip)) {
-      const { icon: customIcon, ...rest } = tooltip as FieldTooltipProps
-      icon = customIcon ?? defaultIcon
-      dialogProps = rest as DialogShowOptions
+  const handleClearPressIn = useCallback(() => {
+    setPressingClear(true)
+    if (Platform.OS !== 'web') {
+      handleClear()
     }
+  }, [handleClear])
 
-    return (
-      <Pressable
-        style={[tokens.layout.tooltip, { marginLeft: tokens.spacing.rightIconGap }]}
-        onPress={() => Dialog.show(dialogProps)}
-        accessibilityRole="button"
-      >
-        {icon}
-      </Pressable>
-    )
-  }
+  const handleClearPressOut = useCallback(() => {
+    setPressingClear(false)
+  }, [])
 
-  const renderLeftIcon = () => {
-    if (!leftIcon) return null
-    const content = (
-      <View
-        style={[
-          tokens.layout.leftIcon,
-          {
-            marginRight: tokens.spacing.leftIconGap,
-            minWidth: tokens.sizes.icon,
-          },
-        ]}
-      >
-        {leftIcon}
-      </View>
-    )
-    if (!onClickLeftIcon) return content
-    return (
-      <Pressable onPress={onClickLeftIcon} accessibilityRole="button">
-        {content}
-      </Pressable>
-    )
-  }
-
-  const renderRightIcon = () => {
-    if (!rightIcon) return null
-    const node = (
-      <View
-        style={[
-          tokens.layout.rightIcon,
-          {
-            paddingHorizontal: tokens.spacing.rightIconGap,
-          },
-        ]}
-      >
-        {rightIcon}
-      </View>
-    )
-    if (!onClickRightIcon) return node
-    return (
-      <Pressable onPress={onClickRightIcon} accessibilityRole="button">
-        {node}
-      </Pressable>
-    )
-  }
-
-  const renderClearIcon = () => {
-    if (!showClear) return null
-    const webMouseDownProps =
-      Platform.OS === 'web'
-        ? ({
-          onMouseDown: (event: { preventDefault?: () => void; stopPropagation?: () => void }) => {
-            event.preventDefault?.()
-            event.stopPropagation?.()
-          },
-        } as unknown as React.ComponentProps<typeof Pressable>)
-        : undefined
-    return (
-      <Pressable
-        style={[
-          tokens.layout.clearIcon,
-          {
-            paddingHorizontal: tokens.spacing.rightIconGap,
-          },
-        ]}
-        {...webMouseDownProps}
-        onPressIn={() => setPressingClear(true)}
-        onPressOut={() => setPressingClear(false)}
-        onPress={handleClear}
-        accessibilityRole="button"
-      >
-        {React.isValidElement(clearIcon)
-          ? clearIcon
-          : <Clear size={tokens.sizes.clearIcon} fill={tokens.colors.clear} color={tokens.colors.clear} />}
-      </Pressable>
-    )
-  }
-
-  const renderControl = () => {
-    if (isRenderable(children)) {
-      return <View style={[tokens.layout.children, { minHeight: tokens.sizes.controlMinHeight }]}>{children}</View>
-    }
-
-    const inputStyles = [
-      isTextarea ? tokens.layout.textarea : tokens.layout.input,
-      {
-        color: disabled ? tokens.colors.disabled : error ? tokens.colors.error : tokens.colors.input,
-        fontSize: tokens.typography.inputSize,
-        textAlign: finalTextAlign,
-        ...(isTextarea
-          ? {
-            lineHeight,
-            height: textareaHeight,
-            minHeight,
-          }
-          : {
-            minHeight: tokens.sizes.controlMinHeight,
-          }),
-      },
-      inputStyle,
-    ]
-
-    return (
-      <TextInput
-        ref={inputRef}
-        style={inputStyles}
-        value={value}
+  const controlNode = isRenderable(children)
+    ? <View style={[tokens.layout.children, { minHeight: tokens.sizes.controlMinHeight }]}>{children}</View>
+    : (
+      <FieldInput
+        inputRef={inputRef}
+        tokens={tokens}
+        isTextarea={isTextarea}
+        disabled={disabled}
+        error={error}
+        finalTextAlign={finalTextAlign}
+        lineHeight={lineHeight}
+        textareaHeight={textareaHeight}
+        minHeight={minHeight}
+        inputStyle={inputStyle}
+        value={value ?? ''}
         onChangeText={handleChangeText}
         onFocus={handleFocus}
         onBlur={handleBlur}
         onPressIn={handlePressIn}
-        editable={!disabled && !readOnly}
-        secureTextEntry={type === 'password'}
-        multiline={isTextarea}
-        numberOfLines={isTextarea ? rows : undefined}
+        rows={rows}
         keyboardType={restInputProps.keyboardType ?? mapKeyboardType(type)}
         placeholderTextColor={resolvedPlaceholderColor}
-        onContentSizeChange={isTextarea ? handleContentSizeChange : undefined}
-        // @ts-ignore
-        accessibilityDescribedBy={describedBy}
-        clearButtonMode="never"
-        {...restInputProps}
+        onContentSizeChange={handleContentSizeChange}
+        describedBy={describedBy}
+        secureTextEntry={type === 'password'}
+        editable={!disabled && !readOnly}
+        restInputProps={restInputProps}
       />
     )
-  }
 
-  const renderWordLimit = () => {
-    if (!showWordLimit || maxLength === undefined || maxLength === null) {
-      return null
-    }
-    const currentCount = (value ?? '').length
-    const content = isFunction(showWordLimit)
-      ? showWordLimit({ currentCount, maxLength })
-      : `${currentCount}/${maxLength}`
-
-    if (content === null || content === false) return null
-
-    if (isText(content)) {
-      return (
-        <Text
-          style={[
-            tokens.layout.wordLimit,
-            {
-              color: tokens.colors.wordLimit,
-              fontSize: tokens.typography.wordLimitSize ?? 12,
-              textAlign: 'right',
-              alignSelf: 'flex-end',
-              marginTop: tokens.spacing.wordLimitMarginTop,
-            },
-          ]}
-        >
-          {content}
-        </Text>
-      )
-    }
-
-    return content
-  }
-
-  const renderMessage = () => {
-    if (!isRenderable(errorMessage)) return null
-    if (isText(errorMessage)) {
-      return (
-        <Text
-          nativeID={errorId}
-          style={[
-            tokens.layout.message,
-            {
-              color: tokens.colors.error,
-              fontSize: tokens.typography.messageSize,
-              textAlign: errorMessageAlign,
-              marginTop: tokens.spacing.messageMarginTop,
-            },
-            errorMessageStyle,
-          ]}
-          accessibilityLiveRegion="polite"
-        >
-          {errorMessage}
-        </Text>
-      )
-    }
-    return (
-      <View
-        nativeID={errorId}
-        style={[
-          tokens.layout.message,
-          {
-            alignSelf: alignMap[errorMessageAlign],
-            marginTop: tokens.spacing.messageMarginTop,
-          },
-        ]}
-        accessibilityLiveRegion="polite"
-      >
-        {errorMessage}
-      </View>
-    )
-  }
-
-  const renderIntro = () => {
-    if (!isRenderable(resolvedDescription)) return null
-    if (isText(resolvedDescription)) {
-      return (
-        <Text
-          nativeID={introId}
-          style={[
-            tokens.layout.message,
-            {
-              color: tokens.colors.intro,
-              fontSize: tokens.typography.introSize,
-              textAlign: controlAlign,
-              marginTop: tokens.spacing.introMarginTop,
-            },
-            introStyle,
-          ]}
-        >
-          {resolvedDescription}
-        </Text>
-      )
-    }
-    return (
-      <View nativeID={introId} style={{ marginTop: tokens.spacing.introMarginTop }}>
-        {resolvedDescription}
-      </View>
-    )
-  }
 
   const contentWrapperStyle = useMemo(() => ([
     {
@@ -570,10 +531,227 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
     return node
   }
 
+  const tooltipNode = isRenderable(tooltip)
+    ? (() => {
+      const defaultIcon = (
+        <QuestionO size={tokens.sizes.icon} fill={tokens.colors.tooltip} color={tokens.colors.tooltip} />
+      )
+      let icon: React.ReactNode = defaultIcon
+      let dialogProps: DialogShowOptions = { message: tooltip as React.ReactNode }
+
+      if (!React.isValidElement(tooltip) && !isText(tooltip)) {
+        const { icon: customIcon, ...rest } = tooltip as FieldTooltipProps
+        icon = customIcon ?? defaultIcon
+        dialogProps = rest as DialogShowOptions
+      }
+
+      return (
+        <Pressable
+          style={[tokens.layout.tooltip, { marginLeft: tokens.spacing.rightIconGap }]}
+          onPress={() => Dialog.show(dialogProps)}
+          accessibilityRole="button"
+        >
+          {icon}
+        </Pressable>
+      )
+    })()
+    : null
+
+  const labelNode = isRenderable(label)
+    ? (() => {
+      const isPlain = isText(label)
+      const content = isPlain ? (
+        <Text
+          style={[
+            {
+              color: disabled ? tokens.colors.disabled : tokens.colors.label,
+              fontSize: tokens.typography.labelSize,
+              textAlign: labelAlign,
+            },
+            labelStyle,
+          ]}
+          numberOfLines={1}
+        >
+          {label}
+          {colon ? ':' : ''}
+        </Text>
+      ) : (
+        label
+      )
+      return (
+        <View style={tokens.layout.labelRow}>
+          {content}
+          {tooltipNode}
+        </View>
+      )
+    })()
+    : null
+
+  const wordLimitNode = showWordLimit && maxLength !== undefined && maxLength !== null
+    ? (() => {
+      const currentCount = (value ?? '').length
+      const content = isFunction(showWordLimit)
+        ? showWordLimit({ currentCount, maxLength })
+        : `${currentCount}/${maxLength}`
+
+      if (content === null || content === false) return null
+
+      if (isText(content)) {
+        return (
+          <Text
+            style={[
+              tokens.layout.wordLimit,
+              {
+                color: tokens.colors.wordLimit,
+                fontSize: tokens.typography.wordLimitSize ?? 12,
+                textAlign: 'right',
+                alignSelf: 'flex-end',
+                marginTop: tokens.spacing.wordLimitMarginTop,
+              },
+            ]}
+          >
+            {content}
+          </Text>
+        )
+      }
+
+      return content
+    })()
+    : null
+
+  const messageNode = isRenderable(errorMessage)
+    ? (
+      isText(errorMessage)
+        ? (
+          <Text
+            nativeID={errorId}
+            style={[
+              tokens.layout.message,
+              {
+                color: tokens.colors.error,
+                fontSize: tokens.typography.messageSize,
+                textAlign: errorMessageAlign,
+                marginTop: tokens.spacing.messageMarginTop,
+              },
+              errorMessageStyle,
+            ]}
+            accessibilityLiveRegion="polite"
+          >
+            {errorMessage}
+          </Text>
+        )
+        : (
+          <View
+            nativeID={errorId}
+            style={[
+              tokens.layout.message,
+              {
+                alignSelf: alignMap[errorMessageAlign],
+                marginTop: tokens.spacing.messageMarginTop,
+              },
+            ]}
+            accessibilityLiveRegion="polite"
+          >
+            {errorMessage}
+          </View>
+        )
+    )
+    : null
+
+  const introNode = isRenderable(resolvedDescription)
+    ? (
+      isText(resolvedDescription)
+        ? (
+          <Text
+            nativeID={introId}
+            style={[
+              tokens.layout.message,
+              {
+                color: tokens.colors.intro,
+                fontSize: tokens.typography.introSize,
+                textAlign: controlAlign,
+                marginTop: tokens.spacing.introMarginTop,
+              },
+              introStyle,
+            ]}
+          >
+            {resolvedDescription}
+          </Text>
+        )
+        : (
+          <View nativeID={introId} style={{ marginTop: tokens.spacing.introMarginTop }}>
+            {resolvedDescription}
+          </View>
+        )
+    )
+    : null
+
+  const prefixNode = prefix
+    ? (
+      <View style={[tokens.layout.prefix, { paddingRight: tokens.spacing.prefixGap }]}>
+        {renderAffix(prefix)}
+      </View>
+    )
+    : null
+
+  const suffixNode = resolvedSuffix
+    ? (
+      <View style={[tokens.layout.suffix, { paddingLeft: tokens.spacing.suffixGap }]}>
+        {renderAffix(resolvedSuffix)}
+      </View>
+    )
+    : null
+
+  const leftIconNode = leftIcon
+    ? (
+      <FieldSlot
+        onPress={onClickLeftIcon}
+        style={[
+          tokens.layout.leftIcon,
+          {
+            marginRight: tokens.spacing.leftIconGap,
+            minWidth: tokens.sizes.icon,
+          },
+        ]}
+      >
+        {leftIcon}
+      </FieldSlot>
+    )
+    : null
+
+  const rightIconNode = rightIcon
+    ? (
+      <FieldSlot
+        onPress={onClickRightIcon}
+        style={[
+          tokens.layout.rightIcon,
+          {
+            paddingHorizontal: tokens.spacing.rightIconGap,
+          },
+        ]}
+      >
+        {rightIcon}
+      </FieldSlot>
+    )
+    : null
+
+  const clearNode = showClear
+    ? (
+      <FieldClearButton
+        show={showClear}
+        tokens={tokens}
+        clearIcon={clearIcon}
+        onPressIn={handleClearPressIn}
+        onPressOut={Platform.OS === 'web' ? handleClearPressOut : undefined}
+        onPress={Platform.OS === 'web' ? handleClear : undefined}
+      />
+    )
+    : null
+
   return (
     <Cell
-      title={renderLabel()}
-      icon={renderLeftIcon()}
+      title={labelNode}
+      icon={undefined}
       required={required}
       border={border}
       center={center}
@@ -594,26 +772,18 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       onPress={onClick}
       android_ripple={androidRipple}
     >
-      <View style={tokens.layout.body}>
-        {prefix ? (
-          <View style={[tokens.layout.prefix, { paddingRight: tokens.spacing.prefixGap }]}>
-            {renderAffix(prefix)}
-          </View>
-        ) : null}
-        <View style={[tokens.layout.controlWrapper, { minHeight: tokens.sizes.controlMinHeight }]}>
-          {renderControl()}
-          {renderClearIcon()}
-        </View>
-        {renderRightIcon()}
-        {resolvedSuffix ? (
-          <View style={[tokens.layout.suffix, { paddingLeft: tokens.spacing.suffixGap }]}>
-            {renderAffix(resolvedSuffix)}
-          </View>
-        ) : null}
-      </View>
-      {renderWordLimit()}
-      {renderMessage()}
-      {renderIntro()}
+      <FieldControlRow
+        tokens={tokens}
+        prefixNode={prefixNode}
+        leftIconNode={leftIconNode}
+        controlNode={controlNode}
+        clearNode={clearNode}
+        rightIconNode={rightIconNode}
+        suffixNode={suffixNode}
+      />
+      {wordLimitNode}
+      {messageNode}
+      {introNode}
     </Cell>
   )
 })

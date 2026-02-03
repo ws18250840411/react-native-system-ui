@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef, useSyncExternalStore } from 'react'
 import { Platform, StyleSheet, View, type ViewStyle } from 'react-native'
 
 import { isNumber } from '../../utils'
@@ -12,47 +12,27 @@ interface PortalEntry {
 
 interface PortalLayerProps {
   fixed?: boolean
-}
-
-interface PortalLayerState {
   entries: PortalEntry[]
 }
 
-class PortalLayer extends React.PureComponent<PortalLayerProps, PortalLayerState> {
-  state: PortalLayerState = {
-    entries: [],
-  }
-
-  setEntries = (entries: PortalEntry[]) => {
-    this.setState(prev => (prev.entries === entries ? null : { entries }))
-  }
-
-  render() {
-    const { fixed } = this.props
-    const { entries } = this.state
-    return (
+const PortalLayer: React.FC<PortalLayerProps> = ({ fixed, entries }) => (
+  <View
+    pointerEvents="box-none"
+    style={[styles.portalLayer, fixed && webFixedStyle]}
+    collapsable={false}
+  >
+    {entries.map(entry => (
       <View
+        key={entry.key}
         pointerEvents="box-none"
-        style={[styles.portalLayer, fixed && webFixedStyle]}
         collapsable={false}
+        style={[styles.portalEntry, isNumber(entry.zIndex) && { zIndex: entry.zIndex }]}
       >
-        {entries.map(entry => (
-          <View
-            key={entry.key}
-            pointerEvents="box-none"
-            collapsable={false}
-            style={[
-              styles.portalEntry,
-              isNumber(entry.zIndex) && { zIndex: entry.zIndex },
-            ]}
-          >
-            {entry.children}
-          </View>
-        ))}
+        {entry.children}
       </View>
-    )
-  }
-}
+    ))}
+  </View>
+)
 
 const getMaxZIndex = (node: React.ReactNode): number | undefined => {
   if (!node) return undefined
@@ -88,12 +68,14 @@ const getMaxZIndex = (node: React.ReactNode): number | undefined => {
   return Math.max(max, childMax)
 }
 
-const hostStack: PortalLayer[] = []
+const hostStack: number[] = []
 const portalEntries = new Map<number, PortalEntry>()
 const emptyEntries: PortalEntry[] = []
 let nextPortalKey = 1
+let nextHostId = 1
 let snapshotDirty = true
 let snapshotCache = emptyEntries
+const listeners = new Set<() => void>()
 const markSnapshotDirty = () => {
   snapshotDirty = true
 }
@@ -104,21 +86,28 @@ const getEntriesSnapshot = () => {
     portalEntries.size === 0 ? emptyEntries : Array.from(portalEntries.values())
   return snapshotCache
 }
-const syncCurrentHost = () => {
-  const currentHost = hostStack[hostStack.length - 1]
-  if (currentHost) {
-    currentHost.setEntries(getEntriesSnapshot())
+const emit = () => {
+  listeners.forEach(listener => {
+    listener()
+  })
+}
+
+const subscribe = (listener: () => void) => {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
   }
 }
 
-const setHostPresence = (host: PortalLayer, present: boolean) => {
-  if (present) {
-    hostStack.push(host)
-    syncCurrentHost()
-    maybeTeardownAutoHost()
-    return
-  }
-  const index = hostStack.lastIndexOf(host)
+const registerHost = (hostId: number) => {
+  hostStack.push(hostId)
+  emit()
+  maybeTeardownAutoHost()
+  return () => unregisterHost(hostId)
+}
+
+const unregisterHost = (hostId: number) => {
+  const index = hostStack.lastIndexOf(hostId)
   if (index >= 0) {
     hostStack.splice(index, 1)
   }
@@ -126,15 +115,17 @@ const setHostPresence = (host: PortalLayer, present: boolean) => {
     clearPortals()
     return
   }
-  syncCurrentHost()
+  emit()
   maybeTeardownAutoHost()
 }
+
+const isActiveHost = (hostId: number) => hostStack[hostStack.length - 1] === hostId
 
 const mountPortal = (children: React.ReactNode, key?: number) => {
   const resolvedKey = key ?? nextPortalKey++
   portalEntries.set(resolvedKey, { key: resolvedKey, children, zIndex: getMaxZIndex(children) })
   markSnapshotDirty()
-  syncCurrentHost()
+  emit()
   return resolvedKey
 }
 
@@ -147,13 +138,13 @@ const updatePortal = (key: number, children: React.ReactNode) => {
     portalEntries.set(key, { key, children, zIndex: getMaxZIndex(children) })
   }
   markSnapshotDirty()
-  syncCurrentHost()
+  emit()
 }
 
 const unmountPortal = (key: number) => {
   if (portalEntries.delete(key)) {
     markSnapshotDirty()
-    syncCurrentHost()
+    emit()
     maybeTeardownAutoHost()
   }
 }
@@ -194,7 +185,7 @@ const clearPortals = () => {
   if (portalEntries.size > 0) {
     portalEntries.clear()
     markSnapshotDirty()
-    syncCurrentHost()
+    emit()
   }
   maybeTeardownAutoHost()
 }
@@ -210,41 +201,27 @@ export interface PortalHostProps {
   fixed?: boolean
 }
 
-export class PortalHost extends React.Component<PortalHostProps> {
-  private layer: PortalLayer | null = null
-
-  componentWillUnmount(): void {
-    if (this.layer) {
-      setHostPresence(this.layer, false)
-      this.layer = null
-    }
+export const PortalHost: React.FC<PortalHostProps> = ({ children, fixed }) => {
+  const hostIdRef = useRef<number | null>(null)
+  if (hostIdRef.current === null) {
+    hostIdRef.current = nextHostId++
   }
+  const entries = useSyncExternalStore(subscribe, getEntriesSnapshot, getEntriesSnapshot)
+  const active = isActiveHost(hostIdRef.current)
+  const resolvedEntries = active ? entries : emptyEntries
 
-  private readonly setLayerRef = (layer: PortalLayer | null) => {
-    if (this.layer === layer) return
-    if (this.layer) {
-      setHostPresence(this.layer, false)
-    }
-    this.layer = layer
-    if (layer) {
-      setHostPresence(layer, true)
-    }
-  }
+  useEffect(() => registerHost(hostIdRef.current as number), [])
 
-  render() {
-    const { children, fixed } = this.props
-
-    return (
-      <PortalContext.Provider value={globalManager}>
-        <View style={styles.host} collapsable={false}>
-          <View style={styles.root} collapsable={false} pointerEvents="box-none">
-            {children}
-          </View>
-          <PortalLayer ref={this.setLayerRef} fixed={fixed} />
+  return (
+    <PortalContext.Provider value={globalManager}>
+      <View style={styles.host} collapsable={false}>
+        <View style={styles.root} collapsable={false} pointerEvents="box-none">
+          {children}
         </View>
-      </PortalContext.Provider>
-    )
-  }
+        <PortalLayer fixed={fixed} entries={resolvedEntries} />
+      </View>
+    </PortalContext.Provider>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -316,5 +293,7 @@ export const portalManager = globalManager
 export const portalStore = {
   clear: clearPortals,
   getSnapshot: () => getEntriesSnapshot(),
+  subscribe,
   hasHosts: () => hostStack.length > 0,
+  isActiveHost,
 }
