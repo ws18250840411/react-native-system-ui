@@ -1,5 +1,5 @@
 import type React from 'react'
-import type { GestureResponderEvent, StyleProp, ViewProps } from 'react-native'
+import type { GestureResponderEvent, StyleProp, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
 
@@ -21,11 +21,11 @@ export interface SwitchTokens {
   }
 }
 
-export interface SwitchProps<V = boolean> extends Omit<ViewProps, 'onChange'> {
+export interface SwitchProps<V = boolean> {
   checked?: V
   defaultChecked?: V
   disabled?: boolean
-  size?: number | string
+  size?: number | 'sm' | 'md' | 'lg' | string
   activeColor?: string
   inactiveColor?: string
   activeValue?: V

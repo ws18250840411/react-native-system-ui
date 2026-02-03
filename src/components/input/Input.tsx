@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
+import React, { useCallback, useImperativeHandle, useRef } from 'react'
 
 import { isBoolean, isFiniteNumber } from '../../utils/validate'
 import Field from '../field'
@@ -18,6 +18,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
     onChangeText,
     showWordLimit,
     style,
+    inputStyle,
     fieldTokensOverride,
     tokensOverride,
     ...rest
@@ -44,30 +45,17 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
     [],
   )
 
-  const resolvedInputAlign = useMemo(
-    () => align ?? inputAlignProp ?? tokens.defaults.inputAlign,
-    [align, inputAlignProp, tokens.defaults.inputAlign]
-  )
-  const resolvedClearTrigger = useMemo(
-    () => clearTriggerOverride ?? tokens.defaults.clearTrigger,
-    [clearTriggerOverride, tokens.defaults.clearTrigger]
-  )
-  const resolvedKeyboardType = useMemo(
-    () => keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined),
-    [keyboardTypeProp, type]
-  )
-
-  const fieldStyle = useMemo(
-    () => [
-      {
-        paddingHorizontal: tokens.spacing.paddingHorizontal,
-        paddingVertical: tokens.spacing.paddingVertical,
-        backgroundColor: tokens.colors.background,
-      },
-      style,
-    ],
-    [style, tokens.colors.background, tokens.spacing.paddingHorizontal, tokens.spacing.paddingVertical]
-  )
+  const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
+  const resolvedClearTrigger = clearTriggerOverride ?? tokens.defaults.clearTrigger
+  const resolvedKeyboardType = keyboardTypeProp ?? (type === 'number' ? 'decimal-pad' : undefined)
+  const fieldStyle = [
+    {
+      paddingHorizontal: tokens.spacing.paddingHorizontal,
+      paddingVertical: tokens.spacing.paddingVertical,
+      backgroundColor: tokens.colors.background,
+    },
+    style,
+  ]
 
   return (
     <Field
@@ -80,6 +68,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
       inputAlign={resolvedInputAlign}
       clearTrigger={resolvedClearTrigger}
       style={fieldStyle}
+      inputStyle={inputStyle}
       showWordLimit={showWordLimit}
       onChangeText={handleChangeText}
     />

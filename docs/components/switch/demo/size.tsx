@@ -1,7 +1,13 @@
 import React from 'react'
 
-import { Switch } from 'react-native-system-ui'
+import { Space, Switch } from 'react-native-system-ui'
 
 export default function SwitchSizeDemo() {
-  return <Switch size="24px" defaultChecked />
+  return (
+    <Space direction="vertical" gap={12}>
+      <Switch size="sm" defaultChecked />
+      <Switch size="md" defaultChecked />
+      <Switch size="lg" defaultChecked />
+    </Space>
+  )
 }

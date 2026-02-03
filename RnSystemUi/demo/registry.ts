@@ -274,7 +274,6 @@ import SwitchDemoBasic from '../../docs/components/switch/demo/basic'
 import SwitchDemoCell from '../../docs/components/switch/demo/cell'
 import SwitchDemoColor from '../../docs/components/switch/demo/color'
 import SwitchDemoDisabled from '../../docs/components/switch/demo/disabled'
-import SwitchDemoLoading from '../../docs/components/switch/demo/loading'
 import SwitchDemoSize from '../../docs/components/switch/demo/size'
 import TabbarDemoBadge from '../../docs/components/tabbar/demo/badge'
 import TabbarDemoBase from '../../docs/components/tabbar/demo/base'
@@ -1369,11 +1368,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "disabled",
         title: "禁用状态",
         Component: SwitchDemoDisabled,
-      },
-      {
-        id: "loading",
-        title: "加载状态",
-        Component: SwitchDemoLoading,
       },
       {
         id: "size",

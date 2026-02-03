@@ -36,6 +36,10 @@
 | 2026-02-02 | Switch | 取消 `thumbColor`（与 Gluestack 一致） | `src/components/switch/Switch.tsx`, `src/components/switch/types.d.ts`, `docs/components/switch.md`, `docs/components/switch/demo/color.tsx` |
 | 2026-02-02 | Switch | 移除外层容器，与 Gluestack 结构对齐 | `src/components/switch/Switch.tsx`, `src/components/switch/types.d.ts`, `src/components/switch/tokens.ts` |
 | 2026-02-02 | Switch | 移除 `loading` 属性与 Demo | `src/components/switch/Switch.tsx`, `src/components/switch/types.d.ts`, `src/components/switch/__tests__/switch.test.tsx`, `docs/components/switch.md`, `docs/components/switch/demo/loading.tsx` |
+| 2026-02-02 | Switch | 移除 ViewProps 透传说明 | `docs/components/switch.md`, `src/components/switch/types.d.ts` |
+| 2026-02-02 | Switch | 对齐 Gluestack 的 size 缩放（sm/md/lg） | `src/components/switch/Switch.tsx`, `src/components/switch/types.d.ts`, `docs/components/switch.md`, `docs/components/switch/demo/size.tsx` |
+| 2026-02-02 | Input | 补齐 `inputStyle` 透传并简化计算 | `src/components/input/Input.tsx`, `docs/components/input.md` |
+| 2026-02-02 | Checkbox | 去除冗余 useMemo，收敛计算 | `src/components/checkbox/Checkbox.tsx` |
 
 ### 迁移优先级（先替换基础/通用）
 

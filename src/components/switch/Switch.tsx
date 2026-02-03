@@ -23,8 +23,7 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
     inactiveValue: inactiveValueProp,
     tokensOverride,
     onClick,
-    style,
-    ...rest
+    style
   } = props
 
   const tokens = useSwitchTokens(tokensOverride)
@@ -37,10 +36,21 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
     () => (inactiveValueProp ?? tokens.defaults.inactiveValue) as V,
     [inactiveValueProp, tokens.defaults.inactiveValue]
   )
-  const resolvedSize = useMemo(
-    () => Math.max(0, parseNumber(size, tokens.defaults.size)),
-    [size, tokens.defaults.size]
-  )
+  const scale = useMemo(() => {
+    if (!tokens.defaults.size) return 1
+    if (typeof size === 'string') {
+      const value = size.toLowerCase()
+      if (value === 'sm') return 0.75
+      if (value === 'md') return 1
+      if (value === 'lg') return 1.25
+      const numeric = parseNumber(size, tokens.defaults.size)
+      return Math.max(0, numeric / tokens.defaults.size)
+    }
+    if (typeof size === 'number') {
+      return Math.max(0, size / tokens.defaults.size)
+    }
+    return 1
+  }, [size, tokens.defaults.size])
 
   const [value, triggerChange] = useControllableValue<V>(props, {
     valuePropName: 'checked',
@@ -59,11 +69,6 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
     () => inactiveColor ?? tokens.colors.inactiveTrack,
     [inactiveColor, tokens.colors.inactiveTrack]
   )
-  const scale = useMemo(() => {
-    if (!tokens.defaults.size) return 1
-    return Math.max(0, resolvedSize / tokens.defaults.size)
-  }, [resolvedSize, tokens.defaults.size])
-
   const handleTouchEnd = useCallback((event: GestureResponderEvent) => {
     if (disabled) return
     onClick?.(event)

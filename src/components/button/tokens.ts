@@ -143,7 +143,7 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
     states: {
       disabledOpacity: opacity.disabled,
       loadingOpacity: opacity.loading,
-      pressedOpacity: 0.75,
+      pressedOpacity: 0.7,
     },
     shadows: {
       1: {

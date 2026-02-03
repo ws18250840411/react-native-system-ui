@@ -62,7 +62,7 @@ import { Switch } from 'react-native-system-ui'
 | `checked` | 开关选中状态（受控） | `any` | - |
 | `defaultChecked` | 默认选中状态 | `any` | `false` |
 | `disabled` | 是否为禁用状态 | `boolean` | `false` |
-| `size` | 开关尺寸（基于默认尺寸等比缩放） | `number \| string` | `30px` |
+| `size` | 开关尺寸（支持 `sm/md/lg` 与数值等比缩放） | `number \| 'sm' \| 'md' \| 'lg' \| string` | `'md'` |
 | `activeColor` | 打开时的背景色 | `string` | `#3f45ff` |
 | `inactiveColor` | 关闭时的背景色 | `string` | `white` |
 | `activeValue` | 打开时对应的值 | `any` | `true` |
@@ -75,4 +75,3 @@ import { Switch } from 'react-native-system-ui'
 | `onChange` | 开关状态切换时触发 | `value: any` |
 | `onClick` | 点击时触发 | `event: GestureResponderEvent` |
 
-其他 `ViewProps` 透传给最外层 `Pressable`。

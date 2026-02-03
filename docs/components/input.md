@@ -68,6 +68,9 @@ import { Input, type InputInstance } from 'react-native-system-ui'
 | `onChange` | 输入变化回调 | `(value: string) => void` | - |
 | `onClear` | 点击清除按钮时触发 | `() => void` | - |
 | `onOverlimit` | 超过 `maxLength` 时触发 | `(value: string) => void` | - |
+| `inputStyle` | 输入框样式 | `StyleProp<TextStyle>` | - |
+| `fieldTokensOverride` | 覆盖 Field tokens | `DeepPartial<FieldTokens>` | - |
+| `tokensOverride` | 覆盖 Input tokens | `DeepPartial<InputTokens>` | - |
 | 其余属性 | 透传给内部 `TextInput` | - | - |
 
 ### Input.TextArea Props

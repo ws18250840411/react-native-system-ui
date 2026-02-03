@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
+import React, { useContext, useEffect, useImperativeHandle, useRef } from 'react'
 import { Platform, Pressable, Text, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
@@ -69,15 +69,12 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
     return undefined
   }, [bindGroup, group, serializedValue, rawValue, resolvedDisabled])
 
-  const resolvedAccessibilityLabel = useMemo(
-    () =>
-      accessibilityLabel ??
-      ariaLabel ??
-      (isText(children) ? String(children) : undefined) ??
-      serializedValue ??
-      'checkbox',
-    [accessibilityLabel, ariaLabel, children, serializedValue]
-  )
+  const resolvedAccessibilityLabel =
+    accessibilityLabel ??
+    ariaLabel ??
+    (isText(children) ? String(children) : undefined) ??
+    serializedValue ??
+    'checkbox'
 
   let inputProps: Partial<React.ComponentProps<typeof Pressable>> | undefined
   let isChecked: boolean
@@ -111,43 +108,25 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
     isChecked = props.checked !== undefined ? props.checked : standaloneState.isSelected
   }
 
-  const borderRadius = useMemo(
-    () => (resolvedShape === 'round' ? resolvedIconSize / 2 : tokens.radii.square),
-    [resolvedIconSize, resolvedShape, tokens.radii.square]
-  )
-
-  const borderColor = useMemo(
-    () =>
-      resolvedDisabled
-        ? tokens.colors.disabledBorder
-        : isChecked
-          ? resolvedCheckedColor
-          : tokens.colors.border,
-    [isChecked, resolvedCheckedColor, resolvedDisabled, tokens.colors.border, tokens.colors.disabledBorder]
-  )
-
-  const backgroundColor = useMemo(
-    () =>
-      resolvedDisabled
-        ? tokens.colors.disabledBackground
-        : isChecked
-          ? resolvedCheckedColor
-          : tokens.colors.background,
-    [isChecked, resolvedCheckedColor, resolvedDisabled, tokens.colors.background, tokens.colors.disabledBackground]
-  )
-
-  const labelColor = useMemo(
-    () => (resolvedDisabled || resolvedLabelDisabled ? tokens.colors.labelDisabled : tokens.colors.label),
-    [resolvedDisabled, resolvedLabelDisabled, tokens.colors.label, tokens.colors.labelDisabled]
-  )
-
-  const spacingStyle = useMemo(
-    () =>
-      resolvedLabelPosition === 'left'
-        ? { marginRight: tokens.spacing.gap }
-        : { marginLeft: tokens.spacing.gap },
-    [resolvedLabelPosition, tokens.spacing.gap]
-  )
+  const borderRadius = resolvedShape === 'round' ? resolvedIconSize / 2 : tokens.radii.square
+  const borderColor = resolvedDisabled
+    ? tokens.colors.disabledBorder
+    : isChecked
+      ? resolvedCheckedColor
+      : tokens.colors.border
+  const backgroundColor = resolvedDisabled
+    ? tokens.colors.disabledBackground
+    : isChecked
+      ? resolvedCheckedColor
+      : tokens.colors.background
+  const labelColor =
+    resolvedDisabled || resolvedLabelDisabled
+      ? tokens.colors.labelDisabled
+      : tokens.colors.label
+  const spacingStyle =
+    resolvedLabelPosition === 'left'
+      ? { marginRight: tokens.spacing.gap }
+      : { marginLeft: tokens.spacing.gap }
 
   const originalOnPress = inputProps?.onPress
   const mergedInputProps: Partial<React.ComponentProps<typeof Pressable>> = inputProps
@@ -186,7 +165,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
     }
     : {}
 
-  const labelNode = useMemo(() => (
+  const labelNode =
     children === null || children === undefined || children === false ? null : isText(children) ? (
       <Text
         accessible={false}
@@ -209,31 +188,15 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
         {children}
       </View>
     )
-  ), [
-    children,
-    labelColor,
-    labelStyle,
-    tokens.layout.label,
-    tokens.typography.fontFamily,
-    tokens.typography.fontSize,
-    tokens.typography.fontWeight,
-    tokens.typography.lineHeightMultiplier,
-  ])
 
-  const iconBaseStyle = useMemo(() => ({
+  const iconBaseStyle = {
     width: resolvedIconSize,
     height: resolvedIconSize,
     borderRadius,
     borderColor,
     backgroundColor,
     borderWidth: tokens.borders.width,
-  }), [
-    backgroundColor,
-    borderColor,
-    borderRadius,
-    resolvedIconSize,
-    tokens.borders.width,
-  ])
+  }
   const defaultIcon = (
     <View style={[tokens.layout.icon, iconBaseStyle]}>
       {isChecked && (
@@ -261,29 +224,22 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
 
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
 
-  const labelWrapper = useMemo(
-    () =>
-      labelNode && (
-        <View
-          style={[tokens.layout.labelWrapper, spacingStyle]}
-          pointerEvents={resolvedLabelDisabled ? 'none' : undefined}
-          accessible={false}
-        >
-          {labelNode}
-        </View>
-      ),
-    [labelNode, resolvedLabelDisabled, spacingStyle, tokens.layout.labelWrapper]
-  )
+  const labelWrapper = labelNode ? (
+    <View
+      style={[tokens.layout.labelWrapper, spacingStyle]}
+      pointerEvents={resolvedLabelDisabled ? 'none' : undefined}
+      accessible={false}
+    >
+      {labelNode}
+    </View>
+  ) : null
 
-  const iconWrapperStyle = useMemo(
-    () => [
-      tokens.layout.iconWrapper,
-      resolvedLabelPosition === 'left'
-        ? { marginLeft: tokens.spacing.gap }
-        : { marginRight: tokens.spacing.gap },
-    ],
-    [resolvedLabelPosition, tokens.layout.iconWrapper, tokens.spacing.gap]
-  )
+  const iconWrapperStyle = [
+    tokens.layout.iconWrapper,
+    resolvedLabelPosition === 'left'
+      ? { marginLeft: tokens.spacing.gap }
+      : { marginRight: tokens.spacing.gap },
+  ]
 
   const iconWrapper = interactive ? (
     <View style={iconWrapperStyle}>{iconVisual}</View>
