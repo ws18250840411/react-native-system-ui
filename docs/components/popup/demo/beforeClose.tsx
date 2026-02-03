@@ -1,7 +1,11 @@
 import React from 'react'
 
-import { Cell, Popup, Space } from 'react-native-system-ui'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native'
+
+import { Cell, Popup, Portal, Space } from 'react-native-system-ui'
+
+const Host: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+  Platform.OS === 'web' ? <Portal.Host fixed>{children}</Portal.Host> : <>{children}</>
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
@@ -16,32 +20,34 @@ export default () => {
   }
 
   return (
-    <Cell.Group>
-      <Cell title="异步关闭" isLink onPress={() => setVisible(true)} />
-      <Popup
-        visible={visible}
-        placement="center"
-        closeable
-        beforeClose={beforeClose}
-        onClose={() => setVisible(false)}
-        onClosed={() => setLoading(false)}
-        round
-        style={styles.popup}
-      >
-        <View style={styles.dialog}>
-          <Space direction="vertical" gap={12} align="center" block={false}>
-            <Text style={styles.title}>异步关闭</Text>
-            <Text style={styles.tip}>点击遮罩或关闭图标关闭（将等待 800ms）</Text>
-            {loading ? (
-              <View style={styles.loadingRow}>
-                <ActivityIndicator size="small" color="#64748b" />
-                <Text style={styles.loading}>关闭中...</Text>
-              </View>
-            ) : null}
-          </Space>
-        </View>
-      </Popup>
-    </Cell.Group>
+    <Host>
+      <Cell.Group>
+        <Cell title="异步关闭" isLink onPress={() => setVisible(true)} />
+        <Popup
+          visible={visible}
+          placement="center"
+          closeable
+          beforeClose={beforeClose}
+          onClose={() => setVisible(false)}
+          onClosed={() => setLoading(false)}
+          round
+          style={styles.popup}
+        >
+          <View style={styles.dialog}>
+            <Space direction="vertical" gap={12} align="center" block={false}>
+              <Text style={styles.title}>异步关闭</Text>
+              <Text style={styles.tip}>点击遮罩或关闭图标关闭（将等待 800ms）</Text>
+              {loading ? (
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator size="small" color="#64748b" />
+                  <Text style={styles.loading}>关闭中...</Text>
+                </View>
+              ) : null}
+            </Space>
+          </View>
+        </Popup>
+      </Cell.Group>
+    </Host>
   )
 }
 

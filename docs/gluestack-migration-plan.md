@@ -48,6 +48,12 @@
 | 2026-02-03 | Portal | 补齐 OverlayContainer/Modal 行为与键盘关闭能力 | `src/components/portal/Portal.tsx`, `docs/components/portal.md`, `src/components/portal/__tests__/portal.test.tsx` |
 | 2026-02-03 | Portal | Portal 组件改为 Overlay 包装，静态 API 继续通过 Host 管理 | `src/components/portal/Portal.tsx`, `docs/components/portal.md`, `src/components/portal/__tests__/portal.test.tsx` |
 | 2026-02-03 | Portal | 事件总线驱动 Host 挂载，移除 auto host，收敛为单 Host 模式 | `src/components/portal/PortalHost.tsx`, `docs/components/portal.md`, `src/components/portal/__tests__/portal.test.tsx` |
+| 2026-02-03 | Portal | 移除 Portal/Host 多余告警逻辑，压缩实现体积 | `src/components/portal/Portal.tsx`, `src/components/portal/PortalHost.tsx` |
+| 2026-02-03 | Popup | 文档 demo 内部显式挂载 PortalHost，保证 Web 可展示 | `docs/components/popup/demo/*` |
+| 2026-02-03 | Popup | 动画标记为非交互，减少真机动画卡顿 | `src/components/popup/Popup.tsx` |
+| 2026-02-03 | Popup | 弹层与遮罩启用栅格化/硬件纹理加速 | `src/components/popup/Popup.tsx` |
+| 2026-02-03 | Popup | 遮罩透明度复用弹层动画进度，减少动画分支 | `src/components/popup/Popup.tsx` |
+| 2026-02-03 | Toast | 文档 demo 内部显式挂载 PortalHost，保证 Web 可展示 | `docs/components/toast/demo/*` |
 | 2026-02-03 | Overlay | 基于 OverlayContainer/Modal 重构实现 | `src/components/overlay/Overlay.tsx`, `src/components/overlay/types.d.ts` |
 | 2026-02-03 | Overlay | 对齐 Gluestack API（isOpen/Modal/keyboard） | `docs/components/overlay.md`, `src/components/overlay/__tests__/overlay.test.tsx` |
 | 2026-02-03 | Field | 内部结构按 Slot/Input 思路重构并收敛 | `src/components/field/Field.tsx` |

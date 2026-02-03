@@ -1,7 +1,10 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Platform, StyleSheet, Text, View } from 'react-native'
 
 import { Cell, Portal } from 'react-native-system-ui'
+
+const Host: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+  Platform.OS === 'web' ? <Portal.Host fixed>{children}</Portal.Host> : <>{children}</>
 
 export default function PortalStaticDemo() {
   const keyRef = React.useRef<number | null>(null)
@@ -32,11 +35,11 @@ export default function PortalStaticDemo() {
   }, [])
 
   return (
-    <Portal.Host>
+    <Host>
       <Cell.Group>
         <Cell title="Portal.add 显示提示" isLink onPress={showToast} />
       </Cell.Group>
-    </Portal.Host>
+    </Host>
   )
 }
 

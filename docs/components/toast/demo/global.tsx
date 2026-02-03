@@ -1,6 +1,10 @@
 import React from 'react'
+import { Platform } from 'react-native'
 
-import { Cell, Toast } from 'react-native-system-ui'
+import { Cell, Portal, Toast } from 'react-native-system-ui'
+
+const Host: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+  Platform.OS === 'web' ? <Portal.Host fixed>{children}</Portal.Host> : <>{children}</>
 
 export default function ToastGlobalDemo() {
   const setPrimary = () => {
@@ -19,10 +23,12 @@ export default function ToastGlobalDemo() {
   }
 
   return (
-    <Cell.Group>
-      <Cell title="设置默认样式" isLink onPress={setPrimary} />
-      <Cell title="配置 Loading 默认值" isLink onPress={setLoadingDefault} />
-      <Cell title="重置默认配置" isLink onPress={reset} />
-    </Cell.Group>
+    <Host>
+      <Cell.Group>
+        <Cell title="设置默认样式" isLink onPress={setPrimary} />
+        <Cell title="配置 Loading 默认值" isLink onPress={setLoadingDefault} />
+        <Cell title="重置默认配置" isLink onPress={reset} />
+      </Cell.Group>
+    </Host>
   )
 }

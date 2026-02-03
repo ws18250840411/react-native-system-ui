@@ -23,7 +23,7 @@ import { isRenderable, isText } from '../../utils/validate'
 import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../../hooks'
-import { useAriaOverlay, usePresenceAnimation } from '../../hooks'
+import { useAriaOverlay } from '../../hooks'
 import type { PopupTokens } from './tokens'
 import { usePopupTokens } from './tokens'
 
@@ -308,6 +308,7 @@ export const Popup: React.FC<PopupProps> = props => {
         duration,
         easing,
         useNativeDriver: nativeDriverEnabled,
+        isInteraction: false,
       })
       animationRef.current = animation
 
@@ -407,16 +408,12 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const { onLayout: overlayOnLayout, ...overlayRestProps } = overlayProps
 
-  const stopPropagationResponder = useCallback(() => true, [])
-
   const contentInteractionProps = stopPropagation
-    ? { ...overlayRestProps, onStartShouldSetResponder: stopPropagationResponder }
+    ? { ...overlayRestProps, onStartShouldSetResponder: () => true }
     : overlayRestProps
 
   const config = placementConfig[placement]
   const radiusStyle = buildRadius(round, placement, tokens.radius.round)
-
-  const { animated: overlayOpacity } = usePresenceAnimation(visible, { duration })
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const translateDistance =
@@ -551,6 +548,8 @@ export const Popup: React.FC<PopupProps> = props => {
       ref={overlayRef as unknown as React.Ref<React.ElementRef<typeof View>>}
       {...contentInteractionProps}
       onLayout={handleContentLayout}
+      renderToHardwareTextureAndroid={Platform.OS === 'android'}
+      shouldRasterizeIOS={Platform.OS === 'ios'}
       style={[
         dynamicStyles.popup,
         placement === 'center' ? dynamicStyles.popupCenter : null,
@@ -615,9 +614,11 @@ export const Popup: React.FC<PopupProps> = props => {
               testID={overlayTestID}
               style={[
                 styles.overlay,
-                { backgroundColor: tokens.colors.overlay, opacity: overlayOpacity },
+                { backgroundColor: tokens.colors.overlay, opacity: progress },
                 overlayStyle,
               ]}
+              renderToHardwareTextureAndroid={Platform.OS === 'android'}
+              shouldRasterizeIOS={Platform.OS === 'ios'}
               pointerEvents={isOpen ? 'auto' : 'none'}
               {...(canCloseOnOverlay
                 ? {

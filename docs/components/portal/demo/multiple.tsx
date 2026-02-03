@@ -1,14 +1,17 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Platform, StyleSheet, Text, View } from 'react-native'
 
 import { Button, Cell, Portal } from 'react-native-system-ui'
+
+const Host: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+  Platform.OS === 'web' ? <Portal.Host fixed>{children}</Portal.Host> : <>{children}</>
 
 export default function PortalMultipleDemo() {
   const [tipVisible, setTipVisible] = React.useState(false)
   const [confirmVisible, setConfirmVisible] = React.useState(false)
 
   return (
-    <Portal.Host>
+    <Host>
       <Cell.Group>
         <Cell title="显示提示层" isLink onPress={() => setTipVisible(true)} />
         <Cell title="显示确认层" isLink onPress={() => setConfirmVisible(true)} />
@@ -36,7 +39,7 @@ export default function PortalMultipleDemo() {
           </Portal>
         )}
       </Cell.Group>
-    </Portal.Host>
+    </Host>
   )
 }
 

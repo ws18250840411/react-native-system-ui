@@ -96,7 +96,13 @@ const PortalManagerView = React.forwardRef<PortalManagerHandle, { fixed?: boolea
         children,
         zIndex: getMaxZIndex(children),
       }
-      setEntries(prev => [...prev, entry])
+      setEntries(prev => {
+        const index = prev.findIndex(item => item.key === resolvedKey)
+        if (index === -1) {
+          return [...prev, entry]
+        }
+        return [...prev.slice(0, index), entry, ...prev.slice(index + 1)]
+      })
       return resolvedKey
     }, [])
 
@@ -213,30 +219,60 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children, fixed }) => {
         const pending = queueRef.current.splice(0, queueRef.current.length)
         pending.forEach(operation => applyOperation(manager, operation))
       }
-      activeHostId = hostIdRef.current
-    } else {
-      if (activeHostId === hostIdRef.current) {
-        activeHostId = 0
-        portalStore.clear()
+      if (activeHostId === 0 || activeHostId === hostIdRef.current) {
+        activeHostId = hostIdRef.current
+        if (typeof __DEV__ !== 'undefined' && __DEV__) {
+          console.log('[PortalHost] activeHost', activeHostId)
+        }
+      } else if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.warn(
+          '[PortalHost] 检测到多个 Portal.Host，静态 API 仅会使用第一个挂载的 Host。建议全局只挂载一个。',
+        )
       }
+    }
+  }, [])
+
+  useEffect(() => () => {
+    if (activeHostId === hostIdRef.current) {
+      activeHostId = 0
+      queueRef.current = []
+      portalStore.clear()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      console.log('[PortalHost] mounted', { hostId: hostIdRef.current, activeHostId })
     }
   }, [])
 
   useEffect(() => {
     const handleAdd = ({ key, children }: { key: number; children: React.ReactNode }) => {
       if (activeHostId !== hostIdRef.current) return
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log('[PortalHost] add', key)
+      }
       enqueueOrRun({ type: 'mount', key, children })
     }
     const handleUpdate = ({ key, children }: { key: number; children: React.ReactNode }) => {
       if (activeHostId !== hostIdRef.current) return
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log('[PortalHost] update', key)
+      }
       enqueueOrRun({ type: 'update', key, children })
     }
     const handleRemove = ({ key }: { key: number }) => {
       if (activeHostId !== hostIdRef.current) return
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log('[PortalHost] remove', key)
+      }
       enqueueOrRun({ type: 'unmount', key })
     }
     const handleClear = () => {
       if (activeHostId !== hostIdRef.current) return
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log('[PortalHost] clear')
+      }
       queueRef.current = []
       enqueueOrRun({ type: 'clear' })
     }

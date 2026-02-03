@@ -1,13 +1,16 @@
 import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { Button, Cell, Portal } from 'react-native-system-ui'
+
+const Host: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+  Platform.OS === 'web' ? <Portal.Host fixed>{children}</Portal.Host> : <>{children}</>
 
 export default function PortalBasicDemo() {
   const [visible, setVisible] = React.useState(false)
 
   return (
-    <Portal.Host>
+    <Host>
       <Cell.Group>
         <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
         {visible ? (
@@ -24,7 +27,7 @@ export default function PortalBasicDemo() {
           </Portal>
         ) : null}
       </Cell.Group>
-    </Portal.Host>
+    </Host>
   )
 }
 
