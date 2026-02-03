@@ -71,7 +71,11 @@ export default function ComponentDemosScreen() {
     return (
       <View style={styles.root}>
         <Stack.Screen options={{ title }} />
-        <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled={true}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          nestedScrollEnabled={true}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.indexBarWrapper}>
             <Tabs
               defaultActive={indexBarDemos.basic.id}
@@ -134,6 +138,7 @@ export default function ComponentDemosScreen() {
           data={demos}
           keyExtractor={item => item.id}
           contentContainerStyle={[styles.content, { paddingTop: 12 }]}
+          keyboardShouldPersistTaps="handled"
           renderItem={({ item, index }) => {
             const DemoComponent = item.Component
             const isLast = index === demos.length - 1

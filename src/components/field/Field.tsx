@@ -318,6 +318,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const value = isControlled ? valueProp ?? '' : internalValue
   const [focused, setFocused] = useState(false)
   const [pressingClear, setPressingClear] = useState(false)
+  const clearJustHandledRef = useRef(false)
   const inputRef = useRef<TextInput>(null)
   const introId = useId()
   const errorId = useId()
@@ -426,6 +427,12 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }, [onFocus, readOnly])
 
   const handleBlur = useCallback((event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
+    if (Platform.OS !== 'web' && clearJustHandledRef.current) {
+      clearJustHandledRef.current = false
+      setFocused(false)
+      onBlur?.(event)
+      return
+    }
     updateValue(value ?? '', 'onBlur')
     setFocused(false)
     onBlur?.(event)
@@ -454,7 +461,9 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }, [autoSize, isTextarea, maxHeight, minHeight])
 
   const handleClear = useCallback(() => {
-    setPressingClear(false)
+    if (Platform.OS !== 'web') {
+      clearJustHandledRef.current = true
+    }
     updateValue('')
     inputRef.current?.clear?.()
     inputRef.current?.focus?.()
@@ -470,6 +479,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
 
   const handleClearPressOut = useCallback(() => {
     setPressingClear(false)
+    clearJustHandledRef.current = false
   }, [])
 
   const controlNode = isRenderable(children)
