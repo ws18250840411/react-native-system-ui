@@ -271,12 +271,12 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     const queued = nativeQueuedScrollRef.current
     if (queued && flatListRef.current) {
       nativeQueuedScrollRef.current = null
-      const nextRealIndex = getDisplayIndex(queued.index)
+      const nextRealIndex = queued.index
       runAfterFrames(1, () => {
         swipeToRef.current(nextRealIndex, queued.animated)
       })
     }
-  }, [clearNativeScrollEndTimer, getDisplayIndex])
+  }, [clearNativeScrollEndTimer])
 
   const scheduleNativeScrollFallback = useCallback(() => {
     clearNativeScrollEndTimer()
@@ -365,7 +365,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
 
       const targetRealIndex = clamp(index, 0, count - 1)
       const fromRealIndex = (isScrollingRef.current || isDraggingRef.current)
-        ? getDisplayIndex(currentRef.current)
+        ? (nativeQueuedScrollRef.current?.index ?? getDisplayIndex(currentRef.current))
         : desiredIndexRef.current
       desiredIndexRef.current = targetRealIndex
       const currentIndex = currentRef.current
@@ -465,13 +465,10 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
           return
         }
         if (isDraggingRef.current && animated) {
-          nativeQueuedScrollRef.current = { index: targetIndex, animated }
           return
         }
         if (isScrollingRef.current && animated) {
-          nativeQueuedScrollRef.current = { index: targetIndex, animated }
           scheduleNativeScrollFallback()
-          scrollToIndexSafe(targetIndex, true)
           return
         }
         isScrollingRef.current = true
@@ -590,9 +587,8 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
       const queued = nativeQueuedScrollRef.current
       if (queued && flatListRef.current) {
         nativeQueuedScrollRef.current = null
-        const nextDisplayIndex = getDisplayIndex(queued.index)
         runAfterFrames(1, () => {
-          swipeTo(nextDisplayIndex, queued.animated)
+          swipeTo(queued.index, queued.animated)
         })
       } else if (autoplay && enabledState) {
         startAutoplay()
@@ -902,9 +898,8 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
               const queued = nativeQueuedScrollRef.current
               if (queued && flatListRef.current) {
                 nativeQueuedScrollRef.current = null
-                const nextDisplayIndex = getDisplayIndex(queued.index)
                 runAfterFrames(1, () => {
-                  swipeTo(nextDisplayIndex, queued.animated)
+                  swipeTo(queued.index, queued.animated)
                 })
               }
             }
