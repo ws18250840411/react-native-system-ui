@@ -12,7 +12,7 @@ simulator:
 ## 引入
 
 ```js
-import { Avatar } from 'react-native-system-ui'
+import { Avatar, AvatarImage, AvatarFallbackText } from 'react-native-system-ui'
 ```
 
 ## 代码演示
@@ -28,6 +28,17 @@ import { Avatar } from 'react-native-system-ui'
 通过 `size` 设置头像尺寸，内置 `small`·`medium`·`large`，也支持直接传入数字。
 
 <code title="尺寸" src="./avatar/demo/size.tsx"></code>
+
+### 组合方式
+
+当你需要更贴近 Gluestack 的组合结构时，可以直接传 children：
+
+```tsx
+<Avatar>
+  <AvatarImage src="https://..." />
+  <AvatarFallbackText>AB</AvatarFallbackText>
+</Avatar>
+```
 
 ## API
 
@@ -45,5 +56,6 @@ import { Avatar } from 'react-native-system-ui'
 | `textStyle` | 文本样式 | `StyleProp<TextStyle>` | - |
 | `contentStyle` | 自定义内容容器样式（用于自定义 `icon`） | `StyleProp<ViewStyle>` | - |
 | `style` | 外层样式 | `StyleProp<ViewStyle>` | - |
+| `children` | 组合内容（会覆盖 `src/icon/text` 渲染） | `ReactNode` | - |
 
 > `Avatar` 继承 `Pressable`，可以直接传入 `onPress`、`onLongPress` 等事件。

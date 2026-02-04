@@ -264,6 +264,9 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
 
   const imageAccessibilityLabel = !onPress ? resolvedAccessibilityLabel : undefined
 
+  const webImageStyle = Platform.OS === 'web'
+    ? ({ height: 'revert-layer', width: 'revert-layer' } as unknown as ImageStyle)
+    : undefined
   const imageNode = actualSource ? (
     isSvg && Platform.OS !== 'web' && uri ? (
       <SvgUri
@@ -285,7 +288,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
         accessibilityLabel={imageAccessibilityLabel}
         {...rest}
         source={actualSource}
-        style={[tokens.layout.absoluteFill, imageStyleWithoutLayout]}
+        style={[tokens.layout.absoluteFill, imageStyleWithoutLayout, webImageStyle]}
         resizeMode={resolveFitMode(fit)}
         onLoad={handleLoad}
         onError={handleError}

@@ -12,7 +12,7 @@ simulator:
 ## 引入
 
 ```js
-import { Badge } from 'react-native-system-ui'
+import { Badge, BadgeText, BadgeIcon } from 'react-native-system-ui'
 ```
 
 ## 代码演示
@@ -46,6 +46,17 @@ import { Badge } from 'react-native-system-ui'
 没有子元素时徽标会独立渲染，可直接用作计数器。
 
 <code title="独立展示" src="./badge/demo/standalone.tsx"></code>
+
+### 组合方式
+
+可以使用 `BadgeText/BadgeIcon` 组合内容（与 Gluestack 结构保持一致）：
+
+```tsx
+<Badge>
+  <BadgeText>New</BadgeText>
+  <BadgeIcon>{/* icon */}</BadgeIcon>
+</Badge>
+```
 
 ## API
 

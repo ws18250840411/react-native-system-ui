@@ -64,6 +64,8 @@ import { Image } from 'react-native-system-ui'
 
 > 提示：如果通过 `style` 传入了布局属性（如 `width/height/flex/margin`），组件会同步应用到外层容器以保证占位层与圆角裁剪一致。
 
+> Web 端对齐 Gluestack：图片元素会应用 `revert-layer` 修复尺寸样式。
+
 ## 差异说明
 
 - React Vant 的 `fit` 默认值为 `fill`（对齐 CSS `object-fit` 默认值）；本库默认值为 `cover`（对齐 React Native 默认行为并避免拉伸变形），如需保持一致可显式传 `fit="fill"`。

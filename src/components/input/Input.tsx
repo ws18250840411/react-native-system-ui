@@ -47,30 +47,26 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
 
   const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
   const resolvedClearTrigger = clearTriggerOverride ?? tokens.defaults.clearTrigger
-  const resolvedKeyboardType = keyboardTypeProp ?? (
-    type === 'number'
-      ? 'decimal-pad'
-      : type === 'digit'
-        ? 'number-pad'
-        : type === 'tel'
-          ? 'phone-pad'
-          : undefined
-  )
-  const fieldStyle = [
+  const fieldStyle = useMemo(() => ([
     {
       paddingHorizontal: tokens.spacing.paddingHorizontal,
       paddingVertical: tokens.spacing.paddingVertical,
       backgroundColor: tokens.colors.background,
     },
     style,
-  ]
+  ]), [
+    style,
+    tokens.colors.background,
+    tokens.spacing.paddingHorizontal,
+    tokens.spacing.paddingVertical,
+  ])
 
   return (
     <Field
       ref={inputRef}
       {...rest}
       type={type}
-      keyboardType={resolvedKeyboardType}
+      keyboardType={keyboardTypeProp}
       tokensOverride={fieldTokensOverride}
       border={tokens.defaults.border}
       inputAlign={resolvedInputAlign}

@@ -12,7 +12,7 @@ simulator:
 ## 引入
 
 ```js
-import { Progress } from 'react-native-system-ui'
+import { Progress, ProgressFilledTrack } from 'react-native-system-ui'
 ```
 
 ## 代码演示
@@ -22,6 +22,8 @@ import { Progress } from 'react-native-system-ui'
 通过 `percentage` 控制进度百分比。
 
 <code title="基础用法" src="./progress/demo/base.tsx"></code>
+
+> 也支持组合方式：`<Progress><ProgressFilledTrack /></Progress>`，以便自定义 FilledTrack 样式。
 
 ### 线条粗细
 
@@ -57,6 +59,7 @@ import { Progress } from 'react-native-system-ui'
 | `trackColor` | 轨道颜色 | `string` | `tokens.colors.track` |
 | `inactive` | 是否置灰 | `boolean` | `false` |
 | `showPivot` | 是否展示进度文案 | `boolean` | `true` |
+| `orientation` | 方向（垂直时不展示 pivot） | `horizontal \| vertical` | `horizontal` |
 | `pivotText` | 自定义进度文案 | `ReactNode` | `${percentage}%` |
 | `pivotColor` | 文案背景色 | `string` | 与进度条颜色一致 |
 | `textColor` | 文案文字颜色 | `string` | `tokens.colors.pivotText` |

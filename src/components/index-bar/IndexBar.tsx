@@ -46,6 +46,7 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
   const indexListHeightRef = useRef(0)
   const navItemLayoutsRef = useRef<Map<IndexBarValue, { y: number; height: number }>>(new Map())
   const navItemOffsetsRef = useRef<Array<{ index: IndexBarValue; y: number; height: number }>>([])
+  const navItemCentersRef = useRef<Array<{ index: IndexBarValue; center: number }>>([])
   const draggingIndexRef = useRef<IndexBarValue | null>(null)
   const pendingScrollToValueRef = useRef<IndexBarValue | null>(null)
   const [interactionIndex, setInteractionIndex] = useState<IndexBarValue | null>(null)
@@ -176,9 +177,14 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
         navItemLayoutsRef.current.delete(key)
       }
     })
-    navItemOffsetsRef.current = Array.from(navItemLayoutsRef.current.entries())
+    const nextOffsets = Array.from(navItemLayoutsRef.current.entries())
       .map(([key, layoutItem]) => ({ index: key, y: layoutItem.y, height: layoutItem.height }))
       .sort((a, b) => a.y - b.y)
+    navItemOffsetsRef.current = nextOffsets
+    navItemCentersRef.current = nextOffsets.map(item => ({
+      index: item.index,
+      center: item.y + item.height / 2,
+    }))
   }, [navItems])
 
   useEffect(() => {
@@ -220,9 +226,14 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     (index: IndexBarValue, event: { nativeEvent: { layout: { y: number; height: number } } }) => {
       const { y, height } = event.nativeEvent.layout
       navItemLayoutsRef.current.set(index, { y, height })
-      navItemOffsetsRef.current = Array.from(navItemLayoutsRef.current.entries())
+      const nextOffsets = Array.from(navItemLayoutsRef.current.entries())
         .map(([key, layoutItem]) => ({ index: key, y: layoutItem.y, height: layoutItem.height }))
         .sort((a, b) => a.y - b.y)
+      navItemOffsetsRef.current = nextOffsets
+      navItemCentersRef.current = nextOffsets.map(item => ({
+        index: item.index,
+        center: item.y + item.height / 2,
+      }))
     },
     [],
   )
@@ -286,20 +297,28 @@ const IndexBarBase = React.forwardRef<IndexBarInstance, IndexBarProps>((props, r
     if (!navItems.length) return null
     const locationY = evt?.nativeEvent?.locationY
     if (!isFiniteNumber(locationY)) return null
-    const entries = navItemOffsetsRef.current
-    if (entries.length) {
-      let picked: IndexBarValue | null = null
-      let minDistance = Number.POSITIVE_INFINITY
-      entries.forEach(entry => {
-        if (entry.height <= 0) return
-        const center = entry.y + entry.height / 2
-        const distance = Math.abs(locationY - center)
-        if (distance < minDistance) {
-          minDistance = distance
-          picked = entry.index
+    const centers = navItemCentersRef.current
+    if (centers.length) {
+      let low = 0
+      let high = centers.length - 1
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2)
+        const center = centers[mid].center
+        if (locationY < center) {
+          high = mid - 1
+        } else if (locationY > center) {
+          low = mid + 1
+        } else {
+          return centers[mid].index
         }
-      })
-      return picked
+      }
+      const left = centers[Math.max(0, Math.min(centers.length - 1, high))]
+      const right = centers[Math.max(0, Math.min(centers.length - 1, low))]
+      if (!left) return right?.index ?? null
+      if (!right) return left?.index ?? null
+      return Math.abs(locationY - left.center) <= Math.abs(locationY - right.center)
+        ? left.index
+        : right.index
     }
     const height = indexListHeightRef.current
     if (!height) return null

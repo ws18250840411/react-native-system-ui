@@ -1,5 +1,6 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useRef, type CSSProperties } from 'react'
 import {
+  Platform,
   Pressable,
   Text,
   View,
@@ -60,6 +61,7 @@ export const Radio = React.memo((props: RadioProps) => {
   const standaloneKey = serializedValue ?? 'standalone'
 
   const inputRef = useRef<View>(null)
+  const inputElementRef = useRef<HTMLInputElement | null>(null)
   const resolvedAccessibilityLabel = useMemo(
     () =>
       accessibilityLabel ??
@@ -96,6 +98,11 @@ export const Radio = React.memo((props: RadioProps) => {
   const radioValue = isGroup ? serializedValue! : standaloneKey
 
   const { onBlur, onFocus, ...compatibleRest } = rest
+  const ariaRef =
+    Platform.OS === 'web'
+      ? (inputElementRef as React.RefObject<HTMLInputElement>)
+      : (inputRef as unknown as React.RefObject<HTMLElement>)
+
   const { inputProps } = useRadio(
     {
       value: radioValue,
@@ -105,7 +112,7 @@ export const Radio = React.memo((props: RadioProps) => {
       ...compatibleRest,
     },
     state,
-    inputRef as unknown as React.RefObject<HTMLElement>
+    ariaRef
   )
 
   const isChecked =
@@ -268,9 +275,26 @@ export const Radio = React.memo((props: RadioProps) => {
     }) ?? null
     : defaultIcon
 
+  const webInputStyle: CSSProperties = {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    margin: -1,
+    border: 0,
+    padding: 0,
+    overflow: 'hidden',
+    clip: 'rect(0 0 0 0)',
+    clipPath: 'inset(50%)',
+    whiteSpace: 'nowrap',
+  }
+  const webInputNode = Platform.OS === 'web' ? (
+    <input ref={inputElementRef} {...inputProps} style={webInputStyle} />
+  ) : null
+
   const iconNode = interactive ? (
     <View style={tokens.layout.iconWrapper}>
       {iconVisual}
+      {webInputNode}
     </View>
   ) : (
     <Pressable
@@ -283,6 +307,7 @@ export const Radio = React.memo((props: RadioProps) => {
       style={tokens.layout.iconWrapper}
     >
       {iconVisual}
+      {webInputNode}
     </Pressable>
   )
 
@@ -303,6 +328,7 @@ export const Radio = React.memo((props: RadioProps) => {
       >
         {first}
         {second}
+        {webInputNode}
       </Pressable>
     )
   }

@@ -44,6 +44,10 @@ const createBadgeTokens = ({
       includeFontPadding: false,
       textAlignVertical: 'center',
     },
+      icon: {
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
   },
   colors: {
     background: palette.danger[500],

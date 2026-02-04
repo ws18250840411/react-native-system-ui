@@ -30,8 +30,14 @@ export interface SkeletonTokens {
 }
 
 export interface SkeletonProps extends ViewProps {
+  /** Gluestack alias: isLoaded=true will render children */
+  isLoaded?: boolean
   loading?: boolean
   animate?: boolean
+  /** Gluestack alias: skeleton block color */
+  startColor?: string
+  /** Animation speed multiplier (larger = faster) */
+  speed?: number | string
   avatar?: boolean
   avatarSize?: number | string
   avatarShape?: SkeletonAvatarShape

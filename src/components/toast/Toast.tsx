@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  AccessibilityInfo,
   Animated,
   Easing,
   Pressable,
@@ -155,6 +156,14 @@ export const ToastContent: React.FC<ToastProps> = props => {
       if (timer) clearTimeout(timer)
     }
   }, [durationMs, onClose, visible])
+
+  useEffect(() => {
+    if (!visible) return
+    if (!isText(message)) return
+    const text = String(message)
+    if (!text) return
+    AccessibilityInfo.announceForAccessibility?.(text)
+  }, [message, visible])
 
   useEffect(() => {
     let openedTimer: ReturnType<typeof setTimeout> | null = null

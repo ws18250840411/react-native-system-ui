@@ -87,4 +87,9 @@ describe('Divider', () => {
     // Should have 1 child (the flex wrapper)
     expect(json.children).toHaveLength(1)
   })
+
+  it('renders vertical divider without content', () => {
+    const tree = renderer.create(<Divider orientation="vertical">内容</Divider>)
+    expect(tree.root.findAllByType(Text)).toHaveLength(0)
+  })
 })

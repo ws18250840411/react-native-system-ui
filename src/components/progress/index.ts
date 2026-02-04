@@ -1,4 +1,5 @@
-import { Progress } from './Progress'
+import { Progress, ProgressFilledTrack } from './Progress'
 
 export type { ProgressProps } from './types'
+export { ProgressFilledTrack }
 export default Progress

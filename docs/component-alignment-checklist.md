@@ -19,13 +19,13 @@
 - NumberKeyboard (`src/components/number-keyboard/`)
 - NoticeBar (`src/components/notice-bar/`)
 - Circle (`src/components/circle/`)
-- Skeleton (`src/components/skeleton/`)
+- Skeleton (`src/components/skeleton/`) ✅ 2026-02-04
 
 ## 手势交互为主
 
-- IndexBar (`src/components/index-bar/`)
-- Slider (`src/components/slider/`)
-- Stepper (`src/components/stepper/`)
+- IndexBar (`src/components/index-bar/`) ✅ 2026-02-04
+- Slider (`src/components/slider/`) ✅ 2026-02-04
+- Stepper (`src/components/stepper/`) ✅ 2026-02-04
 
 ## 复杂交互（非动画为主）
 

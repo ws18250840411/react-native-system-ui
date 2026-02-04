@@ -1,7 +1,7 @@
 import { useSlider, useSliderThumb } from '@react-native-aria/slider'
 import { isRTL } from '@react-native-aria/utils'
 import { useSliderState } from '@react-stately/slider'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { GestureResponderEvent, LayoutChangeEvent, PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
@@ -30,6 +30,54 @@ const END_KEYS = [
   'onPanResponderTerminate',
 ] as const
 
+const useTrackLayout = () => {
+  const trackRef = useRef<React.ElementRef<typeof Pressable> | null>(null)
+  const measureRafRef = useRef<number | null>(null)
+  const [trackLayout, setTrackLayout] = useState<TrackLayout>({ width: 0, height: 0, x: 0, y: 0 })
+
+  const handleTrackLayout = useCallback((event: LayoutChangeEvent) => {
+    const { layout } = event.nativeEvent
+    const next = {
+      width: Math.max(layout.width, 1),
+      height: Math.max(layout.height, 1),
+      x: layout.x ?? 0,
+      y: layout.y ?? 0,
+    }
+    setTrackLayout(prev => (isSameLayout(prev, next) ? prev : next))
+
+    if (Platform.OS !== 'web' || typeof requestAnimationFrame === 'undefined') return
+
+    if (measureRafRef.current != null) return
+    measureRafRef.current = requestAnimationFrame(() => {
+      measureRafRef.current = null
+      const node = trackRef.current as unknown as {
+        measureInWindow?: (cb: (x: number, y: number, width: number, height: number) => void) => void
+      } | null
+      if (!node?.measureInWindow) return
+      node.measureInWindow((x, y, width, height) => {
+        const measured = {
+          width: Math.max(width, 1),
+          height: Math.max(height, 1),
+          x,
+          y,
+        }
+        setTrackLayout(prev => (isSameLayout(prev, measured) ? prev : measured))
+      })
+    })
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (measureRafRef.current != null && typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(measureRafRef.current)
+      }
+      measureRafRef.current = null
+    }
+  }, [])
+
+  return { trackRef, trackLayout, handleTrackLayout }
+}
+
 interface ThumbNodeProps {
   index: number
   orientation: 'horizontal' | 'vertical'
@@ -46,6 +94,7 @@ interface ThumbNodeProps {
   indicatorSize: number
   indicatorColor: string
   webGestureStyle?: ViewStyle
+  webInputStyle?: CSSProperties
   enhanceHandlers: (
     handlers: HandlerBag | undefined,
     index: number
@@ -68,6 +117,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
   indicatorSize,
   indicatorColor,
   webGestureStyle,
+  webInputStyle,
   enhanceHandlers,
 }) => {
   const inputRef = useRef(null)
@@ -111,6 +161,27 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
     backgroundColor: indicatorColor,
   }
   const accessibilityProps = createAccessibilityProps(inputProps) as unknown as Partial<React.ComponentProps<typeof View>>
+  const webInputProps = useMemo(() => {
+    if (Platform.OS !== 'web') return undefined
+    const {
+      accessibilityActions,
+      onAccessibilityAction,
+      accessibilityRole,
+      accessibilityState,
+      accessibilityHint,
+      accessible,
+      accessibilityLabel,
+      ...restProps
+    } = (inputProps ?? {}) as Record<string, unknown>
+    const sanitized = { ...restProps } as Record<string, unknown>
+    if (accessibilityLabel && !('aria-label' in sanitized)) {
+      sanitized['aria-label'] = accessibilityLabel
+    }
+    if ('aria-value' in sanitized) {
+      delete sanitized['aria-value']
+    }
+    return sanitized
+  }, [inputProps])
 
   return (
     <View
@@ -122,6 +193,9 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
       {content ?? (
         <View style={indicatorStyle} />
       )}
+      {Platform.OS === 'web' ? (
+        <input ref={inputRef} {...webInputProps} style={webInputStyle} />
+      ) : null}
     </View>
   )
 })
@@ -164,8 +238,7 @@ export const Slider: React.FC<SliderProps> = props => {
 
   const tokens = useSliderTokens(tokensOverride)
   const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
-  const trackRef = useRef<React.ElementRef<typeof Pressable> | null>(null)
-  const measureRafRef = useRef<number | null>(null)
+  const { trackRef, trackLayout, handleTrackLayout } = useTrackLayout()
 
   const resolvedMin = parseNumber(min, 0)
   const resolvedMax = parseNumber(max, 100)
@@ -232,48 +305,6 @@ export const Slider: React.FC<SliderProps> = props => {
   ])
 
   const state = useSliderState(sliderStateOptions)
-
-  const [trackLayout, setTrackLayout] = useState<TrackLayout>({ width: 0, height: 0, x: 0, y: 0 })
-
-  const handleTrackLayout = useCallback((event: LayoutChangeEvent) => {
-    const { layout } = event.nativeEvent
-    const next = {
-      width: Math.max(layout.width, 1),
-      height: Math.max(layout.height, 1),
-      x: layout.x ?? 0,
-      y: layout.y ?? 0,
-    }
-    setTrackLayout(prev => (isSameLayout(prev, next) ? prev : next))
-
-    if (Platform.OS !== 'web' || typeof requestAnimationFrame === 'undefined') return
-
-    if (measureRafRef.current != null) return
-    measureRafRef.current = requestAnimationFrame(() => {
-      measureRafRef.current = null
-      const node = trackRef.current as unknown as {
-        measureInWindow?: (cb: (x: number, y: number, width: number, height: number) => void) => void
-      } | null
-      if (!node?.measureInWindow) return
-      node.measureInWindow((x, y, width, height) => {
-        const measured = {
-          width: Math.max(width, 1),
-          height: Math.max(height, 1),
-          x,
-          y,
-        }
-        setTrackLayout(prev => (isSameLayout(prev, measured) ? prev : measured))
-      })
-    })
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (measureRafRef.current != null && typeof cancelAnimationFrame === 'function') {
-        cancelAnimationFrame(measureRafRef.current)
-      }
-      measureRafRef.current = null
-    }
-  }, [])
 
   const reverseX = orientation === 'horizontal' ? reverse || isRTL() : reverse
   const ariaReverse = orientation === 'horizontal' ? reverseX : reverse
@@ -559,9 +590,30 @@ export const Slider: React.FC<SliderProps> = props => {
   const webGestureStyle: ViewStyle | undefined = useMemo(
     () =>
       Platform.OS === 'web'
-        ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'none', userSelect: 'none' } as unknown as ViewStyle)
+        ? ({
+            touchAction: orientation === 'horizontal' ? 'pan-y' : 'pan-x',
+            userSelect: 'none',
+          } as unknown as ViewStyle)
         : undefined,
     [orientation]
+  )
+  const webInputStyle: CSSProperties | undefined = useMemo(
+    () =>
+      Platform.OS === 'web'
+        ? ({
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            margin: -1,
+            border: 0,
+            padding: 0,
+            overflow: 'hidden',
+            clip: 'rect(0 0 0 0)',
+            clipPath: 'inset(50%)',
+            whiteSpace: 'nowrap',
+          } as CSSProperties)
+        : undefined,
+    []
   )
   const baseTrackPressableStyle: StyleProp<ViewStyle> = useMemo(
     () => [
@@ -641,6 +693,7 @@ export const Slider: React.FC<SliderProps> = props => {
             indicatorSize={tokens.thumb.indicatorSize}
             indicatorColor={tokens.colors.thumbIndicator}
             webGestureStyle={webGestureStyle}
+            webInputStyle={webInputStyle}
             enhanceHandlers={enhanceHandlers}
           />
         ))}

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   type LayoutChangeEvent,
@@ -13,6 +13,69 @@ import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'
 
 const GRADIENT_REGEX = /linear-gradient|radial-gradient|conic-gradient/i
+type ProgressOrientation = 'horizontal' | 'vertical'
+
+type ProgressContextValue = {
+  animatedValue: Animated.Value
+  orientation: ProgressOrientation
+  height: number
+  indicatorColor?: string
+  indicatorStyle?: ViewStyle | ViewStyle[]
+  isGradient: boolean
+  gradientColor?: string
+  layoutIndicator: ViewStyle
+}
+
+const ProgressContext = React.createContext<ProgressContextValue | null>(null)
+
+export const ProgressFilledTrack: React.FC<{ style?: ViewStyle | ViewStyle[] }> = ({ style }) => {
+  const context = useContext(ProgressContext)
+  if (!context) return null
+
+  const indicatorSize = useMemo(() => context.animatedValue.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  }), [context.animatedValue])
+
+  const sizeStyle = useMemo(
+    () =>
+      context.orientation === 'vertical'
+        ? ({
+            width: context.height,
+            height: indicatorSize,
+            bottom: 0,
+            left: 0,
+            position: 'absolute',
+          } as unknown as ViewStyle)
+        : ({
+            height: context.height,
+            width: indicatorSize,
+          } as unknown as ViewStyle),
+    [context.height, context.orientation, indicatorSize],
+  )
+
+  const baseStyle = [
+    context.orientation === 'vertical'
+      ? ({ position: 'absolute', left: 0, bottom: 0 } as unknown as ViewStyle)
+      : context.layoutIndicator,
+    {
+      backgroundColor: context.indicatorColor,
+      borderRadius: context.height / 2,
+      ...(context.isGradient && context.gradientColor
+        ? ({ backgroundImage: context.gradientColor } as unknown as ViewStyle)
+        : null),
+    } as unknown as ViewStyle,
+    sizeStyle,
+    context.indicatorStyle,
+    style,
+  ] as unknown as Array<Animated.WithAnimatedValue<ViewStyle>>
+
+  return (
+    <Animated.View
+      style={baseStyle}
+    />
+  )
+}
 
 export const Progress = memo((props: ProgressProps) => {
   const {
@@ -32,6 +95,8 @@ export const Progress = memo((props: ProgressProps) => {
     style,
     pivotStyle,
     indicatorStyle,
+    orientation: orientationProp,
+    children,
     ...rest
   } = props
 
@@ -49,9 +114,10 @@ export const Progress = memo((props: ProgressProps) => {
     () => inactiveProp ?? tokens.defaults.inactive,
     [inactiveProp, tokens.defaults.inactive]
   )
+  const orientation: ProgressOrientation = orientationProp ?? 'horizontal'
   const showPivot = useMemo(
-    () => showPivotProp ?? tokens.defaults.showPivot,
-    [showPivotProp, tokens.defaults.showPivot]
+    () => (orientation === 'vertical' ? false : (showPivotProp ?? tokens.defaults.showPivot)),
+    [orientation, showPivotProp, tokens.defaults.showPivot]
   )
   const shouldAnimate = useMemo(
     () => (animated ?? transitionProp ?? tokens.defaults.transition) && !inactive,
@@ -137,12 +203,19 @@ export const Progress = memo((props: ProgressProps) => {
 
   const trackStyle = useMemo(() => ([
     tokens.layout.track,
-    {
-      height,
-      backgroundColor: resolvedTrackColor,
-      borderRadius: height / 2,
-    },
-  ]), [height, resolvedTrackColor, tokens.layout.track])
+    orientation === 'vertical'
+      ? ({
+          width: height,
+          height: '100%',
+          backgroundColor: resolvedTrackColor,
+          borderRadius: height / 2,
+        } as unknown as ViewStyle)
+      : ({
+          height,
+          backgroundColor: resolvedTrackColor,
+          borderRadius: height / 2,
+        } as ViewStyle),
+  ]), [height, orientation, resolvedTrackColor, tokens.layout.track])
 
   const pivotNode = useMemo(() => {
     if (!hasPivot) return null
@@ -224,40 +297,43 @@ export const Progress = memo((props: ProgressProps) => {
     tokens.typography.pivotFontSize,
   ])
 
-  const indicatorWidth = useMemo(() => animatedValue.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-  }), [animatedValue])
-
-  const indicatorBaseStyle = useMemo(() => ([
-    tokens.layout.indicator,
-    {
-      height,
-      backgroundColor: resolvedIndicatorColor,
-      borderRadius: height / 2,
-      ...(isGradient && ({ backgroundImage: color } as unknown as ViewStyle)),
-    },
+  const progressContextValue = useMemo<ProgressContextValue>(() => ({
+    animatedValue,
+    orientation,
+    height,
+    indicatorColor: resolvedIndicatorColor,
+    indicatorStyle: indicatorStyle as ViewStyle | ViewStyle[] | undefined,
+    isGradient,
+    gradientColor: isGradient ? color : undefined,
+    layoutIndicator: tokens.layout.indicator,
+  }), [
+    animatedValue,
+    color,
+    height,
     indicatorStyle,
-    { width: indicatorWidth },
-  ]), [color, height, indicatorStyle, indicatorWidth, isGradient, resolvedIndicatorColor, tokens.layout.indicator])
+    isGradient,
+    orientation,
+    resolvedIndicatorColor,
+    tokens.layout.indicator,
+  ])
 
   return (
-    <View
-      style={style}
-      accessibilityRole="progressbar"
-      accessibilityValue={{ min: 0, max: 100, now: percentage }}
-      {...rest}
-    >
+    <ProgressContext.Provider value={progressContextValue}>
       <View
-        style={trackStyle}
-        onLayout={hasPivot ? onTrackLayout : undefined}
+        style={style}
+        accessibilityRole="progressbar"
+        accessibilityValue={{ min: 0, max: 100, now: percentage }}
+        {...rest}
       >
-        <Animated.View
-          style={indicatorBaseStyle}
-        />
+        <View
+          style={trackStyle}
+          onLayout={hasPivot ? onTrackLayout : undefined}
+        >
+          {children ?? <ProgressFilledTrack />}
+        </View>
+        {pivotNode}
       </View>
-      {pivotNode}
-    </View>
+    </ProgressContext.Provider>
   )
 })
 

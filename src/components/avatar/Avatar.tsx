@@ -4,7 +4,47 @@ import { Pressable, Text, View } from 'react-native'
 import Image from '../image'
 import { isNumber } from '../../utils'
 import { useAvatarTokens } from './tokens'
-import type { AvatarProps } from './types'
+import type { AvatarFallbackTextProps, AvatarImageProps, AvatarProps } from './types'
+
+export const AvatarFallbackText = React.forwardRef<Text, AvatarFallbackTextProps>(({ children, color, style }, ref) => {
+  const tokens = useAvatarTokens()
+  return (
+    <Text
+      ref={ref}
+      style={[
+        tokens.layout.text,
+        {
+          color: color ?? tokens.colors.text,
+          fontWeight: tokens.typography.fontWeight,
+        },
+        style,
+      ]}
+      numberOfLines={1}
+    >
+      {children}
+    </Text>
+  )
+})
+
+AvatarFallbackText.displayName = 'Avatar.FallbackText'
+
+export const AvatarImage = React.forwardRef<React.ElementRef<typeof Image>, AvatarImageProps>((props, ref) => {
+  const tokens = useAvatarTokens(props.tokensOverride)
+  return (
+    <Image
+      ref={ref}
+      {...props}
+      containerStyle={[{ backgroundColor: tokens.colors.transparent }, props.containerStyle]}
+      style={[tokens.layout.image, props.style]}
+      fit={props.fit ?? 'cover'}
+      loadingText={props.loadingText ?? null}
+      loadingSize={props.loadingSize ?? tokens.sizing.loadingSize}
+      showError={props.showError ?? true}
+    />
+  )
+})
+
+AvatarImage.displayName = 'Avatar.Image'
 
 export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, AvatarProps>(
   (props, ref) => {
@@ -23,6 +63,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       style,
       textStyle,
       contentStyle,
+      children,
       tokensOverride,
       ...pressableProps
     } = props
@@ -53,24 +94,21 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
         {icon}
       </View>
     ) : fallbackText && (
-      <Text
+      <AvatarFallbackText
+        color={color}
         style={[
-          tokens.layout.text,
           {
-            color: color ?? tokens.colors.text,
             fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
-            fontWeight: tokens.typography.fontWeight,
           },
           textStyle,
         ]}
-        numberOfLines={1}
       >
         {fallbackText}
-      </Text>
+      </AvatarFallbackText>
     )
 
-    const content = src || source ? (
-      <Image
+    const content = children ?? (src || source ? (
+      <AvatarImage
         src={src}
         source={source}
         containerStyle={transparentContainerStyle}
@@ -83,7 +121,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       />
     ) : (
       fallbackContent
-    )
+    ))
 
     return (
       <Pressable

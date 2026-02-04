@@ -14,6 +14,7 @@ export interface BadgeTokens {
     badgeStandalone: ViewStyle
     pressableStandalone: ViewStyle
     text: TextStyle
+    icon: ViewStyle
   }
   colors: {
     background: string
@@ -58,4 +59,15 @@ export interface BadgeProps extends ViewProps {
   textStyle?: StyleProp<TextStyle>
   onPress?: PressableProps['onPress']
   tokensOverride?: DeepPartial<BadgeTokens>
+}
+
+export interface BadgeTextProps {
+  children?: React.ReactNode
+  color?: string
+  style?: StyleProp<TextStyle>
+}
+
+export interface BadgeIconProps {
+  children?: React.ReactNode
+  style?: StyleProp<ViewStyle>
 }

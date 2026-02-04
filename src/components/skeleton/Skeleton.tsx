@@ -29,8 +29,11 @@ const resolveSeries = (
 const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   const {
     tokensOverride,
+    isLoaded,
     loading: loadingProp,
     animate: animateProp,
+    startColor,
+    speed: speedProp,
     avatar: avatarProp,
     avatarSize: avatarSizeProp,
     avatarShape: avatarShapeProp,
@@ -46,7 +49,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   } = props
 
   const tokens = useSkeletonTokens(tokensOverride)
-  const loading = loadingProp ?? true
+  const loading = loadingProp ?? (isLoaded != null ? !isLoaded : true)
   const animate = animateProp ?? true
   const avatar = avatarProp ?? false
   const avatarSize = avatarSizeProp ?? tokens.defaults.avatarSize
@@ -56,6 +59,22 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   const row = rowProp ?? tokens.defaults.rowCount
   const rowWidth = rowWidthProp ?? tokens.defaults.rowWidth
   const round = roundProp ?? false
+
+  const speed = useMemo(() => {
+    if (isFiniteNumber(speedProp)) return Math.max(0.01, speedProp)
+    if (isString(speedProp)) {
+      const parsed = Number(speedProp)
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
+    }
+    return 1
+  }, [speedProp])
+
+  const duration = useMemo(
+    () => Math.max(0, tokens.animation.duration / speed),
+    [speed, tokens.animation.duration]
+  )
+
+  const blockColor = startColor ?? tokens.colors.block
 
   const rows = isFiniteNumber(row) ? Math.max(0, Math.floor(row)) : 0
   const rowWidths = useMemo(() => {
@@ -81,7 +100,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   const animated = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
-    if (!loading || !animate || tokens.animation.duration <= 0) {
+    if (!loading || !animate || duration <= 0) {
       animated.setValue(0)
       return
     }
@@ -90,19 +109,19 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
       Animated.sequence([
         Animated.timing(animated, {
           toValue: 1,
-          duration: tokens.animation.duration / 2,
+          duration: duration / 2,
           useNativeDriver: nativeDriverEnabled,
         }),
         Animated.timing(animated, {
           toValue: 0,
-          duration: tokens.animation.duration / 2,
+          duration: duration / 2,
           useNativeDriver: nativeDriverEnabled,
         }),
       ]),
     )
     loop.start()
     return () => loop.stop()
-  }, [animate, animated, loading, tokens.animation.duration])
+  }, [animate, animated, duration, loading])
 
   const animatedStyle = useMemo(
     () => (!loading || !animate ? undefined : ({
@@ -126,12 +145,12 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
           width: resolvedAvatarSize as ViewStyle['width'],
           height: resolvedAvatarSize as ViewStyle['height'],
           borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
-          backgroundColor: tokens.colors.block,
+          backgroundColor: blockColor,
         },
         animatedStyle,
       ]}
     />
-  )), [animatedStyle, avatar, avatarShape, resolvedAvatarSize, tokens.colors.block, tokens.radius])
+  )), [animatedStyle, avatar, avatarShape, blockColor, resolvedAvatarSize, tokens.radius])
 
   const titleNode = useMemo(() => (!title ? null : (
     <Animated.View
@@ -139,13 +158,13 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         {
           width: resolvedTitleWidth as ViewStyle['width'],
           height: titleHeight as ViewStyle['height'],
-          backgroundColor: tokens.colors.block,
+          backgroundColor: blockColor,
           borderRadius: round ? tokens.radius : 0,
         },
         animatedStyle,
       ]}
     />
-  )), [animatedStyle, resolvedTitleWidth, round, title, titleHeight, tokens.colors.block, tokens.radius])
+  )), [animatedStyle, blockColor, resolvedTitleWidth, round, title, titleHeight, tokens.radius])
 
   const rowNodes = useMemo(() => (rows <= 0 ? null : (
     <View style={styles.rows}>
@@ -158,7 +177,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
               width: width as ViewStyle['width'],
               height: rowHeights[index] as ViewStyle['height'],
               marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
-              backgroundColor: tokens.colors.block,
+              backgroundColor: blockColor,
               borderRadius: round ? tokens.radius : 0,
             },
             animatedStyle,
@@ -166,7 +185,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
         />
       ))}
     </View>
-  )), [animatedStyle, rowHeights, rowWidths, rows, round, title, tokens.colors.block, tokens.radius, tokens.spacing.rowGap])
+  )), [animatedStyle, blockColor, rowHeights, rowWidths, rows, round, title, tokens.radius, tokens.spacing.rowGap])
 
   if (!loading) {
     return (

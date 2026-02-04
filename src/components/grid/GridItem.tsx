@@ -1,5 +1,6 @@
 import React, { useContext, useMemo } from 'react'
 import {
+  Platform,
   Pressable,
   Text,
   View,
@@ -178,11 +179,11 @@ export const GridItem: React.FC<GridItemProps> = props => {
   ), [bottomBorder, contentWrapperStyle, innerContent, rightBorder])
 
   const baseItemStyle: ViewStyle = useMemo(() => ({
-    width: widthPercent,
+    width: Platform.OS === 'web' ? undefined : widthPercent,
     flexGrow: 0,
     flexShrink: 0,
-    paddingRight: gutter ? gutter : undefined,
-    marginTop: gutter && rowIndex > 0 ? gutter : undefined,
+    paddingRight: Platform.OS === 'web' ? undefined : (gutter ? gutter : undefined),
+    marginTop: Platform.OS === 'web' ? undefined : (gutter && rowIndex > 0 ? gutter : undefined),
   }), [gutter, rowIndex, widthPercent])
 
   const isInteractive = clickable || isFunction(onPress)

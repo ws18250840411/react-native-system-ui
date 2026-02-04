@@ -116,8 +116,9 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
 
   const getCurrentNumber = useCallback(() => {
     const current = valueRef.current
-    return isFiniteNumber(current) ? current : 0
-  }, [])
+    if (isFiniteNumber(current)) return current
+    return isFiniteNumber(min) ? min : 0
+  }, [min])
 
   const isActionDisabled = useCallback((type: 'plus' | 'minus') => {
     if (disabled) return true

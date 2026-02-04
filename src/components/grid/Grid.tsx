@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { View } from 'react-native'
+import { Platform, View, type ViewStyle } from 'react-native'
 
 import { createHairlineView } from '../../utils'
 import { GridContext } from './GridContext'
@@ -109,13 +109,26 @@ export const Grid: React.FC<GridProps> = props => {
     tokens,
   ])
 
+  const webGridStyle = useMemo(
+    () =>
+      Platform.OS === 'web'
+        ? ({
+            display: 'grid',
+            gridTemplateColumns: `repeat(${columnNum}, minmax(0, 1fr))`,
+            columnGap: gutter,
+            rowGap: gutter,
+          } as unknown as ViewStyle)
+        : undefined,
+    [columnNum, gutter]
+  )
+
   const containerStyle = useMemo(
     () => [
       tokens.layout.container,
-      gutter ? { paddingLeft: gutter } : undefined,
+      Platform.OS === 'web' ? webGridStyle : gutter ? { paddingLeft: gutter } : undefined,
       style,
     ],
-    [gutter, style, tokens.layout.container]
+    [gutter, style, tokens.layout.container, webGridStyle]
   )
 
   const renderedChildren = useMemo(

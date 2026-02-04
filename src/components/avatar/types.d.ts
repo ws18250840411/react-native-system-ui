@@ -45,6 +45,7 @@ export interface AvatarTokens {
 }
 
 import type { ImageFit } from '../image/types'
+import type { ImageProps } from '../image/types'
 
 export interface AvatarProps extends Omit<PressableProps, 'style'> {
   src?: string
@@ -62,4 +63,15 @@ export interface AvatarProps extends Omit<PressableProps, 'style'> {
   contentStyle?: StyleProp<ViewStyle>
   style?: StyleProp<ViewStyle>
   tokensOverride?: DeepPartial<AvatarTokens>
+  children?: React.ReactNode
+}
+
+export interface AvatarImageProps extends ImageProps {
+  style?: StyleProp<ImageStyle>
+}
+
+export interface AvatarFallbackTextProps {
+  children?: React.ReactNode
+  color?: string
+  style?: StyleProp<TextStyle>
 }

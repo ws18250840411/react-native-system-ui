@@ -61,6 +61,18 @@
 | 2026-02-03 | Field | 数字输入拦截逻辑收敛（number/digit） | `src/components/field/Field.tsx` |
 | 2026-02-03 | Input | 补齐 `digit/tel` 键盘类型映射 | `src/components/input/Input.tsx` |
 | 2026-02-04 | Popup | 动画回退为内部实现，保持弹层与蒙层同步 | `src/components/popup/Popup.tsx` |
+| 2026-02-04 | Slider | 补齐 Web aria input 与 touchAction 细节 | `src/components/slider/Slider.tsx` |
+| 2026-02-04 | IndexBar | 侧边索引命中改为二分查找 | `src/components/index-bar/IndexBar.tsx` |
+| 2026-02-04 | Stepper | 空值步进起点对齐 min | `src/components/stepper/Stepper.tsx` |
+| 2026-02-04 | Input | 键盘类型映射下沉到 Field，减少重复计算 | `src/components/input/Input.tsx` |
+| 2026-02-04 | Checkbox | Web 端补齐隐藏 input（提升可访问性） | `src/components/checkbox/Checkbox.tsx` |
+| 2026-02-04 | Radio | Web 端补齐隐藏 input（提升可访问性） | `src/components/radio/Radio.tsx` |
+| 2026-02-04 | Toast | 对齐 Gluestack 可访问性提示（announce） | `src/components/toast/Toast.tsx` |
+| 2026-02-04 | Progress | 对齐 Gluestack 组合结构（ProgressFilledTrack）与方向支持 | `src/components/progress/Progress.tsx`, `src/components/progress/index.ts`, `src/components/progress/types.d.ts`, `docs/components/progress.md` |
+| 2026-02-04 | Badge | 对齐 Gluestack 组合结构（BadgeText/BadgeIcon） | `src/components/badge/Badge.tsx`, `src/components/badge/index.ts`, `src/components/badge/types.d.ts`, `src/components/badge/tokens.ts`, `docs/components/badge.md` |
+| 2026-02-04 | Avatar | 对齐 Gluestack 组合结构（AvatarImage/AvatarFallbackText），支持 children 覆盖 | `src/components/avatar/Avatar.tsx`, `src/components/avatar/index.ts`, `src/components/avatar/types.d.ts`, `docs/components/avatar.md` |
+| 2026-02-04 | Image | Web 端对齐 Gluestack 的 `revert-layer` 尺寸修复 | `src/components/image/Image.tsx`, `docs/components/image.md` |
+| 2026-02-04 | Divider | 对齐 Gluestack 的 orientation 与可访问性角色 | `src/components/divider/Divider.tsx`, `src/components/divider/types.d.ts`, `src/components/divider/__tests__/divider.test.tsx`, `docs/components/divider.md` |
 
 ### 迁移优先级（先替换基础/通用）
 
@@ -134,6 +146,7 @@
 
 - 先走读组件目录内所有文件（组件、tokens、types、index、tests、docs、demo）
 - 核心实现以 Gluestack 源码为主，优先复用其结构与交互，完善我们的api
+- 以 Gluestack 源码依赖的能力为准（如 @react-native-aria / @react-stately / @react-types）；只有在这些依赖带来明显收益时才对齐实现，避免为结构对齐而改动代码
 - 若现有 API 不被 Gluestack 支持：先评估补逻辑适配，否则删除并记录
 - 优化以可量化证据为依据：基准脚本或可复现实验结果
 - 只做实现层优化：对外 API 尽量保持不变（除非删除项）
@@ -153,3 +166,17 @@
 ### 需要补齐的 Gluestack 组件（可选）
 
 如后续需要：FormControl / Select / Textarea / Alert / AlertDialog / Modal / Popover / Menu / Tooltip / Drawer / BottomSheet / Card / Table / Icon / Heading / Text / Box / Center / HStack / VStack / Fab / Link / Pressable
+
+### 变更记录
+
+- 2026-02-04：Slider
+  - 对齐 Gluestack 交互：Web 端补充隐藏 input（aria slider），并修正垂直滑动 touchAction 为 `pan-x`
+  - 现有 API 继续保留：`range`/双滑块/`onDragStart`/`onDragEnd` 作为适配层逻辑延续
+- 2026-02-04：IndexBar
+  - Gluestack 暂无对应组件，保留现有实现并优化手势性能（索引命中改为二分查找）
+- 2026-02-04：Stepper
+  - Gluestack 暂无对应组件，保留现有实现并优化性能（空值时步进起点对齐 min）
+- 2026-02-04：Grid
+  - Web 端对齐 Gluestack Grid：使用 CSS grid，`gutter` 映射为 `rowGap/columnGap`
+- 2026-02-04：Skeleton
+  - 对齐 Gluestack：增加 `isLoaded/startColor/speed` 兼容属性
