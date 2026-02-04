@@ -6,12 +6,12 @@
  */
 export default [
   {
-    "name": "picker",
-    "size": 10099
+    "name": "swiper",
+    "size": 10388
   },
   {
-    "name": "swiper",
-    "size": 10046
+    "name": "picker",
+    "size": 9808
   },
   {
     "name": "tabs",
@@ -22,16 +22,8 @@ export default [
     "size": 6763
   },
   {
-    "name": "dropdown-menu",
-    "size": 6747
-  },
-  {
     "name": "cascader",
     "size": 6179
-  },
-  {
-    "name": "uploader",
-    "size": 6134
   },
   {
     "name": "slider",
@@ -56,10 +48,6 @@ export default [
   {
     "name": "popup",
     "size": 5176
-  },
-  {
-    "name": "index-bar",
-    "size": 5173
   },
   {
     "name": "button",
@@ -102,10 +90,6 @@ export default [
     "size": 3871
   },
   {
-    "name": "pull-refresh",
-    "size": 3738
-  },
-  {
     "name": "notice-bar",
     "size": 3621
   },
@@ -130,10 +114,6 @@ export default [
     "size": 3237
   },
   {
-    "name": "rate",
-    "size": 3212
-  },
-  {
     "name": "portal",
     "size": 3157
   },
@@ -152,10 +132,6 @@ export default [
   {
     "name": "selector",
     "size": 2784
-  },
-  {
-    "name": "pagination",
-    "size": 2647
   },
   {
     "name": "typography",
@@ -182,10 +158,6 @@ export default [
     "size": 2391
   },
   {
-    "name": "list",
-    "size": 2246
-  },
-  {
     "name": "water-mark",
     "size": 2212
   },
@@ -202,12 +174,12 @@ export default [
     "size": 2049
   },
   {
-    "name": "avatar",
-    "size": 1801
-  },
-  {
     "name": "config-provider",
     "size": 1787
+  },
+  {
+    "name": "avatar",
+    "size": 1779
   },
   {
     "name": "divider",

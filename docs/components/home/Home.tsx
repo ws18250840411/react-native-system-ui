@@ -193,7 +193,7 @@ const Home = () => {
             {/* Badge 徽标 - 小卡片 */}
             <View className="home-card-small" style={styles.card}>
               <View style={[styles.cardBody, styles.cardBodyCentered]}>
-                <Typography.Text strong style={cardTitleStyle}>Badge 徽标</Typography.Text>
+                <Typography.Text strong style={cardTitleStyle}>徽标</Typography.Text>
                 <Space direction="horizontal" gap={16} style={{ marginTop: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                   <Badge content={5}>
                     <View style={styles.badgePlaceholder} />
@@ -214,15 +214,11 @@ const Home = () => {
             {/* Switch - 小卡片 */}
             <View className="home-card-small" style={styles.card}>
               <View style={[styles.cardBody, styles.cardBodyCentered]}>
-                <Typography.Text strong style={cardTitleStyle}>开关与多选</Typography.Text>
+                <Typography.Text strong style={cardTitleStyle}>开关</Typography.Text>
                 <Space direction="vertical" gap={16} style={{ width: '100%', marginTop: 12 }}>
                   <Space direction="horizontal" justify="between" block>
-                    <Typography.Text>开关状态</Typography.Text>
+                    <Typography.Text>状态</Typography.Text>
                     <Switch value={switchValue} onChange={setSwitchValue} />
-                  </Space>
-                  <Space direction="horizontal" justify="between" block>
-                    <Typography.Text>加载中</Typography.Text>
-                    <Switch loading />
                   </Space>
                   <Space direction="horizontal" justify="between" block>
                     <Checkbox value={checkboxValue} onChange={setCheckboxValue}>
