@@ -1,33 +1,28 @@
 import React from 'react'
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { Button, Cell, Portal } from 'react-native-system-ui'
-
-const Host: React.FC<{ children: React.ReactNode }> = ({ children }) =>
-  Platform.OS === 'web' ? <Portal.Host fixed>{children}</Portal.Host> : <>{children}</>
 
 export default function PortalBasicDemo() {
   const [visible, setVisible] = React.useState(false)
 
   return (
-    <Host>
-      <Cell.Group>
-        <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
-        {visible ? (
-          <Portal>
-            <View style={styles.layer} pointerEvents="box-none">
-              <Pressable style={styles.mask} onPress={() => setVisible(false)} />
-              <View style={styles.dialog}>
-                <Text style={styles.title}>这里是 Portal 内容</Text>
-                <Button type="primary" block onPress={() => setVisible(false)}>
-                  我知道了
-                </Button>
-              </View>
+    <Cell.Group>
+      <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
+      {visible ? (
+        <Portal>
+          <View style={styles.layer} pointerEvents="box-none">
+            <Pressable style={styles.mask} onPress={() => setVisible(false)} />
+            <View style={styles.dialog}>
+              <Text style={styles.title}>这里是 Portal 内容</Text>
+              <Button type="primary" block onPress={() => setVisible(false)}>
+                我知道了
+              </Button>
             </View>
-          </Portal>
-        ) : null}
-      </Cell.Group>
-    </Host>
+          </View>
+        </Portal>
+      ) : null}
+    </Cell.Group>
   )
 }
 

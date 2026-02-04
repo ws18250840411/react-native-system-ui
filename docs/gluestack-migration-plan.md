@@ -60,6 +60,7 @@
 | 2026-02-03 | Field | 修复 clearable 真机清除与失焦时序 | `src/components/field/Field.tsx` |
 | 2026-02-03 | Field | 数字输入拦截逻辑收敛（number/digit） | `src/components/field/Field.tsx` |
 | 2026-02-03 | Input | 补齐 `digit/tel` 键盘类型映射 | `src/components/input/Input.tsx` |
+| 2026-02-04 | Popup | 动画回退为内部实现，保持弹层与蒙层同步 | `src/components/popup/Popup.tsx` |
 
 ### 迁移优先级（先替换基础/通用）
 

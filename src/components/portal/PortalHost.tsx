@@ -2,10 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   DeviceEventEmitter,
   NativeEventEmitter,
-  Platform,
   StyleSheet,
   View,
-  type ViewStyle,
 } from 'react-native'
 
 import { isNumber } from '../../utils'
@@ -81,8 +79,8 @@ const applyOperation = (manager: PortalManagerHandle, operation: Operation) => {
   }
 }
 
-const PortalManagerView = React.forwardRef<PortalManagerHandle, { fixed?: boolean }>(
-  ({ fixed }, ref) => {
+const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>(
+  (_, ref) => {
     const [entries, setEntries] = useState<PortalEntry[]>([])
     const keySeed = useRef(0)
 
@@ -136,7 +134,7 @@ const PortalManagerView = React.forwardRef<PortalManagerHandle, { fixed?: boolea
     return (
       <View
         pointerEvents="box-none"
-        style={[styles.portalLayer, fixed && webFixedStyle]}
+        style={styles.portalLayer}
         collapsable={false}
       >
         {entries.map(entry => (
@@ -177,10 +175,9 @@ const globalManager: PortalManager = {
 
 export interface PortalHostProps {
   children?: React.ReactNode
-  fixed?: boolean
 }
 
-export const PortalHost: React.FC<PortalHostProps> = ({ children, fixed }) => {
+export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
   const hostIdRef = useRef(nextHostId++)
   const managerRef = useRef<PortalManagerHandle | null>(null)
   const queueRef = useRef<Operation[]>([])
@@ -305,7 +302,7 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children, fixed }) => {
           <View style={styles.root} collapsable={false} pointerEvents="box-none">
             {children}
           </View>
-          <PortalManagerView ref={handleManagerRef} fixed={fixed} />
+          <PortalManagerView ref={handleManagerRef} />
         </View>
       </PortalContext.Provider>
     </OverlayProvider>
@@ -327,11 +324,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
 })
-
-const webFixedStyle: ViewStyle | undefined =
-  Platform.OS === 'web'
-    ? ({ position: 'fixed' } as unknown as ViewStyle)
-    : undefined
 
 export const portalManager = globalManager
 export const portalStore = {

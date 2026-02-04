@@ -22,8 +22,7 @@ import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { isRenderable, isText } from '../../utils/validate'
 import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
-import { useOverlayStack } from '../../hooks'
-import { useAriaOverlay } from '../../hooks'
+import { useAriaOverlay, useOverlayStack } from '../../hooks'
 import type { PopupTokens } from './tokens'
 import { usePopupTokens } from './tokens'
 
@@ -183,7 +182,7 @@ export const Popup: React.FC<PopupProps> = props => {
     safeAreaInsetTop = false,
     safeAreaInsetBottom: safeAreaInsetBottomProp,
     lockScroll = true,
-    destroyOnClose = false,
+    destroyOnClose = true,
     duration = 300,
     zIndex,
     closeOnBackPress = false,
@@ -599,7 +598,11 @@ export const Popup: React.FC<PopupProps> = props => {
   return (
     <Portal>
       <View
-        style={[styles.portalRoot, resolvedZIndex ? { zIndex: resolvedZIndex } : undefined]}
+        style={[
+          styles.portalRoot,
+          webFixedRootStyle,
+          resolvedZIndex ? { zIndex: resolvedZIndex } : undefined,
+        ]}
         pointerEvents="box-none"
       >
         <View
@@ -684,6 +687,17 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
 })
+
+const webFixedRootStyle: ViewStyle | undefined =
+  Platform.OS === 'web'
+    ? ({ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      } as unknown as ViewStyle)
+    : undefined
 
 Popup.displayName = 'Popup'
 

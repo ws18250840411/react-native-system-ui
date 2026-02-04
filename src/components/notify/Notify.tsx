@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import {
   Animated,
+  Easing,
   Platform,
   Pressable,
   Text,
@@ -11,15 +12,15 @@ import {
 
 import { isFunction, isText } from '../../utils'
 import { useAriaPress, useSafeAreaPadding } from '../../hooks'
-import { usePresenceAnimation } from '../../hooks/usePresenceAnimation'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../../hooks'
+import { nativeDriverEnabled } from '../../platform'
 import type { NotifyProps, NotifyPosition } from './types'
 import { useNotifyTokens } from './tokens'
 
 export type { NotifyProps, NotifyPosition, NotifyType, NotifyTokens } from './types'
 
-export const Notify: React.FC<NotifyProps> = props => {
+export const NotifyContent: React.FC<NotifyProps> = props => {
   const {
     visible,
     message,
@@ -92,16 +93,61 @@ export const Notify: React.FC<NotifyProps> = props => {
 
   // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
   const canAnimate = barHeight > 0
-  const { mounted, animated } = usePresenceAnimation(visible, {
-    duration: tokens.defaults.animationDuration,
-    appear: true,
-    canAnimate,
-  })
+  const [mounted, setMounted] = React.useState(visible)
+  const animated = React.useRef(new Animated.Value(0)).current
+  const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
+  const animationIdRef = React.useRef(0)
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'notify', zIndex })
   const resolvedZIndex = stackZIndex ?? zIndex
 
   const prevVisibleRef = React.useRef(visible)
   const closingRef = React.useRef(false)
+
+  React.useEffect(() => {
+    animationIdRef.current += 1
+    const animationId = animationIdRef.current
+    animationRef.current?.stop()
+    const durationValue = tokens.defaults.animationDuration
+    if (visible) {
+      setMounted(true)
+      if (!canAnimate) {
+        animated.setValue(0)
+        return
+      }
+      animationRef.current = Animated.timing(animated, {
+        toValue: 1,
+        duration: durationValue,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: nativeDriverEnabled,
+        isInteraction: false,
+      })
+      animationRef.current.start()
+    } else {
+      if (!canAnimate) {
+        animated.setValue(0)
+        setMounted(false)
+        return
+      }
+      animationRef.current = Animated.timing(animated, {
+        toValue: 0,
+        duration: durationValue,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: nativeDriverEnabled,
+        isInteraction: false,
+      })
+      animationRef.current.start(({ finished }) => {
+        if (!finished || animationId !== animationIdRef.current) return
+        setMounted(false)
+      })
+    }
+  }, [animated, canAnimate, tokens.defaults.animationDuration, visible])
+
+  React.useEffect(
+    () => () => {
+      animationRef.current?.stop()
+    },
+    []
+  )
 
   React.useEffect(() => {
     let openedTimer: ReturnType<typeof setTimeout> | null = null
@@ -171,8 +217,6 @@ export const Notify: React.FC<NotifyProps> = props => {
   )
 
   const hasMessage = message !== undefined && message !== null && message !== false && message !== ''
-
-  if (!mounted) return null
 
   const bar = useMemo(() => (
     <View
@@ -268,31 +312,38 @@ export const Notify: React.FC<NotifyProps> = props => {
     webTopPadding,
   ])
 
+  if (!mounted) return null
+
   return (
-    <Portal>
-      <View
-        testID="rv-notify"
-        pointerEvents={interactive ? 'box-none' : 'none'}
-        style={[
-          tokens.layout.portal,
-          position === 'bottom' ? { bottom: 0 } : { top: 0 },
-          resolvedZIndex !== undefined && resolvedZIndex !== null
-            ? { zIndex: resolvedZIndex }
-            : null,
-        ]}
-      >
-        {interactive ? (
-          <Pressable {...press.interactionProps} disabled={!interactive}>
-            {bar}
-          </Pressable>
-        ) : (
-          bar
-        )}
-      </View>
-    </Portal>
+    <View
+      testID="rv-notify"
+      pointerEvents={interactive ? 'box-none' : 'none'}
+      style={[
+        tokens.layout.portal,
+        position === 'bottom' ? { bottom: 0 } : { top: 0 },
+        resolvedZIndex !== undefined && resolvedZIndex !== null
+          ? { zIndex: resolvedZIndex }
+          : null,
+      ]}
+    >
+      {interactive ? (
+        <Pressable {...press.interactionProps} disabled={!interactive}>
+          {bar}
+        </Pressable>
+      ) : (
+        bar
+      )}
+    </View>
   )
 }
 
+export const Notify: React.FC<NotifyProps> = props => (
+  <Portal>
+    <NotifyContent {...props} />
+  </Portal>
+)
+
+NotifyContent.displayName = 'NotifyContent'
 Notify.displayName = 'Notify'
 
 export default Notify

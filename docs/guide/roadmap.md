@@ -11,7 +11,7 @@
 - **待补齐能力**
   1. **A11y**：useAriaPress / useAriaToggle / useAriaListBox / useAriaOverlay 已抽象并补文档与单测，待在更多组件中接入。
   2. **Overlay**：Portal 与栈管理、BackHandler、滚动锁已就绪，动画预设与焦点锁定待落地。
-  3. **手势与动画**：当前仅有 usePresenceAnimation（淡入淡出），弹性/弹簧预设与手势同步待补充。
+  3. **手势与动画**：显隐动效目前由组件内实现（淡入淡出），弹性/弹簧预设与手势同步待补充。
   4. **表单**：Form、useFormContext、校验策略待定，状态管理方案待选型。
 
 ## 2. 里程碑

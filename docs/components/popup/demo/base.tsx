@@ -1,10 +1,7 @@
 import React from 'react'
-import { Platform, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 
-import { Cell, Popup, Portal } from 'react-native-system-ui'
-
-const Host: React.FC<{ children: React.ReactNode }> = ({ children }) =>
-  Platform.OS === 'web' ? <Portal.Host fixed>{children}</Portal.Host> : <>{children}</>
+import { Cell, Popup } from 'react-native-system-ui'
 
 export default () => {
   const [visible, setVisible] = React.useState(false)
@@ -12,39 +9,37 @@ export default () => {
   const [safeBottomVisible, setSafeBottomVisible] = React.useState(false)
 
   return (
-    <Host>
-      <Cell.Group>
-        <Cell title="展示弹出层" isLink onPress={() => setVisible(true)} />
-        <Cell title="顶部安全区域可视化" isLink onPress={() => setSafeVisible(true)} />
-        <Cell title="底部安全区域可视化" isLink onPress={() => setSafeBottomVisible(true)} />
-        <Popup visible={visible} onClose={() => setVisible(false)}>
-          <View style={{ paddingVertical: 30, paddingHorizontal: 50 }}>
-            <Text>内容</Text>
-          </View>
-        </Popup>
-        <Popup
-          visible={safeVisible}
-          onClose={() => setSafeVisible(false)}
-          placement="top"
-          safeAreaInsetTop
-          style={{ backgroundColor: '#ffe7ba' }}
-        >
-          <View style={{ paddingVertical: 24, paddingHorizontal: 20, backgroundColor: '#ffffff' }}>
-            <Text>顶部安全区为浅橙色</Text>
-          </View>
-        </Popup>
-        <Popup
-          visible={safeBottomVisible}
-          onClose={() => setSafeBottomVisible(false)}
-          placement="bottom"
-          safeAreaInsetBottom
-          style={{ backgroundColor: '#ffe7ba' }}
-        >
-          <View style={{ paddingVertical: 24, paddingHorizontal: 20, backgroundColor: '#ffffff' }}>
-            <Text>底部安全区为浅橙色</Text>
-          </View>
-        </Popup>
-      </Cell.Group>
-    </Host>
+    <Cell.Group>
+      <Cell title="展示弹出层" isLink onPress={() => setVisible(true)} />
+      <Cell title="顶部安全区域可视化" isLink onPress={() => setSafeVisible(true)} />
+      <Cell title="底部安全区域可视化" isLink onPress={() => setSafeBottomVisible(true)} />
+      <Popup visible={visible} onClose={() => setVisible(false)}>
+        <View style={{ paddingVertical: 30, paddingHorizontal: 50 }}>
+          <Text>内容</Text>
+        </View>
+      </Popup>
+      <Popup
+        visible={safeVisible}
+        onClose={() => setSafeVisible(false)}
+        placement="top"
+        safeAreaInsetTop
+        style={{ backgroundColor: '#ffe7ba' }}
+      >
+        <View style={{ paddingVertical: 24, paddingHorizontal: 20, backgroundColor: '#ffffff' }}>
+          <Text>顶部安全区为浅橙色</Text>
+        </View>
+      </Popup>
+      <Popup
+        visible={safeBottomVisible}
+        onClose={() => setSafeBottomVisible(false)}
+        placement="bottom"
+        safeAreaInsetBottom
+        style={{ backgroundColor: '#ffe7ba' }}
+      >
+        <View style={{ paddingVertical: 24, paddingHorizontal: 20, backgroundColor: '#ffffff' }}>
+          <Text>底部安全区为浅橙色</Text>
+        </View>
+      </Popup>
+    </Cell.Group>
   )
 }

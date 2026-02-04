@@ -16,7 +16,9 @@ const ConfigProviderBase: React.FC<ConfigProviderProps> = ({
   return (
     <ThemeProvider value={theme}>
       <LocaleContext.Provider value={resolvedLocale}>
-        <PortalHost>{children}</PortalHost>
+        <PortalHost>
+          {children}
+        </PortalHost>
       </LocaleContext.Provider>
     </ThemeProvider>
   )

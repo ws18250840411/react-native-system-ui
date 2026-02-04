@@ -1,10 +1,6 @@
 import React from 'react'
-import { Platform } from 'react-native'
 
-import { Cell, Portal, Toast } from 'react-native-system-ui'
-
-const Host: React.FC<{ children: React.ReactNode }> = ({ children }) =>
-  Platform.OS === 'web' ? <Portal.Host fixed>{children}</Portal.Host> : <>{children}</>
+import { Cell, Toast } from 'react-native-system-ui'
 
 export default function ToastLoadingDemo() {
   const showLoading = () => {
@@ -16,10 +12,8 @@ export default function ToastLoadingDemo() {
   }
 
   return (
-    <Host>
-      <Cell.Group>
-        <Cell title="加载并更新状态" isLink onPress={showLoading} />
-      </Cell.Group>
-    </Host>
+    <Cell.Group>
+      <Cell title="加载并更新状态" isLink onPress={showLoading} />
+    </Cell.Group>
   )
 }

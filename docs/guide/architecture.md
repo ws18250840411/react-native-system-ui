@@ -13,7 +13,7 @@
    - 各组件目录自管 tokens：`tokens.ts` 定义默认值，`useXXXTokens` 合并 foundations 与 overrides，组件只依赖本地 tokens。
    - 示例：`button/tokens.ts` + `button/useButtonTokens.ts` 封装按钮设计变量。
 3. **Hooks（`src/hooks`）**
-   - `usePresenceAnimation` 统一显隐动效；`src/hooks/aria/*` 封装 `@react-native-aria`，集中导出并配套单测。
+   - `src/hooks/aria/*` 封装 `@react-native-aria`，集中导出并配套单测；显隐动效由组件内实现。
 
 ![architecture](https://dummyimage.com/800x260/eff3ff/5b63ff&text=theme+->+system+->+components)
 

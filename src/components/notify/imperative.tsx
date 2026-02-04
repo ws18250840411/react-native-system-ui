@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import Portal from '../portal/Portal'
 import { isFunction, isString, isText } from '../../utils'
-import Notify from './Notify'
+import { NotifyContent } from './Notify'
 import type { NotifyProps, NotifyType } from './types'
 
 export type NotifyShowOptions = Omit<NotifyProps, 'visible'> & { message?: React.ReactNode }
@@ -89,7 +89,7 @@ const NotifyPortal: React.FC<NotifyPortalProps> = ({ id, options }) => {
     removeNotify(id)
   }
 
-  return <Notify {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
+  return <NotifyContent {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
 }
 
 const showNotify = (input?: NotifyInput, fallbackType: NotifyType = 'primary'): NotifyReturnType => {

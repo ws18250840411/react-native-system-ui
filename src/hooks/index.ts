@@ -1,4 +1,3 @@
-export * from './usePresenceAnimation'
 export * from './useSafeAreaPadding'
 export * from './aria'
 export * from './gesture'

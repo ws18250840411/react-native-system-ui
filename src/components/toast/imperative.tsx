@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import Portal from '../portal/Portal'
 import { isFunction, isString, isText } from '../../utils'
-import Toast, { type ToastProps, type ToastType } from './Toast'
+import { ToastContent, type ToastProps, type ToastType } from './Toast'
 
 export type ToastShowOptions = Omit<ToastProps, 'visible'> & { message?: React.ReactNode }
 export type ToastInput = ToastShowOptions | React.ReactNode
@@ -99,7 +99,7 @@ const ToastPortal: React.FC<ToastPortalProps> = ({ id, options }) => {
     removeToast(id)
   }, [id, options])
 
-  return <Toast {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
+  return <ToastContent {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
 }
 
 const showToast = (input?: ToastInput, fallbackType: ToastType = 'info'): ToastReturnType => {

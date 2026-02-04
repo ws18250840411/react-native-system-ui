@@ -1,4 +1,5 @@
 import { createComponentTokensHook } from '../../design-system'
+import { Platform } from 'react-native'
 import type { Foundations } from '../../design-system/tokens'
 import type { NotifyTokens } from './types'
 
@@ -17,6 +18,7 @@ export const createNotifyTokens = (foundations: Foundations): NotifyTokens => ({
       position: 'absolute',
       left: 0,
       right: 0,
+      ...(Platform.OS === 'web' ? { position: 'fixed' as any } : {}),
     },
     container: {
       width: '100%',

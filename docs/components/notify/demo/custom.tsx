@@ -6,16 +6,16 @@ export default function NotifyCustomDemo() {
   return (
     <Cell.Group>
       <Cell
-            title="自定义背景色"
-            isLink
-            onPress={() =>
-              Notify.show({
-                message: '自定义样式',
-                color: '#ffffff',
-                background: '#722ed1',
-              })
-            }
-          />
+        title="自定义背景色"
+        isLink
+        onPress={() =>
+          Notify.show({
+            message: '自定义样式',
+            color: '#ffffff',
+            background: '#722ed1',
+          })
+        }
+      />
     </Cell.Group>
   )
 }
