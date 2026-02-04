@@ -122,6 +122,7 @@ export default function App() {
 | `overlayClass` | 自定义遮罩层类名 | `string` | - |
 | `overlayStyle` | 自定义遮罩层样式 | `object` | - |
 | `closeable` | 是否展示关闭图标 | `boolean` | `false` |
+| `closeOnBackPress` | Android 返回键是否关闭 | `boolean` | `false` |
 | `closeOnPopstate` | 是否在页面回退时自动关闭 | `boolean` | `true` |
 | `closeOnClickOverlay` | 是否在点击遮罩层后关闭弹窗 | `boolean` | `false` |
 | `lockScroll` | 是否锁定背景滚动 | `boolean` | `true` |

@@ -30,6 +30,8 @@ export interface DialogProps extends Omit<ViewProps, 'children'> {
   overlay?: boolean
   overlayStyle?: StyleProp<ViewStyle>
   overlayTestID?: string
+  closeOnBackPress?: boolean
+  closeOnPopstate?: boolean
   closeOnOverlayPress?: boolean
   closeOnClickOverlay?: boolean
   onClickOverlay?: () => void

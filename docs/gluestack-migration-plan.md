@@ -180,3 +180,17 @@
   - Web 端对齐 Gluestack Grid：使用 CSS grid，`gutter` 映射为 `rowGap/columnGap`
 - 2026-02-04：Skeleton
   - 对齐 Gluestack：增加 `isLoaded/startColor/speed` 兼容属性
+- 2026-02-04：Loading
+  - 对齐 Gluestack Spinner：补齐 `aria-label` 默认值与透传
+- 2026-02-04：Portal
+  - 对齐 Gluestack 叠层使用方式：补充无 Host 的静态 API 告警
+- 2026-02-04：Popup
+  - 对齐弹层交互：关闭动画期间保持 overlay 可访问性与锁滚动状态
+- 2026-02-04：Dialog
+  - 对齐弹层交互：支持 `closeOnBackPress/closeOnPopstate` 下发到 Popup
+- 2026-02-04：ActionSheet
+  - 修复 tokens 文件导出语法，保证 tokens hook 可用
+- 2026-02-04：Tabs
+  - Gluestack 暂无对应组件，保留现有实现
+- 2026-02-04：Picker
+  - Gluestack 暂无对应组件，按 P2 策略先保留现状

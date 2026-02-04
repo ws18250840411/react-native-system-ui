@@ -387,7 +387,7 @@ export const Popup: React.FC<PopupProps> = props => {
   }, [requestClose])
 
   const { zIndex: stackZIndex } = useOverlayStack({
-    visible,
+    visible: isOpen,
     onClose: handleStackClose,
     closeOnBack: closeOnBackPress,
     lockScroll,
@@ -396,7 +396,7 @@ export const Popup: React.FC<PopupProps> = props => {
   })
 
   const { overlayRef, overlayProps } = useAriaOverlay({
-    isOpen: visible,
+    isOpen,
     onClose: () => requestClose('overlay'),
     isDismissable: shouldCloseOnOverlay,
     overlayProps: {
@@ -608,7 +608,7 @@ export const Popup: React.FC<PopupProps> = props => {
         <View
           style={[styles.container, config.container]}
           pointerEvents={isOpen ? 'auto' : 'none'}
-          accessibilityViewIsModal={visible}
+          accessibilityViewIsModal={isOpen}
           accessibilityLiveRegion="polite"
           onAccessibilityEscape={() => requestClose('close')}
         >

@@ -50,19 +50,8 @@ import { Portal } from 'react-native-system-ui'
 | `isKeyboardDismissable` | 是否允许点击遮罩关闭键盘 | `boolean` | `true` |
 | `animationPreset` | 动画类型（`Modal` 或 Overlay 容器展示策略） | `fade \| slide \| none` | `fade` |
 | `style` | Overlay 容器样式 | `ViewStyle` | - |
-| `isOpen` | 是否展示 Portal 内容 | `boolean` | `true` |
-| `useRNModalOnAndroid` | Android 端是否使用 `Modal` 承载 | `boolean` | `false` |
-| `useRNModal` | 强制使用 `Modal` 承载 | `boolean` | `false` |
-| `onRequestClose` | `Modal` 关闭回调 | `() => void` | - |
-| `isKeyboardDismissable` | 是否允许点击遮罩关闭键盘 | `boolean` | `true` |
-| `animationPreset` | 动画类型（`Modal` 或 Overlay 容器展示策略） | `fade \| slide \| none` | `fade` |
-| `style` | Overlay 容器样式（非 `Modal` 模式） | `ViewStyle` | - |
 
 ### Portal.Host Props
-
-| 属性 | 说明 | 类型 | 默认值 |
-| --- | --- | --- | --- |
-| `fixed` | Web 端是否使用 `position: fixed` 的 Host（避免被父容器裁剪） | `boolean` | `false` |
 
 > 建议全局只挂载一个 `Portal.Host`，避免多 Host 造成叠层管理混乱。
 

@@ -89,6 +89,8 @@ export const Dialog: React.FC<DialogProps> = props => {
     overlay = true,
     overlayStyle,
     overlayTestID = 'dialog-overlay',
+    closeOnBackPress = false,
+    closeOnPopstate = true,
     closeOnOverlayPress = false,
     closeOnClickOverlay = false,
     onClickOverlay,
@@ -447,6 +449,8 @@ export const Dialog: React.FC<DialogProps> = props => {
       overlay={overlay}
       overlayStyle={overlayStyle}
       overlayTestID={overlayTestID}
+      closeOnBackPress={closeOnBackPress}
+      closeOnPopstate={closeOnPopstate}
       closeOnClickOverlay={mergedCloseOnOverlayPress}
       onClickOverlay={onClickOverlay}
       beforeClose={() => runBeforeClose('close')}

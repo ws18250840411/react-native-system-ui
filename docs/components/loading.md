@@ -53,6 +53,7 @@ import { Loading } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `size` | 指示器尺寸（px） | `number` | `30` |
 | `color` | 指示器颜色 | `string` | `tokens.colors.indicator` |
+| `aria-label` | 兼容 Gluestack：无障碍标签 | `string` | `'loading'` |
 | `textSize` | 文案字号 | `number` | `tokens.defaults.textSize` |
 | `textColor` | 文案颜色 | `string` | `tokens.colors.text` |
 | `vertical` | 是否纵向排列 | `boolean` | `false` |

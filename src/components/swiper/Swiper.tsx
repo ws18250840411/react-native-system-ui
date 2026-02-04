@@ -364,7 +364,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
       if (count === 0) return
 
       const targetRealIndex = clamp(index, 0, count - 1)
-      const fromRealIndex = desiredIndexRef.current
+      const fromRealIndex = (isScrollingRef.current || isDraggingRef.current)
+        ? getDisplayIndex(currentRef.current)
+        : desiredIndexRef.current
       desiredIndexRef.current = targetRealIndex
       const currentIndex = currentRef.current
 
@@ -522,14 +524,18 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
 
   const swipeNext = useCallback(() => {
     if (count === 0) return
-    const baseIndex = desiredIndexRef.current
+    const baseIndex = (isScrollingRef.current || isDraggingRef.current)
+      ? getDisplayIndex(currentRef.current)
+      : desiredIndexRef.current
     swipeTo(baseIndex === count - 1 ? 0 : baseIndex + 1)
-  }, [count, swipeTo])
+  }, [count, getDisplayIndex, swipeTo])
   const swipePrev = useCallback(() => {
     if (count === 0) return
-    const baseIndex = desiredIndexRef.current
+    const baseIndex = (isScrollingRef.current || isDraggingRef.current)
+      ? getDisplayIndex(currentRef.current)
+      : desiredIndexRef.current
     swipeTo(baseIndex === 0 ? count - 1 : baseIndex - 1)
-  }, [count, swipeTo])
+  }, [count, getDisplayIndex, swipeTo])
 
   const stopAutoplay = useCallback(() => {
     if (autoplayTimerRef.current) {
@@ -564,12 +570,12 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
 
       if (shouldLoop) {
         if (index === 0) {
-          runAfterFrames(2, () => {
+          runAfterFrames(1, () => {
             flatListRef.current?.scrollToIndex({ index: count, animated: false })
           })
           index = count
         } else if (index === displayCount - 1) {
-          runAfterFrames(2, () => {
+          runAfterFrames(1, () => {
             flatListRef.current?.scrollToIndex({ index: 1, animated: false })
           })
           index = 1
@@ -858,10 +864,11 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         renderItem={data ? renderDataItem : renderChildItem}
         getItemLayout={getItemLayout}
         horizontal={!vertical}
-        removeClippedSubviews={!isWeb}
-        initialNumToRender={Math.min(displayCount, 3)}
-        maxToRenderPerBatch={3}
-        windowSize={5}
+        removeClippedSubviews={!isWeb && !shouldLoop}
+        disableVirtualization={shouldLoop}
+        initialNumToRender={shouldLoop ? displayCount : Math.min(displayCount, 3)}
+        maxToRenderPerBatch={shouldLoop ? displayCount : 3}
+        windowSize={shouldLoop ? displayCount : 5}
         updateCellsBatchingPeriod={16}
         snapToInterval={slideSizePct === 100 && trackOffsetPct === 0 && slideSizeValue || undefined}
         snapToOffsets={snapToOffsets}

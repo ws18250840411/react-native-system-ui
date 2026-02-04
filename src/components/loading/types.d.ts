@@ -22,6 +22,8 @@ export interface LoadingTokens {
 }
 
 export interface LoadingProps extends ViewProps {
+  /** Gluestack alias */
+  ['aria-label']?: string
   color?: string
   size?: number
   textSize?: number

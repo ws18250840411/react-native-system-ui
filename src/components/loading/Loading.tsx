@@ -13,6 +13,8 @@ export const Loading: React.FC<LoadingProps> = props => {
     textSize: textSizeProp,
     textColor: textColorProp,
     vertical: verticalProp,
+    accessibilityLabel,
+    ['aria-label']: ariaLabel,
     style,
     textStyle,
     contentStyle,
@@ -26,11 +28,13 @@ export const Loading: React.FC<LoadingProps> = props => {
   const textSize = textSizeProp ?? tokens.defaults.textSize
   const textColor = textColorProp ?? tokens.colors.text
   const vertical = verticalProp ?? tokens.defaults.vertical
+  const resolvedAccessibilityLabel = ariaLabel ?? accessibilityLabel ?? 'loading'
   const indicator = (
     <ActivityIndicator
       testID="rv-loading-spinner"
       size={size}
       color={color}
+      accessibilityLabel={resolvedAccessibilityLabel}
     />
   )
 
