@@ -332,10 +332,10 @@ describe('Popup', () => {
 
     const popupContent = tree.root.findAllByProps({ testID: 'popup-content' })[0]
 
-    // FIXME: Token refactor caused style resolution issues in tests. 
-    // Opacity should be 0, but getStyleValue returns undefined in test environment.
-    // expect(getStyleValue(popupContent.props.style, 'opacity')).toBe(0)
-    // expect(getStyleValue(popupContent.props.style, 'boxShadow')).toBe('none')
+    
+    
+    
+    
 
     act(() => {
       tree.unmount()
@@ -359,8 +359,8 @@ describe('Popup', () => {
 
     const popupContentBefore = findPopupContent()
     const beforeRange = getTranslateOutputRange(popupContentBefore.props.style, 'translateX')
-    // FIXME: Token refactor caused style resolution issues in tests.
-    // expect(beforeRange?.[0]).toBe(0)
+    
+    
 
     act(() => {
       popupContentBefore.props.onLayout?.({
@@ -370,8 +370,8 @@ describe('Popup', () => {
 
     const popupContentAfter = findPopupContent()
     const afterRange = getTranslateOutputRange(popupContentAfter.props.style, 'translateX')
-    // FIXME: Token refactor caused style resolution issues in tests.
-    // expect(afterRange?.[0]).toBe(-100)
+    
+    
 
     act(() => {
       tree.unmount()
@@ -404,7 +404,7 @@ describe('Popup', () => {
           <Text>Content</Text>
         </Popup>
       )
-      // Verify no crash
+      
       expect(tree.toJSON()).toBeDefined()
       act(() => {
         tree.unmount()
@@ -421,15 +421,15 @@ describe('Popup', () => {
         </Popup>
       </PortalHost>
     )
-    // Find Pressable that is likely the close icon
-    // It usually has hitSlop prop
+    
+    
     const pressables = tree.root.findAllByType(Pressable)
-    // The close icon Pressable has hitSlop={8}
+    
     const closeBtn = pressables.find(p => p.props.hitSlop === 8)
 
     expect(closeBtn).toBeDefined()
-    // In test environment, the close button might not be found if visible is false or not mounted
-    // Ensure visible is true
+    
+    
     if (closeBtn) {
       act(() => {
         closeBtn.props.onPress()
@@ -449,11 +449,11 @@ describe('Popup', () => {
         </Popup>
       </PortalHost>
     )
-    // The content wrapper should have border radius
-    // We need to find the Animated.View that wraps content
-    // Animated.View might be rendered as View in tests depending on mocks
+    
+    
+    
     const views = tree.root.findAllByType(View)
-    // The popup content view has style.borderTopLeftRadius when round + bottom
+    
     const content = views.find(v => {
       const s = StyleSheet.flatten(v.props.style)
       return s && s.borderTopLeftRadius > 0

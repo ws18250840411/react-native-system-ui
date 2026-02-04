@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
-import { Button, ConfigProvider, Rate, Slider, Space } from 'react-native-system-ui'
+import { Button, ConfigProvider, Slider, Space } from 'react-native-system-ui'
 
 const theme = {
   components: {
@@ -28,18 +28,10 @@ const theme = {
         size: 22,
       },
     },
-    rate: {
-      colors: {
-        active: '#ffcc56',
-        inactive: '#f2dcb0',
-        disabled: '#d8dce7',
-      },
-    },
   },
 }
 
 export default () => {
-  const [score, setScore] = React.useState(4)
   const [progress, setProgress] = React.useState(60)
 
   const handleSliderChange = (value: number | [number, number]) => {
@@ -51,11 +43,6 @@ export default () => {
       <Space direction="vertical" gap={16}>
         <View style={styles.card}>
           <Text style={styles.title}>定制主题</Text>
-
-          <View style={styles.row}>
-            <Text style={styles.label}>评分</Text>
-            <Rate value={score} onChange={setScore} />
-          </View>
 
           <View style={[styles.row, styles.rowLast]}>
             <Text style={styles.label}>滑块</Text>

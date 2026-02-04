@@ -16,8 +16,8 @@ describe('Divider', () => {
 
   it('applies custom line color and dashed style', () => {
     const tree = renderer.create(<Divider dashed lineColor="#123456" hairline={false} />)
-    // Find the view that has borderBottomColor
-    // Since hairline=false, it uses borderBottomColor on the line view
+    
+    
     const lineView = tree.root.findAll(node => {
         const style = StyleSheet.flatten(node.props.style)
         return style?.borderBottomColor === '#123456'
@@ -42,30 +42,30 @@ describe('Divider', () => {
 
   it('respects left content position ratios', () => {
     const tree = renderer.create(<Divider contentPosition="left">Label</Divider>)
-    // Structure: Root -> [LeftFlex, Content, RightFlex]
-    // LeftFlex -> renderLine
-    // RightFlex -> renderLine
     
-    // We need to find the flex views. They are direct children of root.
-    // But root children are in fragment? No, root is View.
-    // children are [LeftView, ContentView, RightView]
     
-    const root = tree.root.findByType(View) // This might find the first View which is root
-    // But verify it's the root container (marginVertical)
-    // Actually, `findByType` finds the first match.
-    // Let's assume the root is the one with flexDirection row (default)
+    
+    
+    
+    
+    
+    
+    const root = tree.root.findByType(View) 
+    
+    
+    
     
     const container = tree.root.findAll(node => {
         const style = StyleSheet.flatten(node.props.style)
         return style?.flexDirection === 'row' && style?.width === '100%'
     })[0]
     
-    // Children of container
-    // Since render returns children directly inside View, we can inspect children prop
+    
+    
     const children = container.props.children
-    // children is an array or fragment? 
-    // In React 18 / renderer, it might be nested.
-    // Let's look at `tree.toJSON().children`
+    
+    
+    
     
     const json = tree.toJSON() as any
     const leftFlex = json.children[0]
@@ -80,11 +80,11 @@ describe('Divider', () => {
   it('treats false children as no content', () => {
     const tree = renderer.create(<Divider>{false as any}</Divider>)
     expect(tree.root.findAllByType(Text)).toHaveLength(0)
-    // Should render as if no content: One flex wrapper with line
-    // <View style={{ flexGrow: 1 }}>{renderLine()}</View>
+    
+    
     
     const json = tree.toJSON() as any
-    // Should have 1 child (the flex wrapper)
+    
     expect(json.children).toHaveLength(1)
   })
 

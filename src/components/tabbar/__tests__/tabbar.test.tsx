@@ -52,16 +52,16 @@ describe('Tabbar', () => {
   })
 
   it('passes iconSize to items', () => {
-    // We can't easily check internal props of TabbarItem unless we mock it or check rendered output
-    // But TabbarItem renders an Icon or image.
-    // Let's assume it works if no error thrown
+    
+    
+    
     const tree = renderer.create(
       <Tabbar iconSize={30}>
         <Item name="home" icon={<Text>Icon</Text>}>首页</Item>
       </Tabbar>
     )
-    // The Tabbar passes iconSize to context or clones children
-    // In Tabbar.tsx: React.cloneElement(item.element, { iconSize })
+    
+    
     
     const item = tree.root.findByType(Item)
     expect(item.props.iconSize).toBe(30)

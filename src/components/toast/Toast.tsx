@@ -42,9 +42,9 @@ export interface ToastProps {
   closeOnClickOverlay?: boolean
   closeOnClick?: boolean
   loadingIndicator?: React.ReactNode
-  /** 内容顶部是否预留安全区域（默认根据 position 自动设置，设置为 false 可全屏显示） */
+  
   safeAreaInsetTop?: boolean
-  /** 内容底部是否预留安全区域（默认根据 position 自动设置，设置为 false 可全屏显示） */
+  
   safeAreaInsetBottom?: boolean
   tokensOverride?: DeepPartial<ToastTokens>
   style?: StyleProp<ViewStyle>

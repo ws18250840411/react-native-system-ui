@@ -37,7 +37,7 @@ describe('Image', () => {
     })
     const overlay = tree.root.findAllByProps({ testID: 'rv-image-error' })
     expect(overlay.length).toBe(1)
-    // overlay renders fallback text so we still ensure text is correct
+    
     const errorText = tree.root.findAllByType(Text).find((node) => node.props.children === '出错')
     expect(errorText?.props.children).toBe('出错')
   })
@@ -199,7 +199,7 @@ describe('Image', () => {
     expect(pressable.props.accessibilityRole).toBe('button')
     expect(pressable.props.accessibilityLabel).toBe('Clickable Image')
 
-    // Image should not be accessible to avoid duplicate reading
+    
     const rnImage = tree.root.findByType(RNImage)
     expect(rnImage.props.accessible).toBe(false)
   })
@@ -218,13 +218,13 @@ describe('Image', () => {
         style={{ padding: 10, borderWidth: 2, borderColor: 'red' }}
       />
     )
-    const view = tree.root.findByType(View) // Container is View (no onPress)
+    const view = tree.root.findByType(View) 
     const style = StyleSheet.flatten(view.props.style)
     expect(style.padding).toBe(10)
     expect(style.borderWidth).toBe(2)
     expect(style.borderColor).toBe('red')
 
-    // Image should NOT have these styles
+    
     const rnImage = tree.root.findByType(RNImage)
     const imageStyle = StyleSheet.flatten(rnImage.props.style)
     expect(imageStyle.padding).toBeUndefined()

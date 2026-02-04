@@ -113,10 +113,6 @@ export { default as Stepper } from './stepper'
 export type { StepperProps, StepperTheme, StepperInstance } from './stepper'
 export type { StepperTokens } from './stepper/tokens'
 export { useStepperTokens } from './stepper/tokens'
-export { default as Rate } from './rate'
-export type { RateProps } from './rate'
-export type { RateTokens } from './rate/types'
-export { useRateTokens } from './rate/tokens'
 export { default as Selector } from './selector'
 export type { SelectorProps, SelectorOption, SelectorValue } from './selector'
 export type { SelectorTokens } from './selector/types'
@@ -210,10 +206,6 @@ export { default as Sidebar } from './sidebar'
 export type { SidebarProps, SidebarItemProps } from './sidebar'
 export type { SidebarTokens } from './sidebar/types'
 export { useSidebarTokens } from './sidebar/tokens'
-export { default as IndexBar } from './index-bar'
-export type { IndexBarProps, IndexAnchorProps } from './index-bar'
-export type { IndexBarTokens } from './index-bar/tokens'
-export { useIndexBarTokens } from './index-bar/tokens'
 export { default as ActionSheet } from './action-sheet'
 export type { ActionSheetProps, ActionSheetAction, ActionSheetCloseAction } from './action-sheet'
 export type { ActionSheetTokens } from './action-sheet/types'
@@ -222,27 +214,8 @@ export { default as ShareSheet } from './share-sheet'
 export type { ShareSheetProps, ShareSheetOption, ShareSheetOptions } from './share-sheet'
 export type { ShareSheetTokens } from './share-sheet/tokens'
 export { useShareSheetTokens } from './share-sheet/tokens'
-export { default as DropdownMenu } from './dropdown-menu'
-export type {
-  DropdownMenuProps,
-  DropdownItemProps,
-  DropdownOption,
-  DropdownMenuDirection,
-  DropdownMenuInstance,
-  DropdownItemInstance,
-} from './dropdown-menu'
-export type { DropdownMenuTokens } from './dropdown-menu/tokens'
-export { useDropdownMenuTokens } from './dropdown-menu/tokens'
 export { default as Area } from './area'
 export type { AreaProps } from './area'
-export { default as List } from './list'
-export type { ListProps, ListRef } from './list'
-export type { ListTokens } from './list/types'
-export { useListTokens } from './list/tokens'
-export { default as PullRefresh } from './pull-refresh'
-export type { PullRefreshProps } from './pull-refresh'
-export type { PullRefreshTokens } from './pull-refresh/tokens'
-export { usePullRefreshTokens } from './pull-refresh/tokens'
 export { default as ImagePreview } from './image-preview'
 export type {
   ImagePreviewProps,
@@ -259,19 +232,6 @@ export { SwiperPagIndicator } from './swiper'
 export type { SwiperProps, SwiperInstance, SwiperItemProps } from './swiper'
 export type { SwiperPagIndicatorProps, SwiperPagIndicatorTokens } from './swiper'
 export { useSwiperPagIndicatorTokens } from './swiper'
-export { default as Uploader } from './uploader'
-export type {
-  UploaderProps,
-  UploaderValueItem,
-  UploaderItemStatus,
-  UploaderInstance,
-  UploaderResultType,
-  UploaderFile,
-  UploaderMaxSize,
-  UploaderBeforeRead,
-} from './uploader'
-export type { UploaderTokens } from './uploader/tokens'
-export { useUploaderTokens } from './uploader'
 export { default as Skeleton } from './skeleton'
 export type { SkeletonProps, SkeletonAvatarShape } from './skeleton'
 export type { SkeletonTokens } from './skeleton/types'
@@ -284,7 +244,3 @@ export { default as WaterMark } from './water-mark'
 export type { WaterMarkProps } from './water-mark'
 export type { WaterMarkTokens } from './water-mark/types'
 export { useWaterMarkTokens } from './water-mark/tokens'
-export { default as Pagination } from './pagination'
-export type { PaginationProps } from './pagination'
-export type { PaginationTokens } from './pagination/types'
-export { usePaginationTokens } from './pagination/tokens'

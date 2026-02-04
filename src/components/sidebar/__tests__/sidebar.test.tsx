@@ -56,13 +56,13 @@ describe('Sidebar', () => {
       </Sidebar>
     )
     
-    // Check initial active
+    
     const itemB = tree.root.findByProps({ testID: 'rv-sidebar-item-1' })
-    // Active item has different background color (white)
-    // We can check style or props if we had access to context consumer directly, 
-    // but here we can check styles of Pressable
-    // However, SidebarItem implementation details might vary.
-    // Let's just try to switch to A
+    
+    
+    
+    
+    
     
     const itemA = tree.root.findByProps({ testID: 'rv-sidebar-item-0' })
     act(() => {
@@ -71,7 +71,7 @@ describe('Sidebar', () => {
     
     expect(onChange).toHaveBeenCalledWith(0)
     
-    // Rerender with new value
+    
     act(() => {
       tree.update(
         <Sidebar value={0} onChange={onChange}>
@@ -80,6 +80,6 @@ describe('Sidebar', () => {
         </Sidebar>
       )
     })
-    // Should update visually
+    
   })
 })

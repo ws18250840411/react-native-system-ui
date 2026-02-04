@@ -39,8 +39,8 @@ describe('Badge', () => {
     const badgeView = tree.root.findAllByProps({ pointerEvents: 'none' })[0]
     const style = StyleSheet.flatten(badgeView.props.style)
 
-    // Dot should have transform applied immediately without layout
-    // Half of dotSize (8) is 4
+    
+    
     expect(style.transform).toEqual([{ translateX: 4 }, { translateY: -4 }])
   })
 
@@ -101,7 +101,7 @@ describe('Badge', () => {
     const view = tree.root.findByType(View)
     const style = StyleSheet.flatten(view.props.style)
 
-    // Standalone offset uses marginLeft/marginTop
+    
     expect(style.marginLeft).toBe(10)
     expect(style.marginTop).toBe(20)
   })
@@ -117,23 +117,23 @@ describe('Badge', () => {
 
   it('handles onPress', () => {
     const onPress = jest.fn()
-    // Standalone
+    
     const tree = renderer.create(<Badge content={1} onPress={onPress} />)
-    const pressable = tree.root.findByType(View).parent // Pressable wraps View
-    // Badge returns cloneElement if no children and no onPress?
-    // If onPress, it returns Pressable -> View
-    // Let's check implementation
+    const pressable = tree.root.findByType(View).parent 
+    
+    
+    
 
-    // Code:
-    // if (!visible && !dot) return null
-    // const badgeNode = renderBadgeNode(true)
-    // if (onPress) return <Pressable>{badgeNode}</Pressable>
+    
+    
+    
+    
 
-    // badgeNode is a View
+    
 
-    // In test renderer, Pressable might be mocked or we look for onPress prop
+    
 
-    // Let's just find element with onPress
+    
     const node = tree.root.findByProps({ onPress })
     act(() => {
       node.props.onPress()

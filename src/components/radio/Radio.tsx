@@ -287,8 +287,12 @@ export const Radio = React.memo((props: RadioProps) => {
     clipPath: 'inset(50%)',
     whiteSpace: 'nowrap',
   }
+  const { ref: _ignoredAriaRefProp, ...webInputProps } = (inputProps ?? {}) as Record<
+    string,
+    unknown
+  >
   const webInputNode = Platform.OS === 'web' ? (
-    <input ref={inputElementRef} {...inputProps} style={webInputStyle} />
+    <input ref={inputElementRef} {...webInputProps} style={webInputStyle} />
   ) : null
 
   const iconNode = interactive ? (
@@ -328,7 +332,6 @@ export const Radio = React.memo((props: RadioProps) => {
       >
         {first}
         {second}
-        {webInputNode}
       </Pressable>
     )
   }

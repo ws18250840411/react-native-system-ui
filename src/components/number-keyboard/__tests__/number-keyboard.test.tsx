@@ -116,13 +116,13 @@ describe("NumberKeyboard", () => {
       return texts.some(t => t.props.children === '3')
     })
 
-    // Input '3' -> value becomes '123' (length 3)
+    
     act(() => {
       pressable3?.props.onPress()
     })
     expect(onInput).toHaveBeenCalledWith('3')
 
-    // Input '4' -> should be ignored
+    
     const pressable4 = pressables.find(p => {
       const texts = p.findAllByType(Text)
       return texts.some(t => t.props.children === '4')
@@ -132,10 +132,10 @@ describe("NumberKeyboard", () => {
     act(() => {
       pressable4?.props.onPress()
     })
-    // Controlled value didn't change, so '12' is still the value. '4' should be allowed if max=3.
-    // Wait, if value is "12" (len=2), and max=3.
-    // Press '4' -> check if len >= max. 2 >= 3 is false. Allowed.
-    // So onInput WILL be called.
+    
+    
+    
+    
     expect(onInput).toHaveBeenCalledWith('4')
   })
 
@@ -156,7 +156,7 @@ describe("NumberKeyboard", () => {
     act(() => {
       pressable3?.props.onPress()
     })
-    // Value is "12" (len=2). Max=2. 2 >= 2 is true. Returns early.
+    
     expect(onInput).not.toHaveBeenCalled()
   })
 

@@ -56,16 +56,16 @@ describe('ButtonGroup', () => {
         </ButtonGroup>
       )
 
-      // ButtonGroup renders a View as container
-      // But we need to find the correct View. 
-      // ThemeProvider might wrap things in Views too? No, it's Context.
-      // But ButtonGroup returns ButtonGroupContext.Provider -> View.
-      // So the first View found inside root should be it, unless ThemeProvider adds one.
-      // Let's find by props or structure.
-      // Or just findAllByType(View) and check styles.
+      
+      
+      
+      
+      
+      
+      
       
       const views = tree.root.findAllByType(View)
-      // Find the one with columnGap style
+      
       const container = views.find(v => {
         const s = StyleSheet.flatten(v.props.style)
         return s && s.columnGap === 20
@@ -75,7 +75,7 @@ describe('ButtonGroup', () => {
       const style = StyleSheet.flatten(container?.props.style)
       expect(style.flexDirection).toBe('row')
 
-      // Children should NOT have margin injected
+      
       const buttons = tree.root.findAllByType(Button)
       const firstBtnStyle = StyleSheet.flatten(buttons[0].props.style)
       expect(firstBtnStyle?.marginRight).toBeUndefined()

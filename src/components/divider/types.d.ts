@@ -40,7 +40,7 @@ export interface DividerTokens {
 
 export interface DividerProps extends ViewProps {
   children?: React.ReactNode
-  /** @deprecated use `orientation` instead */
+  
   type?: 'horizontal' | 'vertical'
   orientation?: 'horizontal' | 'vertical'
   dashed?: boolean

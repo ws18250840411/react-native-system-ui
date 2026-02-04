@@ -13,16 +13,12 @@ export interface ImagePreviewProps {
   visible: boolean
   images?: ImagePreviewImage[]
   startPosition?: number
-  /** 图片切换动画时长（ms），内部透传给 Swiper.duration */
+  
   swipeDuration?: number
   tokensOverride?: DeepPartial<ImagePreviewTokens>
-  /**
-   * 按需渲染图片（性能优化）：仅渲染当前页及其附近的图片，降低内存和首屏压力
-   * - `false`: 渲染全部（默认）
-   * - `true`: 仅渲染当前页 ± `lazyRenderBuffer`
-   */
+  
   lazyRender?: boolean
-  /** `lazyRender` 开启时，额外渲染的前后页数量 */
+  
   lazyRenderBuffer?: number
   showIndex?: boolean
   indexRender?: (ctx: { index: number; len: number }) => React.ReactNode
@@ -37,9 +33,9 @@ export interface ImagePreviewProps {
   zIndex?: number
   duration?: number
   closeOnlyClickCloseIcon?: boolean
-  /** 内容顶部是否预留安全区域（默认 true，设置为 false 可全屏显示） */
+  
   safeAreaInsetTop?: boolean
-  /** 内容底部是否预留安全区域（默认 true，设置为 false 可全屏显示） */
+  
   safeAreaInsetBottom?: boolean
   onChange?: (index: number) => void
   onClose?: (params: CloseParams) => void

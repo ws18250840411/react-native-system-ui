@@ -284,14 +284,13 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
       updateSub.remove?.()
       removeSub.remove?.()
       clearSub.remove?.()
-      // @ts-expect-error - RN web fallback compatibility
-      TopViewEventEmitter.removeListener?.(ADD_EVENT, handleAdd)
-      // @ts-expect-error - RN web fallback compatibility
-      TopViewEventEmitter.removeListener?.(UPDATE_EVENT, handleUpdate)
-      // @ts-expect-error - RN web fallback compatibility
-      TopViewEventEmitter.removeListener?.(REMOVE_EVENT, handleRemove)
-      // @ts-expect-error - RN web fallback compatibility
-      TopViewEventEmitter.removeListener?.(CLEAR_EVENT, handleClear)
+      const emitter = TopViewEventEmitter as unknown as {
+        removeListener?: (event: string, listener: (...args: any[]) => void) => void
+      }
+      emitter.removeListener?.(ADD_EVENT, handleAdd)
+      emitter.removeListener?.(UPDATE_EVENT, handleUpdate)
+      emitter.removeListener?.(REMOVE_EVENT, handleRemove)
+      emitter.removeListener?.(CLEAR_EVENT, handleClear)
     }
   }, [enqueueOrRun])
 

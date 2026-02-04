@@ -8,13 +8,11 @@ import {
   Field,
   Form,
   Radio,
-  Rate,
   Slider,
   Space,
   Stepper,
   Switch,
   Toast,
-  Uploader,
 } from 'react-native-system-ui'
 
 const GroupTitle = ({ title }: { title: string }) => (
@@ -42,7 +40,6 @@ export default function FormTypeDemo() {
         checkbox: true,
         checkbox_group: ['a', 'b'],
         radio: 'a',
-        rate: 3,
         slider: 25,
         stepper: 1,
       }}
@@ -71,21 +68,9 @@ export default function FormTypeDemo() {
           </Form.Item>
         </Cell>
 
-        <Cell title="评分" style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
-          <Form.Item name="rate" valuePropName="value" trigger="onChange">
-            <Rate />
-          </Form.Item>
-        </Cell>
-
-        <Cell title="滑块" style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
+        <Cell title="滑块" border={false} style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
           <Form.Item name="slider" valuePropName="value" trigger="onChange">
             <Slider style={{ width: 200 }} />
-          </Form.Item>
-        </Cell>
-
-        <Cell title="上传文件" border={false} style={{ paddingHorizontal: 0, backgroundColor: 'transparent' }}>
-          <Form.Item name="uploader" valuePropName="value" trigger="onChange">
-            <Uploader />
           </Form.Item>
         </Cell>
       </View>

@@ -32,7 +32,7 @@ export interface CollapseProps extends ViewProps {
 }
 
 export interface CollapsePanelProps extends ViewProps {
-  /** @private */
+  
   index?: number
   name?: string
   title?: React.ReactNode

@@ -12,23 +12,13 @@ const mergePropsCompat = (...args: Array<Record<string, unknown>>) => {
 }
 
 export interface UseAriaPressOptions extends PressEvents {
-  /**
-   * 是否禁用交互
-   */
+  
   disabled?: boolean
-  /**
-   * 是否开启 hover 监听（Web）
-   * @default true
-   */
+  
   allowHover?: boolean
-  /**
-   * 是否处理聚焦态（Web）
-   * @default true
-   */
+  
   allowFocus?: boolean
-  /**
-   * 透传到交互元素上的附加属性
-   */
+  
   extraProps?: Record<string, unknown>
 }
 
@@ -41,13 +31,9 @@ export interface AriaInteractionStates {
 }
 
 export interface UseAriaPressResult {
-  /**
-   * 需要挂载在交互元素上的属性集合
-   */
+  
   interactionProps: Record<string, unknown>
-  /**
-   * 统一的交互状态，便于组件快速渲染
-   */
+  
   states: AriaInteractionStates
 }
 

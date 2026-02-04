@@ -148,7 +148,7 @@ describe('Typography', () => {
     const tree = renderer.create(<Typography size="xl">Extra Large</Typography>)
     const text = tree.root.findByType(Text)
     const style = StyleSheet.flatten(text.props.style)
-    // xl size corresponds to fontSize.xl in tokens (usually 20 or similar, verify logic)
+    
     expect(style.fontSize).toBeDefined()
   })
 
@@ -173,7 +173,7 @@ describe('Typography', () => {
 
   it('centers text', () => {
     const tree = renderer.create(<Typography center>Centered</Typography>)
-    // When center is true, it wraps in a View with alignItems: center
+    
     const view = tree.root.findByType(View)
     const style = StyleSheet.flatten(view.props.style)
     expect(style.alignItems).toBe('center')

@@ -34,7 +34,7 @@ export interface UseGestureScrollResult {
 }
 
 const DEFAULT_THROTTLE = 16
-const VELOCITY_NORMALIZER = 1000 // convert delta/ms to px per second
+const VELOCITY_NORMALIZER = 1000 
 
 export const useGestureScroll = (
   options: UseGestureScrollOptions = {}

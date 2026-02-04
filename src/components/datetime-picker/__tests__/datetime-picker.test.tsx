@@ -3,7 +3,7 @@ import { act, create } from 'react-test-renderer'
 import DatetimePicker from '../DatetimePicker'
 import { Picker } from '../../picker'
 
-// Mock Picker to avoid complex rendering and focus on logic
+
 jest.mock('../../picker', () => {
   const { View, Text, TouchableOpacity } = require('react-native')
   return (props: any) => (

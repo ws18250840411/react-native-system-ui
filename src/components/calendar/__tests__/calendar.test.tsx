@@ -242,18 +242,18 @@ describe("Calendar", () => {
   })
 
   it('respects weekStartsOn', () => {
-    // 2023-01-01 is Sunday
+    
     const date = new Date(2023, 0, 1)
     const tree = renderer.create(
       <Calendar
         value={date}
         minDate={new Date(2023, 0, 1)}
         maxDate={new Date(2023, 0, 31)}
-        weekStartsOn={1} // Monday
+        weekStartsOn={1} 
       />
     )
     
-    // Check week labels
+    
     const weekLabels = tree.root.findAllByType(Text)
       .filter(n => ['一', '二', '三', '四', '五', '六', '日'].includes(n.props.children))
     

@@ -11,21 +11,21 @@ beforeAll(() => {
 
 describe('WaterMark', () => {
   it('renders repeated text nodes', () => {
-    // Mock layout
+    
     const tree = renderer.create(
       <WaterMark content="RN" fullPage={false} width={50} height={50} gapX={0} gapY={0} />
     )
 
-    // Trigger onLayout
+    
     const root = tree.root.findByType(View)
     act(() => {
       root.props.onLayout({ nativeEvent: { layout: { width: 100, height: 100 } } })
     })
 
-    // 100/50 = 2 cols, 2 rows. +1 buffer = 3x3 = 9 items?
-    // rows = ceil(100 / 50) + 1 = 3
-    // cols = ceil(100 / 50) + 1 = 3
-    // total = 9
+    
+    
+    
+    
     const texts = tree.root.findAllByType(Text)
     expect(texts.length).toBeGreaterThanOrEqual(4)
   })
@@ -38,7 +38,7 @@ describe('WaterMark', () => {
       />
     )
 
-    // Trigger layout
+    
     const root = tree.root.findByType(View)
     act(() => {
       root.props.onLayout({ nativeEvent: { layout: { width: 100, height: 100 } } })
@@ -60,12 +60,12 @@ describe('WaterMark', () => {
       })
     })
 
-    // The rotation is applied to the wrapper of the content
-    // We need to find the View wrapping Text/Image
-    // Structure: Row -> Col -> ContentWrapper -> Text/Image
-    // ContentWrapper has transform rotate
+    
+    
+    
+    
 
-    // Find all views and check style
+    
     const views = tree.root.findAllByType(View)
     const rotatedView = views.find(v => {
       const style = StyleSheet.flatten(v.props.style)
@@ -74,7 +74,7 @@ describe('WaterMark', () => {
 
     expect(rotatedView).toBeTruthy()
 
-    // Opacity is applied to Text or Image
+    
     const text = tree.root.findAllByType(Text)[0]
     const textStyle = StyleSheet.flatten(text.props.style)
     expect(textStyle.opacity).toBe(0.5)

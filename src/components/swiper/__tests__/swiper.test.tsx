@@ -41,13 +41,13 @@ describe('Swiper', () => {
       </Swiper>
     )
 
-    // Check if FlatList is rendered (assuming Native env)
+    
     const flatList = tree.root.findByType(FlatList)
     expect(flatList).toBeTruthy()
 
-    // itemsData: [1, 2].
-    // loop is true by default.
-    // displayData: [2, 1, 2, 1] -> 4 items
+    
+    
+    
     expect(flatList.props.data).toHaveLength(4)
     expect(flatList.props.nestedScrollEnabled).toBe(false)
     expect(flatList.props.directionalLockEnabled).toBe(true)
@@ -61,7 +61,7 @@ describe('Swiper', () => {
       />
     )
     const flatList = tree.root.findByType(FlatList)
-    // [3, 1, 2, 3, 1] -> 5 items
+    
     expect(flatList.props.data).toHaveLength(5)
   })
 
@@ -128,7 +128,7 @@ describe('Swiper', () => {
       </Swiper>
     )
     const flatList = tree.root.findByType(FlatList)
-    // 1 item -> no loop -> 1 item
+    
     expect(flatList.props.data).toHaveLength(1)
   })
 

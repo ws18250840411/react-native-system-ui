@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import {
+  Badge,
   Button,
   Calendar,
   Switch,
@@ -19,7 +20,6 @@ import {
   Form,
   Field,
   Input,
-  Rate,
 } from 'react-native-system-ui'
 import componentSizes from '../../component-sizes'
 import './home.css'
@@ -54,7 +54,6 @@ const Home = () => {
   const [stepperValue, setStepperValue] = React.useState(1)
   const [pickerValue, setPickerValue] = React.useState<string[]>([])
   const [circleRate, setCircleRate] = React.useState(75)
-  const [rateValue, setRateValue] = React.useState(3)
   const formRef = Form.useForm()
 
   const pickerColumns = [
@@ -191,13 +190,24 @@ const Home = () => {
               </View>
             </View>
 
-            {/* Rate 评分 - 小卡片 */}
+            {/* Badge 徽标 - 小卡片 */}
             <View className="home-card-small" style={styles.card}>
               <View style={[styles.cardBody, styles.cardBodyCentered]}>
-                <Typography.Text strong style={cardTitleStyle}>评分</Typography.Text>
-                <View style={{ marginTop: 12 }}>
-                  <Rate value={rateValue} onChange={setRateValue} count={5} />
-                </View>
+                <Typography.Text strong style={cardTitleStyle}>Badge 徽标</Typography.Text>
+                <Space direction="horizontal" gap={16} style={{ marginTop: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Badge content={5}>
+                    <View style={styles.badgePlaceholder} />
+                  </Badge>
+                  <Badge content={99} max={99}>
+                    <View style={styles.badgePlaceholder} />
+                  </Badge>
+                  <Badge dot>
+                    <View style={styles.badgePlaceholder} />
+                  </Badge>
+                  <Badge content="hot" color="#3f45ff">
+                    <View style={styles.badgePlaceholder} />
+                  </Badge>
+                </Space>
               </View>
             </View>
 
@@ -377,6 +387,12 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 16,
     paddingHorizontal: 8,
+  },
+  badgePlaceholder: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#ebedf0',
   },
 })
 

@@ -36,7 +36,7 @@ const createTokens = (foundations: Foundations): TabbarTokens => {
     defaults: {
       fixed: true,
       border: true,
-      // 与 Vant 默认一致：placeholder 默认关闭；safe-area 由 Tabbar 在 fixed 时默认开启
+      
       placeholder: false,
       safeAreaInsetBottom: false,
     },
@@ -47,7 +47,7 @@ const createTokens = (foundations: Foundations): TabbarTokens => {
       inactive: palette.default[600],
     },
     layout: {
-      // 对齐官方默认观感（Vant Tabbar）：50 高度、无左右 padding
+      
       height: 50,
       paddingHorizontal: 0,
       paddingVertical: spacing.xs,

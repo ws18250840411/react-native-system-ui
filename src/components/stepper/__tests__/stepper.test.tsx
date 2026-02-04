@@ -51,10 +51,10 @@ describe('Stepper', () => {
       plus.props.onPress({})
     })
 
-    // 1 + 0.5 = 1.5 -> trunc -> 1. No change.
+    
     expect(onChange).not.toHaveBeenCalled()
 
-    // 1 + 1.5 = 2.5 -> trunc -> 2.
+    
     act(() => {
       tree.update(<Stepper value={1} integer step={1.5} onChange={onChange} />)
     })

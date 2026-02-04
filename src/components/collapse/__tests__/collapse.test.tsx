@@ -62,13 +62,13 @@ describe('Collapse', () => {
 
     const pressables = tree.root.findAllByType(Pressable)
     
-    // Open A
+    
     await act(async () => {
       pressables[0].props.onPress()
     })
     expect(handleChange).toHaveBeenLastCalledWith(['a'])
 
-    // Open B (A should stay open)
+    
     await act(async () => {
       pressables[1].props.onPress()
     })

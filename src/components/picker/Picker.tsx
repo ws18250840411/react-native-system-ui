@@ -226,8 +226,8 @@ const PickerColumn: React.FC<
           scrollEventThrottle={scrollEventThrottle}
           swipeDuration={swipeDuration}
           renderItem={(item: PickerOption, _index, meta) => {
-            const active = meta.active
-            const disabled = meta.disabled
+            const active = meta?.active ?? false
+            const disabled = meta?.disabled ?? false
             const textColor = disabled ? tokens.colors.textDisabled : (active ? tokens.colors.text : tokens.colors.textMuted)
             const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
             const testID = getOptionTestID?.(item, { columnIndex, active })

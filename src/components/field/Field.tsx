@@ -63,11 +63,11 @@ const FieldClearButton = ({
   const webMouseDownProps =
     Platform.OS === 'web'
       ? ({
-          onMouseDown: (event: { preventDefault?: () => void; stopPropagation?: () => void }) => {
-            event.preventDefault?.()
-            event.stopPropagation?.()
-          },
-        } as unknown as React.ComponentProps<typeof Pressable>)
+        onMouseDown: (event: { preventDefault?: () => void; stopPropagation?: () => void }) => {
+          event.preventDefault?.()
+          event.stopPropagation?.()
+        },
+      } as unknown as React.ComponentProps<typeof Pressable>)
       : undefined
   return (
     <Pressable
@@ -176,8 +176,7 @@ const FieldInput = ({
       keyboardType={keyboardType}
       placeholderTextColor={placeholderTextColor}
       onContentSizeChange={isTextarea ? onContentSizeChange : undefined}
-      // @ts-ignore
-      accessibilityDescribedBy={describedBy}
+      {...(describedBy ? ({ accessibilityDescribedBy: describedBy } as any) : null)}
       clearButtonMode="never"
       {...restInputProps}
     />

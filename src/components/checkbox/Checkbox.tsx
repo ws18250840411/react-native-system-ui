@@ -259,8 +259,9 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
     clipPath: 'inset(50%)',
     whiteSpace: 'nowrap',
   }
+  const { ref: _ignoredAriaRefProp, ...webInputProps } = (inputProps ?? {}) as Record<string, unknown>
   const webInputNode = Platform.OS === 'web' ? (
-    <input ref={inputElementRef} {...inputProps} style={webInputStyle} />
+    <input ref={inputElementRef} {...webInputProps} style={webInputStyle} />
   ) : null
 
   const iconWrapper = interactive ? (
@@ -314,7 +315,6 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
         hitSlop={hitSlop}
       >
         {content}
-        {webInputNode}
       </Pressable>
     )
   }

@@ -5,13 +5,9 @@ import { useListState, type ListState } from '@react-stately/list'
 import type { AriaListBoxProps } from '@react-types/listbox'
 
 export interface UseAriaListBoxOptions<T> extends AriaListBoxProps<T> {
-  /**
-   * 是否开启虚拟滚动
-   */
+  
   isVirtualized?: boolean
-  /**
-    * 自定义 label
-    */
+  
   label?: React.ReactNode
 }
 

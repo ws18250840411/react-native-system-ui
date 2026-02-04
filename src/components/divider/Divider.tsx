@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 
 import { createHairlineView, isRenderable, isText } from '../../utils'
 import { useDividerTokens } from './tokens'
@@ -86,8 +86,6 @@ export const Divider: React.FC<DividerProps> = props => {
     )
   }
 
-  const accessibilityRole = Platform.OS === 'web' ? 'separator' : undefined
-
   if (orientation === 'vertical') {
     const line =
       hairline
@@ -126,9 +124,6 @@ export const Divider: React.FC<DividerProps> = props => {
           { marginVertical: tokens.spacing.vertical, flexDirection: 'column' },
           style,
         ]}
-        accessibilityRole={accessibilityRole}
-        // @ts-expect-error web-only aria prop
-        aria-orientation={orientation}
         {...rest}
       >
         {line}
@@ -143,9 +138,6 @@ export const Divider: React.FC<DividerProps> = props => {
         { marginVertical: tokens.spacing.vertical },
         style,
       ]}
-      accessibilityRole={accessibilityRole}
-      // @ts-expect-error web-only aria prop
-      aria-orientation={orientation}
       {...rest}
     >
       {renderLine(hasContent ? leftGrow : 1)}

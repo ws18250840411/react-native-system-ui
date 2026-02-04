@@ -71,7 +71,7 @@ describe('Input', () => {
       />
     )
 
-    // Find the Pressable by the onPress handler directly
+    
     const rightBtn = tree.root.findByProps({ onPress: onClickRightIcon })
 
     act(() => {

@@ -43,7 +43,7 @@ export interface ProgressProps extends ViewProps {
   inactive?: boolean
   showPivot?: boolean
   orientation?: 'horizontal' | 'vertical'
-  /** @deprecated use `transition` instead */
+  
   animated?: boolean
   transition?: boolean
   animationDuration?: number

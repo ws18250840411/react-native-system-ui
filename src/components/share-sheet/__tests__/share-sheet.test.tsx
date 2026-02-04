@@ -117,9 +117,9 @@ describe('ShareSheet', () => {
         />
       </PortalHost>
     )
-    // Should have 2 options
-    // Note: In some environments, previous tests might leak into Portal if not strictly isolated.
-    // We just check existence here.
+    
+    
+    
     const item0 = tree.root.findAllByProps({ testID: 'rv-share-sheet-item-0' })
     const item1 = tree.root.findAllByProps({ testID: 'rv-share-sheet-item-1' })
     

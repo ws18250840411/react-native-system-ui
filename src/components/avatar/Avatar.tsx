@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Image from '../image'
 import { isNumber } from '../../utils'
@@ -8,17 +8,18 @@ import type { AvatarFallbackTextProps, AvatarImageProps, AvatarProps } from './t
 
 export const AvatarFallbackText = React.forwardRef<Text, AvatarFallbackTextProps>(({ children, color, style }, ref) => {
   const tokens = useAvatarTokens()
+  const resolvedStyle = StyleSheet.flatten([
+    tokens.layout.text,
+    {
+      color: color ?? tokens.colors.text,
+      fontWeight: tokens.typography.fontWeight,
+    },
+    style,
+  ])
   return (
     <Text
       ref={ref}
-      style={[
-        tokens.layout.text,
-        {
-          color: color ?? tokens.colors.text,
-          fontWeight: tokens.typography.fontWeight,
-        },
-        style,
-      ]}
+      style={resolvedStyle}
       numberOfLines={1}
     >
       {children}
@@ -29,7 +30,7 @@ export const AvatarFallbackText = React.forwardRef<Text, AvatarFallbackTextProps
 AvatarFallbackText.displayName = 'Avatar.FallbackText'
 
 export const AvatarImage = React.forwardRef<React.ElementRef<typeof Image>, AvatarImageProps>((props, ref) => {
-  const tokens = useAvatarTokens(props.tokensOverride)
+  const tokens = useAvatarTokens()
   return (
     <Image
       ref={ref}

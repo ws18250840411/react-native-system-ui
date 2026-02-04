@@ -4,7 +4,7 @@ import { StyleSheet, TextInput, Text, View } from 'react-native'
 
 import PasswordInput from '../index'
 
-// Mock TextInput to avoid relying on DOM (react-native-web requires document)
+
 jest.mock('react-native', () => {
   const React = require('react')
   const Actual = jest.requireActual('react-native')
@@ -155,12 +155,12 @@ describe('PasswordInput', () => {
       <PasswordInput length={4} value="1234" mask={false} />
     )
 
-    // Should render characters
+    
     const texts = tree.root.findAllByType(Text)
     const chars = texts.map(t => t.props.children).filter(c => ['1', '2', '3', '4'].includes(c))
     expect(chars.length).toBe(4)
 
-    // Update to mask=true
+    
     renderer.act(() => {
       tree.update(<PasswordInput length={4} value="1234" mask={true} />)
     })
@@ -184,7 +184,7 @@ describe('PasswordInput', () => {
       return style && style.marginLeft === 10
     })
 
-    // Length should be 3 (indices 1, 2, 3)
+    
     expect(gutterCells.length).toBe(3)
   })
 })

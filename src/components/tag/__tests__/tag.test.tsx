@@ -92,8 +92,8 @@ describe('Tag', () => {
     const container = tree.root.findByType(View)
     const style = StyleSheet.flatten(container.props.style)
     
-    // Mark style sets borderTopLeftRadius and borderBottomLeftRadius to 0 (none)
-    // And right radius to round (max)
+    
+    
     expect(style.borderTopLeftRadius).toBe(0)
     expect(style.borderBottomLeftRadius).toBe(0)
     expect(style.borderTopRightRadius).toBeGreaterThan(10)
@@ -103,7 +103,7 @@ describe('Tag', () => {
     const tree = renderer.create(<Tag size="large">Large</Tag>)
     const text = tree.root.findByType(Text)
     const style = StyleSheet.flatten(text.props.style)
-    // Large font size is 14
+    
     expect(style.fontSize).toBe(14)
   })
 

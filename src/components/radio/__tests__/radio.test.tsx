@@ -161,10 +161,10 @@ describe('RadioGroup', () => {
         <Radio name="2">Option 2</Radio>
       </RadioGroup>
     )
-    // Verify first item style (no margin)
-    // Verify last item style (no margin)
-    // This is hard to test style calculation precisely without brittle snapshot
-    // But we can check if styles.horizontal is applied
+    
+    
+    
+    
     const groupView = tree.root.findByType(View)
     expect(groupView.props.style).toEqual(
       expect.arrayContaining([expect.objectContaining({ flexDirection: 'row' })])
@@ -178,25 +178,25 @@ describe('RadioGroup', () => {
       </RadioGroup>
     )
 
-    // We need to check if Radio received these.
-    // Radio renders a View for icon.
-    // Finding it might be tricky.
-    // Let's use a mock iconRender to inspect props? No, iconRender receives checked/disabled.
-    // We can check the style of the icon View.
-    // The icon View is inside the Pressable -> View(iconWrapper) -> View(icon)
-    // Or we can just trust the code if we cover it via style checks.
+    
+    
+    
+    
+    
+    
+    
 
-    // Let's find the inner icon view.
-    // It has width/height = iconSize
-    // And if checked, the inner dot has backgroundColor = checkedColor
+    
+    
+    
 
-    // But the radio is not checked by default.
-    // Let's check iconSize on the outer circle.
+    
+    
 
-    // The structure: Radio -> Pressable -> [IconNode, LabelNode]
-    // IconNode -> View(wrapper) -> View(icon)
+    
+    
 
-    // We can look for a View with width: 30
+    
     const views = tree.root.findAllByType(View)
     const iconView = views.find(v => {
       const style = v.props.style

@@ -16,7 +16,7 @@ describe('Empty', () => {
     const texts = tree.root.findAllByType(Text)
     const descriptionNode = texts.find(node => node.props.children === '描述信息')
     expect(descriptionNode).toBeDefined()
-    // Default is an icon, so no RNImage
+    
     expect(tree.root.findAllByType(RNImage).length).toBe(0)
   })
 
@@ -30,7 +30,7 @@ describe('Empty', () => {
 
   it('renders preset image by string type', () => {
     const tree = renderer.create(<Empty image="error" description="描述信息" />)
-    // Presets are now icons, so no RNImage
+    
     expect(tree.root.findAllByType(RNImage).length).toBe(0)
   })
 

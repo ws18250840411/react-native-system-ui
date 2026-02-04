@@ -89,6 +89,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const isDraggingRef = useRef(false)
   const isScrollingRef = useRef(false)
   const nativeMomentumRef = useRef(false)
+  const manualInteractTsRef = useRef(0)
   const prevIndexRef = useRef<number>(initialSwipeValue)
   const currentDisplayIndexRef = useRef<number>(initialSwipeValue)
   const desiredIndexRef = useRef<number>(initialSwipeValue)
@@ -171,22 +172,28 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     const { width, height } = e.nativeEvent.layout
     setContainerLayout((prev) => prev.width === width && prev.height === height ? prev : { width, height })
   }, [])
+  const markManualInteraction = useCallback(() => {
+    manualInteractTsRef.current = Date.now()
+  }, [])
 
   const containerWidth = containerLayout.width || viewportWidth
   const containerHeight = containerLayout.height || viewportHeight
 
   const crossAxisMeasured = vertical ? containerLayout.width : containerLayout.height
-  const crossAxisSize = crossAxisMeasured > 0 ? crossAxisMeasured : undefined
+  const crossAxisSize: number | string = crossAxisMeasured > 0 ? crossAxisMeasured : '100%'
   const slideSizeValue = (vertical ? containerHeight : containerWidth) * slideRatio
+  const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
+  const hasMainAxisMeasured = mainAxisMeasured > 0
   const itemSizeStyle = useMemo(() => {
-    const base: Record<string, number> = { [vertical ? 'height' : 'width']: slideSizeValue }
+    const base: Record<string, number | string> = {
+      [vertical ? 'height' : 'width']: hasMainAxisMeasured ? slideSizeValue : '100%',
+    }
     if (crossAxisSize != null && !(autoHeight && !vertical)) {
       base[vertical ? 'width' : 'height'] = crossAxisSize
     }
     return base
-  }, [autoHeight, crossAxisSize, slideSizeValue, vertical])
-  const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
-  const trackOffsetPx = mainAxisMeasured > 0 ? mainAxisMeasured * offsetRatio : 0
+  }, [autoHeight, crossAxisSize, hasMainAxisMeasured, slideSizeValue, vertical])
+  const trackOffsetPx = hasMainAxisMeasured ? mainAxisMeasured * offsetRatio : 0
 
   const nativeTrackContentPaddingStyle = useMemo(() => {
     if (!trackOffsetPx) return undefined
@@ -220,8 +227,12 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   }, [])
   const [enabledState, setEnabledState] = useState(enabled)
   const autoHeightEnabled = autoHeight && !vertical
+  const hasCrossAxisMeasured = autoHeightEnabled ? true : crossAxisMeasured > 0
+  const layoutReady = hasMainAxisMeasured && hasCrossAxisMeasured
+  const [layoutVisible, setLayoutVisible] = useState(false)
   const [autoHeightValue, setAutoHeightValue] = useState<number | undefined>(undefined)
   const measuredHeightsRef = useRef<Record<number, number>>({})
+  const layoutVisibleSeqRef = useRef(0)
 
   const swipeToRef = useRef<(index: number, animated?: boolean) => void>(() => { })
 
@@ -295,6 +306,19 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   useEffect(() => {
     setEnabledState(enabled)
   }, [enabled])
+
+  useEffect(() => {
+    if (!layoutReady) {
+      layoutVisibleSeqRef.current += 1
+      setLayoutVisible(false)
+      return
+    }
+    const seq = layoutVisibleSeqRef.current + 1
+    layoutVisibleSeqRef.current = seq
+    runAfterFrames(1, () => {
+      if (layoutVisibleSeqRef.current === seq) setLayoutVisible(true)
+    })
+  }, [layoutReady])
 
   const currentRef = useRef(current)
   useEffect(() => {
@@ -546,11 +570,20 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     if (isDraggingRef.current || isScrollingRef.current) return
     stopAutoplay()
     const interval = (isFiniteNumber(autoplay) && Math.max(0, autoplay)) || 5000
+    const now = Date.now()
+    const manualCooldown = Math.max(0, 700 - (now - manualInteractTsRef.current))
+    const nextDelay = delay ?? interval
+    const effectiveDelay = Math.max(nextDelay, manualCooldown)
     autoplayTimerRef.current = setTimeout(() => {
       if (isDraggingRef.current || isScrollingRef.current) return
+      const remainingCooldown = Math.max(0, 700 - (Date.now() - manualInteractTsRef.current))
+      if (remainingCooldown > 0) {
+        startAutoplay(remainingCooldown)
+        return
+      }
       swipeNext()
       startAutoplay()
-    }, delay ?? interval)
+    }, effectiveDelay)
   }, [autoplay, count, enabledState, swipeNext, stopAutoplay])
 
   const handleNativeScrollEndByOffset = useCallback(
@@ -610,6 +643,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     isDraggingRef.current = true
     isScrollingRef.current = true
     stopAutoplay()
+    markManualInteraction()
   }
   const handleScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     isDraggingRef.current = false
@@ -689,11 +723,12 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     onDragStartRef.current = () => {
       isDraggingRef.current = true
       stopAutoplay()
+      markManualInteraction()
     }
     onDragEndRef.current = () => {
       isDraggingRef.current = false
     }
-  }, [stopAutoplay])
+  }, [markManualInteraction, stopAutoplay])
 
   useEffect(() => {
     startAutoplay()
@@ -705,10 +740,17 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     () => ({
       activeIndex: getDisplayIndex(current),
       swipeTo: (index: number, animated = true) => {
+        markManualInteraction()
         swipeTo(index, animated)
       },
-      swipeNext,
-      swipePrev,
+      swipeNext: () => {
+        markManualInteraction()
+        swipeNext()
+      },
+      swipePrev: () => {
+        markManualInteraction()
+        swipePrev()
+      },
       enable: () => {
         setEnabledState(true)
       },
@@ -718,13 +760,15 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
       getCurrentIndex: () => getDisplayIndex(current),
       getPrevIndex: () => prevIndexRef.current,
       goToFirstIndex: () => {
+        markManualInteraction()
         swipeTo(0)
       },
       goToLastIndex: () => {
+        markManualInteraction()
         swipeTo(count - 1)
       },
     }),
-    [current, count, getDisplayIndex, swipeTo, swipeNext, swipePrev]
+    [current, count, getDisplayIndex, markManualInteraction, swipeTo, swipeNext, swipePrev]
   )
 
   const renderIndicator = () => {
@@ -787,10 +831,11 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   }, [nonLoopSnapOffsets, shouldLoop, slideSizeValue])
 
   const snapToOffsets = useMemo(() => {
+    if (!layoutReady) return undefined
     if (slideSizePct === 100 && trackOffsetPct === 0) return undefined
     if (!shouldLoop && nonLoopSnapOffsets) return nonLoopSnapOffsets
     return displayData.map((_, index) => slideSizeValue * index)
-  }, [displayData, nonLoopSnapOffsets, shouldLoop, slideSizePct, slideSizeValue, trackOffsetPct])
+  }, [displayData, layoutReady, nonLoopSnapOffsets, shouldLoop, slideSizePct, slideSizeValue, trackOffsetPct])
 
   useEffect(() => {
     if (!isWeb) return
@@ -813,10 +858,15 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     return null
   }
 
+  const containerRenderStyle = useMemo(
+    () => (layoutVisible ? undefined : ({ opacity: 0 } as ViewStyle)),
+    [layoutVisible]
+  )
+
   if (isWeb) {
     return (
       <View
-        style={[styles.container, webContainerStyle, containerAutoHeightStyle, style]}
+        style={[styles.container, webContainerStyle, containerRenderStyle, containerAutoHeightStyle, style]}
         testID={testID}
         onLayout={handleContainerLayout}
       >
@@ -848,7 +898,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
 
   return (
     <View
-      style={[styles.container, containerAutoHeightStyle, style]}
+      style={[styles.container, containerRenderStyle, containerAutoHeightStyle, style]}
       testID={testID}
       onLayout={handleContainerLayout}
       collapsable={false}
@@ -866,7 +916,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         maxToRenderPerBatch={shouldLoop ? displayCount : 3}
         windowSize={shouldLoop ? displayCount : 5}
         updateCellsBatchingPeriod={16}
-        snapToInterval={slideSizePct === 100 && trackOffsetPct === 0 && slideSizeValue || undefined}
+        snapToInterval={layoutReady && slideSizePct === 100 && trackOffsetPct === 0 && slideSizeValue || undefined}
         snapToOffsets={snapToOffsets}
         snapToAlignment="start"
         decelerationRate="fast"
@@ -884,7 +934,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         onMomentumScrollBegin={handleMomentumScrollBegin}
         onMomentumScrollEnd={handleScrollEnd}
         onScroll={handleScroll}
-        initialScrollIndex={getInitialIndex()}
+        initialScrollIndex={layoutReady ? getInitialIndex() : undefined}
         onScrollToIndexFailed={(info) => {
           nativeMomentumRef.current = false
           isScrollingRef.current = false

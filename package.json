@@ -81,6 +81,7 @@
     "@react-stately/toggle": "^3.9.3",
     "@react-types/checkbox": "^3.10.2",
     "@react-types/listbox": "^3.7.4",
+    "react-native-image-picker": "^8.2.1",
     "react-native-system-icon": "^1.0.2"
   },
   "react-native": "./dist/es/index.js",
@@ -106,363 +107,321 @@
     },
     "./action-sheet": {
       "react-native": "./dist/es/components/action-sheet/index.js",
-      "types": "./dist/types/components/action-sheet/index.d.ts",
       "import": "./dist/es/components/action-sheet/index.js",
-      "require": "./dist/cjs/components/action-sheet/index.js"
+      "require": "./dist/cjs/components/action-sheet/index.js",
+      "default": "./dist/es/components/action-sheet/index.js"
     },
     "./area": {
       "react-native": "./dist/es/components/area/index.js",
-      "types": "./dist/types/components/area/index.d.ts",
       "import": "./dist/es/components/area/index.js",
-      "require": "./dist/cjs/components/area/index.js"
+      "require": "./dist/cjs/components/area/index.js",
+      "default": "./dist/es/components/area/index.js"
     },
     "./avatar": {
       "react-native": "./dist/es/components/avatar/index.js",
-      "types": "./dist/types/components/avatar/index.d.ts",
       "import": "./dist/es/components/avatar/index.js",
-      "require": "./dist/cjs/components/avatar/index.js"
+      "require": "./dist/cjs/components/avatar/index.js",
+      "default": "./dist/es/components/avatar/index.js"
     },
     "./badge": {
       "react-native": "./dist/es/components/badge/index.js",
-      "types": "./dist/types/components/badge/index.d.ts",
       "import": "./dist/es/components/badge/index.js",
-      "require": "./dist/cjs/components/badge/index.js"
+      "require": "./dist/cjs/components/badge/index.js",
+      "default": "./dist/es/components/badge/index.js"
     },
     "./button": {
       "react-native": "./dist/es/components/button/index.js",
-      "types": "./dist/types/components/button/index.d.ts",
       "import": "./dist/es/components/button/index.js",
-      "require": "./dist/cjs/components/button/index.js"
+      "require": "./dist/cjs/components/button/index.js",
+      "default": "./dist/es/components/button/index.js"
     },
     "./calendar": {
       "react-native": "./dist/es/components/calendar/index.js",
-      "types": "./dist/types/components/calendar/index.d.ts",
       "import": "./dist/es/components/calendar/index.js",
-      "require": "./dist/cjs/components/calendar/index.js"
+      "require": "./dist/cjs/components/calendar/index.js",
+      "default": "./dist/es/components/calendar/index.js"
     },
     "./cascader": {
       "react-native": "./dist/es/components/cascader/index.js",
-      "types": "./dist/types/components/cascader/index.d.ts",
       "import": "./dist/es/components/cascader/index.js",
-      "require": "./dist/cjs/components/cascader/index.js"
+      "require": "./dist/cjs/components/cascader/index.js",
+      "default": "./dist/es/components/cascader/index.js"
     },
     "./cell": {
       "react-native": "./dist/es/components/cell/index.js",
-      "types": "./dist/types/components/cell/index.d.ts",
       "import": "./dist/es/components/cell/index.js",
-      "require": "./dist/cjs/components/cell/index.js"
+      "require": "./dist/cjs/components/cell/index.js",
+      "default": "./dist/es/components/cell/index.js"
     },
     "./checkbox": {
       "react-native": "./dist/es/components/checkbox/index.js",
-      "types": "./dist/types/components/checkbox/index.d.ts",
       "import": "./dist/es/components/checkbox/index.js",
-      "require": "./dist/cjs/components/checkbox/index.js"
+      "require": "./dist/cjs/components/checkbox/index.js",
+      "default": "./dist/es/components/checkbox/index.js"
     },
     "./circle": {
       "react-native": "./dist/es/components/circle/index.js",
-      "types": "./dist/types/components/circle/index.d.ts",
       "import": "./dist/es/components/circle/index.js",
-      "require": "./dist/cjs/components/circle/index.js"
+      "require": "./dist/cjs/components/circle/index.js",
+      "default": "./dist/es/components/circle/index.js"
     },
     "./collapse": {
       "react-native": "./dist/es/components/collapse/index.js",
-      "types": "./dist/types/components/collapse/index.d.ts",
       "import": "./dist/es/components/collapse/index.js",
-      "require": "./dist/cjs/components/collapse/index.js"
+      "require": "./dist/cjs/components/collapse/index.js",
+      "default": "./dist/es/components/collapse/index.js"
     },
     "./config-provider": {
       "react-native": "./dist/es/components/config-provider/index.js",
-      "types": "./dist/types/components/config-provider/index.d.ts",
       "import": "./dist/es/components/config-provider/index.js",
-      "require": "./dist/cjs/components/config-provider/index.js"
+      "require": "./dist/cjs/components/config-provider/index.js",
+      "default": "./dist/es/components/config-provider/index.js"
     },
     "./count-down": {
       "react-native": "./dist/es/components/count-down/index.js",
-      "types": "./dist/types/components/count-down/index.d.ts",
       "import": "./dist/es/components/count-down/index.js",
-      "require": "./dist/cjs/components/count-down/index.js"
+      "require": "./dist/cjs/components/count-down/index.js",
+      "default": "./dist/es/components/count-down/index.js"
     },
     "./datetime-picker": {
       "react-native": "./dist/es/components/datetime-picker/index.js",
-      "types": "./dist/types/components/datetime-picker/index.d.ts",
       "import": "./dist/es/components/datetime-picker/index.js",
-      "require": "./dist/cjs/components/datetime-picker/index.js"
+      "require": "./dist/cjs/components/datetime-picker/index.js",
+      "default": "./dist/es/components/datetime-picker/index.js"
     },
     "./dialog": {
       "react-native": "./dist/es/components/dialog/index.js",
-      "types": "./dist/types/components/dialog/index.d.ts",
       "import": "./dist/es/components/dialog/index.js",
-      "require": "./dist/cjs/components/dialog/index.js"
+      "require": "./dist/cjs/components/dialog/index.js",
+      "default": "./dist/es/components/dialog/index.js"
     },
     "./divider": {
       "react-native": "./dist/es/components/divider/index.js",
-      "types": "./dist/types/components/divider/index.d.ts",
       "import": "./dist/es/components/divider/index.js",
-      "require": "./dist/cjs/components/divider/index.js"
-    },
-    "./dropdown-menu": {
-      "react-native": "./dist/es/components/dropdown-menu/index.js",
-      "types": "./dist/types/components/dropdown-menu/index.d.ts",
-      "import": "./dist/es/components/dropdown-menu/index.js",
-      "require": "./dist/cjs/components/dropdown-menu/index.js"
+      "require": "./dist/cjs/components/divider/index.js",
+      "default": "./dist/es/components/divider/index.js"
     },
     "./empty": {
       "react-native": "./dist/es/components/empty/index.js",
-      "types": "./dist/types/components/empty/index.d.ts",
       "import": "./dist/es/components/empty/index.js",
-      "require": "./dist/cjs/components/empty/index.js"
+      "require": "./dist/cjs/components/empty/index.js",
+      "default": "./dist/es/components/empty/index.js"
     },
     "./field": {
       "react-native": "./dist/es/components/field/index.js",
-      "types": "./dist/types/components/field/index.d.ts",
       "import": "./dist/es/components/field/index.js",
-      "require": "./dist/cjs/components/field/index.js"
+      "require": "./dist/cjs/components/field/index.js",
+      "default": "./dist/es/components/field/index.js"
     },
     "./flex": {
       "react-native": "./dist/es/components/flex/index.js",
-      "types": "./dist/types/components/flex/index.d.ts",
       "import": "./dist/es/components/flex/index.js",
-      "require": "./dist/cjs/components/flex/index.js"
+      "require": "./dist/cjs/components/flex/index.js",
+      "default": "./dist/es/components/flex/index.js"
     },
     "./form": {
       "react-native": "./dist/es/components/form/index.js",
-      "types": "./dist/types/components/form/index.d.ts",
       "import": "./dist/es/components/form/index.js",
-      "require": "./dist/cjs/components/form/index.js"
+      "require": "./dist/cjs/components/form/index.js",
+      "default": "./dist/es/components/form/index.js"
     },
     "./grid": {
       "react-native": "./dist/es/components/grid/index.js",
-      "types": "./dist/types/components/grid/index.d.ts",
       "import": "./dist/es/components/grid/index.js",
-      "require": "./dist/cjs/components/grid/index.js"
+      "require": "./dist/cjs/components/grid/index.js",
+      "default": "./dist/es/components/grid/index.js"
     },
     "./image": {
       "react-native": "./dist/es/components/image/index.js",
-      "types": "./dist/types/components/image/index.d.ts",
       "import": "./dist/es/components/image/index.js",
-      "require": "./dist/cjs/components/image/index.js"
+      "require": "./dist/cjs/components/image/index.js",
+      "default": "./dist/es/components/image/index.js"
     },
     "./image-preview": {
       "react-native": "./dist/es/components/image-preview/index.js",
-      "types": "./dist/types/components/image-preview/index.d.ts",
       "import": "./dist/es/components/image-preview/index.js",
-      "require": "./dist/cjs/components/image-preview/index.js"
-    },
-    "./index-bar": {
-      "react-native": "./dist/es/components/index-bar/index.js",
-      "types": "./dist/types/components/index-bar/index.d.ts",
-      "import": "./dist/es/components/index-bar/index.js",
-      "require": "./dist/cjs/components/index-bar/index.js"
+      "require": "./dist/cjs/components/image-preview/index.js",
+      "default": "./dist/es/components/image-preview/index.js"
     },
     "./input": {
       "react-native": "./dist/es/components/input/index.js",
-      "types": "./dist/types/components/input/index.d.ts",
       "import": "./dist/es/components/input/index.js",
-      "require": "./dist/cjs/components/input/index.js"
-    },
-    "./list": {
-      "react-native": "./dist/es/components/list/index.js",
-      "types": "./dist/types/components/list/index.d.ts",
-      "import": "./dist/es/components/list/index.js",
-      "require": "./dist/cjs/components/list/index.js"
+      "require": "./dist/cjs/components/input/index.js",
+      "default": "./dist/es/components/input/index.js"
     },
     "./loading": {
       "react-native": "./dist/es/components/loading/index.js",
-      "types": "./dist/types/components/loading/index.d.ts",
       "import": "./dist/es/components/loading/index.js",
-      "require": "./dist/cjs/components/loading/index.js"
+      "require": "./dist/cjs/components/loading/index.js",
+      "default": "./dist/es/components/loading/index.js"
     },
     "./nav-bar": {
       "react-native": "./dist/es/components/nav-bar/index.js",
-      "types": "./dist/types/components/nav-bar/index.d.ts",
       "import": "./dist/es/components/nav-bar/index.js",
-      "require": "./dist/cjs/components/nav-bar/index.js"
+      "require": "./dist/cjs/components/nav-bar/index.js",
+      "default": "./dist/es/components/nav-bar/index.js"
     },
     "./notice-bar": {
       "react-native": "./dist/es/components/notice-bar/index.js",
-      "types": "./dist/types/components/notice-bar/index.d.ts",
       "import": "./dist/es/components/notice-bar/index.js",
-      "require": "./dist/cjs/components/notice-bar/index.js"
+      "require": "./dist/cjs/components/notice-bar/index.js",
+      "default": "./dist/es/components/notice-bar/index.js"
     },
     "./notify": {
       "react-native": "./dist/es/components/notify/index.js",
-      "types": "./dist/types/components/notify/index.d.ts",
       "import": "./dist/es/components/notify/index.js",
-      "require": "./dist/cjs/components/notify/index.js"
+      "require": "./dist/cjs/components/notify/index.js",
+      "default": "./dist/es/components/notify/index.js"
     },
     "./number-keyboard": {
       "react-native": "./dist/es/components/number-keyboard/index.js",
-      "types": "./dist/types/components/number-keyboard/index.d.ts",
       "import": "./dist/es/components/number-keyboard/index.js",
-      "require": "./dist/cjs/components/number-keyboard/index.js"
+      "require": "./dist/cjs/components/number-keyboard/index.js",
+      "default": "./dist/es/components/number-keyboard/index.js"
     },
     "./overlay": {
       "react-native": "./dist/es/components/overlay/index.js",
-      "types": "./dist/types/components/overlay/index.d.ts",
       "import": "./dist/es/components/overlay/index.js",
-      "require": "./dist/cjs/components/overlay/index.js"
-    },
-    "./pagination": {
-      "react-native": "./dist/es/components/pagination/index.js",
-      "types": "./dist/types/components/pagination/index.d.ts",
-      "import": "./dist/es/components/pagination/index.js",
-      "require": "./dist/cjs/components/pagination/index.js"
+      "require": "./dist/cjs/components/overlay/index.js",
+      "default": "./dist/es/components/overlay/index.js"
     },
     "./password-input": {
       "react-native": "./dist/es/components/password-input/index.js",
-      "types": "./dist/types/components/password-input/index.d.ts",
       "import": "./dist/es/components/password-input/index.js",
-      "require": "./dist/cjs/components/password-input/index.js"
+      "require": "./dist/cjs/components/password-input/index.js",
+      "default": "./dist/es/components/password-input/index.js"
     },
     "./picker": {
       "react-native": "./dist/es/components/picker/index.js",
-      "types": "./dist/types/components/picker/index.d.ts",
       "import": "./dist/es/components/picker/index.js",
-      "require": "./dist/cjs/components/picker/index.js"
+      "require": "./dist/cjs/components/picker/index.js",
+      "default": "./dist/es/components/picker/index.js"
     },
     "./popup": {
       "react-native": "./dist/es/components/popup/index.js",
-      "types": "./dist/types/components/popup/index.d.ts",
       "import": "./dist/es/components/popup/index.js",
-      "require": "./dist/cjs/components/popup/index.js"
+      "require": "./dist/cjs/components/popup/index.js",
+      "default": "./dist/es/components/popup/index.js"
     },
     "./portal": {
       "react-native": "./dist/es/components/portal/index.js",
-      "types": "./dist/types/components/portal/index.d.ts",
       "import": "./dist/es/components/portal/index.js",
-      "require": "./dist/cjs/components/portal/index.js"
+      "require": "./dist/cjs/components/portal/index.js",
+      "default": "./dist/es/components/portal/index.js"
     },
     "./progress": {
       "react-native": "./dist/es/components/progress/index.js",
-      "types": "./dist/types/components/progress/index.d.ts",
       "import": "./dist/es/components/progress/index.js",
-      "require": "./dist/cjs/components/progress/index.js"
-    },
-    "./pull-refresh": {
-      "react-native": "./dist/es/components/pull-refresh/index.js",
-      "types": "./dist/types/components/pull-refresh/index.d.ts",
-      "import": "./dist/es/components/pull-refresh/index.js",
-      "require": "./dist/cjs/components/pull-refresh/index.js"
+      "require": "./dist/cjs/components/progress/index.js",
+      "default": "./dist/es/components/progress/index.js"
     },
     "./radio": {
       "react-native": "./dist/es/components/radio/index.js",
-      "types": "./dist/types/components/radio/index.d.ts",
       "import": "./dist/es/components/radio/index.js",
-      "require": "./dist/cjs/components/radio/index.js"
-    },
-    "./rate": {
-      "react-native": "./dist/es/components/rate/index.js",
-      "types": "./dist/types/components/rate/index.d.ts",
-      "import": "./dist/es/components/rate/index.js",
-      "require": "./dist/cjs/components/rate/index.js"
+      "require": "./dist/cjs/components/radio/index.js",
+      "default": "./dist/es/components/radio/index.js"
     },
     "./search": {
       "react-native": "./dist/es/components/search/index.js",
-      "types": "./dist/types/components/search/index.d.ts",
       "import": "./dist/es/components/search/index.js",
-      "require": "./dist/cjs/components/search/index.js"
+      "require": "./dist/cjs/components/search/index.js",
+      "default": "./dist/es/components/search/index.js"
     },
     "./selector": {
       "react-native": "./dist/es/components/selector/index.js",
-      "types": "./dist/types/components/selector/index.d.ts",
       "import": "./dist/es/components/selector/index.js",
-      "require": "./dist/cjs/components/selector/index.js"
+      "require": "./dist/cjs/components/selector/index.js",
+      "default": "./dist/es/components/selector/index.js"
     },
     "./share-sheet": {
       "react-native": "./dist/es/components/share-sheet/index.js",
-      "types": "./dist/types/components/share-sheet/index.d.ts",
       "import": "./dist/es/components/share-sheet/index.js",
-      "require": "./dist/cjs/components/share-sheet/index.js"
+      "require": "./dist/cjs/components/share-sheet/index.js",
+      "default": "./dist/es/components/share-sheet/index.js"
     },
     "./sidebar": {
       "react-native": "./dist/es/components/sidebar/index.js",
-      "types": "./dist/types/components/sidebar/index.d.ts",
       "import": "./dist/es/components/sidebar/index.js",
-      "require": "./dist/cjs/components/sidebar/index.js"
+      "require": "./dist/cjs/components/sidebar/index.js",
+      "default": "./dist/es/components/sidebar/index.js"
     },
     "./skeleton": {
       "react-native": "./dist/es/components/skeleton/index.js",
-      "types": "./dist/types/components/skeleton/index.d.ts",
       "import": "./dist/es/components/skeleton/index.js",
-      "require": "./dist/cjs/components/skeleton/index.js"
+      "require": "./dist/cjs/components/skeleton/index.js",
+      "default": "./dist/es/components/skeleton/index.js"
     },
     "./slider": {
       "react-native": "./dist/es/components/slider/index.js",
-      "types": "./dist/types/components/slider/index.d.ts",
       "import": "./dist/es/components/slider/index.js",
-      "require": "./dist/cjs/components/slider/index.js"
+      "require": "./dist/cjs/components/slider/index.js",
+      "default": "./dist/es/components/slider/index.js"
     },
     "./space": {
       "react-native": "./dist/es/components/space/index.js",
-      "types": "./dist/types/components/space/index.d.ts",
       "import": "./dist/es/components/space/index.js",
-      "require": "./dist/cjs/components/space/index.js"
+      "require": "./dist/cjs/components/space/index.js",
+      "default": "./dist/es/components/space/index.js"
     },
     "./stepper": {
       "react-native": "./dist/es/components/stepper/index.js",
-      "types": "./dist/types/components/stepper/index.d.ts",
       "import": "./dist/es/components/stepper/index.js",
-      "require": "./dist/cjs/components/stepper/index.js"
+      "require": "./dist/cjs/components/stepper/index.js",
+      "default": "./dist/es/components/stepper/index.js"
     },
     "./swiper": {
       "react-native": "./dist/es/components/swiper/index.js",
-      "types": "./dist/types/components/swiper/index.d.ts",
       "import": "./dist/es/components/swiper/index.js",
-      "require": "./dist/cjs/components/swiper/index.js"
+      "require": "./dist/cjs/components/swiper/index.js",
+      "default": "./dist/es/components/swiper/index.js"
     },
     "./switch": {
       "react-native": "./dist/es/components/switch/index.js",
-      "types": "./dist/types/components/switch/index.d.ts",
       "import": "./dist/es/components/switch/index.js",
-      "require": "./dist/cjs/components/switch/index.js"
+      "require": "./dist/cjs/components/switch/index.js",
+      "default": "./dist/es/components/switch/index.js"
     },
     "./tabbar": {
       "react-native": "./dist/es/components/tabbar/index.js",
-      "types": "./dist/types/components/tabbar/index.d.ts",
       "import": "./dist/es/components/tabbar/index.js",
-      "require": "./dist/cjs/components/tabbar/index.js"
+      "require": "./dist/cjs/components/tabbar/index.js",
+      "default": "./dist/es/components/tabbar/index.js"
     },
     "./tabs": {
       "react-native": "./dist/es/components/tabs/index.js",
-      "types": "./dist/types/components/tabs/index.d.ts",
       "import": "./dist/es/components/tabs/index.js",
-      "require": "./dist/cjs/components/tabs/index.js"
+      "require": "./dist/cjs/components/tabs/index.js",
+      "default": "./dist/es/components/tabs/index.js"
     },
     "./tag": {
       "react-native": "./dist/es/components/tag/index.js",
-      "types": "./dist/types/components/tag/index.d.ts",
       "import": "./dist/es/components/tag/index.js",
-      "require": "./dist/cjs/components/tag/index.js"
+      "require": "./dist/cjs/components/tag/index.js",
+      "default": "./dist/es/components/tag/index.js"
     },
     "./toast": {
       "react-native": "./dist/es/components/toast/index.js",
-      "types": "./dist/types/components/toast/index.d.ts",
       "import": "./dist/es/components/toast/index.js",
-      "require": "./dist/cjs/components/toast/index.js"
+      "require": "./dist/cjs/components/toast/index.js",
+      "default": "./dist/es/components/toast/index.js"
     },
     "./typography": {
       "react-native": "./dist/es/components/typography/index.js",
-      "types": "./dist/types/components/typography/index.d.ts",
       "import": "./dist/es/components/typography/index.js",
-      "require": "./dist/cjs/components/typography/index.js"
-    },
-    "./uploader": {
-      "react-native": "./dist/es/components/uploader/index.js",
-      "types": "./dist/types/components/uploader/index.d.ts",
-      "import": "./dist/es/components/uploader/index.js",
-      "require": "./dist/cjs/components/uploader/index.js"
+      "require": "./dist/cjs/components/typography/index.js",
+      "default": "./dist/es/components/typography/index.js"
     },
     "./water-mark": {
       "react-native": "./dist/es/components/water-mark/index.js",
-      "types": "./dist/types/components/water-mark/index.d.ts",
       "import": "./dist/es/components/water-mark/index.js",
-      "require": "./dist/cjs/components/water-mark/index.js"
+      "require": "./dist/cjs/components/water-mark/index.js",
+      "default": "./dist/es/components/water-mark/index.js"
     },
     "./safe-area-view": {
       "react-native": "./dist/es/components/safe-area-view/index.js",
-      "types": "./dist/types/components/safe-area-view/index.d.ts",
       "import": "./dist/es/components/safe-area-view/index.js",
-      "require": "./dist/cjs/components/safe-area-view/index.js"
+      "require": "./dist/cjs/components/safe-area-view/index.js",
+      "default": "./dist/es/components/safe-area-view/index.js"
     },
     "./package.json": "./package.json"
   }

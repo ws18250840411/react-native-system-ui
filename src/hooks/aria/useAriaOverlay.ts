@@ -7,18 +7,11 @@ import type { ViewProps } from 'react-native'
 export interface UseAriaOverlayOptions {
   isOpen: boolean
   onClose?: () => void
-  /**
-   * 是否允许点击遮罩关闭
-   * @default true
-   */
+  
   isDismissable?: boolean
-  /**
-   * 自定义是否在交互外关闭
-   */
+  
   shouldCloseOnInteractOutside?: (target: unknown) => boolean
-  /**
-   * 透传给 overlayProps 的其他属性
-   */
+  
   overlayProps?: Record<string, unknown>
 }
 

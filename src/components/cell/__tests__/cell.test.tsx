@@ -56,7 +56,7 @@ describe('Cell', () => {
     const tree = renderer.create(
       <Cell title="Required" required />
     )
-    // Find text nodes, one for title and one for asterisk
+    
     const texts = tree.root.findAllByType(Text)
     const asterisk = texts.find(t => t.props.children === '*')
     expect(asterisk).toBeTruthy()

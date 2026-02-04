@@ -94,9 +94,9 @@ describe('Progress', () => {
       .map(node => StyleSheet.flatten(node.props.style))
       .find(style => style?.width === '50%')
     
-    // Inactive color is usually gray (track color) or defined in tokens
+    
     expect(indicator).toBeDefined()
-    // We can't easily check exact color without tokens, but we can verify it renders without error
+    
   })
 
   it('passes custom styles', () => {

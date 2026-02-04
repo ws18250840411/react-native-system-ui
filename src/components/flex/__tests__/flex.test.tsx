@@ -93,10 +93,10 @@ describe('Flex', () => {
     )
 
     const views = tree.root.findAllByType(View)
-    // The main container View plus one child View (for 'visible')
-    // 'zero' and 'negative' items should return null
-    // views[0] is container
-    // views[1] is Flex.Item wrapper
+    
+    
+    
+    
     expect(views.length).toBe(2)
     const textNodes = tree.root.findAllByType(Text)
     expect(textNodes.length).toBe(1)
@@ -116,7 +116,7 @@ describe('Flex', () => {
     const itemView = views[1]
     const style = StyleSheet.flatten(itemView.props.style)
     
-    // Should not have flex properties set
+    
     expect(style.flex).toBeUndefined()
     expect(style.flexGrow).toBeUndefined()
     expect(style.flexShrink).toBeUndefined()

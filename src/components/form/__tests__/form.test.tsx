@@ -53,7 +53,7 @@ const Input: React.FC<InputProps> = ({
 
 describe('Form', () => {
   it('binds field value and trigger onValuesChange', () => {
-    // ... (keep existing tests)
+    
     const onValuesChange = jest.fn()
     const tree = create(
       <Form onValuesChange={onValuesChange}>
@@ -91,19 +91,19 @@ describe('Form', () => {
       </Form>
     )
 
-    // Submit with empty value
+    
     let result
     await act(async () => {
       result = await formRef?.submit()
     })
     expect(onFinish).not.toHaveBeenCalled()
 
-    // Check error message injection
+    
     const input = tree.root.findByType(TextInput)
     expect(input.props.error).toBe(true)
     expect(input.props.errorMessage).toBe('Required')
 
-    // Fix value
+    
     act(() => {
       input.props.onChangeText('valid')
     })
@@ -129,13 +129,13 @@ describe('Form', () => {
 
     const input = tree.root.findByType(TextInput)
 
-    // Change text (should not validate yet)
+    
     act(() => {
       input.props.onChangeText('invalid')
     })
     expect(input.props.error).toBeUndefined()
 
-    // Blur (should validate)
+    
     act(() => {
       input.props.onBlur()
     })
@@ -238,7 +238,7 @@ describe('Form', () => {
 
     const input = tree.root.findByType(TextInput)
 
-    // Set invalid value
+    
     act(() => {
       input.props.onChangeText('taken')
     })
@@ -247,7 +247,7 @@ describe('Form', () => {
       try {
         await formRef?.validateFields()
       } catch (e) {
-        // ignore
+        
       }
     })
 
@@ -270,10 +270,10 @@ describe('Form', () => {
     const nameInput = tree.root.findByProps({ testID: 'name-input' })
     const ageInput = tree.root.findByProps({ testID: 'age-input' })
 
-    // Check initial value
+    
     expect(nameInput.props.value).toBe('initial')
 
-    // Change nested value via array path
+    
     act(() => {
       nameInput.props.onChangeText('updated')
     })
@@ -283,7 +283,7 @@ describe('Form', () => {
       'updated'
     )
 
-    // Change nested value via string path
+    
     act(() => {
       ageInput.props.onChangeText('20')
     })
@@ -322,19 +322,19 @@ describe('Form', () => {
     const password = tree.root.findByProps({ testID: 'password' })
     const confirm = tree.root.findByProps({ testID: 'confirm' })
 
-    // Set confirm first
+    
     act(() => {
       confirm.props.onChangeText('123')
     })
-    // Set password to something else
+    
     act(() => {
       password.props.onChangeText('456')
     })
 
-    // Confirm field should be re-validated and show error
+    
     expect(confirm.props.errorMessage).toBe('Mismatch')
 
-    // Fix password
+    
     act(() => {
       password.props.onChangeText('123')
     })
@@ -358,13 +358,13 @@ describe('Form', () => {
 
     const input = tree.root.findByType(TextInput)
 
-    // Change value
+    
     act(() => {
       input.props.onChangeText('changed')
     })
     expect(input.props.value).toBe('changed')
 
-    // Reset
+    
     act(() => {
       formRef?.resetFields()
     })

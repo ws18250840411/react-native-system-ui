@@ -51,8 +51,7 @@ describe('Checkbox', () => {
   })
 
   it('is a forwardRef component', () => {
-    // @ts-ignore
-    expect(Checkbox.$$typeof).toBe(Symbol.for('react.forward_ref'))
+    expect((Checkbox as any).$$typeof).toBe(Symbol.for('react.forward_ref'))
   })
 
   it('passes testID to the internal Pressable', () => {
@@ -82,8 +81,7 @@ describe('Checkbox', () => {
       }
 
       const flattened = StyleSheet.flatten(finalStyle)
-      // @ts-ignore
-      expect(flattened.cursor).toBe('pointer')
+      expect((flattened as any).cursor).toBe('pointer')
     } finally {
       Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
     }
@@ -205,25 +203,25 @@ describe('CheckboxGroup', () => {
     const checkboxes = tree.root.findAllByType(Pressable)
     expect(checkboxes.length).toBe(3)
 
-    // Select A
+    
     act(() => {
       checkboxes[0].props.onPress()
     })
     expect(onChange).toHaveBeenLastCalledWith(['a'])
 
-    // Select B
+    
     act(() => {
       checkboxes[1].props.onPress()
     })
     expect(onChange).toHaveBeenLastCalledWith(['a', 'b'])
 
-    // Select C (should be ignored)
+    
     act(() => {
       checkboxes[2].props.onPress()
     })
-    // Should still be a, b
+    
     expect(onChange).toHaveBeenLastCalledWith(['a', 'b'])
-    // Expect 2 calls (A, B). C should not trigger change.
+    
     expect(onChange).toHaveBeenCalledTimes(2)
   })
 

@@ -24,7 +24,7 @@ export interface ToastTokens {
   pressedOpacity: number
   positionOffsetRatio: number
   positionOffsetMin: number
-  // Animation duration
+  
   animationDuration: number
 }
 

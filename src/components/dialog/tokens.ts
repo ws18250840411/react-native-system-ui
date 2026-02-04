@@ -66,10 +66,10 @@ export const createDialogTokens = (foundations: Foundations): DialogTokens => {
       paddingTop: spacing.lg,
       paddingBottom: spacing.md,
       titlePaddingTop: 22,
-      titleIsolatedPadding: spacing.lg, // var(--rv-padding-lg)
+      titleIsolatedPadding: spacing.lg, 
       messagePadding: 20,
-      messagePaddingTop: spacing.xs, // var(--rv-padding-xs)
-      messagePaddingHorizontal: spacing.lg, // var(--rv-padding-lg)
+      messagePaddingTop: spacing.xs, 
+      messagePaddingHorizontal: spacing.lg, 
       titleGap: spacing.sm,
       footerGap: spacing.md,
       roundFooterPadding: spacing.md,
@@ -82,7 +82,7 @@ export const createDialogTokens = (foundations: Foundations): DialogTokens => {
       borderRadius: radii.lg,
       closeSize: 20,
       actionHeight: 48,
-      roundButtonHeight: 40, // var(--rv-dialog-round-button-height)
+      roundButtonHeight: 40, 
     },
     typography: {
       titleSize: fontSize.md,

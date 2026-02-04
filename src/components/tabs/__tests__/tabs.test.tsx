@@ -178,7 +178,7 @@ describe('Tabs', () => {
     expect(texts).not.toContain('占位符')
   })
 
-  // scrollspy 能力已按官方对齐移除
+  
 
   it('renders card type tabs', () => {
     const tree = renderer.create(
@@ -188,7 +188,7 @@ describe('Tabs', () => {
       </Tabs>
     )
 
-    // Check border radius or specific styles for card
+    
     const items = tree.root.findAll(node => node.props.testID?.startsWith('rv-tabs-item'))
     const uniqueItems = Array.from(new Set(items.map(i => i.props.testID)))
     expect(uniqueItems).toHaveLength(2)

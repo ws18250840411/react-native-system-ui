@@ -51,7 +51,7 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
   lazyRender?: boolean
   lazyRenderPlaceholder?: React.ReactNode
   swipeable?: boolean | TabsSwipeableConfig
-  /** 是否强制开启/关闭标签栏滚动（不传则自动根据数量判断） */
+  
   scrollable?: boolean
   navLeft?: React.ReactNode
   navRight?: React.ReactNode
@@ -66,6 +66,6 @@ export interface TabsProps extends Omit<ViewProps, 'children' | 'onLayout'> {
 }
 
 export interface TabsRef {
-  /** 切换到指定标签，并将其滚动到可视区（当标签栏可横向滚动时） */
+  
   scrollTo: (name: TabsValue, options?: { immediate?: boolean }) => void
 }

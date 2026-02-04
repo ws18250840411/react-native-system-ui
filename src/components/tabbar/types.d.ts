@@ -29,12 +29,7 @@ export interface TabbarProps<T = TabbarValue> extends Omit<ViewProps, 'children'
 export interface TabbarItemProps<T = TabbarValue> extends Omit<ViewProps, 'children'> {
   name?: T
   icon?: React.ReactNode | ((active: boolean) => React.ReactNode)
-  /**
-   * 徽标内容：
-   * - 传入 number/string：内部会自动渲染 <Badge content={...} />
-   * - 传入 BadgeProps：渲染 <Badge {...props} />
-   * - 传入 ReactElement：直接渲染该节点
-   */
+  
   badge?: BadgeProps | React.ReactNode
   dot?: boolean
   onClick?: () => void
@@ -44,8 +39,8 @@ export interface TabbarItemProps<T = TabbarValue> extends Omit<ViewProps, 'child
   disabled?: boolean
   testID?: string
   tokensOverride?: DeepPartial<TabbarTokens>
-  /** @private */
+  
   index?: number
-  /** @private */
+  
   iconSize?: number
 }

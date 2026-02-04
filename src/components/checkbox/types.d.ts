@@ -103,7 +103,7 @@ export interface CheckboxGroupProps extends ViewProps {
   labelDisabled?: boolean
   gap?: number
   tokensOverride?: DeepPartial<CheckboxTokens>
-  /** 跟随 React Vant，水平/垂直排列 */
+  
   onChange?: (value: CheckboxValue[]) => void
   children?: React.ReactNode
 }

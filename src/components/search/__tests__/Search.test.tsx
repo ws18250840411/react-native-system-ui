@@ -36,7 +36,7 @@ describe('Search', () => {
     const tree = renderer.create(<Search defaultValue="test" ref={ref => { searchRef = ref }} />)
 
     const onChangeText = jest.fn()
-    // Need to act for update
+    
     renderer.act(() => {
       tree.update(<Search defaultValue="test" ref={ref => { searchRef = ref }} onChangeText={onChangeText} />)
     })
@@ -58,9 +58,9 @@ describe('Search', () => {
 
   it('controls action visibility with showAction', () => {
     const tree = renderer.create(<Search />)
-    // Should not render action (find Pressable with testID)
+    
     const actions = tree.root.findAllByType(Pressable).filter(p => p.props.testID === 'rnsu-search-action')
-    expect(actions.length).toBe(0)// showAction = true
+    expect(actions.length).toBe(0)
     renderer.act(() => {
       tree.update(<Search showAction />)
     })

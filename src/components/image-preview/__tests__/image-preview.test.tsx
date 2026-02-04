@@ -207,17 +207,17 @@ describe('ImagePreview', () => {
       ref.current?.swipeTo(2, false)
     })
 
-    // Imperative swipeTo updates internal state but might not trigger onChange from Swiper unless Swiper callbacks run.
-    // However, ImagePreview implementation calls setActive then swiperRef.swipeTo.
-    // The onChange prop is called when Swiper triggers onChange.
-    // If we mock Swiper or if Swiper is real, we need to know if imperative swipeTo triggers onChange in Swiper.
-    // In ImagePreview.tsx:
-    // swipeTo: (index) => { setActive(next); swipeToIndex(next); }
-    // It does NOT call onChange directly. onChange is called in handleSwiperChange.
-    // And handleSwiperChange is passed to Swiper.
-    // Usually Swiper's swipeTo doesn't trigger onChange (to avoid loops), or it depends on implementation.
-    // Let's assume it doesn't trigger onChange automatically in this mock environment, 
-    // but we can check if the internal active index updated by checking the index text.
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     const index = tree.root.findByProps({ testID: 'rv-image-preview-index' })
     const text = index.findByType(Text)

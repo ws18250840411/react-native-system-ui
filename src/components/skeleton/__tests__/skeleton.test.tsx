@@ -24,20 +24,20 @@ describe('Skeleton', () => {
 
   it('renders avatar', () => {
     const tree = renderer.create(<Skeleton avatar avatarSize={40} />)
-    // Avatar is an Animated.View before the content view
-    // Content view has flex: 1
-    // Avatar view has fixed width/height
-    const views = tree.root.findAllByType(View) // Includes Animated.View if it renders View
-    // However, Animated.View might be distinct in test renderer or just a View with animated props
-    // Let's find by style
+    
+    
+    
+    const views = tree.root.findAllByType(View) 
+    
+    
 
-    // In Skeleton.tsx: <Animated.View style={[styles.avatar, ...]} />
-    // We can check if any view has width 40 and height 40
+    
+    
 
-    // Note: findAllByType(View) might not find Animated.View components directly if they are wrapped.
-    // But usually Animated.View renders a View.
+    
+    
 
-    // Let's use findAll and check props.style
+    
     const avatar = tree.root.findAll(node => {
       const style = node.props.style
       if (!style) return false
@@ -51,7 +51,7 @@ describe('Skeleton', () => {
   it('supports custom row widths', () => {
     const tree = renderer.create(<Skeleton row={3} rowWidth={['100%', '50%', '20%']} />)
     const rows = tree.root.findAll(node => node.props.testID?.startsWith('rv-skeleton-row-'))
-    // De-duplicate by testID to handle potential Animated.View wrapping behavior in tests
+    
     const uniqueRows = Array.from(new Set(rows.map(r => r.props.testID)))
       .sort()
       .map(id => rows.find(r => r.props.testID === id)!)

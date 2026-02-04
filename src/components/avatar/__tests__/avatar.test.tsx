@@ -34,7 +34,7 @@ describe('Avatar', () => {
 
   it('renders image src', () => {
     const tree = renderer.create(<Avatar src="https://example.com/avatar.png" />)
-    // Avatar uses RN Image internally
+    
     const image = tree.root.findByType(Image)
     expect(image.props.source).toEqual({ uri: 'https://example.com/avatar.png' })
   })
@@ -47,14 +47,14 @@ describe('Avatar', () => {
   })
 
   it('applies shape styles', () => {
-    // Square should have smaller border radius
+    
     const tree = renderer.create(<Avatar text="A" shape="square" size={60} />)
     const pressable = tree.root.findByType(Pressable)
     const style = Array.isArray(pressable.props.style)
       ? Object.assign({}, ...pressable.props.style)
       : pressable.props.style
 
-    // getRadius logic: square -> max(6, min(w, h) / 6) = 60/6 = 10
+    
     expect(style.borderRadius).toBe(10)
   })
 
@@ -78,7 +78,7 @@ describe('Avatar', () => {
     act(() => {
       rnImage.props.onError?.({})
     })
-    // Fallback text logic: "Fail" -> "FA"
+    
     const text = tree.root.findByType(Text)
     expect(text.props.children).toBe('FA')
   })
@@ -92,8 +92,8 @@ describe('Avatar', () => {
   it('applies textStyle', () => {
     const tree = renderer.create(<Avatar text="TS" textStyle={{ color: 'red' }} />)
     const text = tree.root.findByType(Text)
-    // textStyle might be array or object, StyleSheet.flatten handles it if imported
-    // But we need to import StyleSheet first
+    
+    
     const flattened = Array.isArray(text.props.style) 
       ? Object.assign({}, ...text.props.style) 
       : text.props.style

@@ -213,7 +213,7 @@ describe('Toast', () => {
       Toast.loading({ message: 'Loading...' })
     })
 
-    // Advance timer by 5 seconds (default is 2s + exit animation)
+    
     act(() => {
       jest.advanceTimersByTime(5000)
     })

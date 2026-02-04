@@ -36,7 +36,7 @@ export interface DialogProps extends Omit<ViewProps, 'children'> {
   closeOnClickOverlay?: boolean
   onClickOverlay?: () => void
   onClickCloseIcon?: () => void
-  /** 关闭前拦截（对齐 Vant：beforeClose），返回 false 可阻止本次触发 */
+  
   beforeClose?: (action: DialogBeforeCloseAction) => boolean | Promise<boolean>
   showCancelButton?: boolean
   cancelButtonText?: React.ReactNode

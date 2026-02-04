@@ -44,7 +44,7 @@ describe('CountDown', () => {
   })
 
   it('renders custom format', () => {
-    // 1000ms = 1s -> 00:00:01
+    
     const tree = renderer.create(<CountDown time={1000} format="HH:mm:ss" autoStart={false} />)
     const text = tree.root.findByType(Text)
     expect(text.props.children).toBe('00:00:01')

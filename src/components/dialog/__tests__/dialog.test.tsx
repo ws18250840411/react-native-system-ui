@@ -136,7 +136,7 @@ describe('Dialog', () => {
     const tree = renderInHost(<Dialog visible closeable onClose={onClose} />)
 
     const pressables = tree.root.findAllByType(Pressable)
-    // Find the close icon pressable (has hitSlop)
+    
     const closeBtn = pressables.find(p => p.props.hitSlop && p.props.hitSlop.top === 8)
 
     expect(closeBtn).toBeTruthy()

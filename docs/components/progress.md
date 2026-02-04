@@ -12,7 +12,7 @@ simulator:
 ## 引入
 
 ```js
-import { Progress, ProgressFilledTrack } from 'react-native-system-ui'
+import { Progress } from 'react-native-system-ui'
 ```
 
 ## 代码演示
@@ -23,7 +23,7 @@ import { Progress, ProgressFilledTrack } from 'react-native-system-ui'
 
 <code title="基础用法" src="./progress/demo/base.tsx"></code>
 
-> 也支持组合方式：`<Progress><ProgressFilledTrack /></Progress>`，以便自定义 FilledTrack 样式。
+> 可通过 `children` 传入自定义填充内容。
 
 ### 线条粗细
 
