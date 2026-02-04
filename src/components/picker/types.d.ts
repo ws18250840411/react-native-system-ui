@@ -22,7 +22,6 @@ export type PickerColumn = PickerOption[] | PickerColumnWithDefault
 export type PickerColumns = PickerColumn[] | PickerOption[]
 
 export type PickerToolbarPosition = 'top' | 'bottom'
-export type PickerInteractionMode = 'auto' | 'freeze' | 'sync'
 
 export interface PickerProps extends ViewProps {
   columns?: PickerColumns
@@ -42,7 +41,6 @@ export interface PickerProps extends ViewProps {
   scrollEventThrottle?: number
   maskColor?: string
   maskType?: 'gradient' | 'solid'
-  interactionMode?: PickerInteractionMode
   swipeDuration?: number
   columnsTop?: React.ReactNode
   columnsBottom?: React.ReactNode

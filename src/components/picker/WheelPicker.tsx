@@ -162,16 +162,13 @@ const WheelPickerInner = <T extends PickerOption,>({
   const enabledSelectedIndex = findEnabledIndex(data, rawSelectedIndex)
   const safeSelectedIndex = enabledSelectedIndex >= 0 ? enabledSelectedIndex : rawSelectedIndex
   const visibleCount = visibleRest * 2 + 1
-  const initialRenderCount = Math.min(total || visibleCount, visibleCount)
-  const maxBatchRenderCount = Math.min(
-    total || visibleCount * 2,
-    Math.max(visibleCount * 2, 10),
-  )
-  const windowSize = total > visibleCount * 12 ? 7 : 5
-  const batchingPeriod = total > visibleCount * 20 ? 32 : 16
   const effectiveScrollThrottle = total > visibleCount * 20 ? 32 : scrollEventThrottle
   const webVirtualEnabled = total > visibleCount * 4
   const Spacer = useCallback(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
+  const indicatorStyle = useMemo(
+    () => [styles.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }],
+    [itemHeight, visibleRest, indicatorColor]
+  )
 
   const dragEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const momentumRef = useRef(false)
@@ -342,25 +339,6 @@ const WheelPickerInner = <T extends PickerOption,>({
     [data, itemHeight, maxIndex, readOnly, startWebSnap, total, updateWheelVelocity],
   )
 
-  const keyExtractor = useCallback(
-    (item: T, idx: number) => `${idx}-${String(item.value ?? '')}`,
-    [],
-  )
-
-  const renderListItem = useCallback(
-    ({ item, index }: { item: T; index: number }) => (
-      <WheelPickerItem
-        item={item}
-        index={index}
-        itemHeight={itemHeight}
-        active={index === safeSelectedIndex}
-        disabled={!!item.disabled}
-        renderItem={renderItem}
-      />
-    ),
-    [itemHeight, renderItem, safeSelectedIndex],
-  )
-
   const webIndex = clamp(Math.round(-webOffset / itemHeight), 0, maxIndex)
 
   const webRender = useMemo(() => {
@@ -502,13 +480,7 @@ const WheelPickerInner = <T extends PickerOption,>({
         {...({ onWheel: handleWheel } as unknown as React.ComponentProps<typeof View>)}
         {...panResponder.panHandlers}
       >
-        <View
-          style={[
-            styles.indicator,
-            { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor },
-          ]}
-          pointerEvents="none"
-        />
+        <View style={indicatorStyle} pointerEvents="none" />
         <View
           style={[
             webTransform,
@@ -540,13 +512,7 @@ const WheelPickerInner = <T extends PickerOption,>({
       style={[styles.column, { height: containerHeight }]}
       collapsable={false}
     >
-      <View
-        style={[
-          styles.indicator,
-          { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor },
-        ]}
-        pointerEvents="none"
-      />
+      <View style={indicatorStyle} pointerEvents="none" />
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
@@ -597,7 +563,7 @@ const WheelPickerInner = <T extends PickerOption,>({
       >
         {data.map((item, index) => (
           <WheelPickerItem
-            key={keyExtractor(item, index)}
+            key={`${index}-${String(item.value ?? '')}`}
             item={item}
             index={index}
             itemHeight={itemHeight}

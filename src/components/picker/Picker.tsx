@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
+import { ActivityIndicator, Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
 
-import Loading from '../loading'
 import { withAlpha } from '../../utils/color'
-import { isFiniteNumber, isObject, isText } from '../../utils/validate'
+import { isFiniteNumber, isText } from '../../utils/validate'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
 import type { PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
@@ -92,6 +91,7 @@ export function usePickerValue({
   }, [normalized, onConfirm])
 
   return {
+    preparedColumns,
     normalized,
     handleSelect,
     handleConfirm,
@@ -104,7 +104,7 @@ const getVisibleCount = (count: number) => {
 }
 
 const GRADIENT_OVERLAY_ALPHA = 0.25
-const GRADIENT_STEPS = [0.98, 0.9075, 0.835, 0.7625, 0.69, 0.6175, 0.545, 0.4725, 0.4]
+const GRADIENT_STEPS = [0.95, 0.75, 0.55, 0.35]
 const GRADIENT_STEPS_REVERSED = [...GRADIENT_STEPS].reverse()
 
 const GradientMask: React.FC<{
@@ -156,18 +156,6 @@ const GradientMask: React.FC<{
       ))}
     </View>
   )
-}
-
-const isCascadeColumns = (columns?: PickerColumns) => {
-  if (!Array.isArray(columns) || columns.length === 0) return false
-  const first = columns[0] as unknown
-  if (Array.isArray(first)) return false
-  if (isObject(first) && 'options' in first) return false
-  return columns.some(option => {
-    if (!isObject(option)) return false
-    const children = (option as PickerOption).children
-    return Array.isArray(children) && children.length > 0
-  })
 }
 
 const PickerColumn: React.FC<
@@ -286,13 +274,9 @@ const Picker: React.FC<PickerProps> = props => {
     ...rest
   } = props
 
-  const visibleItemCount = useMemo(
-    () => getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount),
-    [visibleItemCountProp, tokens.defaults.visibleItemCount]
-  )
-  const isCascade = useMemo(() => isCascadeColumns(columns), [columns])
+  const visibleItemCount = getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount)
 
-  const { normalized, handleSelect, handleConfirm } = usePickerValue({
+  const { normalized, handleSelect, handleConfirm, preparedColumns } = usePickerValue({
     columns,
     valueProp,
     defaultValue,
@@ -300,6 +284,7 @@ const Picker: React.FC<PickerProps> = props => {
     onChange,
     onConfirm,
   })
+  const isCascade = preparedColumns.type === 'cascade'
 
 
   const renderActionContent = useCallback((content: React.ReactNode, color: string) => {
@@ -363,8 +348,8 @@ const Picker: React.FC<PickerProps> = props => {
   const maskHeight = indicatorOffset
   const hasColumns = normalized.columns.length > 0
   const effectiveMaskColor = maskColor ?? tokens.colors.mask
-  const columnsContent = useMemo(
-    () => (hasColumns ? normalized.columns.map((column, columnIndex) => {
+  const columnsContent = hasColumns
+    ? normalized.columns.map((column, columnIndex) => {
       const key = isCascade ? `${columnIndex}-${normalized.values.slice(0, columnIndex).map(String).join('|')}` : String(columnIndex)
       return (
         <PickerColumn
@@ -385,25 +370,8 @@ const Picker: React.FC<PickerProps> = props => {
           tokens={tokens}
         />
       )
-    }) : null),
-    [
-      decelerationRate,
-      getOptionA11yLabel,
-      getOptionTestID,
-      handleSelect,
-      hasColumns,
-      isCascade,
-      itemHeight,
-      normalized.columns,
-      normalized.values,
-      optionRender,
-      readOnly,
-      scrollEventThrottle,
-      swipeDuration,
-      tokens,
-      visibleItemCount,
-    ]
-  )
+    })
+    : null
 
   return (
     <View
@@ -435,7 +403,7 @@ const Picker: React.FC<PickerProps> = props => {
         </View>
         {loading && (
           <View style={[styles.loading, { backgroundColor: tokens.colors.loadingMask }]}>
-            <Loading />
+            <ActivityIndicator size="small" color={tokens.colors?.text ?? '#666'} />
           </View>
         )}
       </View>

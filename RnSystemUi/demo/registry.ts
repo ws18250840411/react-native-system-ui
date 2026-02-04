@@ -89,11 +89,6 @@ import DividerDemoCustom from '../../docs/components/divider/demo/custom'
 import DividerDemoDashed from '../../docs/components/divider/demo/dashed'
 import DividerDemoPosition from '../../docs/components/divider/demo/position'
 import DividerDemoText from '../../docs/components/divider/demo/text'
-import DropdownMenuDemoBasic from '../../docs/components/dropdown-menu/demo/basic'
-import DropdownMenuDemoColor from '../../docs/components/dropdown-menu/demo/color'
-import DropdownMenuDemoCustom from '../../docs/components/dropdown-menu/demo/custom'
-import DropdownMenuDemoDirection from '../../docs/components/dropdown-menu/demo/direction'
-import DropdownMenuDemoDisabled from '../../docs/components/dropdown-menu/demo/disabled'
 import EmptyDemoBase from '../../docs/components/empty/demo/base'
 import EmptyDemoCustom from '../../docs/components/empty/demo/custom'
 import EmptyDemoFooter from '../../docs/components/empty/demo/footer'
@@ -141,7 +136,6 @@ import ImageDemoBasic from '../../docs/components/image/demo/basic'
 import ImageDemoFit from '../../docs/components/image/demo/fit'
 import ImageDemoLoading from '../../docs/components/image/demo/loading'
 import ImageDemoRound from '../../docs/components/image/demo/round'
-import IndexBarDemoTabbed from '../../docs/components/index-bar/demo/tabbed'
 import InputDemoAlign from '../../docs/components/input/demo/align'
 import InputDemoBasic from '../../docs/components/input/demo/basic'
 import InputDemoClearable from '../../docs/components/input/demo/clearable'
@@ -149,7 +143,6 @@ import InputDemoSlots from '../../docs/components/input/demo/slots'
 import InputDemoStatus from '../../docs/components/input/demo/status'
 import InputDemoTextarea from '../../docs/components/input/demo/textarea'
 import InputDemoWordLimit from '../../docs/components/input/demo/word-limit'
-import ListDemoBasic from '../../docs/components/list/demo/basic'
 import LoadingDemoColor from '../../docs/components/loading/demo/color'
 import LoadingDemoSize from '../../docs/components/loading/demo/size'
 import LoadingDemoText from '../../docs/components/loading/demo/text'
@@ -172,9 +165,6 @@ import NumberKeyboardDemoControlled from '../../docs/components/number-keyboard/
 import NumberKeyboardDemoCustom from '../../docs/components/number-keyboard/demo/custom'
 import OverlayDemoBasic from '../../docs/components/overlay/demo/basic'
 import OverlayDemoContent from '../../docs/components/overlay/demo/content'
-import PaginationDemoBasic from '../../docs/components/pagination/demo/basic'
-import PaginationDemoCustom from '../../docs/components/pagination/demo/custom'
-import PaginationDemoSimple from '../../docs/components/pagination/demo/simple'
 import PasswordInputDemoBasic from '../../docs/components/password-input/demo/basic'
 import PasswordInputDemoGutter from '../../docs/components/password-input/demo/gutter'
 import PasswordInputDemoLimit from '../../docs/components/password-input/demo/limit'
@@ -198,7 +188,6 @@ import ProgressDemoColor from '../../docs/components/progress/demo/color'
 import ProgressDemoInactive from '../../docs/components/progress/demo/inactive'
 import ProgressDemoStroke from '../../docs/components/progress/demo/stroke'
 import ProgressDemoTransition from '../../docs/components/progress/demo/transition'
-import PullRefreshDemoBasic from '../../docs/components/pull-refresh/demo/basic'
 import RadioDemoAsync from '../../docs/components/radio/demo/async'
 import RadioDemoBasic from '../../docs/components/radio/demo/basic'
 import RadioDemoCell from '../../docs/components/radio/demo/cell'
@@ -208,13 +197,6 @@ import RadioDemoDisabled from '../../docs/components/radio/demo/disabled'
 import RadioDemoIconSize from '../../docs/components/radio/demo/icon-size'
 import RadioDemoLabelDisabled from '../../docs/components/radio/demo/label-disabled'
 import RadioDemoShape from '../../docs/components/radio/demo/shape'
-import RateDemoBasic from '../../docs/components/rate/demo/basic'
-import RateDemoCount from '../../docs/components/rate/demo/count'
-import RateDemoCustom from '../../docs/components/rate/demo/custom'
-import RateDemoDisabled from '../../docs/components/rate/demo/disabled'
-import RateDemoHalf from '../../docs/components/rate/demo/half'
-import RateDemoIcon from '../../docs/components/rate/demo/icon'
-import RateDemoReadonly from '../../docs/components/rate/demo/readonly'
 import SearchDemoActionText from '../../docs/components/search/demo/action-text'
 import SearchDemoAlign from '../../docs/components/search/demo/align'
 import SearchDemoBackground from '../../docs/components/search/demo/background'
@@ -304,12 +286,6 @@ import TypographyDemoTitle from '../../docs/components/typography/demo/title'
 import TypographyDemoType from '../../docs/components/typography/demo/type'
 import WaterMarkDemoBasic from '../../docs/components/water-mark/demo/basic'
 import WaterMarkDemoCustom from '../../docs/components/water-mark/demo/custom'
-import UploaderDemoBase from './overrides/uploader/base'
-import UploaderDemoClose from './overrides/uploader/close'
-import UploaderDemoForm from './overrides/uploader/form'
-import UploaderDemoLimit from './overrides/uploader/limit'
-import UploaderDemoPreview from './overrides/uploader/preview'
-import UploaderDemoUpload from './overrides/uploader/upload'
 
 export type DemoEntry = {
   id: string
@@ -362,13 +338,11 @@ export const menuGroups: MenuGroup[] = [
       "password-input",
       "picker",
       "radio",
-      "rate",
       "search",
       "selector",
       "slider",
       "stepper",
-      "switch",
-      "uploader"
+      "switch"
     ]
   },
   {
@@ -376,11 +350,9 @@ export const menuGroups: MenuGroup[] = [
     "slugs": [
       "action-sheet",
       "dialog",
-      "dropdown-menu",
       "loading",
       "notify",
       "overlay",
-      "pull-refresh",
       "share-sheet"
     ]
   },
@@ -396,7 +368,6 @@ export const menuGroups: MenuGroup[] = [
       "empty",
       "field",
       "image-preview",
-      "list",
       "notice-bar",
       "progress",
       "swiper",
@@ -409,9 +380,7 @@ export const menuGroups: MenuGroup[] = [
     "title": "导航组件",
     "slugs": [
       "grid",
-      "index-bar",
       "nav-bar",
-      "pagination",
       "sidebar",
       "tabs",
       "tabbar"
@@ -1176,46 +1145,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
       },
     ],
   },
-  "rate": {
-    title: "Rate 评分",
-    demos: [
-      {
-        id: "basic",
-        title: "基础用法",
-        Component: RateDemoBasic,
-      },
-      {
-        id: "icon",
-        title: "自定义图标",
-        Component: RateDemoIcon,
-      },
-      {
-        id: "custom",
-        title: "自定义样式",
-        Component: RateDemoCustom,
-      },
-      {
-        id: "half",
-        title: "半星",
-        Component: RateDemoHalf,
-      },
-      {
-        id: "count",
-        title: "自定义数量",
-        Component: RateDemoCount,
-      },
-      {
-        id: "disabled",
-        title: "禁用状态",
-        Component: RateDemoDisabled,
-      },
-      {
-        id: "readonly",
-        title: "只读状态显示小数",
-        Component: RateDemoReadonly,
-      },
-    ],
-  },
   "search": {
     title: "Search 搜索",
     demos: [
@@ -1391,41 +1320,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
       },
     ],
   },
-  "uploader": {
-    title: "Uploader 文件上传",
-    demos: [
-      {
-        id: "base",
-        title: "基础用法",
-        Component: UploaderDemoBase,
-      },
-      {
-        id: "upload",
-        title: "自动上传",
-        Component: UploaderDemoUpload,
-      },
-      {
-        id: "limit",
-        title: "上传限制",
-        Component: UploaderDemoLimit,
-      },
-      {
-        id: "preview",
-        title: "自定义预览",
-        Component: UploaderDemoPreview,
-      },
-      {
-        id: "close",
-        title: "异步关闭",
-        Component: UploaderDemoClose,
-      },
-      {
-        id: "form",
-        title: "表单中使用",
-        Component: UploaderDemoForm,
-      },
-    ],
-  },
   "action-sheet": {
     title: "ActionSheet 动作面板",
     demos: [
@@ -1488,36 +1382,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "component",
         title: "组件调用",
         Component: DialogDemoComponent,
-      },
-    ],
-  },
-  "dropdown-menu": {
-    title: "DropdownMenu 下拉菜单",
-    demos: [
-      {
-        id: "basic",
-        title: "基础用法",
-        Component: DropdownMenuDemoBasic,
-      },
-      {
-        id: "custom",
-        title: "自定义菜单内容",
-        Component: DropdownMenuDemoCustom,
-      },
-      {
-        id: "color",
-        title: "自定义高亮颜色",
-        Component: DropdownMenuDemoColor,
-      },
-      {
-        id: "direction",
-        title: "向上展开",
-        Component: DropdownMenuDemoDirection,
-      },
-      {
-        id: "disabled",
-        title: "禁用菜单",
-        Component: DropdownMenuDemoDisabled,
       },
     ],
   },
@@ -1588,16 +1452,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "content",
         title: "自定义内容",
         Component: OverlayDemoContent,
-      },
-    ],
-  },
-  "pull-refresh": {
-    title: "PullRefresh 下拉刷新",
-    demos: [
-      {
-        id: "basic",
-        title: "基础刷新",
-        Component: PullRefreshDemoBasic,
       },
     ],
   },
@@ -1881,16 +1735,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
       },
     ],
   },
-  "list": {
-    title: "List 列表加载",
-    demos: [
-      {
-        id: "basic",
-        title: "basic",
-        Component: ListDemoBasic,
-      },
-    ],
-  },
   "notice-bar": {
     title: "NoticeBar 通知栏",
     demos: [
@@ -2121,16 +1965,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
       },
     ],
   },
-  "index-bar": {
-    title: "IndexBar 索引栏",
-    demos: [
-      {
-        id: "tabbed",
-        title: "tabbed",
-        Component: IndexBarDemoTabbed,
-      },
-    ],
-  },
   "nav-bar": {
     title: "NavBar 导航栏",
     demos: [
@@ -2143,26 +1977,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "custom",
         title: "自定义内容",
         Component: NavBarDemoCustom,
-      },
-    ],
-  },
-  "pagination": {
-    title: "Pagination 分页",
-    demos: [
-      {
-        id: "basic",
-        title: "基础",
-        Component: PaginationDemoBasic,
-      },
-      {
-        id: "simple",
-        title: "简洁模式",
-        Component: PaginationDemoSimple,
-      },
-      {
-        id: "custom",
-        title: "自定义",
-        Component: PaginationDemoCustom,
       },
     ],
   },
