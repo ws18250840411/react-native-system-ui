@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
+import { ActivityIndicator, Pressable, Text, View, Platform, StyleSheet, type ViewStyle, type TextStyle } from 'react-native'
 
 import { withAlpha } from '../../utils/color'
 import { isObject } from '../../utils'
@@ -338,7 +338,13 @@ export const shallowEqualArray = (a: PickerValue[] = [], b: PickerValue[] = []) 
 
 const PickerColumn: React.FC<
   PickerColumnProps & {
-    tokens: ReturnType<typeof usePickerTokens>
+    indicatorColor: string
+    textColor: string
+    textMutedColor: string
+    textDisabledColor: string
+    optionSize: number
+    fontFamily: string
+    optionWeight: TextStyle['fontWeight']
   }
 > = React.memo(
   props => {
@@ -352,7 +358,13 @@ const PickerColumn: React.FC<
       getOptionTestID,
       getOptionA11yLabel,
       onSelect,
-      tokens,
+      indicatorColor,
+      textColor,
+      textMutedColor,
+      textDisabledColor,
+      optionSize,
+      fontFamily,
+      optionWeight,
       readOnly,
       decelerationRate,
       scrollEventThrottle,
@@ -378,6 +390,42 @@ const PickerColumn: React.FC<
       onSelect(option, columnIndex, target)
     }, [columnIndex, onSelect, options])
 
+    const renderOption = useCallback(
+      (item: PickerOption, _index: number, meta?: { active: boolean; disabled: boolean }) => {
+        const active = meta?.active ?? false
+        const disabled = meta?.disabled ?? false
+        const resolvedTextColor = disabled ? textDisabledColor : (active ? textColor : textMutedColor)
+        const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
+        const testID = getOptionTestID?.(item, { columnIndex, active })
+        const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
+        return (
+          <View style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
+            {isText(content) ? (
+              <Text numberOfLines={1} style={[styles.optionText, {
+                color: resolvedTextColor,
+                fontSize: optionSize,
+                fontFamily,
+                fontWeight: optionWeight,
+              }]}>{content}</Text>
+            ) : content}
+          </View>
+        )
+      },
+      [
+        columnIndex,
+        fontFamily,
+        getOptionA11yLabel,
+        getOptionTestID,
+        itemHeight,
+        optionRender,
+        optionSize,
+        optionWeight,
+        textColor,
+        textDisabledColor,
+        textMutedColor,
+      ],
+    )
+
     return (
       <View style={[styles.column, { height: itemHeight * visibleItemCount }]}>
         <WheelPicker
@@ -387,30 +435,11 @@ const PickerColumn: React.FC<
           selectedIndex={Math.max(0, selectedIndex)}
           onChange={handleChange}
           readOnly={readOnly}
-          indicatorColor={tokens.colors.indicator}
+          indicatorColor={indicatorColor}
           decelerationRate={decelerationRate}
           scrollEventThrottle={scrollEventThrottle}
           swipeDuration={swipeDuration}
-          renderItem={(item: PickerOption, _index, meta) => {
-            const active = meta?.active ?? false
-            const disabled = meta?.disabled ?? false
-            const textColor = disabled ? tokens.colors.textDisabled : (active ? tokens.colors.text : tokens.colors.textMuted)
-            const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
-            const testID = getOptionTestID?.(item, { columnIndex, active })
-            const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
-            return (
-              <View style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
-                {isText(content) ? (
-                  <Text numberOfLines={1} style={[styles.optionText, {
-                    color: textColor,
-                    fontSize: tokens.typography.optionSize,
-                    fontFamily: tokens.typography.fontFamily,
-                    fontWeight: tokens.typography.optionWeight,
-                  }]}>{content}</Text>
-                ) : content}
-              </View>
-            )
-          }}
+          renderItem={renderOption}
         />
       </View>
     )
@@ -433,7 +462,7 @@ const Picker: React.FC<PickerProps> = props => {
     visibleItemCount: visibleItemCountProp = tokens.defaults.visibleItemCount,
     loading = false,
     readOnly = false,
-    decelerationRate = Platform.select({ ios: 0.9975, android: 0.989, default: 0.989 }) ?? 'normal',
+    decelerationRate = Platform.OS === 'android' ? 0.99 : 'fast',
     swipeDuration = tokens.defaults.swipeDuration,
     scrollEventThrottle = 16,
     columnsTop,
@@ -526,8 +555,9 @@ const Picker: React.FC<PickerProps> = props => {
   const maskHeight = indicatorOffset
   const hasColumns = normalized.columns.length > 0
   const effectiveMaskColor = maskColor ?? tokens.colors.mask
-  const columnsContent = hasColumns
-    ? normalized.columns.map((column, columnIndex) => {
+  const columnsContent = useMemo(() => {
+    if (!hasColumns) return null
+    return normalized.columns.map((column, columnIndex) => {
       const key = isCascade ? `${columnIndex}-${normalized.values.slice(0, columnIndex).map(String).join('|')}` : String(columnIndex)
       return (
         <PickerColumn
@@ -545,11 +575,39 @@ const Picker: React.FC<PickerProps> = props => {
           readOnly={readOnly}
           swipeDuration={swipeDuration}
           onSelect={handleSelect}
-          tokens={tokens}
+          indicatorColor={tokens.colors.indicator}
+          textColor={tokens.colors.text}
+          textMutedColor={tokens.colors.textMuted}
+          textDisabledColor={tokens.colors.textDisabled}
+          optionSize={tokens.typography.optionSize}
+          fontFamily={tokens.typography.fontFamily}
+          optionWeight={tokens.typography.optionWeight}
         />
       )
     })
-    : null
+  }, [
+    decelerationRate,
+    getOptionA11yLabel,
+    getOptionTestID,
+    handleSelect,
+    hasColumns,
+    isCascade,
+    itemHeight,
+    normalized.columns,
+    normalized.values,
+    optionRender,
+    readOnly,
+    scrollEventThrottle,
+    swipeDuration,
+    tokens.colors.indicator,
+    tokens.colors.text,
+    tokens.colors.textDisabled,
+    tokens.colors.textMuted,
+    tokens.typography.fontFamily,
+    tokens.typography.optionSize,
+    tokens.typography.optionWeight,
+    visibleItemCount,
+  ])
 
   return (
     <View

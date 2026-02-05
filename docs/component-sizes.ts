@@ -11,7 +11,7 @@ export default [
   },
   {
     "name": "picker",
-    "size": 7166
+    "size": 7269
   },
   {
     "name": "form",
@@ -66,16 +66,16 @@ export default [
     "size": 4740
   },
   {
+    "name": "swiper",
+    "size": 4699
+  },
+  {
     "name": "stepper",
     "size": 4648
   },
   {
     "name": "image-preview",
     "size": 4436
-  },
-  {
-    "name": "swiper",
-    "size": 4429
   },
   {
     "name": "cell",
