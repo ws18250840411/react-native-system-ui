@@ -1,7 +1,8 @@
 import type React from 'react'
-import type { TextStyle, ViewProps } from 'react-native'
+import type { ViewProps } from 'react-native'
 
 import type { DeepPartial } from '../../types'
+import type { PickerTokens } from './tokens'
 
 export type PickerValue = string | number
 
@@ -21,43 +22,6 @@ export type PickerColumn = PickerOption[] | PickerColumnWithDefault
 export type PickerColumns = PickerColumn[] | PickerOption[]
 
 export type PickerToolbarPosition = 'top' | 'bottom'
-
-export interface PickerTokens {
-  defaults: {
-    itemHeight: number
-    visibleItemCount: number
-    showToolbar: boolean
-    toolbarPosition: PickerToolbarPosition
-    swipeDuration: number
-    maskType: 'gradient' | 'solid'
-  }
-  colors: {
-    background: string
-    indicator: string
-    text: string
-    textMuted: string
-    textDisabled: string
-    confirm: string
-    cancel: string
-    mask: string
-    loadingMask: string
-  }
-  spacing: {
-    toolbarHeight: number
-    actionPadding: number
-  }
-  typography: {
-    optionSize: number
-    toolbarSize: number
-    fontFamily: string
-    optionWeight: TextStyle['fontWeight']
-    toolbarWeight: TextStyle['fontWeight']
-  }
-  radius: {
-    toolbar: number
-    container: number
-  }
-}
 
 export interface PickerProps extends ViewProps {
   columns?: PickerColumns

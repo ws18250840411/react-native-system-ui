@@ -1,55 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
 
-import { createComponentTokensHook } from '../../design-system'
-import { type Foundations } from '../../design-system/tokens'
 import { withAlpha } from '../../utils/color'
 import { isObject } from '../../utils'
 import { isFiniteNumber, isText } from '../../utils/validate'
+import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
-import type { PickerColumn, PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerTokens, PickerValue } from './types'
-
-const createPickerTokens = (foundations: Foundations): PickerTokens => {
-  const { palette, spacing, fontSize, typography, radii } = foundations
-  return {
-    defaults: {
-      itemHeight: 44,
-      visibleItemCount: 6,
-      showToolbar: true,
-      toolbarPosition: 'top',
-      swipeDuration: 700,
-      maskType: 'gradient',
-    },
-    colors: {
-      background: '#ffffff',
-      indicator: palette.default[200] ?? '#ebedf0',
-      text: palette.default[900],
-      textMuted: palette.default[900],
-      textDisabled: palette.default[400],
-      confirm: palette.primary[600],
-      cancel: palette.default[600],
-      mask: '#ffffff',
-      loadingMask: 'rgba(255,255,255,0.65)',
-    },
-    spacing: {
-      toolbarHeight: 44,
-      actionPadding: spacing.lg,
-    },
-    typography: {
-      optionSize: fontSize.md,
-      toolbarSize: fontSize.md,
-      fontFamily: typography.fontFamily,
-      optionWeight: typography.weight.regular,
-      toolbarWeight: typography.weight.medium,
-    },
-    radius: {
-      toolbar: radii.none,
-      container: radii.xs,
-    },
-  }
-}
-
-export const usePickerTokens = createComponentTokensHook('picker', createPickerTokens)
+import type { PickerColumn, PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
 
 export function usePickerValue({
   columns,

@@ -53,6 +53,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const isInteractingRef = useRef(false)
   const isAnimatingRef = useRef(false)
   const queuedIndexRef = useRef<number | null>(null)
+  const isMomentumRef = useRef(false)
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const [layout, setLayout] = useState({ width: 0, height: 0 })
@@ -133,6 +134,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     }
   }, [])
 
+
   const swipeTo = useCallback((index: number, animated = true) => {
     if (count === 0) return
     if (animated && isAnimatingRef.current) {
@@ -211,6 +213,13 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     swipeTo(next, true)
   }, [count, shouldLoop, swipeTo])
 
+  const flushQueuedSwipe = () => {
+    if (queuedIndexRef.current == null) return
+    const next = queuedIndexRef.current
+    queuedIndexRef.current = null
+    swipeTo(next, true)
+  }
+
   useImperativeHandle(
     ref,
     () => ({
@@ -237,6 +246,15 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     clearAutoplay()
   }
 
+  const handleMomentumScrollBegin = () => {
+    isMomentumRef.current = true
+  }
+
+  const handleScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (isMomentumRef.current) return
+    handleScrollEnd(event)
+  }
+
   const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (count === 0) return
     const offset = vertical
@@ -254,12 +272,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     updateIndex(getRealIndex(nextDisplayIndex))
     isInteractingRef.current = false
     isAnimatingRef.current = false
+    isMomentumRef.current = false
     scheduleAutoplay()
-    if (queuedIndexRef.current != null) {
-      const next = queuedIndexRef.current
-      queuedIndexRef.current = null
-      swipeTo(next, true)
-    }
+    flushQueuedSwipe()
   }
 
   const renderIndicator = () => {
@@ -311,9 +326,16 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollToIndexFailed={(info) => {
           scrollToDisplayIndex(info.index, false)
+          isAnimatingRef.current = false
+          isInteractingRef.current = false
+          updateIndex(getRealIndex(info.index))
+          scheduleAutoplay()
+          flushQueuedSwipe()
         }}
       />
       <View pointerEvents="none" style={styles.indicatorOverlay}>

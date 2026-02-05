@@ -1,7 +1,7 @@
-import Picker, { usePickerTokens } from './Picker'
+import Picker from './Picker'
 
 export default Picker
-export { Picker, usePickerTokens }
+export { Picker }
 export type {
   PickerProps,
   PickerOption,
