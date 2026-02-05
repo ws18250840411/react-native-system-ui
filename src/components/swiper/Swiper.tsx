@@ -31,6 +31,7 @@ type SwiperComponent = (<T>(
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
 const DEFAULT_AUTOPLAY_INTERVAL = 3000
+const LOOP_RENDER_ALL_THRESHOLD = 10
 
 const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const {
@@ -84,6 +85,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     return [head, ...baseItems, tail]
   }, [baseItems, shouldLoop, count])
   const displayCount = displayData.length
+  const loopRenderAll = shouldLoop && displayCount <= LOOP_RENDER_ALL_THRESHOLD
 
   const getRealIndex = useCallback((displayIndex: number) => {
     if (!shouldLoop) return clamp(displayIndex, 0, count - 1)
@@ -124,8 +126,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
 
   const updateIndex = useCallback((next: number) => {
     const clamped = clamp(next, 0, Math.max(0, count - 1))
+    if (currentIndexRef.current === clamped) return
     currentIndexRef.current = clamped
-    setCurrentIndex((prev) => (prev === clamped ? prev : clamped))
+    setCurrentIndex(clamped)
     onChange?.(clamped)
   }, [count, onChange])
 
@@ -348,11 +351,11 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         getItemLayout={(_, index) => ({ length: mainSize, offset: mainSize * index, index })}
         initialScrollIndex={layoutReady ? initialDisplayIndex : undefined}
         scrollEnabled={touchable && count > 1}
-        removeClippedSubviews={!shouldLoop}
-        disableVirtualization={shouldLoop}
-        initialNumToRender={shouldLoop ? displayCount : 3}
-        maxToRenderPerBatch={shouldLoop ? displayCount : 3}
-        windowSize={shouldLoop ? displayCount : 5}
+        removeClippedSubviews={!shouldLoop || !loopRenderAll}
+        disableVirtualization={shouldLoop && loopRenderAll}
+        initialNumToRender={shouldLoop ? (loopRenderAll ? displayCount : 3) : 3}
+        maxToRenderPerBatch={shouldLoop ? (loopRenderAll ? displayCount : 3) : 3}
+        windowSize={shouldLoop ? (loopRenderAll ? displayCount : 7) : 5}
         pagingEnabled
         snapToInterval={mainSize}
         decelerationRate="fast"
