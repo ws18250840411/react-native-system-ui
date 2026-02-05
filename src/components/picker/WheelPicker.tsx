@@ -129,6 +129,7 @@ const WheelPickerInner = <T extends PickerOption,>({
   const visibleCount = visibleRest * 2 + 1
   const paddingHeight = visibleRest * itemHeight
   const containerHeight = itemHeight * visibleCount
+  const batchSize = Math.max(visibleCount * 3, 15)
 
   const indicatorStyle = useMemo(
     () => [styles.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }],
@@ -164,9 +165,6 @@ const WheelPickerInner = <T extends PickerOption,>({
     [data, itemHeight, onChange, readOnly, safeSelectedIndex, scrollToIndex, total, visibleRest],
   )
 
-  const header = useMemo(() => <View style={{ height: paddingHeight }} />, [paddingHeight])
-  const footer = useMemo(() => <View style={{ height: paddingHeight }} />, [paddingHeight])
-
   return (
     <View
       style={[styles.column, { height: containerHeight }]}
@@ -187,8 +185,7 @@ const WheelPickerInner = <T extends PickerOption,>({
             renderItem={renderItem}
           />
         )}
-        ListHeaderComponent={header}
-        ListFooterComponent={footer}
+        contentContainerStyle={{ paddingVertical: paddingHeight }}
         getItemLayout={(_, index) => ({
           length: itemHeight,
           offset: paddingHeight + itemHeight * index,
@@ -202,6 +199,11 @@ const WheelPickerInner = <T extends PickerOption,>({
         snapToAlignment="start"
         bounces={false}
         overScrollMode="never"
+        windowSize={7}
+        initialNumToRender={batchSize}
+        maxToRenderPerBatch={batchSize}
+        updateCellsBatchingPeriod={16}
+        removeClippedSubviews={Platform.OS === 'android'}
         onScrollBeginDrag={() => {
           if (readOnly) return
           isMomentumRef.current = false

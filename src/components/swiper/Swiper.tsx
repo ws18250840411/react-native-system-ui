@@ -17,6 +17,7 @@ import {
   View,
   StyleSheet,
   useWindowDimensions,
+  Platform,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type LayoutChangeEvent,
@@ -54,6 +55,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const isAnimatingRef = useRef(false)
   const queuedIndexRef = useRef<number | null>(null)
   const isMomentumRef = useRef(false)
+  const isWeb = Platform.OS === 'web'
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const [layout, setLayout] = useState({ width: 0, height: 0 })
@@ -144,7 +146,18 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     const targetRealIndex = clamp(index, 0, count - 1)
     let targetDisplayIndex = getDisplayIndex(targetRealIndex)
 
-    if (shouldLoop && animated) {
+    let resolvedAnimated = animated
+    if (isWeb && shouldLoop && animated) {
+      const currentRealIndex = currentIndexRef.current
+      if (
+        (currentRealIndex === count - 1 && targetRealIndex === 0) ||
+        (currentRealIndex === 0 && targetRealIndex === count - 1)
+      ) {
+        resolvedAnimated = false
+      }
+    }
+
+    if (shouldLoop && resolvedAnimated) {
       const currentDisplayIndex = getDisplayIndex(currentIndexRef.current)
       if (currentDisplayIndex === count && targetRealIndex === 0) {
         targetDisplayIndex = displayCount - 1
@@ -164,11 +177,11 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
       return
     }
 
-    if (animated) {
+    if (resolvedAnimated) {
       isAnimatingRef.current = true
     }
-    scrollToDisplayIndex(targetDisplayIndex, animated)
-    if (!animated) {
+    scrollToDisplayIndex(targetDisplayIndex, resolvedAnimated)
+    if (!resolvedAnimated) {
       updateIndex(targetRealIndex)
       if (queuedIndexRef.current != null) {
         const next = queuedIndexRef.current
@@ -176,7 +189,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         swipeTo(next, true)
       }
     }
-  }, [count, getDisplayIndex, scrollToDisplayIndex, shouldLoop, displayCount, updateIndex])
+  }, [count, getDisplayIndex, scrollToDisplayIndex, shouldLoop, displayCount, updateIndex, isWeb])
 
   const resolveAutoplayInterval = useCallback(() => {
     if (typeof autoplay === 'number') return Math.max(0, autoplay)
@@ -187,10 +200,10 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const scheduleAutoplay = useCallback(() => {
     const interval = resolveAutoplayInterval()
     if (!interval || count <= 1) return
-    if (isInteractingRef.current) return
+    if (isInteractingRef.current && !isWeb) return
     clearAutoplay()
     autoplayTimerRef.current = setTimeout(() => {
-      if (isInteractingRef.current) return
+      if (isInteractingRef.current && !isWeb) return
       const nextIndex = shouldLoop
         ? (currentIndexRef.current + 1) % count
         : clamp(currentIndexRef.current + 1, 0, count - 1)
@@ -244,6 +257,26 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const handleScrollBeginDrag = () => {
     isInteractingRef.current = true
     clearAutoplay()
+  }
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (!isWeb || count <= 1) return
+    const offset = vertical
+      ? event.nativeEvent.contentOffset.y
+      : event.nativeEvent.contentOffset.x
+    const displayIndex = Math.round(offset / mainSize)
+    const nextDisplayIndex = shouldLoop
+      ? clamp(displayIndex, 0, displayCount - 1)
+      : clamp(displayIndex, 0, count - 1)
+    updateIndex(getRealIndex(nextDisplayIndex))
+    const alignedOffset = Math.round(offset / mainSize) * mainSize
+    if (Math.abs(offset - alignedOffset) < 0.5) {
+      isAnimatingRef.current = false
+      isInteractingRef.current = false
+      isMomentumRef.current = false
+      scheduleAutoplay()
+      flushQueuedSwipe()
+    }
   }
 
   const handleMomentumScrollBegin = () => {
@@ -326,6 +359,8 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         onScrollBeginDrag={handleScrollBeginDrag}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         onScrollEndDrag={handleScrollEndDrag}
         onMomentumScrollBegin={handleMomentumScrollBegin}
         onMomentumScrollEnd={handleScrollEnd}
