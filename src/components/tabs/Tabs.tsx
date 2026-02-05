@@ -9,6 +9,7 @@ import React, {
   Children,
   isValidElement,
   Fragment,
+  type FC,
   type ForwardRefRenderFunction,
 } from 'react'
 import {
@@ -30,14 +31,245 @@ import { parseNumberLike } from '../../utils/number'
 import { isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
-import { cancelFrame, requestFrame, isTabPaneElement } from './utils'
-import { useTabsAnimation } from './useTabsAnimation'
-import { useTabsScroll } from './useTabsScroll'
+
+const TabPane: FC<TabPaneProps> = () => null
+
+TabPane.displayName = 'Tabs.TabPane'
 
 interface ParsedPane extends TabPaneProps {
   key: React.Key
   name: TabsValue
   index: number
+}
+
+const canUseRaf =
+  typeof requestAnimationFrame !== 'undefined' &&
+  isFunction(requestAnimationFrame) &&
+  typeof cancelAnimationFrame !== 'undefined' &&
+  isFunction(cancelAnimationFrame)
+
+const requestFrame = canUseRaf
+  ? (cb: (time?: number) => void) => requestAnimationFrame(cb)
+  : (cb: (time?: number) => void) => setTimeout(cb, 16) as unknown as number
+
+const cancelFrame = (id: number | null) => {
+  if (id == null) return
+  if (canUseRaf) {
+    cancelAnimationFrame(id)
+  } else {
+    clearTimeout(id)
+  }
+}
+
+const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> => {
+  if (!React.isValidElement(child)) return false
+  if (child.type === TabPane) return true
+  const type = child.type as unknown as { displayName?: string }
+  return type.displayName === 'Tabs.TabPane'
+}
+
+interface UseTabsAnimationParams {
+  type: 'line' | 'card' | 'jumbo' | 'capsule'
+  animated: boolean
+  scrollable: boolean
+  align: 'start' | 'center' | 'end'
+  panes: Array<{ name: TabsValue; index: number }>
+  nameIndexMap: Map<TabsValue, number>
+  resolvedLineWidth?: number
+  resolvedLineHeight: number
+  resolvedDuration: number
+  currentName?: TabsValue | null
+  layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>
+  navContainerWidthRef: React.MutableRefObject<number>
+}
+
+const useTabsAnimation = ({
+  type,
+  animated,
+  scrollable,
+  align,
+  panes,
+  nameIndexMap,
+  resolvedLineWidth,
+  resolvedDuration,
+  currentName,
+  layoutMap,
+  navContainerWidthRef,
+}: UseTabsAnimationParams) => {
+  const indicatorX = useRef(new Animated.Value(0)).current
+  const indicatorWidth = useRef(new Animated.Value(0)).current
+  const indicatorInitializedRef = useRef(false)
+
+  const animateIndicator = useCallback(
+    (name?: TabsValue, immediate?: boolean) => {
+      if (name == null || type !== 'line') return false
+      const shouldUseEqualWidth =
+        !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
+      const index = nameIndexMap.get(name) ?? -1
+      const equalTabWidth = shouldUseEqualWidth ? navContainerWidthRef.current / panes.length : 0
+      const layout = shouldUseEqualWidth
+        ? { x: Math.max(index, 0) * equalTabWidth, width: equalTabWidth }
+        : layoutMap.current.get(name)
+      if (!layout || index < 0) {
+        return false
+      }
+      const timing = (value: Animated.Value, toValue: number) =>
+        Animated.timing(value, {
+          toValue,
+          duration: immediate || !animated ? 0 : resolvedDuration,
+          useNativeDriver: false,
+        })
+      const targetWidth = resolvedLineWidth ?? layout.width
+      const targetX = resolvedLineWidth
+        ? layout.x + (layout.width - targetWidth) / 2
+        : layout.x
+      Animated.parallel([
+        timing(indicatorX, targetX),
+        timing(indicatorWidth, targetWidth),
+      ]).start()
+      return true
+    },
+    [align, animated, indicatorWidth, indicatorX, nameIndexMap, panes.length, resolvedDuration, resolvedLineWidth, scrollable, type, layoutMap, navContainerWidthRef],
+  )
+
+  useEffect(() => {
+    if (currentName == null) return
+    const shouldAnimate = indicatorInitializedRef.current
+    const didAnimate = animateIndicator(currentName, !shouldAnimate)
+    if (didAnimate && !indicatorInitializedRef.current) {
+      indicatorInitializedRef.current = true
+    }
+  }, [animateIndicator, currentName])
+
+  return {
+    indicatorX,
+    indicatorWidth,
+    indicatorInitializedRef,
+    animateIndicator,
+  }
+}
+
+interface UseTabsScrollParams {
+  scrollable: boolean
+  animated: boolean
+  currentName?: TabsValue | null
+  resolvedDuration: number
+  layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>
+  navContainerWidthRef: React.MutableRefObject<number>
+  navContentWidthRef: React.MutableRefObject<number>
+}
+
+const useTabsScroll = ({
+  scrollable,
+  animated,
+  currentName,
+  resolvedDuration,
+  layoutMap,
+  navContainerWidthRef,
+  navContentWidthRef,
+}: UseTabsScrollParams) => {
+  const navScrollRef = useRef<ScrollView>(null)
+  const navScrollX = useRef(new Animated.Value(0)).current
+  const navScrollAnimRef = useRef<Animated.CompositeAnimation | null>(null)
+  const navAutoScrollingRef = useRef(false)
+  const navLastScrollXRef = useRef(0)
+  const navAutoScrollFrameRef = useRef<number | null>(null)
+
+  const scrollIntoView = useCallback(
+    (immediate?: boolean) => {
+      if (!scrollable || currentName == null) return
+      const layout = layoutMap.current.get(currentName)
+      const containerWidth = navContainerWidthRef.current
+      if (!layout || !containerWidth) return
+      const contentWidth = navContentWidthRef.current
+      const targetX = layout.x - (containerWidth - layout.width) / 2
+      const maxScroll = Math.max(contentWidth - containerWidth, 0)
+      const clampedX = Math.max(0, Math.min(targetX, maxScroll))
+      if (maxScroll <= 0) {
+        return
+      }
+      if (Math.abs(clampedX - navLastScrollXRef.current) < 1) {
+        return
+      }
+      if (navScrollAnimRef.current) {
+        navScrollAnimRef.current.stop()
+        navScrollAnimRef.current = null
+      }
+      cancelFrame(navAutoScrollFrameRef.current)
+      navAutoScrollFrameRef.current = null
+      if (immediate || !animated) {
+        navAutoScrollingRef.current = true
+        navScrollX.setValue(clampedX)
+        navAutoScrollFrameRef.current = requestFrame(() => {
+          navAutoScrollFrameRef.current = null
+          navAutoScrollingRef.current = false
+        })
+        return
+      }
+      navScrollX.setValue(navLastScrollXRef.current)
+      navAutoScrollingRef.current = true
+      navScrollAnimRef.current = Animated.timing(navScrollX, {
+        toValue: clampedX,
+        duration: resolvedDuration,
+        useNativeDriver: false,
+      })
+      navScrollAnimRef.current.start(({ finished }) => {
+        navScrollAnimRef.current = null
+        navAutoScrollingRef.current = false
+        if (!finished) {
+          return
+        }
+        navLastScrollXRef.current = clampedX
+      })
+    },
+    [animated, currentName, navScrollX, resolvedDuration, scrollable, layoutMap, navContainerWidthRef, navContentWidthRef],
+  )
+
+  useEffect(() => {
+    if (!scrollable) return
+    const listenerId = navScrollX.addListener(({ value }) => {
+      const prev = navLastScrollXRef.current
+      navLastScrollXRef.current = value
+      if (Math.abs(value - prev) < 0.5) {
+        return
+      }
+      navScrollRef.current?.scrollTo({ x: value, y: 0, animated: false })
+    })
+    return () => {
+      navScrollX.removeListener(listenerId)
+    }
+  }, [navScrollX, scrollable])
+
+  useEffect(() => {
+    return () => {
+      cancelFrame(navAutoScrollFrameRef.current)
+      navAutoScrollFrameRef.current = null
+    }
+  }, [])
+
+  const handleNavScrollBeginDrag = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    navAutoScrollingRef.current = false
+    if (navScrollAnimRef.current) {
+      navScrollAnimRef.current.stop()
+      navScrollAnimRef.current = null
+    }
+    navLastScrollXRef.current = event.nativeEvent.contentOffset.x
+  }, [])
+
+  const handleNavScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (navAutoScrollingRef.current) {
+      return
+    }
+    navLastScrollXRef.current = event.nativeEvent.contentOffset.x
+  }, [])
+
+  return {
+    navScrollRef,
+    navScrollX,
+    scrollIntoView,
+    handleNavScrollBeginDrag,
+    handleNavScroll,
+  }
 }
 
 interface TabItemProps {
@@ -97,11 +329,16 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const inactiveTitleColor = titleInactiveColor ?? (isCard ? color ?? tokens.colors.cardBorder : isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
   const textColor = pane.disabled ? tokens.colors.textDisabled : isActive ? activeTitleColor : inactiveTitleColor
 
-  const descriptionColor = isDisabled ? tokens.colors.textDisabled : isJumbo ? (isActive ? tokens.colors.jumboDescriptionActive : tokens.colors.jumboDescription) : (isActive ? tokens.colors.descriptionActive : tokens.colors.description)
+  const descriptionColor = isDisabled
+    ? tokens.colors.textDisabled
+    : isJumbo
+      ? (isActive ? tokens.colors.jumboDescriptionActive : tokens.colors.jumboDescription)
+      : (isActive ? tokens.colors.descriptionActive : tokens.colors.description)
 
   const shouldFlex = !scrollable && (align !== 'start' || isCard)
-  const horizontalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingHorizontal
-  const verticalPadding = isCard || isJumbo || isCapsule ? 0 : tokens.tabList.paddingVertical
+  const isCompactType = isCard || isJumbo || isCapsule
+  const horizontalPadding = isCompactType ? 0 : tokens.tabList.paddingHorizontal
+  const verticalPadding = isCompactType ? 0 : tokens.tabList.paddingVertical
   const labelWrapperStyles: ViewStyle[] = [styles.labelWrapper]
   const labelTextWrapperStyles: ViewStyle[] | null = isCapsule ? [{
     flex: 1,
@@ -136,73 +373,79 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
     })
   }
 
+  const titleTextStyle = [
+    styles.title,
+    {
+      color: textColor,
+      fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
+      fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
+      lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
+      textAlign: 'center' as const,
+    },
+    ellipsis && !isJumbo ? styles.ellipsis : null,
+    titleStyle,
+  ]
+  const titleNode = (
+    <Text style={titleTextStyle} numberOfLines={ellipsis && !isJumbo ? 1 : undefined}>
+      {renderTitle}
+    </Text>
+  )
+  const descriptionMarginTop = isJumbo
+    ? tokens.spacing.jumboDescriptionMarginTop
+    : tokens.spacing.descriptionMarginTop
+  const descriptionJumboStyle = isJumbo
+    ? {
+      backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
+      paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+      paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+      borderRadius: tokens.jumbo.descriptionRadius,
+    }
+    : null
+  const descriptionTextStyle = [
+    styles.descriptionText,
+    {
+      color: descriptionColor,
+      fontSize: tokens.typography.descriptionSize,
+      marginTop: descriptionMarginTop,
+      textAlign: 'center' as const,
+    },
+    descriptionJumboStyle,
+    descriptionStyle,
+  ]
+  const descriptionViewStyle = [
+    styles.descriptionView,
+    {
+      marginTop: descriptionMarginTop,
+      alignItems: 'center' as const,
+    },
+    descriptionJumboStyle,
+  ]
+
   return (
     <Pressable
       {...ariaPress.interactionProps}
       onLayout={event => onLayout(pane.name, event)}
-        style={[styles.tabItem, shouldFlex ? styles.flexItem : null, {
-          paddingHorizontal: horizontalPadding,
-          paddingVertical: verticalPadding,
-        }, isCard ? {
-          borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-          borderRightColor: color ?? tokens.colors.cardBorder,
-          backgroundColor: isActive ? color ?? tokens.colors.cardActiveBackground : tokens.colors.cardBackground,
-        } : null, tabStyle]}
+      style={[styles.tabItem, shouldFlex ? styles.flexItem : null, {
+        paddingHorizontal: horizontalPadding,
+        paddingVertical: verticalPadding,
+      }, isCard ? {
+        borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth,
+        borderRightColor: color ?? tokens.colors.cardBorder,
+        backgroundColor: isActive ? color ?? tokens.colors.cardActiveBackground : tokens.colors.cardBackground,
+      } : null, tabStyle]}
     >
       <View style={labelWrapperStyles}>
         {labelTextWrapperStyles ? (
           <View style={labelTextWrapperStyles}>
-            <Text style={[styles.title, {
-              color: textColor,
-              fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
-              fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
-              lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
-              textAlign: 'center',
-            }, ellipsis && !isJumbo ? styles.ellipsis : null, titleStyle]} numberOfLines={ellipsis && !isJumbo ? 1 : undefined}>
-              {renderTitle}
-            </Text>
+            {titleNode}
           </View>
-        ) : (
-          <Text style={[styles.title, {
-            color: textColor,
-            fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize,
-            fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight,
-            lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined,
-            textAlign: 'center',
-          }, ellipsis && !isJumbo ? styles.ellipsis : null, titleStyle]} numberOfLines={ellipsis && !isJumbo ? 1 : undefined}>
-            {renderTitle}
-          </Text>
-        )}
+        ) : titleNode}
         {isRenderable(renderDescription) && (isText(renderDescription) ? (
-          <Text style={[styles.descriptionText, isJumbo ? {
-            color: descriptionColor,
-            fontSize: tokens.typography.descriptionSize,
-            marginTop: tokens.spacing.jumboDescriptionMarginTop,
-            textAlign: 'center',
-            backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
-            paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-            paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-            borderRadius: tokens.jumbo.descriptionRadius,
-          } : {
-            color: descriptionColor,
-            fontSize: tokens.typography.descriptionSize,
-            marginTop: tokens.spacing.descriptionMarginTop,
-            textAlign: 'center',
-          }, descriptionStyle]}>
+          <Text style={descriptionTextStyle}>
             {renderDescription}
           </Text>
         ) : (
-          <View style={[styles.descriptionView, isJumbo ? {
-            marginTop: tokens.spacing.jumboDescriptionMarginTop,
-            alignItems: 'center',
-            backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
-            paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-            paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-            borderRadius: tokens.jumbo.descriptionRadius,
-          } : {
-            marginTop: tokens.spacing.descriptionMarginTop,
-            alignItems: 'center',
-          }]}>
+          <View style={descriptionViewStyle}>
             {renderDescription}
           </View>
         ))}
@@ -871,4 +1114,7 @@ const TabsBase = React.forwardRef(TabsBaseInner) as React.ForwardRefExoticCompon
 
 TabsBase.displayName = 'Tabs'
 
-export default TabsBase
+const TabsWithPane = Object.assign(TabsBase, { TabPane })
+
+export { TabPane }
+export default TabsWithPane

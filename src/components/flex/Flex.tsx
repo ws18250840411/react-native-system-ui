@@ -1,9 +1,20 @@
 import React from 'react'
 import { Platform, View } from 'react-native'
 
-import { FlexContext } from './FlexContext'
 import { useFlexTokens } from './tokens'
 import type { FlexProps } from './types'
+
+export interface FlexContextValue {
+  horizontalGap: number
+  verticalGap: number
+  columns: number
+}
+
+export const FlexContext = React.createContext<FlexContextValue>({
+  horizontalGap: 0,
+  verticalGap: 0,
+  columns: 24,
+})
 
 const alignMap = {
   start: 'flex-start',

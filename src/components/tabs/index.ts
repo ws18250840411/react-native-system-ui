@@ -1,5 +1,4 @@
-import TabsBase from './Tabs'
-import TabPane from './TabPane'
+import TabsBase, { TabPane } from './Tabs'
 
 export type {
   TabsProps,

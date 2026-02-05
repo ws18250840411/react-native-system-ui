@@ -7,31 +7,31 @@
 export default [
   {
     "name": "picker",
-    "size": 9805
+    "size": 8678
   },
   {
     "name": "tabs",
-    "size": 9028
+    "size": 8038
   },
   {
     "name": "form",
-    "size": 6741
+    "size": 6772
   },
   {
     "name": "cascader",
-    "size": 6050
+    "size": 5991
   },
   {
     "name": "dialog",
     "size": 5787
   },
   {
-    "name": "field",
-    "size": 5695
+    "name": "slider",
+    "size": 5600
   },
   {
-    "name": "slider",
-    "size": 5608
+    "name": "field",
+    "size": 5593
   },
   {
     "name": "calendar",
@@ -43,15 +43,15 @@ export default [
   },
   {
     "name": "button",
-    "size": 5067
-  },
-  {
-    "name": "checkbox",
-    "size": 4998
+    "size": 5027
   },
   {
     "name": "number-keyboard",
     "size": 4989
+  },
+  {
+    "name": "checkbox",
+    "size": 4957
   },
   {
     "name": "notify",
@@ -63,11 +63,11 @@ export default [
   },
   {
     "name": "radio",
-    "size": 4740
+    "size": 4701
   },
   {
     "name": "swiper",
-    "size": 4699
+    "size": 4666
   },
   {
     "name": "stepper",
@@ -83,7 +83,7 @@ export default [
   },
   {
     "name": "grid",
-    "size": 4180
+    "size": 4140
   },
   {
     "name": "tabbar",
@@ -102,24 +102,24 @@ export default [
     "size": 3461
   },
   {
+    "name": "password-input",
+    "size": 3414
+  },
+  {
     "name": "image",
     "size": 3364
   },
   {
-    "name": "password-input",
-    "size": 3257
+    "name": "portal",
+    "size": 3309
   },
   {
     "name": "sidebar",
     "size": 3237
   },
   {
-    "name": "portal",
-    "size": 3157
-  },
-  {
     "name": "datetime-picker",
-    "size": 2984
+    "size": 3143
   },
   {
     "name": "progress",
@@ -171,11 +171,11 @@ export default [
   },
   {
     "name": "flex",
-    "size": 2049
+    "size": 1987
   },
   {
     "name": "config-provider",
-    "size": 1787
+    "size": 1945
   },
   {
     "name": "avatar",
@@ -191,7 +191,7 @@ export default [
   },
   {
     "name": "area",
-    "size": 1577
+    "size": 1571
   },
   {
     "name": "input",
@@ -211,10 +211,10 @@ export default [
   },
   {
     "name": "overlay",
-    "size": 844
+    "size": 997
   },
   {
     "name": "safe-area-view",
-    "size": 449
+    "size": 612
   }
 ]

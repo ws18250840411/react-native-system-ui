@@ -2,9 +2,25 @@ import React, { useMemo } from 'react'
 import { Platform, View, type ViewStyle } from 'react-native'
 
 import { createHairlineView } from '../../utils'
-import { GridContext } from './GridContext'
 import { useGridTokens } from './tokens'
-import type { GridProps } from './types'
+import type { GridDirection, GridProps, GridTokens } from './types'
+
+export interface GridContextValue {
+  columnNum: number
+  gutter: number
+  border: boolean
+  center: boolean
+  square: boolean
+  direction: GridDirection
+  reverse: boolean
+  clickable: boolean
+  iconSize: number
+  iconColor?: string
+  count: number
+  tokens: GridTokens
+}
+
+export const GridContext = React.createContext<GridContextValue | null>(null)
 
 export const Grid: React.FC<GridProps> = props => {
   const {

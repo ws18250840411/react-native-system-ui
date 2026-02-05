@@ -17,7 +17,25 @@ import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 import type { FieldTokens } from './tokens'
 import type { DialogShowOptions } from '../dialog'
-import { alignMap, mapKeyboardType } from './utils'
+
+const alignMap: Record<'left' | 'center' | 'right', 'flex-start' | 'center' | 'flex-end'> = {
+  left: 'flex-start',
+  center: 'center',
+  right: 'flex-end',
+}
+
+const mapKeyboardType = (type: FieldProps['type']): TextInputProps['keyboardType'] => {
+  switch (type) {
+    case 'number':
+      return 'decimal-pad'
+    case 'digit':
+      return 'number-pad'
+    case 'tel':
+      return 'phone-pad'
+    default:
+      return undefined
+  }
+}
 
 type FieldSlotProps = {
   onPress?: () => void

@@ -1,11 +1,22 @@
 import React, { useCallback, useMemo, useRef } from 'react'
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useRadioGroup } from '@react-native-aria/radio'
-import { useRadioGroupState } from '@react-stately/radio'
+import { useRadioGroupState, type RadioGroupState } from '@react-stately/radio'
 
-import type { RadioGroupProps, RadioValue } from './types'
-import { RadioGroupContext } from './RadioContext'
+import type { RadioGroupDirection, RadioGroupProps, RadioValue } from './types'
 import { useRadioTokens } from './tokens'
+
+export interface RadioGroupContextValue {
+  state: RadioGroupState
+  direction: RadioGroupDirection
+  iconSize?: number | string
+  checkedColor?: string
+  labelDisabled?: boolean
+  registerValue: (key: string, raw: RadioValue) => void
+  unregisterValue: (key: string) => void
+}
+
+export const RadioGroupContext = React.createContext<RadioGroupContextValue | null>(null)
 
 export const RadioGroup: React.FC<RadioGroupProps> = props => {
   const {

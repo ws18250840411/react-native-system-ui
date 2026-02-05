@@ -5,22 +5,6 @@ import { Pressable, Text, View } from 'react-native'
 import Picker, { type PickerOption } from '..'
 import Loading from '../../loading'
 
-jest.mock('../WheelPicker', () => {
-  const React = require('react')
-  const { View } = require('react-native')
-
-  return function MockWheelPicker(props: any) {
-    const { data, renderItem } = props
-    return (
-      <View testID="mock-wheel-picker">
-        {data.map((item: any, index: number) => (
-          <React.Fragment key={String(item?.value ?? index)}>{renderItem(item, index)}</React.Fragment>
-        ))}
-      </View>
-    )
-  }
-})
-
 describe('Picker', () => {
   it('passes active state to optionRender', () => {
     const columns: PickerOption[] = [

@@ -1,9 +1,9 @@
 import React, { useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { View } from 'react-native'
 
+import { shallowEqualObject } from '../../utils'
 import { isPromiseLike } from '../../utils/promise'
 import { isNumber, isString, isText } from '../../utils/validate'
-import { FormContext } from './FormContext'
 import type {
   FormInstance,
   FormItemRule,
@@ -13,6 +13,24 @@ import type {
   RegisteredFieldOptions,
 } from './types'
 import { FORM_ALL_FIELDS_KEY, getValueByName, normalizeTrigger, serializeNamePath, setValueByName } from './utils'
+
+export interface FormContextValue {
+  getFieldValue: (name: NamePath) => unknown
+  setFieldValue: (name: NamePath, value: unknown, trigger?: string) => void
+  registerField: (name: NamePath, options: RegisteredFieldOptions) => () => void
+  getFieldError: (name: NamePath) => string[] | undefined
+  validateField: (name: NamePath, trigger?: string) => Promise<boolean>
+  getFieldsValue: () => Record<string, unknown>
+  subscribe: (
+    listener: (changedValues: Record<string, unknown>, allValues: Record<string, unknown>) => void
+  ) => () => void
+  form?: FormInstance
+  colon?: boolean
+  labelWidth?: number
+  showValidateMessage?: boolean
+}
+
+export const FormContext = React.createContext<FormContextValue | null>(null)
 
 const runRuleValidation = (
   rule: FormItemRule,
@@ -47,25 +65,6 @@ const runRuleValidation = (
   return isPromiseLike(result) ? result.then(handle) : handle(result)
 }
 
-const shallowEqual = (
-  prev?: Record<string, unknown> | null,
-  next?: Record<string, unknown> | null,
-): boolean => {
-  if (prev === next) return true
-  if (!prev || !next) return false
-  const prevKeys = Object.keys(prev)
-  const nextKeys = Object.keys(next)
-  if (prevKeys.length !== nextKeys.length) {
-    return false
-  }
-  for (const key of prevKeys) {
-    if (prev[key] !== next[key]) {
-      return false
-    }
-  }
-  return true
-}
-
 const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   const {
     initialValues: initialValuesProp,
@@ -98,7 +97,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
   }, [])
 
   useEffect(() => {
-    if (shallowEqual(lastInitialValuesRef.current, mergedInitialValues)) {
+    if (shallowEqualObject(lastInitialValuesRef.current, mergedInitialValues)) {
       return
     }
     lastInitialValuesRef.current = mergedInitialValues

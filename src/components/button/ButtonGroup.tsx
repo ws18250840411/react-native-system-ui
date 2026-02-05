@@ -2,8 +2,30 @@ import React, { useMemo } from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { Platform, View } from 'react-native'
 
-import { ButtonGroupContext, type ButtonGroupContextValue } from './ButtonContext'
+import type {
+  ButtonIconPosition,
+  ButtonShadowLevel,
+  ButtonSize,
+  ButtonType,
+} from './types'
 import { useButtonTokens } from './tokens'
+
+export interface ButtonGroupContextValue {
+  type?: ButtonType
+  size?: ButtonSize
+  plain?: boolean
+  block?: boolean
+  round?: boolean
+  square?: boolean
+  shadow?: boolean | ButtonShadowLevel
+  disabled?: boolean
+  iconPosition?: ButtonIconPosition
+  hairline?: boolean
+}
+
+export const ButtonGroupContext = React.createContext<ButtonGroupContextValue | null>(
+  null
+)
 
 export interface ButtonGroupProps extends ButtonGroupContextValue {
   children: React.ReactNode

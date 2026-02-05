@@ -1,6 +1,7 @@
 
 export * from './array'
 export * from './color'
+export * from './compare'
 export * from './createPlatformShadow'
 export * from './date'
 export * from './deepMerge'

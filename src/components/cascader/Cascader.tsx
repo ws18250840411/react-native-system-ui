@@ -11,6 +11,7 @@ import {
 import { Checked, Cross } from "react-native-system-icon"
 
 import { useControllableValue } from "../../hooks"
+import { shallowEqualArray } from "../../utils"
 import { isFunction, isNumber, isRenderable, isText } from "../../utils/validate"
 import Popup from "../popup"
 import Tabs from "../tabs"
@@ -38,15 +39,6 @@ const getFieldKeys = (fieldNames?: CascaderFieldNames) => ({
   valueKey: fieldNames?.value ?? "value",
   childrenKey: fieldNames?.children ?? "children",
 })
-
-const isSameValueArray = (a: CascaderValue[], b: CascaderValue[]) => {
-  if (a === b) return true
-  if (a.length !== b.length) return false
-  for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) return false
-  }
-  return true
-}
 
 const resolveSelectedRows = (
   options: CascaderOption[] = [],
@@ -156,17 +148,17 @@ const Cascader: React.FC<CascaderProps> = props => {
 
   useEffect(() => {
     if (!poppable) {
-      setPanelValue(prev => (isSameValueArray(prev, cascaderValue) ? prev : cascaderValue))
+      setPanelValue(prev => (shallowEqualArray(prev, cascaderValue) ? prev : cascaderValue))
       return
     }
     if (!popupVisible) {
-      setPanelValue(prev => (isSameValueArray(prev, cascaderValue) ? prev : cascaderValue))
+      setPanelValue(prev => (shallowEqualArray(prev, cascaderValue) ? prev : cascaderValue))
     }
   }, [cascaderValue, poppable, popupVisible])
 
   const openPopup = useCallback(() => {
     if (!poppable || popupVisible) return
-    setPanelValue(prev => (isSameValueArray(prev, cascaderValue) ? prev : cascaderValue))
+    setPanelValue(prev => (shallowEqualArray(prev, cascaderValue) ? prev : cascaderValue))
     setPopupVisible(true)
   }, [cascaderValue, poppable, popupVisible, setPopupVisible])
 

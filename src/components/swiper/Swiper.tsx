@@ -22,14 +22,25 @@ import {
   type NativeSyntheticEvent,
   type LayoutChangeEvent,
 } from 'react-native'
-import type { SwiperProps, SwiperInstance } from './types'
+import { clamp } from '../../utils/number'
+import type { SwiperProps, SwiperInstance, SwiperItemProps } from './types'
 import SwiperPagIndicator from './SwiperPagIndicator'
 
 type SwiperComponent = (<T>(
   props: SwiperProps<T> & RefAttributes<SwiperInstance>
 ) => ReactElement | null) & { displayName?: string }
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+export const SwiperItem = forwardRef<View, SwiperItemProps>((props, ref) => {
+  const { style, children, testID } = props
+  return (
+    <View ref={ref} style={[styles.item, style]} testID={testID}>
+      {children}
+    </View>
+  )
+})
+
+SwiperItem.displayName = 'SwiperItem'
+
 const DEFAULT_AUTOPLAY_INTERVAL = 3000
 const LOOP_RENDER_ALL_THRESHOLD = 10
 
@@ -393,6 +404,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   slide: {
+    flex: 1,
+  },
+  item: {
     flex: 1,
   },
   indicatorOverlay: {

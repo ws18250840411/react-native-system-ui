@@ -1,4 +1,4 @@
-import { prepareColumns, normalizePicker, toArrayValue } from '../utils'
+import { prepareColumns, normalizePicker, toArrayValue } from '../Picker'
 import type { PickerOption } from '../types'
 
 describe('picker utils', () => {

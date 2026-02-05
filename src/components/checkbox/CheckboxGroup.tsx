@@ -1,19 +1,36 @@
 import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
-import { useCheckboxGroupState } from '@react-stately/checkbox'
+import { useCheckboxGroupState, type CheckboxGroupState } from '@react-stately/checkbox'
 
 import type {
+  CheckboxGroupDirection,
   CheckboxGroupProps,
+  CheckboxIconRender,
+  CheckboxShape,
   CheckboxValue,
 } from './types'
-import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
 import { isBoolean } from '../../utils'
 
 const serialize = (value: CheckboxValue) => String(value)
 
 type RegistryItem = { value: CheckboxValue; disabled?: boolean }
+
+export interface CheckboxGroupContextValue {
+  state: CheckboxGroupState
+  direction: CheckboxGroupDirection
+  shape?: CheckboxShape
+  iconSize?: number
+  iconRender?: CheckboxIconRender
+  checkedColor?: string
+  labelDisabled?: boolean
+  max?: number
+  registerValue: (key: string, raw: CheckboxValue, disabled?: boolean) => void
+  unregisterValue: (key: string) => void
+}
+
+export const CheckboxGroupContext = React.createContext<CheckboxGroupContextValue | null>(null)
 
 export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | { checked?: boolean; skipDisabled?: boolean }) => void }, CheckboxGroupProps>((props, ref) => {
   const {

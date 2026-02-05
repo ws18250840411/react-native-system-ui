@@ -14,13 +14,6 @@ import { useAriaPress } from '../../hooks'
 
 type TrackLayout = { width: number; height: number; x: number; y: number }
 
-const clampValue = (value: number | undefined, min: number, max: number) => {
-  if (!isFiniteNumber(value)) {
-    return min
-  }
-  return clamp(value, min, max)
-}
-
 const isSameLayout = (a: TrackLayout, b: TrackLayout) =>
   a.width === b.width && a.height === b.height && a.x === b.x && a.y === b.y
 
@@ -37,13 +30,13 @@ const normalizeValue = (
         ? [min, value]
         : [min, min]
 
-    const first = clampValue(raw[0], min, max)
-    const second = clampValue(raw[1] ?? raw[0], min, max)
+    const first = isFiniteNumber(raw[0]) ? clamp(raw[0], min, max) : min
+    const second = isFiniteNumber(raw[1] ?? raw[0]) ? clamp(raw[1] ?? raw[0], min, max) : min
     return first <= second ? [first, second] : [second, first]
   }
 
   const single = Array.isArray(value) ? value[0] : value
-  return [clampValue(single, min, max)]
+  return [isFiniteNumber(single) ? clamp(single, min, max) : min]
 }
 
 const toSliderValue = (values: readonly number[], range: boolean, fallback: number): SliderValue => {
