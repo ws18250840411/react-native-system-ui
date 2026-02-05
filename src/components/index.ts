@@ -133,8 +133,8 @@ export type {
   PickerColumns,
   PickerColumnWithDefault,
 } from './picker'
-export type { PickerTokens } from './picker/tokens'
-export { usePickerTokens } from './picker/tokens'
+export type { PickerTokens } from './picker/types'
+export { usePickerTokens } from './picker'
 export { default as NumberKeyboard } from './number-keyboard'
 export type { NumberKeyboardProps, NumberKeyboardTheme } from './number-keyboard'
 export type { NumberKeyboardTokens } from './number-keyboard/tokens'

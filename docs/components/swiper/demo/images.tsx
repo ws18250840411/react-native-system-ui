@@ -12,7 +12,7 @@ const images = [
 export default () => {
   return (
     <View style={styles.container}>
-      <Swiper autoplay={3000} indicator>
+      <Swiper autoplay={3000} indicator style={styles.swiper}>
         {images.map((uri) => (
           <Swiper.Item key={uri}>
             <Image source={{ uri }} style={styles.image} resizeMode="cover" />
@@ -27,9 +27,12 @@ const styles = StyleSheet.create({
   container: {
     height: 200,
   },
+  swiper: {
+    height: 200,
+  },
   image: {
     width: '100%',
-    height: 200,
+    height: '100%',
   },
 })
 

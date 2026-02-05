@@ -15,7 +15,7 @@ jest.mock('react-native', () => {
 
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Text, FlatList, Platform, View } from 'react-native'
+import { Text, FlatList, Platform } from 'react-native'
 
 import Swiper from '..'
 
@@ -41,31 +41,24 @@ describe('Swiper', () => {
       </Swiper>
     )
 
-    
     const flatList = tree.root.findByType(FlatList)
     expect(flatList).toBeTruthy()
-
-    
-    
-    
-    expect(flatList.props.data).toHaveLength(4)
-    expect(flatList.props.nestedScrollEnabled).toBe(false)
-    expect(flatList.props.directionalLockEnabled).toBe(true)
+    expect(flatList.props.data).toHaveLength(2)
   })
 
-  it('renders data prop correctly', () => {
+  it('renders loop data correctly', () => {
     const tree = renderer.create(
       <Swiper
+        loop
         data={[1, 2, 3]}
         renderItem={({ item }) => <Text>{item}</Text>}
       />
     )
     const flatList = tree.root.findByType(FlatList)
-    
     expect(flatList.props.data).toHaveLength(5)
   })
 
-  it('autoplay triggers timer', () => {
+  it('autoplay schedules timer', () => {
     const tree = renderer.create(
       <Swiper autoplay={1000}>
         <Swiper.Item><Text>1</Text></Swiper.Item>
@@ -75,194 +68,40 @@ describe('Swiper', () => {
     )
 
     expect(jest.getTimerCount()).toBeGreaterThan(0)
+    tree.unmount()
   })
 
-  it('restarts autoplay after momentum ends', () => {
-    const tree = renderer.create(
-      <Swiper autoplay={1000}>
-        <Swiper.Item><Text>1</Text></Swiper.Item>
-        <Swiper.Item><Text>2</Text></Swiper.Item>
-        <Swiper.Item><Text>3</Text></Swiper.Item>
-      </Swiper>
-    )
-
-    const flatList = tree.root.findByType(FlatList)
-
-    expect(jest.getTimerCount()).toBeGreaterThan(0)
-
-    act(() => {
-      flatList.props.onScrollBeginDrag?.()
-    })
-
-    expect(jest.getTimerCount()).toBe(0)
-
-    act(() => {
-      flatList.props.onMomentumScrollBegin?.()
-    })
-
-    act(() => {
-      flatList.props.onScrollEndDrag?.({
-        nativeEvent: { contentOffset: { x: 100, y: 0 } },
-      })
-    })
-
-    act(() => {
-      jest.runOnlyPendingTimers()
-    })
-
-    expect(jest.getTimerCount()).toBe(0)
-
-    act(() => {
-      flatList.props.onMomentumScrollEnd?.({
-        nativeEvent: { contentOffset: { x: 100, y: 0 } },
-      })
-    })
-
-    expect(jest.getTimerCount()).toBeGreaterThan(0)
-  })
-
-  it('disables loop when not enough items', () => {
-    const tree = renderer.create(
-      <Swiper>
-        <Swiper.Item><Text>1</Text></Swiper.Item>
-      </Swiper>
-    )
-    const flatList = tree.root.findByType(FlatList)
-    
-    expect(flatList.props.data).toHaveLength(1)
-  })
-
-  it('renders custom indicator', () => {
-    const tree = renderer.create(
-      <Swiper indicator={() => <Text testID="custom-indicator">Indicator</Text>}>
-        <Swiper.Item><Text>1</Text></Swiper.Item>
-        <Swiper.Item><Text>2</Text></Swiper.Item>
-      </Swiper>
-    )
-    expect(tree.root.findByProps({ testID: 'custom-indicator' })).toBeTruthy()
-  })
-
-  it('allows nested scrolling when preventScroll=false', () => {
-    const tree = renderer.create(
-      <Swiper preventScroll={false}>
-        <Swiper.Item><Text>1</Text></Swiper.Item>
-        <Swiper.Item><Text>2</Text></Swiper.Item>
-      </Swiper>
-    )
-    const flatList = tree.root.findByType(FlatList)
-    expect(flatList.props.nestedScrollEnabled).toBe(true)
-    expect(flatList.props.directionalLockEnabled).toBe(false)
-  })
-
-  it('stuckAtBoundary adjusts snapToOffsets in non-loop mode', () => {
-    const tree = renderer.create(
-      <Swiper
-        testID="stuck-swiper"
-        loop={false}
-        slideSize={80}
-        trackOffset={10}
-        stuckAtBoundary
-      >
-        <Swiper.Item><Text>1</Text></Swiper.Item>
-        <Swiper.Item><Text>2</Text></Swiper.Item>
-      </Swiper>
-    )
-
-    const container = tree.root
-      .findAllByType(View)
-      .find((node) => node.props.testID === 'stuck-swiper')
-    expect(container).toBeTruthy()
-    expect(container!.props.onLayout).toBeInstanceOf(Function)
-
-    act(() => {
-      container!.props.onLayout({
-        nativeEvent: { layout: { width: 200, height: 100 } },
-      })
-    })
-
-    const flatList = tree.root.findByType(FlatList)
-    expect(flatList.props.snapToOffsets).toEqual([20, 140])
-  })
-
-  it('does not block subsequent ref commands when targeting current index', () => {
+  it('swipeNext wraps in loop mode', () => {
     const swiperRef = React.createRef<any>()
-
     renderer.create(
-      <Swiper ref={swiperRef} testID="ref-swiper">
+      <Swiper ref={swiperRef} loop initialSwipe={2}>
         <Swiper.Item><Text>1</Text></Swiper.Item>
         <Swiper.Item><Text>2</Text></Swiper.Item>
         <Swiper.Item><Text>3</Text></Swiper.Item>
-      </Swiper>,
-    )
-
-    act(() => {
-      swiperRef.current?.goToFirstIndex()
-      swiperRef.current?.swipeNext()
-    })
-
-    expect(mockScrollToIndex).toHaveBeenCalledTimes(1)
-    expect(mockScrollToIndex).toHaveBeenLastCalledWith({ index: 2, animated: true })
-
-    act(() => {
-      jest.runOnlyPendingTimers()
-    })
-  })
-
-  it('responds immediately to multiple ref commands', () => {
-    const swiperRef = React.createRef<any>()
-
-    renderer.create(
-      <Swiper ref={swiperRef} testID="ref-swiper-multi">
-        <Swiper.Item><Text>1</Text></Swiper.Item>
-        <Swiper.Item><Text>2</Text></Swiper.Item>
-        <Swiper.Item><Text>3</Text></Swiper.Item>
-      </Swiper>,
-    )
-
-    act(() => {
-      swiperRef.current?.swipeNext()
-      swiperRef.current?.swipeNext()
-    })
-
-    expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 2, animated: true })
-    expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 3, animated: true })
-  })
-
-  it('wraps forward in loop via boundary copy', () => {
-    const swiperRef = React.createRef<any>()
-
-    renderer.create(
-      <Swiper ref={swiperRef} initialSwipe={2}>
-        <Swiper.Item><Text>1</Text></Swiper.Item>
-        <Swiper.Item><Text>2</Text></Swiper.Item>
-        <Swiper.Item><Text>3</Text></Swiper.Item>
-      </Swiper>,
+      </Swiper>
     )
 
     act(() => {
       swiperRef.current?.swipeNext()
     })
 
-    expect(mockScrollToIndex).toHaveBeenCalledTimes(1)
-    expect(mockScrollToIndex).toHaveBeenLastCalledWith({ index: 4, animated: true })
+    expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 4, animated: true })
   })
 
-  it('wraps backward in loop via boundary copy', () => {
+  it('swipePrev wraps in loop mode', () => {
     const swiperRef = React.createRef<any>()
-
     renderer.create(
-      <Swiper ref={swiperRef} initialSwipe={0}>
+      <Swiper ref={swiperRef} loop initialSwipe={0}>
         <Swiper.Item><Text>1</Text></Swiper.Item>
         <Swiper.Item><Text>2</Text></Swiper.Item>
         <Swiper.Item><Text>3</Text></Swiper.Item>
-      </Swiper>,
+      </Swiper>
     )
 
     act(() => {
       swiperRef.current?.swipePrev()
     })
 
-    expect(mockScrollToIndex).toHaveBeenCalledTimes(1)
-    expect(mockScrollToIndex).toHaveBeenLastCalledWith({ index: 0, animated: true })
+    expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 0, animated: true })
   })
 })

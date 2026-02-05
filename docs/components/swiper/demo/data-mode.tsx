@@ -30,6 +30,7 @@ export default () => {
         indicator
         autoplay={3000}
         loop
+        style={styles.swiper}
       />
     </View>
   )
@@ -37,6 +38,9 @@ export default () => {
 
 const styles = StyleSheet.create({
   container: {
+    height: 200,
+  },
+  swiper: {
     height: 200,
   },
   slide: {

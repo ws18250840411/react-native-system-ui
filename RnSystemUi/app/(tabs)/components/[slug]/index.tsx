@@ -122,7 +122,7 @@ export default function ComponentDemosScreen() {
 
   const demos = entry
     ? resolvedSlug === 'swiper'
-      ? entry.demos.filter(demo => demo.id !== 'vertical' && demo.id !== 'vertical-center')
+      ? entry.demos.filter(demo => demo.id !== 'vertical')
       : entry.demos
     : []
 
@@ -156,7 +156,7 @@ export default function ComponentDemosScreen() {
               <View style={styles.moreDemos}>
                 <Cell.Group title="更多演示">
                   {entry.demos
-                    .filter(demo => demo.id === 'vertical' || demo.id === 'vertical-center')
+                    .filter(demo => demo.id === 'vertical')
                     .map(demo => (
                       <Cell
                         key={demo.id}

@@ -15,6 +15,7 @@ export default () => {
             </Text>
           </View>
         )}
+        style={styles.swiper}
       >
         {colors.map((color, index) => (
           <Swiper.Item key={index}>
@@ -30,6 +31,9 @@ export default () => {
 
 const styles = StyleSheet.create({
   container: {
+    height: 200,
+  },
+  swiper: {
     height: 200,
   },
   slide: {

@@ -12,6 +12,7 @@ export default () => {
         onChange={(index) => {
           Toast.info(`当前索引: ${index}`)
         }}
+        style={styles.swiper}
       >
         {colors.map((color, index) => (
           <Swiper.Item key={index}>
@@ -27,6 +28,9 @@ export default () => {
 
 const styles = StyleSheet.create({
   container: {
+    height: 200,
+  },
+  swiper: {
     height: 200,
   },
   slide: {

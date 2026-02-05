@@ -6,16 +6,12 @@
  */
 export default [
   {
-    "name": "swiper",
-    "size": 10388
+    "name": "tabs",
+    "size": 9028
   },
   {
     "name": "picker",
-    "size": 9808
-  },
-  {
-    "name": "tabs",
-    "size": 9028
+    "size": 7303
   },
   {
     "name": "form",
@@ -75,7 +71,7 @@ export default [
   },
   {
     "name": "image-preview",
-    "size": 4444
+    "size": 4436
   },
   {
     "name": "cell",
@@ -84,6 +80,10 @@ export default [
   {
     "name": "grid",
     "size": 4180
+  },
+  {
+    "name": "swiper",
+    "size": 4015
   },
   {
     "name": "tabbar",

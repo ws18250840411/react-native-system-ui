@@ -248,9 +248,7 @@ import SwiperDemoIndicatorOff from '../../docs/components/swiper/demo/indicator-
 import SwiperDemoLoop from '../../docs/components/swiper/demo/loop'
 import SwiperDemoOnChange from '../../docs/components/swiper/demo/onChange'
 import SwiperDemoRef from '../../docs/components/swiper/demo/ref'
-import SwiperDemoSlideSize from '../../docs/components/swiper/demo/slide-size'
 import SwiperDemoVertical from '../../docs/components/swiper/demo/vertical'
-import SwiperDemoVerticalCenter from '../../docs/components/swiper/demo/vertical-center'
 import SwitchDemoAsync from '../../docs/components/switch/demo/async'
 import SwitchDemoBasic from '../../docs/components/switch/demo/basic'
 import SwitchDemoCell from '../../docs/components/switch/demo/cell'
@@ -1827,16 +1825,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "vertical",
         title: "纵向滚动",
         Component: SwiperDemoVertical,
-      },
-      {
-        id: "vertical-center",
-        title: "垂直滑块居中",
-        Component: SwiperDemoVerticalCenter,
-      },
-      {
-        id: "slide-size",
-        title: "自定义滑块大小",
-        Component: SwiperDemoSlideSize,
       },
       {
         id: "custom-indicator",

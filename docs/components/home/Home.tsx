@@ -26,7 +26,7 @@ import './home.css'
 
 const SwiperDemo = () => {
   return (
-    <Swiper autoplay={3000} loop indicator>
+    <Swiper autoplay={3000} loop indicator style={{ height: 160 }}>
       <SwiperItem>
         <View style={styles.swiperItem}>
           <Typography.Text style={{ color: '#fff', fontSize: 18 }}>第一页</Typography.Text>

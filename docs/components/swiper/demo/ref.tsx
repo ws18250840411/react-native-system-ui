@@ -7,10 +7,11 @@ const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7']
 
 export default () => {
   const swiperRef = useRef<SwiperInstance>(null)
+  const lastIndex = colors.length - 1
 
   return (
     <View style={styles.container}>
-      <Swiper ref={swiperRef} indicator>
+      <Swiper ref={swiperRef} indicator style={styles.swiper}>
         {colors.map((color, index) => (
           <Swiper.Item key={index}>
             <View style={[styles.slide, { backgroundColor: color }]}>
@@ -40,7 +41,7 @@ export default () => {
           size="small"
           text="第一张"
           onPress={() => {
-            swiperRef.current?.goToFirstIndex()
+            swiperRef.current?.swipeTo(0)
           }}
         />
         <View style={styles.spacer} />
@@ -48,7 +49,7 @@ export default () => {
           size="small"
           text="最后一张"
           onPress={() => {
-            swiperRef.current?.goToLastIndex()
+            swiperRef.current?.swipeTo(lastIndex)
           }}
         />
       </View>
@@ -59,6 +60,9 @@ export default () => {
 const styles = StyleSheet.create({
   container: {
     height: 300,
+  },
+  swiper: {
+    height: 200,
   },
   slide: {
     width: '100%',

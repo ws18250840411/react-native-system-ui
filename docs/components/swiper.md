@@ -47,18 +47,6 @@ import { Swiper } from 'react-native-system-ui'
 
 <code src="./swiper/demo/vertical.tsx" title="纵向滚动"></code>
 
-### 垂直滑块居中
-
-当 `slideSize < 100` 时，可以通过 `trackOffset = (100 - slideSize) / 2` 让滑块在容器内居中展示（对齐官方示例）。
-
-<code src="./swiper/demo/vertical-center.tsx" title="垂直滑块居中"></code>
-
-### 自定义滑块大小
-
-滑块默认宽度为 `100%`，可以通过 `slideSize` 属性改变滑块宽度。
-
-<code src="./swiper/demo/slide-size.tsx" title="自定义滑块大小"></code>
-
 ### 自定义指示器
 
 通过 `indicator` 属性可以自定义指示器的样式。
@@ -97,20 +85,12 @@ import { Swiper } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `initialSwipe` | 初始位置索引值 | `number` | `0` |
 | `touchable` | 是否允许手势滑动 | `boolean` | `true` |
-| `autoplay` | 自动轮播间隔，单位为 ms | `boolean \| number` | `false` |
+| `autoplay` | 自动轮播间隔（ms），传 `true` 使用默认间隔 | `boolean \| number` | `false` |
 | `loop` | 是否开启循环播放 | `boolean` | `true` |
 | `vertical` | 是否为纵向滚动 | `boolean` | `false` |
-| `duration` | 动画时长，单位为 ms | `number` | `300` |
-| `enabled` | 是否启用 | `boolean` | `true` |
-| `rubberband` | 是否在拖动超出内容区域时启用橡皮筋效果，仅在非 loop 模式下生效 | `boolean` | `true` |
 | `onChange` | 每一页轮播结束后触发 | `(index: number) => void` | `-` |
 | `indicator` | 自定义指示器 | `boolean \| ((total: number, current: number) => ReactNode)` | `-` |
 | `indicatorProps` | 指示器属性 | `{ style?: StyleProp<ViewStyle> }` | `-` |
-| `slideSize` | 滑块的宽度百分比 | `number` | `100` |
-| `trackOffset` | 滑块轨道整体的偏移量百分比 | `number` | `0` |
-| `stuckAtBoundary` | 是否在边界两边卡住，避免出现空白，仅在非 loop 模式且 slideSize < 100 时生效 | `boolean` | `false` |
-| `autoHeight` | 自适应高度 | `boolean` | `false` |
-| `preventScroll` | 是否阻止内部滚动行为 | `boolean` | `true` |
 | `style` | 自定义样式 | `StyleProp<ViewStyle>` | `-` |
 | `children` | 子元素（children 模式） | `React.ReactElement \| React.ReactElement[]` | `-` |
 | `data` | 数据源（data 模式，与 children 二选一） | `T[]` | `-` |
@@ -126,12 +106,7 @@ import { Swiper } from 'react-native-system-ui'
 | `swipeTo` | 切换到指定位置 | `(index: number, animated?: boolean) => void` | `-` |
 | `swipeNext` | 切换到下一轮播 | `() => void` | `-` |
 | `swipePrev` | 切换到上一轮播 | `() => void` | `-` |
-| `enable` | 动态启用 Swiper（如果已经禁用） | `() => void` | `-` |
-| `disable` | 禁用 Swiper（如果已启用）被禁用时，它将不会响应任何事件和交互 | `() => void` | `-` |
 | `getCurrentIndex` | 获取当前索引 | `() => number` | `-` |
-| `getPrevIndex` | 获取上一个索引 | `() => number` | `-` |
-| `goToFirstIndex` | 跳转到第一个 | `() => void` | `-` |
-| `goToLastIndex` | 跳转到最后一个 | `() => void` | `-` |
 
 ### SwiperItem Props
 
@@ -158,8 +133,8 @@ import type { SwiperInstance, SwiperProps } from 'react-native-system-ui'
 
 ## 注意事项
 
-1. 当使用 `children` 模式时，子元素必须是 `Swiper.Item` 组件
+1. 当使用 `children` 模式时，子元素可以是任意可渲染的节点
 2. 当使用 `data` 模式时，需要提供 `renderItem` 函数
 3. 循环模式下，会自动复制首尾元素以实现无缝循环
-4. 当 `slideSize < 100` 时，建议设置容器高度（纵向）或宽度（横向）
+4. 建议为 Swiper 容器设置明确高度（纵向时设置高度，横向时设置宽度）
 

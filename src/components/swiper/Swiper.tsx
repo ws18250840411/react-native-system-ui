@@ -5,10 +5,9 @@ import React, {
   useEffect,
   useImperativeHandle,
   forwardRef,
-  cloneElement,
+  useMemo,
   Children,
   isValidElement,
-  useMemo,
   type ReactElement,
   type RefAttributes,
   type Ref,
@@ -17,950 +16,305 @@ import {
   FlatList,
   View,
   StyleSheet,
-  Platform,
-  Animated,
-  Easing,
   useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type LayoutChangeEvent,
-  type ViewStyle,
 } from 'react-native'
-import { clamp } from '../../utils/number'
-import { isFiniteNumber } from '../../utils/validate'
 import type { SwiperProps, SwiperInstance } from './types'
-import SwiperItem from './SwiperItem'
 import SwiperPagIndicator from './SwiperPagIndicator'
-import {
-  FALLBACK_WIDTH,
-  FALLBACK_HEIGHT,
-  runAfterFrames,
-  getInitialSwipeValue,
-  getDurationMs,
-  getSlideSizePct,
-  getTrackOffsetPct,
-} from './utils'
-import { useSwiperWeb } from './useSwiperWeb'
 
 type SwiperComponent = (<T>(
   props: SwiperProps<T> & RefAttributes<SwiperInstance>
 ) => ReactElement | null) & { displayName?: string }
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+const DEFAULT_AUTOPLAY_INTERVAL = 3000
+
 const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const {
-    initialSwipe = 0,
-    touchable = true,
-    autoplay = false,
-    loop = true,
-    vertical = false,
-    duration = 300,
-    enabled = true,
-    rubberband = true,
-    onChange,
-    indicator,
-    indicatorProps,
-    slideSize = 100,
-    trackOffset = 0,
-    autoHeight = false,
-    stuckAtBoundary = false,
-    preventScroll = true,
-    style,
-    children,
     data,
     renderItem,
+    children,
+    initialSwipe = 0,
+    touchable = true,
+    loop = true,
+    autoplay = false,
+    vertical = false,
+    onChange,
+    indicator = true,
+    indicatorProps,
+    style,
     testID,
   } = props
 
-  const initialSwipeValue = getInitialSwipeValue(initialSwipe)
-  const durationMs = getDurationMs(duration)
-  const slideSizePct = getSlideSizePct(slideSize)
-  const trackOffsetPct = getTrackOffsetPct(trackOffset)
-
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions()
-  const viewportWidth = windowWidth || FALLBACK_WIDTH
-  const viewportHeight = windowHeight || FALLBACK_HEIGHT
-  const [containerLayout, setContainerLayout] = useState<{ width: number; height: number }>({
-    width: 0,
-    height: 0,
-  })
-
   const flatListRef = useRef<FlatList>(null)
   const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isDraggingRef = useRef(false)
-  const isScrollingRef = useRef(false)
-  const nativeMomentumRef = useRef(false)
-  const manualInteractTsRef = useRef(0)
-  const prevIndexRef = useRef<number>(initialSwipeValue)
-  const currentDisplayIndexRef = useRef<number>(initialSwipeValue)
-  const desiredIndexRef = useRef<number>(initialSwipeValue)
-  const isWeb = Platform.OS === 'web'
-  const nativeQueuedScrollRef = useRef<{ index: number; animated: boolean } | null>(null)
-  const nativeScrollSeqRef = useRef(0)
-  const nativeScrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isInteractingRef = useRef(false)
+  const isAnimatingRef = useRef(false)
+  const queuedIndexRef = useRef<number | null>(null)
 
-  const scrollToIndexSafe = useCallback((index: number, animated: boolean) => {
-    try {
-      flatListRef.current?.scrollToIndex({ index, animated })
-    } catch {
-    }
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions()
+  const [layout, setLayout] = useState({ width: 0, height: 0 })
+
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout
+    setLayout((prev) => (prev.width === width && prev.height === height ? prev : { width, height }))
   }, [])
 
-  const clearNativeScrollEndTimer = useCallback(() => {
-    if (nativeScrollEndTimerRef.current) {
-      clearTimeout(nativeScrollEndTimerRef.current)
-      nativeScrollEndTimerRef.current = null
-    }
-  }, [])
+  const childItems = useMemo(() => {
+    if (!children) return []
+    return Children.toArray(children).filter(
+      (child): child is ReactElement => isValidElement(child)
+    )
+  }, [children])
 
-  const validChildren = useMemo(
-    () =>
-      children
-        ? Children.toArray(children).filter(
-          (child): child is ReactElement => {
-            if (!isValidElement(child)) return false
-            if (child.type === SwiperItem) return true
-            const type = child.type as unknown as { displayName?: string }
-            return type.displayName === 'SwiperItem'
-          }
-        )
-        : [],
-    [children]
-  )
+  const usingData = Array.isArray(data)
+  const baseItems = useMemo(() => (usingData ? data! : childItems), [usingData, data, childItems])
+  const count = baseItems.length
+  const shouldLoop = loop && count > 1
 
-  const itemsData = useMemo(
-    () =>
-      data
-        ? data
-        : validChildren.length > 0
-          ? validChildren.map((_, idx) => ({ type: 'child', index: idx }))
-          : [],
-    [data, validChildren]
-  )
-
-  const count = itemsData.length
-  const slideRatio = slideSizePct / 100
-  const offsetRatio = trackOffsetPct / 100
-
-  const shouldLoop = loop && count > 1 && slideRatio * (count - 1) >= 1
-
-  const loopData = useMemo(
-    () =>
-      !shouldLoop || count <= 1
-        ? itemsData
-        : [
-          ...itemsData.slice(-1),
-          ...itemsData,
-          ...itemsData.slice(0, 1),
-        ],
-    [itemsData, shouldLoop, count]
-  )
-
-  const displayData = useMemo(() => (shouldLoop ? loopData : itemsData), [shouldLoop, loopData, itemsData])
+  const displayData = useMemo(() => {
+    if (!shouldLoop) return baseItems
+    const head = baseItems[count - 1]
+    const tail = baseItems[0]
+    return [head, ...baseItems, tail]
+  }, [baseItems, shouldLoop, count])
   const displayCount = displayData.length
 
-  const getDisplayIndex = useCallback(
-    (index: number): number => {
-      if (!shouldLoop) return index
-      if (index === 0) return count - 1
-      if (index === displayCount - 1) return 0
-      return index - 1
-    },
-    [shouldLoop, count, displayCount]
-  )
+  const getRealIndex = useCallback((displayIndex: number) => {
+    if (!shouldLoop) return clamp(displayIndex, 0, count - 1)
+    if (displayIndex === 0) return count - 1
+    if (displayIndex === displayCount - 1) return 0
+    return displayIndex - 1
+  }, [shouldLoop, count, displayCount])
 
-  const handleContainerLayout = useCallback((e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout
-    setContainerLayout((prev) => prev.width === width && prev.height === height ? prev : { width, height })
-  }, [])
-  const markManualInteraction = useCallback(() => {
-    manualInteractTsRef.current = Date.now()
-  }, [])
+  const getDisplayIndex = useCallback((realIndex: number) => {
+    if (!shouldLoop) return clamp(realIndex, 0, count - 1)
+    return clamp(realIndex, 0, count - 1) + 1
+  }, [shouldLoop, count])
 
-  const containerWidth = containerLayout.width || viewportWidth
-  const containerHeight = containerLayout.height || viewportHeight
+  const initialRealIndex = clamp(initialSwipe, 0, Math.max(0, count - 1))
+  const initialDisplayIndex = getDisplayIndex(initialRealIndex)
+  const currentIndexRef = useRef(initialRealIndex)
+  const [currentIndex, setCurrentIndex] = useState(initialRealIndex)
 
-  const crossAxisMeasured = vertical ? containerLayout.width : containerLayout.height
-  const crossAxisSize: number | string = crossAxisMeasured > 0 ? crossAxisMeasured : '100%'
-  const slideSizeValue = (vertical ? containerHeight : containerWidth) * slideRatio
-  const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
-  const hasMainAxisMeasured = mainAxisMeasured > 0
-  const itemSizeStyle = useMemo(() => {
-    const base: Record<string, number | string> = {
-      [vertical ? 'height' : 'width']: hasMainAxisMeasured ? slideSizeValue : '100%',
-    }
-    if (crossAxisSize != null && !(autoHeight && !vertical)) {
-      base[vertical ? 'width' : 'height'] = crossAxisSize
-    }
-    return base
-  }, [autoHeight, crossAxisSize, hasMainAxisMeasured, slideSizeValue, vertical])
-  const trackOffsetPx = hasMainAxisMeasured ? mainAxisMeasured * offsetRatio : 0
+  const layoutReady = layout.width > 0 && layout.height > 0
+  const mainSize = vertical
+    ? (layout.height || windowHeight || 1)
+    : (layout.width || windowWidth || 1)
+  const crossSize = vertical
+    ? (layout.width || windowWidth || 1)
+    : (layout.height || windowHeight || 1)
 
-  const nativeTrackContentPaddingStyle = useMemo(() => {
-    if (!trackOffsetPx) return undefined
-    return vertical
-      ? { paddingTop: trackOffsetPx, paddingBottom: trackOffsetPx }
-      : { paddingLeft: trackOffsetPx, paddingRight: trackOffsetPx }
-  }, [trackOffsetPx, vertical])
+  const itemStyle = useMemo(() => ({
+    width: vertical ? crossSize : mainSize,
+    height: vertical ? mainSize : crossSize,
+  }), [vertical, mainSize, crossSize])
 
-  const stuckAtBoundaryEnabled = !!stuckAtBoundary && !shouldLoop && count > 1 && slideRatio < 1
-  const mainAxisSize = vertical ? containerHeight : containerWidth
-  const nonLoopMinOffset = stuckAtBoundaryEnabled ? trackOffsetPx : 0
-  const nonLoopMaxOffset = stuckAtBoundaryEnabled
-    ? Math.max(nonLoopMinOffset, trackOffsetPx + count * slideSizeValue - mainAxisSize, 0)
-    : Math.max(0, (count - 1) * slideSizeValue)
-  const nonLoopSnapOffsets = (() => {
-    if (!stuckAtBoundaryEnabled || count <= 1) return null
-    const offsets = new Array<number>(count)
-    for (let i = 0; i < count; i += 1) offsets[i] = i === 0 ? nonLoopMinOffset : i === count - 1 ? nonLoopMaxOffset : slideSizeValue * i
-    return offsets
-  })()
-
-  const getInitialIndex = useCallback(() => {
-    const initial = clamp(initialSwipeValue, 0, count - 1)
-    return shouldLoop ? initial + 1 : initial
-  }, [initialSwipeValue, count, shouldLoop])
-
-  const [current, setCurrent] = useState(() => getInitialIndex())
-  const [indicatorIndex, setIndicatorIndex] = useState(() => getDisplayIndex(getInitialIndex()))
-  const setCurrentSafe = useCallback((next: number) => {
-    setCurrent((prev) => (prev === next ? prev : next))
-  }, [])
-  const [enabledState, setEnabledState] = useState(enabled)
-  const autoHeightEnabled = autoHeight && !vertical
-  const hasCrossAxisMeasured = autoHeightEnabled ? true : crossAxisMeasured > 0
-  const layoutReady = hasMainAxisMeasured && hasCrossAxisMeasured
-  const [layoutVisible, setLayoutVisible] = useState(false)
-  const [autoHeightValue, setAutoHeightValue] = useState<number | undefined>(undefined)
-  const measuredHeightsRef = useRef<Record<number, number>>({})
-  const layoutVisibleSeqRef = useRef(0)
-
-  const swipeToRef = useRef<(index: number, animated?: boolean) => void>(() => { })
-
-  const onDragStartRef = useRef<() => void>(() => { })
-  const onDragEndRef = useRef<() => void>(() => { })
-
-  const {
-    webOffsetRef,
-    webTranslateXAnim,
-    webTranslateYAnim,
-    webTrackTransform,
-    panResponder,
-    stopWebSnapAnim,
-    cancelWebRaf,
-    webSnapAnimRef,
-  } = useSwiperWeb({
-    isWeb,
-    enabledState,
-    touchable,
-    vertical,
-    count,
-    shouldLoop,
-    displayCount,
-    slideSizeValue,
-    nonLoopMinOffset,
-    nonLoopMaxOffset,
-    durationMs,
-    preventScroll,
-    trackOffsetPx,
-    swipeToRef,
-    onDragStart: () => onDragStartRef.current(),
-    onDragEnd: () => onDragEndRef.current(),
-  })
-
-  useEffect(() => {
-    return () => {
-      cancelWebRaf()
-      stopWebSnapAnim()
-      clearNativeScrollEndTimer()
-    }
-  }, [cancelWebRaf, stopWebSnapAnim, clearNativeScrollEndTimer])
-
-  const finishNativeScroll = useCallback(() => {
-    clearNativeScrollEndTimer()
-    isScrollingRef.current = false
-    nativeMomentumRef.current = false
-    const queued = nativeQueuedScrollRef.current
-    if (queued && flatListRef.current) {
-      nativeQueuedScrollRef.current = null
-      const nextRealIndex = queued.index
-      runAfterFrames(1, () => {
-        swipeToRef.current(nextRealIndex, queued.animated)
-      })
-    }
-  }, [clearNativeScrollEndTimer])
-
-  const scheduleNativeScrollFallback = useCallback(() => {
-    clearNativeScrollEndTimer()
-    const seq = nativeScrollSeqRef.current + 1
-    nativeScrollSeqRef.current = seq
-    const timeout = Math.max(700, durationMs + 500)
-    nativeScrollEndTimerRef.current = setTimeout(() => {
-      if (nativeScrollSeqRef.current !== seq) return
-      if (isDraggingRef.current) return
-      if (!isScrollingRef.current) return
-      finishNativeScroll()
-    }, timeout)
-  }, [clearNativeScrollEndTimer, durationMs, finishNativeScroll])
-
-
-  useEffect(() => {
-    setEnabledState(enabled)
-  }, [enabled])
-
-  useEffect(() => {
-    if (!layoutReady) {
-      layoutVisibleSeqRef.current += 1
-      setLayoutVisible(false)
-      return
-    }
-    const seq = layoutVisibleSeqRef.current + 1
-    layoutVisibleSeqRef.current = seq
-    runAfterFrames(1, () => {
-      if (layoutVisibleSeqRef.current === seq) setLayoutVisible(true)
-    })
-  }, [layoutReady])
-
-  const currentRef = useRef(current)
-  useEffect(() => {
-    currentRef.current = current
-    desiredIndexRef.current = getDisplayIndex(current)
-  }, [current, getDisplayIndex])
-
-  const handleItemLayout = useCallback(
-    (displayIndex: number, e: LayoutChangeEvent) => {
-      if (!autoHeightEnabled) return
-      const height = e.nativeEvent.layout.height
-      if (!height) return
-
-      const realIndex = getDisplayIndex(displayIndex)
-      const prevHeight = measuredHeightsRef.current[realIndex]
-      if (prevHeight != null && Math.abs(prevHeight - height) < 0.5) return
-
-      measuredHeightsRef.current[realIndex] = height
-      const activeRealIndex = getDisplayIndex(currentRef.current)
-      if (realIndex === activeRealIndex) {
-        setAutoHeightValue(height)
-      }
-    },
-    [autoHeightEnabled, getDisplayIndex]
-  )
-
-  useEffect(() => {
-    if (!autoHeightEnabled) return
-    measuredHeightsRef.current = {}
-    setAutoHeightValue(undefined)
-  }, [autoHeightEnabled, slideSizeValue, count])
-
-  useEffect(() => {
-    if (!autoHeightEnabled) return
-    const activeRealIndex = getDisplayIndex(current)
-    const height = measuredHeightsRef.current[activeRealIndex]
-    if (height == null) return
-    setAutoHeightValue(height)
-  }, [autoHeightEnabled, current, getDisplayIndex])
-
-  const containerAutoHeightStyle = useMemo(
-    () => (autoHeightEnabled && autoHeightValue != null ? { height: autoHeightValue } : undefined),
-    [autoHeightEnabled, autoHeightValue]
-  )
-
-  const nativeLastAlignedMainAxisRef = useRef(0)
-  useEffect(() => {
-    if (isWeb) return
-    if (count === 0) return
-    if (!flatListRef.current) return
-    if (isDraggingRef.current || isScrollingRef.current) return
-
-    const mainAxisMeasured = vertical ? containerLayout.height : containerLayout.width
-    if (mainAxisMeasured <= 0) return
-
-    const lastAligned = nativeLastAlignedMainAxisRef.current
-    if (lastAligned > 0 && Math.abs(mainAxisMeasured - lastAligned) < 0.5) return
-
-    nativeLastAlignedMainAxisRef.current = mainAxisMeasured
-    runAfterFrames(2, () => {
-      scrollToIndexSafe(currentRef.current, false)
-    })
-  }, [isWeb, count, vertical, containerLayout.height, containerLayout.width])
-
-  const swipeTo = useCallback(
-    (index: number, animated = true) => {
-      if (count === 0) return
-
-      const targetRealIndex = clamp(index, 0, count - 1)
-      const fromRealIndex = (isScrollingRef.current || isDraggingRef.current)
-        ? (nativeQueuedScrollRef.current?.index ?? getDisplayIndex(currentRef.current))
-        : desiredIndexRef.current
-      desiredIndexRef.current = targetRealIndex
-      const currentIndex = currentRef.current
-
-      let targetIndex: number
-      let needsJump = false
-      let jumpOffset: number | null = null
-      let jumpDisplayIndex: number | null = null
-
-      if (shouldLoop) {
-        if (fromRealIndex === count - 1 && targetRealIndex === 0) {
-          targetIndex = displayCount - 1
-          needsJump = true
-          jumpOffset = -1 * slideSizeValue
-          jumpDisplayIndex = 1
-        } else if (fromRealIndex === 0 && targetRealIndex === count - 1) {
-          targetIndex = 0
-          needsJump = true
-          jumpOffset = -count * slideSizeValue
-          jumpDisplayIndex = count
-        } else {
-          targetIndex = targetRealIndex + 1
-        }
-      } else {
-        targetIndex = targetRealIndex
-      }
-
-      if (isWeb) {
-        if (!needsJump && targetIndex === currentIndex) {
-          if (autoplay && enabledState) startAutoplay()
-          return
-        }
-        stopWebSnapAnim()
-        const offset = shouldLoop
-          ? -targetIndex * slideSizeValue
-          : -1 * (nonLoopSnapOffsets?.[targetIndex] ?? slideSizeValue * targetIndex)
-        webOffsetRef.current = offset
-
-        if (needsJump) {
-          if (animated) {
-            const animValue = vertical ? webTranslateYAnim : webTranslateXAnim
-            const anim = Animated.timing(animValue, {
-              toValue: offset,
-              duration: durationMs,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: false,
-            })
-            webSnapAnimRef.current = anim
-            anim.start(({ finished }) => {
-              webSnapAnimRef.current = null
-              if (autoplay && enabledState) startAutoplay()
-              if (!finished || jumpOffset === null || jumpDisplayIndex === null) return
-
-              webOffsetRef.current = jumpOffset
-              if (vertical) {
-                webTranslateYAnim.setValue(jumpOffset)
-              } else {
-                webTranslateXAnim.setValue(jumpOffset)
-              }
-              setCurrentSafe(jumpDisplayIndex)
-            })
-            setCurrentSafe(targetIndex)
-          } else {
-            if (vertical) {
-              webTranslateYAnim.setValue(jumpOffset!)
-            } else {
-              webTranslateXAnim.setValue(jumpOffset!)
-            }
-            webOffsetRef.current = jumpOffset!
-            setCurrentSafe(jumpDisplayIndex!)
-            if (autoplay && enabledState) startAutoplay()
-          }
-        } else {
-          const animValue = vertical ? webTranslateYAnim : webTranslateXAnim
-          if (animated) {
-            const anim = Animated.timing(animValue, {
-              toValue: offset,
-              duration: durationMs,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: false,
-            })
-            webSnapAnimRef.current = anim
-            anim.start(() => {
-              webSnapAnimRef.current = null
-              if (autoplay && enabledState) startAutoplay()
-            })
-          } else {
-            animValue.setValue(offset)
-            if (autoplay && enabledState) startAutoplay()
-          }
-          setCurrentSafe(targetIndex)
-        }
-      } else if (flatListRef.current) {
-        if (!needsJump && targetIndex === currentIndex) {
-          finishNativeScroll()
-          if (autoplay && enabledState) startAutoplay()
-          return
-        }
-        if (isDraggingRef.current && animated) {
-          return
-        }
-        if (isScrollingRef.current && animated) {
-          scheduleNativeScrollFallback()
-          return
-        }
-        isScrollingRef.current = true
-        if (animated) {
-          scheduleNativeScrollFallback()
-        } else {
-          clearNativeScrollEndTimer()
-        }
-        scrollToIndexSafe(targetIndex, animated)
-        if (!animated) {
-          setCurrentSafe(targetIndex)
-          if (autoplay && enabledState) startAutoplay()
-        }
-        if (needsJump && jumpDisplayIndex != null && !animated) {
-          runAfterFrames(2, () => {
-            flatListRef.current?.scrollToIndex({ index: jumpDisplayIndex!, animated: false })
-            setCurrentSafe(jumpDisplayIndex!)
-          })
-        }
-
-        if (!animated) {
-          runAfterFrames(1, () => {
-            finishNativeScroll()
-          })
-        }
-      }
-    },
-    [
-      count,
-      shouldLoop,
-      isWeb,
-      slideSizeValue,
-      vertical,
-      webTranslateXAnim,
-      webTranslateYAnim,
-      nonLoopSnapOffsets,
-      displayCount,
-      stopWebSnapAnim,
-      setCurrentSafe,
-      durationMs,
-      clearNativeScrollEndTimer,
-      finishNativeScroll,
-      scheduleNativeScrollFallback,
-    ]
-  )
-
-  useEffect(() => {
-    swipeToRef.current = swipeTo
-  }, [swipeTo])
-
-  const swipeNext = useCallback(() => {
-    if (count === 0) return
-    const baseIndex = (isScrollingRef.current || isDraggingRef.current)
-      ? getDisplayIndex(currentRef.current)
-      : desiredIndexRef.current
-    swipeTo(baseIndex === count - 1 ? 0 : baseIndex + 1)
-  }, [count, getDisplayIndex, swipeTo])
-  const swipePrev = useCallback(() => {
-    if (count === 0) return
-    const baseIndex = (isScrollingRef.current || isDraggingRef.current)
-      ? getDisplayIndex(currentRef.current)
-      : desiredIndexRef.current
-    swipeTo(baseIndex === 0 ? count - 1 : baseIndex - 1)
-  }, [count, getDisplayIndex, swipeTo])
-
-  const stopAutoplay = useCallback(() => {
+  const clearAutoplay = useCallback(() => {
     if (autoplayTimerRef.current) {
       clearTimeout(autoplayTimerRef.current)
       autoplayTimerRef.current = null
     }
   }, [])
 
-  const startAutoplay = useCallback((delay?: number) => {
-    if (!autoplay || count <= 1 || !enabledState) return
-    if (isDraggingRef.current || isScrollingRef.current) return
-    stopAutoplay()
-    const interval = (isFiniteNumber(autoplay) && Math.max(0, autoplay)) || 5000
-    const now = Date.now()
-    const manualCooldown = Math.max(0, 700 - (now - manualInteractTsRef.current))
-    const nextDelay = delay ?? interval
-    const effectiveDelay = Math.max(nextDelay, manualCooldown)
-    autoplayTimerRef.current = setTimeout(() => {
-      if (isDraggingRef.current || isScrollingRef.current) return
-      const remainingCooldown = Math.max(0, 700 - (Date.now() - manualInteractTsRef.current))
-      if (remainingCooldown > 0) {
-        startAutoplay(remainingCooldown)
-        return
-      }
-      swipeNext()
-      startAutoplay()
-    }, effectiveDelay)
-  }, [autoplay, count, enabledState, swipeNext, stopAutoplay])
+  const updateIndex = useCallback((next: number) => {
+    const clamped = clamp(next, 0, Math.max(0, count - 1))
+    currentIndexRef.current = clamped
+    setCurrentIndex((prev) => (prev === clamped ? prev : clamped))
+    onChange?.(clamped)
+  }, [count, onChange])
 
-  const handleNativeScrollEndByOffset = useCallback(
-    (offset: number) => {
-      if (count === 0) return
-
-      clearNativeScrollEndTimer()
-      isScrollingRef.current = false
-      nativeMomentumRef.current = false
-
-      if (!slideSizeValue) return
-
-      let index = Math.round(offset / slideSizeValue)
-
-      if (shouldLoop) {
-        if (index === 0) {
-          runAfterFrames(1, () => {
-            flatListRef.current?.scrollToIndex({ index: count, animated: false })
-          })
-          index = count
-        } else if (index === displayCount - 1) {
-          runAfterFrames(1, () => {
-            flatListRef.current?.scrollToIndex({ index: 1, animated: false })
-          })
-          index = 1
-        }
-      } else {
-        index = clamp(index, 0, count - 1)
-      }
-
-      setCurrentSafe(index)
-      desiredIndexRef.current = getDisplayIndex(index)
-
-      const queued = nativeQueuedScrollRef.current
-      if (queued && flatListRef.current) {
-        nativeQueuedScrollRef.current = null
-        runAfterFrames(1, () => {
-          swipeTo(queued.index, queued.animated)
-        })
-      } else if (autoplay && enabledState) {
-        startAutoplay()
-      }
-    },
-    [clearNativeScrollEndTimer, count, displayCount, getDisplayIndex, setCurrentSafe, shouldLoop, slideSizeValue, swipeTo, autoplay, enabledState, startAutoplay]
-  )
-
-  const handleScrollEnd = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (count === 0) return
-      const { contentOffset } = event.nativeEvent
-      handleNativeScrollEndByOffset(vertical ? contentOffset.y : contentOffset.x)
-    },
-    [count, handleNativeScrollEndByOffset, vertical]
-  )
-
-  const handleScrollBeginDrag = () => {
-    isDraggingRef.current = true
-    isScrollingRef.current = true
-    stopAutoplay()
-    markManualInteraction()
-  }
-  const handleScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    isDraggingRef.current = false
-    const { contentOffset } = event.nativeEvent
-    runAfterFrames(1, () => {
-      if (nativeMomentumRef.current) return
-      handleNativeScrollEndByOffset(vertical ? contentOffset.y : contentOffset.x)
-    })
-  }
-  const handleMomentumScrollBegin = () => {
-    nativeMomentumRef.current = true
-    isScrollingRef.current = true
-  }
-
-  const indicatorRafIdRef = useRef<number | null>(null)
-  const indicatorPendingRef = useRef<number | null>(null)
-  const canUseRaf = typeof requestAnimationFrame === 'function' && typeof cancelAnimationFrame === 'function'
-
-  const flushIndicator = () => {
-    const next = indicatorPendingRef.current
-    if (next == null) return
-    indicatorPendingRef.current = null
-    setIndicatorIndex((prev) => (prev === next ? prev : next))
-  }
-
-  const scheduleIndicator = (next: number) => {
-    indicatorPendingRef.current = next
-    if (indicatorRafIdRef.current != null) return
-    if (canUseRaf) {
-      indicatorRafIdRef.current = requestAnimationFrame(() => {
-        indicatorRafIdRef.current = null
-        flushIndicator()
-      })
-      return
-    }
-    indicatorRafIdRef.current = setTimeout(() => {
-      indicatorRafIdRef.current = null
-      flushIndicator()
-    }, 16) as unknown as number
-  }
-
-  useEffect(() => {
-    setIndicatorIndex((prev) => {
-      const next = getDisplayIndex(current)
-      return prev === next ? prev : next
-    })
-  }, [current, getDisplayIndex])
-
-  useEffect(() => {
-    return () => {
-      if (indicatorRafIdRef.current != null) {
-        if (canUseRaf) {
-          cancelAnimationFrame(indicatorRafIdRef.current)
-        } else {
-          clearTimeout(indicatorRafIdRef.current)
-        }
-        indicatorRafIdRef.current = null
-      }
-      indicatorPendingRef.current = null
+  const scrollToDisplayIndex = useCallback((displayIndex: number, animated: boolean) => {
+    try {
+      flatListRef.current?.scrollToIndex({ index: displayIndex, animated })
+    } catch {
     }
   }, [])
 
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isWeb || count <= 1 || !slideSizeValue) return
-      const { contentOffset } = event.nativeEvent
-      const offset = vertical ? contentOffset.y : contentOffset.x
-      const displayIndex = shouldLoop
-        ? clamp(Math.round(offset / slideSizeValue), 0, displayCount - 1)
-        : clamp(Math.round(offset / slideSizeValue), 0, count - 1)
-      scheduleIndicator(getDisplayIndex(displayIndex))
-    },
-    [count, displayCount, getDisplayIndex, isWeb, scheduleIndicator, shouldLoop, slideSizeValue, vertical]
-  )
-
-  useEffect(() => {
-    onDragStartRef.current = () => {
-      isDraggingRef.current = true
-      stopAutoplay()
-      markManualInteraction()
+  const swipeTo = useCallback((index: number, animated = true) => {
+    if (count === 0) return
+    if (animated && isAnimatingRef.current) {
+      queuedIndexRef.current = index
+      return
     }
-    onDragEndRef.current = () => {
-      isDraggingRef.current = false
-    }
-  }, [markManualInteraction, stopAutoplay])
+    const targetRealIndex = clamp(index, 0, count - 1)
+    let targetDisplayIndex = getDisplayIndex(targetRealIndex)
 
-  useEffect(() => {
-    startAutoplay()
-    return stopAutoplay
-  }, [startAutoplay, stopAutoplay])
+    if (shouldLoop && animated) {
+      const currentDisplayIndex = getDisplayIndex(currentIndexRef.current)
+      if (currentDisplayIndex === count && targetRealIndex === 0) {
+        targetDisplayIndex = displayCount - 1
+      } else if (currentDisplayIndex === 1 && targetRealIndex === count - 1) {
+        targetDisplayIndex = 0
+      }
+    }
+
+    const currentRealIndex = currentIndexRef.current
+    const currentDisplayIndex = getDisplayIndex(currentRealIndex)
+    if (targetRealIndex === currentRealIndex && targetDisplayIndex === currentDisplayIndex) {
+      if (queuedIndexRef.current != null) {
+        const next = queuedIndexRef.current
+        queuedIndexRef.current = null
+        swipeTo(next, true)
+      }
+      return
+    }
+
+    if (animated) {
+      isAnimatingRef.current = true
+    }
+    scrollToDisplayIndex(targetDisplayIndex, animated)
+    if (!animated) {
+      updateIndex(targetRealIndex)
+      if (queuedIndexRef.current != null) {
+        const next = queuedIndexRef.current
+        queuedIndexRef.current = null
+        swipeTo(next, true)
+      }
+    }
+  }, [count, getDisplayIndex, scrollToDisplayIndex, shouldLoop, displayCount, updateIndex])
+
+  const resolveAutoplayInterval = useCallback(() => {
+    if (typeof autoplay === 'number') return Math.max(0, autoplay)
+    if (autoplay) return DEFAULT_AUTOPLAY_INTERVAL
+    return 0
+  }, [autoplay])
+
+  const scheduleAutoplay = useCallback(() => {
+    const interval = resolveAutoplayInterval()
+    if (!interval || count <= 1) return
+    if (isInteractingRef.current) return
+    clearAutoplay()
+    autoplayTimerRef.current = setTimeout(() => {
+      if (isInteractingRef.current) return
+      const nextIndex = shouldLoop
+        ? (currentIndexRef.current + 1) % count
+        : clamp(currentIndexRef.current + 1, 0, count - 1)
+      swipeTo(nextIndex, true)
+    }, interval)
+  }, [resolveAutoplayInterval, count, clearAutoplay, shouldLoop, swipeTo])
+
+  const swipeNext = useCallback(() => {
+    if (count === 0) return
+    const next = shouldLoop
+      ? (currentIndexRef.current + 1) % count
+      : clamp(currentIndexRef.current + 1, 0, count - 1)
+    swipeTo(next, true)
+  }, [count, shouldLoop, swipeTo])
+  const swipePrev = useCallback(() => {
+    if (count === 0) return
+    const next = shouldLoop
+      ? (currentIndexRef.current - 1 + count) % count
+      : clamp(currentIndexRef.current - 1, 0, count - 1)
+    swipeTo(next, true)
+  }, [count, shouldLoop, swipeTo])
 
   useImperativeHandle(
     ref,
     () => ({
-      activeIndex: getDisplayIndex(current),
-      swipeTo: (index: number, animated = true) => {
-        markManualInteraction()
-        swipeTo(index, animated)
-      },
-      swipeNext: () => {
-        markManualInteraction()
-        swipeNext()
-      },
-      swipePrev: () => {
-        markManualInteraction()
-        swipePrev()
-      },
-      enable: () => {
-        setEnabledState(true)
-      },
-      disable: () => {
-        setEnabledState(false)
-      },
-      getCurrentIndex: () => getDisplayIndex(current),
-      getPrevIndex: () => prevIndexRef.current,
-      goToFirstIndex: () => {
-        markManualInteraction()
-        swipeTo(0)
-      },
-      goToLastIndex: () => {
-        markManualInteraction()
-        swipeTo(count - 1)
-      },
+      swipeTo,
+      swipeNext,
+      swipePrev,
+      getCurrentIndex: () => currentIndexRef.current,
     }),
-    [current, count, getDisplayIndex, markManualInteraction, swipeTo, swipeNext, swipePrev]
+    [swipeTo, swipeNext, swipePrev]
   )
+
+  useEffect(() => {
+    if (!layoutReady || count === 0) return
+    scrollToDisplayIndex(initialDisplayIndex, false)
+  }, [layoutReady, count, initialDisplayIndex, scrollToDisplayIndex])
+
+  useEffect(() => {
+    scheduleAutoplay()
+    return clearAutoplay
+  }, [scheduleAutoplay, clearAutoplay, currentIndex])
+
+  const handleScrollBeginDrag = () => {
+    isInteractingRef.current = true
+    clearAutoplay()
+  }
+
+  const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (count === 0) return
+    const offset = vertical
+      ? event.nativeEvent.contentOffset.y
+      : event.nativeEvent.contentOffset.x
+    const displayIndex = Math.round(offset / mainSize)
+    let nextDisplayIndex = displayIndex
+    if (shouldLoop) {
+      if (displayIndex === 0) nextDisplayIndex = count
+      if (displayIndex === displayCount - 1) nextDisplayIndex = 1
+    }
+    if (nextDisplayIndex !== displayIndex) {
+      scrollToDisplayIndex(nextDisplayIndex, false)
+    }
+    updateIndex(getRealIndex(nextDisplayIndex))
+    isInteractingRef.current = false
+    isAnimatingRef.current = false
+    scheduleAutoplay()
+    if (queuedIndexRef.current != null) {
+      const next = queuedIndexRef.current
+      queuedIndexRef.current = null
+      swipeTo(next, true)
+    }
+  }
 
   const renderIndicator = () => {
     if (indicator === false || count <= 1) return null
-    if (typeof indicator === 'function') return indicator(count, indicatorIndex)
-    return <SwiperPagIndicator {...indicatorProps} total={count} current={indicatorIndex} vertical={vertical} />
-  }
-
-  useEffect(() => {
-    if (!onChange || count <= 0) return
-    const nextDisplay = getDisplayIndex(current)
-    if (nextDisplay === currentDisplayIndexRef.current) return
-    prevIndexRef.current = currentDisplayIndexRef.current
-    currentDisplayIndexRef.current = nextDisplay
-    onChange(nextDisplay)
-  }, [current, onChange, count, getDisplayIndex])
-
-  const renderChildItem = useCallback(({ item, index }: { item: unknown; index: number }) => {
-    const marker = item as { type?: unknown; index?: unknown }
-    if (marker.type !== 'child') return null
-    const childIndex = typeof marker.index === 'number' ? marker.index : -1
-    const child = validChildren[childIndex]
-    if (!child) return null
-    if (!autoHeightEnabled) {
-      const element = child as ReactElement<{ style?: unknown }>
-      return cloneElement(element, { style: [element.props.style, itemSizeStyle] })
-    }
-    const element = child as ReactElement<{ style?: unknown }>
+    if (typeof indicator === 'function') return indicator(count, currentIndex)
     return (
-      <View style={itemSizeStyle} onLayout={(e) => handleItemLayout(index, e)} collapsable={false}>
-        {cloneElement(element, { style: [element.props.style, styles.autoHeightChild] })}
-      </View>
-    )
-  }, [validChildren, itemSizeStyle, autoHeightEnabled, handleItemLayout])
-
-  const renderDataItem = useCallback((info: unknown) => {
-    if (!renderItem) return null
-    const item = renderItem(info as Parameters<NonNullable<typeof renderItem>>[0])
-    if (!item) return null
-    const itemIndex = (info as { index: number }).index
-    return (
-      <View style={itemSizeStyle} onLayout={autoHeightEnabled ? (e) => handleItemLayout(itemIndex, e) : undefined} collapsable={false}>
-        {item}
-      </View>
-    )
-  }, [renderItem, itemSizeStyle, autoHeightEnabled, handleItemLayout])
-
-  const getItemKey = useCallback((_item: unknown, index: number) => {
-    if (shouldLoop && count > 1) {
-      if (index === 0) return `loop-last-${count - 1}`
-      if (index === displayCount - 1) return `loop-first-0`
-      return `item-${index - 1}`
-    }
-    return `item-${index}`
-  }, [shouldLoop, count, displayCount])
-
-  const getItemLayout = useCallback((_: unknown, index: number) => {
-    const offset = !shouldLoop && nonLoopSnapOffsets ? nonLoopSnapOffsets[index] ?? slideSizeValue * index : slideSizeValue * index
-    return { length: slideSizeValue, offset, index }
-  }, [nonLoopSnapOffsets, shouldLoop, slideSizeValue])
-
-  const snapToOffsets = useMemo(() => {
-    if (!layoutReady) return undefined
-    if (slideSizePct === 100 && trackOffsetPct === 0) return undefined
-    if (!shouldLoop && nonLoopSnapOffsets) return nonLoopSnapOffsets
-    return displayData.map((_, index) => slideSizeValue * index)
-  }, [displayData, layoutReady, nonLoopSnapOffsets, shouldLoop, slideSizePct, slideSizeValue, trackOffsetPct])
-
-  useEffect(() => {
-    if (!isWeb) return
-    const initialIndex = getInitialIndex()
-    const initialOffset = shouldLoop ? -initialIndex * slideSizeValue : -1 * (nonLoopSnapOffsets?.[initialIndex] ?? slideSizeValue * initialIndex)
-    webOffsetRef.current = initialOffset
-    if (vertical) webTranslateYAnim.setValue(initialOffset)
-    else webTranslateXAnim.setValue(initialOffset)
-  }, [isWeb, getInitialIndex, nonLoopSnapOffsets, shouldLoop, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
-
-  useEffect(() => {
-    if (!isWeb || count === 0) return
-    const offset = shouldLoop ? -currentRef.current * slideSizeValue : -1 * (nonLoopSnapOffsets?.[currentRef.current] ?? slideSizeValue * currentRef.current)
-    webOffsetRef.current = offset
-    if (vertical) webTranslateYAnim.setValue(offset)
-    else webTranslateXAnim.setValue(offset)
-  }, [isWeb, count, nonLoopSnapOffsets, shouldLoop, slideSizeValue, vertical, webTranslateXAnim, webTranslateYAnim])
-
-  if (count === 0) {
-    return null
-  }
-
-  const containerRenderStyle = useMemo(
-    () => (layoutVisible ? undefined : ({ opacity: 0 } as ViewStyle)),
-    [layoutVisible]
-  )
-
-  if (isWeb) {
-    return (
-      <View
-        style={[styles.container, webContainerStyle, containerRenderStyle, containerAutoHeightStyle, style]}
-        testID={testID}
-        onLayout={handleContainerLayout}
-      >
-        <View style={{ overflow: 'hidden', width: '100%', height: '100%' }}>
-          <Animated.View
-            {...(panResponder?.panHandlers || {})}
-            style={[
-              {
-                flexDirection: vertical ? 'column' : 'row',
-                width: vertical ? '100%' : displayCount * slideSizeValue,
-                height: vertical ? displayCount * slideSizeValue : '100%',
-                transform: webTrackTransform,
-              },
-            ]}
-          >
-            {displayData.map((item, index) => (
-              <View key={getItemKey(item, index)} style={[itemSizeStyle, styles.webSlideWrapper]}>
-                {data && renderDataItem({ item, index }) || renderChildItem({ item, index })}
-              </View>
-            ))}
-          </Animated.View>
-        </View>
-        <View pointerEvents="none" style={styles.indicatorOverlay}>
-          {renderIndicator()}
-        </View>
-      </View>
+      <SwiperPagIndicator
+        {...indicatorProps}
+        total={count}
+        current={currentIndex}
+        vertical={vertical}
+      />
     )
   }
+
+  const renderSlide = useCallback((info: { item: T | ReactElement }) => {
+    const content = usingData
+      ? renderItem?.(info as Parameters<NonNullable<typeof renderItem>>[0]) ?? null
+      : (info.item as ReactElement)
+    if (!content) return null
+    return (
+      <View style={[styles.slide, itemStyle]}>
+        {content}
+      </View>
+    )
+  }, [usingData, renderItem, itemStyle])
+
+  if (count === 0) return null
 
   return (
-    <View
-      style={[styles.container, containerRenderStyle, containerAutoHeightStyle, style]}
-      testID={testID}
-      onLayout={handleContainerLayout}
-      collapsable={false}
-    >
+    <View style={[styles.container, style]} onLayout={handleLayout} testID={testID}>
       <FlatList
         ref={flatListRef}
         data={displayData}
-        keyExtractor={getItemKey}
-        renderItem={data ? renderDataItem : renderChildItem}
-        getItemLayout={getItemLayout}
+        renderItem={renderSlide as any}
+        keyExtractor={(_item, index) => `swiper-${index}`}
         horizontal={!vertical}
-        removeClippedSubviews={!isWeb && !shouldLoop}
+        getItemLayout={(_, index) => ({ length: mainSize, offset: mainSize * index, index })}
+        initialScrollIndex={layoutReady ? initialDisplayIndex : undefined}
+        scrollEnabled={touchable && count > 1}
+        removeClippedSubviews={!shouldLoop}
         disableVirtualization={shouldLoop}
-        initialNumToRender={shouldLoop ? displayCount : Math.min(displayCount, 3)}
+        initialNumToRender={shouldLoop ? displayCount : 3}
         maxToRenderPerBatch={shouldLoop ? displayCount : 3}
         windowSize={shouldLoop ? displayCount : 5}
-        updateCellsBatchingPeriod={16}
-        snapToInterval={layoutReady && slideSizePct === 100 && trackOffsetPct === 0 && slideSizeValue || undefined}
-        snapToOffsets={snapToOffsets}
-        snapToAlignment="start"
+        pagingEnabled
+        snapToInterval={mainSize}
         decelerationRate="fast"
-        scrollEnabled={enabledState && touchable && count > 1}
-        pagingEnabled={false}
-        nestedScrollEnabled={preventScroll === false}
-        directionalLockEnabled={preventScroll !== false}
-        collapsable={false}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        bounces={rubberband && !shouldLoop}
-        scrollEventThrottle={16}
         onScrollBeginDrag={handleScrollBeginDrag}
-        onScrollEndDrag={handleScrollEndDrag}
-        onMomentumScrollBegin={handleMomentumScrollBegin}
         onMomentumScrollEnd={handleScrollEnd}
-        onScroll={handleScroll}
-        initialScrollIndex={layoutReady ? getInitialIndex() : undefined}
         onScrollToIndexFailed={(info) => {
-          nativeMomentumRef.current = false
-          isScrollingRef.current = false
-          runAfterFrames(2, () => {
-            try {
-              isScrollingRef.current = true
-              scrollToIndexSafe(info.index, false)
-              setCurrentSafe(info.index)
-            } finally {
-              isScrollingRef.current = false
-              const queued = nativeQueuedScrollRef.current
-              if (queued && flatListRef.current) {
-                nativeQueuedScrollRef.current = null
-                runAfterFrames(1, () => {
-                  swipeTo(queued.index, queued.animated)
-                })
-              }
-            }
-          })
+          scrollToDisplayIndex(info.index, false)
         }}
-        style={isWeb && ({ cursor: 'grab' } as unknown as ViewStyle) || undefined}
-        contentContainerStyle={[
-          isWeb && ({ userSelect: 'none' } as unknown as ViewStyle) || undefined,
-          !isWeb && nativeTrackContentPaddingStyle || undefined,
-        ]}
-        testID={`${testID}-flatlist`}
       />
       <View pointerEvents="none" style={styles.indicatorOverlay}>
         {renderIndicator()}
@@ -978,13 +332,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-  autoHeightChild: {
-    flex: 0,
-    width: '100%',
-  },
-  webSlideWrapper: {
-    flexShrink: 0,
-    flexGrow: 0,
+  slide: {
+    flex: 1,
   },
   indicatorOverlay: {
     position: 'absolute',
@@ -992,17 +341,9 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    zIndex: 100,
-    elevation: 100,
+    zIndex: 10,
+    elevation: 10,
   },
 })
-
-const webContainerStyle = Platform.OS === 'web'
-  ? ({
-    cursor: 'grab',
-    userSelect: 'none',
-    WebkitUserSelect: 'none',
-  } as unknown as ViewStyle)
-  : undefined
 
 export default Swiper

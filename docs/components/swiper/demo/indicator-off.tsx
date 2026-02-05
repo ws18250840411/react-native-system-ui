@@ -7,7 +7,7 @@ const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7']
 export default () => {
   return (
     <View style={styles.container}>
-      <Swiper indicator={false}>
+      <Swiper indicator={false} style={styles.swiper}>
         {colors.map((color, index) => (
           <Swiper.Item key={index}>
             <View style={[styles.slide, { backgroundColor: color }]}>
@@ -22,6 +22,9 @@ export default () => {
 
 const styles = StyleSheet.create({
   container: {
+    height: 200,
+  },
+  swiper: {
     height: 200,
   },
   slide: {

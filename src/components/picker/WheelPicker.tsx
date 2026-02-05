@@ -1,19 +1,28 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   FlatList,
   Platform,
-  ScrollView,
   View,
   StyleSheet,
-  PanResponder,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  type ViewStyle,
 } from 'react-native'
 
 import { clamp } from '../../utils'
 import type { PickerOption } from './types'
-import { findEnabledIndex } from './utils'
+
+const findEnabledIndex = (options: PickerOption[], startIndex: number) => {
+  if (!options.length) return -1
+  const clampIndex = Math.min(Math.max(startIndex, 0), options.length - 1)
+  if (!options[clampIndex]?.disabled) return clampIndex
+  for (let i = clampIndex + 1; i < options.length; i += 1) {
+    if (!options[i]?.disabled) return i
+  }
+  for (let i = clampIndex - 1; i >= 0; i -= 1) {
+    if (!options[i]?.disabled) return i
+  }
+  return -1
+}
 
 const adjustIndex = (index: number, options: PickerOption[]) => {
   const total = options.length
@@ -21,34 +30,6 @@ const adjustIndex = (index: number, options: PickerOption[]) => {
   const i = clamp(index, 0, total - 1)
   const next = findEnabledIndex(options, i)
   return next >= 0 ? next : i
-}
-
-const indexToOffset = (index: number, itemHeight: number) => -index * itemHeight
-
-const offsetToIndex = (offset: number, itemHeight: number, total: number, options: PickerOption[]) => {
-  const minOffset = -Math.max(0, total - 1) * itemHeight
-  const off = clamp(offset, minOffset, 0)
-  let index = Math.round(-off / itemHeight)
-  index = adjustIndex(index, options)
-  const snapOffset = indexToOffset(index, itemHeight)
-  return { index, snapOffset }
-}
-
-const shouldMomentum = (distance: number, duration: number) =>
-  duration < 500 && Math.abs(distance) > 8
-
-const momentumTarget = (
-  distance: number,
-  duration: number,
-  currentOffset: number,
-  itemHeight: number,
-  minOffset: number,
-) => {
-  const speed = Math.abs(distance / duration)
-  const extra = (speed / 0.0025) * (distance < 0 ? -1 : 1)
-  const target = clamp(currentOffset + extra, minOffset, 0)
-  const snapIndex = Math.round(-target / itemHeight)
-  return indexToOffset(snapIndex, itemHeight)
 }
 
 const styles = StyleSheet.create({
@@ -68,7 +49,6 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
 })
-
 
 type WheelPickerRender<T> = (
   item: T,
@@ -128,13 +108,6 @@ export type WheelPickerProps<T extends PickerOption = PickerOption> = {
   swipeDuration?: number
 }
 
-const getVelocityBucket = (velocity: number) => {
-  const abs = Math.abs(velocity)
-  if (abs > 1.2) return 2
-  if (abs > 0.6) return 1
-  return 0
-}
-
 const WheelPickerInner = <T extends PickerOption,>({
   data,
   selectedIndex,
@@ -148,364 +121,51 @@ const WheelPickerInner = <T extends PickerOption,>({
   indicatorColor,
   decelerationRate = Platform.select({ ios: 0.9975, android: 0.989, default: 0.989 }) ?? 'normal',
   scrollEventThrottle = 16,
-  swipeDuration = 300,
 }: WheelPickerProps<T>) => {
-  const isWeb = Platform.OS === 'web'
   const listRef = useRef<FlatList<T>>(null)
-  const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null)
-  const spacerHeight = visibleRest * itemHeight
+  const isMomentumRef = useRef(false)
   const total = data.length
-  const maxIndex = Math.max(0, total - 1)
-  const minOffset = -maxIndex * itemHeight
-  const containerHeight = itemHeight * (visibleRest * 2 + 1)
-  const rawSelectedIndex = clamp(selectedIndex, 0, maxIndex)
-  const enabledSelectedIndex = findEnabledIndex(data, rawSelectedIndex)
-  const safeSelectedIndex = enabledSelectedIndex >= 0 ? enabledSelectedIndex : rawSelectedIndex
+  const safeSelectedIndex = adjustIndex(selectedIndex, data)
   const visibleCount = visibleRest * 2 + 1
-  const effectiveScrollThrottle = total > visibleCount * 20 ? 32 : scrollEventThrottle
-  const webVirtualEnabled = total > visibleCount * 4
-  const Spacer = useCallback(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
+  const paddingHeight = visibleRest * itemHeight
+  const containerHeight = itemHeight * visibleCount
+
   const indicatorStyle = useMemo(
     () => [styles.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }],
     [itemHeight, visibleRest, indicatorColor]
   )
 
-  const dragEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const momentumRef = useRef(false)
-  const lastOffsetRef = useRef(0)
+  const scrollToIndex = useCallback(
+    (index: number, animated: boolean) => {
+      const offset = (index + visibleRest) * itemHeight
+      listRef.current?.scrollToOffset({ offset, animated })
+    },
+    [itemHeight, visibleRest],
+  )
 
-  const clearDragEndTimer = useCallback(() => {
-    if (dragEndTimerRef.current) {
-      clearTimeout(dragEndTimerRef.current)
-      dragEndTimerRef.current = null
-    }
-  }, [])
+  useEffect(() => {
+    if (!total) return
+    scrollToIndex(safeSelectedIndex, false)
+  }, [safeSelectedIndex, scrollToIndex, total])
 
   const emitIndexFromOffset = useCallback(
     (offsetY: number, animated: boolean) => {
-      if (readOnly) return
-      const { index, snapOffset } = offsetToIndex(-offsetY, itemHeight, total, data)
-      const nextOffset = -snapOffset
-      if (Math.abs(nextOffset - offsetY) > 0.5) {
-        listRef.current?.scrollToOffset({ offset: nextOffset, animated })
+      if (!total || readOnly) return
+      const rawIndex = Math.round(offsetY / itemHeight) - visibleRest
+      const nextIndex = adjustIndex(rawIndex, data)
+      const targetOffset = (nextIndex + visibleRest) * itemHeight
+      if (Math.abs(targetOffset - offsetY) > 0.5) {
+        scrollToIndex(nextIndex, animated)
       }
-      onChange(index)
-    },
-    [data, itemHeight, onChange, readOnly, total],
-  )
-
-  useEffect(() => {
-    const offset = safeSelectedIndex * itemHeight
-    if (isWeb) return
-    scrollRef.current?.scrollTo({ y: offset, animated: false })
-  }, [isWeb, itemHeight, safeSelectedIndex])
-
-  const [webOffset, setWebOffset] = useState(() => indexToOffset(safeSelectedIndex, itemHeight))
-  const webOffsetRef = useRef(webOffset)
-  const startOffsetRef = useRef(0)
-  const startTimeRef = useRef(0)
-  const [webTransition, setWebTransition] = useState(0)
-  const [webVelocityBucket, setWebVelocityBucket] = useState(0)
-  const webVelocityBucketRef = useRef(0)
-  const lastWheelTimeRef = useRef<number | null>(null)
-  const wheelDeltaRef = useRef(0)
-  const wheelRafRef = useRef<number | null>(null)
-  const pendingIndexRef = useRef<number | null>(null)
-  const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const rafIdRef = useRef<number | null>(null)
-  const isInteractingRef = useRef(false)
-  const notifyInteractStart = useCallback(() => {
-    if (readOnly) return
-    if (isInteractingRef.current) return
-    isInteractingRef.current = true
-    onInteractStart?.()
-  }, [onInteractStart, readOnly])
-
-  const notifyInteractEnd = useCallback(() => {
-    if (!isInteractingRef.current) return
-    isInteractingRef.current = false
-    onInteractEnd?.()
-  }, [onInteractEnd])
-
-  const stopRaf = useCallback(() => {
-    if (rafIdRef.current != null && typeof cancelAnimationFrame !== 'undefined') {
-      cancelAnimationFrame(rafIdRef.current)
-      rafIdRef.current = null
-    }
-    if (wheelRafRef.current != null && typeof cancelAnimationFrame !== 'undefined') {
-      cancelAnimationFrame(wheelRafRef.current)
-      wheelRafRef.current = null
-    }
-  }, [])
-
-  const clearPendingTimer = useCallback(() => {
-    if (pendingTimerRef.current) {
-      clearTimeout(pendingTimerRef.current)
-      pendingTimerRef.current = null
-    }
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      clearDragEndTimer()
-      clearPendingTimer()
-      stopRaf()
-    }
-  }, [clearDragEndTimer, clearPendingTimer, stopRaf])
-
-  const setVelocityBucket = useCallback((velocity: number) => {
-    const next = getVelocityBucket(velocity)
-    if (next !== webVelocityBucketRef.current) {
-      webVelocityBucketRef.current = next
-      setWebVelocityBucket(next)
-    }
-  }, [])
-
-  const updateWheelVelocity = useCallback(
-    (delta: number) => {
-      const now = Date.now()
-      const last = lastWheelTimeRef.current
-      if (last != null) {
-        const dt = Math.max(1, now - last)
-        setVelocityBucket(delta / dt)
-      }
-      lastWheelTimeRef.current = now
-    },
-    [setVelocityBucket],
-  )
-
-  useEffect(() => {
-    if (!isWeb) return
-    clearPendingTimer()
-    pendingIndexRef.current = null
-    setWebTransition(0)
-    const next = indexToOffset(safeSelectedIndex, itemHeight)
-    webOffsetRef.current = next
-    setWebOffset(next)
-  }, [clearPendingTimer, isWeb, itemHeight, safeSelectedIndex, setWebTransition])
-
-  const finalizePendingChange = useCallback(() => {
-    if (readOnly) return
-    const nextIndex = pendingIndexRef.current
-    if (nextIndex == null) return
-    pendingIndexRef.current = null
-    clearPendingTimer()
-    setWebTransition(0)
-    notifyInteractEnd()
-    onChange(nextIndex)
-  }, [clearPendingTimer, onChange, readOnly, setWebTransition])
-
-  const startWebSnap = useCallback(
-    (targetIndex: number) => {
-      if (readOnly) return
-      notifyInteractStart()
-      const clampedIndex = clamp(targetIndex, 0, maxIndex)
-      const targetOffset = indexToOffset(clampedIndex, itemHeight)
-      clearPendingTimer()
-      pendingIndexRef.current = clampedIndex
-      webOffsetRef.current = targetOffset
-      setWebTransition(swipeDuration)
-      setWebOffset(targetOffset)
-      if (swipeDuration <= 0) {
-        finalizePendingChange()
-      } else {
-        pendingTimerRef.current = setTimeout(finalizePendingChange, swipeDuration + 80)
+      if (nextIndex !== safeSelectedIndex) {
+        onChange(nextIndex)
       }
     },
-    [clearPendingTimer, finalizePendingChange, itemHeight, maxIndex, readOnly, swipeDuration],
+    [data, itemHeight, onChange, readOnly, safeSelectedIndex, scrollToIndex, total, visibleRest],
   )
 
-  const handleWheel = useCallback(
-    (event: { nativeEvent?: { deltaY?: number } }) => {
-      if (readOnly) return
-      const delta = event.nativeEvent?.deltaY ?? 0
-      if (!delta) return
-      wheelDeltaRef.current += delta
-      if (wheelRafRef.current != null || typeof requestAnimationFrame === 'undefined') {
-        return
-      }
-      wheelRafRef.current = requestAnimationFrame(() => {
-        wheelRafRef.current = null
-        const queued = wheelDeltaRef.current
-        wheelDeltaRef.current = 0
-        if (!queued) return
-        updateWheelVelocity(queued)
-        const direction = queued > 0 ? 1 : -1
-        const { index } = offsetToIndex(webOffsetRef.current, itemHeight, total, data)
-        const nextIndex = clamp(index + direction, 0, maxIndex)
-        startWebSnap(nextIndex)
-      })
-    },
-    [data, itemHeight, maxIndex, readOnly, startWebSnap, total, updateWheelVelocity],
-  )
-
-  const webIndex = clamp(Math.round(-webOffset / itemHeight), 0, maxIndex)
-
-  const webRender = useMemo(() => {
-    if (!isWeb || total <= 0) {
-      return { items: null as React.ReactNode, topSpacer: null as React.ReactNode, bottomSpacer: null as React.ReactNode }
-    }
-    let startIndex = 0
-    let endIndex = maxIndex
-    if (webVirtualEnabled) {
-      const baseBuffer = Math.max(visibleCount * 2, 8)
-      const velocityBoost = webVelocityBucket === 2 ? visibleCount * 4 : webVelocityBucket === 1 ? visibleCount * 2 : 0
-      const buffer = Math.min(baseBuffer + velocityBoost, Math.max(visibleCount * 6, 24))
-      startIndex = clamp(webIndex - buffer, 0, maxIndex)
-      endIndex = clamp(webIndex + buffer, 0, maxIndex)
-    }
-    const items: React.ReactNode[] = []
-    for (let index = startIndex; index <= endIndex; index += 1) {
-      const item = data[index]
-      if (!item) continue
-      items.push(
-        <WheelPickerItem
-          key={`${index}-${String(item.value ?? '')}`}
-          item={item}
-          index={index}
-          itemHeight={itemHeight}
-          active={index === safeSelectedIndex}
-          disabled={!!item.disabled}
-          renderItem={renderItem}
-        />,
-      )
-    }
-    const topHeight = startIndex * itemHeight
-    const bottomHeight = (maxIndex - endIndex) * itemHeight
-    return {
-      items,
-      topSpacer: topHeight > 0 && <View style={{ height: topHeight }} />,
-      bottomSpacer: bottomHeight > 0 && <View style={{ height: bottomHeight }} />,
-    }
-  }, [
-    data,
-    isWeb,
-    itemHeight,
-    maxIndex,
-    renderItem,
-    safeSelectedIndex,
-    total,
-    visibleCount,
-    webIndex,
-    webVelocityBucket,
-    webVirtualEnabled,
-  ])
-
-  const webTransform = useMemo(() => ({ transform: [{ translateY: webOffset }] }), [webOffset])
-  const webTransitionStyle: ViewStyle | undefined = useMemo(
-    () =>
-      webTransition
-        ? ({
-          transitionProperty: 'transform',
-          transitionDuration: `${webTransition}ms`,
-          transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
-          willChange: 'transform',
-        } as unknown as ViewStyle)
-        : undefined,
-    [webTransition]
-  )
-  const handleWebTransitionEnd = useCallback(
-    (event: { nativeEvent?: { propertyName?: string } } & { propertyName?: string }) => {
-      const propertyName = event.nativeEvent?.propertyName ?? event.propertyName
-      if (propertyName && propertyName !== 'transform' && propertyName !== 'webkitTransform') return
-      finalizePendingChange()
-    },
-    [finalizePendingChange],
-  )
-
-  const panResponder = useMemo(() => PanResponder.create({
-        onStartShouldSetPanResponder: () => !readOnly,
-        onMoveShouldSetPanResponder: () => !readOnly,
-        onPanResponderGrant: () => {
-          stopRaf()
-          pendingIndexRef.current = null
-          notifyInteractStart()
-          setWebTransition(0)
-          startOffsetRef.current = webOffsetRef.current
-          startTimeRef.current = Date.now()
-        },
-        onPanResponderMove: (_, gesture) => {
-          if (readOnly) return
-          setVelocityBucket(gesture.vy)
-          const next = clamp(
-            startOffsetRef.current + gesture.dy,
-            minOffset,
-            0,
-          )
-          webOffsetRef.current = next
-          if (typeof requestAnimationFrame === 'undefined') {
-            setWebOffset(next)
-            return
-          }
-          if (rafIdRef.current != null) return
-          rafIdRef.current = requestAnimationFrame(() => {
-            rafIdRef.current = null
-            setWebOffset(webOffsetRef.current)
-          })
-        },
-        onPanResponderRelease: (_, gesture) => {
-          if (readOnly) return
-          setVelocityBucket(0)
-          const duration = Date.now() - startTimeRef.current
-          const distance = gesture.dy
-          let target = clamp(startOffsetRef.current + distance, minOffset, 0)
-          if (shouldMomentum(distance, duration)) {
-            target = momentumTarget(distance, duration, startOffsetRef.current, itemHeight, minOffset)
-          }
-          const { index } = offsetToIndex(target, itemHeight, total, data)
-          startWebSnap(index)
-        },
-        onPanResponderTerminationRequest: () => false,
-        onPanResponderTerminate: () => {
-          notifyInteractEnd()
-          setWebTransition(0)
-        },
-      }), [
-    data,
-    itemHeight,
-    minOffset,
-    notifyInteractEnd,
-    notifyInteractStart,
-    readOnly,
-    setVelocityBucket,
-    startWebSnap,
-    stopRaf,
-    total,
-  ])
-
-  if (isWeb) {
-    return (
-      <View
-        style={[styles.column, { height: containerHeight }, webOnlyStyles.grab]}
-        {...({ onWheel: handleWheel } as unknown as React.ComponentProps<typeof View>)}
-        {...panResponder.panHandlers}
-      >
-        <View style={indicatorStyle} pointerEvents="none" />
-        <View
-          style={[
-            webTransform,
-            isWeb ? webTransitionStyle : undefined,
-          ]}
-          {...({ onTransitionEnd: handleWebTransitionEnd } as unknown as React.ComponentProps<typeof View>)}
-        >
-          <Spacer />
-          {webRender.topSpacer}
-          {webRender.items}
-          {webRender.bottomSpacer}
-          <Spacer />
-        </View>
-      </View>
-    )
-  }
-
-  const shouldCapture = !readOnly
-
-  const contentContainerStyle = useMemo(
-    () => ({
-      paddingVertical: spacerHeight,
-    }),
-    [spacerHeight]
-  )
+  const header = useMemo(() => <View style={{ height: paddingHeight }} />, [paddingHeight])
+  const footer = useMemo(() => <View style={{ height: paddingHeight }} />, [paddingHeight])
 
   return (
     <View
@@ -513,57 +173,12 @@ const WheelPickerInner = <T extends PickerOption,>({
       collapsable={false}
     >
       <View style={indicatorStyle} pointerEvents="none" />
-      <ScrollView
-        ref={scrollRef}
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={effectiveScrollThrottle}
-        decelerationRate={decelerationRate}
-        snapToInterval={itemHeight}
-        snapToAlignment="start"
-        bounces={false}
-        overScrollMode="never"
-        nestedScrollEnabled
-        contentContainerStyle={contentContainerStyle}
-        onStartShouldSetResponderCapture={() => shouldCapture}
-        onMoveShouldSetResponderCapture={() => shouldCapture}
-        onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-          lastOffsetRef.current = e.nativeEvent.contentOffset.y
-        }}
-        onScrollBeginDrag={() => {
-          momentumRef.current = false
-          clearDragEndTimer()
-          notifyInteractStart()
-        }}
-        onScrollEndDrag={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-          if (readOnly) return
-          const y = e.nativeEvent.contentOffset.y
-          lastOffsetRef.current = y
-          clearDragEndTimer()
-          dragEndTimerRef.current = setTimeout(() => {
-            if (!momentumRef.current) {
-              emitIndexFromOffset(lastOffsetRef.current, true)
-              notifyInteractEnd()
-            }
-          }, 80)
-        }}
-        onMomentumScrollBegin={() => {
-          momentumRef.current = true
-          clearDragEndTimer()
-          notifyInteractStart()
-        }}
-        onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-          momentumRef.current = false
-          clearDragEndTimer()
-          const y = e.nativeEvent.contentOffset.y
-          lastOffsetRef.current = y
-          emitIndexFromOffset(y, false)
-          notifyInteractEnd()
-        }}
-        scrollEnabled={!readOnly}
-      >
-        {data.map((item, index) => (
+      <FlatList
+        ref={listRef}
+        data={data}
+        keyExtractor={(item, index) => `${index}-${String(item.value ?? '')}`}
+        renderItem={({ item, index }) => (
           <WheelPickerItem
-            key={`${index}-${String(item.value ?? '')}`}
             item={item}
             index={index}
             itemHeight={itemHeight}
@@ -571,20 +186,49 @@ const WheelPickerInner = <T extends PickerOption,>({
             disabled={!!item.disabled}
             renderItem={renderItem}
           />
-        ))}
-      </ScrollView>
+        )}
+        ListHeaderComponent={header}
+        ListFooterComponent={footer}
+        getItemLayout={(_, index) => ({
+          length: itemHeight,
+          offset: paddingHeight + itemHeight * index,
+          index,
+        })}
+        initialScrollIndex={safeSelectedIndex}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={scrollEventThrottle}
+        decelerationRate={decelerationRate}
+        snapToInterval={itemHeight}
+        snapToAlignment="start"
+        bounces={false}
+        overScrollMode="never"
+        onScrollBeginDrag={() => {
+          if (readOnly) return
+          isMomentumRef.current = false
+          onInteractStart?.()
+        }}
+        onMomentumScrollBegin={() => {
+          if (readOnly) return
+          isMomentumRef.current = true
+          onInteractStart?.()
+        }}
+        onScrollEndDrag={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+          if (readOnly || isMomentumRef.current) return
+          emitIndexFromOffset(e.nativeEvent.contentOffset.y, true)
+          onInteractEnd?.()
+        }}
+        onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+          if (readOnly) return
+          isMomentumRef.current = false
+          emitIndexFromOffset(e.nativeEvent.contentOffset.y, false)
+          onInteractEnd?.()
+        }}
+        scrollEnabled={!readOnly}
+      />
     </View>
   )
 }
 
 const WheelPicker = React.memo(WheelPickerInner) as typeof WheelPickerInner
-
-const webOnlyStyles = StyleSheet.create({
-  grab: ({
-    cursor: 'pointer',
-    userSelect: 'none',
-    touchAction: 'none',
-  } as unknown as ViewStyle),
-})
 
 export default WheelPicker

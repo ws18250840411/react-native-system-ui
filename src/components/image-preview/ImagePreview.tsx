@@ -317,7 +317,6 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
             initialSwipe={clampIndex(startPosition, imagesLen)}
             loop={false}
             autoplay={false}
-            duration={swipeDuration}
             touchable={imagesLen > 1}
             indicator={(total, current) => (
               <>
