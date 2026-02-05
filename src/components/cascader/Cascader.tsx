@@ -26,7 +26,6 @@ import type {
   CascaderValue,
 } from "./types"
 import { useCascaderExtend } from "./useCascaderExtend"
-import { resolveSelectedRows } from "./utils"
 
 type FieldKeys = {
   textKey: string
@@ -47,6 +46,24 @@ const isSameValueArray = (a: CascaderValue[], b: CascaderValue[]) => {
     if (a[i] !== b[i]) return false
   }
   return true
+}
+
+const resolveSelectedRows = (
+  options: CascaderOption[] = [],
+  keys: { textKey: string; valueKey: string; childrenKey: string },
+  value: CascaderValue[],
+): CascaderOption[] => {
+  const selected: CascaderOption[] = []
+  let current: CascaderOption[] | undefined = options
+  value.forEach(val => {
+    if (!current || !current.length) return
+    const match = current.find(option => option[keys.valueKey] === val)
+    if (match) {
+      selected.push(match)
+      current = (match[keys.childrenKey] as CascaderOption[] | undefined) ?? []
+    }
+  })
+  return selected
 }
 
 const Cascader: React.FC<CascaderProps> = props => {

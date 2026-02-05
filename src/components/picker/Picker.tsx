@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Pressable, Text, View, Platform, StyleSheet, type ViewStyle, type TextStyle } from 'react-native'
+import { ActivityIndicator, Pressable, Text, View, Platform, StyleSheet, type TextStyle } from 'react-native'
 
 import { withAlpha } from '../../utils/color'
 import { isObject } from '../../utils'
@@ -81,7 +81,7 @@ export function usePickerValue({
       const final = normalizePicker(preparedColumns, next)
       if (shallowEqualArray(innerValueRef.current, final.values)) return
       commitValue(final.values)
-      onChange?.(final.values, final.options)
+      // onChange?.(final.values, final.options)
     },
     [commitValue, onChange, preparedColumns],
   )
@@ -103,58 +103,21 @@ const getVisibleCount = (count: number) => {
   return normalized % 2 === 0 ? normalized + 1 : normalized
 }
 
-const GRADIENT_OVERLAY_ALPHA = 0.25
-const GRADIENT_STEPS = [0.95, 0.75, 0.55, 0.35]
-const GRADIENT_STEPS_REVERSED = [...GRADIENT_STEPS].reverse()
-
 const GradientMask: React.FC<{
   height: number
   color: string
   position: 'top' | 'bottom'
-  maskType: NonNullable<PickerProps['maskType']>
-}> = ({ height, color, position, maskType }) => {
-  const isWeb = Platform.OS === 'web'
-  const baseStyle = useMemo(
-    () => [
-      styles.gradientMask,
-      { height },
-      position === 'top' ? { top: 0 } : { bottom: 0 },
-    ],
-    [height, position]
-  )
-
-  const overlayColor = useMemo(() => withAlpha(color, GRADIENT_OVERLAY_ALPHA), [color])
-
-  if (maskType === 'solid') {
-    return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: withAlpha(color, 0.9) }]} />
-  }
-
-  if (isWeb) {
-    const angle = position === 'top' ? '180deg' : '0deg'
-    const gradientStart = withAlpha(color, 0.98)
-    const gradientEnd = withAlpha(color, 0.4)
-    return (
-      <View
-        pointerEvents="none"
-        style={[
-          ...baseStyle,
-          ({
-            backgroundColor: overlayColor,
-            backgroundImage: `linear-gradient(${angle}, ${gradientStart}, ${gradientEnd})`,
-          } as unknown as ViewStyle),
-        ]}
-      />
-    )
-  }
-
-  const steps = position === 'top' ? GRADIENT_STEPS : GRADIENT_STEPS_REVERSED
-
+}> = ({ height, color, position }) => {
+  const opacity = 0.6
   return (
-    <View pointerEvents="none" style={[...baseStyle, { backgroundColor: overlayColor }]}>
-      {steps.map((opacity, idx) => (
-        <View key={idx} style={{ flex: 1, backgroundColor: withAlpha(color, opacity) }} />
-      ))}
-    </View>
+    <View
+      pointerEvents="none"
+      style={[
+        styles.gradientMask,
+        { height, backgroundColor: withAlpha(color, opacity) },
+        position === 'top' ? { top: 0 } : { bottom: 0 },
+      ]}
+    />
   )
 }
 
@@ -338,7 +301,6 @@ export const shallowEqualArray = (a: PickerValue[] = [], b: PickerValue[] = []) 
 
 const PickerColumn: React.FC<
   PickerColumnProps & {
-    indicatorColor: string
     textColor: string
     textMutedColor: string
     textDisabledColor: string
@@ -354,11 +316,7 @@ const PickerColumn: React.FC<
       value,
       itemHeight,
       visibleItemCount,
-      optionRender,
-      getOptionTestID,
-      getOptionA11yLabel,
       onSelect,
-      indicatorColor,
       textColor,
       textMutedColor,
       textDisabledColor,
@@ -367,8 +325,6 @@ const PickerColumn: React.FC<
       optionWeight,
       readOnly,
       decelerationRate,
-      scrollEventThrottle,
-      swipeDuration,
     } = props
     const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
@@ -395,11 +351,9 @@ const PickerColumn: React.FC<
         const active = meta?.active ?? false
         const disabled = meta?.disabled ?? false
         const resolvedTextColor = disabled ? textDisabledColor : (active ? textColor : textMutedColor)
-        const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
-        const testID = getOptionTestID?.(item, { columnIndex, active })
-        const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
+        const content = item.label ?? item.value
         return (
-          <View style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
+          <View style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]}>
             {isText(content) ? (
               <Text numberOfLines={1} style={[styles.optionText, {
                 color: resolvedTextColor,
@@ -414,10 +368,7 @@ const PickerColumn: React.FC<
       [
         columnIndex,
         fontFamily,
-        getOptionA11yLabel,
-        getOptionTestID,
         itemHeight,
-        optionRender,
         optionSize,
         optionWeight,
         textColor,
@@ -435,10 +386,7 @@ const PickerColumn: React.FC<
           selectedIndex={Math.max(0, selectedIndex)}
           onChange={handleChange}
           readOnly={readOnly}
-          indicatorColor={indicatorColor}
           decelerationRate={decelerationRate}
-          scrollEventThrottle={scrollEventThrottle}
-          swipeDuration={swipeDuration}
           renderItem={renderOption}
         />
       </View>
@@ -463,16 +411,8 @@ const Picker: React.FC<PickerProps> = props => {
     loading = false,
     readOnly = false,
     decelerationRate = Platform.OS === 'android' ? 0.99 : 'fast',
-    swipeDuration = tokens.defaults.swipeDuration,
-    scrollEventThrottle = 16,
-    columnsTop,
-    columnsBottom,
-    optionRender,
-    getOptionTestID,
-    getOptionA11yLabel,
     emitConfirmOnAutoSelect = true,
     maskColor,
-    maskType = tokens.defaults.maskType,
     onChange,
     onConfirm,
     onCancel,
@@ -503,7 +443,7 @@ const Picker: React.FC<PickerProps> = props => {
       fontWeight: tokens.typography.toolbarWeight,
     }]}>{content}</Text>
     return <View style={{ minWidth: 44 }} />
-  }, [tokens.typography.fontFamily, tokens.typography.toolbarSize, tokens.typography.toolbarWeight])
+  }, [tokens])
 
   const renderTitleContent = useCallback((content: React.ReactNode) => {
     if (content == null) return <View />
@@ -514,7 +454,7 @@ const Picker: React.FC<PickerProps> = props => {
       color: tokens.colors.text,
       fontWeight: tokens.typography.toolbarWeight,
     }]} numberOfLines={1}>{content}</Text>
-  }, [tokens.colors.text, tokens.typography.fontFamily, tokens.typography.toolbarSize, tokens.typography.toolbarWeight])
+  }, [tokens])
 
   const toolbar = useMemo(() => {
     if (!showToolbar) return null
@@ -533,21 +473,7 @@ const Picker: React.FC<PickerProps> = props => {
         </Pressable>
       </View>
     )
-  }, [
-    cancelButtonText,
-    confirmButtonText,
-    handleConfirm,
-    onCancel,
-    renderActionContent,
-    renderTitleContent,
-    showToolbar,
-    title,
-    tokens.colors.cancel,
-    tokens.colors.confirm,
-    tokens.colors.indicator,
-    tokens.spacing.actionPadding,
-    tokens.spacing.toolbarHeight,
-  ])
+  }, [cancelButtonText, confirmButtonText, handleConfirm, onCancel, renderActionContent, renderTitleContent, showToolbar, title, tokens])
 
   const wrapperHeight = itemHeight * visibleItemCount
   const maskVisibleCount = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
@@ -568,14 +494,8 @@ const Picker: React.FC<PickerProps> = props => {
           itemHeight={itemHeight}
           visibleItemCount={visibleItemCount}
           decelerationRate={decelerationRate}
-          scrollEventThrottle={scrollEventThrottle}
-          optionRender={optionRender}
-          getOptionTestID={getOptionTestID}
-          getOptionA11yLabel={getOptionA11yLabel}
           readOnly={readOnly}
-          swipeDuration={swipeDuration}
           onSelect={handleSelect}
-          indicatorColor={tokens.colors.indicator}
           textColor={tokens.colors.text}
           textMutedColor={tokens.colors.textMuted}
           textDisabledColor={tokens.colors.textDisabled}
@@ -587,25 +507,13 @@ const Picker: React.FC<PickerProps> = props => {
     })
   }, [
     decelerationRate,
-    getOptionA11yLabel,
-    getOptionTestID,
     handleSelect,
     hasColumns,
     isCascade,
     itemHeight,
-    normalized.columns,
-    normalized.values,
-    optionRender,
+    normalized,
     readOnly,
-    scrollEventThrottle,
-    swipeDuration,
-    tokens.colors.indicator,
-    tokens.colors.text,
-    tokens.colors.textDisabled,
-    tokens.colors.textMuted,
-    tokens.typography.fontFamily,
-    tokens.typography.optionSize,
-    tokens.typography.optionWeight,
+    tokens,
     visibleItemCount,
   ])
 
@@ -622,9 +530,7 @@ const Picker: React.FC<PickerProps> = props => {
       {toolbarPosition === 'top' && toolbar}
       <View style={[styles.body, { height: wrapperHeight }]}>
         <View style={styles.columns} pointerEvents={loading ? 'none' : 'auto'}>
-          {columnsTop}
           {columnsContent}
-          {columnsBottom}
           {hasColumns && (
             <>
               <View pointerEvents="none" style={[styles.indicator, {
@@ -632,8 +538,8 @@ const Picker: React.FC<PickerProps> = props => {
                 height: itemHeight,
                 borderColor: tokens.colors.indicator,
               }]} />
-              <GradientMask position="top" height={maskHeight} color={effectiveMaskColor} maskType={maskType} />
-              <GradientMask position="bottom" height={maskHeight} color={effectiveMaskColor} maskType={maskType} />
+              <GradientMask position="top" height={maskHeight} color={effectiveMaskColor} />
+              <GradientMask position="bottom" height={maskHeight} color={effectiveMaskColor} />
             </>
           )}
         </View>

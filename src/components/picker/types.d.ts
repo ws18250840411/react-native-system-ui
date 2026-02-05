@@ -38,16 +38,8 @@ export interface PickerProps extends ViewProps {
   loading?: boolean
   readOnly?: boolean
   decelerationRate?: 'normal' | 'fast' | number
-  scrollEventThrottle?: number
   maskColor?: string
-  maskType?: 'gradient' | 'solid'
-  swipeDuration?: number
-  columnsTop?: React.ReactNode
-  columnsBottom?: React.ReactNode
   emitConfirmOnAutoSelect?: boolean
-  optionRender?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => React.ReactNode
-  getOptionTestID?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => string | undefined
-  getOptionA11yLabel?: (option: PickerOption, context: { columnIndex: number; active: boolean }) => string | undefined
   onChange?: (value: PickerValue[], options: (PickerOption | undefined)[]) => void
   onConfirm?: (value: PickerValue[], options: (PickerOption | undefined)[]) => void
   onCancel?: () => void
@@ -59,12 +51,7 @@ export interface PickerColumnProps {
   value?: PickerValue
   itemHeight: number
   visibleItemCount: number
-  optionRender?: PickerProps['optionRender']
-  getOptionTestID?: PickerProps['getOptionTestID']
-  getOptionA11yLabel?: PickerProps['getOptionA11yLabel']
   readOnly?: boolean
   decelerationRate?: PickerProps['decelerationRate']
-  scrollEventThrottle?: PickerProps['scrollEventThrottle']
-  swipeDuration?: number
   onSelect: (option: PickerOption, columnIndex: number, optionIndex: number) => void
 }

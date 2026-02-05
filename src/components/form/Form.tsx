@@ -326,21 +326,12 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
 
   useImperativeHandle(ref, () => formApi, [formApi])
 
-  const getFieldError = useCallback((name: NamePath) => errorsRef.current[serializeNamePath(name)], [])
-
-  const getFieldValue = useCallback((name: NamePath) => getValueByName(valuesRef.current, name), [])
-
-  const contextValidateField = useCallback(
-    (name: NamePath, trigger?: string) => runFieldValidation(name, trigger),
-    [runFieldValidation],
-  )
-
   const contextValue = {
-    getFieldValue,
+    getFieldValue: (name: NamePath) => getValueByName(valuesRef.current, name),
     setFieldValue,
     registerField,
-    getFieldError,
-    validateField: contextValidateField,
+    getFieldError: (name: NamePath) => errorsRef.current[serializeNamePath(name)],
+    validateField: (name: NamePath, trigger?: string) => runFieldValidation(name, trigger),
     getFieldsValue: () => valuesRef.current,
     subscribe: (listener: (changed: Record<string, unknown>, all: Record<string, unknown>) => void) => {
       subscribersRef.current.add(listener)

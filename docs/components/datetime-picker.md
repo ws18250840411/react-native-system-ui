@@ -85,7 +85,6 @@ import { DatetimePicker } from 'react-native-system-ui'
 | `title` | 顶部标题（继承自 Picker） | `ReactNode` | - |
 | `itemHeight` | 选项高度（继承自 Picker） | `number` | 44 |
 | `visibleItemCount` | 同屏可见列数（继承自 Picker） | `number` | 6 |
-| `swipeDuration` | 惯性滚动时长（ms，继承自 Picker） | `number` | 1000 |
 | `columnsTop` / `columnsBottom` | 自定义列上/下方内容 | `ReactNode` | - |
 
 除上述属性外，其余与 `Picker` 一致，例如 `title`、`showToolbar`、`itemHeight` 等。

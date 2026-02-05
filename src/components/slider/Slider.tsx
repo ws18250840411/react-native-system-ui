@@ -8,18 +8,89 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native'
 import type { SliderProps, SliderValue } from './types'
 import { useSliderTokens } from './tokens'
 import { parseNumber } from '../../utils/number'
+import { clamp } from '../../utils'
 import { isFunction, isFiniteNumber } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
-import {
-  isSameLayout,
-  normalizeValue,
-  toSliderValue,
-  createAccessibilityProps,
-  defaultNumberFormatter,
-  type TrackLayout,
-  type PressableLikeEvent,
-  type HandlerBag,
-} from './utils'
+
+type TrackLayout = { width: number; height: number; x: number; y: number }
+
+const clampValue = (value: number | undefined, min: number, max: number) => {
+  if (!isFiniteNumber(value)) {
+    return min
+  }
+  return clamp(value, min, max)
+}
+
+const isSameLayout = (a: TrackLayout, b: TrackLayout) =>
+  a.width === b.width && a.height === b.height && a.x === b.x && a.y === b.y
+
+const normalizeValue = (
+  value: SliderValue | undefined,
+  range: boolean,
+  min: number,
+  max: number
+): number[] => {
+  if (range) {
+    const raw = Array.isArray(value)
+      ? value
+      : isFiniteNumber(value)
+        ? [min, value]
+        : [min, min]
+
+    const first = clampValue(raw[0], min, max)
+    const second = clampValue(raw[1] ?? raw[0], min, max)
+    return first <= second ? [first, second] : [second, first]
+  }
+
+  const single = Array.isArray(value) ? value[0] : value
+  return [clampValue(single, min, max)]
+}
+
+const toSliderValue = (values: readonly number[], range: boolean, fallback: number): SliderValue => {
+  if (range) {
+    const start = values[0] ?? fallback
+    const end = values[1] ?? start
+    return [start, end]
+  }
+  return values[0] ?? fallback
+}
+
+const createAccessibilityProps = (
+  inputProps?: {
+    role?: string
+    ['aria-value']?: unknown
+    accessibilityActions?: unknown
+    onAccessibilityAction?: unknown
+    disabled?: boolean
+  } | null
+) => {
+  if (!inputProps) return {}
+  const {
+    role,
+    ['aria-value']: ariaValue,
+    accessibilityActions,
+    onAccessibilityAction,
+    disabled,
+  } = inputProps
+
+  return {
+    accessible: true,
+    accessibilityRole: role ?? 'adjustable',
+    accessibilityValue: ariaValue,
+    accessibilityActions,
+    onAccessibilityAction,
+    accessibilityState: { disabled },
+  }
+}
+
+const defaultNumberFormatter =
+  typeof Intl !== 'undefined' && isFunction(Intl.NumberFormat)
+    ? new Intl.NumberFormat()
+    : ({ format: (val: number) => String(val) } as unknown as Intl.NumberFormat)
+
+type PressableLikeEvent = GestureResponderEvent & { preventDefault?: () => void }
+
+type HandlerBag = Record<string, unknown> & Partial<React.ComponentProps<typeof View>>
 
 const START_KEYS = ['onResponderGrant', 'onPanResponderGrant'] as const
 const MOVE_KEYS = ['onResponderMove', 'onPanResponderMove'] as const
@@ -591,9 +662,9 @@ export const Slider: React.FC<SliderProps> = props => {
     () =>
       Platform.OS === 'web'
         ? ({
-            touchAction: orientation === 'horizontal' ? 'pan-y' : 'pan-x',
-            userSelect: 'none',
-          } as unknown as ViewStyle)
+          touchAction: orientation === 'horizontal' ? 'pan-y' : 'pan-x',
+          userSelect: 'none',
+        } as unknown as ViewStyle)
         : undefined,
     [orientation]
   )
@@ -601,17 +672,17 @@ export const Slider: React.FC<SliderProps> = props => {
     () =>
       Platform.OS === 'web'
         ? ({
-            position: 'absolute',
-            width: 1,
-            height: 1,
-            margin: -1,
-            border: 0,
-            padding: 0,
-            overflow: 'hidden',
-            clip: 'rect(0 0 0 0)',
-            clipPath: 'inset(50%)',
-            whiteSpace: 'nowrap',
-          } as CSSProperties)
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          margin: -1,
+          border: 0,
+          padding: 0,
+          overflow: 'hidden',
+          clip: 'rect(0 0 0 0)',
+          clipPath: 'inset(50%)',
+          whiteSpace: 'nowrap',
+        } as CSSProperties)
         : undefined,
     []
   )

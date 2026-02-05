@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import {
   FlatList,
   Platform,
@@ -10,6 +10,16 @@ import {
 
 import { clamp } from '../../utils'
 import type { PickerOption } from './types'
+
+const styles = StyleSheet.create({
+  column: {
+    flex: 1,
+  },
+  option: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+})
 
 const findEnabledIndex = (options: PickerOption[], startIndex: number) => {
   if (!options.length) return -1
@@ -31,24 +41,6 @@ const adjustIndex = (index: number, options: PickerOption[]) => {
   const next = findEnabledIndex(options, i)
   return next >= 0 ? next : i
 }
-
-const styles = StyleSheet.create({
-  column: {
-    flex: 1,
-  },
-  option: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  indicator: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    zIndex: 3,
-  },
-})
 
 type WheelPickerRender<T> = (
   item: T,
@@ -96,56 +88,33 @@ export type WheelPickerProps<T extends PickerOption = PickerOption> = {
   data: T[]
   selectedIndex: number
   onChange: (index: number) => void
-  onInteractStart?: () => void
-  onInteractEnd?: () => void
   renderItem: WheelPickerRender<T>
   itemHeight: number
   visibleRest: number
   readOnly?: boolean
-  indicatorColor: string
   decelerationRate?: 'normal' | 'fast' | number
-  scrollEventThrottle?: number
-  swipeDuration?: number
 }
 
 const WheelPickerInner = <T extends PickerOption,>({
   data,
   selectedIndex,
   onChange,
-  onInteractStart,
-  onInteractEnd,
   renderItem,
   itemHeight,
   visibleRest,
   readOnly,
-  indicatorColor,
-  decelerationRate = Platform.OS === 'android' ? 0.99 : 'fast',
-  scrollEventThrottle = 16,
+  decelerationRate = Platform.OS === 'android' ? 0.995 : 0.998,
 }: WheelPickerProps<T>) => {
   const listRef = useRef<FlatList<T>>(null)
   const isMomentumRef = useRef(false)
-  const endDragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => {
-    return () => {
-      if (endDragTimerRef.current) {
-        clearTimeout(endDragTimerRef.current)
-        endDragTimerRef.current = null
-      }
-    }
-  }, [])
 
-  const selectedIndexRef = useRef(0)
   const total = data.length
   const safeSelectedIndex = adjustIndex(selectedIndex, data)
   const visibleCount = visibleRest * 2 + 1
   const paddingHeight = visibleRest * itemHeight
   const containerHeight = itemHeight * visibleCount
   const batchSize = Math.max(visibleCount * 3, 15)
-
-  const indicatorStyle = useMemo(
-    () => [styles.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }],
-    [itemHeight, visibleRest, indicatorColor]
-  )
+  const initialRenderCount = Math.max(batchSize, visibleCount * 5)
 
   const scrollToIndex = useCallback(
     (index: number, animated: boolean) => {
@@ -160,24 +129,16 @@ const WheelPickerInner = <T extends PickerOption,>({
     scrollToIndex(safeSelectedIndex, false)
   }, [safeSelectedIndex, scrollToIndex, total])
 
-  useEffect(() => {
-    selectedIndexRef.current = safeSelectedIndex
-  }, [safeSelectedIndex])
-
   const emitIndexFromOffset = useCallback(
     (offsetY: number, animated: boolean) => {
       if (!total || readOnly) return
       const rawIndex = Math.round(offsetY / itemHeight)
       const nextIndex = adjustIndex(rawIndex, data)
-      const targetOffset = nextIndex * itemHeight
-      if (Math.abs(targetOffset - offsetY) > 0.5) {
-        scrollToIndex(nextIndex, animated)
-      }
       if (nextIndex !== safeSelectedIndex) {
         onChange(nextIndex)
       }
     },
-    [data, itemHeight, onChange, readOnly, safeSelectedIndex, scrollToIndex, total],
+    [data, itemHeight, onChange, readOnly, safeSelectedIndex, total],
   )
 
   const renderWheelItem = useCallback(
@@ -186,12 +147,12 @@ const WheelPickerInner = <T extends PickerOption,>({
         item={item}
         index={index}
         itemHeight={itemHeight}
-        active={index === selectedIndexRef.current}
+        active={index === safeSelectedIndex}
         disabled={!!item.disabled}
         renderItem={renderItem}
       />
     ),
-    [itemHeight, renderItem],
+    [itemHeight, renderItem, safeSelectedIndex],
   )
 
   return (
@@ -199,7 +160,6 @@ const WheelPickerInner = <T extends PickerOption,>({
       style={[styles.column, { height: containerHeight }]}
       collapsable={false}
     >
-      <View style={indicatorStyle} pointerEvents="none" />
       <FlatList
         ref={listRef}
         data={data}
@@ -213,51 +173,27 @@ const WheelPickerInner = <T extends PickerOption,>({
           index,
         })}
         showsVerticalScrollIndicator={false}
-        scrollEventThrottle={scrollEventThrottle}
+        scrollEventThrottle={16}
         decelerationRate={decelerationRate}
-        snapToInterval={itemHeight}
-        snapToAlignment="start"
         bounces={false}
         overScrollMode="never"
-        windowSize={7}
-        initialNumToRender={batchSize}
+        windowSize={10}
+        initialNumToRender={initialRenderCount}
         maxToRenderPerBatch={batchSize}
         updateCellsBatchingPeriod={16}
         removeClippedSubviews={Platform.OS === 'android'}
         onScrollBeginDrag={() => {
           if (readOnly) return
           isMomentumRef.current = false
-          if (endDragTimerRef.current) {
-            clearTimeout(endDragTimerRef.current)
-            endDragTimerRef.current = null
-          }
-          onInteractStart?.()
         }}
         onMomentumScrollBegin={() => {
           if (readOnly) return
           isMomentumRef.current = true
-          if (endDragTimerRef.current) {
-            clearTimeout(endDragTimerRef.current)
-            endDragTimerRef.current = null
-          }
-          onInteractStart?.()
-        }}
-        onScrollEndDrag={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-          if (readOnly || isMomentumRef.current) return
-          if (endDragTimerRef.current) {
-            clearTimeout(endDragTimerRef.current)
-          }
-          endDragTimerRef.current = setTimeout(() => {
-            if (isMomentumRef.current) return
-            emitIndexFromOffset(e.nativeEvent.contentOffset.y, true)
-            onInteractEnd?.()
-          }, 240)
         }}
         onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
           if (readOnly) return
           isMomentumRef.current = false
           emitIndexFromOffset(e.nativeEvent.contentOffset.y, false)
-          onInteractEnd?.()
         }}
         scrollEnabled={!readOnly}
       />

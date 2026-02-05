@@ -10,20 +10,20 @@ export default [
     "size": 9028
   },
   {
-    "name": "picker",
-    "size": 7269
+    "name": "form",
+    "size": 6741
   },
   {
-    "name": "form",
-    "size": 6763
+    "name": "picker",
+    "size": 6453
   },
   {
     "name": "cascader",
-    "size": 6179
+    "size": 6050
   },
   {
     "name": "slider",
-    "size": 6096
+    "size": 5857
   },
   {
     "name": "dialog",
