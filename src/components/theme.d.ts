@@ -8,6 +8,7 @@ import type { CellTokens } from './cell/types'
 import type { CheckboxTokens } from './checkbox/types'
 import type { CircleTokens } from './circle/types'
 import type { CollapseTokens } from './collapse/types'
+import type { ConfigProviderTokens } from './config-provider/tokens'
 import type { CountDownTokens } from './count-down/types'
 import type { DialogTokens } from './dialog/tokens'
 import type { DividerTokens } from './divider/types'
@@ -64,6 +65,7 @@ declare module '../design-system/ThemeContext' {
     checkbox: CheckboxTokens
     circle: CircleTokens
     collapse: CollapseTokens
+    configProvider: ConfigProviderTokens
     countDown: CountDownTokens
     dialog: DialogTokens
     divider: DividerTokens

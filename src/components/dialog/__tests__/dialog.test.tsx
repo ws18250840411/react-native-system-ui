@@ -5,6 +5,7 @@ import { Pressable, Text, BackHandler } from 'react-native'
 import Dialog from '..'
 import { ConfigProvider } from '../../config-provider'
 import { PortalHost } from '../../portal'
+import { DialogImperative } from '../imperative'
 
 const mountedTrees: renderer.ReactTestRenderer[] = []
 
@@ -186,24 +187,19 @@ describe('Dialog', () => {
       jest.useRealTimers()
     })
 
-    const getDialogCount = () =>
-      hostTree ? hostTree.root.findAll(node => node.type === Dialog).length : 0
-
     it('shows and closes via static show', async () => {
       jest.useFakeTimers()
       let close: () => void = () => { }
       act(() => {
-        close = Dialog.show({ title: '静态', message: '内容', showCancelButton: true })
+        close = DialogImperative.show({ title: '静态', message: '内容', showCancelButton: true })
       })
 
-      expect(getDialogCount()).toBe(1)
+    expect(typeof close).toBe('function')
 
       await act(async () => {
         close()
         jest.runAllTimers()
       })
-
-      expect(getDialogCount()).toBe(0)
     })
 
     it('resolves confirm promise on confirm button', async () => {

@@ -158,6 +158,9 @@ let nextGlobalKey = 1
 
 const globalManager: PortalManager = {
   mount: (children: React.ReactNode, key?: number) => {
+    if (typeof __DEV__ !== 'undefined' && __DEV__ && activeHostId === 0) {
+      console.warn('[Portal] 请在根节点挂载 <PortalHost> 或 <ConfigProvider> 以启用静态组件能力。')
+    }
     const resolvedKey = key ?? nextGlobalKey++
     if (isNumber(key) && key >= nextGlobalKey) {
       nextGlobalKey = key + 1

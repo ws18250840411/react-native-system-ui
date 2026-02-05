@@ -35,7 +35,7 @@ describe('Swiper', () => {
 
   it('renders children correctly', () => {
     const tree = renderer.create(
-      <Swiper>
+      <Swiper loop={false}>
         <Swiper.Item><Text>1</Text></Swiper.Item>
         <Swiper.Item><Text>2</Text></Swiper.Item>
       </Swiper>
@@ -68,7 +68,9 @@ describe('Swiper', () => {
     )
 
     expect(jest.getTimerCount()).toBeGreaterThan(0)
-    tree.unmount()
+    act(() => {
+      tree.unmount()
+    })
   })
 
   it('swipeNext wraps in loop mode', () => {

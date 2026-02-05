@@ -34,7 +34,8 @@ describe('Radio', () => {
   it('renders icon-only pressable when labelDisabled is true', () => {
     const tree = renderer.create(<Radio labelDisabled>单选</Radio>)
     const pressable = tree.root.findByType(Pressable)
-    expect(React.Children.toArray(pressable.props.children).length).toBe(1)
+    const count = React.Children.toArray(pressable.props.children).length
+    expect(count).toBe(Platform.OS === 'web' ? 2 : 1)
   })
 
   it('marks pressable disabled when disabled', () => {

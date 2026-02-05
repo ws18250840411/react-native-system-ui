@@ -1,4 +1,5 @@
 import React, { useCallback, useImperativeHandle, useRef, useMemo } from 'react'
+import type { TextInputProps } from 'react-native'
 
 import { isBoolean, isFiniteNumber } from '../../utils/validate'
 import Field from '../field'
@@ -6,6 +7,19 @@ import { useFieldTokens } from '../field/tokens'
 import type { FieldAutosizeConfig, FieldInstance } from '../field/types'
 import { useInputTokens } from './tokens'
 import type { InputInstance, InputProps, InputTextAreaProps } from './types'
+
+const mapKeyboardType = (type?: InputProps['type']): TextInputProps['keyboardType'] => {
+  switch (type) {
+    case 'number':
+      return 'decimal-pad'
+    case 'digit':
+      return 'number-pad'
+    case 'tel':
+      return 'phone-pad'
+    default:
+      return undefined
+  }
+}
 
 const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) => {
   const {
@@ -47,6 +61,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
 
   const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
   const resolvedClearTrigger = clearTriggerOverride ?? tokens.defaults.clearTrigger
+  const resolvedKeyboardType = keyboardTypeProp ?? mapKeyboardType(type)
   const fieldStyle = useMemo(() => ([
     {
       paddingHorizontal: tokens.spacing.paddingHorizontal,
@@ -66,7 +81,7 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
       ref={inputRef}
       {...rest}
       type={type}
-      keyboardType={keyboardTypeProp}
+      keyboardType={resolvedKeyboardType}
       tokensOverride={fieldTokensOverride}
       border={tokens.defaults.border}
       inputAlign={resolvedInputAlign}

@@ -8,7 +8,6 @@ import {
   Checkbox,
   Tabs,
   Space,
-  Flex,
   Typography,
   Tag,
   Stepper,
@@ -18,8 +17,8 @@ import {
   SwiperItem,
   Picker,
   Form,
-  Field,
   Input,
+  Empty,
 } from 'react-native-system-ui'
 import componentSizes from '../../component-sizes'
 import './home.css'
@@ -319,6 +318,15 @@ const Home = () => {
                       </Button>
                     </Space>
                   </Form>
+                </View>
+              </View>
+            </View>
+
+            <View className="home-card-small" style={styles.card}>
+              <View style={[styles.cardBody, styles.cardBodyCentered]}>
+                <Typography.Text strong style={cardTitleStyle}>空状态</Typography.Text>
+                <View style={{ marginTop: 12 }}>
+                  <Empty description="暂无数据" />
                 </View>
               </View>
             </View>

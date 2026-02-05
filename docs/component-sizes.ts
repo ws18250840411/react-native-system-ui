@@ -150,6 +150,10 @@ export default [
     "size": 2504
   },
   {
+    "name": "config-provider",
+    "size": 2428
+  },
+  {
     "name": "badge",
     "size": 2400
   },
@@ -172,10 +176,6 @@ export default [
   {
     "name": "flex",
     "size": 1987
-  },
-  {
-    "name": "config-provider",
-    "size": 1945
   },
   {
     "name": "avatar",

@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
   Pressable,
   Text,
   View,
@@ -14,6 +13,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 
+import Loading from '../loading'
 import { withAlpha } from '../../utils/color'
 import { isFiniteNumber, isText } from '../../utils/validate'
 import { clamp, isObject, shallowEqualArray } from '../../utils'
@@ -1146,7 +1146,7 @@ const Picker: React.FC<PickerProps> = props => {
         </View>
         {loading && (
           <View style={[styles.loading, { backgroundColor: tokens.colors.loadingMask }]}>
-            <ActivityIndicator size="small" color={tokens.colors?.text ?? '#666'} />
+            <Loading />
           </View>
         )}
       </View>

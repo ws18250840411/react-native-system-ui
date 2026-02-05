@@ -7,4 +7,7 @@ const createConfigProviderTokens = (_foundations: Foundations): ConfigProviderTo
   return {}
 }
 
-export const useConfigProviderTokens = createComponentTokensHook('config-provider', createConfigProviderTokens)
+export const useConfigProviderTokens = createComponentTokensHook(
+  'configProvider',
+  createConfigProviderTokens
+)

@@ -12,7 +12,7 @@ export const setBodyScrollLocked = (nextLocked: boolean) => {
   }
 
   if (!nextLocked && locked) {
-    document.body.style.overflow = previousOverflow
+    document.body.style.overflow = previousOverflow || 'auto'
     locked = false
   }
 }
