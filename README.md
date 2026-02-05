@@ -70,6 +70,11 @@ export const App = ({ children }) => (
             size: 'large',
           },
         },
+        datetimePicker: {
+          defaults: {
+            popupPlacement: 'bottom',
+          },
+        },
       },
     }}
   >
@@ -77,6 +82,8 @@ export const App = ({ children }) => (
   </ThemeProvider>
 )
 ```
+
+组件 tokens 的 key 使用驼峰命名，与导出的组件名保持一致，例如 `passwordInput`、`safeAreaView`、`shareSheet`。
 
 ### 主题预设
 
@@ -110,9 +117,10 @@ export const AuroraBranding = () => (
 ## 已交付能力
 
 - **设计系统**：ConfigProvider、ThemeProvider、createTokens、themePresets（light/dark/aurora），组件自管 tokens。使用 Toast/Popup/Dialog 等弹层时推荐用 ConfigProvider 包裹根节点（内置 PortalHost）。
-- **基础与展示**：Button、Badge、Cell、Collapse、Divider、Empty、Flex、Grid、Space、Tag、Typography、Loading、NoticeBar、Popup、Portal、Progress、Slider、Toast、Dialog 等，均提供文档与 demo。
-- **表单与输入**：Form、Field、Input、Checkbox、Radio、Switch、Stepper、Rate、Picker、Calendar、Search 等。
-- **导航与反馈**：Tabs、NavBar、Tabbar、ActionSheet、Notify、Overlay 等。
+- **基础与展示**：Button、Badge、Cell、Collapse、Divider、Empty、Flex、Grid、Space、Tag、Typography、Loading、NoticeBar、Popup、Portal、Progress、Slider、Toast、Dialog、Image、ImagePreview、Skeleton、WaterMark 等。
+- **表单与输入**：Form、Field、Input、PasswordInput、Checkbox、Radio、Switch、Stepper、Rate、Picker、DatetimePicker、Calendar、Search、NumberKeyboard、Area、Cascader、Selector 等。
+- **导航与反馈**：Tabs、NavBar、Tabbar、ActionSheet、Notify、Overlay、ShareSheet、Sidebar、Swiper 等。
+- **基础设施**：SafeAreaView、PortalHost、OverlayProvider、ConfigProvider 的 locale（zhCN/enUS）。
 - **文档**：快速上手、架构设计、路线图及组件文档站（`docs/`）。
 
 详细组件列表与状态见 [指南 / 路线图](./docs/guide/roadmap.md)。
@@ -133,4 +141,4 @@ export const AuroraBranding = () => (
 
 ## 版本与反馈
 
-当前为 v0.0.1，欢迎 issue / PR。
+当前为 v0.0.6，欢迎 issue / PR。

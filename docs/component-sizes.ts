@@ -7,7 +7,7 @@
 export default [
   {
     "name": "picker",
-    "size": 8678
+    "size": 8647
   },
   {
     "name": "tabs",
@@ -98,20 +98,20 @@ export default [
     "size": 3514
   },
   {
+    "name": "password-input",
+    "size": 3462
+  },
+  {
     "name": "action-sheet",
     "size": 3461
   },
   {
-    "name": "password-input",
-    "size": 3414
+    "name": "portal",
+    "size": 3404
   },
   {
     "name": "image",
     "size": 3364
-  },
-  {
-    "name": "portal",
-    "size": 3309
   },
   {
     "name": "sidebar",
@@ -119,7 +119,7 @@ export default [
   },
   {
     "name": "datetime-picker",
-    "size": 3143
+    "size": 3141
   },
   {
     "name": "progress",
@@ -195,7 +195,7 @@ export default [
   },
   {
     "name": "input",
-    "size": 1475
+    "size": 1562
   },
   {
     "name": "switch",
@@ -215,6 +215,6 @@ export default [
   },
   {
     "name": "safe-area-view",
-    "size": 612
+    "size": 606
   }
 ]
