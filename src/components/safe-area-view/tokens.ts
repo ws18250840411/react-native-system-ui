@@ -7,4 +7,7 @@ const createSafeAreaViewTokens = (_foundations: Foundations): SafeAreaViewTokens
   return {}
 }
 
-export const useSafeAreaViewTokens = createComponentTokensHook('safe-area-view', createSafeAreaViewTokens)
+export const useSafeAreaViewTokens = createComponentTokensHook(
+  'safeAreaView',
+  createSafeAreaViewTokens
+)

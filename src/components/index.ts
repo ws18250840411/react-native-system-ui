@@ -123,7 +123,7 @@ export type { SearchTokens } from './search/tokens'
 export { useSearchTokens } from './search/tokens'
 export { default as PasswordInput } from './password-input'
 export type { PasswordInputProps, PasswordInputRef } from './password-input'
-export type { PasswordInputTokens } from './password-input/PasswordInput'
+export type { PasswordInputTokens } from './password-input/tokens'
 export { default as Picker } from './picker'
 export type {
   PickerProps,

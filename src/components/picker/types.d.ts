@@ -22,6 +22,7 @@ export type PickerColumn = PickerOption[] | PickerColumnWithDefault
 export type PickerColumns = PickerColumn[] | PickerOption[]
 
 export type PickerToolbarPosition = 'top' | 'bottom'
+export type PickerInteractionMode = 'sync' | 'freeze'
 
 export interface PickerProps extends ViewProps {
   columns?: PickerColumns
@@ -37,6 +38,7 @@ export interface PickerProps extends ViewProps {
   visibleItemCount?: number
   loading?: boolean
   readOnly?: boolean
+  interactionMode?: PickerInteractionMode
   decelerationRate?: 'normal' | 'fast' | number
   scrollEventThrottle?: number
   maskColor?: string
