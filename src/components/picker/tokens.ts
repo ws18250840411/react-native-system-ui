@@ -9,6 +9,8 @@ export interface PickerTokens {
     visibleItemCount: number
     showToolbar: boolean
     toolbarPosition: PickerToolbarPosition
+    swipeDuration: number
+    maskType: 'gradient' | 'solid'
   }
   colors: {
     background: string
@@ -46,6 +48,8 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
       visibleItemCount: 6,
       showToolbar: true,
       toolbarPosition: 'top',
+      swipeDuration: 700,
+      maskType: 'gradient',
     },
     colors: {
       background: '#ffffff',

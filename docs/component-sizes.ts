@@ -6,6 +6,10 @@
  */
 export default [
   {
+    "name": "picker",
+    "size": 9805
+  },
+  {
     "name": "tabs",
     "size": 9028
   },
@@ -14,16 +18,8 @@ export default [
     "size": 6741
   },
   {
-    "name": "picker",
-    "size": 6453
-  },
-  {
     "name": "cascader",
     "size": 6050
-  },
-  {
-    "name": "slider",
-    "size": 5857
   },
   {
     "name": "dialog",
@@ -34,12 +30,12 @@ export default [
     "size": 5695
   },
   {
-    "name": "calendar",
-    "size": 5277
+    "name": "slider",
+    "size": 5608
   },
   {
-    "name": "checkbox",
-    "size": 5187
+    "name": "calendar",
+    "size": 5277
   },
   {
     "name": "popup",
@@ -48,6 +44,10 @@ export default [
   {
     "name": "button",
     "size": 5067
+  },
+  {
+    "name": "checkbox",
+    "size": 4998
   },
   {
     "name": "number-keyboard",

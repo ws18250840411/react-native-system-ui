@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Pressable, Text, View, Platform, StyleSheet, type TextStyle } from 'react-native'
+import { ActivityIndicator, Pressable, Text, View, Platform, StyleSheet, type ViewStyle } from 'react-native'
 
 import { withAlpha } from '../../utils/color'
-import { isObject } from '../../utils'
 import { isFiniteNumber, isText } from '../../utils/validate'
 import { usePickerTokens } from './tokens'
 import WheelPicker from './WheelPicker'
-import type { PickerColumn, PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
+import type { PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
+import { findEnabledIndex, normalizePicker, prepareColumns, shallowEqualArray, toArrayValue } from './utils'
 
 export function usePickerValue({
   columns,
@@ -81,7 +81,7 @@ export function usePickerValue({
       const final = normalizePicker(preparedColumns, next)
       if (shallowEqualArray(innerValueRef.current, final.values)) return
       commitValue(final.values)
-      // onChange?.(final.values, final.options)
+      onChange?.(final.values, final.options)
     },
     [commitValue, onChange, preparedColumns],
   )
@@ -103,210 +103,64 @@ const getVisibleCount = (count: number) => {
   return normalized % 2 === 0 ? normalized + 1 : normalized
 }
 
+const GRADIENT_OVERLAY_ALPHA = 0.25
+const GRADIENT_STEPS = [0.95, 0.75, 0.55, 0.35]
+const GRADIENT_STEPS_REVERSED = [...GRADIENT_STEPS].reverse()
+
 const GradientMask: React.FC<{
   height: number
   color: string
   position: 'top' | 'bottom'
-}> = ({ height, color, position }) => {
-  const opacity = 0.6
-  return (
-    <View
-      pointerEvents="none"
-      style={[
-        styles.gradientMask,
-        { height, backgroundColor: withAlpha(color, opacity) },
-        position === 'top' ? { top: 0 } : { bottom: 0 },
-      ]}
-    />
+  maskType: NonNullable<PickerProps['maskType']>
+}> = ({ height, color, position, maskType }) => {
+  const isWeb = Platform.OS === 'web'
+  const baseStyle = useMemo(
+    () => [
+      styles.gradientMask,
+      { height },
+      position === 'top' ? { top: 0 } : { bottom: 0 },
+    ],
+    [height, position]
   )
-}
 
-export interface NormalizedPickerResult {
-  columns: PickerOption[][]
-  values: PickerValue[]
-  options: (PickerOption | undefined)[]
-}
+  const overlayColor = useMemo(() => withAlpha(color, GRADIENT_OVERLAY_ALPHA), [color])
 
-export interface PreparedPickerColumns {
-  type: 'single' | 'multiple' | 'cascade'
-  columnsList: PickerOption[][]
-  defaults: (PickerValue | undefined)[]
-  cascadeRoot?: PickerOption[]
-}
-
-export const toArrayValue = (value?: PickerValue[] | PickerValue | null): PickerValue[] => {
-  if (Array.isArray(value)) return value.filter(v => v !== undefined && v !== null) as PickerValue[]
-  if (value === undefined || value === null) return []
-  return [value]
-}
-
-const isColumnWithOptions = (col: PickerColumn | PickerOption): col is { options: PickerOption[]; defaultValue?: PickerValue } =>
-  !!col &&
-  isObject(col) &&
-  'options' in col &&
-  Array.isArray((col as { options?: unknown }).options)
-
-const hasChildren = (option: PickerOption) => {
-  return (
-    !!option &&
-    isObject(option) &&
-    Array.isArray((option as any).children) &&
-    (option as any).children.length > 0
-  )
-}
-
-export const findEnabledIndex = (options: PickerOption[], startIndex: number) => {
-  if (!options.length) return -1
-  const clampIndex = Math.min(Math.max(startIndex, 0), options.length - 1)
-  if (!options[clampIndex]?.disabled) return clampIndex
-  for (let i = clampIndex + 1; i < options.length; i += 1) {
-    if (!options[i]?.disabled) return i
+  if (maskType === 'solid') {
+    return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: withAlpha(color, 0.9) }]} />
   }
-  for (let i = clampIndex - 1; i >= 0; i -= 1) {
-    if (!options[i]?.disabled) return i
-  }
-  return -1
-}
 
-const normalizeMultiple = (
-  columnsList: PickerOption[][],
-  defaults: (PickerValue | undefined)[],
-  rawValue: PickerValue[],
-): NormalizedPickerResult => {
-  const values: PickerValue[] = []
-  const options: (PickerOption | undefined)[] = []
-
-  columnsList.forEach((opts, index) => {
-    const current = rawValue[index]
-    const defaultIndex = defaults[index] !== undefined ? opts.findIndex(item => item.value === defaults[index]) : -1
-    const currentIndex = opts.findIndex(item => item.value === current)
-    const startIndex = currentIndex >= 0 ? currentIndex : defaultIndex >= 0 ? defaultIndex : 0
-    const targetIndex = findEnabledIndex(opts, startIndex)
-    const target = targetIndex >= 0 ? opts[targetIndex] : undefined
-    const valid = currentIndex >= 0 && !opts[currentIndex]?.disabled
-    values[index] = (valid ? current : (target?.value ?? defaults[index] ?? opts[0]?.value)) as PickerValue
-    options[index] = target
-  })
-
-  return {
-    columns: columnsList,
-    values,
-    options,
-  }
-}
-
-const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]): NormalizedPickerResult => {
-  const columns: PickerOption[][] = []
-  const values: PickerValue[] = []
-  const options: (PickerOption | undefined)[] = []
-
-  let currentOptions: PickerOption[] | undefined = rootOptions
-  let depth = 0
-  while (currentOptions && currentOptions.length && depth < 10) {
-    columns.push(currentOptions)
-    const current = rawValue[depth]
-    const startIndex = currentOptions.findIndex(item =>
-      item.value === current || String(item.value) === String(current)
+  if (isWeb) {
+    const angle = position === 'top' ? '180deg' : '0deg'
+    const gradientStart = withAlpha(color, 0.98)
+    const gradientEnd = withAlpha(color, 0.4)
+    return (
+      <View
+        pointerEvents="none"
+        style={[
+          ...baseStyle,
+          ({
+            backgroundColor: overlayColor,
+            backgroundImage: `linear-gradient(${angle}, ${gradientStart}, ${gradientEnd})`,
+          } as unknown as ViewStyle),
+        ]}
+      />
     )
-
-    const targetIndex = findEnabledIndex(currentOptions, startIndex >= 0 ? startIndex : 0)
-    const target: PickerOption | undefined =
-      targetIndex >= 0 ? currentOptions[targetIndex] : currentOptions[0]
-
-    values[depth] = target?.value as PickerValue
-    options[depth] = target
-
-    if (target && hasChildren(target)) {
-      currentOptions = target.children
-      depth += 1
-    } else {
-      break
-    }
   }
 
-  return {
-    columns,
-    values,
-    options,
-  }
-}
+  const steps = position === 'top' ? GRADIENT_STEPS : GRADIENT_STEPS_REVERSED
 
-export const prepareColumns = (columnsInput: PickerColumns = []): PreparedPickerColumns => {
-  if (!Array.isArray(columnsInput) || columnsInput.length === 0) {
-    return { type: 'single', columnsList: [], defaults: [], cascadeRoot: [] }
-  }
-
-  const everyPlainOption = columnsInput.every(item =>
-    !Array.isArray(item) && !isColumnWithOptions(item as unknown as PickerColumn | PickerOption)
+  return (
+    <View pointerEvents="none" style={[...baseStyle, { backgroundColor: overlayColor }]}>
+      {steps.map((opacity, idx) => (
+        <View key={idx} style={{ flex: 1, backgroundColor: withAlpha(color, opacity) }} />
+      ))}
+    </View>
   )
-  const cascade = everyPlainOption && columnsInput.some(item => hasChildren(item as PickerOption))
-
-  if (cascade) {
-    return {
-      type: 'cascade',
-      columnsList: [],
-      defaults: [],
-      cascadeRoot: columnsInput as PickerOption[],
-    }
-  }
-
-  const asArray = columnsInput as unknown[]
-  const columnsList: PickerOption[][] = []
-  const defaults: (PickerValue | undefined)[] = []
-
-  const treatAsSingleColumn = everyPlainOption && !cascade
-  if (treatAsSingleColumn) {
-    columnsList.push(columnsInput as PickerOption[])
-    defaults.push(undefined)
-  } else {
-    asArray.forEach(col => {
-      if (Array.isArray(col)) {
-        columnsList.push(col as PickerOption[])
-        defaults.push(undefined)
-      } else if (isColumnWithOptions(col as unknown as PickerColumn | PickerOption)) {
-        const c = col as { options?: PickerOption[]; defaultValue?: PickerValue }
-        columnsList.push(c.options ?? [])
-        defaults.push(c.defaultValue)
-      }
-    })
-  }
-
-  return {
-    type: 'multiple',
-    columnsList,
-    defaults,
-  }
-}
-
-export const normalizePicker = (
-  prepared: PreparedPickerColumns,
-  rawValueInput: PickerValue[] = [],
-): NormalizedPickerResult => {
-  const rawValue = Array.isArray(rawValueInput) ? rawValueInput : []
-
-  if (prepared.type === 'cascade' && prepared.cascadeRoot?.length) {
-    return normalizeCascade(prepared.cascadeRoot, rawValue)
-  }
-
-  return normalizeMultiple(prepared.columnsList, prepared.defaults, rawValue)
-}
-
-export const shallowEqualArray = (a: PickerValue[] = [], b: PickerValue[] = []) => {
-  if (a.length !== b.length) return false
-  for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) return false
-  }
-  return true
 }
 
 const PickerColumn: React.FC<
   PickerColumnProps & {
-    textColor: string
-    textMutedColor: string
-    textDisabledColor: string
-    optionSize: number
-    fontFamily: string
-    optionWeight: TextStyle['fontWeight']
+    tokens: ReturnType<typeof usePickerTokens>
   }
 > = React.memo(
   props => {
@@ -316,15 +170,15 @@ const PickerColumn: React.FC<
       value,
       itemHeight,
       visibleItemCount,
+      optionRender,
+      getOptionTestID,
+      getOptionA11yLabel,
       onSelect,
-      textColor,
-      textMutedColor,
-      textDisabledColor,
-      optionSize,
-      fontFamily,
-      optionWeight,
+      tokens,
       readOnly,
       decelerationRate,
+      scrollEventThrottle,
+      swipeDuration,
     } = props
     const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
 
@@ -346,37 +200,6 @@ const PickerColumn: React.FC<
       onSelect(option, columnIndex, target)
     }, [columnIndex, onSelect, options])
 
-    const renderOption = useCallback(
-      (item: PickerOption, _index: number, meta?: { active: boolean; disabled: boolean }) => {
-        const active = meta?.active ?? false
-        const disabled = meta?.disabled ?? false
-        const resolvedTextColor = disabled ? textDisabledColor : (active ? textColor : textMutedColor)
-        const content = item.label ?? item.value
-        return (
-          <View style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]}>
-            {isText(content) ? (
-              <Text numberOfLines={1} style={[styles.optionText, {
-                color: resolvedTextColor,
-                fontSize: optionSize,
-                fontFamily,
-                fontWeight: optionWeight,
-              }]}>{content}</Text>
-            ) : content}
-          </View>
-        )
-      },
-      [
-        columnIndex,
-        fontFamily,
-        itemHeight,
-        optionSize,
-        optionWeight,
-        textColor,
-        textDisabledColor,
-        textMutedColor,
-      ],
-    )
-
     return (
       <View style={[styles.column, { height: itemHeight * visibleItemCount }]}>
         <WheelPicker
@@ -386,8 +209,30 @@ const PickerColumn: React.FC<
           selectedIndex={Math.max(0, selectedIndex)}
           onChange={handleChange}
           readOnly={readOnly}
+          indicatorColor={tokens.colors.indicator}
           decelerationRate={decelerationRate}
-          renderItem={renderOption}
+          scrollEventThrottle={scrollEventThrottle}
+          swipeDuration={swipeDuration}
+          renderItem={(item: PickerOption, _index, meta) => {
+            const active = meta?.active ?? false
+            const disabled = meta?.disabled ?? false
+            const textColor = disabled ? tokens.colors.textDisabled : (active ? tokens.colors.text : tokens.colors.textMuted)
+            const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
+            const testID = getOptionTestID?.(item, { columnIndex, active })
+            const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
+            return (
+              <View style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
+                {isText(content) ? (
+                  <Text numberOfLines={1} style={[styles.optionText, {
+                    color: textColor,
+                    fontSize: tokens.typography.optionSize,
+                    fontFamily: tokens.typography.fontFamily,
+                    fontWeight: tokens.typography.optionWeight,
+                  }]}>{content}</Text>
+                ) : content}
+              </View>
+            )
+          }}
         />
       </View>
     )
@@ -410,9 +255,17 @@ const Picker: React.FC<PickerProps> = props => {
     visibleItemCount: visibleItemCountProp = tokens.defaults.visibleItemCount,
     loading = false,
     readOnly = false,
-    decelerationRate = Platform.OS === 'android' ? 0.99 : 'fast',
+    decelerationRate = Platform.select({ ios: 0.999, android: 0.997, default: 0.989 }) ?? 'normal',
+    swipeDuration = tokens.defaults.swipeDuration,
+    scrollEventThrottle = 16,
+    columnsTop,
+    columnsBottom,
+    optionRender,
+    getOptionTestID,
+    getOptionA11yLabel,
     emitConfirmOnAutoSelect = true,
     maskColor,
+    maskType = tokens.defaults.maskType,
     onChange,
     onConfirm,
     onCancel,
@@ -443,7 +296,7 @@ const Picker: React.FC<PickerProps> = props => {
       fontWeight: tokens.typography.toolbarWeight,
     }]}>{content}</Text>
     return <View style={{ minWidth: 44 }} />
-  }, [tokens])
+  }, [tokens.typography.fontFamily, tokens.typography.toolbarSize, tokens.typography.toolbarWeight])
 
   const renderTitleContent = useCallback((content: React.ReactNode) => {
     if (content == null) return <View />
@@ -454,7 +307,7 @@ const Picker: React.FC<PickerProps> = props => {
       color: tokens.colors.text,
       fontWeight: tokens.typography.toolbarWeight,
     }]} numberOfLines={1}>{content}</Text>
-  }, [tokens])
+  }, [tokens.colors.text, tokens.typography.fontFamily, tokens.typography.toolbarSize, tokens.typography.toolbarWeight])
 
   const toolbar = useMemo(() => {
     if (!showToolbar) return null
@@ -473,7 +326,21 @@ const Picker: React.FC<PickerProps> = props => {
         </Pressable>
       </View>
     )
-  }, [cancelButtonText, confirmButtonText, handleConfirm, onCancel, renderActionContent, renderTitleContent, showToolbar, title, tokens])
+  }, [
+    cancelButtonText,
+    confirmButtonText,
+    handleConfirm,
+    onCancel,
+    renderActionContent,
+    renderTitleContent,
+    showToolbar,
+    title,
+    tokens.colors.cancel,
+    tokens.colors.confirm,
+    tokens.colors.indicator,
+    tokens.spacing.actionPadding,
+    tokens.spacing.toolbarHeight,
+  ])
 
   const wrapperHeight = itemHeight * visibleItemCount
   const maskVisibleCount = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
@@ -481,9 +348,8 @@ const Picker: React.FC<PickerProps> = props => {
   const maskHeight = indicatorOffset
   const hasColumns = normalized.columns.length > 0
   const effectiveMaskColor = maskColor ?? tokens.colors.mask
-  const columnsContent = useMemo(() => {
-    if (!hasColumns) return null
-    return normalized.columns.map((column, columnIndex) => {
+  const columnsContent = hasColumns
+    ? normalized.columns.map((column, columnIndex) => {
       const key = isCascade ? `${columnIndex}-${normalized.values.slice(0, columnIndex).map(String).join('|')}` : String(columnIndex)
       return (
         <PickerColumn
@@ -494,28 +360,18 @@ const Picker: React.FC<PickerProps> = props => {
           itemHeight={itemHeight}
           visibleItemCount={visibleItemCount}
           decelerationRate={decelerationRate}
+          scrollEventThrottle={scrollEventThrottle}
+          optionRender={optionRender}
+          getOptionTestID={getOptionTestID}
+          getOptionA11yLabel={getOptionA11yLabel}
           readOnly={readOnly}
+          swipeDuration={swipeDuration}
           onSelect={handleSelect}
-          textColor={tokens.colors.text}
-          textMutedColor={tokens.colors.textMuted}
-          textDisabledColor={tokens.colors.textDisabled}
-          optionSize={tokens.typography.optionSize}
-          fontFamily={tokens.typography.fontFamily}
-          optionWeight={tokens.typography.optionWeight}
+          tokens={tokens}
         />
       )
     })
-  }, [
-    decelerationRate,
-    handleSelect,
-    hasColumns,
-    isCascade,
-    itemHeight,
-    normalized,
-    readOnly,
-    tokens,
-    visibleItemCount,
-  ])
+    : null
 
   return (
     <View
@@ -530,7 +386,9 @@ const Picker: React.FC<PickerProps> = props => {
       {toolbarPosition === 'top' && toolbar}
       <View style={[styles.body, { height: wrapperHeight }]}>
         <View style={styles.columns} pointerEvents={loading ? 'none' : 'auto'}>
+          {columnsTop}
           {columnsContent}
+          {columnsBottom}
           {hasColumns && (
             <>
               <View pointerEvents="none" style={[styles.indicator, {
@@ -538,8 +396,8 @@ const Picker: React.FC<PickerProps> = props => {
                 height: itemHeight,
                 borderColor: tokens.colors.indicator,
               }]} />
-              <GradientMask position="top" height={maskHeight} color={effectiveMaskColor} />
-              <GradientMask position="bottom" height={maskHeight} color={effectiveMaskColor} />
+              <GradientMask position="top" height={maskHeight} color={effectiveMaskColor} maskType={maskType} />
+              <GradientMask position="bottom" height={maskHeight} color={effectiveMaskColor} maskType={maskType} />
             </>
           )}
         </View>

@@ -1,7 +1,7 @@
 import { useSlider, useSliderThumb } from '@react-native-aria/slider'
 import { isRTL } from '@react-native-aria/utils'
 import { useSliderState } from '@react-stately/slider'
-import React, { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { GestureResponderEvent, LayoutChangeEvent, PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
 import { Platform, Pressable, StyleSheet, View } from 'react-native'
 
@@ -165,7 +165,6 @@ interface ThumbNodeProps {
   indicatorSize: number
   indicatorColor: string
   webGestureStyle?: ViewStyle
-  webInputStyle?: CSSProperties
   enhanceHandlers: (
     handlers: HandlerBag | undefined,
     index: number
@@ -188,7 +187,6 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
   indicatorSize,
   indicatorColor,
   webGestureStyle,
-  webInputStyle,
   enhanceHandlers,
 }) => {
   const inputRef = useRef(null)
@@ -232,27 +230,6 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
     backgroundColor: indicatorColor,
   }
   const accessibilityProps = createAccessibilityProps(inputProps) as unknown as Partial<React.ComponentProps<typeof View>>
-  const webInputProps = useMemo(() => {
-    if (Platform.OS !== 'web') return undefined
-    const {
-      accessibilityActions,
-      onAccessibilityAction,
-      accessibilityRole,
-      accessibilityState,
-      accessibilityHint,
-      accessible,
-      accessibilityLabel,
-      ...restProps
-    } = (inputProps ?? {}) as Record<string, unknown>
-    const sanitized = { ...restProps } as Record<string, unknown>
-    if (accessibilityLabel && !('aria-label' in sanitized)) {
-      sanitized['aria-label'] = accessibilityLabel
-    }
-    if ('aria-value' in sanitized) {
-      delete sanitized['aria-value']
-    }
-    return sanitized
-  }, [inputProps])
 
   return (
     <View
@@ -264,9 +241,6 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
       {content ?? (
         <View style={indicatorStyle} />
       )}
-      {Platform.OS === 'web' ? (
-        <input ref={inputRef} {...webInputProps} style={webInputStyle} />
-      ) : null}
     </View>
   )
 })
@@ -668,24 +642,6 @@ export const Slider: React.FC<SliderProps> = props => {
         : undefined,
     [orientation]
   )
-  const webInputStyle: CSSProperties | undefined = useMemo(
-    () =>
-      Platform.OS === 'web'
-        ? ({
-          position: 'absolute',
-          width: 1,
-          height: 1,
-          margin: -1,
-          border: 0,
-          padding: 0,
-          overflow: 'hidden',
-          clip: 'rect(0 0 0 0)',
-          clipPath: 'inset(50%)',
-          whiteSpace: 'nowrap',
-        } as CSSProperties)
-        : undefined,
-    []
-  )
   const baseTrackPressableStyle: StyleProp<ViewStyle> = useMemo(
     () => [
       styles.trackPressable,
@@ -764,7 +720,6 @@ export const Slider: React.FC<SliderProps> = props => {
             indicatorSize={tokens.thumb.indicatorSize}
             indicatorColor={tokens.colors.thumbIndicator}
             webGestureStyle={webGestureStyle}
-            webInputStyle={webInputStyle}
             enhanceHandlers={enhanceHandlers}
           />
         ))}

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useImperativeHandle, useRef, type CSSProperties } from 'react'
+import React, { useContext, useEffect, useImperativeHandle, useRef } from 'react'
 import { Platform, Pressable, Text, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
@@ -48,8 +48,6 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   const serializedValue = rawValue == null ? undefined : String(rawValue)
 
   const internalRef = useRef<View>(null)
-  const inputElementRef = useRef<HTMLInputElement | null>(null)
-
   useImperativeHandle(ref, () => internalRef.current!)
 
   const standaloneState = useToggleState({
@@ -80,10 +78,7 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
   let inputProps: Partial<React.ComponentProps<typeof Pressable>> | undefined
   let isChecked: boolean
 
-  const ariaRef =
-    Platform.OS === 'web'
-      ? (inputElementRef as React.RefObject<HTMLInputElement>)
-      : (internalRef as unknown as React.RefObject<HTMLInputElement>)
+  const ariaRef = internalRef as unknown as React.RefObject<HTMLInputElement>
 
   if (isGroup && group) {
     const { inputProps: groupInputProps } = useCheckboxGroupItem(
@@ -247,27 +242,9 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
       : { marginRight: tokens.spacing.gap },
   ]
 
-  const webInputStyle: CSSProperties = {
-    position: 'absolute',
-    width: 1,
-    height: 1,
-    margin: -1,
-    border: 0,
-    padding: 0,
-    overflow: 'hidden',
-    clip: 'rect(0 0 0 0)',
-    clipPath: 'inset(50%)',
-    whiteSpace: 'nowrap',
-  }
-  const { ref: _ignoredAriaRefProp, ...webInputProps } = (inputProps ?? {}) as Record<string, unknown>
-  const webInputNode = Platform.OS === 'web' ? (
-    <input ref={inputElementRef} {...webInputProps} style={webInputStyle} />
-  ) : null
-
   const iconWrapper = interactive ? (
     <View style={iconWrapperStyle}>
       {iconVisual}
-      {webInputNode}
     </View>
   ) : (
     <Pressable
@@ -281,7 +258,6 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
       hitSlop={hitSlop}
     >
       {iconVisual}
-      {webInputNode}
     </Pressable>
   )
   const content =
