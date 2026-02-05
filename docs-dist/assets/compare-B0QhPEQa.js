@@ -1,0 +1,1 @@
+const n=(e=[],t=[])=>{if(e.length!==t.length)return!1;for(let r=0;r<e.length;r+=1)if(e[r]!==t[r])return!1;return!0},f=(e,t)=>{if(e===t)return!0;if(!e||!t)return!1;const r=Object.keys(e),l=Object.keys(t);if(r.length!==l.length)return!1;for(const s of r)if(e[s]!==t[s])return!1;return!0};export{f as a,n as s};
