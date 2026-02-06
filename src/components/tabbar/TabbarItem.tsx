@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-
 import { useAriaPress } from '../../hooks'
 import { isFunction, isPlainObject, isRenderable, isText } from '../../utils/validate'
 import Badge from '../badge'
@@ -9,100 +8,31 @@ import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarValue } from './types'
 import type { BadgeProps } from '../badge/types'
 
-const TabbarItemImpl: React.FC<TabbarItemProps> = props => {
-  const {
-    name,
-    icon,
-    badge,
-    dot = false,
-    onClick,
-    textStyle,
-    iconStyle,
-    children,
-    disabled = false,
-    style,
-    index,
-    testID,
-    iconSize,
-    tokensOverride,
-    ...rest
-  } = props
-  const tokens = useTabbarTokens(tokensOverride)
-  const context = useTabbarContext()
-
-  if (!context) {
-    return null
-  }
-
-  const itemName = (name ?? index ?? 0) as TabbarValue
-  const isActive = context.activeValue === itemName
-  const color = isActive ? context.activeColor : context.inactiveColor
-  const resolvedIconSize = iconSize ?? tokens.icon.size
-
-  const applyIconTheme = useCallback((node: React.ReactNode) => {
-    if (!React.isValidElement(node)) return node
-    const element = node as React.ReactElement<Record<string, unknown>>
-    const nextProps: Record<string, unknown> = {}
-    const p = element.props ?? {}
-    if (p['size'] == null) nextProps['size'] = resolvedIconSize
-    if (p['fill'] == null) nextProps['fill'] = color
-    if (p['color'] == null) nextProps['color'] = color
-    if (p['style'] != null) nextProps['style'] = [p['style'], { color }]
-    return React.cloneElement(element, nextProps)
-  }, [color, resolvedIconSize])
-
-  const renderIcon = useCallback(() => {
-    if (!icon) return null
-    const raw = isFunction(icon) ? icon(isActive) : icon
-    return applyIconTheme(raw)
-  }, [applyIconTheme, icon, isActive])
-
-  const renderLabel = useCallback(() => (isFunction(children) ? children(isActive) : children), [children, isActive])
-
-  const ariaPress = useAriaPress({
-    disabled,
-    onPress: () => {
-      if (!disabled) {
-        onClick?.()
-        context.onSelect(itemName, index ?? 0)
-      }
-    },
-    extraProps: { accessibilityRole: 'tab', accessibilityState: { selected: isActive, disabled }, testID: testID ?? `rv-tabbar-item-${itemName}` },
-  })
-
-  const shouldRenderBadge = dot || isRenderable(badge)
-
-  const renderBadge = useCallback(() => {
-    if (isRenderable(badge)) {
-      if (isText(badge)) return <Badge content={badge} />
-      if (isPlainObject(badge)) {
-        const badgeProps = badge as BadgeProps
-        return <Badge {...badgeProps} dot={dot || badgeProps.dot} />
-      }
-      return badge as React.ReactNode
-    }
-    return <Badge dot />
-  }, [badge, dot])
-
-  const itemStyle = [styles.item, { height: tokens.layout.height, paddingVertical: tokens.layout.paddingVertical, opacity: disabled ? 0.5 : 1 }, style]
-  const labelStyle = [styles.label, { color, fontSize: context.fontSize, fontWeight: context.fontWeight, lineHeight: context.fontSize }, textStyle]
-
-  return (
-    <Pressable {...rest} {...ariaPress.interactionProps} style={itemStyle}>
-      <View style={[styles.iconWrapper, iconStyle]}>
-        {renderIcon()}
-        {shouldRenderBadge && <View style={styles.badge}>{renderBadge()}</View>}
-      </View>
-      {isRenderable(children) ? <Text style={labelStyle}>{renderLabel()}</Text> : null}
-    </Pressable>
-  )
+const TabbarItemImpl: React.FC<TabbarItemProps> = p => {
+  const { name, icon, badge, dot = false, onClick, textStyle, iconStyle, children, disabled = false, style, index, testID, iconSize, tokensOverride, ...rest } = p
+  const t = useTabbarTokens(tokensOverride)
+  const ctx = useTabbarContext()
+  if (!ctx) return null
+  const in_ = (name ?? index ?? 0) as TabbarValue
+  const ia = ctx.activeValue === in_
+  const c = ia ? ctx.activeColor : ctx.inactiveColor
+  const ris = iconSize ?? t.icon.size
+  const ait = useCallback((n: React.ReactNode) => { if (!React.isValidElement(n)) return n; const e = n as React.ReactElement<Record<string, unknown>>; const np: Record<string, unknown> = {}; const pr = e.props ?? {}; if (pr['size'] == null) np['size'] = ris; if (pr['fill'] == null) np['fill'] = c; if (pr['color'] == null) np['color'] = c; if (pr['style'] != null) np['style'] = [pr['style'], { color: c }]; return React.cloneElement(e, np) }, [c, ris])
+  const ri = useCallback(() => { if (!icon) return null; const r = isFunction(icon) ? icon(ia) : icon; return ait(r) }, [ait, icon, ia])
+  const rl = useCallback(() => (isFunction(children) ? children(ia) : children), [children, ia])
+  const ap = useAriaPress({ disabled, onPress: () => { if (!disabled) { onClick?.(); ctx.onSelect(in_, index ?? 0) } }, extraProps: { accessibilityRole: 'tab', accessibilityState: { selected: ia, disabled }, testID: testID ?? `rv-tabbar-item-${in_}` } })
+  const srb = dot || isRenderable(badge)
+  const rb = useCallback(() => { if (isRenderable(badge)) { if (isText(badge)) return <Badge content={badge} />; if (isPlainObject(badge)) { const bp = badge as BadgeProps; return <Badge {...bp} dot={dot || bp.dot} /> }; return badge as React.ReactNode }; return <Badge dot /> }, [badge, dot])
+  const is_ = [S.i, { height: t.layout.height, paddingVertical: t.layout.paddingVertical, opacity: disabled ? 0.5 : 1 }, style]
+  const ls = [S.l, { color: c, fontSize: ctx.fontSize, fontWeight: ctx.fontWeight, lineHeight: ctx.fontSize }, textStyle]
+  return <Pressable {...rest} {...ap.interactionProps} style={is_}><View style={[S.iw, iconStyle]}>{ri()}{srb && <View style={S.b}>{rb()}</View>}</View>{isRenderable(children) ? <Text style={ls}>{rl()}</Text> : null}</Pressable>
 }
 
-const styles = StyleSheet.create({
-  item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
-  iconWrapper: { alignItems: 'center', justifyContent: 'center' },
-  badge: { position: 'absolute', top: -4, right: -12 },
-  label: { includeFontPadding: false },
+const S = StyleSheet.create({
+  i: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  iw: { alignItems: 'center', justifyContent: 'center' },
+  b: { position: 'absolute', top: -4, right: -12 },
+  l: { includeFontPadding: false },
 })
 
 const TabbarItem = React.memo(TabbarItemImpl)

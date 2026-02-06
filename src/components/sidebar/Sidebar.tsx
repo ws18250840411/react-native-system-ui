@@ -13,18 +13,18 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   const { children, sideStyle, style, tokensOverride, ...rest } = props
   const tokens = useSidebarTokens(tokensOverride)
 
-  const items = useMemo(() => {
-    const out: { element: React.ReactElement<SidebarItemProps>; index: number }[] = []
-    const list = React.Children.toArray(children)
-    for (let i = 0; i < list.length; i++) {
-      const child = list[i]
+  const sidebarItems = useMemo(() => {
+    const validItems: { element: React.ReactElement<SidebarItemProps>; index: number }[] = []
+    const childrenArray = React.Children.toArray(children)
+    for (let index = 0; index < childrenArray.length; index++) {
+      const child = childrenArray[index]
       if (!React.isValidElement<SidebarItemProps>(child)) continue
-      out.push({ element: child, index: i })
+      validItems.push({ element: child, index })
     }
-    return out
+    return validItems
   }, [children])
 
-  const firstIndex = items[0]?.index ?? 0
+  const firstIndex = sidebarItems[0]?.index ?? 0
   const [activeIndex, setActiveIndex] = useControllableValue<number>(props, {
     defaultValue: firstIndex,
     valuePropName: 'value',
@@ -33,15 +33,15 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   })
 
   const currentIndex = useMemo(() => {
-    let next = firstIndex
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].index === activeIndex) {
-        next = activeIndex
+    let resolvedIndex = firstIndex
+    for (let index = 0; index < sidebarItems.length; index++) {
+      if (sidebarItems[index].index === activeIndex) {
+        resolvedIndex = activeIndex
         break
       }
     }
-    return next
-  }, [activeIndex, firstIndex, items])
+    return resolvedIndex
+  }, [activeIndex, firstIndex, sidebarItems])
 
   const contextValue = useMemo(() => ({
     activeIndex: currentIndex,
@@ -49,15 +49,15 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   }), [currentIndex, setActiveIndex])
 
   const clonedItems = useMemo(
-    () => items.map(item => {
+    () => sidebarItems.map(item => {
       const key = item.element.key ?? item.index
       const merged = mergeTokensOverride(tokensOverride, item.element.props.tokensOverride)
       return React.cloneElement(item.element, { key, index: item.index, tokensOverride: merged })
     }),
-    [items, tokensOverride]
+    [sidebarItems, tokensOverride]
   )
 
-  const activeItem = items.find(item => item.index === currentIndex)?.element
+  const activeItem = sidebarItems.find(item => item.index === currentIndex)?.element
 
   const activeContentStyle = activeItem?.props?.contentStyle
   const activeContent = activeItem?.props?.children

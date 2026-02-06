@@ -7,187 +7,187 @@
 export default [
   {
     "name": "picker",
-    "size": 8749
+    "size": 8710
   },
   {
     "name": "tabs",
-    "size": 7959
+    "size": 7915
   },
   {
     "name": "form",
-    "size": 6945
+    "size": 6914
   },
   {
     "name": "cascader",
-    "size": 6123
+    "size": 6045
   },
   {
     "name": "dialog",
-    "size": 6004
-  },
-  {
-    "name": "slider",
-    "size": 5644
+    "size": 5938
   },
   {
     "name": "field",
-    "size": 5631
+    "size": 5587
+  },
+  {
+    "name": "slider",
+    "size": 5581
   },
   {
     "name": "calendar",
-    "size": 5620
+    "size": 5517
   },
   {
     "name": "swiper",
-    "size": 5149
-  },
-  {
-    "name": "popup",
-    "size": 5119
+    "size": 4973
   },
   {
     "name": "number-keyboard",
-    "size": 5028
+    "size": 4926
   },
   {
     "name": "toast",
-    "size": 4830
-  },
-  {
-    "name": "stepper",
-    "size": 4769
+    "size": 4834
   },
   {
     "name": "notify",
-    "size": 4752
+    "size": 4784
   },
   {
-    "name": "checkbox",
-    "size": 4627
+    "name": "popup",
+    "size": 4699
   },
   {
     "name": "image-preview",
-    "size": 4562
+    "size": 4556
   },
   {
     "name": "button",
-    "size": 4499
+    "size": 4514
   },
   {
-    "name": "cell",
-    "size": 4314
+    "name": "stepper",
+    "size": 4487
+  },
+  {
+    "name": "checkbox",
+    "size": 4436
   },
   {
     "name": "radio",
-    "size": 4278
+    "size": 4290
+  },
+  {
+    "name": "cell",
+    "size": 4233
   },
   {
     "name": "grid",
-    "size": 4032
+    "size": 3923
   },
   {
     "name": "tabbar",
-    "size": 3809
+    "size": 3714
   },
   {
     "name": "notice-bar",
-    "size": 3654
+    "size": 3603
   },
   {
     "name": "password-input",
-    "size": 3566
-  },
-  {
-    "name": "collapse",
-    "size": 3539
+    "size": 3506
   },
   {
     "name": "action-sheet",
-    "size": 3517
+    "size": 3502
+  },
+  {
+    "name": "collapse",
+    "size": 3501
   },
   {
     "name": "image",
-    "size": 3410
+    "size": 3424
   },
   {
     "name": "datetime-picker",
-    "size": 3357
+    "size": 3307
   },
   {
     "name": "sidebar",
-    "size": 3144
-  },
-  {
-    "name": "portal",
-    "size": 2927
-  },
-  {
-    "name": "share-sheet",
-    "size": 2883
+    "size": 3150
   },
   {
     "name": "progress",
-    "size": 2776
+    "size": 2811
   },
   {
     "name": "selector",
-    "size": 2767
+    "size": 2781
+  },
+  {
+    "name": "portal",
+    "size": 2720
+  },
+  {
+    "name": "share-sheet",
+    "size": 2720
   },
   {
     "name": "typography",
-    "size": 2617
+    "size": 2607
   },
   {
     "name": "nav-bar",
-    "size": 2593
+    "size": 2580
   },
   {
     "name": "circle",
-    "size": 2521
+    "size": 2507
   },
   {
     "name": "badge",
-    "size": 2470
+    "size": 2435
   },
   {
     "name": "search",
-    "size": 2441
+    "size": 2421
   },
   {
     "name": "config-provider",
-    "size": 2428
-  },
-  {
-    "name": "skeleton",
-    "size": 2357
+    "size": 2419
   },
   {
     "name": "water-mark",
-    "size": 2354
+    "size": 2357
+  },
+  {
+    "name": "skeleton",
+    "size": 2338
   },
   {
     "name": "tag",
-    "size": 2134
+    "size": 2125
   },
   {
     "name": "flex",
-    "size": 2089
+    "size": 2066
   },
   {
     "name": "space",
-    "size": 2002
+    "size": 1953
   },
   {
     "name": "avatar",
-    "size": 1827
+    "size": 1840
   },
   {
     "name": "divider",
-    "size": 1800
+    "size": 1751
   },
   {
     "name": "empty",
-    "size": 1725
+    "size": 1717
   },
   {
     "name": "area",
@@ -195,26 +195,26 @@ export default [
   },
   {
     "name": "input",
-    "size": 1613
+    "size": 1622
   },
   {
     "name": "count-down",
-    "size": 1375
+    "size": 1367
   },
   {
     "name": "switch",
-    "size": 1316
+    "size": 1322
   },
   {
     "name": "loading",
-    "size": 1289
+    "size": 1295
   },
   {
     "name": "overlay",
-    "size": 961
+    "size": 973
   },
   {
     "name": "safe-area-view",
-    "size": 626
+    "size": 609
   }
 ]

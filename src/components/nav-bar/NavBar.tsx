@@ -189,7 +189,7 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
     </View>
   )
 
-  const bar = (
+  const navbarBar = (
     <View
       style={[
         tokens.layout.bar,
@@ -206,15 +206,15 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
     </View>
   )
 
-  const wrapped = safeAreaInsetTop ? (
+  const wrappedBar = safeAreaInsetTop ? (
     <SafeAreaView onLayout={handleLayout} style={{ backgroundColor: background }}>
-      {bar}
+      {navbarBar}
     </SafeAreaView>
   ) : (
-    bar
+    navbarBar
   )
 
-  const navContent = (
+  const navigationContent = (
     <View
       {...rest}
       accessibilityRole={'navigation' as any}
@@ -224,14 +224,14 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
         style,
       ]}
     >
-      {wrapped}
+      {wrappedBar}
     </View>
   )
 
   return (
     <>
       {enablePlaceholder && <View testID="rv-navbar-placeholder" style={{ height }} />}
-      {navContent}
+      {navigationContent}
     </>
   )
 }

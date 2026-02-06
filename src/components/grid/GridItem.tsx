@@ -1,183 +1,44 @@
 import React, { useContext, useMemo } from 'react'
-import {
-  Platform,
-  Pressable,
-  Text,
-  View,
-  type DimensionValue,
-  type ViewStyle,
-} from 'react-native'
-
+import { Platform, Pressable, Text, View, type DimensionValue, type ViewStyle } from 'react-native'
 import Badge from '../badge'
 import { createHairlineView, isFunction, isRenderable, isText } from '../../utils'
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
-const GridItemImpl: React.FC<GridItemProps> = props => {
-  const context = useContext(GridContext)
-  if (!context) throw new Error('GridItem must be used within Grid')
-
-  const {
-    gridItemIndex = 0,
-    text,
-    icon,
-    iconColor: iconColorProp,
-    badge,
-    dot,
-    contentStyle,
-    textStyle,
-    children,
-    style,
-    onPress,
-    ...rest
-  } = props as GridItemProps & { gridItemIndex?: number }
-
-  const { tokens, columnNum, gutter, border, center, square, direction, reverse, clickable, iconSize, iconColor, count } = context
-
-  const widthPercent = `${100 / columnNum}%` as DimensionValue
-  const isLastColumn = (gridItemIndex + 1) % columnNum === 0
-  const rowIndex = Math.floor(gridItemIndex / columnNum)
-  const lastRowIndex = Math.floor((count - 1) / columnNum)
-
-  const contentWrapperStyle = [tokens.layout.itemContentBase, direction === 'horizontal' ? tokens.layout.itemHorizontal : tokens.layout.itemVertical, center && tokens.layout.itemCenter, reverse ? (direction === 'horizontal' ? tokens.layout.itemReverseRow : tokens.layout.itemReverseColumn) : null, square ? tokens.layout.itemContentSquare : null, { paddingHorizontal: tokens.spacing.paddingHorizontal, paddingVertical: tokens.spacing.paddingVertical, backgroundColor: tokens.colors.background }, contentStyle]
-
-  const hasText = isRenderable(text)
-  const resolvedIconColor = iconColorProp ?? iconColor ?? tokens.colors.text
-
-  const innerContent = useMemo(() => {
+const GridItemImpl: React.FC<GridItemProps> = p => {
+  const ctx = useContext(GridContext)
+  if (!ctx) throw new Error('GridItem must be used within Grid')
+  const { gridItemIndex = 0, text, icon, iconColor: icp, badge, dot, contentStyle, textStyle, children, style, onPress, ...rest } = p as GridItemProps & { gridItemIndex?: number }
+  const { tokens: t, columnNum: cn, gutter: g, border: b, center: c, square: sq, direction: d, reverse: r, clickable: cl, iconSize: is, iconColor: ic, count } = ctx
+  const wp = `${100 / cn}%` as DimensionValue
+  const ilc = (gridItemIndex + 1) % cn === 0
+  const ri = Math.floor(gridItemIndex / cn)
+  const lri = Math.floor((count - 1) / cn)
+  const cws = [t.layout.itemContentBase, d === 'horizontal' ? t.layout.itemHorizontal : t.layout.itemVertical, c && t.layout.itemCenter, r ? (d === 'horizontal' ? t.layout.itemReverseRow : t.layout.itemReverseColumn) : null, sq ? t.layout.itemContentSquare : null, { paddingHorizontal: t.spacing.paddingHorizontal, paddingVertical: t.spacing.paddingVertical, backgroundColor: t.colors.background }, contentStyle]
+  const ht = isRenderable(text)
+  const ric = icp ?? ic ?? t.colors.text
+  const icn = useMemo(() => {
     if (children) return children
-
-    let iconElement: React.ReactNode = null
+    let ie: React.ReactNode = null
     if (icon || badge || dot) {
-      const { style: badgeWrapperStyle, ...badgeRest } = badge ?? {}
-      const marginKey = direction === 'vertical'
-        ? (reverse ? 'marginTop' : 'marginBottom')
-        : (reverse ? 'marginLeft' : 'marginRight')
-
-      const iconWrapperStyle = [
-        tokens.layout.iconWrapper,
-        hasText && { [marginKey]: tokens.spacing.iconGap },
-      ]
-      const iconNode = isFunction(icon) ? icon(iconSize, resolvedIconColor) : icon
-      const content = <View style={iconWrapperStyle}>{iconNode}</View>
-      iconElement = (badge || dot) ? <Badge dot={dot} {...badgeRest} style={center ? [badgeWrapperStyle, { alignSelf: 'center' }] : badgeWrapperStyle}>{content}</Badge> : content
+      const { style: bws, ...br } = badge ?? {}
+      const mk = d === 'vertical' ? (r ? 'marginTop' : 'marginBottom') : (r ? 'marginLeft' : 'marginRight')
+      const iws = [t.layout.iconWrapper, ht && { [mk]: t.spacing.iconGap }]
+      const ino = isFunction(icon) ? icon(is, ric) : icon
+      const cnt = <View style={iws}>{ino}</View>
+      ie = (badge || dot) ? <Badge dot={dot} {...br} style={c ? [bws, { alignSelf: 'center' }] : bws}>{cnt}</Badge> : cnt
     }
-
-    const textElement = hasText && (
-      isText(text) ? (
-        <Text
-          style={[
-            tokens.layout.text,
-            {
-              color: tokens.colors.text,
-              fontSize: tokens.typography.fontSize,
-              lineHeight: tokens.typography.lineHeight,
-              fontFamily: tokens.typography.fontFamily,
-              fontWeight: tokens.typography.fontWeight,
-            },
-            textStyle
-          ]}
-          numberOfLines={tokens.defaults.textNumberOfLines}
-        >
-          {text}
-        </Text>
-      ) : text
-    )
-
-    return <>{iconElement}{textElement}</>
-  }, [
-    badge,
-    center,
-    children,
-    direction,
-    dot,
-    hasText,
-    icon,
-    iconSize,
-    resolvedIconColor,
-    reverse,
-    text,
-    textStyle,
-    tokens.colors.text,
-    tokens.defaults.textNumberOfLines,
-    tokens.layout.iconWrapper,
-    tokens.layout.text,
-    tokens.spacing.iconGap,
-    tokens.typography.fontFamily,
-    tokens.typography.fontSize,
-    tokens.typography.fontWeight,
-    tokens.typography.lineHeight,
-  ])
-
-  const rightBorder = border && !gutter && !isLastColumn ? (
-    <View
-      style={[
-        tokens.layout.itemBorderRight,
-        createHairlineView({ position: 'right', color: tokens.colors.border, top: 0, bottom: 0, right: 0 }),
-      ]}
-    />
-  ) : null
-
-  const bottomBorder = border && !gutter && rowIndex < lastRowIndex ? (
-    <View
-      style={[
-        tokens.layout.itemBorderBottom,
-        createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0, bottom: 0 }),
-      ]}
-    />
-  ) : null
-
-  const content = (
-    <View style={contentWrapperStyle}>
-      {innerContent}
-      {rightBorder}
-      {bottomBorder}
-    </View>
-  )
-
-  const baseItemStyle: ViewStyle = {
-    width: Platform.OS === 'web' ? undefined : widthPercent,
-    flexGrow: 0,
-    flexShrink: 0,
-    paddingRight: Platform.OS === 'web' ? undefined : (gutter ? gutter : undefined),
-    marginTop: Platform.OS === 'web' ? undefined : (gutter && rowIndex > 0 ? gutter : undefined),
-  }
-
-  const isInteractive = clickable || isFunction(onPress)
-
-  if (isInteractive) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        style={(pressableState) => [
-          baseItemStyle,
-          typeof style === 'function' ? style(pressableState) : style,
-          { opacity: pressableState.pressed ? tokens.defaults.pressedOpacity : 1 },
-        ]}
-        android_ripple={{ color: tokens.colors.active }}
-        onPress={onPress}
-        {...rest}
-      >
-        {content}
-      </Pressable>
-    )
-  }
-
-  return (
-    <View
-      style={[
-        baseItemStyle,
-        typeof style === 'function'
-          ? style({ pressed: false })
-          : style,
-      ]}
-      {...rest}
-    >
-      {content}
-    </View>
-  )
+    const te = ht && (isText(text) ? <Text style={[t.layout.text, { color: t.colors.text, fontSize: t.typography.fontSize, lineHeight: t.typography.lineHeight, fontFamily: t.typography.fontFamily, fontWeight: t.typography.fontWeight }, textStyle]} numberOfLines={t.defaults.textNumberOfLines}>{text}</Text> : text)
+    return <>{ie}{te}</>
+  }, [badge, c, children, d, dot, ht, icon, is, ric, r, text, textStyle, t.colors.text, t.defaults.textNumberOfLines, t.layout.iconWrapper, t.layout.text, t.spacing.iconGap, t.typography.fontFamily, t.typography.fontSize, t.typography.fontWeight, t.typography.lineHeight])
+  const rb = b && !g && !ilc ? <View style={[t.layout.itemBorderRight, createHairlineView({ position: 'right', color: t.colors.border, top: 0, bottom: 0, right: 0 })]} /> : null
+  const bb = b && !g && ri < lri ? <View style={[t.layout.itemBorderBottom, createHairlineView({ position: 'bottom', color: t.colors.border, left: 0, right: 0, bottom: 0 })]} /> : null
+  const cnt = <View style={cws}>{icn}{rb}{bb}</View>
+  const bis: ViewStyle = { width: Platform.OS === 'web' ? undefined : wp, flexGrow: 0, flexShrink: 0, paddingRight: Platform.OS === 'web' ? undefined : (g ? g : undefined), marginTop: Platform.OS === 'web' ? undefined : (g && ri > 0 ? g : undefined) }
+  const ii = cl || isFunction(onPress)
+  if (ii) return <Pressable accessibilityRole="button" style={(ps) => [bis, typeof style === 'function' ? style(ps) : style, { opacity: ps.pressed ? t.defaults.pressedOpacity : 1 }]} android_ripple={{ color: t.colors.active }} onPress={onPress} {...rest}>{cnt}</Pressable>
+  return <View style={[bis, typeof style === 'function' ? style({ pressed: false }) : style]} {...rest}>{cnt}</View>
 }
 
 export const GridItem = React.memo(GridItemImpl)
-
 GridItem.displayName = 'GridItem'

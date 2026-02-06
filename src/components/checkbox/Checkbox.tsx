@@ -2,305 +2,120 @@ import React, { useContext, useEffect, useImperativeHandle, useRef } from 'react
 import { Platform, Pressable, Text, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native'
 import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
-
 import type { CheckboxProps } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
 import { renderTextOrNode } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 
-const CheckboxImpl = (
-  props: CheckboxProps,
-  ref: React.ForwardedRef<View>,
-) => {
-  const {
-    children,
-    name,
-    value,
-    iconRender,
-    bindGroup: bindGroupProp,
-    shape,
-    iconSize,
-    checkedColor,
-    labelPosition,
-    labelDisabled,
-    disabled,
-    style,
-    labelStyle,
-    tokensOverride,
-    hitSlop = 8,
-    accessibilityLabel,
-    ['aria-label']: ariaLabel,
-    onClick,
-    onChange,
-    ...rest
-  } = props
-
-  const tokens = useCheckboxTokens(tokensOverride)
-  const group = useContext(CheckboxGroupContext)
-  const bindGroup = bindGroupProp ?? tokens.defaults.bindGroup
-
-  const resolvedShape = shape ?? group?.shape ?? tokens.defaults.shape
-  const resolvedIconSize = iconSize ?? group?.iconSize ?? tokens.defaults.iconSize
-  const resolvedCheckedColor = checkedColor ?? group?.checkedColor ?? tokens.colors.checkedBackground
-  const resolvedIconRender = iconRender ?? group?.iconRender
-  const resolvedLabelPosition = labelPosition ?? tokens.defaults.labelPosition
-  const resolvedLabelDisabled = labelDisabled ?? group?.labelDisabled ?? tokens.defaults.labelDisabled
-  const resolvedDisabled = Boolean(disabled || group?.state.isDisabled)
-
-  const rawValue = value ?? name
-  const serializedValue = rawValue == null ? undefined : String(rawValue)
-
-  const internalRef = useRef<View>(null)
-  useImperativeHandle(ref, () => internalRef.current!)
-
-  const standaloneState = useToggleState({
-    isSelected: props.checked,
-    defaultSelected: props.defaultChecked,
-    onChange,
-  })
-
-  const isGroup = !!group && serializedValue !== undefined && bindGroup
-
-  const { onBlur, onFocus, ...compatibleRest } = rest
-
+const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
+  const { children, name, value, iconRender, bindGroup: bgp, shape, iconSize, checkedColor, labelPosition, labelDisabled, disabled, style, labelStyle, tokensOverride, hitSlop = 8, accessibilityLabel, ['aria-label']: al, onClick, onChange, ...rest } = p
+  const t = useCheckboxTokens(tokensOverride)
+  const g = useContext(CheckboxGroupContext)
+  const bg = bgp ?? t.defaults.bindGroup
+  const rs = shape ?? g?.shape ?? t.defaults.shape
+  const ris = iconSize ?? g?.iconSize ?? t.defaults.iconSize
+  const rcc = checkedColor ?? g?.checkedColor ?? t.colors.checkedBackground
+  const rir = iconRender ?? g?.iconRender
+  const rlp = labelPosition ?? t.defaults.labelPosition
+  const rld = labelDisabled ?? g?.labelDisabled ?? t.defaults.labelDisabled
+  const rd = Boolean(disabled || g?.state.isDisabled)
+  const rv = value ?? name
+  const sv = rv == null ? undefined : String(rv)
+  const ir = useRef<View>(null)
+  useImperativeHandle(ref, () => ir.current!)
+  const ss = useToggleState({ isSelected: p.checked, defaultSelected: p.defaultChecked, onChange })
+  const ig = !!g && sv !== undefined && bg
+  const { onBlur, onFocus, ...cr } = rest
   useEffect(() => {
-    if (group && bindGroup && serializedValue !== undefined && rawValue !== undefined) {
-      group.registerValue(serializedValue, rawValue, resolvedDisabled)
-      return () => group.unregisterValue(serializedValue)
+    if (g && bg && sv !== undefined && rv !== undefined) {
+      g.registerValue(sv, rv, rd)
+      return () => g.unregisterValue(sv)
     }
     return undefined
-  }, [bindGroup, group, serializedValue, rawValue, resolvedDisabled])
-
-  const resolvedAccessibilityLabel =
-    accessibilityLabel ??
-    ariaLabel ??
-    (isText(children) ? String(children) : undefined) ??
-    serializedValue ??
-    'checkbox'
-
-  let inputProps: Partial<React.ComponentProps<typeof Pressable>> | undefined
-  let isChecked: boolean
-
-  const ariaRef = internalRef as unknown as React.RefObject<HTMLInputElement>
-
-  if (isGroup && group) {
-    const { inputProps: groupInputProps } = useCheckboxGroupItem(
-      {
-        ...compatibleRest,
-        value: serializedValue!,
-        isDisabled: resolvedDisabled,
-        'aria-label': resolvedAccessibilityLabel,
-      },
-      group.state,
-      ariaRef
-    )
-
-    inputProps = groupInputProps as unknown as Partial<React.ComponentProps<typeof Pressable>>
-    isChecked = group.state.isSelected(serializedValue!)
+  }, [bg, g, sv, rv, rd])
+  const ral = accessibilityLabel ?? al ?? (isText(children) ? String(children) : undefined) ?? sv ?? 'checkbox'
+  let ip: Partial<React.ComponentProps<typeof Pressable>> | undefined
+  let ic: boolean
+  const ar = ir as unknown as React.RefObject<HTMLInputElement>
+  if (ig && g) {
+    const { inputProps: gip } = useCheckboxGroupItem({ ...cr, value: sv!, isDisabled: rd, 'aria-label': ral }, g.state, ar)
+    ip = gip as unknown as Partial<React.ComponentProps<typeof Pressable>>
+    ic = g.state.isSelected(sv!)
   } else {
-    const { inputProps: standaloneProps } = useCheckbox(
-      {
-        ...compatibleRest,
-        isDisabled: resolvedDisabled,
-        value: serializedValue,
-        'aria-label': resolvedAccessibilityLabel,
-      },
-      standaloneState,
-      ariaRef
-    )
-    inputProps = standaloneProps as unknown as Partial<React.ComponentProps<typeof Pressable>>
-    isChecked = props.checked !== undefined ? props.checked : standaloneState.isSelected
+    const { inputProps: sp } = useCheckbox({ ...cr, isDisabled: rd, value: sv, 'aria-label': ral }, ss, ar)
+    ip = sp as unknown as Partial<React.ComponentProps<typeof Pressable>>
+    ic = p.checked !== undefined ? p.checked : ss.isSelected
   }
-
-  const borderRadius = resolvedShape === 'round' ? resolvedIconSize / 2 : tokens.radii.square
-  const borderColor = resolvedDisabled
-    ? tokens.colors.disabledBorder
-    : isChecked
-      ? resolvedCheckedColor
-      : tokens.colors.border
-  const backgroundColor = resolvedDisabled
-    ? tokens.colors.disabledBackground
-    : isChecked
-      ? resolvedCheckedColor
-      : tokens.colors.background
-  const labelColor =
-    resolvedDisabled || resolvedLabelDisabled
-      ? tokens.colors.labelDisabled
-      : tokens.colors.label
-  const spacingStyle =
-    resolvedLabelPosition === 'left'
-      ? { marginRight: tokens.spacing.gap }
-      : { marginLeft: tokens.spacing.gap }
-
-  const originalOnPress = inputProps?.onPress
-  const mergedInputProps: Partial<React.ComponentProps<typeof Pressable>> = inputProps
-    ? {
-      ...inputProps,
-      onPress: (e: GestureResponderEvent) => {
-        onClick?.(e)
-
-        if (
-          isGroup &&
-          group?.max &&
-          !isChecked &&
-          group.state.value.length >= group.max
-        ) {
-          return
-        }
-
-        if (originalOnPress) {
-          originalOnPress(e)
-          return
-        }
-
-        if (isGroup && group && serializedValue !== undefined) {
-          if (isChecked) group.state.removeValue(serializedValue)
-          else group.state.addValue(serializedValue)
-          return
-        }
-        if (props.checked !== undefined) {
-          onChange?.(!props.checked)
-          return
-        }
-        if (onChange) {
-          standaloneState.setSelected(!standaloneState.isSelected)
-        }
-      },
-    }
-    : {}
-
-  const labelNode = !isRenderable(children) ? null : isText(children) ? (
-    <Text
-      accessible={false}
-      style={[
-        tokens.layout.label,
-        {
-          color: labelColor,
-          fontSize: tokens.typography.fontSize,
-          lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-          fontFamily: tokens.typography.fontFamily,
-          fontWeight: tokens.typography.fontWeight,
-        },
-        labelStyle,
-      ]}
-    >
-      {children}
-    </Text>
+  const br = rs === 'round' ? ris / 2 : t.radii.square
+  const bc = rd ? t.colors.disabledBorder : ic ? rcc : t.colors.border
+  const bgc = rd ? t.colors.disabledBackground : ic ? rcc : t.colors.background
+  const lc = rd || rld ? t.colors.labelDisabled : t.colors.label
+  const ss_ = rlp === 'left' ? { marginRight: t.spacing.gap } : { marginLeft: t.spacing.gap }
+  const oop = ip?.onPress
+  const mip: Partial<React.ComponentProps<typeof Pressable>> = ip ? {
+    ...ip,
+    onPress: (e: GestureResponderEvent) => {
+      onClick?.(e)
+      if (ig && g?.max && !ic && g.state.value.length >= g.max) return
+      if (oop) {
+        oop(e)
+        return
+      }
+      if (ig && g && sv !== undefined) {
+        if (ic) g.state.removeValue(sv)
+        else g.state.addValue(sv)
+        return
+      }
+      if (p.checked !== undefined) {
+        onChange?.(!p.checked)
+        return
+      }
+      if (onChange) {
+        ss.setSelected(!ss.isSelected)
+      }
+    },
+  } : {}
+  const ln = !isRenderable(children) ? null : isText(children) ? (
+    <Text accessible={false} style={[t.layout.label, { color: lc, fontSize: t.typography.fontSize, lineHeight: t.typography.fontSize * t.typography.lineHeightMultiplier, fontFamily: t.typography.fontFamily, fontWeight: t.typography.fontWeight }, labelStyle]}>{children}</Text>
   ) : (
-    <View accessible={false} style={labelStyle as unknown as StyleProp<ViewStyle>}>
-      {children}
+    <View accessible={false} style={labelStyle as unknown as StyleProp<ViewStyle>}>{children}</View>
+  )
+  const ibs = { width: ris, height: ris, borderRadius: br, borderColor: bc, backgroundColor: bgc, borderWidth: t.borders.width }
+  const di = (
+    <View style={[t.layout.icon, ibs]}>
+      {ic && <Text style={[t.layout.checkmark, { color: t.colors.checkmark, fontSize: ris * t.icon.scale }]}>✓</Text>}
     </View>
   )
-
-  const iconBaseStyle = {
-    width: resolvedIconSize,
-    height: resolvedIconSize,
-    borderRadius,
-    borderColor,
-    backgroundColor,
-    borderWidth: tokens.borders.width,
+  let iv: React.ReactNode = di
+  if (rir) {
+    iv = rir({ checked: Boolean(ic), disabled: Boolean(rd) }) ?? null
   }
-  const defaultIcon = (
-    <View style={[tokens.layout.icon, iconBaseStyle]}>
-      {isChecked && (
-        <Text
-          style={[
-            tokens.layout.checkmark,
-            {
-              color: tokens.colors.checkmark,
-              fontSize: resolvedIconSize * tokens.icon.scale,
-            },
-          ]}
-        >
-          ✓
-        </Text>
-      )}
+  const i = !rd && !rld
+  const lw = ln && (
+    <View style={[t.layout.labelWrapper, ss_]} pointerEvents={rld ? 'none' : undefined} accessible={false}>
+      {ln}
     </View>
   )
-  let iconVisual: React.ReactNode = defaultIcon
-  if (resolvedIconRender) {
-    iconVisual = resolvedIconRender({
-      checked: Boolean(isChecked),
-      disabled: Boolean(resolvedDisabled),
-    }) ?? null
-  }
-
-  const interactive = !resolvedDisabled && !resolvedLabelDisabled
-
-  const labelWrapper = labelNode && (
-    <View
-      style={[tokens.layout.labelWrapper, spacingStyle]}
-      pointerEvents={resolvedLabelDisabled ? 'none' : undefined}
-      accessible={false}
-    >
-      {labelNode}
-    </View>
-  )
-
-  const iconWrapperStyle = [
-    tokens.layout.iconWrapper,
-    resolvedLabelPosition === 'left'
-      ? { marginLeft: tokens.spacing.gap }
-      : { marginRight: tokens.spacing.gap },
-  ]
-
-  const iconWrapper = interactive ? (
-    <View style={iconWrapperStyle}>
-      {iconVisual}
-    </View>
+  const iws = [t.layout.iconWrapper, rlp === 'left' ? { marginLeft: t.spacing.gap } : { marginRight: t.spacing.gap }]
+  const iw = i ? (
+    <View style={iws}>{iv}</View>
   ) : (
-    <Pressable
-      {...mergedInputProps}
-      ref={internalRef}
-      disabled={resolvedDisabled}
-      accessibilityLabel={resolvedAccessibilityLabel}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
-      style={iconWrapperStyle}
-      hitSlop={hitSlop}
-    >
-      {iconVisual}
+    <Pressable {...mip} ref={ir} disabled={rd} accessibilityLabel={ral} accessibilityRole="checkbox" accessibilityState={{ checked: ic, disabled: !!rd }} style={iws} hitSlop={hitSlop}>
+      {iv}
     </Pressable>
   )
-  const content =
-    resolvedLabelPosition === 'left' ? (
-      <>
-        {labelWrapper}
-        {iconWrapper}
-      </>
-    ) : (
-      <>
-        {iconWrapper}
-        {labelWrapper}
-      </>
-    )
-
-  if (interactive) {
+  const cnt = rlp === 'left' ? <>{lw}{iw}</> : <>{iw}{lw}</>
+  if (i) {
     return (
-      <Pressable
-        {...mergedInputProps}
-        ref={internalRef}
-        disabled={resolvedDisabled}
-        accessibilityLabel={resolvedAccessibilityLabel}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: isChecked, disabled: !!resolvedDisabled }}
-        style={({ pressed }) => [
-          tokens.layout.container,
-          style,
-          Platform.OS === 'web' && ({ cursor: 'pointer' } as unknown as ViewStyle),
-          pressed && { opacity: 0.8 }
-        ]}
-        hitSlop={hitSlop}
-      >
-        {content}
+      <Pressable {...mip} ref={ir} disabled={rd} accessibilityLabel={ral} accessibilityRole="checkbox" accessibilityState={{ checked: ic, disabled: !!rd }} style={({ pressed }) => [t.layout.container, style, Platform.OS === 'web' && ({ cursor: 'pointer' } as unknown as ViewStyle), pressed && { opacity: 0.8 }]} hitSlop={hitSlop}>
+        {cnt}
       </Pressable>
     )
   }
-
   return (
-    <View style={[tokens.layout.container, style]}>
-      {content}
+    <View style={[t.layout.container, style]}>
+      {cnt}
     </View>
   )
 }

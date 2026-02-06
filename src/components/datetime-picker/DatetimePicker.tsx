@@ -1,15 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import Picker from '../picker'
 import { Popup, type PopupProps } from '../popup/Popup'
 import { useControllableValue } from '../../hooks'
 import { clamp, getMonthEndDay, getTrueValue, isValidDate, padZero, times, isString } from '../../utils'
-import type {
-  DatetimePickerColumnType,
-  DatetimePickerDateProps,
-  DatetimePickerProps,
-  DatetimePickerTimeProps,
-} from './types'
+import type { DatetimePickerColumnType, DatetimePickerDateProps, DatetimePickerProps, DatetimePickerTimeProps } from './types'
 import { useDatetimePickerTokens } from './tokens'
 
 const currentYear = new Date().getFullYear()
@@ -19,116 +13,58 @@ const DEFAULT_MAX_DATE = new Date(currentYear + DEFAULT_YEAR_RANGE_OFFSET, 11, 3
 
 const DatetimePickerImpl: React.FC<DatetimePickerProps> = props => {
   const tokens = useDatetimePickerTokens()
-  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
-    defaultValue: false,
-    valuePropName: 'popupVisible',
-    defaultValuePropName: 'defaultPopupVisible',
-    trigger: 'onPopupVisibleChange',
-  })
-
-  const close = useCallback(() => setPopupVisible(false), [setPopupVisible])
+  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, { defaultValue: false, valuePropName: 'popupVisible', defaultValuePropName: 'defaultPopupVisible', trigger: 'onPopupVisibleChange' })
+  const handleClose = useCallback(() => setPopupVisible(false), [setPopupVisible])
   const renderPopup = useCallback((node: React.ReactElement, popup?: boolean, popupProps?: Omit<PopupProps, 'visible' | 'children'>) => {
     if (!popup) return node
-    return <Popup visible={popupVisible} onClose={close} placement={tokens.defaults.popupPlacement} round={tokens.defaults.popupRound} safeAreaInsetBottom={tokens.defaults.popupSafeAreaInsetBottom} {...popupProps}>{node}</Popup>
-  }, [close, popupVisible, tokens.defaults.popupPlacement, tokens.defaults.popupRound, tokens.defaults.popupSafeAreaInsetBottom])
+    return <Popup visible={popupVisible} onClose={handleClose} placement={tokens.defaults.popupPlacement} round={tokens.defaults.popupRound} safeAreaInsetBottom={tokens.defaults.popupSafeAreaInsetBottom} {...popupProps}>{node}</Popup>
+  }, [handleClose, popupVisible, tokens.defaults.popupPlacement, tokens.defaults.popupRound, tokens.defaults.popupSafeAreaInsetBottom])
 
-  const {
-    popup,
-    popupVisible: _popupVisible,
-    defaultPopupVisible: _defaultPopupVisible,
-    popupProps,
-    onPopupVisibleChange: _onPopupVisibleChange,
-    onConfirm,
-    onCancel,
-    ...pickerProps
-  } = props
+  const { popup, popupVisible: _popupVisible, defaultPopupVisible: _defaultPopupVisible, popupProps, onPopupVisibleChange: _onPopupVisibleChange, onConfirm, onCancel, ...pickerProps } = props
+  const onConfirmRef = useRef(onConfirm), onCancelRef = useRef(onCancel)
+  onConfirmRef.current = onConfirm; onCancelRef.current = onCancel
 
-  const onConfirmRef = useRef(onConfirm)
-  onConfirmRef.current = onConfirm
-  const onCancelRef = useRef(onCancel)
-  onCancelRef.current = onCancel
-
-  const handleConfirm = useCallback(
-    (value: Date | string) => {
-      (onConfirmRef.current as ((v: Date | string) => void) | undefined)?.(value)
-      if (popup) close()
-    },
-    [close, popup],
-  )
-
-  const handleCancel = useCallback(() => {
-    onCancelRef.current?.()
-    if (popup) close()
-  }, [close, popup])
+  const handleConfirm = useCallback((value: Date | string) => { (onConfirmRef.current as ((v: Date | string) => void) | undefined)?.(value); if (popup) handleClose() }, [handleClose, popup])
+  const handleCancel = useCallback(() => { onCancelRef.current?.(); if (popup) handleClose() }, [handleClose, popup])
 
   const pickerNode = props.type === 'time'
     ? <TimePicker {...pickerProps as DatetimePickerTimeProps} onConfirm={handleConfirm} onCancel={handleCancel} />
     : <DatePicker {...pickerProps as DatetimePickerDateProps} onConfirm={handleConfirm} onCancel={handleCancel} />
-
   return renderPopup(pickerNode, popup, popupProps)
 }
 
 const DatePicker: React.FC<DatetimePickerDateProps> = props => {
-  const {
-    type = 'datetime',
-    minDate = DEFAULT_MIN_DATE,
-    maxDate = DEFAULT_MAX_DATE,
-    formatter = (_type, value) => value,
-    filter,
-    columnsOrder,
-    interactionMode = 'freeze',
-    value,
-    defaultValue,
-    onChange,
-    onConfirm,
-    ...pickerProps
-  } = props
+  const { type = 'datetime', minDate = DEFAULT_MIN_DATE, maxDate = DEFAULT_MAX_DATE, formatter = (_type, value) => value, filter, columnsOrder, interactionMode = 'freeze', value, defaultValue, onChange, onConfirm, ...pickerProps } = props
 
   const formatValue = useCallback((dateValue?: Date) => {
     const fallback = isValidDate(dateValue) ? dateValue : new Date()
-    const time = clamp(fallback.getTime(), minDate.getTime(), maxDate.getTime())
-    const date = new Date(time)
-    if (type === 'year-month') { date.setDate(1); date.setHours(0, 0, 0, 0) } else if (type === 'date' || type === 'month-day') { date.setHours(0, 0, 0, 0) } else if (type === 'datehour') { date.setMinutes(0, 0, 0) }
+    const date = new Date(clamp(fallback.getTime(), minDate.getTime(), maxDate.getTime()))
+    if (type === 'year-month') { date.setDate(1); date.setHours(0, 0, 0, 0) }
+    else if (type === 'date' || type === 'month-day') { date.setHours(0, 0, 0, 0) }
+    else if (type === 'datehour') { date.setMinutes(0, 0, 0) }
     return date
   }, [maxDate, minDate, type])
 
   const [currentDate, setCurrentDate] = useState<Date>(() => formatValue(value ?? defaultValue))
-
   useEffect(() => { setCurrentDate(prev => (value && isValidDate(value) ? formatValue(value) : formatValue(prev))) }, [formatValue, value])
 
   const { originColumns, columns, pickerValue } = useMemo(() => {
     const getBoundary = (boundaryType: 'min' | 'max', date: Date) => {
       const boundaryDate = boundaryType === 'min' ? minDate : maxDate
-      const boundary = {
-        year: boundaryDate.getFullYear(),
-        month: boundaryType === 'min' ? 1 : 12,
-        day:
-          boundaryType === 'min'
-            ? 1
-            : getMonthEndDay(date.getFullYear(), date.getMonth() + 1),
-        hour: boundaryType === 'min' ? 0 : 23,
-        minute: boundaryType === 'min' ? 0 : 59,
-      }
-
+      const boundary = { year: boundaryDate.getFullYear(), month: boundaryType === 'min' ? 1 : 12, day: boundaryType === 'min' ? 1 : getMonthEndDay(date.getFullYear(), date.getMonth() + 1), hour: boundaryType === 'min' ? 0 : 23, minute: boundaryType === 'min' ? 0 : 59 }
       if (date.getFullYear() === boundary.year) {
         boundary.month = boundaryDate.getMonth() + 1
         if (date.getMonth() + 1 === boundary.month) {
           boundary.day = boundaryDate.getDate()
           if (date.getDate() === boundary.day) {
             boundary.hour = boundaryDate.getHours()
-            if (date.getHours() === boundary.hour) {
-              boundary.minute = boundaryDate.getMinutes()
-            }
+            if (date.getHours() === boundary.hour) boundary.minute = boundaryDate.getMinutes()
           }
         }
       }
-
       return boundary
     }
-
-    const maxBoundary = getBoundary('max', currentDate)
-    const minBoundary = getBoundary('min', currentDate)
-
+    const maxBoundary = getBoundary('max', currentDate), minBoundary = getBoundary('min', currentDate)
     const baseColumns: { type: DatetimePickerColumnType; range: [number, number] }[] = [{ type: 'year', range: [minBoundary.year, maxBoundary.year] }, { type: 'month', range: [minBoundary.month, maxBoundary.month] }, { type: 'day', range: [minBoundary.day, maxBoundary.day] }, { type: 'hour', range: [minBoundary.hour, maxBoundary.hour] }, { type: 'minute', range: [minBoundary.minute, maxBoundary.minute] }]
     let result = baseColumns
     switch (type) {
@@ -138,27 +74,16 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
       case 'datehour': result = baseColumns.slice(0, 4); break
       default: break
     }
-
     if (columnsOrder?.length) {
       const order = columnsOrder.concat(result.map(col => col.type))
       result = [...result].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))
     }
-
     const originColumns = result.map(column => {
-      let values = times(column.range[1] - column.range[0] + 1, index => {
-        const value = column.range[0] + index
-        return column.type === 'year' ? String(value) : padZero(value)
-      })
-
-      if (filter) {
-        values = filter(column.type, values)
-      }
-
+      let values = times(column.range[1] - column.range[0] + 1, index => column.type === 'year' ? String(column.range[0] + index) : padZero(column.range[0] + index))
+      if (filter) values = filter(column.type, values)
       return { type: column.type, values }
     })
-
     const columns = originColumns.map(column => column.values.map(value => ({ label: formatter(column.type, value), value })))
-
     const pickerValue = originColumns.map(column => {
       switch (column.type) {
         case 'year': return String(currentDate.getFullYear())
@@ -169,116 +94,59 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
         default: return column.values[0] ?? ''
       }
     })
-
     return { originColumns, columns, pickerValue }
   }, [columnsOrder, currentDate, filter, formatter, maxDate, minDate, type])
 
   const buildDateFromValues = useCallback((values: string[]) => {
-    const getValue = (columnType: DatetimePickerColumnType) => {
-      const index = originColumns.findIndex(column => column.type === columnType)
-      if (index === -1) return undefined
-      return getTrueValue(values[index] ?? originColumns[index].values[0])
-    }
-    let year = currentDate.getFullYear()
-    let month = currentDate.getMonth() + 1
-    let day = currentDate.getDate()
-    if (type === 'month-day') { month = getValue('month') || month; day = getValue('day') || day } else { year = getValue('year') || year; month = getValue('month') || month; day = type === 'year-month' ? 1 : getValue('day') || day }
-    const maxDay = getMonthEndDay(year, month)
-    day = Math.min(day, maxDay)
-    let hour = 0
-    let minute = 0
+    const getValue = (columnType: DatetimePickerColumnType) => { const index = originColumns.findIndex(column => column.type === columnType); return index === -1 ? undefined : getTrueValue(values[index] ?? originColumns[index].values[0]) }
+    let year = currentDate.getFullYear(), month = currentDate.getMonth() + 1, day = currentDate.getDate()
+    if (type === 'month-day') { month = getValue('month') || month; day = getValue('day') || day }
+    else { year = getValue('year') || year; month = getValue('month') || month; day = type === 'year-month' ? 1 : getValue('day') || day }
+    day = Math.min(day, getMonthEndDay(year, month))
+    let hour = 0, minute = 0
     if (type === 'datehour' || type === 'datetime') hour = getValue('hour') || 0
     if (type === 'datetime') minute = getValue('minute') || 0
     return formatValue(new Date(year, month - 1, day, hour, minute))
   }, [currentDate, formatValue, originColumns, type])
 
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
-  const onConfirmRef = useRef(onConfirm)
-  onConfirmRef.current = onConfirm
-
+  const onChangeRef = useRef(onChange), onConfirmRef = useRef(onConfirm)
+  onChangeRef.current = onChange; onConfirmRef.current = onConfirm
   const handleChange = useCallback((values: (string | number)[]) => { const next = buildDateFromValues(values.map(String)); setCurrentDate(next); onChangeRef.current?.(next) }, [buildDateFromValues])
-
   const currentDateRef = useRef(currentDate)
   currentDateRef.current = currentDate
   const handleConfirm = useCallback(() => onConfirmRef.current?.(currentDateRef.current), [])
 
-  return (
-    <Picker
-      {...pickerProps}
-      columns={columns}
-      interactionMode={interactionMode}
-      value={pickerValue}
-      onChange={handleChange}
-      onConfirm={handleConfirm}
-    />
-  )
+  return <Picker {...pickerProps} columns={columns} interactionMode={interactionMode} value={pickerValue} onChange={handleChange} onConfirm={handleConfirm} />
 }
 
 const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
-  const {
-    type: _type,
-    formatter = (_type, value) => value,
-    filter,
-    columnsOrder: _columnsOrder,
-    minHour = 0,
-    maxHour = 23,
-    minMinute = 0,
-    maxMinute = 59,
-    interactionMode = 'freeze',
-    value,
-    defaultValue,
-    onChange,
-    onConfirm,
-    ...pickerProps
-  } = props
+  const { type: _type, formatter = (_type, value) => value, filter, columnsOrder: _columnsOrder, minHour = 0, maxHour = 23, minMinute = 0, maxMinute = 59, interactionMode = 'freeze', value, defaultValue, onChange, onConfirm, ...pickerProps } = props
 
   const timeRef = useRef<string>('')
   const formatTime = useCallback((timeValue?: string) => {
     const [hour = 0, minute = 0] = (timeValue ?? '').split(':').map(num => parseInt(num, 10))
-    const nextHour = clamp(Number.isNaN(hour) ? minHour : hour, minHour, maxHour)
-    const nextMinute = clamp(Number.isNaN(minute) ? minMinute : minute, minMinute, maxMinute)
-    return `${padZero(nextHour)}:${padZero(nextMinute)}`
+    return `${padZero(clamp(Number.isNaN(hour) ? minHour : hour, minHour, maxHour))}:${padZero(clamp(Number.isNaN(minute) ? minMinute : minute, minMinute, maxMinute))}`
   }, [maxHour, maxMinute, minHour, minMinute])
 
   const [currentTime, setCurrentTime] = useState(() => { const initial = formatTime(value ?? defaultValue); timeRef.current = initial; return initial })
-
-  useEffect(() => {
-    const next = isString(value) ? formatTime(value) : formatTime(timeRef.current)
-    if (next !== timeRef.current) { timeRef.current = next; setCurrentTime(next) }
-  }, [formatTime, value])
+  useEffect(() => { const next = isString(value) ? formatTime(value) : formatTime(timeRef.current); if (next !== timeRef.current) { timeRef.current = next; setCurrentTime(next) } }, [formatTime, value])
 
   const [hourValues, minuteValues] = useMemo(() => {
     let hours = times(maxHour - minHour + 1, index => padZero(minHour + index))
     let minutes = times(maxMinute - minMinute + 1, index => padZero(minMinute + index))
-    if (filter) {
-      hours = filter('hour', hours)
-      minutes = filter('minute', minutes)
-    }
+    if (filter) { hours = filter('hour', hours); minutes = filter('minute', minutes) }
     return [hours, minutes] as [string[], string[]]
   }, [filter, maxHour, maxMinute, minHour, minMinute])
 
   const columns = useMemo(() => [hourValues.map(value => ({ label: formatter('hour', value), value })), minuteValues.map(value => ({ label: formatter('minute', value), value }))], [formatter, hourValues, minuteValues])
-
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
-  const onConfirmRef = useRef(onConfirm)
-  onConfirmRef.current = onConfirm
-
-  const handleChange = useCallback((values: (string | number)[]) => {
-    const nextHour = values[0] ?? hourValues[0]
-    const nextMinute = values[1] ?? minuteValues[0]
-    const next = `${String(nextHour)}:${String(nextMinute)}`
-    timeRef.current = next
-    setCurrentTime(next)
-    onChangeRef.current?.(next)
-  }, [hourValues, minuteValues])
+  const onChangeRef = useRef(onChange), onConfirmRef = useRef(onConfirm)
+  onChangeRef.current = onChange; onConfirmRef.current = onConfirm
+  const handleChange = useCallback((values: (string | number)[]) => { const next = `${String(values[0] ?? hourValues[0])}:${String(values[1] ?? minuteValues[0])}`; timeRef.current = next; setCurrentTime(next); onChangeRef.current?.(next) }, [hourValues, minuteValues])
   const handleConfirm = useCallback(() => onConfirmRef.current?.(timeRef.current), [])
-  const pickerValue = currentTime.split(':')
-  return <Picker {...pickerProps} columns={columns} interactionMode={interactionMode} value={pickerValue} onChange={handleChange} onConfirm={handleConfirm} />
+
+  return <Picker {...pickerProps} columns={columns} interactionMode={interactionMode} value={currentTime.split(':')} onChange={handleChange} onConfirm={handleConfirm} />
 }
 
 const DatetimePicker = React.memo(DatetimePickerImpl)
 DatetimePicker.displayName = 'DatetimePicker'
-
 export default DatetimePicker

@@ -1,12 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  DeviceEventEmitter,
-  NativeEventEmitter,
-  Platform,
-  StyleSheet,
-  View,
-} from 'react-native'
-
+import { DeviceEventEmitter, NativeEventEmitter, Platform, StyleSheet, View } from 'react-native'
 import { isNumber } from '../../utils'
 import { PortalContext, type PortalManager } from './PortalContext'
 
@@ -20,93 +13,38 @@ interface PortalManagerHandle extends PortalManager {
   clear: () => void
 }
 
-type Operation =
-  | { type: 'mount'; key: number; children: React.ReactNode }
-  | { type: 'update'; key: number; children: React.ReactNode }
-  | { type: 'unmount'; key: number }
-  | { type: 'clear' }
+type Operation = { type: 'mount'; key: number; children: React.ReactNode } | { type: 'update'; key: number; children: React.ReactNode } | { type: 'unmount'; key: number } | { type: 'clear' }
 
-const ADD_EVENT = 'RNSU_PORTAL_ADD'
-const UPDATE_EVENT = 'RNSU_PORTAL_UPDATE'
-const REMOVE_EVENT = 'RNSU_PORTAL_REMOVE'
-const CLEAR_EVENT = 'RNSU_PORTAL_CLEAR'
-const TopViewEventEmitter = DeviceEventEmitter || new NativeEventEmitter()
-const IS_WEB = Platform.OS === 'web'
+const AE = 'RNSU_PORTAL_ADD'
+const UE = 'RNSU_PORTAL_UPDATE'
+const RE = 'RNSU_PORTAL_REMOVE'
+const CE = 'RNSU_PORTAL_CLEAR'
+const TVE = DeviceEventEmitter || new NativeEventEmitter()
+const IW = Platform.OS === 'web'
 
-const applyOperation = (manager: PortalManagerHandle, operation: Operation) => {
-  if (operation.type === 'mount') {
-    manager.mount(operation.children, operation.key)
-  } else if (operation.type === 'update') {
-    manager.update(operation.key, operation.children)
-  } else if (operation.type === 'clear') {
-    manager.clear()
-  } else {
-    manager.unmount(operation.key)
-  }
-}
+const ao = (m: PortalManagerHandle, o: Operation) => { if (o.type === 'mount') m.mount(o.children, o.key); else if (o.type === 'update') m.update(o.key, o.children); else if (o.type === 'clear') m.clear(); else m.unmount(o.key) }
 
-const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>(
-  (_, ref) => {
-    const [entries, setEntries] = useState<PortalEntry[]>([])
-    const keySeed = useRef(0)
+const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>((_, ref) => {
+  const [e, setE] = useState<PortalEntry[]>([])
+  const ks = useRef(0)
+  const us = useCallback((en: PortalEntry) => { setE(p => { const i = p.findIndex(it => it.key === en.key); return i === -1 ? [...p, en] : [...p.slice(0, i), en, ...p.slice(i + 1)] }) }, [])
+  const mt = useCallback((c: React.ReactNode, k?: number) => { const rk = k ?? ++ks.current; if (isNumber(k) && k >= ks.current) ks.current = k + 1; us({ key: rk, children: c }); return rk }, [us])
+  const up = useCallback((k: number, c: React.ReactNode) => { us({ key: k, children: c }) }, [us])
+  const um = useCallback((k: number) => { setE(p => p.filter(it => it.key !== k)) }, [])
+  const cl = useCallback(() => { setE([]) }, [])
+  React.useImperativeHandle(ref, () => ({ mount: mt, update: up, unmount: um, clear: cl }), [mt, up, um, cl])
+  if (e.length === 0) return null
+  return <View pointerEvents="box-none" style={S.pl} collapsable={false}>{e.map(en => <View key={en.key} pointerEvents="box-none" collapsable={false} style={S.pe}>{en.children}</View>)}</View>
+})
 
-    const upsert = useCallback((entry: PortalEntry) => {
-      setEntries(prev => {
-        const i = prev.findIndex(item => item.key === entry.key)
-        return i === -1 ? [...prev, entry] : [...prev.slice(0, i), entry, ...prev.slice(i + 1)]
-      })
-    }, [])
+let ah = 0
+let nh = 1
+let ngk = 10000
 
-    const mount = useCallback((children: React.ReactNode, key?: number) => {
-      const resolvedKey = key ?? ++keySeed.current
-      if (isNumber(key) && key >= keySeed.current) keySeed.current = key + 1
-      upsert({ key: resolvedKey, children })
-      return resolvedKey
-    }, [upsert])
-
-    const update = useCallback((key: number, children: React.ReactNode) => {
-      upsert({ key, children })
-    }, [upsert])
-
-    const unmount = useCallback((key: number) => {
-      setEntries(prev => prev.filter(item => item.key !== key))
-    }, [])
-
-    const clear = useCallback(() => {
-      setEntries([])
-    }, [])
-
-    React.useImperativeHandle(ref, () => ({ mount, update, unmount, clear }), [mount, update, unmount, clear])
-
-    if (entries.length === 0) return null
-    return <View pointerEvents="box-none" style={styles.portalLayer} collapsable={false}>
-      {entries.map(entry => <View key={entry.key} pointerEvents="box-none" collapsable={false} style={styles.portalEntry}>{entry.children}</View>)}
-    </View>
-  }
-)
-
-let activeHostId = 0
-let nextHostId = 1
-let nextGlobalKey = 10000
-
-const globalManager: PortalManager = {
-  mount: (children: React.ReactNode, key?: number) => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__ && activeHostId === 0) {
-      console.warn('[Portal] 请在根节点挂载 <PortalHost> 或 <ConfigProvider> 以启用静态组件能力。')
-    }
-    const resolvedKey = key ?? nextGlobalKey++
-    if (isNumber(key) && key >= nextGlobalKey) {
-      nextGlobalKey = key + 1
-    }
-    TopViewEventEmitter.emit(ADD_EVENT, { key: resolvedKey, children })
-    return resolvedKey
-  },
-  update: (key: number, children: React.ReactNode) => {
-    TopViewEventEmitter.emit(UPDATE_EVENT, { key, children })
-  },
-  unmount: (key: number) => {
-    TopViewEventEmitter.emit(REMOVE_EVENT, { key })
-  },
+const gm: PortalManager = {
+  mount: (c: React.ReactNode, k?: number) => { if (typeof __DEV__ !== 'undefined' && __DEV__ && ah === 0) console.warn('[Portal] 请在根节点挂载 <PortalHost> 或 <ConfigProvider> 以启用静态组件能力。'); const rk = k ?? ngk++; if (isNumber(k) && k >= ngk) ngk = k + 1; TVE.emit(AE, { key: rk, children: c }); return rk },
+  update: (k: number, c: React.ReactNode) => { TVE.emit(UE, { key: k, children: c }) },
+  unmount: (k: number) => { TVE.emit(RE, { key: k }) },
 }
 
 export interface PortalHostProps {
@@ -114,116 +52,27 @@ export interface PortalHostProps {
 }
 
 const PortalHostImpl: React.FC<PortalHostProps> = ({ children }) => {
-  const hostIdRef = useRef(nextHostId++)
-  const managerRef = useRef<PortalManagerHandle | null>(null)
-  const queueRef = useRef<Operation[]>([])
-  const nextKeyRef = useRef(1)
-
-  const enqueueOrRun = useCallback((operation: Operation) => {
-    const manager = managerRef.current
-    if (manager) {
-      applyOperation(manager, operation)
-    } else {
-      queueRef.current.push(operation)
-    }
-  }, [])
-
-  const scopedManager = useMemo<PortalManager>(() => ({
-    mount: (children: React.ReactNode, key?: number) => {
-      const resolvedKey = key ?? nextKeyRef.current++
-      if (isNumber(key) && key >= nextKeyRef.current) {
-        nextKeyRef.current = key + 1
-      }
-      enqueueOrRun({ type: 'mount', key: resolvedKey, children })
-      return resolvedKey
-    },
-    update: (key: number, children: React.ReactNode) => {
-      enqueueOrRun({ type: 'update', key, children })
-    },
-    unmount: (key: number) => {
-      enqueueOrRun({ type: 'unmount', key })
-    },
-  }), [enqueueOrRun])
-
-  const handleManagerRef = useCallback((manager: PortalManagerHandle | null) => {
-    managerRef.current = manager
-    if (manager) {
-      if (queueRef.current.length > 0) {
-        const pending = queueRef.current.splice(0, queueRef.current.length)
-        pending.forEach(operation => applyOperation(manager, operation))
-      }
-      if (activeHostId === 0 || activeHostId === hostIdRef.current) {
-        activeHostId = hostIdRef.current
-      } else if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.warn(
-          '[PortalHost] 检测到多个 Portal.Host，静态 API 仅会使用第一个挂载的 Host。建议全局只挂载一个。',
-        )
-      }
-    }
-  }, [])
-
-  useEffect(() => () => {
-    if (activeHostId === hostIdRef.current) {
-      activeHostId = 0
-      queueRef.current = []
-      portalStore.clear()
-    }
-  }, [])
-
-  useEffect(() => {
-    const handleAdd = ({ key, children }: { key: number; children: React.ReactNode }) => {
-      if (activeHostId !== hostIdRef.current) return
-      enqueueOrRun({ type: 'mount', key, children })
-    }
-    const handleUpdate = ({ key, children }: { key: number; children: React.ReactNode }) => {
-      if (activeHostId !== hostIdRef.current) return
-      enqueueOrRun({ type: 'update', key, children })
-    }
-    const handleRemove = ({ key }: { key: number }) => {
-      if (activeHostId !== hostIdRef.current) return
-      enqueueOrRun({ type: 'unmount', key })
-    }
-    const handleClear = () => {
-      if (activeHostId !== hostIdRef.current) return
-      queueRef.current = []
-      enqueueOrRun({ type: 'clear' })
-    }
-
-    const addSub = TopViewEventEmitter.addListener(ADD_EVENT, handleAdd)
-    const updateSub = TopViewEventEmitter.addListener(UPDATE_EVENT, handleUpdate)
-    const removeSub = TopViewEventEmitter.addListener(REMOVE_EVENT, handleRemove)
-    const clearSub = TopViewEventEmitter.addListener(CLEAR_EVENT, handleClear)
-
-    return () => {
-      addSub.remove()
-      updateSub.remove()
-      removeSub.remove()
-      clearSub.remove()
-    }
-  }, [enqueueOrRun])
-
-  return <PortalContext.Provider value={scopedManager}>
-    <View style={styles.host} collapsable={false}>
-      <View style={styles.root} collapsable={false} pointerEvents="box-none">{children}</View>
-      <PortalManagerView ref={handleManagerRef} />
-    </View>
-  </PortalContext.Provider>
+  const hir = useRef(nh++), mr = useRef<PortalManagerHandle | null>(null), qr = useRef<Operation[]>([]), nkr = useRef(1)
+  const eor = useCallback((o: Operation) => { const m = mr.current; if (m) ao(m, o); else qr.current.push(o) }, [])
+  const sm = useMemo<PortalManager>(() => ({ mount: (c: React.ReactNode, k?: number) => { const rk = k ?? nkr.current++; if (isNumber(k) && k >= nkr.current) nkr.current = k + 1; eor({ type: 'mount', key: rk, children: c }); return rk }, update: (k: number, c: React.ReactNode) => { eor({ type: 'update', key: k, children: c }) }, unmount: (k: number) => { eor({ type: 'unmount', key: k }) } }), [eor])
+  const hmr = useCallback((m: PortalManagerHandle | null) => { mr.current = m; if (m) { if (qr.current.length > 0) { const pd = qr.current.splice(0, qr.current.length); pd.forEach(o => ao(m, o)) }; if (ah === 0 || ah === hir.current) ah = hir.current; else if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn('[PortalHost] 检测到多个 Portal.Host，静态 API 仅会使用第一个挂载的 Host。建议全局只挂载一个。') } }, [])
+  useEffect(() => () => { if (ah === hir.current) { ah = 0; qr.current = []; portalStore.clear() } }, [])
+  useEffect(() => { const ha = ({ key: k, children: c }: { key: number; children: React.ReactNode }) => { if (ah !== hir.current) return; eor({ type: 'mount', key: k, children: c }) }; const hu = ({ key: k, children: c }: { key: number; children: React.ReactNode }) => { if (ah !== hir.current) return; eor({ type: 'update', key: k, children: c }) }; const hr = ({ key: k }: { key: number }) => { if (ah !== hir.current) return; eor({ type: 'unmount', key: k }) }; const hc = () => { if (ah !== hir.current) return; qr.current = []; eor({ type: 'clear' }) }; const as = TVE.addListener(AE, ha); const us = TVE.addListener(UE, hu); const rs = TVE.addListener(RE, hr); const cs = TVE.addListener(CE, hc); return () => { as.remove(); us.remove(); rs.remove(); cs.remove() } }, [eor])
+  return <PortalContext.Provider value={sm}><View style={S.h} collapsable={false}><View style={S.r} collapsable={false} pointerEvents="box-none">{children}</View><PortalManagerView ref={hmr} /></View></PortalContext.Provider>
 }
 
 export const PortalHost = React.memo(PortalHostImpl)
 PortalHost.displayName = 'PortalHost'
 
-const styles = StyleSheet.create({
-  host: { position: 'relative', flex: 1 },
-  root: { flex: 1 },
-  portalLayer: IS_WEB ? { position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 } : { ...StyleSheet.absoluteFillObject },
-  portalEntry: { ...StyleSheet.absoluteFillObject },
+const S = StyleSheet.create({
+  h: { position: 'relative', flex: 1 },
+  r: { flex: 1 },
+  pl: IW ? { position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 } : { ...StyleSheet.absoluteFillObject },
+  pe: { ...StyleSheet.absoluteFillObject },
 })
 
-export const portalManager = globalManager
+export const portalManager = gm
 export const portalStore = {
-  clear: () => {
-    TopViewEventEmitter.emit(CLEAR_EVENT)
-  },
-  hasHosts: () => activeHostId !== 0,
+  clear: () => { TVE.emit(CE) },
+  hasHosts: () => ah !== 0,
 }

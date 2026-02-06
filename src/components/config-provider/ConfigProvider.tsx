@@ -1,24 +1,15 @@
 import React, { useContext } from 'react'
-
 import { ThemeProvider } from '../../design-system/ThemeProvider'
 import { PortalHost } from '../portal'
 import { LocaleContext } from './LocaleContext'
 import type { ConfigProviderProps } from './types'
 
-const ConfigProviderBase: React.FC<ConfigProviderProps> = ({
-  theme,
-  locale,
-  children,
-}) => {
-  const parentLocale = useContext(LocaleContext)
-  const resolvedLocale = locale ?? parentLocale
-
+const ConfigProviderBase: React.FC<ConfigProviderProps> = ({ theme, locale, children }) => {
+  const resolvedLocale = locale ?? useContext(LocaleContext)
   return (
     <ThemeProvider value={theme}>
       <LocaleContext.Provider value={resolvedLocale}>
-        <PortalHost>
-          {children}
-        </PortalHost>
+        <PortalHost>{children}</PortalHost>
       </LocaleContext.Provider>
     </ThemeProvider>
   )
