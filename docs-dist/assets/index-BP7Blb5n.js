@@ -1,0 +1,1 @@
+import{D as e}from"./index-CCOraIhd.js";import{r as s}from"./main-CC2DK3OK.js";function m(){var n=s.useState(()=>e.get("window")),o=n[0],t=n[1];return s.useEffect(()=>{function i(a){var r=a.window;r!=null&&t(r)}return e.addEventListener("change",i),t(e.get("window")),()=>{e.removeEventListener("change",i)}},[]),o}export{m as u};

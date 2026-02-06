@@ -15,7 +15,7 @@ export default [
   },
   {
     "name": "form",
-    "size": 6853
+    "size": 6945
   },
   {
     "name": "cascader",
@@ -23,7 +23,7 @@ export default [
   },
   {
     "name": "dialog",
-    "size": 5968
+    "size": 6004
   },
   {
     "name": "slider",
@@ -35,7 +35,11 @@ export default [
   },
   {
     "name": "calendar",
-    "size": 5489
+    "size": 5620
+  },
+  {
+    "name": "swiper",
+    "size": 5149
   },
   {
     "name": "popup",
@@ -44,10 +48,6 @@ export default [
   {
     "name": "number-keyboard",
     "size": 5028
-  },
-  {
-    "name": "swiper",
-    "size": 4988
   },
   {
     "name": "toast",
@@ -67,11 +67,11 @@ export default [
   },
   {
     "name": "image-preview",
-    "size": 4485
+    "size": 4562
   },
   {
     "name": "button",
-    "size": 4431
+    "size": 4499
   },
   {
     "name": "cell",
@@ -83,7 +83,7 @@ export default [
   },
   {
     "name": "grid",
-    "size": 3992
+    "size": 4032
   },
   {
     "name": "tabbar",
@@ -99,11 +99,11 @@ export default [
   },
   {
     "name": "collapse",
-    "size": 3537
+    "size": 3539
   },
   {
     "name": "action-sheet",
-    "size": 3477
+    "size": 3517
   },
   {
     "name": "image",
@@ -111,7 +111,7 @@ export default [
   },
   {
     "name": "datetime-picker",
-    "size": 3165
+    "size": 3357
   },
   {
     "name": "sidebar",
@@ -123,7 +123,7 @@ export default [
   },
   {
     "name": "share-sheet",
-    "size": 2840
+    "size": 2883
   },
   {
     "name": "progress",
@@ -139,11 +139,15 @@ export default [
   },
   {
     "name": "nav-bar",
-    "size": 2580
+    "size": 2593
   },
   {
     "name": "circle",
     "size": 2521
+  },
+  {
+    "name": "badge",
+    "size": 2470
   },
   {
     "name": "search",
@@ -154,16 +158,12 @@ export default [
     "size": 2428
   },
   {
-    "name": "badge",
-    "size": 2418
-  },
-  {
     "name": "skeleton",
     "size": 2357
   },
   {
     "name": "water-mark",
-    "size": 2305
+    "size": 2354
   },
   {
     "name": "tag",
@@ -179,39 +179,39 @@ export default [
   },
   {
     "name": "avatar",
-    "size": 1784
+    "size": 1827
   },
   {
     "name": "divider",
-    "size": 1775
+    "size": 1800
   },
   {
     "name": "empty",
-    "size": 1679
+    "size": 1725
+  },
+  {
+    "name": "area",
+    "size": 1680
   },
   {
     "name": "input",
     "size": 1613
   },
   {
-    "name": "area",
-    "size": 1607
+    "name": "count-down",
+    "size": 1375
   },
   {
     "name": "switch",
     "size": 1316
   },
   {
-    "name": "count-down",
-    "size": 1272
-  },
-  {
     "name": "loading",
-    "size": 1272
+    "size": 1289
   },
   {
     "name": "overlay",
-    "size": 918
+    "size": 961
   },
   {
     "name": "safe-area-view",

@@ -458,6 +458,8 @@ const DialogImpl: React.FC<DialogProps> = props => {
       onClosed={onClosed}
       contentAnimationStyle={animatedStyle}
       style={popupStyleMemo}
+      accessibilityRole={'alertdialog' as any}
+      accessibilityLabel={typeof title === 'string' ? title : undefined}
       {...rest}
     >
       {closeable ? (
