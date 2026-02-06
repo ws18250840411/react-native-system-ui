@@ -50,6 +50,10 @@ export default [
     "size": 4942
   },
   {
+    "name": "swiper",
+    "size": 4848
+  },
+  {
     "name": "notify",
     "size": 4836
   },
@@ -60,10 +64,6 @@ export default [
   {
     "name": "toast",
     "size": 4725
-  },
-  {
-    "name": "swiper",
-    "size": 4645
   },
   {
     "name": "stepper",
