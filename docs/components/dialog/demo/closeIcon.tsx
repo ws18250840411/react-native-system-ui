@@ -4,7 +4,7 @@ import { Close } from 'react-native-system-icon'
 
 export default function DialogCloseIconDemo() {
   return (
-    <>
+    <Cell.Group>
       <Cell
         title="关闭按钮"
         isLink
@@ -30,7 +30,7 @@ export default function DialogCloseIconDemo() {
           })
         }
       />
-    </>
+    </Cell.Group>
   )
 }
 

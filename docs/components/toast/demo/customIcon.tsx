@@ -5,7 +5,7 @@ import { Cell, Toast } from 'react-native-system-ui'
 
 export default function ToastCustomIconDemo() {
   return (
-    <>
+    <Cell.Group>
       <Cell
         title="使用图标组件"
         isLink
@@ -27,6 +27,6 @@ export default function ToastCustomIconDemo() {
           })
         }
       />
-    </>
+    </Cell.Group>
   )
 }
