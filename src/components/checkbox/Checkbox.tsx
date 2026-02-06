@@ -5,7 +5,7 @@ import { useToggleState } from '@react-stately/toggle'
 import type { CheckboxProps } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
-import { renderTextOrNode } from '../../utils'
+import { createHairlineView, renderTextOrNode } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 
 const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
@@ -81,10 +81,11 @@ const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
   ) : (
     <View accessible={false} style={labelStyle as unknown as StyleProp<ViewStyle>}>{children}</View>
   )
-  const ibs = { width: ris, height: ris, borderRadius: br, borderColor: bc, backgroundColor: bgc, borderWidth: t.borders.width }
+  const ibs = { width: ris, height: ris, borderRadius: br, backgroundColor: bgc }
   const di = (
     <View style={[t.layout.icon, ibs]}>
       {ic && <Text style={[t.layout.checkmark, { color: t.colors.checkmark, fontSize: ris * t.icon.scale }]}>✓</Text>}
+      <View style={createHairlineView({ position: 'all', color: bc, borderRadius: br })} />
     </View>
   )
   let iv: React.ReactNode = di

@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native'
 import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
-import { createHairlineBorderTop } from '../../utils/hairline'
+import { createHairlineView } from '../../utils/hairline'
 import { SafeAreaView } from '../safe-area-view'
 import { TabbarContext } from './TabbarContext'
 import { useTabbarTokens } from './tokens'
@@ -32,9 +32,9 @@ const TabbarBaseImpl: React.FC<TabbarProps> = props => {
   const ContainerWrapper = enableSafeAreaBottom ? SafeAreaView : View
   const placeholderStyle = { height: barHeight }
   const containerStyle = [S.c, fixed && [S.f, { zIndex }], style]
-  const barStyle = [S.b, { backgroundColor: background, paddingHorizontal: tokens.layout.paddingHorizontal, minHeight: tokens.layout.height }, border ? createHairlineBorderTop(tokens.colors.border) : null, contentStyle]
+  const barStyle = [S.b, { backgroundColor: background, paddingHorizontal: tokens.layout.paddingHorizontal, minHeight: tokens.layout.height }, contentStyle]
   const rowStyle = [S.r, { minHeight: tokens.layout.height }]
-  return <>{enablePlaceholder && <View testID="rv-tabbar-placeholder" style={placeholderStyle} />}<View {...rest} style={containerStyle} onLayout={handleLayout}><ContainerWrapper style={barStyle}><TabbarContext.Provider value={contextValue}><View style={rowStyle} accessibilityRole="tablist">{clonedChildren}</View></TabbarContext.Provider></ContainerWrapper></View></>
+  return <>{enablePlaceholder && <View testID="rv-tabbar-placeholder" style={placeholderStyle} />}<View {...rest} style={containerStyle} onLayout={handleLayout}><ContainerWrapper style={barStyle}><TabbarContext.Provider value={contextValue}><View style={rowStyle} accessibilityRole="tablist">{clonedChildren}</View></TabbarContext.Provider>{border && <View style={createHairlineView({ position: 'top', color: tokens.colors.border, left: 0, right: 0 })} />}</ContainerWrapper></View></>
 }
 
 const S = StyleSheet.create({

@@ -6,7 +6,7 @@ import { useControllableValue } from '../../hooks'
 import type { SidebarItemProps, SidebarProps } from './types'
 import { SidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
-import { renderTextOrNode } from '../../utils'
+import { createHairlineView, renderTextOrNode } from '../../utils'
 import { isRenderable } from '../../utils/validate'
 
 const SidebarBaseImpl: React.FC<SidebarProps> = props => {
@@ -73,7 +73,6 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
     tokens.layout.side,
     {
       width: tokens.sizing.width,
-      borderRightColor: tokens.colors.border,
     },
     sideStyle,
   ]
@@ -87,6 +86,7 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
         <SidebarContext.Provider value={contextValue}>
           {clonedItems}
         </SidebarContext.Provider>
+        <View style={createHairlineView({ position: 'right', color: tokens.colors.border, top: 0, bottom: 0 })} />
       </View>
       <View style={[tokens.layout.content, activeContentStyle]}>
         {activeContentNode}

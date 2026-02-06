@@ -1,7 +1,7 @@
 import React from 'react'
 import { Pressable, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
 import { Close } from 'react-native-system-icon'
-import { isFunction, renderTextOrNode } from '../../utils'
+import { createHairlineView, isFunction, renderTextOrNode } from '../../utils'
 import { isRenderable } from '../../utils/validate'
 import { useTagTokens } from './tokens'
 import type { TagProps } from './types'
@@ -21,12 +21,14 @@ const TagImpl: React.FC<TagProps> = props => {
   const backgroundColor = plain ? tokens.colors.plainBackground : color ?? tone.background
   const resolvedTextColor = textColor ?? (plain ? color ?? tone.background : tone.text)
   const borderColor = plain ? color ?? tone.background : 'transparent'
-  const borderWidth = plain ? tokens.borders.width : 0
   const borderRadius = round ? tokens.radii.round : sizeTokens.borderRadius
-  const containerStyle: StyleProp<ViewStyle> = [tokens.layout.container, { backgroundColor, paddingHorizontal: sizeTokens.paddingHorizontal, paddingVertical: sizeTokens.paddingVertical, borderRadius, borderWidth, borderColor }, mark ? { borderTopLeftRadius: tokens.radii.markLeading, borderBottomLeftRadius: tokens.radii.markLeading, borderTopRightRadius: tokens.radii.round, borderBottomRightRadius: tokens.radii.round } : null, style]
+  const markRadii = mark ? { borderTopLeftRadius: tokens.radii.markLeading, borderBottomLeftRadius: tokens.radii.markLeading, borderTopRightRadius: tokens.radii.round, borderBottomRightRadius: tokens.radii.round } : null
+  const resolvedRadius = mark ? tokens.radii.round : borderRadius
+  const containerStyle: StyleProp<ViewStyle> = [tokens.layout.container, { backgroundColor, paddingHorizontal: sizeTokens.paddingHorizontal, paddingVertical: sizeTokens.paddingVertical, borderRadius }, markRadii, style]
   const label = !isRenderable(children) ? null : renderTextOrNode(children, [{ color: resolvedTextColor, fontSize: sizeTokens.fontSize, lineHeight: sizeTokens.lineHeight, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.fontWeight }, textStyle].filter(Boolean) as StyleProp<TextStyle>)
   const close = closeable && <Pressable accessibilityRole="button" hitSlop={tokens.spacing.closeHitSlop} style={[tokens.layout.close, { marginLeft: tokens.spacing.closeGap }]} onPress={event => { event.stopPropagation?.(); onClose?.() }}>{isFunction(closeIcon) ? closeIcon(resolvedTextColor, tokens.sizing.closeIconSize) : closeIcon ?? <Close color={resolvedTextColor} size={tokens.sizing.closeIconSize} />}</Pressable>
-  const content = <>{label}{close}</>
+  const hairlineOverlay = plain ? <View style={createHairlineView({ position: 'all', color: borderColor, borderRadius: resolvedRadius })} /> : null
+  const content = <>{label}{close}{hairlineOverlay}</>
   if (onPress) return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [containerStyle, pressed && { opacity: tokens.defaults.pressedOpacity }]} {...rest}>{content}</Pressable>
   return <View style={containerStyle} {...rest}>{content}</View>
 }

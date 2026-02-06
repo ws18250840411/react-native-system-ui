@@ -1,62 +1,20 @@
 import { isFunction } from '../utils/validate'
 
-export interface WindowRect {
-  x: number
-  y: number
-  width: number
-  height: number
-}
+export interface WindowRect { x: number; y: number; width: number; height: number }
 
-type MeasureInWindowNode = {
-  measureInWindow?: (callback: (x: number, y: number, width: number, height: number) => void) => void
-}
+type MeasureNode = { measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void }
+type DomNode = { getBoundingClientRect?: () => { left?: number; top?: number; width?: number; height?: number } }
 
-type BoundingClientRectNode = {
-  getBoundingClientRect?: () => { left?: number; top?: number; width?: number; height?: number }
-}
+const toRect = (x?: number, y?: number, w?: number, h?: number): WindowRect | null =>
+  [x, y, w, h].every(Number.isFinite) ? { x: x!, y: y!, width: w!, height: h! } : null
 
-export const measureInWindow = (node: unknown, callback: (rect: WindowRect | null) => void) => {
-  if (!node) {
-    callback(null)
-    return
-  }
-
+export const measureInWindow = (node: unknown, cb: (rect: WindowRect | null) => void) => {
+  if (!node) { cb(null); return }
   try {
-    const maybeMeasureNode = node as MeasureInWindowNode
-    if (isFunction(maybeMeasureNode.measureInWindow)) {
-      maybeMeasureNode.measureInWindow((x: number, y: number, width: number, height: number) => {
-        if (![x, y, width, height].every(Number.isFinite)) {
-          callback(null)
-          return
-        }
-        callback({ x, y, width, height })
-      })
-      return
-    }
-
-    const maybeDomNode = node as BoundingClientRectNode
-    if (isFunction(maybeDomNode.getBoundingClientRect)) {
-      const rect = maybeDomNode.getBoundingClientRect()
-      const x = rect?.left
-      const y = rect?.top
-      const width = rect?.width
-      const height = rect?.height
-      if (![x, y, width, height].every(Number.isFinite)) {
-        callback(null)
-        return
-      }
-      callback({
-        x: x as number,
-        y: y as number,
-        width: width as number,
-        height: height as number,
-      })
-      return
-    }
-  } catch (_error) {
-    callback(null)
-    return
-  }
-
-  callback(null)
+    const mn = node as MeasureNode
+    if (isFunction(mn.measureInWindow)) { mn.measureInWindow((x, y, w, h) => cb(toRect(x, y, w, h))); return }
+    const dn = node as DomNode
+    if (isFunction(dn.getBoundingClientRect)) { const r = dn.getBoundingClientRect(); cb(toRect(r?.left, r?.top, r?.width, r?.height)); return }
+  } catch { cb(null); return }
+  cb(null)
 }

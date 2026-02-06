@@ -1,11 +1,5 @@
 import React, { useMemo } from 'react'
-import {
-  StyleSheet,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native'
-
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 import { createHairlineView } from '../utils/hairline'
 import { isNumber } from '../utils/validate'
 
@@ -17,64 +11,23 @@ export interface UseHairlineOptions {
   defaultPaddingHorizontal?: number
 }
 
-export const useHairline = ({
-  show = true,
-  containerStyle,
-  color,
-  width,
-  defaultPaddingHorizontal = 0,
-}: UseHairlineOptions) => {
-  return useMemo(() => {
+export const useHairline = ({ show = true, containerStyle, color, width, defaultPaddingHorizontal = 0 }: UseHairlineOptions) =>
+  useMemo(() => {
     if (!show) return null
-
-    const flattened = StyleSheet.flatten(containerStyle) as
-      | {
-        paddingHorizontal?: unknown
-        paddingLeft?: unknown
-        paddingRight?: unknown
-        paddingStart?: unknown
-        paddingEnd?: unknown
-      }
+    const f = StyleSheet.flatten(containerStyle) as
+      | { paddingHorizontal?: unknown; paddingLeft?: unknown; paddingRight?: unknown; paddingStart?: unknown; paddingEnd?: unknown }
       | null
-    const paddingHorizontal = isNumber(flattened?.paddingHorizontal)
-      ? flattened.paddingHorizontal
-      : undefined
-
-    const resolveInset = (primary?: unknown, secondary?: unknown) =>
-      isNumber(primary)
-        ? primary
-        : isNumber(secondary)
-          ? secondary
-          : isNumber(paddingHorizontal)
-            ? paddingHorizontal
-            : defaultPaddingHorizontal
-
-    const resolvedPadding = {
-      left: resolveInset(flattened?.paddingLeft, flattened?.paddingStart),
-      right: resolveInset(flattened?.paddingRight, flattened?.paddingEnd),
-    }
-
+    const ph = isNumber(f?.paddingHorizontal) ? f.paddingHorizontal : undefined
+    const resolve = (a?: unknown, b?: unknown) =>
+      isNumber(a) ? a : isNumber(b) ? b : isNumber(ph) ? ph : defaultPaddingHorizontal
     return (
       <View
-        style={[
-          styles.hairline,
-          createHairlineView({
-            position: 'bottom',
-            color,
-            left: resolvedPadding.left,
-            right: resolvedPadding.right,
-            enabled: width > 0,
-            width,
-          }),
-        ]}
+        style={createHairlineView({
+          position: 'bottom', color,
+          left: resolve(f?.paddingLeft, f?.paddingStart),
+          right: resolve(f?.paddingRight, f?.paddingEnd),
+          enabled: width > 0, width,
+        })}
       />
     )
   }, [show, containerStyle, color, width, defaultPaddingHorizontal])
-}
-
-const styles = StyleSheet.create({
-  hairline: {
-    position: 'absolute',
-    bottom: 0,
-  },
-})

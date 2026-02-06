@@ -15,24 +15,13 @@ export interface UseAriaToggleResult {
   inputRef: React.RefObject<unknown>
 }
 
-export const useAriaToggle = (
-  props: UseAriaToggleOptions
-): UseAriaToggleResult => {
+export const useAriaToggle = (props: UseAriaToggleOptions): UseAriaToggleResult => {
   const inputRef = props.inputRef ?? useRef<unknown>(null)
   const state = useToggleState(props)
-  const { inputProps } = useToggle(
-    props,
-    state,
-    inputRef as unknown as React.RefObject<HTMLInputElement>
-  )
-  const resolvedInputProps = useMemo(
-    () => inputProps as unknown as Record<string, unknown>,
-    [inputProps],
-  )
-
+  const { inputProps } = useToggle(props, state, inputRef as unknown as React.RefObject<HTMLInputElement>)
   return {
     state,
-    inputProps: resolvedInputProps,
+    inputProps: useMemo(() => inputProps as unknown as Record<string, unknown>, [inputProps]),
     inputRef,
   }
 }

@@ -3,7 +3,7 @@ import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native'
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
-import { createHairlineBorderBottom } from '../../utils/hairline'
+import { createHairlineView } from '../../utils/hairline'
 import { isRenderable, isText, renderTextOrNode } from '../../utils'
 import { SafeAreaView } from '../safe-area-view'
 import type { NavBarProps } from './types'
@@ -196,13 +196,13 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
         {
           backgroundColor: background,
         },
-        border ? createHairlineBorderBottom(tokens.colors.border) : null,
       ]}
       onLayout={safeAreaInsetTop ? undefined : handleLayout}
     >
       {renderLeft()}
       <View style={tokens.layout.center}>{centerContent}</View>
       {renderRight()}
+      {border && <View style={createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0 })} />}
     </View>
   )
 

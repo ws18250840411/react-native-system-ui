@@ -33,161 +33,68 @@ export interface UseGestureScrollResult {
   resetOffset: (value?: number) => void
 }
 
-const DEFAULT_THROTTLE = 16
-const VELOCITY_NORMALIZER = 1000 
+export const useGestureScroll = (options: UseGestureScrollOptions = {}): UseGestureScrollResult => {
+  const { axis = 'y', scrollEventThrottle = 16, onScroll, onScrollBeginDrag, onScrollEndDrag, onMomentumScrollBegin, onMomentumScrollEnd } = options
 
-export const useGestureScroll = (
-  options: UseGestureScrollOptions = {}
-): UseGestureScrollResult => {
-  const {
-    axis = 'y',
-    scrollEventThrottle = DEFAULT_THROTTLE,
-    onScroll,
-    onScrollBeginDrag,
-    onScrollEndDrag,
-    onMomentumScrollBegin,
-    onMomentumScrollEnd,
-  } = options
-
-  const onScrollRef = useRef(onScroll)
-  onScrollRef.current = onScroll
-  const onScrollBeginDragRef = useRef(onScrollBeginDrag)
-  onScrollBeginDragRef.current = onScrollBeginDrag
-  const onScrollEndDragRef = useRef(onScrollEndDrag)
-  onScrollEndDragRef.current = onScrollEndDrag
-  const onMomentumScrollBeginRef = useRef(onMomentumScrollBegin)
-  onMomentumScrollBeginRef.current = onMomentumScrollBegin
-  const onMomentumScrollEndRef = useRef(onMomentumScrollEnd)
-  onMomentumScrollEndRef.current = onMomentumScrollEnd
+  const onScrollRef = useRef(onScroll); onScrollRef.current = onScroll
+  const onBeginDragRef = useRef(onScrollBeginDrag); onBeginDragRef.current = onScrollBeginDrag
+  const onEndDragRef = useRef(onScrollEndDrag); onEndDragRef.current = onScrollEndDrag
+  const onMomBeginRef = useRef(onMomentumScrollBegin); onMomBeginRef.current = onMomentumScrollBegin
+  const onMomEndRef = useRef(onMomentumScrollEnd); onMomEndRef.current = onMomentumScrollEnd
 
   const scrollValue = useRef(new Animated.Value(0)).current
-  const lastOffsetRef = useRef(0)
-  const lastTimestampRef = useRef<number | null>(null)
-  const velocityRef = useRef(0)
-  const directionRef = useRef<ScrollDirection>(null)
+  const lastOffRef = useRef(0)
+  const lastTsRef = useRef<number | null>(null)
+  const velRef = useRef(0)
+  const dirRef = useRef<ScrollDirection>(null)
 
   const [direction, setDirection] = useState<ScrollDirection>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isMomentum, setIsMomentum] = useState(false)
 
-  const updateDirection = useCallback((next: ScrollDirection) => {
-    if (directionRef.current !== next) {
-      directionRef.current = next
-      setDirection(next)
-    }
+  const updateDir = useCallback((n: ScrollDirection) => {
+    if (dirRef.current !== n) { dirRef.current = n; setDirection(n) }
   }, [])
 
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollRef.current?.(event)
-      const contentOffset = event.nativeEvent.contentOffset
-      const current = axis === 'x' ? contentOffset.x ?? 0 : contentOffset.y ?? 0
-      const delta = current - lastOffsetRef.current
-      const timestamp = event.timeStamp ?? Date.now()
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    onScrollRef.current?.(e)
+    const o = e.nativeEvent.contentOffset
+    const cur = axis === 'x' ? o.x ?? 0 : o.y ?? 0
+    const delta = cur - lastOffRef.current
+    const ts = e.timeStamp ?? Date.now()
+    if (delta > 0) updateDir('forward'); else if (delta < 0) updateDir('backward')
+    if (lastTsRef.current != null) velRef.current = (delta / Math.max(ts - lastTsRef.current, 1)) * 1000
+    lastTsRef.current = ts
+    lastOffRef.current = cur
+  }, [axis, updateDir])
 
-      if (delta > 0) {
-        updateDirection('forward')
-      } else if (delta < 0) {
-        updateDirection('backward')
-      }
-
-      if (lastTimestampRef.current != null) {
-        const elapsed = Math.max(timestamp - lastTimestampRef.current, 1)
-        velocityRef.current = (delta / elapsed) * VELOCITY_NORMALIZER
-      }
-
-      lastTimestampRef.current = timestamp
-      lastOffsetRef.current = current
-    },
-    [axis, updateDirection]
-  )
-
-  const animatedScrollHandler = useMemo(() => {
-    const mapping =
-      axis === 'x'
-        ? [{ nativeEvent: { contentOffset: { x: scrollValue } } }]
-        : [{ nativeEvent: { contentOffset: { y: scrollValue } } }]
-
-    return Animated.event(mapping as unknown as Parameters<typeof Animated.event>[0], {
-      useNativeDriver: false,
-      listener: handleScroll,
-    })
+  const animHandler = useMemo(() => {
+    const m = axis === 'x'
+      ? [{ nativeEvent: { contentOffset: { x: scrollValue } } }]
+      : [{ nativeEvent: { contentOffset: { y: scrollValue } } }]
+    return Animated.event(m as unknown as Parameters<typeof Animated.event>[0], { useNativeDriver: false, listener: handleScroll })
   }, [axis, handleScroll, scrollValue])
 
-  const handleScrollBeginDrag = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      setIsDragging(true)
-      onScrollBeginDragRef.current?.(event)
-    },
-    []
-  )
+  const hBeginDrag = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { setIsDragging(true); onBeginDragRef.current?.(e) }, [])
+  const hEndDrag = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { setIsDragging(false); onEndDragRef.current?.(e) }, [])
+  const hMomBegin = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { setIsMomentum(true); onMomBeginRef.current?.(e) }, [])
+  const hMomEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { setIsMomentum(false); onMomEndRef.current?.(e) }, [])
 
-  const handleScrollEndDrag = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      setIsDragging(false)
-      onScrollEndDragRef.current?.(event)
-    },
-    []
-  )
+  const resetOffset = useCallback((v = 0) => {
+    scrollValue.stopAnimation(); scrollValue.setValue(v)
+    lastOffRef.current = v; lastTsRef.current = null; velRef.current = 0; updateDir(null)
+  }, [scrollValue, updateDir])
 
-  const handleMomentumBegin = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      setIsMomentum(true)
-      onMomentumScrollBeginRef.current?.(event)
-    },
-    []
-  )
-
-  const handleMomentumEnd = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      setIsMomentum(false)
-      onMomentumScrollEndRef.current?.(event)
-    },
-    []
-  )
-
-  const resetOffset = useCallback(
-    (value = 0) => {
-      scrollValue.stopAnimation()
-      scrollValue.setValue(value)
-      lastOffsetRef.current = value
-      lastTimestampRef.current = null
-      velocityRef.current = 0
-      updateDirection(null)
-    },
-    [scrollValue, updateDirection]
-  )
-
-  const getVelocity = useCallback(() => velocityRef.current, [])
-  const getCurrentOffset = useCallback(() => lastOffsetRef.current, [])
-
-  const scrollProps = useMemo(
-    () => ({
-      onScroll: animatedScrollHandler,
-      scrollEventThrottle,
-      onScrollBeginDrag: handleScrollBeginDrag,
-      onScrollEndDrag: handleScrollEndDrag,
-      onMomentumScrollBegin: handleMomentumBegin,
-      onMomentumScrollEnd: handleMomentumEnd,
-    }),
-    [
-      animatedScrollHandler,
-      handleMomentumBegin,
-      handleMomentumEnd,
-      handleScrollBeginDrag,
-      handleScrollEndDrag,
-      scrollEventThrottle,
-    ]
-  )
+  const scrollProps = useMemo(() => ({
+    onScroll: animHandler, scrollEventThrottle,
+    onScrollBeginDrag: hBeginDrag, onScrollEndDrag: hEndDrag,
+    onMomentumScrollBegin: hMomBegin, onMomentumScrollEnd: hMomEnd,
+  }), [animHandler, hBeginDrag, hEndDrag, hMomBegin, hMomEnd, scrollEventThrottle])
 
   return {
-    scrollValue,
-    scrollProps,
-    direction,
-    isDragging,
-    isMomentum,
-    getVelocity,
-    getCurrentOffset,
+    scrollValue, scrollProps, direction, isDragging, isMomentum,
+    getVelocity: useCallback(() => velRef.current, []),
+    getCurrentOffset: useCallback(() => lastOffRef.current, []),
     resetOffset,
   }
 }

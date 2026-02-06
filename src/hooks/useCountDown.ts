@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-
 import { isNumber } from '../utils/validate'
 
 export interface CountDownCurrentTime {
@@ -19,24 +18,25 @@ export interface UseCountDownOptions {
 }
 
 const parseTime = (time: number): CountDownCurrentTime => {
-  const total = Math.max(time, 0)
-  const days = Math.floor(total / (24 * 60 * 60 * 1000))
-  const hours = Math.floor((total % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000))
-  const minutes = Math.floor((total % (60 * 60 * 1000)) / (60 * 1000))
-  const seconds = Math.floor((total % (60 * 1000)) / 1000)
-  const milliseconds = total % 1000
-  return { total, days, hours, minutes, seconds, milliseconds }
+  const t = Math.max(time, 0)
+  return {
+    total: t,
+    days: Math.floor(t / 86400000),
+    hours: Math.floor((t % 86400000) / 3600000),
+    minutes: Math.floor((t % 3600000) / 60000),
+    seconds: Math.floor((t % 60000) / 1000),
+    milliseconds: t % 1000,
+  }
 }
 
 const useCountDown = (options: UseCountDownOptions) => {
   const { time, millisecond = false, onChange, onFinish } = options
   const timeRef = useRef(time)
-  const millisecondRef = useRef(millisecond)
+  const msRef = useRef(millisecond)
   const onChangeRef = useRef(onChange)
   const onFinishRef = useRef(onFinish)
-
   timeRef.current = time
-  millisecondRef.current = millisecond
+  msRef.current = millisecond
   onChangeRef.current = onChange
   onFinishRef.current = onFinish
 
@@ -47,10 +47,7 @@ const useCountDown = (options: UseCountDownOptions) => {
   const [current, setCurrent] = useState(() => parseTime(remainRef.current))
 
   const clearTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
   }, [])
 
   const update = useCallback((remain: number) => {
@@ -58,11 +55,7 @@ const useCountDown = (options: UseCountDownOptions) => {
     const next = parseTime(remain)
     setCurrent(next)
     onChangeRef.current?.(next)
-    if (remain === 0) {
-      countingRef.current = false
-      clearTimer()
-      onFinishRef.current?.()
-    }
+    if (remain === 0) { countingRef.current = false; clearTimer(); onFinishRef.current?.() }
   }, [clearTimer])
 
   const tick = useCallback(() => {
@@ -71,14 +64,8 @@ const useCountDown = (options: UseCountDownOptions) => {
     const remain = Math.max(endTimeRef.current - Date.now(), 0)
     update(remain)
     if (remain <= 0) return
-
-    const delay = millisecondRef.current
-      ? Math.max(1, Math.min(30, remain))
-      : Math.max(1, Math.min(remain, (remain % 1000) + 1))
-
-    timerRef.current = setTimeout(() => {
-      tick()
-    }, delay)
+    const delay = msRef.current ? Math.max(1, Math.min(30, remain)) : Math.max(1, Math.min(remain, (remain % 1000) + 1))
+    timerRef.current = setTimeout(tick, delay)
   }, [clearTimer, update])
 
   const start = useCallback(() => {
@@ -97,10 +84,10 @@ const useCountDown = (options: UseCountDownOptions) => {
 
   const reset = useCallback((newTime?: number) => {
     pause()
-    const next = Math.max(0, isNumber(newTime) ? newTime : timeRef.current)
-    remainRef.current = next
-    endTimeRef.current = Date.now() + next
-    setCurrent(parseTime(next))
+    const n = Math.max(0, isNumber(newTime) ? newTime : timeRef.current)
+    remainRef.current = n
+    endTimeRef.current = Date.now() + n
+    setCurrent(parseTime(n))
   }, [pause])
 
   useEffect(() => () => clearTimer(), [clearTimer])

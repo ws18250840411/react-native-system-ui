@@ -10,55 +10,32 @@ export interface UseControllableValueOptions<T> {
 
 export type UseControllableValueProps = object
 
-const hasProp = (obj: object, prop: string) =>
-  Object.prototype.hasOwnProperty.call(obj, prop)
+const hasProp = (obj: object, prop: string) => Object.prototype.hasOwnProperty.call(obj, prop)
 
 function useControllableValue<T = unknown, P extends object = UseControllableValueProps>(
   props: P = {} as P,
   options: UseControllableValueOptions<T> = {},
 ): [T, (value: T, ...args: unknown[]) => void] {
-  const {
-    defaultValue,
-    defaultValuePropName = 'defaultValue',
-    valuePropName = 'value',
-    trigger = 'onChange',
-  } = options
-
-  const propsRecord = props as Record<string, unknown>
+  const { defaultValue, defaultValuePropName = 'defaultValue', valuePropName = 'value', trigger = 'onChange' } = options
+  const p = props as Record<string, unknown>
   const isControlled = hasProp(props, valuePropName)
-  const value = propsRecord[valuePropName] as T
+  const value = p[valuePropName] as T
 
   const [internalValue, setInternalValue] = useState<T>(() => {
-    if (isControlled) {
-      return value
-    }
-    if (hasProp(props, defaultValuePropName)) {
-      return propsRecord[defaultValuePropName] as T
-    }
+    if (isControlled) return value
+    if (hasProp(props, defaultValuePropName)) return p[defaultValuePropName] as T
     return defaultValue as T
   })
 
-  const mergedValue = isControlled ? value : internalValue
+  const handlerRef = useRef(p[trigger])
+  useEffect(() => { handlerRef.current = p[trigger] }, [props, trigger])
 
-  const handlerRef = useRef(propsRecord[trigger])
-  useEffect(() => {
-    handlerRef.current = propsRecord[trigger]
-  }, [props, trigger])
+  const triggerChange = useCallback((next: T, ...args: unknown[]) => {
+    if (!isControlled) setInternalValue(next)
+    if (isFunction(handlerRef.current)) (handlerRef.current as (v: T, ...r: unknown[]) => void)(next, ...args)
+  }, [isControlled])
 
-  const triggerChange = useCallback(
-    (nextValue: T, ...args: unknown[]) => {
-      if (!isControlled) {
-        setInternalValue(nextValue)
-      }
-      const handler = handlerRef.current
-      if (isFunction(handler)) {
-        ; (handler as (value: T, ...rest: unknown[]) => void)(nextValue, ...args)
-      }
-    },
-    [isControlled],
-  )
-
-  return [mergedValue, triggerChange]
+  return [isControlled ? value : internalValue, triggerChange]
 }
 
 export default useControllableValue

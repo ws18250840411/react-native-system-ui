@@ -2,6 +2,7 @@ import React, { useContext, useMemo } from 'react'
 import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native'
 import { withAlpha } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
+import { createHairlineView } from '../../utils/hairline'
 import { ensureSpace } from '../../utils/string'
 import { isFiniteNumber, isFunction, isString, renderTextOrNode } from '../../utils'
 import { useAriaPress } from '../../hooks'
@@ -35,7 +36,9 @@ const ButtonImpl = (props: ButtonProps, forwardedRef: React.ForwardedRef<React.E
     if (plain) return [tokens.colors.backgroundPlain, color ?? tone.border, textColorProp ?? (type === 'default' && !color ? tone.text : color ?? tone.border)]
     return [color ?? tone.background, color ?? tone.border, textColorProp ?? (color ? '#ffffff' : tone.text)]
   }, [color, textColorProp, plain, type, tone, tokens.colors.backgroundPlain])
-  const borderWidth = (plain || type === 'default') ? (hairline ? tokens.borders.hairlineWidth : tokens.borders.width) : 0
+  const hasBorder = plain || type === 'default'
+  const useHairlineOverlay = hasBorder && hairline
+  const borderWidth = hasBorder && !hairline ? tokens.borders.width : 0
   const borderRadius = square ? 0 : round ? sizeTokens.height / 2 : sizeTokens.radius
   const shadowStyle = useMemo(() => {
     if (plain) return undefined
@@ -84,7 +87,7 @@ const ButtonImpl = (props: ButtonProps, forwardedRef: React.ForwardedRef<React.E
     return { color: rippleColor, borderless: false }
   }, [androidRippleProp, rippleColorProp, plain, textColor, type, color, tokens.colors.ripple])
   return (
-    <Pressable ref={forwardedRef} disabled={isDisabled} style={[tokens.layout.base, { minHeight: sizeTokens.height, paddingHorizontal: sizeTokens.paddingHorizontal, borderRadius: borderRadius, backgroundColor: backgroundColor, borderColor: borderColor, borderWidth: borderWidth, opacity: opacity }, Platform.OS === 'android' && borderRadius > 0 && !shadowStyle ? ROUND_CORNER_STYLE : null, block ? tokens.layout.block : null, shadowStyle, style]} android_ripple={resolvedAndroidRipple} {...interactionProps} accessibilityState={mergedAccessibilityState} accessibilityRole={accessibilityRole ?? 'button'} accessibilityLabel={resolvedAccessibilityLabel} accessibilityHint={accessibilityHint} {...viewProps}>
+    <Pressable ref={forwardedRef} disabled={isDisabled} style={[tokens.layout.base, { minHeight: sizeTokens.height, paddingHorizontal: sizeTokens.paddingHorizontal, borderRadius: borderRadius, backgroundColor: backgroundColor, borderColor: useHairlineOverlay ? 'transparent' : borderColor, borderWidth: borderWidth, opacity: opacity }, Platform.OS === 'android' && borderRadius > 0 && !shadowStyle ? ROUND_CORNER_STYLE : null, block ? tokens.layout.block : null, shadowStyle, style]} android_ripple={resolvedAndroidRipple} {...interactionProps} accessibilityState={mergedAccessibilityState} accessibilityRole={accessibilityRole ?? 'button'} accessibilityLabel={resolvedAccessibilityLabel} accessibilityHint={accessibilityHint} {...viewProps}>
       <View style={[tokens.layout.content, contentStyle]}>
         {loading ? (
           <>
@@ -99,6 +102,7 @@ const ButtonImpl = (props: ButtonProps, forwardedRef: React.ForwardedRef<React.E
           </>
         )}
       </View>
+      {useHairlineOverlay && <View style={createHairlineView({ position: 'all', color: borderColor, borderRadius })} />}
     </Pressable>
   )
 }

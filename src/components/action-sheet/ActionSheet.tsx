@@ -3,7 +3,7 @@ import { Pressable, Text, View, type PressableStateCallbackType } from 'react-na
 import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
-import { createHairlineBorderBottom, isRenderable, isText } from '../../utils'
+import { createHairlineView, isRenderable, isText } from '../../utils'
 import { renderTextOrNode } from '../../utils'
 import Loading from '../loading'
 import Popup from '../popup'
@@ -295,10 +295,7 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
   const descriptionNode = useMemo(() => (
     hasDescription && (
       <View
-        style={[
-          tokens.layout.descriptionContainer,
-          createHairlineBorderBottom(tokens.colors.border),
-        ]}
+        style={tokens.layout.descriptionContainer}
       >
         {isText(description) ? (
           renderTextOrNode(description, [
@@ -308,6 +305,7 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
         ) : (
           <View style={tokens.layout.descriptionNode}>{description}</View>
         )}
+        <View style={createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0 })} />
       </View>
     )
   ), [

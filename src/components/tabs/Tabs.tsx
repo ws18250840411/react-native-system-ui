@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo, Children, isValidElement, Fragment, type FC, type ForwardRefRenderFunction } from 'react'
 import { Animated, Pressable, StyleSheet, Text, ScrollView, View, Platform, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent, type ViewStyle } from 'react-native'
 import { useAriaPress, useControllableValue } from '../../hooks'
+import { createHairlineView } from '../../utils/hairline'
 import { parseNumberLike } from '../../utils/number'
 import { isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
@@ -181,12 +182,13 @@ const TabBarItemInner: React.FC<TabItemProps> = ({ pane, isActive, align, scroll
   const descriptionViewStyle = [{ marginTop: descriptionMarginTop, alignItems: 'center' as const }, descriptionJumboStyle]
   const handleLayout = useCallback((event: LayoutChangeEvent) => { onLayout(pane.name, event) }, [onLayout, pane.name])
   return (
-    <Pressable {...ariaPress.interactionProps} onLayout={handleLayout} style={[S.tabI, shouldFlex ? S.flexI : null, { paddingHorizontal: horizontalPadding, paddingVertical: verticalPadding }, isCard ? { borderRightWidth: isLast ? 0 : StyleSheet.hairlineWidth, borderRightColor: color ?? tokens.colors.cardBorder, backgroundColor: isActive ? color ?? tokens.colors.cardActiveBackground : tokens.colors.cardBackground } : null, tabStyle]}>
+    <Pressable {...ariaPress.interactionProps} onLayout={handleLayout} style={[S.tabI, shouldFlex ? S.flexI : null, { paddingHorizontal: horizontalPadding, paddingVertical: verticalPadding }, isCard ? { backgroundColor: isActive ? color ?? tokens.colors.cardActiveBackground : tokens.colors.cardBackground } : null, tabStyle]}>
       <View style={labelWrapperStyles}>
         {labelTextWrapperStyles ? <View style={labelTextWrapperStyles}>{titleNode}</View> : titleNode}
         {isRenderable(renderDescription) && (isText(renderDescription) ? <Text style={descriptionTextStyle}>{renderDescription}</Text> : <View style={descriptionViewStyle}>{renderDescription}</View>)}
         {isRenderable(pane.badge) && <View style={{ marginTop: tokens.spacing.badgeMarginTop }}>{isText(pane.badge) ? <Text style={{ color: tokens.colors.badgeText, fontSize: tokens.typography.badgeTextSize }}>{pane.badge}</Text> : pane.badge}</View>}
       </View>
+      {isCard && !isLast && <View style={createHairlineView({ position: 'right', color: color ?? tokens.colors.cardBorder, top: 0, bottom: 0 })} />}
     </Pressable>
   )
 }
@@ -373,7 +375,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     }
   }, [scrollIntoView])
   const navBody = scrollable ? <ScrollView horizontal ref={navScrollRef} accessibilityRole="tablist" showsHorizontalScrollIndicator={false} scrollEventThrottle={16} onScrollBeginDrag={handleNavScrollBeginDrag} onScroll={handleNavScroll} onContentSizeChange={onNavCntSizeChg} contentContainerStyle={S.navC}>{navItems}{indicatorNode}</ScrollView> : <View accessibilityRole="tablist" style={[S.navC, S.navCSta]}>{navItems}{indicatorNode}</View>
-  const navContent = <View style={[S.wrap, hasBorder && type === 'line' ? { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: tokens.colors.border } : null, { backgroundColor: background }, tabBarStyle]}>{navLeft && <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>{navLeft}</View>}<View style={[S.nav, { minHeight: navH + navPB, paddingBottom: navPB }, type === 'card' ? { borderWidth: StyleSheet.hairlineWidth, borderRadius: tokens.card.radius, borderColor: color ?? tokens.colors.cardBorder, marginHorizontal: tokens.card.marginHorizontal, overflow: 'hidden' } : null]} onLayout={onNavCtrLayout}>{navBody}</View>{navRight && <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>{navRight}</View>}</View>
+  const navContent = <View style={[S.wrap, { backgroundColor: background }, tabBarStyle]}>{navLeft && <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>{navLeft}</View>}<View style={[S.nav, { minHeight: navH + navPB, paddingBottom: navPB }, type === 'card' ? { borderRadius: tokens.card.radius, marginHorizontal: tokens.card.marginHorizontal, overflow: 'hidden' } : null]} onLayout={onNavCtrLayout}>{navBody}{type === 'card' && <View style={createHairlineView({ position: 'all', color: color ?? tokens.colors.cardBorder, borderRadius: tokens.card.radius })} />}</View>{navRight && <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>{navRight}</View>}{hasBorder && type === 'line' && <View style={createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0 })} />}</View>
   const paneNodes = useMemo(() => panes.map(pane => {
     const isActive = pane.name === curName
     const shouldRender = !lazyRender || isActive || visRef.current.has(pane.name)

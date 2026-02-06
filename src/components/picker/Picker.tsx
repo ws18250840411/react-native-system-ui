@@ -5,6 +5,7 @@ import { withAlpha } from '../../utils/color'
 import { isFiniteNumber, isText } from '../../utils/validate'
 import { clamp, isObject, shallowEqualArray } from '../../utils'
 import { usePickerTokens } from './tokens'
+import { createHairlineView } from '../../utils/hairline'
 import type { PickerColumn, PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
 
 export interface NormalizedPickerResult {
@@ -226,7 +227,7 @@ const WheelPickerInner = <T extends PickerOption,>({
   const effectiveScrollThrottle = total > visibleCnt * 20 ? 32 : scrollEventThrottle
   const webVirtualEnabled = total > visibleCnt * 4
   const Spacer = useCallback(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
-  const indicatorStyle = useMemo(() => [S.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }], [indicatorColor, itemHeight, visibleRest])
+  const indicatorStyle = useMemo(() => [S.indicator, { height: itemHeight, top: itemHeight * visibleRest }], [itemHeight, visibleRest])
   const dragEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null), momentumRef = useRef(false), lastOffsetRef = useRef(0)
   const clearDragEndTimer = useCallback(() => { if (dragEndTimerRef.current) { clearTimeout(dragEndTimerRef.current); dragEndTimerRef.current = null } }, [])
   const emitIdx = useCallback((offsetY: number, animated: boolean) => {
@@ -404,7 +405,7 @@ const WheelPickerInner = <T extends PickerOption,>({
   if (isWeb) {
     return (
       <View style={[W.column, { height: containerHeight }, W.grab]} {...({ onWheel: handleWheel } as unknown as React.ComponentProps<typeof View>)} {...panResponder.panHandlers}>
-        <View style={indicatorStyle} pointerEvents="none" />
+        <View style={indicatorStyle} pointerEvents="none"><View style={createHairlineView({ position: 'top', color: indicatorColor, left: 0, right: 0 })} /><View style={createHairlineView({ position: 'bottom', color: indicatorColor, left: 0, right: 0 })} /></View>
         <View style={[webTransform, webTransitionStyle]} {...({ onTransitionEnd: handleWebTransitionEnd } as unknown as React.ComponentProps<typeof View>)}>
           <Spacer />
           {webRender.topSpacer}
@@ -443,7 +444,7 @@ const WheelPickerInner = <T extends PickerOption,>({
   }, [clearDragEndTimer, emitIdx, notifyEnd])
   return (
     <View style={[W.column, { height: containerHeight }]} collapsable={false}>
-      <View style={indicatorStyle} pointerEvents="none" />
+      <View style={indicatorStyle} pointerEvents="none"><View style={createHairlineView({ position: 'top', color: indicatorColor, left: 0, right: 0 })} /><View style={createHairlineView({ position: 'bottom', color: indicatorColor, left: 0, right: 0 })} /></View>
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} scrollEventThrottle={effectiveScrollThrottle} decelerationRate={decelerationRate} snapToInterval={itemHeight} snapToAlignment="start" bounces={false} overScrollMode="never" nestedScrollEnabled contentContainerStyle={containerStyle} onStartShouldSetResponderCapture={handleResponderCapture} onMoveShouldSetResponderCapture={handleResponderCapture} onScroll={handleScroll} onScrollBeginDrag={onDragStart} onScrollEndDrag={handleScrollEndDrag} onMomentumScrollBegin={handleMomentumScrollBegin} onMomentumScrollEnd={onMomEnd} scrollEnabled={!readOnly}>
         {data.map((item, index) => (
           <WheelPickerItem key={`${index}-${String(item.value ?? '')}`} item={item} index={index} itemHeight={itemHeight} active={index === safeSelIdx} disabled={!!item.disabled} renderItem={renderItem} />
@@ -605,10 +606,11 @@ const PickerImpl: React.FC<PickerProps> = props => {
     return <Text style={[S.title, toolbarFont, { color: tokens.colors.text }]} numberOfLines={1}>{content}</Text>
   }
   const toolbar = showToolbar ? (
-    <View style={[S.toolbar, { height: tokens.spacing.toolbarHeight, borderColor: tokens.colors.indicator, paddingHorizontal: tokens.spacing.actionPadding }]}>
+    <View style={[S.toolbar, { height: tokens.spacing.toolbarHeight, paddingHorizontal: tokens.spacing.actionPadding }]}>
       <Pressable onPress={onCancel} accessibilityRole="button">{renderActionContent(cancelButtonText, tokens.colors.cancel)}</Pressable>
       {renderTitleContent(title)}
       <Pressable onPress={handleConfirm} accessibilityRole="button">{renderActionContent(confirmButtonText, tokens.colors.confirm)}</Pressable>
+      <View style={createHairlineView({ position: 'bottom', color: tokens.colors.indicator, left: 0, right: 0 })} />
     </View>
   ) : null
   const wrapperH = itemHeight * visibleItemCount
@@ -635,7 +637,7 @@ const PickerImpl: React.FC<PickerProps> = props => {
           {columnsBottom}
           {hasColumns && (
             <>
-              <View pointerEvents="none" style={[S.indicator, { top: indicatorOff, height: itemHeight, borderColor: tokens.colors.indicator }]} />
+              <View pointerEvents="none" style={[S.indicator, { top: indicatorOff, height: itemHeight }]}><View style={createHairlineView({ position: 'top', color: tokens.colors.indicator, left: 0, right: 0 })} /><View style={createHairlineView({ position: 'bottom', color: tokens.colors.indicator, left: 0, right: 0 })} /></View>
               <GradientMask position="top" height={maskH} color={effectiveMaskColor} maskType={maskType} />
               <GradientMask position="bottom" height={maskH} color={effectiveMaskColor} maskType={maskType} />
             </>
@@ -656,9 +658,9 @@ const S = StyleSheet.create({
   body: { position: 'relative', overflow: 'hidden' },
   columns: { flex: 1, flexDirection: 'row' },
   optTxt: { includeFontPadding: false },
-  indicator: { position: 'absolute', left: 0, right: 0, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, zIndex: 3 },
+  indicator: { position: 'absolute', left: 0, right: 0, zIndex: 3 },
   gMask: { position: 'absolute', left: 0, right: 0, zIndex: 2 },
-  toolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth },
+  toolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { flex: 1, textAlign: 'center' },
   ttlW: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   actTxt: { minWidth: 44, textAlign: 'center' },

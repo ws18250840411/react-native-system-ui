@@ -15,9 +15,7 @@ export const createSidebarTokens = (foundations: Foundations): SidebarTokens => 
       container: {
         flexDirection: 'row',
       },
-      side: {
-        borderRightWidth: borderWidth,
-      },
+      side: {},
       content: {
         flex: 1,
         minWidth: 0,

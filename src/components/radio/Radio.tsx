@@ -14,7 +14,7 @@ import { useToggleState } from '@react-stately/toggle'
 import type { RadioProps } from './types'
 import { RadioGroupContext } from './RadioContext'
 import { useRadioTokens } from './tokens'
-import { parseNumber, renderTextOrNode } from '../../utils'
+import { createHairlineView, parseNumber, renderTextOrNode } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 
 export const Radio = React.memo((props: RadioProps) => {
@@ -219,8 +219,6 @@ export const Radio = React.memo((props: RadioProps) => {
           width: resolvedIconSize,
           height: resolvedIconSize,
           borderRadius,
-          borderWidth: tokens.borders.width,
-          borderColor,
           backgroundColor,
         },
       ]}
@@ -235,6 +233,7 @@ export const Radio = React.memo((props: RadioProps) => {
           }}
         />
       )}
+      <View style={createHairlineView({ position: 'all', color: borderColor, borderRadius })} />
     </View>
   ), [
     backgroundColor,
@@ -243,7 +242,6 @@ export const Radio = React.memo((props: RadioProps) => {
     isChecked,
     resolvedCheckedColor,
     resolvedIconSize,
-    tokens.borders.width,
     tokens.layout.icon,
     tokens.sizing.dotScale,
   ])

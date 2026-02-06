@@ -18,35 +18,16 @@ export interface UseAriaOverlayResult {
 }
 
 export const useAriaOverlay = ({
-  isOpen,
-  onClose,
-  isDismissable = true,
-  shouldCloseOnInteractOutside,
-  overlayProps: overlayPropOverrides,
+  isOpen, onClose, isDismissable = true, shouldCloseOnInteractOutside, overlayProps: overrides,
 }: UseAriaOverlayOptions): UseAriaOverlayResult => {
   const overlayRef = useRef<unknown>(null)
-
   const { overlayProps } = useOverlay(
-    {
-      isOpen,
-      onClose,
-      isDismissable,
-      shouldCloseOnInteractOutside,
-    },
-    overlayRef as unknown as React.RefObject<HTMLElement>
+    { isOpen, onClose, isDismissable, shouldCloseOnInteractOutside },
+    overlayRef as unknown as React.RefObject<HTMLElement>,
   )
-
-  const resolvedOverlayProps = useMemo(
-    () =>
-      (mergeProps(
-        overlayProps ?? {},
-        overlayPropOverrides ?? {},
-      ) as unknown as Partial<ViewProps> & Record<string, unknown>),
-    [overlayPropOverrides, overlayProps],
+  const resolved = useMemo(
+    () => mergeProps(overlayProps ?? {}, overrides ?? {}) as unknown as Partial<ViewProps> & Record<string, unknown>,
+    [overrides, overlayProps],
   )
-
-  return {
-    overlayRef,
-    overlayProps: resolvedOverlayProps,
-  }
+  return { overlayRef, overlayProps: resolved }
 }

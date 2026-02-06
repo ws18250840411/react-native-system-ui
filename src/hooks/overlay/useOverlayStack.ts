@@ -1,5 +1,4 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
-
 import type { OverlayStackEntry, OverlayStackMountOptions } from './OverlayStackStore'
 import { overlayStackStore } from './OverlayStackStore'
 
@@ -13,67 +12,34 @@ export interface UseOverlayStackResult {
   isTopMost: boolean
 }
 
-const useOverlayEntries = () =>
-  useSyncExternalStore(
-    overlayStackStore.subscribe,
-    overlayStackStore.getSnapshot,
-    overlayStackStore.getSnapshot
-  )
+const useEntries = () => useSyncExternalStore(overlayStackStore.subscribe, overlayStackStore.getSnapshot, overlayStackStore.getSnapshot)
 
-export const useOverlayStack = ({
-  visible,
-  ...options
-}: UseOverlayStackOptions): UseOverlayStackResult => {
-  const entries = useOverlayEntries()
+export const useOverlayStack = ({ visible, ...options }: UseOverlayStackOptions): UseOverlayStackResult => {
+  const entries = useEntries()
   const entryRef = useRef<OverlayStackEntry | null>(null)
-  const optionsRef = useRef(options)
+  const optRef = useRef(options)
   if (
-    optionsRef.current.onClose !== options.onClose ||
-    optionsRef.current.closeOnBack !== options.closeOnBack ||
-    optionsRef.current.lockScroll !== options.lockScroll ||
-    optionsRef.current.zIndex !== options.zIndex ||
-    optionsRef.current.type !== options.type ||
-    optionsRef.current.meta !== options.meta
-  ) {
-    optionsRef.current = options
-  }
-  const stableOptions = optionsRef.current
+    optRef.current.onClose !== options.onClose || optRef.current.closeOnBack !== options.closeOnBack ||
+    optRef.current.lockScroll !== options.lockScroll || optRef.current.zIndex !== options.zIndex ||
+    optRef.current.type !== options.type || optRef.current.meta !== options.meta
+  ) optRef.current = options
+  const opts = optRef.current
 
   useEffect(() => {
     if (!visible) {
-      if (entryRef.current) {
-        overlayStackStore.unmount(entryRef.current.key)
-        entryRef.current = null
-      }
+      if (entryRef.current) { overlayStackStore.unmount(entryRef.current.key); entryRef.current = null }
       return
     }
-    const entry = overlayStackStore.mount(stableOptions)
-    entryRef.current = entry
-    return () => {
-      if (entryRef.current) {
-        overlayStackStore.unmount(entryRef.current.key)
-        entryRef.current = null
-      }
-    }
+    entryRef.current = overlayStackStore.mount(opts)
+    return () => { if (entryRef.current) { overlayStackStore.unmount(entryRef.current.key); entryRef.current = null } }
   }, [visible])
 
   useEffect(() => {
-    if (!visible || !entryRef.current) {
-      return
-    }
-    overlayStackStore.update(entryRef.current.key, stableOptions)
-  }, [stableOptions, visible])
+    if (visible && entryRef.current) overlayStackStore.update(entryRef.current.key, opts)
+  }, [opts, visible])
 
-  const current = entryRef.current
-  const snapshotEntry = current
-    ? entries.find(entry => entry.key === current.key)
-    : undefined
-
+  const cur = entryRef.current
+  const snap = cur ? entries.find(e => e.key === cur.key) : undefined
   const top = entries[entries.length - 1]
-
-  return {
-    entryKey: snapshotEntry?.key ?? null,
-    zIndex: snapshotEntry?.zIndex ?? stableOptions.zIndex,
-    isTopMost: !!snapshotEntry && (!!top && top.key === snapshotEntry.key),
-  }
+  return { entryKey: snap?.key ?? null, zIndex: snap?.zIndex ?? opts.zIndex, isTopMost: !!snap && !!top && top.key === snap.key }
 }

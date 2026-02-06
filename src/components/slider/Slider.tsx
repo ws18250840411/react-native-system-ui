@@ -8,6 +8,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native'
 import type { SliderProps, SliderValue } from './types'
 import { useSliderTokens } from './tokens'
 import { parseNumber } from '../../utils/number'
+import { createHairlineView } from '../../utils/hairline'
 import { clamp } from '../../utils'
 import { isFunction, isFiniteNumber, isRenderable } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
@@ -109,6 +110,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({ index, orientation, ar
   return (
     <View {...handlers} {...accessibilityProps} pointerEvents={isDisabled ? 'none' : 'auto'} style={[content ? S.thw : S.t, webGestureStyle, thumbStyle]}>
       {content ?? <View style={indicatorStyle} />}
+      {!content && <View style={createHairlineView({ position: 'all', color: activeColor, borderRadius: size / 2 })} />}
     </View>
   )
 })
@@ -290,7 +292,7 @@ const S = StyleSheet.create({
   th: { width: '100%' },
   tv: { height: '100%' },
   a: { position: 'absolute' },
-  t: { position: 'absolute', borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  t: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   thw: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
 })
 

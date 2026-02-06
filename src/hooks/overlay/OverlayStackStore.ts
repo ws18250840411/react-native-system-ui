@@ -1,5 +1,4 @@
 import { BackHandler, Platform } from 'react-native'
-
 import { setBodyScrollLocked } from '../../platform'
 import { isNumber } from '../../utils'
 
@@ -26,134 +25,77 @@ export interface OverlayStackMountOptions {
 
 type Listener = () => void
 
-const DEFAULT_BASE_Z_INDEX = 1000
-const DEFAULT_Z_INDEX_STEP = 2
-
 export class OverlayStackStore {
   private listeners = new Set<Listener>()
   private entries: OverlayStackEntry[] = []
   private keySeed = 0
 
-  constructor(
-    private readonly baseZIndex: number = DEFAULT_BASE_Z_INDEX,
-    private readonly zIndexStep: number = DEFAULT_Z_INDEX_STEP
-  ) { }
+  constructor(private readonly baseZ = 1000, private readonly zStep = 2) {}
 
-  subscribe = (listener: Listener) => {
-    this.listeners.add(listener)
-    return () => {
-      this.listeners.delete(listener)
-    }
-  }
-
+  subscribe = (l: Listener) => { this.listeners.add(l); return () => { this.listeners.delete(l) } }
   getSnapshot = (): OverlayStackSnapshot => this.entries
+  peek = (): OverlayStackEntry | undefined => this.entries[this.entries.length - 1]
+  size = () => this.entries.length
+  getBaseZIndex = () => this.baseZ
 
-  mount = (options: OverlayStackMountOptions): OverlayStackEntry => {
-    const key = ++this.keySeed
+  mount = (o: OverlayStackMountOptions): OverlayStackEntry => {
     const entry: OverlayStackEntry = {
-      key,
-      zIndex: this.resolveZIndex(options.zIndex),
-      onClose: options.onClose,
-      closeOnBack: options.closeOnBack,
-      lockScroll: options.lockScroll,
-      type: options.type,
-      meta: options.meta,
+      key: ++this.keySeed, zIndex: this.resolveZ(o.zIndex),
+      onClose: o.onClose, closeOnBack: o.closeOnBack, lockScroll: o.lockScroll, type: o.type, meta: o.meta,
     }
     this.entries = [...this.entries, entry]
     this.emit()
     return entry
   }
 
-  update = (
-    key: number,
-    options: Partial<OverlayStackMountOptions>
-  ): OverlayStackEntry | undefined => {
-    const index = this.entries.findIndex(item => item.key === key)
-    if (index === -1) return undefined
-    const prev = this.entries[index]
-    const next: OverlayStackEntry = {
-      ...prev,
-      ...options,
-      zIndex: isNumber(options.zIndex) ? this.resolveZIndex(options.zIndex) : prev.zIndex,
-    }
-    this.entries = [...this.entries.slice(0, index), next, ...this.entries.slice(index + 1)]
+  update = (key: number, o: Partial<OverlayStackMountOptions>): OverlayStackEntry | undefined => {
+    const i = this.entries.findIndex(e => e.key === key)
+    if (i === -1) return undefined
+    const next: OverlayStackEntry = { ...this.entries[i], ...o, zIndex: isNumber(o.zIndex) ? this.resolveZ(o.zIndex) : this.entries[i].zIndex }
+    this.entries = [...this.entries.slice(0, i), next, ...this.entries.slice(i + 1)]
     this.emit()
     return next
   }
 
   unmount = (key: number) => {
-    const next = this.entries.filter(entry => entry.key !== key)
-    if (next.length === this.entries.length) {
-      return
-    }
-    this.entries = next
-    this.emit()
+    const next = this.entries.filter(e => e.key !== key)
+    if (next.length !== this.entries.length) { this.entries = next; this.emit() }
   }
 
-  peek = (): OverlayStackEntry | undefined => this.entries[this.entries.length - 1]
-
-  size = () => this.entries.length
-
-  getBaseZIndex = () => this.baseZIndex
-
-  private resolveZIndex = (provided?: number) => {
-    if (isNumber(provided)) {
-      if (!Number.isFinite(provided) || provided < 0) {
-        return this.baseZIndex
-      }
-      return provided >= this.baseZIndex ? provided : this.baseZIndex + provided
-    }
+  private resolveZ = (v?: number) => {
+    if (isNumber(v)) return (!Number.isFinite(v) || v < 0) ? this.baseZ : v >= this.baseZ ? v : this.baseZ + v
     const top = this.peek()
-    if (!top) {
-      return this.baseZIndex
-    }
-    return top.zIndex + this.zIndexStep
+    return top ? top.zIndex + this.zStep : this.baseZ
   }
 
-  private emit = () => {
-    this.listeners.forEach(listener => {
-      listener()
-    })
-  }
+  private emit = () => { this.listeners.forEach(l => l()) }
 }
 
 export const overlayStackStore = new OverlayStackStore()
 
-let backHandlerSubscription: ReturnType<typeof BackHandler.addEventListener> | null = null
+let backSub: ReturnType<typeof BackHandler.addEventListener> | null = null
 
-const syncBackHandler = () => {
+const syncBack = () => {
   if (Platform.OS === 'web') return
   const entries = overlayStackStore.getSnapshot()
-  const hasClosable = entries.some(entry => entry.closeOnBack && entry.onClose)
-  if (hasClosable && !backHandlerSubscription && BackHandler?.addEventListener) {
-    backHandlerSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      const currentEntries = overlayStackStore.getSnapshot()
-      for (let i = currentEntries.length - 1; i >= 0; i -= 1) {
-        const entry = currentEntries[i]
-        if (entry.closeOnBack && entry.onClose) {
-          entry.onClose()
-          return true
-        }
+  const has = entries.some(e => e.closeOnBack && e.onClose)
+  if (has && !backSub && BackHandler?.addEventListener) {
+    backSub = BackHandler.addEventListener('hardwareBackPress', () => {
+      const cur = overlayStackStore.getSnapshot()
+      for (let i = cur.length - 1; i >= 0; i--) {
+        if (cur[i].closeOnBack && cur[i].onClose) { cur[i].onClose!(); return true }
       }
       return false
     })
     return
   }
-  if (!hasClosable && backHandlerSubscription) {
-    backHandlerSubscription.remove()
-    backHandlerSubscription = null
-  }
+  if (!has && backSub) { backSub.remove(); backSub = null }
 }
 
-const syncScrollLock = () => {
-  const shouldLock = overlayStackStore.getSnapshot().some(entry => entry.lockScroll)
-  setBodyScrollLocked(shouldLock)
+const onChange = () => {
+  syncBack()
+  setBodyScrollLocked(overlayStackStore.getSnapshot().some(e => e.lockScroll))
 }
 
-const handleStoreChange = () => {
-  syncBackHandler()
-  syncScrollLock()
-}
-
-overlayStackStore.subscribe(handleStoreChange)
-handleStoreChange()
+overlayStackStore.subscribe(onChange)
+onChange()
