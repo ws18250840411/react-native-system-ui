@@ -26,7 +26,7 @@ import type { StepperInstance, StepperProps } from './types'
 const LONG_PRESS_DELAY = 600
 const LONG_PRESS_INTERVAL = 100
 
-export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) => {
+const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) => {
   const tokens = useStepperTokens(p.tokensOverride)
 
   const {
@@ -663,7 +663,7 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
       {renderPlusButton()}
     </View>
   )
-})
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -680,6 +680,8 @@ const styles = StyleSheet.create({
   },
 })
 
-Stepper.displayName = 'Stepper'
+const StepperForwardRef = React.forwardRef<StepperInstance, StepperProps>(StepperImpl)
+StepperForwardRef.displayName = 'Stepper'
+export const Stepper = React.memo(StepperForwardRef)
 
 export default Stepper

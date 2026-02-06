@@ -52,7 +52,7 @@ export interface ToastProps {
   onClosed?: () => void
 }
 
-export const ToastContent: React.FC<ToastProps> = props => {
+const ToastContentImpl: React.FC<ToastProps> = props => {
   const {
     visible,
     message,
@@ -319,11 +319,14 @@ export const ToastContent: React.FC<ToastProps> = props => {
   )
 }
 
-export const Toast: React.FC<ToastProps> = props => (
+export const ToastContent = React.memo(ToastContentImpl)
+
+const ToastImpl: React.FC<ToastProps> = props => (
   <Portal>
     <ToastContent {...props} />
   </Portal>
 )
+export const Toast = React.memo(ToastImpl)
 
 const styles = StyleSheet.create({
   backdrop: {

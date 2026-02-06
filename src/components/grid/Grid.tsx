@@ -22,7 +22,7 @@ export interface GridContextValue {
 
 export const GridContext = React.createContext<GridContextValue | null>(null)
 
-export const Grid: React.FC<GridProps> = props => {
+const GridImpl: React.FC<GridProps> = props => {
   const {
     tokensOverride,
     children,
@@ -162,5 +162,7 @@ export const Grid: React.FC<GridProps> = props => {
     </GridContext.Provider>
   )
 }
+
+export const Grid = React.memo(GridImpl)
 
 Grid.displayName = 'Grid'

@@ -21,7 +21,10 @@ const mapKeyboardType = (type?: InputProps['type']): TextInputProps['keyboardTyp
   }
 }
 
-const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) => {
+const InputImpl = (
+  props: InputProps,
+  ref: React.ForwardedRef<InputInstance>,
+) => {
   const {
     type,
     keyboardType: keyboardTypeProp,
@@ -87,11 +90,17 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
       onChangeText={handleChangeText}
     />
   )
-})
+}
 
-InputComponent.displayName = 'Input'
+const InputForwardRef = React.forwardRef<InputInstance, InputProps>(InputImpl)
+InputForwardRef.displayName = 'Input'
 
-const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref) => {
+const InputComponent = React.memo(InputForwardRef)
+
+const TextAreaImpl = (
+  props: InputTextAreaProps,
+  ref: React.ForwardedRef<InputInstance>,
+) => {
   const { autoSize, ...rest } = props
   const fieldTokens = useFieldTokens(rest.fieldTokensOverride)
 
@@ -114,9 +123,12 @@ const TextArea = React.forwardRef<InputInstance, InputTextAreaProps>((props, ref
   )
 
   return <InputComponent ref={ref} {...rest} type="textarea" autoSize={resolvedAutoSize} />
-})
+}
 
-TextArea.displayName = 'Input.TextArea'
+const TextAreaForwardRef = React.forwardRef<InputInstance, InputTextAreaProps>(TextAreaImpl)
+TextAreaForwardRef.displayName = 'Input.TextArea'
+
+const TextArea = React.memo(TextAreaForwardRef)
 
 const Input = Object.assign(InputComponent, { TextArea })
 

@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   forwardRef,
+  memo,
   useMemo,
   Children,
   isValidElement,
@@ -30,16 +31,18 @@ type SwiperComponent = (<T>(
   props: SwiperProps<T> & RefAttributes<SwiperInstance>
 ) => ReactElement | null) & { displayName?: string }
 
-export const SwiperItem = forwardRef<View, SwiperItemProps>((props, ref) => {
+const SwiperItemImpl = (props: SwiperItemProps, ref: React.ForwardedRef<View>) => {
   const { style, children, testID } = props
   return (
     <View ref={ref} style={[styles.item, style]} testID={testID}>
       {children}
     </View>
   )
-})
+}
 
-SwiperItem.displayName = 'SwiperItem'
+const SwiperItemForwardRef = forwardRef<View, SwiperItemProps>(SwiperItemImpl)
+SwiperItemForwardRef.displayName = 'SwiperItem'
+export const SwiperItem = memo(SwiperItemForwardRef)
 
 const DEFAULT_AUTOPLAY_INTERVAL = 3000
 const LOOP_RENDER_ALL_THRESHOLD = 10
@@ -378,9 +381,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   )
 }
 
-const Swiper = forwardRef(SwiperImpl) as unknown as SwiperComponent
-
-Swiper.displayName = 'Swiper'
+const SwiperForwardRef = forwardRef(SwiperImpl) as unknown as SwiperComponent
+SwiperForwardRef.displayName = 'Swiper'
+const Swiper = memo(SwiperForwardRef) as unknown as SwiperComponent
 
 const styles = StyleSheet.create({
   container: {

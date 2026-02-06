@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react'
-import { Platform, View, type StyleProp, type ViewStyle } from 'react-native'
+import { View } from 'react-native'
 import { useRadioGroup } from '@react-native-aria/radio'
 import { useRadioGroupState, type RadioGroupState } from '@react-stately/radio'
 
@@ -18,7 +18,7 @@ export interface RadioGroupContextValue {
 
 export const RadioGroupContext = React.createContext<RadioGroupContextValue | null>(null)
 
-export const RadioGroup: React.FC<RadioGroupProps> = props => {
+const RadioGroupImpl: React.FC<RadioGroupProps> = props => {
   const {
     value,
     defaultValue,
@@ -77,34 +77,6 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     'aria-disabled': disabled,
   }), [accessibilityHint, disabled, radioGroupProps])
 
-  const supportsGap = Platform.OS === 'web'
-  const childrenArray = useMemo(
-    () => React.Children.toArray(children).filter(child => child != null && typeof child !== 'boolean'),
-    [children]
-  )
-  const childrenLength = childrenArray.length
-  const itemStyleForIndex = useCallback((index: number): StyleProp<ViewStyle> => {
-    if (supportsGap) return tokens.layout.groupItem
-
-    const isLast = index === childrenLength - 1
-    if (direction === 'horizontal') {
-      return [
-        tokens.layout.groupItem,
-        !isLast && { marginRight: gap },
-      ]
-    }
-    return isLast
-      ? tokens.layout.groupItem
-      : [tokens.layout.groupItem, { marginBottom: gap }]
-  }, [childrenLength, direction, gap, supportsGap, tokens.layout.groupItem])
-
-  const containerGapStyle: ViewStyle | null = supportsGap
-    ? {
-      columnGap: direction === 'horizontal' ? gap : undefined,
-      rowGap: gap,
-    }
-    : null
-
   const contextValue = useMemo(() => ({
     state,
     direction,
@@ -123,39 +95,17 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     unregisterValue,
   ])
 
+  // Use native gap — RN >=0.79 supports gap on all platforms
   const containerStyle = [
     direction === 'horizontal'
       ? tokens.layout.groupHorizontal
       : tokens.layout.groupVertical,
-    containerGapStyle,
+    {
+      columnGap: direction === 'horizontal' ? gap : undefined,
+      rowGap: gap,
+    },
     style,
   ]
-
-  const renderedChildren = useMemo(
-    () =>
-      supportsGap
-        ? childrenArray
-        : childrenArray.map((child, index) => {
-          const key: React.Key =
-            React.isValidElement(child) && child.key !== null ? child.key : index
-          const itemStyle = itemStyleForIndex(index)
-
-          if (React.isValidElement(child) && child.type !== React.Fragment) {
-            const element = child as React.ReactElement<{ style?: StyleProp<ViewStyle> }>
-            return React.cloneElement(element, {
-              style: [element.props.style, itemStyle],
-              key,
-            })
-          }
-
-          return (
-            <View key={key} style={itemStyle}>
-              {child}
-            </View>
-          )
-        }),
-    [childrenArray, itemStyleForIndex, supportsGap]
-  )
 
   return (
     <RadioGroupContext.Provider
@@ -168,8 +118,12 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
         accessibilityHint={accessibilityHint}
         style={containerStyle}
       >
-        {renderedChildren}
+        {children}
       </View>
     </RadioGroupContext.Provider>
   )
 }
+
+export const RadioGroup = React.memo(RadioGroupImpl)
+
+RadioGroup.displayName = 'RadioGroup'

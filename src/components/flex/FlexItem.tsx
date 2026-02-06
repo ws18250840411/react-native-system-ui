@@ -44,7 +44,7 @@ const parseFlex = (value?: number | string): FlexStyle | undefined => {
   return undefined
 }
 
-export const FlexItem: React.FC<FlexItemProps> = ({ span, flex, style, children }) => {
+const FlexItemImpl: React.FC<FlexItemProps> = ({ span, flex, style, children }) => {
   const { horizontalGap, verticalGap, columns } = useContext(FlexContext)
   const supportsGap = Platform.OS === 'web'
 
@@ -72,3 +72,7 @@ export const FlexItem: React.FC<FlexItemProps> = ({ span, flex, style, children 
     </View>
   )
 }
+
+export const FlexItem = React.memo(FlexItemImpl)
+
+FlexItem.displayName = 'FlexItem'

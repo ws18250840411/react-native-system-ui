@@ -43,8 +43,10 @@ export const AvatarImage = React.forwardRef<React.ElementRef<typeof Image>, Avat
 
 AvatarImage.displayName = 'Avatar.Image'
 
-export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, AvatarProps>(
-  (props, ref) => {
+const AvatarImpl = (
+  props: AvatarProps,
+  ref: React.ForwardedRef<React.ElementRef<typeof Pressable>>,
+) => {
     const {
       src,
       source,
@@ -135,9 +137,11 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
         {content}
       </Pressable>
     )
-  }
-)
+}
 
-Avatar.displayName = 'Avatar'
+const AvatarForwardRef = React.forwardRef<React.ElementRef<typeof Pressable>, AvatarProps>(AvatarImpl)
+AvatarForwardRef.displayName = 'Avatar'
+
+export const Avatar = React.memo(AvatarForwardRef)
 
 export default Avatar

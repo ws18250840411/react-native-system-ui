@@ -9,7 +9,7 @@ import { SafeAreaView } from '../safe-area-view'
 import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
 
-const NavBarBase: React.FC<NavBarProps> = props => {
+const NavBarBaseImpl: React.FC<NavBarProps> = props => {
   const {
     tokensOverride,
     title,
@@ -269,6 +269,7 @@ const NavBarBase: React.FC<NavBarProps> = props => {
   )
 }
 
+const NavBarBase = React.memo(NavBarBaseImpl)
 NavBarBase.displayName = 'NavBar'
 
 export default NavBarBase

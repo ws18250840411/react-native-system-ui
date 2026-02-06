@@ -74,7 +74,7 @@ const ActionButton = (props: ActionButtonProps) => {
   )
 }
 
-export const Dialog: React.FC<DialogProps> = props => {
+const DialogImpl: React.FC<DialogProps> = props => {
   const locale = useLocale()
 
   const {
@@ -544,6 +544,7 @@ const styles = StyleSheet.create({
   },
 })
 
+export const Dialog = React.memo(DialogImpl)
 Dialog.displayName = 'Dialog'
 
 export default Dialog

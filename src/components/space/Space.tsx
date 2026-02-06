@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, Pressable, Text, View, type ViewStyle } from 'react-native'
+import { Pressable, Text, View, type ViewStyle } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
 import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
@@ -22,8 +22,6 @@ const justifyMap = {
   around: 'space-around',
   evenly: 'space-evenly',
 } as const
-
-type GapStyle = { rowGap?: number; columnGap?: number }
 
 const parseSpaceSize = (
   value: number | string | undefined,
@@ -87,29 +85,17 @@ export const Space = React.memo((props: SpaceProps) => {
     : justify
   const shouldBlock = block ?? !isHorizontal
   const resolvedAlign: SpaceAlign = align ?? (isHorizontal ? 'center' : 'stretch')
-  const supportsGap = Platform.OS === 'web'
   const shouldFillMainAxis = isHorizontal && ((fill ?? false) || shouldStretchJustify)
 
-  const containerBaseStyle: ViewStyle & GapStyle = {
+  // Use native gap — RN >=0.79 supports gap on all platforms
+  const containerBaseStyle: ViewStyle = {
     flexDirection: isHorizontal ? 'row' : 'column',
     flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
     alignItems: alignMap[resolvedAlign],
     justifyContent: justifyMap[justifyForStyle],
     width: shouldBlock ? '100%' : undefined,
-  }
-
-  const spacingStyle: ViewStyle | null = supportsGap
-    ? null
-    : isHorizontal
-      ? { paddingHorizontal: horizontalGap / 2, paddingVertical: verticalGap / 2 }
-      : { paddingVertical: verticalGap / 2 }
-
-  if (supportsGap) {
-    containerBaseStyle.columnGap = isHorizontal ? horizontalGap : undefined
-    containerBaseStyle.rowGap = verticalGap
-  } else {
-    containerBaseStyle.marginHorizontal = isHorizontal && horizontalGap ? -horizontalGap / 2 : undefined
-    containerBaseStyle.marginVertical = verticalGap ? -verticalGap / 2 : undefined
+    columnGap: isHorizontal ? horizontalGap : undefined,
+    rowGap: verticalGap,
   }
 
   const childArray = React.Children.toArray(children).filter(isRenderable)
@@ -127,7 +113,7 @@ export const Space = React.memo((props: SpaceProps) => {
 
     const node = isText(child) ? <Text>{child}</Text> : child
     content.push(
-      <View key={key} style={[spacingStyle, fillStyle]}>
+      <View key={key} style={fillStyle}>
         {node}
       </View>,
     )
@@ -135,7 +121,7 @@ export const Space = React.memo((props: SpaceProps) => {
     if (divider && i < childArray.length - 1) {
       const dividerNode = isText(divider) ? <Text>{divider}</Text> : divider
       content.push(
-        <View key={`divider-${String(key)}`} style={spacingStyle}>
+        <View key={`divider-${String(key)}`}>
           {dividerNode}
         </View>,
       )

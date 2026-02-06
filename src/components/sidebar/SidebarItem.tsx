@@ -8,7 +8,7 @@ import { useSidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
 import type { SidebarItemProps } from './types'
 
-const SidebarItem: React.FC<SidebarItemProps> = props => {
+const SidebarItemImpl: React.FC<SidebarItemProps> = props => {
   const {
     title,
     badge,
@@ -117,6 +117,7 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
   )
 }
 
+const SidebarItem = React.memo(SidebarItemImpl)
 SidebarItem.displayName = 'Sidebar.Item'
 
 export default SidebarItem

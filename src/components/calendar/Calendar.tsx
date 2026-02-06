@@ -29,7 +29,7 @@ const toArrayValue = (value?: Date | Date[] | null): Date[] => {
 const DEFAULT_MIN = new Date(new Date().getFullYear() - 10, 0, 1)
 const DEFAULT_MAX = new Date(new Date().getFullYear() + 10, 11, 31)
 
-const Calendar: React.FC<CalendarProps> = props => {
+const CalendarImpl: React.FC<CalendarProps> = props => {
   const {
     tokensOverride,
     value: _value,
@@ -604,5 +604,8 @@ function clampMonth(date: Date, min: Date, max: Date) {
 function isSameMonth(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
 }
+
+const Calendar = React.memo(CalendarImpl)
+Calendar.displayName = 'Calendar'
 
 export default Calendar

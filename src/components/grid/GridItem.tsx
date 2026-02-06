@@ -13,7 +13,7 @@ import { createHairlineView, isFunction, isRenderable, isText } from '../../util
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
-export const GridItem: React.FC<GridItemProps> = props => {
+const GridItemImpl: React.FC<GridItemProps> = props => {
   const context = useContext(GridContext)
   if (!context) throw new Error('GridItem must be used within Grid')
 
@@ -196,5 +196,7 @@ export const GridItem: React.FC<GridItemProps> = props => {
     </View>
   )
 }
+
+export const GridItem = React.memo(GridItemImpl)
 
 GridItem.displayName = 'GridItem'

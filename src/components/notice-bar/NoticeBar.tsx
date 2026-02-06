@@ -33,7 +33,7 @@ if (IS_WEB) {
   }
 }
 
-export const NoticeBar: React.FC<NoticeBarProps> = props => {
+const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
   const {
     text,
     children,
@@ -491,4 +491,5 @@ const styles = StyleSheet.create({
   },
 })
 
+export const NoticeBar = React.memo(NoticeBarImpl)
 NoticeBar.displayName = 'NoticeBar'

@@ -15,7 +15,7 @@ const currentYear = new Date().getFullYear()
 const DEFAULT_MIN_DATE = new Date(currentYear - 10, 0, 1)
 const DEFAULT_MAX_DATE = new Date(currentYear + 10, 11, 31)
 
-const DatetimePicker: React.FC<DatetimePickerProps> = props => {
+const DatetimePickerImpl: React.FC<DatetimePickerProps> = props => {
   const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
     defaultValue: false,
     valuePropName: 'popupVisible',
@@ -370,5 +370,8 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     />
   )
 }
+
+const DatetimePicker = React.memo(DatetimePickerImpl)
+DatetimePicker.displayName = 'DatetimePicker'
 
 export default DatetimePicker

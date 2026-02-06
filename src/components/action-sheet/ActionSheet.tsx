@@ -180,7 +180,7 @@ const ActionSheetCancel: React.FC<{
 
 ActionSheetCancel.displayName = 'ActionSheetCancel'
 
-const ActionSheet: React.FC<ActionSheetProps> = props => {
+const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
   const {
     tokensOverride,
     visible,
@@ -396,6 +396,7 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
   )
 }
 
+const ActionSheet = React.memo(ActionSheetImpl)
 ActionSheet.displayName = 'ActionSheet'
 
 export default ActionSheet

@@ -9,7 +9,7 @@ import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarValue } from './types'
 import type { BadgeProps } from '../badge/types'
 
-const TabbarItem: React.FC<TabbarItemProps> = props => {
+const TabbarItemImpl: React.FC<TabbarItemProps> = props => {
   const {
     name,
     icon,
@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
   },
 })
 
+const TabbarItem = React.memo(TabbarItemImpl)
 TabbarItem.displayName = 'Tabbar.Item'
 
 export default TabbarItem

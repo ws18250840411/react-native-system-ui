@@ -240,7 +240,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
 
 ThumbNode.displayName = 'ThumbNode'
 
-export const Slider: React.FC<SliderProps> = props => {
+const SliderImpl: React.FC<SliderProps> = props => {
   const {
     value: valueProp,
     min = 0,
@@ -762,6 +762,7 @@ const styles = StyleSheet.create({
   },
 })
 
+export const Slider = React.memo(SliderImpl)
 Slider.displayName = 'Slider'
 
 export default Slider

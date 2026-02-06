@@ -13,7 +13,7 @@ const resolveNonNegativeNumber = (value: unknown, fallback: number) =>
 const resolvePositiveNumber = (value: unknown, fallback: number) =>
   Math.max(1, resolveFiniteNumber(value, fallback))
 
-const WaterMark: React.FC<WaterMarkProps> = props => {
+const WaterMarkImpl: React.FC<WaterMarkProps> = props => {
   const {
     content: contentProp,
     width,
@@ -172,6 +172,7 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
   )
 }
 
+const WaterMark = React.memo(WaterMarkImpl)
 WaterMark.displayName = 'WaterMark'
 
 export default WaterMark

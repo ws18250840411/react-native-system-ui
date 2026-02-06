@@ -6,19 +6,21 @@ import { OverlayContainer } from '@react-native-aria/overlays'
 import { useKeyboardDismissable } from '@react-native-aria/interactions'
 import type { OverlayProps } from './types'
 
-const webOverlayStyle: ViewStyle | undefined = Platform.OS === 'web'
+const IS_WEB = Platform.OS === 'web'
+
+const webOverlayStyle: ViewStyle | undefined = IS_WEB
   ? { zIndex: 9999, position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
   : undefined
 
-export const Overlay = React.forwardRef<
-  React.ComponentRef<typeof Modal>,
-  OverlayProps
->((props, ref) => {
+const OverlayImpl = (
+  props: OverlayProps,
+  ref: React.ForwardedRef<React.ComponentRef<typeof Modal>>,
+) => {
   const {
     children,
     isOpen,
     visible,
-    useRNModal = false,
+    useRNModal,
     useRNModalOnAndroid = false,
     isKeyboardDismissable = true,
     animationPreset = 'fade',
@@ -26,16 +28,21 @@ export const Overlay = React.forwardRef<
     style,
   } = props
 
+  // On native, default to Modal for reliable full-screen overlay.
+  // OverlayContainer's absoluteFill only fills the nearest parent, not the viewport.
+  // On web, position:fixed in OverlayContainer handles viewport-relative positioning.
+  const shouldUseModal = useRNModal ?? !IS_WEB
+
   const resolvedOpen = isOpen ?? visible ?? false
 
   useKeyboardDismissable({
-    enabled: Platform.OS !== 'web' && resolvedOpen && isKeyboardDismissable,
+    enabled: !IS_WEB && resolvedOpen && isKeyboardDismissable,
     callback: onRequestClose ?? (() => { }),
   })
 
   if (!resolvedOpen) return null
 
-  if (useRNModal || (useRNModalOnAndroid && Platform.OS === 'android')) {
+  if (shouldUseModal || (useRNModalOnAndroid && Platform.OS === 'android')) {
     return (
       <Modal
         statusBarTranslucent
@@ -55,8 +62,10 @@ export const Overlay = React.forwardRef<
       {children}
     </OverlayContainer>
   )
-})
+}
 
-Overlay.displayName = 'Overlay'
+const OverlayForwardRef = React.forwardRef<React.ComponentRef<typeof Modal>, OverlayProps>(OverlayImpl)
+OverlayForwardRef.displayName = 'Overlay'
+export const Overlay = React.memo(OverlayForwardRef)
 
 export default Overlay

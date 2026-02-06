@@ -112,7 +112,7 @@ const resolveSourceUri = (source?: ImageSourcePropType): string | undefined => {
   return undefined
 }
 
-const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((props, ref) => {
+const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<typeof RNImage>>) => {
   const {
     src,
     source,
@@ -332,8 +332,10 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
       </View>
     )
   )
-})
+}
 
-Image.displayName = 'Image'
+const ImageForwardRef = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>(ImageImpl)
+ImageForwardRef.displayName = 'Image'
+const Image = React.memo(ImageForwardRef)
 
 export default Image

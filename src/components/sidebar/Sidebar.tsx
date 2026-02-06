@@ -8,7 +8,7 @@ import { SidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
 import { isText } from '../../utils'
 
-const SidebarBase: React.FC<SidebarProps> = props => {
+const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   const { children, sideStyle, style, tokensOverride, ...rest } = props
   const tokens = useSidebarTokens(tokensOverride)
 
@@ -98,6 +98,7 @@ const SidebarBase: React.FC<SidebarProps> = props => {
   )
 }
 
+const SidebarBase = React.memo(SidebarBaseImpl)
 SidebarBase.displayName = 'Sidebar'
 
 export default SidebarBase

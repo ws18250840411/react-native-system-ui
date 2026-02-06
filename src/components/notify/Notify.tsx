@@ -20,7 +20,7 @@ import { useNotifyTokens } from './tokens'
 
 export type { NotifyProps, NotifyPosition, NotifyType, NotifyTokens } from './types'
 
-export const NotifyContent: React.FC<NotifyProps> = props => {
+const NotifyContentImpl: React.FC<NotifyProps> = props => {
   const {
     visible,
     message,
@@ -336,11 +336,14 @@ export const NotifyContent: React.FC<NotifyProps> = props => {
   )
 }
 
-export const Notify: React.FC<NotifyProps> = props => (
+export const NotifyContent = React.memo(NotifyContentImpl)
+
+const NotifyImpl: React.FC<NotifyProps> = props => (
   <Portal>
     <NotifyContent {...props} />
   </Portal>
 )
+export const Notify = React.memo(NotifyImpl)
 
 NotifyContent.displayName = 'NotifyContent'
 Notify.displayName = 'Notify'

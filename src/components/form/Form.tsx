@@ -65,7 +65,10 @@ const runRuleValidation = (
   return isPromiseLike(result) ? result.then(handle) : handle(result)
 }
 
-const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
+const InternalFormImpl = (
+  props: FormProps,
+  ref: React.ForwardedRef<FormInstance>,
+) => {
   const {
     initialValues: initialValuesProp,
     colon,
@@ -350,9 +353,12 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       </View>
     </FormContext.Provider>
   )
-})
+}
 
-InternalForm.displayName = 'Form'
+const InternalFormRef = React.forwardRef<FormInstance, FormProps>(InternalFormImpl)
+InternalFormRef.displayName = 'Form'
+
+const InternalForm = React.memo(InternalFormRef)
 
 export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRefObject<FormInstance | null>) => {
   const context = useContext(FormContext)

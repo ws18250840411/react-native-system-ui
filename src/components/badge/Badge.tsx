@@ -5,7 +5,10 @@ import { isNumericLike, isRenderable } from '../../utils'
 import { useBadgeTokens } from './tokens'
 import type { BadgeProps } from './types'
 
-export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
+const BadgeImpl = (
+  props: BadgeProps,
+  ref: React.ForwardedRef<View>,
+) => {
   const {
     children,
     content,
@@ -180,6 +183,9 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   ) : (
     React.cloneElement(badgeElement as React.ReactElement<any>, { ref, ...rest })
   )
-})
+}
 
-Badge.displayName = 'Badge'
+const BadgeForwardRef = React.forwardRef<View, BadgeProps>(BadgeImpl)
+BadgeForwardRef.displayName = 'Badge'
+
+export const Badge = React.memo(BadgeForwardRef)

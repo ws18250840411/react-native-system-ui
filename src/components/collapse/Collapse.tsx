@@ -86,7 +86,7 @@ type CollapseComponent = React.FC<CollapseProps> & {
   Item: React.ForwardRefExoticComponent<CollapsePanelProps & React.RefAttributes<CollapsePanelInstance>>
 }
 
-export const Collapse = ((props: CollapseProps) => {
+const CollapseImpl = ((props: CollapseProps) => {
   const {
     tokensOverride,
     children,
@@ -384,9 +384,13 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   )
 })
 
-Collapse.Panel = CollapsePanel
-Collapse.Item = CollapsePanel
+CollapseImpl.Panel = CollapsePanel
+CollapseImpl.Item = CollapsePanel
 
+export const Collapse = Object.assign(React.memo(CollapseImpl), {
+  Panel: CollapsePanel,
+  Item: CollapsePanel,
+})
 Collapse.displayName = 'Collapse'
 
 export default Collapse

@@ -77,7 +77,7 @@ const normalizeCascadeValue = (
   return result
 }
 
-const Area: React.FC<AreaProps> = props => {
+const AreaImpl: React.FC<AreaProps> = props => {
   const {
     areaList,
     columnsNum = 3,
@@ -126,6 +126,7 @@ const Area: React.FC<AreaProps> = props => {
   )
 }
 
+const Area = React.memo(AreaImpl)
 Area.displayName = 'Area'
 
 export default Area

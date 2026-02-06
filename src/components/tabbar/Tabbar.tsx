@@ -9,7 +9,7 @@ import { TabbarContext } from './TabbarContext'
 import { useTabbarTokens } from './tokens'
 import type { TabbarItemProps, TabbarProps, TabbarValue } from './types'
 
-const TabbarBase: React.FC<TabbarProps> = props => {
+const TabbarBaseImpl: React.FC<TabbarProps> = props => {
   const {
     children,
     value,
@@ -164,6 +164,7 @@ const styles = StyleSheet.create({
   },
 })
 
+const TabbarBase = React.memo(TabbarBaseImpl)
 TabbarBase.displayName = 'Tabbar'
 
 export default TabbarBase

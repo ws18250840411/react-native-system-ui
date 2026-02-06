@@ -5,7 +5,7 @@ import { createHairlineView, isRenderable, isText } from '../../utils'
 import { useDividerTokens } from './tokens'
 import type { DividerProps } from './types'
 
-export const Divider: React.FC<DividerProps> = props => {
+const DividerImpl: React.FC<DividerProps> = props => {
   const {
     tokensOverride,
     children,
@@ -158,5 +158,7 @@ export const Divider: React.FC<DividerProps> = props => {
     </View>
   )
 }
+
+export const Divider = React.memo(DividerImpl)
 
 Divider.displayName = 'Divider'

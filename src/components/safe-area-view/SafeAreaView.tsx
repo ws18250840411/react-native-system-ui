@@ -10,7 +10,7 @@ export interface SafeAreaViewProps {
   pointerEvents?: 'box-none' | 'none' | 'box-only' | 'auto'
 }
 
-export const SafeAreaView: React.FC<SafeAreaViewProps> = ({
+const SafeAreaViewImpl: React.FC<SafeAreaViewProps> = ({
   edge,
   style,
   children,
@@ -49,4 +49,5 @@ export const SafeAreaView: React.FC<SafeAreaViewProps> = ({
   )
 }
 
+export const SafeAreaView = React.memo(SafeAreaViewImpl)
 SafeAreaView.displayName = 'SafeAreaView'

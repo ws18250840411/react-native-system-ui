@@ -8,7 +8,10 @@ import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
 import { isText } from '../../utils'
 
-export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
+const CheckboxImpl = (
+  props: CheckboxProps,
+  ref: React.ForwardedRef<View>,
+) => {
   const {
     children,
     name,
@@ -300,8 +303,11 @@ export const Checkbox = React.forwardRef<View, CheckboxProps>((props, ref) => {
       {content}
     </View>
   )
-})
+}
 
-Checkbox.displayName = 'Checkbox'
+const CheckboxForwardRef = React.forwardRef<View, CheckboxProps>(CheckboxImpl)
+CheckboxForwardRef.displayName = 'Checkbox'
+
+export const Checkbox = React.memo(CheckboxForwardRef)
 
 export default Checkbox

@@ -127,7 +127,7 @@ const ShareSheetCancel: React.FC<{
   )
 })
 
-const ShareSheet: React.FC<ShareSheetProps> = props => {
+const ShareSheetImpl: React.FC<ShareSheetProps> = props => {
   const {
     visible,
     title,
@@ -361,6 +361,7 @@ const styles = StyleSheet.create({
   },
 })
 
+const ShareSheet = React.memo(ShareSheetImpl)
 ShareSheet.displayName = 'ShareSheet'
 
 export default ShareSheet

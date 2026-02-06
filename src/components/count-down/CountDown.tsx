@@ -6,7 +6,7 @@ import { formatDuration, isFunction, isText } from '../../utils'
 import { useCountDownTokens } from './tokens'
 import type { CountDownInstance, CountDownProps } from './types'
 
-const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, ref) => {
+const CountDownImpl = (props: CountDownProps, ref: React.ForwardedRef<CountDownInstance>) => {
   const {
     tokensOverride,
     autoStart: autoStartProp,
@@ -60,8 +60,10 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
       {contentNode}
     </View>
   )
-})
+}
 
-CountDown.displayName = 'CountDown'
+const CountDownForwardRef = React.forwardRef<CountDownInstance, CountDownProps>(CountDownImpl)
+CountDownForwardRef.displayName = 'CountDown'
+const CountDown = React.memo(CountDownForwardRef)
 
 export default CountDown

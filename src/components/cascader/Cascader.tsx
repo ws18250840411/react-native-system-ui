@@ -58,7 +58,7 @@ const resolveSelectedRows = (
   return selected
 }
 
-const Cascader: React.FC<CascaderProps> = props => {
+const CascaderImpl: React.FC<CascaderProps> = props => {
   const {
     tokensOverride,
     options = [],
@@ -655,5 +655,8 @@ const CascaderOptionList = React.memo(
     )
   },
 )
+
+const Cascader = React.memo(CascaderImpl)
+Cascader.displayName = 'Cascader'
 
 export default Cascader

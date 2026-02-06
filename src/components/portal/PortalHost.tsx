@@ -167,7 +167,7 @@ export interface PortalHostProps {
   children?: React.ReactNode
 }
 
-export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
+const PortalHostImpl: React.FC<PortalHostProps> = ({ children }) => {
   const hostIdRef = useRef(nextHostId++)
   const managerRef = useRef<PortalManagerHandle | null>(null)
   const queueRef = useRef<Operation[]>([])
@@ -269,6 +269,9 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
     </OverlayProvider>
   )
 }
+
+export const PortalHost = React.memo(PortalHostImpl)
+PortalHost.displayName = 'PortalHost'
 
 const styles = StyleSheet.create({
   host: {

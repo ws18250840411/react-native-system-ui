@@ -1062,11 +1062,11 @@ const styles = StyleSheet.create({
   },
 })
 
-const TabsBase = React.forwardRef(TabsBaseInner) as React.ForwardRefExoticComponent<
+const TabsBaseRef = React.forwardRef(TabsBaseInner) as React.ForwardRefExoticComponent<
   TabsProps & React.RefAttributes<TabsRef>
 >
-
-TabsBase.displayName = 'Tabs'
+TabsBaseRef.displayName = 'Tabs'
+const TabsBase = React.memo(TabsBaseRef)
 
 const TabsWithPane = Object.assign(TabsBase, { TabPane })
 

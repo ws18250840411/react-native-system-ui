@@ -160,7 +160,7 @@ const hiddenContentStyle: ViewStyle = {
   elevation: 0,
 }
 
-export const Popup: React.FC<PopupProps> = props => {
+const PopupImpl: React.FC<PopupProps> = props => {
   const {
     visible,
     placement: placementProp,
@@ -628,6 +628,7 @@ const styles = StyleSheet.create({
   },
 })
 
+export const Popup = React.memo(PopupImpl)
 Popup.displayName = 'Popup'
 
 export default Popup

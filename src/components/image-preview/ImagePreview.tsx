@@ -46,7 +46,7 @@ const SlideContent = React.memo(
     prev.pressableHandlers === next.pressableHandlers,
 )
 
-const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props, ref) => {
+const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<ImagePreviewRef>) => {
   const {
     visible,
     images = [],
@@ -348,9 +348,11 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
       </View>
     </Popup>
   )
-})
+}
 
-ImagePreview.displayName = 'ImagePreview'
+const ImagePreviewForwardRef = React.forwardRef<ImagePreviewRef, ImagePreviewProps>(ImagePreviewImpl)
+ImagePreviewForwardRef.displayName = 'ImagePreview'
+const ImagePreview = React.memo(ImagePreviewForwardRef)
 
 export default ImagePreview
 

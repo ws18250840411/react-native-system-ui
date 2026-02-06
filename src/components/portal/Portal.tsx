@@ -10,20 +10,20 @@ import { PortalContext } from './PortalContext'
 
 export type PortalProps = OverlayProps
 
-const PortalComponent = React.forwardRef<
-  React.ComponentRef<typeof Overlay>,
-  PortalProps
->(({
-  children,
-  isOpen,
-  visible,
-  useRNModal,
-  useRNModalOnAndroid,
-  isKeyboardDismissable,
-  animationPreset,
-  onRequestClose,
-  style,
-}, _ref) => {
+const PortalComponentImpl = (
+  {
+    children,
+    isOpen,
+    visible,
+    useRNModal,
+    useRNModalOnAndroid,
+    isKeyboardDismissable,
+    animationPreset,
+    onRequestClose,
+    style,
+  }: PortalProps,
+  _ref: React.ForwardedRef<React.ComponentRef<typeof Overlay>>,
+) => {
   const manager = useContext(PortalContext) ?? globalManager
   const keyRef = useRef<number | null>(null)
   const resolvedOpen = isOpen ?? visible ?? true
@@ -31,7 +31,7 @@ const PortalComponent = React.forwardRef<
   const overlayNode = useMemo(() => (
     <Overlay
       isOpen={resolvedOpen}
-      useRNModal={useRNModal}
+      useRNModal={useRNModal ?? false}
       useRNModalOnAndroid={useRNModalOnAndroid}
       isKeyboardDismissable={isKeyboardDismissable}
       animationPreset={animationPreset}
@@ -67,7 +67,11 @@ const PortalComponent = React.forwardRef<
   }, [manager])
 
   return null
-})
+}
+
+const PortalComponentRef = React.forwardRef<React.ComponentRef<typeof Overlay>, PortalProps>(PortalComponentImpl)
+PortalComponentRef.displayName = 'Portal'
+const PortalComponent = React.memo(PortalComponentRef)
 
 const add = (children: React.ReactNode, key?: number) => globalManager.mount(children, key)
 const remove = (key: number) => globalManager.unmount(key)

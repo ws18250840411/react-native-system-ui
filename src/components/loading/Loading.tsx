@@ -5,7 +5,7 @@ import { isText } from '../../utils/validate'
 import type { LoadingProps } from './types'
 import { useLoadingTokens } from './tokens'
 
-export const Loading: React.FC<LoadingProps> = props => {
+const LoadingImpl: React.FC<LoadingProps> = props => {
   const {
     tokensOverride,
     color: colorProp,
@@ -79,4 +79,5 @@ export const Loading: React.FC<LoadingProps> = props => {
   )
 }
 
+export const Loading = React.memo(LoadingImpl)
 Loading.displayName = 'Loading'

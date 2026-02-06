@@ -209,9 +209,9 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   )
 }
 
-export const Search = React.forwardRef(SearchComponent)
-
-Search.displayName = 'Search'
+const SearchForwardRef = React.forwardRef(SearchComponent)
+SearchForwardRef.displayName = 'Search'
+export const Search = React.memo(SearchForwardRef)
 
 const styles = StyleSheet.create({
   container: {

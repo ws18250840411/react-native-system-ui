@@ -6,7 +6,7 @@ import { isFunction, isText } from '../../utils'
 import { useTagTokens } from './tokens'
 import type { TagProps } from './types'
 
-export const Tag: React.FC<TagProps> = props => {
+const TagImpl: React.FC<TagProps> = props => {
   const {
     tokensOverride,
     children,
@@ -133,3 +133,7 @@ export const Tag: React.FC<TagProps> = props => {
     </View>
   )
 }
+
+export const Tag = React.memo(TagImpl)
+
+Tag.displayName = 'Tag'

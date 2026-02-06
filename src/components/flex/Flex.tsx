@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Platform, View } from 'react-native'
 
 import { useFlexTokens } from './tokens'
@@ -32,7 +32,7 @@ const justifyMap = {
   between: 'space-between',
 } as const
 
-export const Flex: React.FC<FlexProps> = props => {
+const FlexImpl: React.FC<FlexProps> = props => {
   const {
     tokensOverride,
     children,
@@ -59,8 +59,14 @@ export const Flex: React.FC<FlexProps> = props => {
   const verticalGap = Math.max(0, vRaw ?? 0)
   const supportsGap = Platform.OS === 'web'
 
+  // Memoize context value — prevents all FlexItem consumers from re-rendering
+  const contextValue = useMemo(
+    () => ({ horizontalGap, verticalGap, columns: resolvedColumns }),
+    [horizontalGap, verticalGap, resolvedColumns],
+  )
+
   return (
-    <FlexContext.Provider value={{ horizontalGap, verticalGap, columns: resolvedColumns }}>
+    <FlexContext.Provider value={contextValue}>
       <View
         style={[
           tokens.layout.container,
@@ -82,3 +88,7 @@ export const Flex: React.FC<FlexProps> = props => {
     </FlexContext.Provider>
   )
 }
+
+export const Flex = React.memo(FlexImpl)
+
+Flex.displayName = 'Flex'

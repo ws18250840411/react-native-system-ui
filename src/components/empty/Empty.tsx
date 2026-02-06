@@ -14,7 +14,7 @@ const PRESET_ICONS = {
   search: Search,
 }
 
-export const Empty: React.FC<EmptyProps> = props => {
+const EmptyImpl: React.FC<EmptyProps> = props => {
   const {
     tokensOverride,
     image: imageProp,
@@ -133,4 +133,5 @@ export const Empty: React.FC<EmptyProps> = props => {
   )
 }
 
+export const Empty = React.memo(EmptyImpl)
 Empty.displayName = 'Empty'

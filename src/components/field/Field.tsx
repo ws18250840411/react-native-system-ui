@@ -234,7 +234,10 @@ const FieldControlRow = ({
   )
 }
 
-export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) => {
+const FieldImpl = (
+  props: FieldProps,
+  ref: React.ForwardedRef<FieldInstance>,
+) => {
   const {
     tokensOverride,
     label,
@@ -800,8 +803,11 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       {introNode}
     </Cell>
   )
-})
+}
 
-Field.displayName = 'Field'
+const FieldForwardRef = React.forwardRef<FieldInstance, FieldProps>(FieldImpl)
+FieldForwardRef.displayName = 'Field'
+
+export const Field = React.memo(FieldForwardRef)
 
 export default Field

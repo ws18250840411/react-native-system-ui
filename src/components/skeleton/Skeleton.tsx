@@ -26,7 +26,7 @@ const resolveSeries = (
   )
 }
 
-const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
+const SkeletonImpl = (props: SkeletonProps, ref: React.ForwardedRef<View>) => {
   const {
     tokensOverride,
     isLoaded,
@@ -195,7 +195,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
       </View>
     </View>
   )
-})
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -210,6 +210,8 @@ const styles = StyleSheet.create({
   },
 })
 
-Skeleton.displayName = 'Skeleton'
+const SkeletonForwardRef = React.forwardRef<View, SkeletonProps>(SkeletonImpl)
+SkeletonForwardRef.displayName = 'Skeleton'
+const Skeleton = React.memo(SkeletonForwardRef)
 
 export default Skeleton

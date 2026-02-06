@@ -948,7 +948,7 @@ const PickerColumn: React.FC<
   }
 )
 
-const Picker: React.FC<PickerProps> = props => {
+const PickerImpl: React.FC<PickerProps> = props => {
   const { tokensOverride } = props
   const tokens = usePickerTokens(tokensOverride)
   const {
@@ -1153,6 +1153,7 @@ const styles = StyleSheet.create({
   },
 })
 
+const Picker = React.memo(PickerImpl)
 Picker.displayName = 'Picker'
 
 export default Picker

@@ -7,7 +7,14 @@ import { CellGroupContext } from './CellContext'
 import type { CellGroupProps } from './types'
 import { useCellTokens } from './tokens'
 
-export const CellGroup: React.FC<CellGroupProps> = ({
+const isCellElement = (child: React.ReactNode) => {
+  if (!React.isValidElement(child)) return false
+  if (child.type === CellBase) return true
+  const type = child.type as unknown as { displayName?: string }
+  return type.displayName === 'Cell'
+}
+
+export const CellGroup = React.memo<CellGroupProps>(({
   children,
   title,
   border,
@@ -16,7 +23,7 @@ export const CellGroup: React.FC<CellGroupProps> = ({
   style,
   bodyStyle,
   tokensOverride,
-  }) => {
+}) => {
   const tokens = useCellTokens(tokensOverride)
   const resolvedBorder = border ?? tokens.defaults.groupBorder
   const resolvedInset = inset ?? tokens.defaults.groupInset
@@ -25,16 +32,10 @@ export const CellGroup: React.FC<CellGroupProps> = ({
   const showInset = resolvedInset || resolvedCard
   const showOuterBorder = resolvedBorder && !showInset
   const childArray = useMemo(() => React.Children.toArray(children), [children])
-  const isCellElement = (child: React.ReactNode) => {
-    if (!React.isValidElement(child)) return false
-    if (child.type === CellBase) return true
-    const type = child.type as unknown as { displayName?: string }
-    return type.displayName === 'Cell'
-  }
+
   const lastCellIndex = useMemo(() => {
     for (let i = childArray.length - 1; i >= 0; i--) {
-      const child = childArray[i]
-      if (isCellElement(child)) return i
+      if (isCellElement(childArray[i])) return i
     }
     return -1
   }, [childArray])
@@ -112,28 +113,28 @@ export const CellGroup: React.FC<CellGroupProps> = ({
   return (
     <View style={containerStyle}>
       {renderedTitle}
-      <View
-        style={bodyContainerStyle}
-      >
+      <View style={bodyContainerStyle}>
         {renderedChildren}
-          {showOuterBorder ? (
-            <>
-              {(['top', 'bottom'] as const).map(pos => (
-                <View
-                  key={pos}
-                  style={createHairlineView({
-                    position: pos,
-                    color: tokens.colors.border,
-                    left: 0,
-                    right: 0,
-                    enabled: tokens.borders.width > 0,
-                    width: tokens.borders.width,
-                  })}
-                />
-              ))}
-            </>
-          ) : null}
-        </View>
+        {showOuterBorder ? (
+          <>
+            {(['top', 'bottom'] as const).map(pos => (
+              <View
+                key={pos}
+                style={createHairlineView({
+                  position: pos,
+                  color: tokens.colors.border,
+                  left: 0,
+                  right: 0,
+                  enabled: tokens.borders.width > 0,
+                  width: tokens.borders.width,
+                })}
+              />
+            ))}
+          </>
+        ) : null}
+      </View>
     </View>
   )
-}
+})
+
+CellGroup.displayName = 'CellGroup'

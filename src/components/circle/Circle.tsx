@@ -44,7 +44,7 @@ type WebRingStyle = ViewStyle & {
 
 const AnimatedSvgCircle = Animated.createAnimatedComponent(SvgCircle)
 
-export const Circle: React.FC<CircleProps> = props => {
+const CircleImpl: React.FC<CircleProps> = props => {
   const {
     tokensOverride,
     rate: rateProp,
@@ -224,6 +224,7 @@ export const Circle: React.FC<CircleProps> = props => {
   )
 }
 
+export const Circle = React.memo(CircleImpl)
 Circle.displayName = 'Circle'
 
 export type { CircleLineCap, CircleProps, CircleStartPosition, CircleTokens } from './types'

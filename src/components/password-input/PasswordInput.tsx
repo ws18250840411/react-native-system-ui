@@ -25,8 +25,10 @@ const HIDDEN_INPUT_PROPS: TextInputProps = {
 
 const sanitizeNumber = (value: string) => value.replace(/[^0-9]/g, '')
 
-const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
-  (props, ref) => {
+const PasswordInputImpl = (
+  props: PasswordInputProps,
+  ref: React.ForwardedRef<PasswordInputRef>,
+) => {
     const {
       value,
       defaultValue,
@@ -348,8 +350,11 @@ const PasswordInput = React.forwardRef<PasswordInputRef, PasswordInputProps>(
         ) : null}
       </View>
     )
-  },
-)
+  }
+
+const PasswordInputForwardRef = React.forwardRef<PasswordInputRef, PasswordInputProps>(PasswordInputImpl)
+PasswordInputForwardRef.displayName = 'PasswordInput'
+const PasswordInput = React.memo(PasswordInputForwardRef)
 
 export default PasswordInput
 
