@@ -282,7 +282,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
     tokens.typography.title,
   ])
 
-  const popupStyleMemo = [styles.popupOverride, { padding: tokens.spacing.popupPadding }, popupStyle]
+  const popupStyleMemo = [{ padding: tokens.spacing.popupPadding }, popupStyle]
 
   return (
     <Popup
@@ -315,8 +315,6 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
 }
 
 const styles = StyleSheet.create({
-  popupOverride: {
-  },
   wrapper: {
     width: '100%',
   },

@@ -424,7 +424,10 @@ export const Popup: React.FC<PopupProps> = props => {
       : { translateX: progress.interpolate({ inputRange: [0, 1], outputRange }) }
   }, [config.axis, direction, progress, shouldTranslate, translateDistance])
 
-  const baseTransform = translateTransform ? [translateTransform] : []
+  const baseTransform = useMemo(
+    () => translateTransform ? [translateTransform] : [],
+    [translateTransform]
+  )
 
   const animatedContentStyle: Animated.WithAnimatedObject<ViewStyle> = useMemo(() => {
     const extraTransform = contentAnimationStyle?.transform

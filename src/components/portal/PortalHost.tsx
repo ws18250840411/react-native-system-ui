@@ -84,36 +84,23 @@ const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>(
     const [entries, setEntries] = useState<PortalEntry[]>([])
     const keySeed = useRef(0)
 
-    const mount = useCallback((children: React.ReactNode, key?: number) => {
-      const resolvedKey = key ?? ++keySeed.current
-      if (isNumber(key) && key >= keySeed.current) {
-        keySeed.current = key + 1
-      }
-      const entry: PortalEntry = {
-        key: resolvedKey,
-        children,
-        zIndex: getMaxZIndex(children),
-      }
+    const upsert = useCallback((entry: PortalEntry) => {
       setEntries(prev => {
-        const index = prev.findIndex(item => item.key === resolvedKey)
-        if (index === -1) {
-          return [...prev, entry]
-        }
-        return [...prev.slice(0, index), entry, ...prev.slice(index + 1)]
+        const i = prev.findIndex(item => item.key === entry.key)
+        return i === -1 ? [...prev, entry] : [...prev.slice(0, i), entry, ...prev.slice(i + 1)]
       })
-      return resolvedKey
     }, [])
 
+    const mount = useCallback((children: React.ReactNode, key?: number) => {
+      const resolvedKey = key ?? ++keySeed.current
+      if (isNumber(key) && key >= keySeed.current) keySeed.current = key + 1
+      upsert({ key: resolvedKey, children, zIndex: getMaxZIndex(children) })
+      return resolvedKey
+    }, [upsert])
+
     const update = useCallback((key: number, children: React.ReactNode) => {
-      setEntries(prev => {
-        const index = prev.findIndex(item => item.key === key)
-        const entry: PortalEntry = { key, children, zIndex: getMaxZIndex(children) }
-        if (index === -1) {
-          return [...prev, entry]
-        }
-        return [...prev.slice(0, index), entry, ...prev.slice(index + 1)]
-      })
-    }, [])
+      upsert({ key, children, zIndex: getMaxZIndex(children) })
+    }, [upsert])
 
     const unmount = useCallback((key: number) => {
       setEntries(prev => prev.filter(item => item.key !== key))

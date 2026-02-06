@@ -130,66 +130,69 @@ export const Dialog: React.FC<DialogProps> = props => {
   const cancelText = cancelButtonText ?? locale.cancel
   const confirmText = confirmButtonText ?? locale.confirm
   const actionSeqRef = useRef(0)
+  const beforeCloseRef = useRef(beforeClose)
+  beforeCloseRef.current = beforeClose
 
-  const runBeforeClose = (action: 'confirm' | 'cancel' | 'close') => {
-    if (!beforeClose) return true
-    try {
-      return beforeClose(action)
-    } catch {
-      return true
-    }
-  }
-
-  const runAction = (
-    action: 'confirm' | 'cancel' | 'close',
-    handler?: () => void
-  ) => {
-    actionSeqRef.current += 1
-    const seq = actionSeqRef.current
-    const result = runBeforeClose(action)
-    if (result === false) return
-    if (isPromiseLike(result)) {
-      void result
-        .then(resolved => {
-          if (resolved === false) return
-          if (actionSeqRef.current !== seq) return
-          handler?.()
-        })
-        .catch(() => {
-          if (actionSeqRef.current !== seq) return
-          handler?.()
-        })
-      return
-    }
-    handler?.()
-  }
+  const runAction = useCallback(
+    (action: 'confirm' | 'cancel' | 'close', handler?: () => void) => {
+      actionSeqRef.current += 1
+      const seq = actionSeqRef.current
+      const bc = beforeCloseRef.current
+      if (!bc) { handler?.(); return }
+      let result: ReturnType<NonNullable<typeof beforeClose>>
+      try { result = bc(action) } catch { handler?.(); return }
+      if (result === false) return
+      if (isPromiseLike(result)) {
+        void result
+          .then(resolved => {
+            if (resolved === false) return
+            if (actionSeqRef.current !== seq) return
+            handler?.()
+          })
+          .catch(() => {
+            if (actionSeqRef.current !== seq) return
+            handler?.()
+          })
+        return
+      }
+      handler?.()
+    },
+    []
+  )
 
   const handleCloseIcon = useCallback(() => {
     onClickCloseIcon?.()
     runAction('close', onClose)
-  }, [onClickCloseIcon, onClose])
+  }, [onClickCloseIcon, onClose, runAction])
 
   const handleCancel = useCallback(() => {
     if (cancelLoading) return
     runAction('cancel', onCancel)
-  }, [cancelLoading, onCancel])
+  }, [cancelLoading, onCancel, runAction])
 
   const handleConfirm = useCallback(() => {
     if (confirmLoading) return
     runAction('confirm', onConfirm)
-  }, [confirmLoading, onConfirm])
+  }, [confirmLoading, onConfirm, runAction])
 
   const scaleAnim = useRef(new Animated.Value(0.7)).current
+  const scaleAnimRef = useRef<Animated.CompositeAnimation | null>(null)
 
   useEffect(() => {
+    scaleAnimRef.current?.stop()
     scaleAnim.setValue(visible ? 0.7 : 1)
-    Animated.timing(scaleAnim, {
+    const anim = Animated.timing(scaleAnim, {
       toValue: visible ? 1 : 0.9,
       duration: 300,
       easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
       useNativeDriver: nativeDriverEnabled,
-    }).start()
+      isInteraction: false,
+    })
+    scaleAnimRef.current = anim
+    anim.start()
   }, [scaleAnim, visible])
+
+  useEffect(() => () => { scaleAnimRef.current?.stop() }, [])
 
   const widthStyle = useMemo(() => (
     width
@@ -432,7 +435,11 @@ export const Dialog: React.FC<DialogProps> = props => {
       closeOnPopstate={closeOnPopstate}
       closeOnClickOverlay={mergedCloseOnOverlayPress}
       onClickOverlay={onClickOverlay}
-      beforeClose={() => runBeforeClose('close')}
+      beforeClose={() => {
+        const bc = beforeCloseRef.current
+        if (!bc) return true
+        try { return bc('close') } catch { return true }
+      }}
       onClose={onClose}
       onClosed={onClosed}
       contentAnimationStyle={animatedStyle}
