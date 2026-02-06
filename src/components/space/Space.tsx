@@ -43,8 +43,8 @@ const parseGap = (
 ): [number, number] => {
   if (Array.isArray(value)) {
     return [
-      parseSpaceSize(value[1], presets),
       parseSpaceSize(value[0], presets),
+      parseSpaceSize(value[1], presets),
     ]
   }
   const parsed = parseSpaceSize(value, presets)

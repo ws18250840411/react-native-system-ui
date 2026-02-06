@@ -2,8 +2,8 @@ import type React from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { FlexDirection } from './FlexContext'
 
+export type FlexDirection = 'row' | 'row-reverse' | 'column' | 'column-reverse'
 export type FlexWrap = 'nowrap' | 'wrap' | 'wrap-reverse'
 export type FlexAlign = 'start' | 'center' | 'end' | 'baseline' | 'stretch'
 export type FlexJustify = 'start' | 'end' | 'center' | 'around' | 'between'

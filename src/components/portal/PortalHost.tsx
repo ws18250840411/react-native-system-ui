@@ -154,7 +154,7 @@ const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>(
 
 let activeHostId = 0
 let nextHostId = 1
-let nextGlobalKey = 1
+let nextGlobalKey = 10000
 
 const globalManager: PortalManager = {
   mount: (children: React.ReactNode, key?: number) => {
@@ -221,9 +221,6 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
       }
       if (activeHostId === 0 || activeHostId === hostIdRef.current) {
         activeHostId = hostIdRef.current
-        if (typeof __DEV__ !== 'undefined' && __DEV__) {
-          console.log('[PortalHost] activeHost', activeHostId)
-        }
       } else if (typeof __DEV__ !== 'undefined' && __DEV__) {
         console.warn(
           '[PortalHost] 检测到多个 Portal.Host，静态 API 仅会使用第一个挂载的 Host。建议全局只挂载一个。',
@@ -241,38 +238,20 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      console.log('[PortalHost] mounted', { hostId: hostIdRef.current, activeHostId })
-    }
-  }, [])
-
-  useEffect(() => {
     const handleAdd = ({ key, children }: { key: number; children: React.ReactNode }) => {
       if (activeHostId !== hostIdRef.current) return
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.log('[PortalHost] add', key)
-      }
       enqueueOrRun({ type: 'mount', key, children })
     }
     const handleUpdate = ({ key, children }: { key: number; children: React.ReactNode }) => {
       if (activeHostId !== hostIdRef.current) return
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.log('[PortalHost] update', key)
-      }
       enqueueOrRun({ type: 'update', key, children })
     }
     const handleRemove = ({ key }: { key: number }) => {
       if (activeHostId !== hostIdRef.current) return
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.log('[PortalHost] remove', key)
-      }
       enqueueOrRun({ type: 'unmount', key })
     }
     const handleClear = () => {
       if (activeHostId !== hostIdRef.current) return
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.log('[PortalHost] clear')
-      }
       queueRef.current = []
       enqueueOrRun({ type: 'clear' })
     }
@@ -283,17 +262,10 @@ export const PortalHost: React.FC<PortalHostProps> = ({ children }) => {
     const clearSub = TopViewEventEmitter.addListener(CLEAR_EVENT, handleClear)
 
     return () => {
-      addSub.remove?.()
-      updateSub.remove?.()
-      removeSub.remove?.()
-      clearSub.remove?.()
-      const emitter = TopViewEventEmitter as unknown as {
-        removeListener?: (event: string, listener: (...args: any[]) => void) => void
-      }
-      emitter.removeListener?.(ADD_EVENT, handleAdd)
-      emitter.removeListener?.(UPDATE_EVENT, handleUpdate)
-      emitter.removeListener?.(REMOVE_EVENT, handleRemove)
-      emitter.removeListener?.(CLEAR_EVENT, handleClear)
+      addSub.remove()
+      updateSub.remove()
+      removeSub.remove()
+      clearSub.remove()
     }
   }, [enqueueOrRun])
 
