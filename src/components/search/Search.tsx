@@ -187,17 +187,14 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
             inputAlign={resolvedInputAlign}
             border={false}
             style={[
-              styles.field,
               { paddingHorizontal: tokens.spacing.none, paddingVertical: tokens.spacing.none },
               fieldStyle,
             ]}
             contentStyle={[
-              styles.fieldContent,
               { paddingVertical: tokens.spacing.none },
               fieldContentStyle,
             ]}
             inputStyle={[
-              styles.input,
               { paddingVertical: tokens.spacing.none },
               inputStyle,
             ]}
@@ -228,12 +225,6 @@ const styles = StyleSheet.create({
   },
   fieldWrapper: {
     flex: 1,
-  },
-  field: {
-  },
-  fieldContent: {
-  },
-  input: {
   },
   actionWrapper: {
     justifyContent: 'center',

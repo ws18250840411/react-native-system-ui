@@ -8,7 +8,6 @@ import {
   Text,
   View,
   useWindowDimensions,
-  Platform,
   type StyleProp,
   type TextStyle,
   type ViewStyle,
@@ -330,7 +329,6 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     alignItems: 'center',
-    ...(Platform.OS === 'web' ? { position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0 } : {}),
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

@@ -15,7 +15,7 @@ export default [
   },
   {
     "name": "form",
-    "size": 6741
+    "size": 6831
   },
   {
     "name": "cascader",
@@ -23,7 +23,7 @@ export default [
   },
   {
     "name": "dialog",
-    "size": 5734
+    "size": 5825
   },
   {
     "name": "slider",
@@ -39,7 +39,7 @@ export default [
   },
   {
     "name": "popup",
-    "size": 5145
+    "size": 4996
   },
   {
     "name": "number-keyboard",
@@ -54,16 +54,16 @@ export default [
     "size": 4848
   },
   {
-    "name": "notify",
-    "size": 4836
-  },
-  {
     "name": "button",
     "size": 4822
   },
   {
+    "name": "notify",
+    "size": 4783
+  },
+  {
     "name": "toast",
-    "size": 4725
+    "size": 4669
   },
   {
     "name": "stepper",
@@ -106,24 +106,24 @@ export default [
     "size": 3414
   },
   {
-    "name": "portal",
-    "size": 3404
-  },
-  {
     "name": "image",
     "size": 3300
   },
   {
-    "name": "datetime-picker",
-    "size": 3141
+    "name": "portal",
+    "size": 3280
   },
   {
     "name": "sidebar",
     "size": 3110
   },
   {
+    "name": "datetime-picker",
+    "size": 3078
+  },
+  {
     "name": "share-sheet",
-    "size": 2789
+    "size": 2778
   },
   {
     "name": "progress",
@@ -134,12 +134,12 @@ export default [
     "size": 2767
   },
   {
-    "name": "nav-bar",
+    "name": "typography",
     "size": 2617
   },
   {
-    "name": "typography",
-    "size": 2617
+    "name": "nav-bar",
+    "size": 2562
   },
   {
     "name": "circle",
@@ -155,7 +155,7 @@ export default [
   },
   {
     "name": "search",
-    "size": 2386
+    "size": 2364
   },
   {
     "name": "skeleton",
@@ -211,7 +211,7 @@ export default [
   },
   {
     "name": "overlay",
-    "size": 997
+    "size": 826
   },
   {
     "name": "safe-area-view",

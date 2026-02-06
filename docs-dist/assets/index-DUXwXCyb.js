@@ -1,0 +1,1 @@
+import{D as e}from"./index-B-eg80hO.js";import{r as s}from"./main-BaO0UwhN.js";function m(){var n=s.useState(()=>e.get("window")),o=n[0],t=n[1];return s.useEffect(()=>{function i(a){var r=a.window;r!=null&&t(r)}return e.addEventListener("change",i),t(e.get("window")),()=>{e.removeEventListener("change",i)}},[]),o}export{m as u};

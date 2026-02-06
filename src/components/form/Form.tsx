@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { View } from 'react-native'
 
 import { shallowEqualObject } from '../../utils'
@@ -92,6 +92,11 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     new Set<(changed: Record<string, unknown>, all: Record<string, unknown>) => void>(),
   )
 
+  const onValuesChangeRef = useRef(onValuesChange)
+  onValuesChangeRef.current = onValuesChange
+  const onFinishRef = useRef(onFinish)
+  onFinishRef.current = onFinish
+
   const notify = useCallback((changedValues: Record<string, unknown>, nextValues: Record<string, unknown>) => {
     subscribersRef.current.forEach(listener => listener(changedValues, nextValues))
   }, [])
@@ -179,7 +184,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       }
       setFieldErrors(name, [])
     }
-  }, [setFieldErrors])
+  }, [notify, setFieldErrors])
 
   const runFieldValidation = useCallback(
     async (
@@ -268,20 +273,20 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
       if (getValueByName(prev, name) === value) return
       const next = setValueByName(prev, name, value)
       valuesRef.current = next
-      onValuesChange?.(next, nameKey, value)
+      onValuesChangeRef.current?.(next, nameKey, value)
       validateWithDependents(nameKey, name, trigger, value, next)
       notify({ [nameKey]: value }, next)
     },
-    [notify, onValuesChange, validateWithDependents],
+    [notify, validateWithDependents],
   )
 
-  const formApi: FormInstance = {
+  const formApi = useMemo((): FormInstance => ({
     submit: async () => {
       try {
         const result = await validateFields()
-        onFinish?.(result)
+        onFinishRef.current?.(result)
         return result
-      } catch (error) {
+      } catch {
         return undefined
       }
     },
@@ -296,7 +301,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         if (getValueByName(merged, key) === newVal) return
         changed[key] = newVal
         merged = setValueByName(merged, key, newVal)
-        onValuesChange?.(merged, key, newVal)
+        onValuesChangeRef.current?.(merged, key, newVal)
         if (shouldValidate) validateWithDependents(key, key, undefined, newVal, merged)
       })
       if (merged === prev) return
@@ -316,11 +321,11 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     },
     validateFields,
     getFieldError: (name: NamePath) => errorsRef.current[serializeNamePath(name)] ?? [],
-  }
+  }), [validateFields, validateWithDependents, notify])
 
   useImperativeHandle(ref, () => formApi, [formApi])
 
-  const contextValue = {
+  const contextValue = useMemo((): FormContextValue => ({
     getFieldValue: (name: NamePath) => getValueByName(valuesRef.current, name),
     setFieldValue,
     registerField,
@@ -335,7 +340,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     colon,
     labelWidth,
     showValidateMessage,
-  }
+  }), [setFieldValue, registerField, runFieldValidation, formApi, colon, labelWidth, showValidateMessage])
 
   return (
     <FormContext.Provider value={contextValue}>

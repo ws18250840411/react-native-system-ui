@@ -6,6 +6,10 @@ import { OverlayContainer } from '@react-native-aria/overlays'
 import { useKeyboardDismissable } from '@react-native-aria/interactions'
 import type { OverlayProps } from './types'
 
+const webOverlayStyle: ViewStyle | undefined = Platform.OS === 'web'
+  ? { zIndex: 9999, position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
+  : undefined
+
 export const Overlay = React.forwardRef<
   React.ComponentRef<typeof Modal>,
   OverlayProps
@@ -46,10 +50,8 @@ export const Overlay = React.forwardRef<
     )
   }
 
-  const styleObj: ViewStyle = Platform.OS === 'web' ? { zIndex: 9999 } : {}
-
   return (
-    <OverlayContainer style={[style, styleObj]}>
+    <OverlayContainer style={[style, webOverlayStyle]}>
       {children}
     </OverlayContainer>
   )

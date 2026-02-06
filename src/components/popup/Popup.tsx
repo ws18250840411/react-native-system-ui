@@ -455,33 +455,17 @@ export const Popup: React.FC<PopupProps> = props => {
   const shouldRender = mounted || visible
   const hidden = !isOpen
 
-  const hasCustomCloseIcon = closeIcon != null
-
   const hasHeader = isRenderable(title) || isRenderable(description)
-  const headerPadding = tokens.spacing.closeIconRight + tokens.spacing.closeIconSize
-  const headerPaddingStyle =
-    closeable && closeIconPosition.startsWith('top-')
-      ? closeIconPosition.endsWith('right')
-        ? { paddingRight: headerPadding }
-        : { paddingLeft: headerPadding }
-      : undefined
-
-  const closeIconTopValue = closeIconPosition.includes('top')
-    ? tokens.spacing.closeIconTop + safeAreaTopHeight
-    : undefined
-  const closeIconBottomValue = closeIconPosition.includes('bottom')
-    ? tokens.spacing.closeIconTop
-    : undefined
-
-  const closeIconVerticalStyle = closeIconBottomValue !== undefined
-    ? { bottom: closeIconBottomValue }
-    : { top: closeIconTopValue }
-  const closeIconHorizontalStyle = closeIconPosition.endsWith('left')
-    ? { left: tokens.spacing.closeIconRight }
-    : { right: tokens.spacing.closeIconRight }
 
   const headerNode = useMemo(() => {
     if (!hasHeader) return null
+    const headerPadding = tokens.spacing.closeIconRight + tokens.spacing.closeIconSize
+    const headerPaddingStyle =
+      closeable && closeIconPosition.startsWith('top-')
+        ? closeIconPosition.endsWith('right')
+          ? { paddingRight: headerPadding }
+          : { paddingLeft: headerPadding }
+        : undefined
     return (
       <View style={[styles.header, headerPaddingStyle]}>
         {renderHeaderNode(title, {
@@ -494,94 +478,35 @@ export const Popup: React.FC<PopupProps> = props => {
         })}
       </View>
     )
-  }, [description, dynamicStyles.description, dynamicStyles.descriptionWrapper, dynamicStyles.title, dynamicStyles.titleWrapper, hasHeader, headerPaddingStyle, title])
-
-  const contentBody = useMemo(() => (hasHeader ? (
-    <>
-      {headerNode}
-      {children}
-    </>
-  ) : (
-    children
-  )), [children, hasHeader, headerNode])
+  }, [closeable, closeIconPosition, description, dynamicStyles.description, dynamicStyles.descriptionWrapper, dynamicStyles.title, dynamicStyles.titleWrapper, hasHeader, title, tokens.spacing.closeIconRight, tokens.spacing.closeIconSize])
 
   const closeIconNode = useMemo(() => {
     if (!closeable) return null
+    const hasCustom = closeIcon != null
+    const vStyle = closeIconPosition.includes('bottom')
+      ? { bottom: tokens.spacing.closeIconTop }
+      : { top: tokens.spacing.closeIconTop + safeAreaTopHeight }
+    const hStyle = closeIconPosition.endsWith('left')
+      ? { left: tokens.spacing.closeIconRight }
+      : { right: tokens.spacing.closeIconRight }
     return (
       <Pressable
         style={[
           styles.closeIconBase,
           dynamicStyles.closeIconBase,
-          closeIconVerticalStyle,
-          closeIconHorizontalStyle,
-          !hasCustomCloseIcon ? dynamicStyles.closeIconDefault : null,
+          vStyle,
+          hStyle,
+          !hasCustom ? dynamicStyles.closeIconDefault : null,
         ]}
         hitSlop={8}
         onPress={() => requestClose('close-icon')}
       >
-        {hasCustomCloseIcon ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}
+        {hasCustom ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}
       </Pressable>
     )
-  }, [
-    closeIcon,
-    closeIconHorizontalStyle,
-    closeIconVerticalStyle,
-    closeable,
-    dynamicStyles.closeIconBase,
-    dynamicStyles.closeIconDefault,
-    hasCustomCloseIcon,
-    requestClose,
-    tokens.colors.closeIcon,
-  ])
+  }, [closeIcon, closeIconPosition, closeable, dynamicStyles.closeIconBase, dynamicStyles.closeIconDefault, requestClose, safeAreaTopHeight, tokens.colors.closeIcon, tokens.spacing.closeIconRight, tokens.spacing.closeIconTop])
 
-  const content = useMemo(() => (
-    <Animated.View
-      ref={overlayRef as unknown as React.Ref<React.ElementRef<typeof View>>}
-      {...contentInteractionProps}
-      onLayout={handleContentLayout}
-      renderToHardwareTextureAndroid={Platform.OS === 'android'}
-      shouldRasterizeIOS={Platform.OS === 'ios'}
-      style={[
-        dynamicStyles.popup,
-        placement === 'center' ? dynamicStyles.popupCenter : null,
-        isVertical ? styles.popupVertical : null,
-        isHorizontal ? dynamicStyles.popupSide : null,
-        radiusStyle,
-        animatedContentStyle,
-        style,
-        hidden ? hiddenContentStyle : null,
-      ]}
-      {...rest}
-    >
-      {closeIconNode}
-      {renderWithSafeArea(
-        contentBody,
-        { safeArea, safeAreaInsetTop, safeAreaInsetBottom },
-        safeAreaInsetTop ? handleSafeAreaTopLayout : undefined
-      )}
-    </Animated.View>
-  ), [
-    animatedContentStyle,
-    closeIconNode,
-    contentBody,
-    contentInteractionProps,
-    dynamicStyles.popup,
-    dynamicStyles.popupCenter,
-    dynamicStyles.popupSide,
-    handleContentLayout,
-    handleSafeAreaTopLayout,
-    hidden,
-    isHorizontal,
-    isVertical,
-    overlayRef,
-    placement,
-    radiusStyle,
-    rest,
-    safeArea,
-    safeAreaInsetBottom,
-    safeAreaInsetTop,
-    style,
-  ])
+  const contentBody = hasHeader ? <>{headerNode}{children}</> : children
 
   if (!shouldRender) return null
 
@@ -592,7 +517,6 @@ export const Popup: React.FC<PopupProps> = props => {
       <View
         style={[
           styles.portalRoot,
-          webFixedRootStyle,
           resolvedZIndex ? { zIndex: resolvedZIndex } : undefined,
         ]}
         pointerEvents="box-none"
@@ -638,7 +562,31 @@ export const Popup: React.FC<PopupProps> = props => {
               onMoveShouldSetResponder={() => true}
             />
           ) : null}
-          {content}
+          <Animated.View
+            ref={overlayRef as unknown as React.Ref<React.ElementRef<typeof View>>}
+            {...contentInteractionProps}
+            onLayout={handleContentLayout}
+            renderToHardwareTextureAndroid={Platform.OS === 'android'}
+            shouldRasterizeIOS={Platform.OS === 'ios'}
+            style={[
+              dynamicStyles.popup,
+              placement === 'center' ? dynamicStyles.popupCenter : null,
+              isVertical ? styles.popupVertical : null,
+              isHorizontal ? dynamicStyles.popupSide : null,
+              radiusStyle,
+              animatedContentStyle,
+              style,
+              hidden ? hiddenContentStyle : null,
+            ]}
+            {...rest}
+          >
+            {closeIconNode}
+            {renderWithSafeArea(
+              contentBody,
+              { safeArea, safeAreaInsetTop, safeAreaInsetBottom },
+              safeAreaInsetTop ? handleSafeAreaTopLayout : undefined
+            )}
+          </Animated.View>
         </View>
       </View>
     </Portal>
@@ -679,17 +627,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
 })
-
-const webFixedRootStyle: ViewStyle | undefined =
-  Platform.OS === 'web'
-    ? ({ 
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-      } as unknown as ViewStyle)
-    : undefined
 
 Popup.displayName = 'Popup'
 

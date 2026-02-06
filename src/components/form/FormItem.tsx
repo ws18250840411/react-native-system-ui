@@ -8,6 +8,7 @@ import { FORM_ALL_FIELDS_KEY, normalizeTrigger, serializeNamePath } from './util
 export type { FormItemProps, FormItemRule } from './types'
 
 const EMPTY_RULES: FormItemRule[] = []
+const EMPTY_VALUES: Record<string, unknown> = {}
 
 export const FormItem: React.FC<FormItemProps> = ({
   name,
@@ -28,6 +29,49 @@ export const FormItem: React.FC<FormItemProps> = ({
 }) => {
   const renderProps = typeof children === 'function'
   const context = useContext(FormContext)
+  const normalizedRules = rules ?? EMPTY_RULES
+  const nameKey = name ? serializeNamePath(name) : undefined
+  const subscribeAll = renderProps && !nameKey && !shouldUpdate
+  const prevValuesRef = useRef<Record<string, unknown>>(EMPTY_VALUES)
+  const [, forceUpdate] = useState(0)
+
+  useEffect(() => {
+    if (!context?.subscribe) return undefined
+    return context.subscribe((changed, all) => {
+      if (FORM_ALL_FIELDS_KEY in changed) {
+        forceUpdate(v => v + 1)
+        return
+      }
+      if (subscribeAll) {
+        forceUpdate(v => v + 1)
+        return
+      }
+      if (shouldUpdate) {
+        if (shouldUpdate(prevValuesRef.current, all)) {
+          forceUpdate(v => v + 1)
+        }
+        return
+      }
+      if (nameKey && nameKey in changed) {
+        forceUpdate(v => v + 1)
+      }
+    })
+  }, [context, nameKey, shouldUpdate, subscribeAll])
+
+  const currentValues = context?.getFieldsValue() ?? EMPTY_VALUES
+  useEffect(() => {
+    prevValuesRef.current = currentValues
+  }, [currentValues])
+
+  useEffect(() => {
+    if (!name || !context) return undefined
+    return context.registerField(name, {
+      rules: normalizedRules,
+      dependencies,
+      initialValue,
+      validateTrigger: validateTrigger ?? trigger,
+    })
+  }, [context, name, normalizedRules, dependencies, initialValue, validateTrigger, trigger])
 
   if (!context) {
     if (renderProps) {
@@ -35,7 +79,7 @@ export const FormItem: React.FC<FormItemProps> = ({
         <>
           {children({
             getFieldValue: () => undefined,
-            getFieldsValue: () => ({}),
+            getFieldsValue: () => EMPTY_VALUES,
             form: null,
           })}
         </>
@@ -44,51 +88,7 @@ export const FormItem: React.FC<FormItemProps> = ({
     return <>{children}</>
   }
 
-  const normalizedRules = rules ?? EMPTY_RULES
-  const prevValuesRef = useRef<Record<string, unknown>>(context.getFieldsValue())
-  const [, forceUpdate] = useState(0)
-  const nameKey = name ? serializeNamePath(name) : undefined
-  const subscribeAll = renderProps && !nameKey && !shouldUpdate
-
-  useEffect(() => {
-    if (!context?.subscribe) return undefined
-    return context.subscribe((changed, all) => {
-      if (FORM_ALL_FIELDS_KEY in changed) {
-        forceUpdate(version => version + 1)
-        return
-      }
-      if (subscribeAll) {
-        forceUpdate(version => version + 1)
-        return
-      }
-      if (shouldUpdate) {
-        if (shouldUpdate(prevValuesRef.current, all)) {
-          forceUpdate(version => version + 1)
-        }
-        return
-      }
-      if (nameKey && nameKey in changed) {
-        forceUpdate(version => version + 1)
-      }
-    })
-  }, [context, nameKey, shouldUpdate, subscribeAll])
-
-  const currentValues = context.getFieldsValue()
-  useEffect(() => {
-    prevValuesRef.current = currentValues
-  }, [currentValues])
   const shouldRender = !shouldUpdate || shouldUpdate(prevValuesRef.current, currentValues)
-
-  useEffect(() => {
-    if (!name) return undefined
-    return context.registerField(name, {
-      rules: normalizedRules,
-      dependencies,
-      initialValue,
-      validateTrigger: validateTrigger ?? trigger,
-    })
-  }, [context.registerField, name, normalizedRules, dependencies, initialValue, validateTrigger, trigger])
-
   const mergedValue = name ? context.getFieldValue(name) : undefined
   const mergedShowMessage = showValidateMessage ?? context.showValidateMessage ?? true
   const fieldErrors = name ? context.getFieldError(name) : undefined
@@ -106,25 +106,18 @@ export const FormItem: React.FC<FormItemProps> = ({
     return <>{node}</>
   }
 
-  if (!name) {
-    return <>{children}</>
-  }
-
+  if (!name) return <>{children}</>
   if (!shouldRender) return null
 
   const childArray = React.Children.toArray(children)
-  if (childArray.length !== 1) {
-    return <>{children}</>
-  }
+  if (childArray.length !== 1) return <>{children}</>
 
   const child = childArray[0] as React.ReactElement<Record<string, unknown>>
 
   const handleChange = (next: unknown) => {
     context.setFieldValue(name, next, trigger)
     const original = (child.props as Record<string, unknown>)[trigger]
-    if (isFunction(original)) {
-      original(next)
-    }
+    if (isFunction(original)) original(next)
   }
 
   const displayName = (child.type as unknown as { displayName?: string }).displayName
@@ -147,9 +140,7 @@ export const FormItem: React.FC<FormItemProps> = ({
     if (!eventName || eventName === trigger) return
     const original = (child.props as Record<string, unknown>)[eventName]
     injectedProps[eventName] = (...args: unknown[]) => {
-      if (isFunction(original)) {
-        original(...args)
-      }
+      if (isFunction(original)) original(...args)
       context.validateField(name, eventName)
     }
   })

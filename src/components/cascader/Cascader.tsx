@@ -597,25 +597,6 @@ const CascaderOptionList = React.memo(
     tokens: CascaderTokens
     emptyText: string
   }) => {
-    if (!optionList.length) {
-      return (
-        <View style={[tokens.layout.optionList, { height: tokens.sizing.optionListHeight }]}>
-          <Text
-            style={[
-              tokens.layout.empty,
-              {
-                color: tokens.colors.placeholder,
-                paddingVertical: tokens.spacing.emptyPaddingVertical,
-                fontSize: tokens.typography.emptyTextSize,
-              },
-            ]}
-          >
-            {emptyText}
-          </Text>
-        </View>
-      )
-    }
-
     const renderItem = useCallback(
       ({ item }: { item: CascaderOption }) => (
         <CascaderOptionItem
@@ -636,6 +617,25 @@ const CascaderOptionList = React.memo(
       (item: CascaderOption) => String(item[keys.valueKey]),
       [keys.valueKey],
     )
+
+    if (!optionList.length) {
+      return (
+        <View style={[tokens.layout.optionList, { height: tokens.sizing.optionListHeight }]}>
+          <Text
+            style={[
+              tokens.layout.empty,
+              {
+                color: tokens.colors.placeholder,
+                paddingVertical: tokens.spacing.emptyPaddingVertical,
+                fontSize: tokens.typography.emptyTextSize,
+              },
+            ]}
+          >
+            {emptyText}
+          </Text>
+        </View>
+      )
+    }
 
     return (
       <FlatList

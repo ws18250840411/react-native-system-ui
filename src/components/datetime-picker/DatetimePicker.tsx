@@ -43,38 +43,6 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
     [close, popupVisible],
   )
 
-  if (props.type === 'time') {
-    const {
-      popup,
-      popupVisible: _popupVisible,
-      defaultPopupVisible: _defaultPopupVisible,
-      popupProps,
-      onPopupVisibleChange: _onPopupVisibleChange,
-      onConfirm,
-      onCancel,
-      ...pickerProps
-    } = props
-
-    const handleConfirm = useCallback(
-      (value: string) => {
-        onConfirm?.(value)
-        if (popup) close()
-      },
-      [close, onConfirm, popup],
-    )
-
-    const handleCancel = useCallback(() => {
-      onCancel?.()
-      if (popup) close()
-    }, [close, onCancel, popup])
-
-    const pickerNode = (
-      <TimePicker {...pickerProps} onConfirm={handleConfirm} onCancel={handleCancel} />
-    )
-
-    return renderPopup(pickerNode, popup, popupProps)
-  }
-
   const {
     popup,
     popupVisible: _popupVisible,
@@ -87,8 +55,8 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
   } = props
 
   const handleConfirm = useCallback(
-    (value: Date) => {
-      onConfirm?.(value)
+    (value: Date | string) => {
+      (onConfirm as ((v: Date | string) => void) | undefined)?.(value)
       if (popup) close()
     },
     [close, onConfirm, popup],
@@ -99,9 +67,9 @@ const DatetimePicker: React.FC<DatetimePickerProps> = props => {
     if (popup) close()
   }, [close, onCancel, popup])
 
-  const pickerNode = (
-    <DatePicker {...pickerProps} onConfirm={handleConfirm} onCancel={handleCancel} />
-  )
+  const pickerNode = props.type === 'time'
+    ? <TimePicker {...pickerProps as DatetimePickerTimeProps} onConfirm={handleConfirm} onCancel={handleCancel} />
+    : <DatePicker {...pickerProps as DatetimePickerDateProps} onConfirm={handleConfirm} onCancel={handleCancel} />
 
   return renderPopup(pickerNode, popup, popupProps)
 }

@@ -22,20 +22,20 @@ export interface FormListProps {
   children: (fields: FormListField[], operation: FormListOperation) => React.ReactNode
 }
 
+const getList = (context: { getFieldsValue: () => Record<string, unknown> }, name: NamePath): unknown[] => {
+  const raw = getValueByName(context.getFieldsValue(), name)
+  return Array.isArray(raw) ? raw : []
+}
+
 export const FormList: React.FC<FormListProps> = ({ name, initialValue, children }) => {
   const context = useContext(FormContext)
   const keyRef = useRef(0)
   const nameKey = serializeNamePath(name)
-  const [listValue, setListValue] = useState<unknown[]>(() => {
-    if (!context) return []
-    const current = getValueByName(context.getFieldsValue(), name)
-    return Array.isArray(current) ? current : []
-  })
+  const [listValue, setListValue] = useState<unknown[]>(() => context ? getList(context, name) : [])
 
   const ensureInitial = useCallback(() => {
     if (!context) return
-    const current = getValueByName(context.getFieldsValue(), name)
-    if (current === undefined && initialValue !== undefined) {
+    if (getValueByName(context.getFieldsValue(), name) === undefined && initialValue !== undefined) {
       context.setFieldValue(name, initialValue)
     }
   }, [context, initialValue, name])
@@ -54,37 +54,40 @@ export const FormList: React.FC<FormListProps> = ({ name, initialValue, children
     })
   }, [context, name, nameKey])
 
-  if (!context) {
-    return null
-  }
+  const add = useCallback((defaultValue?: unknown, index?: number) => {
+    if (!context) return
+    const arr = getList(context, name)
+    const insertIndex = typeof index === 'number' ? index : arr.length
+    const next = [...arr]
+    next.splice(insertIndex, 0, defaultValue)
+    context.setFieldValue(name, next)
+    keyRef.current += 1
+  }, [context, name])
+
+  const remove = useCallback((index: number) => {
+    if (!context) return
+    const arr = getList(context, name)
+    if (index < 0 || index >= arr.length) return
+    context.setFieldValue(name, arr.slice(0, index).concat(arr.slice(index + 1)))
+  }, [context, name])
+
+  const move = useCallback((from: number, to: number) => {
+    if (!context) return
+    const arr = getList(context, name)
+    if (from === to || from < 0 || to < 0 || from >= arr.length || to >= arr.length) return
+    const next = [...arr]
+    const item = next.splice(from, 1)[0]
+    next.splice(to, 0, item)
+    context.setFieldValue(name, next)
+  }, [context, name])
+
+  if (!context) return null
 
   const fields: FormListField[] = listValue.map((_, index) => ({
     name: index,
     key: keyRef.current + index,
     isListField: true,
   }))
-
-  const add = (defaultValue?: unknown, index?: number) => {
-    const insertIndex = typeof index === 'number' ? index : listValue.length
-    const next = [...listValue]
-    next.splice(insertIndex, 0, defaultValue)
-    context.setFieldValue(name, next)
-    keyRef.current += 1
-  }
-
-  const remove = (index: number) => {
-    if (index < 0 || index >= listValue.length) return
-    const next = listValue.slice(0, index).concat(listValue.slice(index + 1))
-    context.setFieldValue(name, next)
-  }
-
-  const move = (from: number, to: number) => {
-    if (from === to || from < 0 || to < 0 || from >= listValue.length || to >= listValue.length) return
-    const next = [...listValue]
-    const item = next.splice(from, 1)[0]
-    next.splice(to, 0, item)
-    context.setFieldValue(name, next)
-  }
 
   return <>{children(fields, { add, remove, move })}</>
 }

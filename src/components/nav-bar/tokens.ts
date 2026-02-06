@@ -1,5 +1,3 @@
-import { Platform, type ViewStyle } from 'react-native'
-
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { NavBarTokens } from './types'
@@ -9,8 +7,6 @@ export const createNavBarTokens = ({
   spacing,
   fontSize,
 }: Foundations): NavBarTokens => {
-  const fixedPosition: ViewStyle['position'] =
-    Platform.OS === 'web' ? ('fixed' as unknown as ViewStyle['position']) : 'absolute'
   return {
     defaults: {
       fixed: false,
@@ -62,7 +58,7 @@ export const createNavBarTokens = ({
         includeFontPadding: false,
       },
       fixed: {
-        position: fixedPosition,
+        position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
