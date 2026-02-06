@@ -74,11 +74,10 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     trigger: 'onChange',
   })
   const value = mergedValue ?? ''
-  const maxlength = (() => {
-    const parsed = parseNumberLike(maxlengthProp, undefined)
-    if (parsed === undefined || !Number.isFinite(parsed) || parsed < 0) return undefined
-    return Math.floor(parsed)
-  })()
+  const parsedMaxlength = parseNumberLike(maxlengthProp, undefined)
+  const maxlength = parsedMaxlength !== undefined && Number.isFinite(parsedMaxlength) && parsedMaxlength >= 0
+    ? Math.floor(parsedMaxlength)
+    : undefined
   const valueRef = useRef(value)
   const maxlengthRef = useRef(maxlength)
   valueRef.current = value
@@ -172,15 +171,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     [closeSelf, onDelete, onInput, setMergedValue],
   )
 
-  const wrapperShadow = useMemo(() => createPlatformShadow({
-    color: shadow.color,
-    opacity: shadow.opacity,
-    radius: shadow.radius,
-    offsetY: shadow.offsetY,
-    elevation: shadow.elevation,
-  }), [shadow.color, shadow.elevation, shadow.offsetY, shadow.opacity, shadow.radius])
-
-  const keyGap = spacing.keyGap
+  const wrapperShadow = useMemo(() => createPlatformShadow(shadow), [shadow.color, shadow.elevation, shadow.offsetY, shadow.opacity, shadow.radius])
 
   const renderKey = useCallback(
     (key: KeyboardKey, index: number, isClose = false, fullWidth = false, customHeight?: number) => {
@@ -348,7 +339,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   }, [])
 
   const hasHeader = !isCustomTheme && (title || closeButtonText)
-  const doubleKeyHeight = sizing.keyHeight * 2 + keyGap
+  const doubleKeyHeight = sizing.keyHeight * 2 + spacing.keyGap
   const memo = useMemo(() => {
     const headerPaddingStyle = { paddingHorizontal: spacing.titlePadding }
     const defaultContainerStyle = [
@@ -357,19 +348,19 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
         flexDirection: 'column' as const,
         flexWrap: 'nowrap' as const,
         paddingHorizontal: spacing.paddingHorizontal,
-        paddingTop: keyGap,
-        paddingBottom: keyGap,
-        gap: keyGap,
+        paddingTop: spacing.keyGap,
+        paddingBottom: spacing.keyGap,
+        gap: spacing.keyGap,
       },
     ]
-    const defaultLineStyle = { flexDirection: 'row' as const, gap: keyGap }
+    const defaultLineStyle = { flexDirection: 'row' as const, gap: spacing.keyGap }
 
     const customRowStyle = [
       styles.customRow,
       {
         paddingHorizontal: spacing.paddingHorizontal,
-        paddingTop: hasHeader ? 0 : keyGap,
-        paddingBottom: keyGap,
+        paddingTop: hasHeader ? 0 : spacing.keyGap,
+        paddingBottom: spacing.keyGap,
         width: '100%' as const,
       },
     ]
@@ -378,12 +369,12 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
       {
         flexDirection: 'column' as const,
         flexWrap: 'nowrap' as const,
-        gap: keyGap,
+        gap: spacing.keyGap,
       },
     ]
     const customSidebarStyle = [
       styles.customSidebar,
-      { gap: keyGap, marginLeft: keyGap },
+      { gap: spacing.keyGap, marginLeft: spacing.keyGap },
     ]
 
     const entries: Array<{ key: KeyboardKey; index: number }> = keys.map((key, index) => ({ key, index }))
@@ -472,12 +463,12 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     extraKeyRender,
     hasHeader,
     isCustomTheme,
-    keyGap,
     keys,
     renderKey,
     resolvedCloseText,
     safeAreaInsetBottom,
     sizing.titleFontSize,
+    spacing.keyGap,
     spacing.paddingHorizontal,
     spacing.titlePadding,
     title,

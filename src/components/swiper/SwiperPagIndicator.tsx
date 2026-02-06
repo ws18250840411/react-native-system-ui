@@ -81,7 +81,6 @@ const SwiperPagIndicator = memo<SwiperPagIndicatorProps>(
     const dots: ReactElement[] = []
     const resolvedActiveColor = activeColor || tokens.colors.active
     const resolvedInactiveColor = inactiveColor || tokens.colors.inactive
-    const dotMargin = tokens.spacing.dotMargin
 
     const containerPositionStyle = vertical
       ? [styles.containerVertical, { right: tokens.offset.verticalRight }]
@@ -94,8 +93,8 @@ const SwiperPagIndicator = memo<SwiperPagIndicatorProps>(
         <View
           key={i}
           style={[{
-            marginHorizontal: dotMargin,
-            marginVertical: dotMargin,
+            marginHorizontal: tokens.spacing.dotMargin,
+            marginVertical: tokens.spacing.dotMargin,
             backgroundColor: isActive ? resolvedActiveColor : resolvedInactiveColor,
             width: size,
             height: size,

@@ -127,14 +127,8 @@ export const FormItem: React.FC<FormItemProps> = ({
     }
   }
 
-  const isFieldLike =
-    (() => {
-      const displayName = (child.type as unknown as { displayName?: string }).displayName
-      return (
-        isString(displayName) &&
-        (displayName.includes('Field') || displayName.includes('Input'))
-      )
-    })()
+  const displayName = (child.type as unknown as { displayName?: string }).displayName
+  const isFieldLike = isString(displayName) && (displayName.includes('Field') || displayName.includes('Input'))
 
   const resolveValue = () => {
     const childValue = (child.props as Record<string, unknown>)[valuePropName]

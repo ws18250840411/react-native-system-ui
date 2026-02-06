@@ -60,30 +60,26 @@ const SidebarBase: React.FC<SidebarProps> = props => {
 
   const activeContentStyle = activeItem?.props?.contentStyle
   const activeContent = activeItem?.props?.children
-  const activeContentNode = useMemo(
-    () =>
-      activeContent == null || activeContent === false
-        ? null
-        : isText(activeContent)
-          ? <Text>{activeContent}</Text>
-          : activeContent,
-    [activeContent]
-  )
+  const activeContentNode = activeContent == null || activeContent === false
+    ? null
+    : isText(activeContent)
+      ? <Text>{activeContent}</Text>
+      : activeContent
 
-  const containerStyle = useMemo(() => ([
+  const containerStyle = [
     tokens.layout.container,
     { backgroundColor: tokens.colors.background },
     style,
-  ]), [style, tokens.colors.background, tokens.layout.container])
+  ]
 
-  const sideContainerStyle = useMemo(() => ([
+  const sideContainerStyle = [
     tokens.layout.side,
     {
       width: tokens.sizing.width,
       borderRightColor: tokens.colors.border,
     },
     sideStyle,
-  ]), [sideStyle, tokens.colors.border, tokens.layout.side, tokens.sizing.width])
+  ]
 
   return (
     <View {...rest} style={containerStyle}>

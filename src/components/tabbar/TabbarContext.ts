@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { useContext } from 'react'
+import React, { useContext } from 'react'
 import type { TextStyle } from 'react-native'
 
 import type { TabbarValue } from './types'

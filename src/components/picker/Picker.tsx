@@ -52,14 +52,8 @@ const isColumnWithOptions = (col: PickerColumn | PickerOption): col is { options
   'options' in col &&
   Array.isArray((col as { options?: unknown }).options)
 
-const hasChildren = (option: PickerOption) => {
-  return (
-    !!option &&
-    isObject(option) &&
-    Array.isArray((option as any).children) &&
-    (option as any).children.length > 0
-  )
-}
+const hasChildren = (option: PickerOption) =>
+  !!option && isObject(option) && Array.isArray((option as any).children) && (option as any).children.length > 0
 
 export const findEnabledIndex = (options: PickerOption[], startIndex: number) => {
   if (!options.length) return -1
@@ -94,11 +88,7 @@ const normalizeMultiple = (
     options[index] = target
   })
 
-  return {
-    columns: columnsList,
-    values,
-    options,
-  }
+  return { columns: columnsList, values, options }
 }
 
 const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]): NormalizedPickerResult => {
@@ -130,11 +120,7 @@ const normalizeCascade = (rootOptions: PickerOption[], rawValue: PickerValue[]):
     }
   }
 
-  return {
-    columns,
-    values,
-    options,
-  }
+  return { columns, values, options }
 }
 
 export const prepareColumns = (columnsInput: PickerColumns = []): PreparedPickerColumns => {
@@ -681,12 +667,7 @@ const WheelPickerInner = <T extends PickerOption,>({
 
   const shouldCapture = !readOnly
 
-  const contentContainerStyle = useMemo(
-    () => ({
-      paddingVertical: spacerHeight,
-    }),
-    [spacerHeight]
-  )
+  const contentContainerStyle = { paddingVertical: spacerHeight }
 
   return (
     <View
@@ -1045,7 +1026,6 @@ const Picker: React.FC<PickerProps> = props => {
     onConfirm,
   })
   const isCascade = preparedColumns.type === 'cascade'
-
 
   const renderActionContent = (content: React.ReactNode, color: string) => {
     if (React.isValidElement(content)) return <View style={{ minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>{content}</View>

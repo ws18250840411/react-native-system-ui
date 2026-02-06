@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { useContext } from 'react'
+import React, { useContext } from 'react'
 
 export interface SidebarContextValue {
   activeIndex: number

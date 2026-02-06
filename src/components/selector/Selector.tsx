@@ -199,9 +199,9 @@ const SelectorImpl = <V extends SelectorValue>(props: SelectorProps<V>) => {
     return map
   }, [options])
 
-  const resolvedColumns = useMemo(() => Math.max(1, Math.floor(columns)), [columns])
-  const basis = useMemo(() => `${100 / resolvedColumns}%` as `${number}%`, [resolvedColumns])
-  const itemMargin = useMemo(() => tokens.spacing.gap / 2, [tokens.spacing.gap])
+  const resolvedColumns = Math.max(1, Math.floor(columns))
+  const basis = `${100 / resolvedColumns}%` as `${number}%`
+  const itemMargin = tokens.spacing.gap / 2
   const selectedSet = useMemo(() => new Set(value), [value])
 
   const toggleOption = useCallback(

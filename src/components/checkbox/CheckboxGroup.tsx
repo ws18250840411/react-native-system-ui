@@ -169,7 +169,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     unregisterValue,
   ])
 
-  const containerStyle = useMemo(() => ([
+  const containerStyle = [
     direction === 'horizontal' ? tokens.layout.groupHorizontal : tokens.layout.groupVertical,
     supportsGap
       ? {
@@ -178,7 +178,7 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
       }
       : null,
     style,
-  ]), [direction, gap, style, supportsGap, tokens.layout.groupHorizontal, tokens.layout.groupVertical])
+  ]
 
   const renderedChildren = useMemo(
     () =>

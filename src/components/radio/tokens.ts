@@ -4,9 +4,10 @@ import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { RadioTokens } from './types'
 
+const centered = { justifyContent: 'center', alignItems: 'center' } as const
+
 const createRadioTokens = (foundations: Foundations): RadioTokens => {
   const { palette, spacing, fontSize, typography } = foundations
-  const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
       iconSize: 20,
@@ -21,17 +22,11 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
         flexDirection: 'row',
         alignItems: 'center',
       },
-      iconWrapper: {
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
+      iconWrapper: centered,
       labelWrapper: {
         flexShrink: 1,
       },
-      icon: {
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
+      icon: centered,
       label: {
         includeFontPadding: false,
       },
@@ -53,7 +48,7 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
       checkedBackground: palette.primary[500],
       disabledBorder: palette.default[300],
       disabledBackground: palette.default[100],
-      checkmark: onPrimary,
+      checkmark: palette.primary.foreground ?? '#ffffff',
       label: palette.default.foreground ?? '#111827',
       labelDisabled: palette.default[400],
     },

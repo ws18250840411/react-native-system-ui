@@ -207,13 +207,7 @@ export const Popup: React.FC<PopupProps> = props => {
 
   const tokens = usePopupTokens(tokensOverride)
 
-  const shadow = useMemo(() => createPlatformShadow({
-    color: tokens.shadow.color,
-    opacity: tokens.shadow.opacity,
-    radius: tokens.shadow.radius,
-    offsetY: tokens.shadow.offsetY,
-    elevation: tokens.shadow.elevation,
-  }), [tokens.shadow.color, tokens.shadow.elevation, tokens.shadow.offsetY, tokens.shadow.opacity, tokens.shadow.radius])
+  const shadow = useMemo(() => createPlatformShadow(tokens.shadow), [tokens.shadow.color, tokens.shadow.elevation, tokens.shadow.offsetY, tokens.shadow.opacity, tokens.shadow.radius])
 
   const dynamicStyles = useMemo(() => ({
     popup: {
@@ -445,12 +439,7 @@ export const Popup: React.FC<PopupProps> = props => {
     return baseStyle
   }, [baseTransform, contentAnimationStyle, placement, progress])
 
-  const handleContentLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      overlayOnLayout?.(event)
-    },
-    [overlayOnLayout]
-  )
+  const handleContentLayout = overlayOnLayout
 
   const [safeAreaTopHeight, setSafeAreaTopHeight] = useState(0)
   const handleSafeAreaTopLayout = useCallback(

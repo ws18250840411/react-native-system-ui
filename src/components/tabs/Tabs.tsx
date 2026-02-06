@@ -983,7 +983,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     )
   }), [containerWidth, currentName, handlePaneLayout, isSwipeable, lazyRender, lazyRenderPlaceholder, panes, swipeableConfig?.autoHeight])
 
-  const baseContentStyle = useMemo(() => [styles.content, contentStyle], [contentStyle])
+  const baseContentStyle = [styles.content, contentStyle]
   const swipeableContentStyle = useMemo(
     () => [
       styles.content,

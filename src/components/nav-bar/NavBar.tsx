@@ -63,8 +63,8 @@ const NavBarBase: React.FC<NavBarProps> = props => {
 
   const resolvedColor = tintColor ?? tokens.colors.text
   const sideColor = tintColor ?? tokens.colors.icon
-  const leftAccessibilityLabel = isText(leftText) ? String(leftText) : '返回'
-  const rightAccessibilityLabel = isText(rightText) ? String(rightText) : '操作'
+  const leftAccessibilityLabel = isText(leftText) ? `${leftText}` : '返回'
+  const rightAccessibilityLabel = isText(rightText) ? `${rightText}` : '操作'
 
   const leftPress = useAriaPress({
     disabled: !handlePressLeft,

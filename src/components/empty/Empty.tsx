@@ -55,12 +55,12 @@ export const Empty: React.FC<EmptyProps> = props => {
             src={image}
             width={resolvedImageSize}
             height={resolvedImageSize}
-              fit="contain"
-              showLoading={false}
-              showError={false}
-              containerStyle={[{ backgroundColor: tokens.colors.imageBackground }, imageStyle]}
-            />
-          )
+            fit="contain"
+            showLoading={false}
+            showError={false}
+            containerStyle={[{ backgroundColor: tokens.colors.imageBackground }, imageStyle]}
+          />
+        )
         }
 
       const IconComponent = PRESET_ICONS[image as keyof typeof PRESET_ICONS] || PRESET_ICONS.default

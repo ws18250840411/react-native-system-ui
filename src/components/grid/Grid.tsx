@@ -53,18 +53,12 @@ export const Grid: React.FC<GridProps> = props => {
     const gutterValue = gutterProp ?? tokens.defaults.gutter
     return Number.isFinite(gutterValue) && gutterValue > 0 ? gutterValue : 0
   }, [gutterProp, tokens.defaults.gutter])
-  const border = useMemo(() => borderProp ?? tokens.defaults.border, [borderProp, tokens.defaults.border])
-  const center = useMemo(() => centerProp ?? tokens.defaults.center, [centerProp, tokens.defaults.center])
-  const square = useMemo(() => squareProp ?? tokens.defaults.square, [squareProp, tokens.defaults.square])
-  const direction = useMemo(
-    () => directionProp ?? tokens.defaults.direction,
-    [directionProp, tokens.defaults.direction]
-  )
-  const reverse = useMemo(() => reverseProp ?? tokens.defaults.reverse, [reverseProp, tokens.defaults.reverse])
-  const clickable = useMemo(
-    () => clickableProp ?? tokens.defaults.clickable,
-    [clickableProp, tokens.defaults.clickable]
-  )
+  const border = borderProp ?? tokens.defaults.border
+  const center = centerProp ?? tokens.defaults.center
+  const square = squareProp ?? tokens.defaults.square
+  const direction = directionProp ?? tokens.defaults.direction
+  const reverse = reverseProp ?? tokens.defaults.reverse
+  const clickable = clickableProp ?? tokens.defaults.clickable
   const iconSize = useMemo(() => {
     const iconSizeValue = iconSizeProp ?? tokens.defaults.iconSize
     return Number.isFinite(iconSizeValue) && iconSizeValue > 0 ? iconSizeValue : tokens.defaults.iconSize

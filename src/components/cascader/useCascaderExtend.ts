@@ -8,27 +8,29 @@ interface FieldKeys {
   childrenKey: string
 }
 
-export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKeys, value: CascaderValue[]) => {
-  const depth = (() => {
-    let maxDepth = 1
-    const traverse = (opts: CascaderOption[] | undefined, level: number) => {
-      if (!opts || !opts.length) return
-      if (level > maxDepth) maxDepth = level
-      const next = level + 1
-      opts.forEach(option => {
-        const hasChildrenProp = Object.prototype.hasOwnProperty.call(option, keys.childrenKey)
-        if (hasChildrenProp && next > maxDepth) maxDepth = next
-        const children = option[keys.childrenKey] as CascaderOption[] | undefined
-        if (children && children.length) traverse(children, next)
-      })
-    }
-    traverse(options, 1)
-    return maxDepth
-  })()
+const getDepth = (options: CascaderOption[], childrenKey: string): number => {
+  let maxDepth = 1
+  const traverse = (opts: CascaderOption[] | undefined, level: number) => {
+    if (!opts || !opts.length) return
+    if (level > maxDepth) maxDepth = level
+    const next = level + 1
+    opts.forEach(option => {
+      const hasChildrenProp = Object.prototype.hasOwnProperty.call(option, childrenKey)
+      if (hasChildrenProp && next > maxDepth) maxDepth = next
+      const children = option[childrenKey] as CascaderOption[] | undefined
+      if (children && children.length) traverse(children, next)
+    })
+  }
+  traverse(options, 1)
+  return maxDepth
+}
 
-  const tabs = (() => {
-    if (!value || !value.length) return [options]
-    return value.reduce<CascaderOption[][]>(
+export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKeys, value: CascaderValue[]) => {
+  const depth = getDepth(options, keys.childrenKey)
+
+  const tabs = !value || !value.length
+    ? [options]
+    : value.reduce<CascaderOption[][]>(
       (acc, val, index) => {
         if (val == null) return acc
         const current = acc[index]
@@ -40,7 +42,6 @@ export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKey
       },
       [options],
     )
-  })()
 
   const items = !value || !value.length
     ? []

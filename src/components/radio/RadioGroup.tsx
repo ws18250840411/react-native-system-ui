@@ -98,15 +98,12 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
       : [tokens.layout.groupItem, { marginBottom: gap }]
   }, [childrenLength, direction, gap, supportsGap, tokens.layout.groupItem])
 
-  const containerGapStyle: ViewStyle | null = useMemo(
-    () => (supportsGap
-      ? {
-        columnGap: direction === 'horizontal' ? gap : undefined,
-        rowGap: gap,
-      }
-      : null),
-    [direction, gap, supportsGap]
-  )
+  const containerGapStyle: ViewStyle | null = supportsGap
+    ? {
+      columnGap: direction === 'horizontal' ? gap : undefined,
+      rowGap: gap,
+    }
+    : null
 
   const contextValue = useMemo(() => ({
     state,
@@ -126,13 +123,13 @@ export const RadioGroup: React.FC<RadioGroupProps> = props => {
     unregisterValue,
   ])
 
-  const containerStyle = useMemo(() => ([
+  const containerStyle = [
     direction === 'horizontal'
       ? tokens.layout.groupHorizontal
       : tokens.layout.groupVertical,
     containerGapStyle,
     style,
-  ]), [containerGapStyle, direction, style, tokens.layout.groupHorizontal, tokens.layout.groupVertical])
+  ]
 
   const renderedChildren = useMemo(
     () =>

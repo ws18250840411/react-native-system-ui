@@ -242,7 +242,7 @@ export const Dialog: React.FC<DialogProps> = props => {
     tokens.typography.titleWeight,
   ])
 
-  const messageTextStyle = useMemo(() => ([
+  const messageTextStyle = [
     styles.message,
     {
       color: isRoundTheme ? tokens.colors.title : tokens.colors.message,
@@ -251,44 +251,27 @@ export const Dialog: React.FC<DialogProps> = props => {
       textAlign: messageAlign,
     },
     messageStyle,
-  ]), [
-    isRoundTheme,
-    messageAlign,
-    messageStyle,
-    tokens.colors.message,
-    tokens.colors.title,
-    tokens.typography.messageLineHeight,
-    tokens.typography.messageSize,
-  ])
+  ]
 
-  const messageContentStyle = useMemo(() => (
-    !hasChildren
-      ? {
-        alignItems:
-          messageAlign === 'center'
-            ? ('center' as const)
-            : messageAlign === 'left'
-              ? ('flex-start' as const)
-              : ('flex-end' as const),
-      }
-      : null
-  ), [hasChildren, messageAlign])
+  const messageContentStyle = !hasChildren
+    ? {
+      alignItems:
+        messageAlign === 'center'
+          ? ('center' as const)
+          : messageAlign === 'left'
+            ? ('flex-start' as const)
+            : ('flex-end' as const),
+    }
+    : null
 
-  const messageWrapperStyle = useMemo(() => ([
+  const messageWrapperStyle = [
     styles.messageWrapper,
     {
       paddingTop: hasTitle ? tokens.spacing.messagePaddingTop : tokens.spacing.messagePadding,
       paddingBottom: isRoundTheme ? tokens.spacing.roundFooterPadding : tokens.spacing.messagePadding,
       paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
     },
-  ]), [
-    hasTitle,
-    isRoundTheme,
-    tokens.spacing.messagePadding,
-    tokens.spacing.messagePaddingHorizontal,
-    tokens.spacing.messagePaddingTop,
-    tokens.spacing.roundFooterPadding,
-  ])
+  ]
 
   const footerBorderTopStyle = useMemo(() => ([
     styles.footerBorderTop,
@@ -302,20 +285,16 @@ export const Dialog: React.FC<DialogProps> = props => {
   ]), [tokens.colors.divider])
 
   const mergedCloseOnOverlayPress = closeOnOverlayPress || closeOnClickOverlay
-  const animatedStyle = useMemo(() => ({ transform: [{ scale: scaleAnim }] }), [scaleAnim])
+  const animatedStyle = { transform: [{ scale: scaleAnim }] }
 
-  const roundFooterStyle = useMemo(() => ([
+  const roundFooterStyle = [
     styles.roundFooter,
     {
       paddingTop: tokens.spacing.messagePaddingTop,
       paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
       paddingBottom: tokens.spacing.roundFooterPadding,
     },
-  ]), [
-    tokens.spacing.messagePaddingHorizontal,
-    tokens.spacing.messagePaddingTop,
-    tokens.spacing.roundFooterPadding,
-  ])
+  ]
 
   const roundFooterNode = useMemo(() => (hasFooterActions ? (
     <View style={roundFooterStyle}>

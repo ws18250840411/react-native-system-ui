@@ -23,14 +23,8 @@ const ShareSheetOptionItem: React.FC<{
   tokens: ShareSheetTokens
   onSelect: (option: ShareSheetOption, index: number) => void
 }> = React.memo(({ option, index, columns, tokens, onSelect }) => {
-  const optionWidthStyle: ViewStyle = useMemo(
-    () => ({ width: `${100 / columns}%` as DimensionValue }),
-    [columns]
-  )
-  const iconStyle = useMemo(
-    () => ({ width: tokens.sizing.icon, height: tokens.sizing.icon }),
-    [tokens.sizing.icon]
-  )
+  const optionWidthStyle: ViewStyle = { width: `${100 / columns}%` as DimensionValue }
+  const iconStyle = { width: tokens.sizing.icon, height: tokens.sizing.icon }
   const press = useAriaPress({
     onPress: () => onSelect(option, index),
     extraProps: {
@@ -158,11 +152,8 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
   } = props
 
   const tokens = useShareSheetTokens(tokensOverride)
-  const groups = useMemo(() => normalizeOptions(options), [options])
-  const resolvedColumns = useMemo(
-    () => (isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4),
-    [columns]
-  )
+  const groups = normalizeOptions(options)
+  const resolvedColumns = isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4
 
   const hasTitle = isValidNode(title)
   const hasDescription = isValidNode(description)
@@ -181,15 +172,9 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
 
   const onPopupClose = useCallback(() => close(true), [close])
 
-  const wrapperStyle = useMemo(
-    () => [styles.wrapper, { backgroundColor: tokens.colors.background }],
-    [tokens.colors.background]
-  )
+  const wrapperStyle = [styles.wrapper, { backgroundColor: tokens.colors.background }]
 
-  const groupRowStyle = useMemo(
-    () => [styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }],
-    [tokens.spacing.gap]
-  )
+  const groupRowStyle = [styles.optionsRow, { paddingLeft: tokens.spacing.gap, paddingVertical: 12 }]
 
   const groupNodes = useMemo(() => {
     if (!groups.length) return null
@@ -297,10 +282,7 @@ const ShareSheet: React.FC<ShareSheetProps> = props => {
     tokens.typography.title,
   ])
 
-  const popupStyleMemo = useMemo(
-    () => [styles.popupOverride, { padding: tokens.spacing.popupPadding }, popupStyle],
-    [popupStyle, tokens.spacing.popupPadding]
-  )
+  const popupStyleMemo = [styles.popupOverride, { padding: tokens.spacing.popupPadding }, popupStyle]
 
   return (
     <Popup

@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react'
+import React, { useContext } from 'react'
 import {
   Pressable,
   Text,
@@ -16,19 +16,17 @@ import { CellGroupContext } from './CellContext'
 import { useCellTokens } from './tokens'
 import type { CellProps } from './types'
 
-interface TextOrViewProps {
-  children: React.ReactNode
-  textStyle?: StyleProp<TextStyle>
-  viewStyle?: StyleProp<ViewStyle>
-  numberOfLines?: number
-}
-
 const TextOrView = ({
   children,
   textStyle,
   viewStyle,
   numberOfLines,
-}: TextOrViewProps) => {
+}: {
+  children: React.ReactNode
+  textStyle?: StyleProp<TextStyle>
+  viewStyle?: StyleProp<ViewStyle>
+  numberOfLines?: number
+}) => {
   if (isText(children)) {
     return (
       <Text style={textStyle} numberOfLines={numberOfLines}>
@@ -94,11 +92,11 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
         !!rest.onPressIn ||
         !!rest.onPressOut)
 
-    const containerStyles: StyleProp<ViewStyle> = useMemo(() => ([
+    const containerStyles: StyleProp<ViewStyle> = [
       size === 'large' ? tokens.layout.containerLarge : tokens.layout.container,
       center && tokens.layout.center,
       style,
-    ]), [center, size, style, tokens.layout.center, tokens.layout.container, tokens.layout.containerLarge])
+    ]
 
     const hairline = useHairline({
       show: showBorder,
@@ -108,11 +106,11 @@ export const Cell = React.forwardRef<React.ElementRef<typeof Pressable>, CellPro
       defaultPaddingHorizontal: tokens.sizing.paddingHorizontal,
     })
 
-    const customContentStyle = useMemo(() => ([
+    const customContentStyle = [
       tokens.layout.customContent,
       { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] },
       contentStyle,
-    ]), [center, contentStyle, tokens.layout.customContent])
+    ]
 
     const bodyContent = (
       <>

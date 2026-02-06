@@ -6,16 +6,10 @@ import { useAriaPress } from '../../hooks'
 import { createHairlineBorderBottom, isRenderable, isText } from '../../utils'
 import Loading from '../loading'
 import Popup from '../popup'
-import type { ActionSheetAction, ActionSheetCloseAction, ActionSheetProps } from './types'
-import type { ActionSheetTokens } from './types'
+import type { ActionSheetAction, ActionSheetCloseAction, ActionSheetProps, ActionSheetTokens } from './types'
 import { useActionSheetTokens } from './tokens'
 
 const defaultCloseIcon = <Close size={18} />
-
-type IconColorProps = {
-  fill?: string
-  color?: string
-}
 
 const ActionSheetHeader: React.FC<{
   title: React.ReactNode
@@ -53,7 +47,7 @@ const ActionSheetHeader: React.FC<{
           {...closePress.interactionProps}
         >
           {React.isValidElement(closeIcon)
-            ? React.cloneElement(closeIcon as React.ReactElement<IconColorProps>, {
+            ? React.cloneElement(closeIcon as React.ReactElement<{ fill?: string; color?: string }>, {
               fill: colors.description,
               color: colors.description,
             })
@@ -72,53 +66,45 @@ const ActionSheetItem: React.FC<{
   tokens: ActionSheetTokens
   onActionPress: (action: ActionSheetAction, index: number) => void
 }> = React.memo(({ action, index, tokens, onActionPress }) => {
-  const disabled = !!action.disabled
-  const loading = !!action.loading
+  const { disabled, loading, name, subname, icon } = action
   const { colors, spacing, typography } = tokens
-  const handlePress = useCallback(() => onActionPress(action, index), [action, index, onActionPress])
   const actionPress = useAriaPress({
-    disabled: disabled || loading,
-    onPress: handlePress,
+    disabled: !!disabled || !!loading,
+    onPress: useCallback(() => onActionPress(action, index), [action, index, onActionPress]),
     extraProps: {
       accessibilityRole: 'button',
-      accessibilityState: { disabled, busy: loading },
+      accessibilityState: { disabled: !!disabled, busy: !!loading },
       testID: `rv-action-sheet-item-${index}`,
     },
   })
 
   const color = action.color ?? colors.item
-  const name = action.name
-  const subname = action.subname
-  const hasIcon = !!action.icon
-
-  const hasName = isRenderable(name)
-  const hasSubname = isRenderable(subname)
 
   return (
     <Pressable
       style={({ pressed }: PressableStateCallbackType) => [
         tokens.layout.item,
-        hasIcon && tokens.layout.itemWithIcon,
+        !!icon && tokens.layout.itemWithIcon,
         {
           paddingVertical: spacing.vertical,
           paddingHorizontal: spacing.horizontal,
-          backgroundColor: pressed && !disabled && !loading ? colors.itemPressedBackground : colors.itemBackground,
+          backgroundColor: pressed && !action.disabled && !action.loading ? colors.itemPressedBackground : colors.itemBackground,
         },
         action.style,
       ]}
       {...actionPress.interactionProps}
     >
-      {hasIcon && <View style={tokens.layout.icon}>{action.icon}</View>}
+      {!!icon && <View style={tokens.layout.icon}>{icon}</View>}
       {loading ? (
         <Loading size={20} />
-      ) : hasName ? (
+      ) : isRenderable(name) ? (
         <View style={tokens.layout.itemTextWrapper}>
           {isText(name) ? (
             <Text
               style={[
                 tokens.layout.itemText,
                 {
-                  color: disabled ? colors.disabled : color,
+                  color: action.disabled ? colors.disabled : color,
                   fontSize: typography.item,
                 },
               ]}
@@ -128,7 +114,7 @@ const ActionSheetItem: React.FC<{
           ) : (
             name
           )}
-          {hasSubname ? (
+          {isRenderable(subname) ? (
             isText(subname) ? (
               <Text style={[tokens.layout.subname, { color: colors.subitem }]}>
                 {subname}
@@ -278,10 +264,8 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
 
   const handlePopupBeforeClose = useCallback(
     (reason: 'close-icon' | 'overlay' | 'close') => {
-      const action: ActionSheetCloseAction =
-        reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
-      lastPopupCloseReasonRef.current = action
-      return runBeforeClose(action)
+      lastPopupCloseReasonRef.current = reason
+      return runBeforeClose(reason)
     },
     [runBeforeClose]
   )
@@ -313,15 +297,9 @@ const ActionSheet: React.FC<ActionSheetProps> = props => {
     [onSelect, requestClose, shouldCloseOnClickAction]
   )
 
-  const popupStyleMemo = useMemo(() => ([
-    tokens.layout.popup,
-    popupStyle,
-  ]), [popupStyle, tokens.layout.popup])
+  const popupStyleMemo = [tokens.layout.popup, popupStyle]
 
-  const panelStyle = useMemo(
-    () => [tokens.layout.panel, { backgroundColor: tokens.colors.background }],
-    [tokens.colors.background, tokens.layout.panel]
-  )
+  const panelStyle = [tokens.layout.panel, { backgroundColor: tokens.colors.background }]
 
   const headerNode = useMemo(() => (
     hasTitle ? (

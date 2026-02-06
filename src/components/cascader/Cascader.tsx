@@ -110,7 +110,6 @@ const Cascader: React.FC<CascaderProps> = props => {
     trigger: "onChange",
   })
 
-
   const keys = getFieldKeys(fieldNames)
 
   const cascaderValue = Array.isArray(value) ? value : []
@@ -147,11 +146,7 @@ const Cascader: React.FC<CascaderProps> = props => {
   }, [currentValue.length, depth])
 
   useEffect(() => {
-    if (!poppable) {
-      setPanelValue(prev => (shallowEqualArray(prev, cascaderValue) ? prev : cascaderValue))
-      return
-    }
-    if (!popupVisible) {
+    if (!poppable || !popupVisible) {
       setPanelValue(prev => (shallowEqualArray(prev, cascaderValue) ? prev : cascaderValue))
     }
   }, [cascaderValue, poppable, popupVisible])

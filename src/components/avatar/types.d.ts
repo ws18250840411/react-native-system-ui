@@ -44,8 +44,7 @@ export interface AvatarTokens {
   }
 }
 
-import type { ImageFit } from '../image/types'
-import type { ImageProps } from '../image/types'
+import type { ImageFit, ImageProps } from '../image/types'
 
 export interface AvatarProps extends Omit<PressableProps, 'style'> {
   src?: string

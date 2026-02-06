@@ -19,25 +19,11 @@ import type {
 import { ButtonGroupContext } from './ButtonContext'
 import { useButtonTokens } from './tokens'
 
-const clampShadowLevel = (level: number): ButtonShadowLevel => {
-  if (level <= 1) return 1
-  if (level >= 3) return 3
-  return level as ButtonShadowLevel
-}
+const clampShadowLevel = (level: number): ButtonShadowLevel =>
+  level <= 1 ? 1 : level >= 3 ? 3 : level as ButtonShadowLevel
 
-const resolveSpinnerSize = (
-  loadingSize: ButtonProps['loadingSize'],
-  iconSize: number
-) => {
-  if (isNumber(loadingSize)) {
-    return loadingSize
-  }
-  const base = Math.max(iconSize, 16)
-  if (loadingSize === 'large') {
-    return base * 1.25
-  }
-  return base
-}
+const resolveSpinnerSize = (loadingSize: ButtonProps['loadingSize'], iconSize: number) =>
+  isNumber(loadingSize) ? loadingSize : Math.max(iconSize, 16) * (loadingSize === 'large' ? 1.25 : 1)
 
 export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
   (props, forwardedRef) => {
@@ -89,71 +75,38 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     const loading = loadingProp ?? buttonTokens.defaults.loading
     const loadingSize = loadingSizeProp ?? buttonTokens.defaults.loadingSize
     const allowFontScaling = allowFontScalingProp ?? buttonTokens.defaults.allowFontScaling
-    const isPlain = plain
     const tone = buttonTokens.colors.tones[type] ?? buttonTokens.colors.tones.default
     const sizeTokens = buttonTokens.sizing.sizes[size]
 
-    const normalizedColor = color
+    let backgroundColor = color ?? tone.background
+    let borderColor = color ?? tone.border
+    let resolvedTextColor = textColor ?? (color ? '#ffffff' : tone.text)
 
-    let backgroundColor =
-      normalizedColor ??
-      tone.background
-
-    let borderColor = normalizedColor ?? tone.border
-
-    let resolvedTextColor = textColor
-
-    if (!resolvedTextColor) {
-      resolvedTextColor = normalizedColor ? '#ffffff' : tone.text
-    }
-
-    if (isPlain) {
+    if (plain) {
       backgroundColor = buttonTokens.colors.backgroundPlain
-      borderColor = normalizedColor ?? tone.border
-      const fallbackTextColor =
-        type === 'default' && !normalizedColor ? tone.text : normalizedColor ?? tone.border
-      resolvedTextColor = textColor ?? fallbackTextColor
+      borderColor = color ?? tone.border
+      resolvedTextColor = textColor ?? (type === 'default' && !color ? tone.text : color ?? tone.border)
     }
 
-    const shouldRenderBorder =
-      isPlain || type === 'default'
-    const resolvedBorderWidth =
-      shouldRenderBorder
-        ? hairline
-          ? buttonTokens.borders.hairlineWidth
-          : buttonTokens.borders.width
-        : 0
+    const shouldRenderBorder = plain || type === 'default'
+    const resolvedBorderWidth = shouldRenderBorder
+      ? hairline ? buttonTokens.borders.hairlineWidth : buttonTokens.borders.width
+      : 0
 
     const borderRadius = square ? 0 : round ? sizeTokens.height / 2 : sizeTokens.radius
 
     const isDisabled = disabled || loading
 
-    let resolvedShadowLevel: ButtonShadowLevel | undefined
-    if (isFiniteNumber(shadowValue)) {
-      resolvedShadowLevel = clampShadowLevel(shadowValue)
-    } else if (shadowValue === true) {
-      resolvedShadowLevel = clampShadowLevel(2)
-    }
-    const shouldShowShadow =
-      !!resolvedShadowLevel &&
-      !isPlain
-    const shadowTokens = resolvedShadowLevel ? buttonTokens.shadows[resolvedShadowLevel] : undefined
-    const shadowStyle =
-      shouldShowShadow && shadowTokens
-        ? createPlatformShadow({
-          color: shadowTokens.color,
-          opacity: shadowTokens.opacity,
-          radius: shadowTokens.radius,
-          offsetY: shadowTokens.offsetY,
-          elevation: shadowTokens.elevation,
-        })
-        : undefined
+    const resolvedShadowLevel = isFiniteNumber(shadowValue)
+      ? clampShadowLevel(shadowValue)
+      : shadowValue === true ? clampShadowLevel(2) : undefined
+    const shadowTokens = resolvedShadowLevel && !plain ? buttonTokens.shadows[resolvedShadowLevel] : undefined
+    const shadowStyle = shadowTokens ? createPlatformShadow(shadowTokens) : undefined
 
-    const iconWrapperStyle =
-      iconPosition === 'left'
-        ? { marginRight: buttonTokens.spacing.iconGap }
-        : { marginLeft: buttonTokens.spacing.iconGap }
-    const loadingIconWrapperStyle = { marginRight: buttonTokens.spacing.iconGap }
+    const iconGap = buttonTokens.spacing.iconGap
+    const iconWrapperStyle = iconPosition === 'left'
+      ? { marginRight: iconGap }
+      : { marginLeft: iconGap }
 
     const renderIcon = () => {
       if (!icon) return null
@@ -175,22 +128,16 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       }
     }
 
-    const renderLoading = () => {
-      const spinnerSize = resolveSpinnerSize(loadingSize, sizeTokens.iconSize)
-      const indicatorSize = isNumber(loadingSize) ? spinnerSize : loadingSize
-      const defaultIndicator = (
-        <ActivityIndicator
-          size={indicatorSize}
-          color={resolvedTextColor}
-        />
-      )
-
-      return (
-        <View style={[buttonTokens.layout.iconWrapper, loadingIconWrapperStyle]}>
-          {loadingIndicator ?? defaultIndicator}
-        </View>
-      )
-    }
+    const renderLoading = () => (
+      <View style={[buttonTokens.layout.iconWrapper, { marginRight: iconGap }]}>
+        {loadingIndicator ?? (
+          <ActivityIndicator
+            size={isNumber(loadingSize) ? resolveSpinnerSize(loadingSize, sizeTokens.iconSize) : loadingSize}
+            color={resolvedTextColor}
+          />
+        )}
+      </View>
+    )
 
     const label =
       loading && loadingText !== undefined
@@ -199,7 +146,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
           ? text
           : children
 
-    const sharedLabelTextStyle = {
+    const sharedTextStyle = {
       fontFamily: buttonTokens.typography.fontFamily,
       fontWeight: buttonTokens.typography.fontWeight,
       fontSize: sizeTokens.fontSize,
@@ -208,11 +155,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     }
 
     const renderText = () => {
-      if (label === undefined || label === null) {
-        return null
-      }
-
-      const sharedTextStyle: any = sharedLabelTextStyle
+      if (label == null) return null
 
       if (isText(label)) {
         const content =
@@ -293,7 +236,7 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
       opacity: resolvedOpacity,
     }
     const rippleClipStyle =
-      Platform.OS === 'android' && borderRadius > 0 && !shouldShowShadow
+      Platform.OS === 'android' && borderRadius > 0 && !shadowStyle
         ? { overflow: 'hidden' as const }
         : null
     const baseContainerStyle = [
@@ -312,9 +255,9 @@ export const Button = React.forwardRef<React.ElementRef<typeof Pressable>, Butto
     }
     const defaultRippleColor =
       rippleColorProp ??
-      (isPlain
+      (plain
         ? resolvedTextColor
-        : type === 'default' && !normalizedColor
+        : type === 'default' && !color
           ? withAlpha(resolvedTextColor, 0.15)
           : buttonTokens.colors.ripple)
     const resolvedAndroidRipple =

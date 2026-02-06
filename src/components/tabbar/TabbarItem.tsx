@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
@@ -83,10 +83,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     },
   })
 
-  const shouldRenderBadge = useMemo(
-    () => dot || isRenderable(badge),
-    [badge, dot]
-  )
+  const shouldRenderBadge = dot || isRenderable(badge)
 
   const renderBadge = useCallback(() => {
     if (isRenderable(badge)) {
@@ -102,7 +99,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
     return <Badge dot />
   }, [badge, dot])
 
-  const itemStyle = useMemo(() => ([
+  const itemStyle = [
     styles.item,
     {
       height: tokens.layout.height,
@@ -110,9 +107,9 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
       opacity: disabled ? 0.5 : 1,
     },
     style,
-  ]), [disabled, style, tokens.layout.height, tokens.layout.paddingVertical])
+  ]
 
-  const labelStyle = useMemo(() => ([
+  const labelStyle = [
     styles.label,
     {
       color,
@@ -121,7 +118,7 @@ const TabbarItem: React.FC<TabbarItemProps> = props => {
       lineHeight: context.fontSize,
     },
     textStyle,
-  ]), [color, context.fontSize, context.fontWeight, textStyle])
+  ]
 
   return (
     <Pressable

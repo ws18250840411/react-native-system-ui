@@ -62,15 +62,12 @@ export const Radio = React.memo((props: RadioProps) => {
 
   const inputRef = useRef<View>(null)
   const inputElementRef = useRef<HTMLInputElement | null>(null)
-  const resolvedAccessibilityLabel = useMemo(
-    () =>
-      accessibilityLabel ??
-      ariaLabel ??
-      (isText(children) ? String(children) : undefined) ??
-      serializedValue ??
-      'radio',
-    [accessibilityLabel, ariaLabel, children, serializedValue]
-  )
+  const resolvedAccessibilityLabel =
+    accessibilityLabel ??
+    ariaLabel ??
+    (isText(children) ? String(children) : undefined) ??
+    serializedValue ??
+    'radio'
 
   const { isSelected: standaloneSelected, setSelected: setStandaloneSelected } =
     useToggleState({
@@ -170,22 +167,11 @@ export const Radio = React.memo((props: RadioProps) => {
       : tokens.colors.border
   const backgroundColor = resolvedDisabled ? tokens.colors.disabledBackground : tokens.colors.background
 
-  const spacingStyle = useMemo(
-    () =>
-      resolvedLabelPosition === 'left'
-        ? { marginRight: tokens.spacing.gap }
-        : { marginLeft: tokens.spacing.gap },
-    [resolvedLabelPosition, tokens.spacing.gap]
-  )
-  const labelColor = useMemo(
-    () => (resolvedDisabled ? tokens.colors.labelDisabled : tokens.colors.label),
-    [resolvedDisabled, tokens.colors.label, tokens.colors.labelDisabled]
-  )
-
-  const borderRadius = useMemo(
-    () => (shape === 'square' ? tokens.radii.square : tokens.radii.round),
-    [shape, tokens.radii.round, tokens.radii.square]
-  )
+  const spacingStyle = resolvedLabelPosition === 'left'
+    ? { marginRight: tokens.spacing.gap }
+    : { marginLeft: tokens.spacing.gap }
+  const labelColor = resolvedDisabled ? tokens.colors.labelDisabled : tokens.colors.label
+  const borderRadius = shape === 'square' ? tokens.radii.square : tokens.radii.round
 
   const labelNode = useMemo(() => (
     children === null || children === undefined || children === false ? null : (
@@ -315,9 +301,9 @@ export const Radio = React.memo((props: RadioProps) => {
     </Pressable>
   )
 
-  const left = resolvedLabelPosition === 'left'
-  const first = left ? labelNode : iconNode
-  const second = left ? iconNode : labelNode
+  const isLeft = resolvedLabelPosition === 'left'
+  const first = isLeft ? labelNode : iconNode
+  const second = isLeft ? iconNode : labelNode
 
   if (interactive) {
     return (

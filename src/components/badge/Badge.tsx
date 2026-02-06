@@ -49,11 +49,9 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
   const handleLayout = useCallback(
     (e: LayoutChangeEvent) => {
       const { width, height } = e.nativeEvent.layout
-      if (width !== size.width || height !== size.height) {
-        setSize({ width, height })
-      }
+      setSize(prev => (prev.width === width && prev.height === height ? prev : { width, height }))
     },
-    [size.width, size.height]
+    []
   )
 
   const transformStyle = useMemo(() => {
@@ -105,7 +103,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
     tokens.sizing.paddingVertical,
   ])
 
-  const mergedTextStyle = useMemo(() => ([
+  const mergedTextStyle = [
     tokens.layout.text,
     {
       color: textColor ?? tokens.colors.text,
@@ -115,16 +113,7 @@ export const Badge = React.forwardRef<View, BadgeProps>((props, ref) => {
       fontWeight: tokens.typography.fontWeight,
     },
     userTextStyle,
-  ]), [
-    textColor,
-    tokens.colors.text,
-    tokens.layout.text,
-    tokens.typography.fontFamily,
-    tokens.typography.fontSize,
-    tokens.typography.fontWeight,
-    tokens.typography.lineHeight,
-    userTextStyle,
-  ])
+  ]
 
   const offsetStyle = useMemo(() => {
     if (!offset) return undefined

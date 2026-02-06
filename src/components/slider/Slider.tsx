@@ -625,24 +625,17 @@ export const Slider: React.FC<SliderProps> = props => {
     [leftThumbContent, rightThumbContent, sharedThumb],
   )
 
-  const webGestureStyle: ViewStyle | undefined = useMemo(
-    () =>
-      Platform.OS === 'web'
-        ? ({
-          touchAction: orientation === 'horizontal' ? 'pan-y' : 'pan-x',
-          userSelect: 'none',
-        } as unknown as ViewStyle)
-        : undefined,
-    [orientation]
-  )
-  const baseTrackPressableStyle: StyleProp<ViewStyle> = useMemo(
-    () => [
-      styles.trackPressable,
-      orientation === 'vertical' ? styles.trackPressableVertical : null,
-      webGestureStyle,
-    ],
-    [orientation, webGestureStyle]
-  )
+  const webGestureStyle: ViewStyle | undefined = Platform.OS === 'web'
+    ? ({
+      touchAction: orientation === 'horizontal' ? 'pan-y' : 'pan-x',
+      userSelect: 'none',
+    } as unknown as ViewStyle)
+    : undefined
+  const baseTrackPressableStyle: StyleProp<ViewStyle> = [
+    styles.trackPressable,
+    orientation === 'vertical' ? styles.trackPressableVertical : null,
+    webGestureStyle,
+  ]
   const trackPressableStyleFn = useCallback(
     (pressableState: PressableStateCallbackType): StyleProp<ViewStyle> => [
       baseTrackPressableStyle,
@@ -655,7 +648,7 @@ export const Slider: React.FC<SliderProps> = props => {
       ? trackPressableStyleFn
       : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
 
-  const containerStyles = useMemo(() => ([
+  const containerStyles = [
     styles.container,
     { paddingVertical: tokens.spacing.containerPaddingVertical },
     orientation === 'vertical' && [
@@ -664,15 +657,7 @@ export const Slider: React.FC<SliderProps> = props => {
     ],
     disabled && { opacity: tokens.states.disabledOpacity },
     style,
-  ]), [
-    disabled,
-    orientation,
-    style,
-    tokens.layout.verticalMinHeight,
-    tokens.layout.verticalWidth,
-    tokens.spacing.containerPaddingVertical,
-    tokens.states.disabledOpacity,
-  ])
+  ]
 
   return (
     <View

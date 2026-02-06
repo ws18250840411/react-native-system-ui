@@ -28,14 +28,8 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
 
   const tokens = useSwitchTokens(tokensOverride)
   const disabled = disabledProp ?? tokens.defaults.disabled
-  const activeValue = useMemo(
-    () => (activeValueProp ?? tokens.defaults.activeValue) as V,
-    [activeValueProp, tokens.defaults.activeValue]
-  )
-  const inactiveValue = useMemo(
-    () => (inactiveValueProp ?? tokens.defaults.inactiveValue) as V,
-    [inactiveValueProp, tokens.defaults.inactiveValue]
-  )
+  const activeValue = (activeValueProp ?? tokens.defaults.activeValue) as V
+  const inactiveValue = (inactiveValueProp ?? tokens.defaults.inactiveValue) as V
   const scale = useMemo(() => {
     if (!tokens.defaults.size) return 1
     if (typeof size === 'string') {
@@ -61,14 +55,8 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
 
   const isChecked = Object.is(value, activeValue)
 
-  const resolvedActiveColor = useMemo(
-    () => activeColor ?? tokens.colors.activeTrack,
-    [activeColor, tokens.colors.activeTrack]
-  )
-  const resolvedInactiveColor = useMemo(
-    () => inactiveColor ?? tokens.colors.inactiveTrack,
-    [inactiveColor, tokens.colors.inactiveTrack]
-  )
+  const resolvedActiveColor = activeColor ?? tokens.colors.activeTrack
+  const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactiveTrack
   const handleTouchEnd = useCallback((event: GestureResponderEvent) => {
     if (disabled) return
     onClick?.(event)

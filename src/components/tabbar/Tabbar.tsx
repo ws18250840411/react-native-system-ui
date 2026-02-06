@@ -44,10 +44,7 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     () => React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<TabbarItemProps>[],
     [children]
   )
-  const firstName = useMemo(
-    () => (items.length ? ((items[0].props.name ?? 0) as TabbarValue) : undefined),
-    [items]
-  )
+  const firstName = items.length ? ((items[0].props.name ?? 0) as TabbarValue) : undefined
   const [activeValue, setActiveValue] = useControllableValue<TabbarValue>(props, {
     defaultValue: firstName,
     valuePropName: 'value',
@@ -55,19 +52,12 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     trigger: 'onChange',
   })
 
-  const itemNames = useMemo(
-    () => items.map((item, index) => (item.props.name ?? index) as TabbarValue),
-    [items]
-  )
-  const currentName = useMemo(
-    () =>
-      activeValue === undefined || activeValue === null
-        ? firstName
-        : itemNames.some((name) => name === activeValue)
-          ? activeValue
-          : firstName,
-    [activeValue, firstName, itemNames]
-  )
+  const itemNames = items.map((item, index) => (item.props.name ?? index) as TabbarValue)
+  const currentName = activeValue === undefined || activeValue === null
+    ? firstName
+    : itemNames.some((name) => name === activeValue)
+      ? activeValue
+      : firstName
 
   const [barHeight, setBarHeight] = useState(tokens.layout.height)
   const enablePlaceholder = fixed && placeholder
@@ -120,12 +110,9 @@ const TabbarBase: React.FC<TabbarProps> = props => {
 
   const ContentWrapper = enableSafeAreaInsetBottom ? SafeAreaView : View
 
-  const placeholderStyle = useMemo(() => ({ height: barHeight }), [barHeight])
-  const containerStyle = useMemo(
-    () => [styles.container, fixed && [styles.fixed, { zIndex }], style],
-    [fixed, style, zIndex]
-  )
-  const barStyle = useMemo(() => ([
+  const placeholderStyle = { height: barHeight }
+  const containerStyle = [styles.container, fixed && [styles.fixed, { zIndex }], style]
+  const barStyle = [
     styles.bar,
     {
       backgroundColor: background,
@@ -134,18 +121,8 @@ const TabbarBase: React.FC<TabbarProps> = props => {
     },
     border ? createHairlineBorderTop(tokens.colors.border) : null,
     contentStyle,
-  ]), [
-    background,
-    border,
-    contentStyle,
-    tokens.colors.border,
-    tokens.layout.height,
-    tokens.layout.paddingHorizontal,
-  ])
-  const rowStyle = useMemo(
-    () => [styles.row, { minHeight: tokens.layout.height }],
-    [tokens.layout.height]
-  )
+  ]
+  const rowStyle = [styles.row, { minHeight: tokens.layout.height }]
 
   return (
     <>

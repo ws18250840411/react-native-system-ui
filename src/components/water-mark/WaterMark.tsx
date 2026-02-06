@@ -6,6 +6,13 @@ import type { WaterMarkProps } from './types'
 import { isFiniteNumber, isString } from '../../utils'
 import { useWaterMarkTokens } from './tokens'
 
+const resolveFiniteNumber = (value: unknown, fallback: number) =>
+  isFiniteNumber(value) ? (value as number) : fallback
+const resolveNonNegativeNumber = (value: unknown, fallback: number) =>
+  Math.max(0, resolveFiniteNumber(value, fallback))
+const resolvePositiveNumber = (value: unknown, fallback: number) =>
+  Math.max(1, resolveFiniteNumber(value, fallback))
+
 const WaterMark: React.FC<WaterMarkProps> = props => {
   const {
     content: contentProp,
@@ -28,12 +35,6 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     ...rest
   } = props
   const tokens = useWaterMarkTokens(tokensOverride)
-  const resolveFiniteNumber = (value: unknown, fallback: number) =>
-    isFiniteNumber(value) ? (value as number) : fallback
-  const resolveNonNegativeNumber = (value: unknown, fallback: number) =>
-    Math.max(0, resolveFiniteNumber(value, fallback))
-  const resolvePositiveNumber = (value: unknown, fallback: number) =>
-    Math.max(1, resolveFiniteNumber(value, fallback))
 
   const content = contentProp ?? tokens.defaults.content
   const zIndex = resolveFiniteNumber(zIndexProp, tokens.defaults.zIndex)
@@ -51,17 +52,15 @@ const WaterMark: React.FC<WaterMarkProps> = props => {
     Math.min(1, resolveFiniteNumber(opacity, tokens.defaults.opacity))
   )
 
-  const fontSizeFromFont =
-    isFiniteNumber(font?.size)
-      ? font?.size
-      : isString(font?.size)
-        ? Number.parseFloat(font?.size as string)
-        : undefined
-  const resolvedFontSize = resolveFiniteNumber(
+  const fontSizeFromFont = isFiniteNumber(font?.size)
+    ? font!.size as number
+    : isString(font?.size)
+      ? Number.parseFloat(font!.size as string)
+      : undefined
+  const normalizedFontSize = Math.max(0, resolveFiniteNumber(
     (Number.isFinite(fontSizeFromFont ?? Number.NaN) ? fontSizeFromFont : undefined) ?? fontSize,
     tokens.defaults.fontSize
-  )
-  const normalizedFontSize = Math.max(0, resolvedFontSize)
+  ))
   const resolvedColor = font?.color ?? color ?? tokens.colors.mark
 
   const markWidth = resolvePositiveNumber(image?.width ?? width, tokens.defaults.width)

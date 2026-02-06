@@ -23,5 +23,3 @@ export interface AreaProps
   onChange?: (values: string[], options: (AreaOption | undefined)[]) => void
   onConfirm?: (values: string[], options: (AreaOption | undefined)[]) => void
 }
-
-export type AreaColumnType = 'province' | 'city' | 'county'

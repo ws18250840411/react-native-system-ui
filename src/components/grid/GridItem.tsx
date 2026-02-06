@@ -34,12 +34,12 @@ export const GridItem: React.FC<GridItemProps> = props => {
 
   const { tokens, columnNum, gutter, border, center, square, direction, reverse, clickable, iconSize, iconColor, count } = context
 
-  const widthPercent = useMemo(() => `${100 / columnNum}%` as DimensionValue, [columnNum])
-  const isLastColumn = useMemo(() => (gridItemIndex + 1) % columnNum === 0, [columnNum, gridItemIndex])
-  const rowIndex = useMemo(() => Math.floor(gridItemIndex / columnNum), [columnNum, gridItemIndex])
-  const lastRowIndex = useMemo(() => Math.floor((count - 1) / columnNum), [columnNum, count])
+  const widthPercent = `${100 / columnNum}%` as DimensionValue
+  const isLastColumn = (gridItemIndex + 1) % columnNum === 0
+  const rowIndex = Math.floor(gridItemIndex / columnNum)
+  const lastRowIndex = Math.floor((count - 1) / columnNum)
 
-  const contentWrapperStyle = useMemo(() => ([
+  const contentWrapperStyle = [
     tokens.layout.itemContentBase,
     direction === 'horizontal' ? tokens.layout.itemHorizontal : tokens.layout.itemVertical,
     center && tokens.layout.itemCenter,
@@ -51,29 +51,10 @@ export const GridItem: React.FC<GridItemProps> = props => {
       backgroundColor: tokens.colors.background,
     },
     contentStyle,
-  ]), [
-    center,
-    contentStyle,
-    direction,
-    reverse,
-    square,
-    tokens.colors.background,
-    tokens.layout.itemContentBase,
-    tokens.layout.itemContentSquare,
-    tokens.layout.itemHorizontal,
-    tokens.layout.itemReverseColumn,
-    tokens.layout.itemReverseRow,
-    tokens.layout.itemVertical,
-    tokens.layout.itemCenter,
-    tokens.spacing.paddingHorizontal,
-    tokens.spacing.paddingVertical,
-  ])
+  ]
 
   const hasText = isRenderable(text)
-  const resolvedIconColor = useMemo(
-    () => iconColorProp ?? iconColor ?? tokens.colors.text,
-    [iconColor, iconColorProp, tokens.colors.text]
-  )
+  const resolvedIconColor = iconColorProp ?? iconColor ?? tokens.colors.text
 
   const innerContent = useMemo(() => {
     if (children) return children
@@ -148,43 +129,39 @@ export const GridItem: React.FC<GridItemProps> = props => {
     tokens.typography.lineHeight,
   ])
 
-  const rightBorder = useMemo(() => (
-    border && !gutter && !isLastColumn ? (
-      <View
-        style={[
-          tokens.layout.itemBorderRight,
-          createHairlineView({ position: 'right', color: tokens.colors.border, top: 0, bottom: 0, right: 0 }),
-        ]}
-      />
-    ) : null
-  ), [border, gutter, isLastColumn, tokens.colors.border, tokens.layout.itemBorderRight])
+  const rightBorder = border && !gutter && !isLastColumn ? (
+    <View
+      style={[
+        tokens.layout.itemBorderRight,
+        createHairlineView({ position: 'right', color: tokens.colors.border, top: 0, bottom: 0, right: 0 }),
+      ]}
+    />
+  ) : null
 
-  const bottomBorder = useMemo(() => (
-    border && !gutter && rowIndex < lastRowIndex ? (
-      <View
-        style={[
-          tokens.layout.itemBorderBottom,
-          createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0, bottom: 0 }),
-        ]}
-      />
-    ) : null
-  ), [border, gutter, lastRowIndex, rowIndex, tokens.colors.border, tokens.layout.itemBorderBottom])
+  const bottomBorder = border && !gutter && rowIndex < lastRowIndex ? (
+    <View
+      style={[
+        tokens.layout.itemBorderBottom,
+        createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0, bottom: 0 }),
+      ]}
+    />
+  ) : null
 
-  const content = useMemo(() => (
+  const content = (
     <View style={contentWrapperStyle}>
       {innerContent}
       {rightBorder}
       {bottomBorder}
     </View>
-  ), [bottomBorder, contentWrapperStyle, innerContent, rightBorder])
+  )
 
-  const baseItemStyle: ViewStyle = useMemo(() => ({
+  const baseItemStyle: ViewStyle = {
     width: Platform.OS === 'web' ? undefined : widthPercent,
     flexGrow: 0,
     flexShrink: 0,
     paddingRight: Platform.OS === 'web' ? undefined : (gutter ? gutter : undefined),
     marginTop: Platform.OS === 'web' ? undefined : (gutter && rowIndex > 0 ? gutter : undefined),
-  }), [gutter, rowIndex, widthPercent])
+  }
 
   const isInteractive = clickable || isFunction(onPress)
 

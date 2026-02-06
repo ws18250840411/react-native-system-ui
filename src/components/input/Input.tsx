@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, useRef, useMemo } from 'react'
+import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 import type { TextInputProps } from 'react-native'
 
 import { isBoolean, isFiniteNumber } from '../../utils/validate'
@@ -62,19 +62,14 @@ const InputComponent = React.forwardRef<InputInstance, InputProps>((props, ref) 
   const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
   const resolvedClearTrigger = clearTriggerOverride ?? tokens.defaults.clearTrigger
   const resolvedKeyboardType = keyboardTypeProp ?? mapKeyboardType(type)
-  const fieldStyle = useMemo(() => ([
+  const fieldStyle = [
     {
       paddingHorizontal: tokens.spacing.paddingHorizontal,
       paddingVertical: tokens.spacing.paddingVertical,
       backgroundColor: tokens.colors.background,
     },
     style,
-  ]), [
-    style,
-    tokens.colors.background,
-    tokens.spacing.paddingHorizontal,
-    tokens.spacing.paddingVertical,
-  ])
+  ]
 
   return (
     <Field

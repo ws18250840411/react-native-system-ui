@@ -323,15 +323,12 @@ export const Stepper = React.forwardRef<StepperInstance, StepperProps>((p, ref) 
   const plusDisabled = disabledForAll || disablePlus || (maxNumber !== undefined && currentForCompare >= maxNumber)
   const radius = tokens.radii.default
 
-  const buttonBaseStyle = useMemo(
-    () => ({ width: resolvedButtonSize, height: resolvedButtonSize }),
-    [resolvedButtonSize]
-  )
-  const inputBoxStyle = useMemo(() => ({
+  const buttonBaseStyle = { width: resolvedButtonSize, height: resolvedButtonSize }
+  const inputBoxStyle = {
     width: resolvedInputWidth,
     height: resolvedButtonSize,
     marginHorizontal: tokens.spacing.gap,
-  }), [resolvedButtonSize, resolvedInputWidth, tokens.spacing.gap])
+  }
 
   const getButtonStyle = useCallback((type: 'plus' | 'minus', state: PressableStateCallbackType) => {
     const isPlus = type === 'plus'

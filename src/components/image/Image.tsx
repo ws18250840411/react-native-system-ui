@@ -207,24 +207,15 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
   )
 
   const uri = useMemo(() => resolveSourceUri(actualSource), [actualSource])
-  const normalizedUri = useMemo(() => (isString(uri) ? uri.toLowerCase() : undefined), [uri])
-  const isSvg = useMemo(
-    () => !!normalizedUri && (
-      normalizedUri.endsWith('.svg') ||
-      normalizedUri.includes('.svg?') ||
-      normalizedUri.includes('/svg?')
-    ),
-    [normalizedUri]
+  const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
+  const isSvg = !!normalizedUri && (
+    normalizedUri.endsWith('.svg') ||
+    normalizedUri.includes('.svg?') ||
+    normalizedUri.includes('/svg?')
   )
 
-  const resolvedLoadingSize = useMemo(
-    () => (isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize),
-    [loadingSize, tokens.defaults.loadingIndicatorBaseSize]
-  )
-  const resolvedErrorIconSize = useMemo(
-    () => iconSizeProp ?? tokens.defaults.iconSize,
-    [iconSizeProp, tokens.defaults.iconSize]
-  )
+  const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize
+  const resolvedErrorIconSize = iconSizeProp ?? tokens.defaults.iconSize
   const containerRole = onPress ? 'button' : undefined
   const pressableProps: Pick<PressableProps, 'onPress'> | null = onPress ? { onPress } : null
 
@@ -240,7 +231,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     return marginTop ? <View style={{ marginTop }}>{node}</View> : node
   }
 
-  const containerStyles: StyleProp<ViewStyle> = useMemo(() => ([
+  const containerStyles: StyleProp<ViewStyle> = [
     tokens.layout.container,
     {
       width: width as ViewStyle['width'],
@@ -250,17 +241,7 @@ const Image = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>((pr
     round ? { borderRadius: tokens.defaults.roundRadius } : isNumber(radius) ? { borderRadius: radius } : undefined,
     containerStyle,
     containerLayoutStyle,
-  ]), [
-    containerLayoutStyle,
-    containerStyle,
-    height,
-    radius,
-    round,
-    tokens.colors.background,
-    tokens.defaults.roundRadius,
-    tokens.layout.container,
-    width,
-  ])
+  ]
 
   const imageAccessibilityLabel = !onPress ? resolvedAccessibilityLabel : undefined
 

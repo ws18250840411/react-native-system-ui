@@ -2,6 +2,8 @@ import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
 import type { BadgeTokens } from './types'
 
+const centered = { alignItems: 'center', justifyContent: 'center' } as const
+
 const createBadgeTokens = ({
   palette,
   spacing,
@@ -25,15 +27,13 @@ const createBadgeTokens = ({
       position: 'absolute',
       top: 0,
       right: 0,
-      alignItems: 'center',
-      justifyContent: 'center',
+      ...centered,
       zIndex: 1,
     },
     badgeStandalone: {
       alignSelf: 'flex-start',
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      ...centered,
     },
     pressableStandalone: {
       alignSelf: 'flex-start',
@@ -44,10 +44,6 @@ const createBadgeTokens = ({
       includeFontPadding: false,
       textAlignVertical: 'center',
     },
-      icon: {
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
   },
   colors: {
     background: palette.danger[500],

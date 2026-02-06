@@ -122,18 +122,15 @@ export const NoticeBar: React.FC<NoticeBarProps> = props => {
     extraProps: onPress ? { accessibilityRole: 'button' } : undefined,
   })
 
-  const rightNode = useMemo(
-    () => mode === 'closeable'
-      ? (
-        <Pressable hitSlop={8} {...closePress.interactionProps}>
-          <Close size={16} fill={resolvedColor} color={resolvedColor} />
-        </Pressable>
-      )
-      : mode === 'link'
-        ? <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
-        : rightIcon || null,
-    [closePress.interactionProps, mode, resolvedColor, rightIcon]
-  )
+  const rightNode = mode === 'closeable'
+    ? (
+      <Pressable hitSlop={8} {...closePress.interactionProps}>
+        <Close size={16} fill={resolvedColor} color={resolvedColor} />
+      </Pressable>
+    )
+    : mode === 'link'
+      ? <Arrow size={16} fill={resolvedColor} color={resolvedColor} />
+      : rightIcon || null
   const hasLeft = isRenderable(leftIcon)
   const hasRight = Boolean(rightNode)
 

@@ -300,12 +300,9 @@ const Calendar: React.FC<CalendarProps> = props => {
     [value]
   )
   const selectedSet = useMemo(() => new Set(valueTimes), [valueTimes])
-  const rangeBounds = useMemo(
-    () => (type === 'range' && valueTimes.length === 2
-      ? [valueTimes[0], valueTimes[1]]
-      : null),
-    [type, valueTimes]
-  )
+  const rangeBounds = type === 'range' && valueTimes.length === 2
+    ? [valueTimes[0], valueTimes[1]]
+    : null
 
   const renderDay = useCallback((meta: { day: Date; key: string; timeValue: number; dateValue: number } | null, index: number) => {
     if (!meta) {

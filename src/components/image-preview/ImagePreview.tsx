@@ -139,10 +139,8 @@ const ImagePreview = React.forwardRef<ImagePreviewRef, ImagePreviewProps>((props
 
   const handlePopupBeforeClose = useCallback(
     async (reason: 'close-icon' | 'overlay' | 'close') => {
-      const mapped: ImagePreviewCloseReason =
-        reason === 'close-icon' ? 'close-icon' : reason === 'overlay' ? 'overlay' : 'close'
-      popupCloseReason.current = mapped
-      return runBeforeClose(mapped)
+      popupCloseReason.current = reason
+      return runBeforeClose(reason)
     },
     [runBeforeClose],
   )

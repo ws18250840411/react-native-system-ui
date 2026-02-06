@@ -32,7 +32,6 @@ export interface CollapseProps extends ViewProps {
 }
 
 export interface CollapsePanelProps extends ViewProps {
-  
   index?: number
   name?: string
   title?: React.ReactNode
@@ -126,29 +125,17 @@ export const Collapse = ((props: CollapseProps) => {
   const toggle = useCallback(
     (name: string, expand?: boolean) => {
       if (disabled) return
-      const current = activeKeys
-      const exists = current.includes(name)
+      const exists = activeKeys.includes(name)
+      const shouldExpand = expand ?? !exists
       let next: string[]
       if (accordion) {
-        if (expand === true) {
-          next = exists ? current : [name]
-        } else if (expand === false) {
-          next = exists ? [] : current
-        } else {
-          next = exists ? [] : [name]
-        }
+        next = shouldExpand ? [name] : exists ? [] : activeKeys
       } else {
-        if (expand === true) {
-          next = exists ? current : [...current, name]
-        } else if (expand === false) {
-          next = exists ? current.filter(item => item !== name) : current
-        } else {
-          next = exists ? current.filter(item => item !== name) : [...current, name]
-        }
+        next = shouldExpand
+          ? (exists ? activeKeys : [...activeKeys, name])
+          : (exists ? activeKeys.filter(item => item !== name) : activeKeys)
       }
-      if (!controlled) {
-        setInternalValue(next)
-      }
+      if (!controlled) setInternalValue(next)
       onChange?.(buildOutputValue(next, accordion))
     },
     [accordion, activeKeys, controlled, disabled, onChange],
@@ -278,11 +265,9 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   )
 
   const handleContentLayout = useCallback((event: LayoutChangeEvent) => {
-    const nextHeight = event.nativeEvent.layout.height
-    if (isNumber(nextHeight) && Number.isFinite(nextHeight) && nextHeight !== contentHeight) {
-      setContentHeight(nextHeight)
-    }
-  }, [contentHeight])
+    const h = event.nativeEvent.layout.height
+    if (isNumber(h) && Number.isFinite(h)) setContentHeight(prev => prev === h ? prev : h)
+  }, [])
 
   const animatedStyle = useMemo(() => ({
     height: animation.interpolate({

@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
+import React, { useCallback, useImperativeHandle, useRef } from 'react'
 import {
   Pressable,
   StyleSheet,
@@ -48,7 +48,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const [value, triggerChange] = useControllableValue<string>(props, { defaultValue: '' })
 
   const inputValue = value ?? ''
-  const resolvedInputAlign = useMemo(() => align ?? inputAlign, [align, inputAlign])
+  const resolvedInputAlign = align ?? inputAlign
 
   const handleChange = useCallback(
     (next: string) => {
@@ -73,33 +73,14 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     [inputValue, onSearch, onSubmitEditing],
   )
 
-  const resolvedBackground = useMemo(
-    () => background ?? tokens.colors.background,
-    [background, tokens.colors.background]
-  )
-  const resolvedLeftIcon = useMemo(
-    () =>
-      leftIcon ?? <SearchIcon size={tokens.icon.size} fill={tokens.colors.icon} color={tokens.colors.icon} />,
-    [leftIcon, tokens.colors.icon, tokens.icon.size]
-  )
-  const resolvedClearTrigger = useMemo(
-    () => clearTrigger ?? tokens.defaults.clearTrigger,
-    [clearTrigger, tokens.defaults.clearTrigger]
-  )
-  const resolvedReturnKeyType = useMemo(
-    () => returnKeyType ?? 'search',
-    [returnKeyType]
-  )
-  const shouldShowAction = useMemo(() => !!action || showAction, [action, showAction])
-  const isCustomActionText = useMemo(() => React.isValidElement(actionText), [actionText])
-  const shouldRenderCancelAction = useMemo(
-    () => shouldShowAction && !action && !isCustomActionText,
-    [action, isCustomActionText, shouldShowAction]
-  )
-  const radius = useMemo(
-    () => (shape === 'round' ? tokens.radius.round : tokens.radius.square),
-    [shape, tokens.radius.round, tokens.radius.square]
-  )
+  const resolvedBackground = background ?? tokens.colors.background
+  const resolvedLeftIcon = leftIcon ?? <SearchIcon size={tokens.icon.size} fill={tokens.colors.icon} color={tokens.colors.icon} />
+  const resolvedClearTrigger = clearTrigger ?? tokens.defaults.clearTrigger
+  const resolvedReturnKeyType = returnKeyType ?? 'search'
+  const shouldShowAction = !!action || showAction
+  const isCustomActionText = React.isValidElement(actionText)
+  const shouldRenderCancelAction = shouldShowAction && !action && !isCustomActionText
+  const radius = shape === 'round' ? tokens.radius.round : tokens.radius.square
 
   const inputRef = useRef<FieldInstance>(null)
   useImperativeHandle(
@@ -121,7 +102,7 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
     },
   })
 
-  const containerStyles = useMemo(() => ([
+  const containerStyles = [
     styles.container,
     {
       paddingHorizontal: tokens.spacing.paddingHorizontal,
@@ -129,14 +110,9 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
       backgroundColor: resolvedBackground,
     },
     containerStyle,
-  ]), [
-    containerStyle,
-    resolvedBackground,
-    tokens.spacing.paddingHorizontal,
-    tokens.spacing.paddingVertical,
-  ])
+  ]
 
-  const contentStyles = useMemo(() => ([
+  const contentStyles = [
     styles.content,
     {
       borderRadius: radius,
@@ -144,35 +120,22 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
       paddingVertical: tokens.spacing.contentPaddingVertical,
       backgroundColor: tokens.colors.contentBackground,
     },
-  ]), [
-    radius,
-    tokens.colors.contentBackground,
-    tokens.spacing.contentPaddingHorizontal,
-    tokens.spacing.contentPaddingVertical,
-  ])
+  ]
 
-  const labelNode = useMemo(() => (
-    !label ? null : isText(label) ? (
-      <Text
-        style={{
-          marginRight: tokens.spacing.labelGap,
-          color: tokens.colors.label,
-          fontSize: tokens.typography.label,
-          fontWeight: tokens.typography.labelWeight,
-        }}
-      >
-        {label}
-      </Text>
-    ) : (
-      <View style={{ marginRight: tokens.spacing.labelGap }}>{label}</View>
-    )
-  ), [
-    label,
-    tokens.colors.label,
-    tokens.spacing.labelGap,
-    tokens.typography.label,
-    tokens.typography.labelWeight,
-  ])
+  const labelNode = !label ? null : isText(label) ? (
+    <Text
+      style={{
+        marginRight: tokens.spacing.labelGap,
+        color: tokens.colors.label,
+        fontSize: tokens.typography.label,
+        fontWeight: tokens.typography.labelWeight,
+      }}
+    >
+      {label}
+    </Text>
+  ) : (
+    <View style={{ marginRight: tokens.spacing.labelGap }}>{label}</View>
+  )
 
   const actionNode = action ? (
     <View style={[styles.actionWrapper, { marginLeft: tokens.spacing.actionGap }]}>

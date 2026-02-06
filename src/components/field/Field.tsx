@@ -309,7 +309,7 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   const rows = rowsProp ?? tokens.defaults.rows
   const formatTrigger = formatTriggerProp ?? tokens.defaults.formatTrigger
 
-  const mergedTitleStyle = useMemo(() => ([
+  const mergedTitleStyle = [
     {
       width: labelWidth,
       minWidth: labelWidth,
@@ -320,14 +320,11 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       flexGrow: 0,
     },
     titleStyle,
-  ]), [labelWidth, titleStyle, tokens.spacing.labelGap])
+  ]
 
-  const resolvedSuffix = useMemo(() => suffixProp ?? button, [button, suffixProp])
-  const resolvedDescription = useMemo(() => intro ?? description, [description, intro])
-  const resolvedPlaceholderColor = useMemo(
-    () => placeholderTextColor ?? (disabled ? tokens.colors.disabled : tokens.colors.placeholder),
-    [disabled, placeholderTextColor, tokens.colors.disabled, tokens.colors.placeholder]
-  )
+  const resolvedSuffix = suffixProp ?? button
+  const resolvedDescription = intro ?? description
+  const resolvedPlaceholderColor = placeholderTextColor ?? (disabled ? tokens.colors.disabled : tokens.colors.placeholder)
 
   const isTextarea = type === 'textarea'
   const isControlled = valueProp !== undefined
@@ -348,26 +345,17 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
   }, [errorId, errorMessage, introId, resolvedDescription])
 
   const lineHeight = tokens.defaults.textareaLineHeight
-  const autoSizeConfig = useMemo(
-    () => (autoSize && isObject(autoSize) ? autoSize : undefined),
-    [autoSize]
-  )
-  const minRows = useMemo(
-    () => (!isTextarea
-      ? 1
-      : autoSizeConfig && isDef(autoSizeConfig.minRows)
-        ? Math.max(1, autoSizeConfig.minRows!)
-        : Math.max(1, rows)),
-    [autoSizeConfig, isTextarea, rows]
-  )
-  const maxRows = useMemo(
-    () => (!isTextarea
-      ? undefined
-      : autoSizeConfig && isDef(autoSizeConfig.maxRows)
-        ? Math.max(1, autoSizeConfig.maxRows!)
-        : undefined),
-    [autoSizeConfig, isTextarea]
-  )
+  const autoSizeConfig = autoSize && isObject(autoSize) ? autoSize : undefined
+  const minRows = !isTextarea
+    ? 1
+    : autoSizeConfig && isDef(autoSizeConfig.minRows)
+      ? Math.max(1, autoSizeConfig.minRows!)
+      : Math.max(1, rows)
+  const maxRows = !isTextarea
+    ? undefined
+    : autoSizeConfig && isDef(autoSizeConfig.maxRows)
+      ? Math.max(1, autoSizeConfig.maxRows!)
+      : undefined
 
   const minHeight = useMemo(
     () => (isTextarea
@@ -529,14 +517,13 @@ export const Field = React.forwardRef<FieldInstance, FieldProps>((props, ref) =>
       />
     )
 
-
-  const contentWrapperStyle = useMemo(() => ([
+  const contentWrapperStyle = [
     {
       width: '100%' as const,
       justifyContent: alignMap[controlAlign],
     },
     contentStyle,
-  ]), [contentStyle, controlAlign])
+  ]
 
   const renderAffix = (node: React.ReactNode) => {
     if (isText(node)) {

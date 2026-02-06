@@ -8,18 +8,14 @@ import type { AvatarFallbackTextProps, AvatarImageProps, AvatarProps } from './t
 
 export const AvatarFallbackText = React.forwardRef<Text, AvatarFallbackTextProps>(({ children, color, style }, ref) => {
   const tokens = useAvatarTokens()
-  const resolvedStyle = StyleSheet.flatten([
-    tokens.layout.text,
-    {
-      color: color ?? tokens.colors.text,
-      fontWeight: tokens.typography.fontWeight,
-    },
-    style,
-  ])
   return (
     <Text
       ref={ref}
-      style={resolvedStyle}
+      style={StyleSheet.flatten([
+        tokens.layout.text,
+        { color: color ?? tokens.colors.text, fontWeight: tokens.typography.fontWeight },
+        style,
+      ])}
       numberOfLines={1}
     >
       {children}
@@ -80,7 +76,6 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       : Math.max(tokens.radii.squareMin, Math.min(avatarWidth, avatarHeight) / tokens.radii.squareDivisor)
 
     const transparentContainerStyle = { backgroundColor: tokens.colors.transparent } as const
-    const fallbackText = text ? text.trim().slice(0, 2).toUpperCase() : undefined
     const fallbackContent = icon ? (
       <View
         style={[
@@ -94,17 +89,15 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof Pressable>, Avata
       >
         {icon}
       </View>
-    ) : fallbackText && (
+    ) : text && (
       <AvatarFallbackText
         color={color}
         style={[
-          {
-            fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale,
-          },
+          { fontSize: Math.min(avatarWidth, avatarHeight) * tokens.typography.fallbackTextScale },
           textStyle,
         ]}
       >
-        {fallbackText}
+        {text.trim().slice(0, 2).toUpperCase()}
       </AvatarFallbackText>
     )
 

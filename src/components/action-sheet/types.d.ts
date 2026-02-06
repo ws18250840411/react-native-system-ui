@@ -16,7 +16,6 @@ export interface ActionSheetAction {
   icon?: React.ReactNode
   style?: StyleProp<ViewStyle>
   onPress?: (action: ActionSheetAction) => void
-  
   callback?: (action: ActionSheetAction) => void
 }
 
@@ -83,14 +82,11 @@ export interface ActionSheetProps extends Omit<PopupProps, 'children'> {
   description?: React.ReactNode
   cancelText?: React.ReactNode
   actions?: ActionSheetAction[]
-  
   closeOnClickAction?: boolean
-  
   closeOnSelect?: boolean
   children?: React.ReactNode
   onSelect?: (action: ActionSheetAction, index: number) => void
   onCancel?: () => void
-  
   beforeClose?: (action: ActionSheetCloseAction) => boolean | Promise<boolean>
   tokensOverride?: DeepPartial<ActionSheetTokens>
 }

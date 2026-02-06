@@ -4,15 +4,24 @@ import Picker from '../picker'
 import type { PickerOption, PickerValue } from '../picker/types'
 import type { AreaProps, AreaOption } from './types'
 
-const compareCode = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
-
 const sortEntries = (records?: Record<string, string>) => {
   if (!records) return []
-  return Object.entries(records).sort(([a], [b]) => compareCode(a, b))
+  return Object.entries(records).sort(([a], [b]) => a.localeCompare(b))
 }
 
 const getProvinceCode = (code: string) => code.slice(0, 2)
 const getCityCode = (code: string) => code.slice(0, 4)
+
+const groupBy = (list: Record<string, string> | undefined, getKey: (code: string) => string) => {
+  const map = new Map<string, AreaOption[]>()
+  sortEntries(list).forEach(([code, name]) => {
+    const key = getKey(code)
+    const arr = map.get(key)
+    if (arr) arr.push({ label: name, value: code })
+    else map.set(key, [{ label: name, value: code }])
+  })
+  return map
+}
 
 const buildAreaColumns = (areaList: { province_list?: Record<string, string>; city_list?: Record<string, string>; county_list?: Record<string, string> }, columnsNum: 1 | 2 | 3 = 3): AreaOption[] => {
   const provinces = sortEntries(areaList.province_list)
@@ -21,30 +30,10 @@ const buildAreaColumns = (areaList: { province_list?: Record<string, string>; ci
     return provinces.map(([code, name]) => ({ label: name, value: code }))
   }
 
-  const citiesByProvince = new Map<string, AreaOption[]>()
-  sortEntries(areaList.city_list).forEach(([code, name]) => {
-    const provinceKey = getProvinceCode(code)
-    const option: AreaOption = { label: name, value: code }
-    const existing = citiesByProvince.get(provinceKey)
-    if (existing) {
-      existing.push(option)
-    } else {
-      citiesByProvince.set(provinceKey, [option])
-    }
-  })
+  const citiesByProvince = groupBy(areaList.city_list, getProvinceCode)
 
   if (columnsNum === 3) {
-    const countiesByCity = new Map<string, AreaOption[]>()
-    sortEntries(areaList.county_list).forEach(([code, name]) => {
-      const cityKey = getCityCode(code)
-      const option: AreaOption = { label: name, value: code }
-      const existing = countiesByCity.get(cityKey)
-      if (existing) {
-        existing.push(option)
-      } else {
-        countiesByCity.set(cityKey, [option])
-      }
-    })
+    const countiesByCity = groupBy(areaList.county_list, getCityCode)
 
     citiesByProvince.forEach(cityOptions => {
       cityOptions.forEach(cityOption => {
@@ -101,7 +90,7 @@ const Area: React.FC<AreaProps> = props => {
   } = props
 
   const resolvedColumnsNum = useMemo(
-    () => (columnsNum === 1 || columnsNum === 2 || columnsNum === 3 ? columnsNum : 3),
+    () => (columnsNum >= 1 && columnsNum <= 3 ? columnsNum : 3),
     [columnsNum]
   )
   const { province_list, city_list, county_list } = areaList
@@ -110,32 +99,18 @@ const Area: React.FC<AreaProps> = props => {
     [city_list, county_list, province_list, resolvedColumnsNum]
   )
 
-  const normalizedValue = useMemo(
-    () =>
-      value === undefined ? undefined : normalizeCascadeValue(columns as PickerOption[], value, resolvedColumnsNum),
-    [columns, resolvedColumnsNum, value]
+  const normalize = useCallback(
+    (val?: string[]) => val === undefined ? undefined : normalizeCascadeValue(columns as PickerOption[], val, resolvedColumnsNum),
+    [columns, resolvedColumnsNum]
   )
 
-  const normalizedDefaultValue = useMemo(
-    () =>
-      defaultValue === undefined
-        ? undefined
-        : normalizeCascadeValue(columns as PickerOption[], defaultValue, resolvedColumnsNum),
-    [columns, defaultValue, resolvedColumnsNum]
-  )
+  const normalizedValue = useMemo(() => normalize(value), [normalize, value])
+  const normalizedDefaultValue = useMemo(() => normalize(defaultValue), [normalize, defaultValue])
 
-  const handleChange = useCallback(
-    (values: PickerValue[], options: (PickerOption | undefined)[]) => {
-      onChange?.(values.map(String), options as (AreaOption | undefined)[])
-    },
-    [onChange]
-  )
-
-  const handleConfirm = useCallback(
-    (values: PickerValue[], options: (PickerOption | undefined)[]) => {
-      onConfirm?.(values.map(String), options as (AreaOption | undefined)[])
-    },
-    [onConfirm]
+  const wrapHandler = useCallback(
+    (cb?: (values: string[], options: (AreaOption | undefined)[]) => void) =>
+      cb ? (values: PickerValue[], options: (PickerOption | undefined)[]) => cb(values.map(String), options as (AreaOption | undefined)[]) : undefined,
+    []
   )
 
   return (
@@ -145,8 +120,8 @@ const Area: React.FC<AreaProps> = props => {
       interactionMode={interactionMode}
       value={normalizedValue}
       defaultValue={normalizedDefaultValue}
-      onChange={onChange ? handleChange : undefined}
-      onConfirm={onConfirm ? handleConfirm : undefined}
+      onChange={wrapHandler(onChange)}
+      onConfirm={wrapHandler(onConfirm)}
     />
   )
 }

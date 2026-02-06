@@ -58,22 +58,12 @@ export const CellGroup: React.FC<CellGroupProps> = ({
     ]
   )
 
-  const bodyContainerStyle = useMemo(() => ([
+  const bodyContainerStyle = [
     { backgroundColor: tokens.colors.groupBodyBackground },
     showInset ? insetStyle : null,
     resolvedCard ? tokens.layout.groupCardShadow : null,
     bodyStyle,
-  ]), [
-    bodyStyle,
-    resolvedCard,
-    showInset,
-    tokens.colors.background,
-    tokens.colors.groupBodyBackground,
-    tokens.layout.groupCardShadow,
-    tokens.radii.groupInset,
-    tokens.sizing.groupInsetMarginHorizontal,
-    insetStyle,
-  ])
+  ]
 
   const renderedTitle = useMemo(
     () => (title ? (
@@ -128,26 +118,19 @@ export const CellGroup: React.FC<CellGroupProps> = ({
         {renderedChildren}
           {showOuterBorder ? (
             <>
-              <View
-                style={createHairlineView({
-                  position: 'top',
-                  color: tokens.colors.border,
-                  left: 0,
-                  right: 0,
-                  enabled: tokens.borders.width > 0,
-                  width: tokens.borders.width,
-                })}
-              />
-              <View
-                style={createHairlineView({
-                  position: 'bottom',
-                  color: tokens.colors.border,
-                  left: 0,
-                  right: 0,
-                  enabled: tokens.borders.width > 0,
-                  width: tokens.borders.width,
-                })}
-              />
+              {(['top', 'bottom'] as const).map(pos => (
+                <View
+                  key={pos}
+                  style={createHairlineView({
+                    position: pos,
+                    color: tokens.colors.border,
+                    left: 0,
+                    right: 0,
+                    enabled: tokens.borders.width > 0,
+                    width: tokens.borders.width,
+                  })}
+                />
+              ))}
             </>
           ) : null}
         </View>

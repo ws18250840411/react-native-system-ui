@@ -85,7 +85,7 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   }, [children])
 
   const usingData = Array.isArray(data)
-  const baseItems = useMemo(() => (usingData ? data! : childItems), [usingData, data, childItems])
+  const baseItems = usingData ? data! : childItems
   const count = baseItems.length
   const shouldLoop = loop && count > 1
 
@@ -149,7 +149,6 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     } catch {
     }
   }, [])
-
 
   const swipeTo = useCallback((index: number, animated = true) => {
     if (count === 0) return

@@ -60,19 +60,13 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
   const rowWidth = rowWidthProp ?? tokens.defaults.rowWidth
   const round = roundProp ?? false
 
-  const speed = useMemo(() => {
-    if (isFiniteNumber(speedProp)) return Math.max(0.01, speedProp)
-    if (isString(speedProp)) {
-      const parsed = Number(speedProp)
-      return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
-    }
-    return 1
-  }, [speedProp])
+  const speed = isFiniteNumber(speedProp)
+    ? Math.max(0.01, speedProp)
+    : isString(speedProp) && Number.isFinite(Number(speedProp)) && Number(speedProp) > 0
+      ? Number(speedProp)
+      : 1
 
-  const duration = useMemo(
-    () => Math.max(0, tokens.animation.duration / speed),
-    [speed, tokens.animation.duration]
-  )
+  const duration = Math.max(0, tokens.animation.duration / speed)
 
   const blockColor = startColor ?? tokens.colors.block
 
@@ -133,10 +127,7 @@ const Skeleton = React.forwardRef<View, SkeletonProps>((props, ref) => {
     [animate, animated, loading, tokens.animation.maxOpacity, tokens.animation.minOpacity]
   )
 
-  const containerStyles = useMemo(
-    () => [styles.container, { gap: tokens.spacing.containerGap }, style],
-    [style, tokens.spacing.containerGap]
-  )
+  const containerStyles = [styles.container, { gap: tokens.spacing.containerGap }, style]
 
   const avatarNode = useMemo(() => (!avatar ? null : (
     <Animated.View

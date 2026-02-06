@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AccessibilityInfo,
   Animated,
@@ -42,9 +42,7 @@ export interface ToastProps {
   closeOnClickOverlay?: boolean
   closeOnClick?: boolean
   loadingIndicator?: React.ReactNode
-  
   safeAreaInsetTop?: boolean
-  
   safeAreaInsetBottom?: boolean
   tokensOverride?: DeepPartial<ToastTokens>
   style?: StyleProp<ViewStyle>
@@ -191,13 +189,9 @@ export const ToastContent: React.FC<ToastProps> = props => {
     }
   }, [mounted, onClosed])
 
-  const handleClose = useCallback(() => {
-    onClose?.()
-  }, [onClose])
-
   const toastPress = useAriaPress({
     disabled: !closeOnClick,
-    onPress: handleClose,
+    onPress: onClose,
     extraProps: {
       accessibilityRole: closeOnClick ? 'button' : 'alert',
       accessibilityHint: closeOnClick ? '双击关闭提示' : undefined,
@@ -285,7 +279,7 @@ export const ToastContent: React.FC<ToastProps> = props => {
             overlayStyle,
           ]}
           pointerEvents="auto"
-          onPress={overlay && closeOnClickOverlay ? handleClose : undefined}
+          onPress={overlay && closeOnClickOverlay ? onClose : undefined}
           onStartShouldSetResponder={() => true}
           onMoveShouldSetResponder={() => true}
         />

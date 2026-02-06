@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { Pressable, Text, View } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
@@ -33,14 +33,11 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
 
   const disabled = disabledProp ?? tokens.defaults.disabled
   const isActive = context.activeIndex === index
-  const titleColor = useMemo(
-    () => (disabled
-      ? tokens.colors.disabled
-      : isActive
-        ? tokens.colors.titleActive
-        : tokens.colors.title),
-    [disabled, isActive, tokens.colors.disabled, tokens.colors.title, tokens.colors.titleActive]
-  )
+  const titleColor = disabled
+    ? tokens.colors.disabled
+    : isActive
+      ? tokens.colors.titleActive
+      : tokens.colors.title
 
   const press = useAriaPress({
     disabled,
@@ -55,66 +52,50 @@ const SidebarItem: React.FC<SidebarItemProps> = props => {
     },
   })
 
-  const indicatorStyle = useMemo(() => ([
+  const indicatorStyle = [
     tokens.layout.indicator,
     {
       width: tokens.sizing.indicatorWidth,
       borderRadius: tokens.sizing.indicatorWidth,
       backgroundColor: tokens.colors.indicator,
     },
-  ]), [tokens.colors.indicator, tokens.layout.indicator, tokens.sizing.indicatorWidth])
+  ]
 
-  const titleNode = useMemo(
-    () => (isRenderable(title)
-      ? isText(title)
-        ? (
-          <Text
-            style={[
-              tokens.layout.title,
-              {
-                color: titleColor,
-                fontSize: tokens.typography.fontSize,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              textStyle,
-            ]}
-          >
-            {title}
-          </Text>
-        )
-        : title
-      : null),
-    [
-      textStyle,
-      title,
-      titleColor,
-      tokens.layout.title,
-      tokens.typography.fontSize,
-      tokens.typography.fontWeight,
-    ]
-  )
-
-  const badgeNode = useMemo(
-    () => (isRenderable(badge)
+  const titleNode = isRenderable(title)
+    ? isText(title)
       ? (
-        <View style={[tokens.layout.badge, badgeStyle]}>
-          {isText(badge) ? (
-            <Badge content={badge} />
-          ) : (
-            badge
-          )}
-        </View>
+        <Text
+          style={[
+            tokens.layout.title,
+            {
+              color: titleColor,
+              fontSize: tokens.typography.fontSize,
+              fontWeight: tokens.typography.fontWeight,
+            },
+            textStyle,
+          ]}
+        >
+          {title}
+        </Text>
       )
-      : null),
-    [badge, badgeStyle, tokens.layout.badge]
-  )
+      : title
+    : null
 
-  const dotNode = useMemo(
-    () => (dot ? (
-      <View style={[tokens.layout.dot, { backgroundColor: tokens.colors.indicator }]} />
-    ) : null),
-    [dot, tokens.colors.indicator, tokens.layout.dot]
-  )
+  const badgeNode = isRenderable(badge)
+    ? (
+      <View style={[tokens.layout.badge, badgeStyle]}>
+        {isText(badge) ? (
+          <Badge content={badge} />
+        ) : (
+          badge
+        )}
+      </View>
+    )
+    : null
+
+  const dotNode = dot ? (
+    <View style={[tokens.layout.dot, { backgroundColor: tokens.colors.indicator }]} />
+  ) : null
 
   return (
     <Pressable

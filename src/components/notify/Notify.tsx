@@ -43,7 +43,6 @@ export const NotifyContent: React.FC<NotifyProps> = props => {
   } = props
 
   const tokens = useNotifyTokens(tokensOverride)
-  const paddingVertical = tokens.spacing.paddingVertical
   const safeAreaPadding = useSafeAreaPadding({
     top: 0,
     bottom: 0,
@@ -251,7 +250,7 @@ export const NotifyContent: React.FC<NotifyProps> = props => {
                 tokens.layout.content,
                 {
                   paddingHorizontal: tokens.spacing.paddingHorizontal,
-                  paddingVertical,
+                  paddingVertical: tokens.spacing.paddingVertical,
                   minHeight: tokens.sizing.minHeight,
                 },
               ]}
@@ -292,7 +291,7 @@ export const NotifyContent: React.FC<NotifyProps> = props => {
     interactive,
     message,
     offset,
-    paddingVertical,
+    tokens.spacing.paddingVertical,
     position,
     resolvedBackground,
     resolvedTextColor,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useImperativeHandle, useMemo } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle } from 'react'
 import { Text, View } from 'react-native'
 
 import { useCountDown } from '../../hooks'
@@ -26,7 +26,7 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
   const time = timeProp ?? tokens.defaults.time
   const format = formatProp ?? tokens.defaults.format
 
-  const normalizedTime = useMemo(() => Math.max(0, Number(time) || 0), [time])
+  const normalizedTime = Math.max(0, Number(time) || 0)
 
   const { start, pause, reset, current } = useCountDown({
     time: normalizedTime,
@@ -52,14 +52,8 @@ const CountDown = React.forwardRef<CountDownInstance, CountDownProps>((props, re
   useImperativeHandle(ref, () => ({ start, pause, reset: resetTime }))
 
   const defaultTextStyle = tokens.layout.text
-  const content = useMemo(
-    () => (isFunction(children) ? children(current) : formatDuration(format, current)),
-    [children, current, format]
-  )
-  const contentNode = useMemo(
-    () => (isText(content) ? (<Text style={defaultTextStyle}>{content}</Text>) : (content)),
-    [content, defaultTextStyle]
-  )
+  const content = isFunction(children) ? children(current) : formatDuration(format, current)
+  const contentNode = isText(content) ? <Text style={defaultTextStyle}>{content}</Text> : content
 
   return (
     <View style={style} {...rest}>
