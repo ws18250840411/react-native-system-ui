@@ -11,8 +11,8 @@ import {
 import { Checked, Cross } from "react-native-system-icon"
 
 import { useControllableValue } from "../../hooks"
-import { shallowEqualArray } from "../../utils"
-import { isFunction, isNumber, isRenderable, isText } from "../../utils/validate"
+import { shallowEqualArray, renderTextOrNode } from "../../utils"
+import { isFunction, isNumber, isText } from "../../utils/validate"
 import Popup from "../popup"
 import Tabs from "../tabs"
 import type { TabsValue } from "../tabs"
@@ -210,7 +210,7 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
     (option: CascaderOption, tabIndex: number) => {
       if (option.disabled) return
       const optionValue = option[keys.valueKey]
-      if (optionValue === undefined || optionValue === null) return
+      if (optionValue == null) return
 
       const base = (poppable ? panelValue : cascaderValue).slice(0, tabIndex)
       const nextValue = [...base, optionValue as CascaderValue]
@@ -282,12 +282,7 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
     }
     const swipeableEnabled = !!swipeable
     const resolvedTabsWidth = measuredWidth || windowWidth || undefined
-    const tabBarStyle = {
-      height: tokens.sizing.headerHeight,
-      paddingHorizontal: tokens.spacing.tabNavPaddingHorizontal,
-      paddingVertical: tokens.spacing.tabNavPaddingVertical,
-      backgroundColor: tokens.colors.background,
-    }
+    const tabBarStyle = { height: tokens.sizing.headerHeight, paddingHorizontal: tokens.spacing.tabNavPaddingHorizontal, paddingVertical: tokens.spacing.tabNavPaddingVertical, backgroundColor: tokens.colors.background }
 
     return (
       <View style={tokens.layout.tabsWrapper} onLayout={handleTabsLayout}>
@@ -362,31 +357,8 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
       {...rest}
     >
       {showHeader ? (
-        <View
-          style={[
-            tokens.layout.header,
-            {
-              height: tokens.sizing.headerHeight,
-              paddingHorizontal: tokens.spacing.headerPaddingHorizontal,
-            },
-          ]}
-        >
-          {isText(title) ? (
-            <Text
-              style={[
-                tokens.layout.title,
-                {
-                  color: tokens.colors.headerText,
-                  fontSize: tokens.typography.titleSize,
-                  fontWeight: tokens.typography.titleWeight,
-                },
-              ]}
-            >
-              {title}
-            </Text>
-          ) : (
-            title
-          )}
+        <View style={[tokens.layout.header, { height: tokens.sizing.headerHeight, paddingHorizontal: tokens.spacing.headerPaddingHorizontal }]}>
+          {renderTextOrNode(title, [tokens.layout.title, { color: tokens.colors.headerText, fontSize: tokens.typography.titleSize, fontWeight: tokens.typography.titleWeight }])}
           {resolvedCloseable ? (
             <Pressable
               hitSlop={8}
@@ -543,23 +515,8 @@ const CascaderOptionItem = React.memo(
         ? option.color ?? activeColor
         : baseColor
 
-    const content = optionRender
-      ? optionRender({ option, selected })
-      : isText(label)
-        ? (
-          <Text
-            style={[
-              tokens.layout.optionText,
-              { color: textColor, fontSize: tokens.typography.optionTextSize },
-              selected && { fontWeight: tokens.typography.optionTextActiveWeight },
-            ]}
-          >
-            {label}
-          </Text>
-        )
-        : isRenderable(label)
-          ? (label as React.ReactNode)
-          : null
+    const optionTextStyle = [tokens.layout.optionText, { color: textColor, fontSize: tokens.typography.optionTextSize }, selected ? { fontWeight: tokens.typography.optionTextActiveWeight } : null]
+    const content = optionRender ? optionRender({ option, selected }) : renderTextOrNode(label as React.ReactNode, optionTextStyle as any)
 
     return (
       <Pressable

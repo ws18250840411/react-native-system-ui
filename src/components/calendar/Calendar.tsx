@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, Text, View, type TextStyle } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
-import { isText } from '../../utils/validate'
+import { renderTextOrNode } from '../../utils'
+import { isRenderable, isText } from '../../utils/validate'
 import Popup from '../popup'
 import { useCalendarTokens } from './tokens'
 import type { CalendarProps, CalendarType } from './types'
@@ -157,10 +158,7 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
   })
   const value = normalizeValue(toArrayValue(selectedValue), type)
 
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    const initial = value.length ? value[0] : new Date()
-    return clampMonth(initial, minDate, maxDate)
-  })
+  const [currentMonth, setCurrentMonth] = useState(() => clampMonth(value.length ? value[0] : new Date(), minDate, maxDate))
 
   const firstValueTime = value.length ? value[0].getTime() : null
   const minDateTime = minDate.getTime()
@@ -174,56 +172,23 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
     setCurrentMonth(prev => (isSameMonth(first, prev) ? prev : first))
   }, [firstValueTime, minDateTime, maxDateTime])
 
-  const monthDays = useMemo(
-    () => buildMonth(currentMonth, weekStartsOn),
-    [currentMonth, weekStartsOn]
-  )
+  const monthDays = useMemo(() => buildMonth(currentMonth, weekStartsOn), [currentMonth, weekStartsOn])
 
-  const monthDayMeta = useMemo(
-    () => monthDays.map(day => (
-      day
-        ? {
-          day,
-          key: day.toISOString(),
-          timeValue: startOfDay(day).getTime(),
-          dateValue: day.getDate(),
-        }
-        : null
-    )),
-    [monthDays]
-  )
+  const monthDayMeta = useMemo(() => monthDays.map(day => day ? { day, key: day.toISOString(), timeValue: startOfDay(day).getTime(), dateValue: day.getDate() } : null), [monthDays])
 
   const minDay = startOfDay(minDate).getTime()
   const maxDay = startOfDay(maxDate).getTime()
 
-  const weekLabels = useMemo(
-    () =>
-      reorderWeekdays(
-        weekdays ?? tokens.defaults.weekdays,
-        weekStartsOn,
-        tokens.defaults.weekdays,
-      ),
-    [tokens.defaults.weekdays, weekStartsOn, weekdays]
-  )
+  const weekLabels = useMemo(() => reorderWeekdays(weekdays ?? tokens.defaults.weekdays, weekStartsOn, tokens.defaults.weekdays), [tokens.defaults.weekdays, weekStartsOn, weekdays])
 
-  const monthLabel = useMemo(
-    () => (formatMonthTitle ? formatMonthTitle(currentMonth) : formatMonth(currentMonth)),
-    [currentMonth, formatMonthTitle]
-  )
+  const monthLabel = useMemo(() => (formatMonthTitle ? formatMonthTitle(currentMonth) : formatMonth(currentMonth)), [currentMonth, formatMonthTitle])
 
   const minMonthStart = startOfMonth(minDate)
   const maxMonthStart = startOfMonth(maxDate)
   const canGoPrev = currentMonth.getTime() > minMonthStart.getTime()
   const canGoNext = currentMonth.getTime() < maxMonthStart.getTime()
 
-  const goToMonth = useCallback(
-    (delta: number) => {
-      setCurrentMonth(prev =>
-        clampMonth(new Date(prev.getFullYear(), prev.getMonth() + delta, 1), minDate, maxDate)
-      )
-    },
-    [minDate, maxDate]
-  )
+  const goToMonth = useCallback((delta: number) => setCurrentMonth(prev => clampMonth(new Date(prev.getFullYear(), prev.getMonth() + delta, 1), minDate, maxDate)), [minDate, maxDate])
 
   const goPrev = useCallback(() => goToMonth(-1), [goToMonth])
   const goNext = useCallback(() => goToMonth(1), [goToMonth])
@@ -328,44 +293,22 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
     handleSelectDayRef.current?.(day)
   }, [])
 
-  const valueTimes = useMemo(
-    () => value.map(item => startOfDay(item).getTime()),
-    [value]
-  )
+  const valueTimes = useMemo(() => value.map(item => startOfDay(item).getTime()), [value])
   const selectedSet = useMemo(() => new Set(valueTimes), [valueTimes])
-  const rangeBounds = type === 'range' && valueTimes.length === 2
-    ? [valueTimes[0], valueTimes[1]]
-    : null
+  const rangeBounds = type === 'range' && valueTimes.length === 2 ? [valueTimes[0], valueTimes[1]] : null
 
   const renderDay = useCallback((meta: { day: Date; key: string; timeValue: number; dateValue: number } | null, index: number) => {
     if (!meta) {
       return (
-        <View
-          key={`placeholder-${index}`}
-          style={[
-            tokens.layout.dayPlaceholder,
-            { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding },
-          ]}
-        />
+        <View key={`placeholder-${index}`} style={[tokens.layout.dayPlaceholder, { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding }]} />
       )
     }
     const { day, key, timeValue, dateValue } = meta
     const isDisabled = timeValue < minDay || timeValue > maxDay
     const isSelected = selectedSet.has(timeValue)
-    const inRange =
-      type === 'range' &&
-      rangeBounds &&
-      timeValue > rangeBounds[0] &&
-      timeValue < rangeBounds[1]
+    const inRange = type === 'range' && rangeBounds && timeValue > rangeBounds[0] && timeValue < rangeBounds[1]
 
-    const dayStyle: TextStyle[] = [
-      tokens.layout.dayText,
-      {
-        borderRadius: tokens.radii.day,
-        color: tokens.colors.text,
-        minWidth: tokens.sizing.dayMinWidth,
-      },
-    ]
+    const dayStyle: TextStyle[] = [tokens.layout.dayText, { borderRadius: tokens.radii.day, color: tokens.colors.text, minWidth: tokens.sizing.dayMinWidth }]
 
     if (isDisabled) {
       dayStyle.push({ color: tokens.colors.disabled })
@@ -378,166 +321,39 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
     const a11yLabel = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}${isSelected ? ', selected' : ''}${isDisabled ? ', disabled' : ''}`
 
     return (
-      <Pressable
-        key={key}
-        accessibilityRole="button"
-        accessibilityLabel={a11yLabel}
-        accessibilityState={{ selected: isSelected, disabled: isDisabled }}
-        style={[
-          tokens.layout.dayButton,
-          { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding },
-        ]}
-        disabled={isDisabled}
-        onPress={() => stableDayPress(day)}
-        testID={getCalendarDayTestId(day)}
-      >
+      <Pressable key={key} accessibilityRole="button" accessibilityLabel={a11yLabel} accessibilityState={{ selected: isSelected, disabled: isDisabled }} style={[tokens.layout.dayButton, { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding }]} disabled={isDisabled} onPress={() => stableDayPress(day)} testID={getCalendarDayTestId(day)}>
         <Text style={dayStyle}>{dateValue}</Text>
       </Pressable>
     )
   }, [selectedSet, type, rangeBounds, minDay, maxDay, tokens, color, stableDayPress, columnPadding])
 
   const content = (
-    <View
-      style={[
-        {
-          backgroundColor: tokens.colors.background,
-          padding: tokens.spacing.containerPadding,
-          borderRadius: tokens.radii.container,
-        },
-        style,
-      ]}
-      {...rest}
-    >
+    <View style={[{ backgroundColor: tokens.colors.background, padding: tokens.spacing.containerPadding, borderRadius: tokens.radii.container }, style]} {...rest}>
       {showHeader ? (
         <View style={[tokens.layout.header, { marginBottom: tokens.spacing.headerMarginBottom }]}>
-          <Pressable
-            testID="calendar-nav-prev"
-            accessibilityRole="button"
-            accessibilityLabel="previous month"
-            onPress={goPrev}
-            disabled={!canGoPrev}
-          >
-            <Text
-              style={[
-                tokens.layout.navText,
-                {
-                  fontSize: tokens.sizing.navButtonSize,
-                  paddingHorizontal: tokens.spacing.navPaddingHorizontal,
-                },
-                !canGoPrev && { opacity: 0.3 },
-              ]}
-            >
-              {'<'}
-            </Text>
+          <Pressable testID="calendar-nav-prev" accessibilityRole="button" accessibilityLabel="previous month" onPress={goPrev} disabled={!canGoPrev}>
+            <Text style={[tokens.layout.navText, { fontSize: tokens.sizing.navButtonSize, paddingHorizontal: tokens.spacing.navPaddingHorizontal }, !canGoPrev && { opacity: 0.3 }]}>{'<'}</Text>
           </Pressable>
           <View style={tokens.layout.headerCenter}>
-            {title !== undefined && title !== null && title !== false
-              ? isText(title)
-                ? (
-                  <Text
-                    style={[
-                      tokens.layout.headerTitle,
-                      {
-                        color: tokens.colors.text,
-                        fontSize: tokens.typography.headerTitleSize,
-                        fontWeight: tokens.typography.headerTitleWeight,
-                      },
-                    ]}
-                  >
-                    {title}
-                  </Text>
-                )
-                : title
-              : null}
-            {showSubtitle ? (
-              isText(monthLabel)
-                ? (
-                  <Text
-                    style={[
-                      tokens.layout.headerSubtitle,
-                      {
-                        color: tokens.colors.headerSubtitle,
-                        fontSize: tokens.typography.headerSubtitleSize,
-                      },
-                    ]}
-                  >
-                    {monthLabel}
-                  </Text>
-                )
-                : monthLabel
-            ) : null}
+            {isRenderable(title) ? renderTextOrNode(title, [tokens.layout.headerTitle, { color: tokens.colors.text, fontSize: tokens.typography.headerTitleSize, fontWeight: tokens.typography.headerTitleWeight }]) : null}
+            {showSubtitle ? renderTextOrNode(monthLabel, [tokens.layout.headerSubtitle, { color: tokens.colors.headerSubtitle, fontSize: tokens.typography.headerSubtitleSize }]) : null}
           </View>
-          <Pressable
-            testID="calendar-nav-next"
-            accessibilityRole="button"
-            accessibilityLabel="next month"
-            onPress={goNext}
-            disabled={!canGoNext}
-          >
-            <Text
-              style={[
-                tokens.layout.navText,
-                {
-                  fontSize: tokens.sizing.navButtonSize,
-                  paddingHorizontal: tokens.spacing.navPaddingHorizontal,
-                },
-                !canGoNext && { opacity: 0.3 },
-              ]}
-            >
-              {'>'}
-            </Text>
+          <Pressable testID="calendar-nav-next" accessibilityRole="button" accessibilityLabel="next month" onPress={goNext} disabled={!canGoNext}>
+            <Text style={[tokens.layout.navText, { fontSize: tokens.sizing.navButtonSize, paddingHorizontal: tokens.spacing.navPaddingHorizontal }, !canGoNext && { opacity: 0.3 }]}>{'>'}</Text>
           </Pressable>
         </View>
       ) : null}
       <View style={[tokens.layout.weekRow, { marginBottom: tokens.spacing.weekRowMarginBottom }]}>
-        {weekLabels.map((label, index) => (
-          <View
-            key={`weekday-${index}`}
-            style={[tokens.layout.weekLabelItem, { paddingHorizontal: columnPadding }]}
-          >
-            {isText(label)
-              ? (
-                <Text style={[tokens.layout.weekLabel, { color: tokens.colors.text }]}>
-                  {label}
-                </Text>
-              )
-              : label}
+        {weekLabels.map((label, index) =>
+          <View key={`weekday-${index}`} style={[tokens.layout.weekLabelItem, { paddingHorizontal: columnPadding }]}>
+            {renderTextOrNode(label, [tokens.layout.weekLabel, { color: tokens.colors.text }])}
           </View>
-        ))}
+        )}
       </View>
-      <View style={[tokens.layout.days, { rowGap: tokens.spacing.row }]}>
-        {monthDayMeta.map((meta, index) => renderDay(meta, index))}
-      </View>
+      <View style={[tokens.layout.days, { rowGap: tokens.spacing.row }]}>{monthDayMeta.map((meta, index) => renderDay(meta, index))}</View>
       {showConfirm ? (
-        <Pressable
-          style={[
-            tokens.layout.confirmButton,
-            {
-              backgroundColor: color ?? tokens.colors.selectedBackground,
-              opacity: confirmDisabled ? 0.5 : 1,
-              marginTop: tokens.spacing.confirmMarginTop,
-              paddingVertical: tokens.spacing.confirmPaddingVertical,
-              borderRadius: tokens.radii.confirmButton,
-            },
-          ]}
-          onPress={handleConfirm}
-          disabled={confirmDisabled}
-        >
-          {isText(confirmText)
-            ? (
-              <Text
-                style={[
-                  tokens.layout.confirmText,
-                  {
-                    color: tokens.colors.confirmText,
-                    fontWeight: tokens.typography.confirmTextWeight,
-                  },
-                ]}
-              >
-                {confirmText}
-              </Text>
-            )
-            : confirmText}
+        <Pressable style={[tokens.layout.confirmButton, { backgroundColor: color ?? tokens.colors.selectedBackground, opacity: confirmDisabled ? 0.5 : 1, marginTop: tokens.spacing.confirmMarginTop, paddingVertical: tokens.spacing.confirmPaddingVertical, borderRadius: tokens.radii.confirmButton }]} onPress={handleConfirm} disabled={confirmDisabled}>
+          {renderTextOrNode(confirmText, [tokens.layout.confirmText, { color: tokens.colors.confirmText, fontWeight: tokens.typography.confirmTextWeight }])}
         </Pressable>
       ) : null}
     </View>
@@ -554,16 +370,8 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
       round={popupRound}
       closeOnOverlayPress={resolvedCloseOnOverlayPress}
       overlay={resolvedOverlay}
-      safeAreaInsetTop={
-        popupRestProps?.safeAreaInsetTop !== undefined
-          ? popupRestProps.safeAreaInsetTop
-          : showHeader
-      }
-      safeAreaInsetBottom={
-        popupRestProps?.safeAreaInsetBottom !== undefined
-          ? popupRestProps.safeAreaInsetBottom
-          : popupPlacement === 'bottom'
-      }
+      safeAreaInsetTop={popupRestProps?.safeAreaInsetTop != null ? popupRestProps.safeAreaInsetTop : showHeader}
+      safeAreaInsetBottom={popupRestProps?.safeAreaInsetBottom != null ? popupRestProps.safeAreaInsetBottom : popupPlacement === 'bottom'}
       onOpen={handlePopupOpen}
       onOpened={handlePopupOpened}
       onClose={handlePopupClose}

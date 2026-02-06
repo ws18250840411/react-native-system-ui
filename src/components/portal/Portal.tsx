@@ -23,11 +23,8 @@ const PortalComponentImpl = (
   const content = resolvedOpen ? children : null
 
   useLayoutEffect(() => {
-    if (keyRef.current === null) {
-      keyRef.current = manager.mount(content)
-    } else {
-      manager.update(keyRef.current, content)
-    }
+    if (keyRef.current === null) keyRef.current = manager.mount(content)
+    else manager.update(keyRef.current, content)
   }, [manager, content])
 
   useLayoutEffect(() => () => {

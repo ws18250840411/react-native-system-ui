@@ -5,6 +5,7 @@ import { useControllableValue } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { parseNumberLike } from '../../utils/number'
+import { isRenderable, renderTextOrNode } from '../../utils'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
 import { SafeAreaView } from '../safe-area-view'
@@ -273,13 +274,9 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
               >
                 {isClose && closeButtonLoading ? (
                   <Loading size={18} color={textColor} />
-                ) : typeof contentNode === 'string' || typeof contentNode === 'number' ? (
-                  <Text style={[styles.keyText, { color: textColor, fontSize: textFontSize }]}>
-                    {contentNode}
-                  </Text>
-                ) : contentNode == null || contentNode === false ? null : (
-                  contentNode
-                )}
+                ) : isRenderable(contentNode) ? (
+                  renderTextOrNode(contentNode, [styles.keyText, { color: textColor, fontSize: textFontSize }])
+                ) : null}
               </View>
             )
           }}
@@ -428,9 +425,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
         ))}
       </View>
     )
-    const deleteNode = showDeleteKey
-      ? renderKey({ type: 'delete' }, 999, false, true, doubleKeyHeight)
-      : null
+    const deleteNode = showDeleteKey && renderKey({ type: 'delete' }, 999, false, true, doubleKeyHeight)
     const closeNode = renderKey({ type: 'close' }, 1000, true, true, doubleKeyHeight)
     const headerNode = hasHeader ? (
       <View style={[styles.header, headerPaddingStyle]}>
@@ -444,7 +439,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
         >
           {title}
         </Text>
-        {resolvedCloseText ? (
+        {resolvedCloseText && (
           <Pressable
             onPress={closeSelf}
             style={styles.headerClose}
@@ -453,7 +448,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
           >
             <Text style={{ color: colors.title }}>{resolvedCloseText}</Text>
           </Pressable>
-        ) : null}
+        )}
       </View>
     ) : null
     const bodyNode = isCustomTheme ? (

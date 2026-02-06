@@ -12,7 +12,7 @@ import { Arrow } from 'react-native-system-icon'
 
 import { Cell } from '../cell'
 import type { DeepPartial } from '../../types'
-import { createHairlineView, isFunction, isNumber, isObject, isRenderable, isText } from '../../utils'
+import { createHairlineView, isFunction, isNumber, isObject, isRenderable, renderTextOrNode } from '../../utils'
 import { useCollapseTokens } from './tokens'
 import type { CollapseTokens } from './types'
 
@@ -297,19 +297,11 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
     )
   }, [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotate])
 
-  const contentNode = useMemo(() => (
-    !isText(children) ? children : (
-      <Text
-        style={{
-          color: mergedDisabled ? colors.disabled : colors.description,
-          fontSize: typography.descriptionSize,
-          lineHeight: Math.round(typography.descriptionSize * 1.5),
-        }}
-      >
-        {children}
-      </Text>
-    )
-  ), [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize])
+  const contentNode = useMemo(() => renderTextOrNode(children, {
+    color: mergedDisabled ? colors.disabled : colors.description,
+    fontSize: typography.descriptionSize,
+    lineHeight: Math.round(typography.descriptionSize * 1.5),
+  }), [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize])
 
   const showItemBorder = Boolean(panelBorder)
   const showTopBorder = index > 0 && showItemBorder
@@ -321,11 +313,11 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
       ? showExpandIcon || isRenderable(icon)
         ? (
           <View style={tokens.layout.headerIconRow}>
-            {showExpandIcon ? (
+            {showExpandIcon && (
               <View style={{ marginRight: icon ? tokens.spacing.iconGap : 0 }}>
                 {renderExpandIcon()}
               </View>
-            ) : null}
+            )}
             {icon}
           </View>
         )
@@ -345,9 +337,9 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
       ]}
       {...rest}
     >
-      {showTopBorder ? (
+      {showTopBorder && (
         <Hairline tokens={tokens} position="top" color={colors.border} inset={spacing.paddingHorizontal} />
-      ) : null}
+      )}
       <View style={tokens.layout.headerWrapper}>
         <Cell
           title={title}
@@ -364,9 +356,9 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
           valueStyle={mergedDisabled ? { color: colors.disabled } : undefined}
           rightIcon={headerRightIcon}
         />
-        {showHeaderBottomBorder ? (
+        {showHeaderBottomBorder && (
           <Hairline tokens={tokens} position="bottom" color={colors.border} inset={spacing.paddingHorizontal} />
-        ) : null}
+        )}
       </View>
       <Animated.View style={[tokens.layout.bodyWrapper, animatedStyle]}>
         <View

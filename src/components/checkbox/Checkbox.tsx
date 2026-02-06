@@ -6,7 +6,8 @@ import { useToggleState } from '@react-stately/toggle'
 import type { CheckboxProps } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
-import { isText } from '../../utils'
+import { renderTextOrNode } from '../../utils'
+import { isRenderable, isText } from '../../utils/validate'
 
 const CheckboxImpl = (
   props: CheckboxProps,
@@ -169,29 +170,28 @@ const CheckboxImpl = (
     }
     : {}
 
-  const labelNode =
-    children === null || children === undefined || children === false ? null : isText(children) ? (
-      <Text
-        accessible={false}
-        style={[
-          tokens.layout.label,
-          {
-            color: labelColor,
-            fontSize: tokens.typography.fontSize,
-            lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-            fontFamily: tokens.typography.fontFamily,
-            fontWeight: tokens.typography.fontWeight,
-          },
-          labelStyle,
-        ]}
-      >
-        {children}
-      </Text>
-    ) : (
-      <View accessible={false} style={labelStyle as unknown as StyleProp<ViewStyle>}>
-        {children}
-      </View>
-    )
+  const labelNode = !isRenderable(children) ? null : isText(children) ? (
+    <Text
+      accessible={false}
+      style={[
+        tokens.layout.label,
+        {
+          color: labelColor,
+          fontSize: tokens.typography.fontSize,
+          lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+          fontFamily: tokens.typography.fontFamily,
+          fontWeight: tokens.typography.fontWeight,
+        },
+        labelStyle,
+      ]}
+    >
+      {children}
+    </Text>
+  ) : (
+    <View accessible={false} style={labelStyle as unknown as StyleProp<ViewStyle>}>
+      {children}
+    </View>
+  )
 
   const iconBaseStyle = {
     width: resolvedIconSize,
@@ -228,7 +228,7 @@ const CheckboxImpl = (
 
   const interactive = !resolvedDisabled && !resolvedLabelDisabled
 
-  const labelWrapper = labelNode ? (
+  const labelWrapper = labelNode && (
     <View
       style={[tokens.layout.labelWrapper, spacingStyle]}
       pointerEvents={resolvedLabelDisabled ? 'none' : undefined}
@@ -236,7 +236,7 @@ const CheckboxImpl = (
     >
       {labelNode}
     </View>
-  ) : null
+  )
 
   const iconWrapperStyle = [
     tokens.layout.iconWrapper,

@@ -76,32 +76,12 @@ const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>(
       setEntries([])
     }, [])
 
-    React.useImperativeHandle(ref, () => ({
-      mount,
-      update,
-      unmount,
-      clear,
-    }), [mount, update, unmount, clear])
+    React.useImperativeHandle(ref, () => ({ mount, update, unmount, clear }), [mount, update, unmount, clear])
 
     if (entries.length === 0) return null
-    return (
-      <View
-        pointerEvents="box-none"
-        style={styles.portalLayer}
-        collapsable={false}
-      >
-        {entries.map(entry => (
-          <View
-            key={entry.key}
-            pointerEvents="box-none"
-            collapsable={false}
-            style={styles.portalEntry}
-          >
-            {entry.children}
-          </View>
-        ))}
-      </View>
-    )
+    return <View pointerEvents="box-none" style={styles.portalLayer} collapsable={false}>
+      {entries.map(entry => <View key={entry.key} pointerEvents="box-none" collapsable={false} style={styles.portalEntry}>{entry.children}</View>)}
+    </View>
   }
 )
 
@@ -222,35 +202,22 @@ const PortalHostImpl: React.FC<PortalHostProps> = ({ children }) => {
     }
   }, [enqueueOrRun])
 
-  return (
-    <PortalContext.Provider value={scopedManager}>
-      <View style={styles.host} collapsable={false}>
-        <View style={styles.root} collapsable={false} pointerEvents="box-none">
-          {children}
-        </View>
-        <PortalManagerView ref={handleManagerRef} />
-      </View>
-    </PortalContext.Provider>
-  )
+  return <PortalContext.Provider value={scopedManager}>
+    <View style={styles.host} collapsable={false}>
+      <View style={styles.root} collapsable={false} pointerEvents="box-none">{children}</View>
+      <PortalManagerView ref={handleManagerRef} />
+    </View>
+  </PortalContext.Provider>
 }
 
 export const PortalHost = React.memo(PortalHostImpl)
 PortalHost.displayName = 'PortalHost'
 
 const styles = StyleSheet.create({
-  host: {
-    position: 'relative',
-    flex: 1,
-  },
-  root: {
-    flex: 1,
-  },
-  portalLayer: IS_WEB
-    ? { position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
-    : { ...StyleSheet.absoluteFillObject },
-  portalEntry: {
-    ...StyleSheet.absoluteFillObject,
-  },
+  host: { position: 'relative', flex: 1 },
+  root: { flex: 1 },
+  portalLayer: IS_WEB ? { position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 } : { ...StyleSheet.absoluteFillObject },
+  portalEntry: { ...StyleSheet.absoluteFillObject },
 })
 
 export const portalManager = globalManager

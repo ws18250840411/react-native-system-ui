@@ -10,7 +10,7 @@ import {
 import { withAlpha } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { ensureSpace } from '../../utils/string'
-import { isFiniteNumber, isFunction, isString, isText } from '../../utils/validate'
+import { isFiniteNumber, isFunction, isString, renderTextOrNode } from '../../utils'
 import { useAriaPress } from '../../hooks'
 import type {
   ButtonProps,
@@ -172,7 +172,7 @@ const ButtonImpl = (
 
   const renderLabel = () => {
     if (label == null) return null
-    if (isText(label)) {
+    if (typeof label === 'string' || typeof label === 'number') {
       return (
         <Text
           style={[tokens.layout.text, sharedTextStyle, textStyle]}
@@ -188,7 +188,7 @@ const ButtonImpl = (
   }
 
   const resolvedAccessibilityLabel =
-    accessibilityLabel ?? (isText(label) ? String(label) : undefined)
+    accessibilityLabel ?? (typeof label === 'string' || typeof label === 'number' ? String(label) : undefined)
 
   const mergedAccessibilityState = useMemo(() => ({
     ...accessibilityState,

@@ -4,7 +4,7 @@ import { Pressable, Text, View, type ViewStyle } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
 import { resolveGapInput, useSpaceTokens } from './tokens'
-import { parseNumberLike, isFiniteNumber, isFunction, isRenderable, isText } from '../../utils'
+import { parseNumberLike, isFiniteNumber, isFunction, isRenderable, renderTextOrNode } from '../../utils'
 
 const alignMap = {
   start: 'flex-start',
@@ -110,18 +110,16 @@ export const Space = React.memo((props: SpaceProps) => {
         ? { width: '100%' }
         : undefined
 
-    const node = isText(child) ? <Text>{child}</Text> : child
     content.push(
       <View key={key} style={fillStyle}>
-        {node}
+        {renderTextOrNode(child)}
       </View>,
     )
 
     if (divider && i < childArray.length - 1) {
-      const dividerNode = isText(divider) ? <Text>{divider}</Text> : divider
       content.push(
         <View key={`divider-${String(key)}`}>
-          {dividerNode}
+          {renderTextOrNode(divider)}
         </View>,
       )
     }

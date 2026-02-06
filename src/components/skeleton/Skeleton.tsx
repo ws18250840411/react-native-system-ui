@@ -117,98 +117,22 @@ const SkeletonImpl = (props: SkeletonProps, ref: React.ForwardedRef<View>) => {
     return () => loop.stop()
   }, [animate, animated, duration, loading])
 
-  const animatedStyle = useMemo(
-    () => (!loading || !animate ? undefined : ({
-      opacity: animated.interpolate({
-        inputRange: [0, 1],
-        outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity],
-      }),
-    } as unknown as ViewStyle)),
-    [animate, animated, loading, tokens.animation.maxOpacity, tokens.animation.minOpacity]
-  )
+  const animatedStyle = useMemo(() => (!loading || !animate ? undefined : ({ opacity: animated.interpolate({ inputRange: [0, 1], outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity] }) } as unknown as ViewStyle)), [animate, animated, loading, tokens.animation.maxOpacity, tokens.animation.minOpacity])
 
   const containerStyles = [styles.container, { gap: tokens.spacing.containerGap }, style]
 
-  const avatarNode = useMemo(() => (!avatar ? null : (
-    <Animated.View
-      style={[
-        {
-          width: resolvedAvatarSize as ViewStyle['width'],
-          height: resolvedAvatarSize as ViewStyle['height'],
-          borderRadius: avatarShape === 'round' ? 999 : tokens.radius,
-          backgroundColor: blockColor,
-        },
-        animatedStyle,
-      ]}
-    />
-  )), [animatedStyle, avatar, avatarShape, blockColor, resolvedAvatarSize, tokens.radius])
+  const avatarNode = useMemo(() => (!avatar ? null : <Animated.View style={[{ width: resolvedAvatarSize as ViewStyle['width'], height: resolvedAvatarSize as ViewStyle['height'], borderRadius: avatarShape === 'round' ? 999 : tokens.radius, backgroundColor: blockColor }, animatedStyle]} />), [animatedStyle, avatar, avatarShape, blockColor, resolvedAvatarSize, tokens.radius])
 
-  const titleNode = useMemo(() => (!title ? null : (
-    <Animated.View
-      style={[
-        {
-          width: resolvedTitleWidth as ViewStyle['width'],
-          height: titleHeight as ViewStyle['height'],
-          backgroundColor: blockColor,
-          borderRadius: round ? tokens.radius : 0,
-        },
-        animatedStyle,
-      ]}
-    />
-  )), [animatedStyle, blockColor, resolvedTitleWidth, round, title, titleHeight, tokens.radius])
+  const titleNode = useMemo(() => (!title ? null : <Animated.View style={[{ width: resolvedTitleWidth as ViewStyle['width'], height: titleHeight as ViewStyle['height'], backgroundColor: blockColor, borderRadius: round ? tokens.radius : 0 }, animatedStyle]} />), [animatedStyle, blockColor, resolvedTitleWidth, round, title, titleHeight, tokens.radius])
 
-  const rowNodes = useMemo(() => (rows <= 0 ? null : (
-    <View style={styles.rows}>
-      {rowWidths.map((width, index) => (
-        <Animated.View
-          key={index}
-          testID={`rv-skeleton-row-${index}`}
-          style={[
-            {
-              width: width as ViewStyle['width'],
-              height: rowHeights[index] as ViewStyle['height'],
-              marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap,
-              backgroundColor: blockColor,
-              borderRadius: round ? tokens.radius : 0,
-            },
-            animatedStyle,
-          ]}
-        />
-      ))}
-    </View>
-  )), [animatedStyle, blockColor, rowHeights, rowWidths, rows, round, title, tokens.radius, tokens.spacing.rowGap])
+  const rowNodes = useMemo(() => (rows <= 0 ? null : <View style={styles.rows}>{rowWidths.map((width, index) => <Animated.View key={index} testID={`rv-skeleton-row-${index}`} style={[{ width: width as ViewStyle['width'], height: rowHeights[index] as ViewStyle['height'], marginTop: index === 0 && !title ? 0 : tokens.spacing.rowGap, backgroundColor: blockColor, borderRadius: round ? tokens.radius : 0 }, animatedStyle]} />)}</View>), [animatedStyle, blockColor, rowHeights, rowWidths, rows, round, title, tokens.radius, tokens.spacing.rowGap])
 
-  if (!loading) {
-    return (
-      <View ref={ref} style={style} {...rest}>
-        {children}
-      </View>
-    )
-  }
+  if (!loading) return <View ref={ref} style={style} {...rest}>{children}</View>
 
-  return (
-    <View ref={ref} style={containerStyles} {...rest}>
-      {avatarNode}
-      <View style={styles.content}>
-        {titleNode}
-        {rowNodes}
-      </View>
-    </View>
-  )
+  return <View ref={ref} style={containerStyles} {...rest}>{avatarNode}<View style={styles.content}>{titleNode}{rowNodes}</View></View>
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  content: {
-    flex: 1,
-  },
-  rows: {
-    width: '100%',
-  },
-})
+const styles = StyleSheet.create({ container: { flexDirection: 'row', alignItems: 'flex-start' }, content: { flex: 1 }, rows: { width: '100%' } })
 
 const SkeletonForwardRef = React.forwardRef<View, SkeletonProps>(SkeletonImpl)
 SkeletonForwardRef.displayName = 'Skeleton'

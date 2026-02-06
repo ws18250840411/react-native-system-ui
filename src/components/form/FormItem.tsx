@@ -38,23 +38,13 @@ const FormItemImpl: React.FC<FormItemProps> = ({
   useEffect(() => {
     if (!context?.subscribe) return undefined
     return context.subscribe((changed, all) => {
-      if (FORM_ALL_FIELDS_KEY in changed) {
-        forceUpdate(v => v + 1)
-        return
-      }
-      if (subscribeAll) {
-        forceUpdate(v => v + 1)
-        return
-      }
+      if (FORM_ALL_FIELDS_KEY in changed) { forceUpdate(v => v + 1); return }
+      if (subscribeAll) { forceUpdate(v => v + 1); return }
       if (shouldUpdate) {
-        if (shouldUpdate(prevValuesRef.current, all)) {
-          forceUpdate(v => v + 1)
-        }
+        if (shouldUpdate(prevValuesRef.current, all)) forceUpdate(v => v + 1)
         return
       }
-      if (nameKey && nameKey in changed) {
-        forceUpdate(v => v + 1)
-      }
+      if (nameKey && nameKey in changed) forceUpdate(v => v + 1)
     })
   }, [context, nameKey, shouldUpdate, subscribeAll])
 
@@ -74,17 +64,7 @@ const FormItemImpl: React.FC<FormItemProps> = ({
   }, [context, name, normalizedRules, dependencies, initialValue, validateTrigger, trigger])
 
   if (!context) {
-    if (renderProps) {
-      return (
-        <>
-          {children({
-            getFieldValue: () => undefined,
-            getFieldsValue: () => EMPTY_VALUES,
-            form: null,
-          })}
-        </>
-      )
-    }
+    if (renderProps) return <>{children({ getFieldValue: () => undefined, getFieldsValue: () => EMPTY_VALUES, form: null })}</>
     return <>{children}</>
   }
 
@@ -98,12 +78,7 @@ const FormItemImpl: React.FC<FormItemProps> = ({
 
   if (renderProps) {
     if (!shouldRender) return null
-    const node = children({
-      getFieldValue: context.getFieldValue,
-      getFieldsValue: context.getFieldsValue,
-      form: context.form || null,
-    })
-    return <>{node}</>
+    return <>{children({ getFieldValue: context.getFieldValue, getFieldsValue: context.getFieldsValue, form: context.form || null })}</>
   }
 
   if (!name) return <>{children}</>

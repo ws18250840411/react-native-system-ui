@@ -4,6 +4,7 @@ import { Close } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineBorderBottom, isRenderable, isText } from '../../utils'
+import { renderTextOrNode } from '../../utils'
 import Loading from '../loading'
 import Popup from '../popup'
 import type { ActionSheetAction, ActionSheetCloseAction, ActionSheetProps, ActionSheetTokens } from './types'
@@ -27,19 +28,12 @@ const ActionSheetHeader: React.FC<{
     <View style={tokens.layout.header}>
       <View style={tokens.layout.titleContainer}>
         {isText(title) ? (
-          <Text
-            style={[
-              tokens.layout.title,
-              { color: colors.title, fontSize: typography.title },
-            ]}
-          >
-            {title}
-          </Text>
+          renderTextOrNode(title, [tokens.layout.title, { color: colors.title, fontSize: typography.title }])
         ) : (
           <View style={tokens.layout.titleNode}>{title}</View>
         )}
       </View>
-      {closeable ? (
+      {closeable && (
         <Pressable
           style={tokens.layout.closeButton}
           accessibilityRole="button"
@@ -53,7 +47,7 @@ const ActionSheetHeader: React.FC<{
             })
             : closeIcon}
         </Pressable>
-      ) : null}
+      )}
     </View>
   )
 })
@@ -100,30 +94,17 @@ const ActionSheetItem: React.FC<{
         <Loading size={20} />
       ) : isRenderable(name) ? (
         <View style={tokens.layout.itemTextWrapper}>
-          {isText(name) ? (
-            <Text
-              style={[
-                tokens.layout.itemText,
-                {
-                  color: action.disabled ? colors.disabled : color,
-                  fontSize: typography.item,
-                },
-              ]}
-            >
-              {name}
-            </Text>
-          ) : (
-            name
+          {renderTextOrNode(
+            name,
+            [tokens.layout.itemText, { color: action.disabled ? colors.disabled : color, fontSize: typography.item }]
           )}
-          {isRenderable(subname) ? (
+          {isRenderable(subname) && (
             isText(subname) ? (
-              <Text style={[tokens.layout.subname, { color: colors.subitem }]}>
-                {subname}
-              </Text>
+              renderTextOrNode(subname, [tokens.layout.subname, { color: colors.subitem }])
             ) : (
               <View style={tokens.layout.subnameNode}>{subname}</View>
             )
-          ) : null}
+          )}
         </View>
       ) : null}
     </Pressable>
@@ -162,18 +143,7 @@ const ActionSheetCancel: React.FC<{
         ]}
         {...cancelPress.interactionProps}
       >
-        {isText(cancelText) ? (
-          <Text
-            style={[
-              tokens.layout.cancelText,
-              { color: colors.cancel, fontSize: typography.item },
-            ]}
-          >
-            {cancelText}
-          </Text>
-        ) : (
-          cancelText
-        )}
+        {renderTextOrNode(cancelText, [tokens.layout.cancelText, { color: colors.cancel, fontSize: typography.item }])}
       </Pressable>
     </>
   )
@@ -311,7 +281,7 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
   const panelStyle = [tokens.layout.panel, { backgroundColor: tokens.colors.background }]
 
   const headerNode = useMemo(() => (
-    hasTitle ? (
+    hasTitle && (
       <ActionSheetHeader
         title={title}
         closeable={closeable}
@@ -319,11 +289,11 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
         tokens={tokens}
         onClose={handleCloseIcon}
       />
-    ) : null
+    )
   ), [closeIcon, closeable, handleCloseIcon, hasTitle, title, tokens])
 
   const descriptionNode = useMemo(() => (
-    hasDescription ? (
+    hasDescription && (
       <View
         style={[
           tokens.layout.descriptionContainer,
@@ -331,22 +301,15 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
         ]}
       >
         {isText(description) ? (
-          <Text
-            style={[
-              tokens.layout.description,
-              {
-                color: tokens.colors.description,
-                fontSize: tokens.typography.description,
-              },
-            ]}
-          >
-            {description}
-          </Text>
+          renderTextOrNode(description, [
+            tokens.layout.description,
+            { color: tokens.colors.description, fontSize: tokens.typography.description },
+          ])
         ) : (
           <View style={tokens.layout.descriptionNode}>{description}</View>
         )}
       </View>
-    ) : null
+    )
   ), [
     description,
     hasDescription,
@@ -372,9 +335,9 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
   )
 
   const cancelNode = useMemo(
-    () => (hasCancelText ? (
+    () => (hasCancelText && (
       <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={handleCancel} />
-    ) : null),
+    )),
     [cancelText, handleCancel, hasCancelText, tokens]
   )
 

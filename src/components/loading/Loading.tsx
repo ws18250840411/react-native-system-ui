@@ -1,7 +1,8 @@
 import React from 'react'
-import { ActivityIndicator, Text, View } from 'react-native'
+import { ActivityIndicator, Text, View, type StyleProp, type TextStyle } from 'react-native'
 
-import { isText } from '../../utils/validate'
+import { renderTextOrNode } from '../../utils'
+import { isRenderable, isText } from '../../utils/validate'
 import type { LoadingProps } from './types'
 import { useLoadingTokens } from './tokens'
 
@@ -38,14 +39,13 @@ const LoadingImpl: React.FC<LoadingProps> = props => {
     />
   )
 
-  const hasChildren = children !== undefined && children !== null && children !== false
   const textSpacingStyle = {
     marginLeft: vertical ? 0 : tokens.spacing.gap,
     marginTop: vertical ? tokens.spacing.gap : 0,
   }
-  const textNode = hasChildren && (isText(children) ? (
-    <Text
-      style={[
+  const textNode = isRenderable(children) && (
+    <View style={isText(children) ? undefined : textSpacingStyle}>
+      {renderTextOrNode(children, [
         tokens.layout.text,
         textSpacingStyle,
         {
@@ -53,13 +53,9 @@ const LoadingImpl: React.FC<LoadingProps> = props => {
           color: textColor,
         },
         textStyle,
-      ]}
-    >
-      {children}
-    </Text>
-  ) : (
-    <View style={textSpacingStyle}>{children}</View>
-  ))
+      ].filter(Boolean) as StyleProp<TextStyle>)}
+    </View>
+  )
 
   return (
     <View

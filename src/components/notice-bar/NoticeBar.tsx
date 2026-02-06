@@ -14,6 +14,7 @@ import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 import { parseNumber } from '../../utils/number'
 import { isRenderable, isText } from '../../utils/validate'
+import { renderTextOrNode } from '../../utils'
 
 import { nativeDriverEnabled } from '../../platform'
 import type { NoticeBarProps } from './types'
@@ -258,23 +259,11 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
     if (!isVertical || verticalTrackItems.length === 0) return null
     if (!hasVerticalLoop) {
       const single = verticalTrackItems[0]
-      if (isText(single)) {
-        return (
-          <Text
-            onLayout={textOnLayout}
-            style={[
-              styles.text,
-              { color: resolvedColor, fontSize: tokens.typography.fontSize },
-            ]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            {...restTextProps}
-          >
-            {single}
-          </Text>
-        )
-      }
-      return single
+      return renderTextOrNode(
+        single,
+        [styles.text, { color: resolvedColor, fontSize: tokens.typography.fontSize }],
+        { numberOfLines: 1, ...restTextProps }
+      )
     }
     return (
       <View
@@ -290,21 +279,10 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
               onLayout={index === 0 ? handleItemLayout : undefined}
               style={styles.verticalItem}
             >
-              {isText(item) ? (
-                <Text
-                  onLayout={textOnLayout}
-                  style={[
-                    styles.text,
-                    { color: resolvedColor, fontSize: tokens.typography.fontSize },
-                  ]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  {...restTextProps}
-                >
-                  {item}
-                </Text>
-              ) : (
-                item
+              {renderTextOrNode(
+                item,
+                [styles.text, { color: resolvedColor, fontSize: tokens.typography.fontSize }],
+                { numberOfLines: 1, ...restTextProps }
               )}
             </View>
           ))}
@@ -365,11 +343,11 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
       {...barPress.interactionProps}
       {...rest}
     >
-      {hasLeft ? (
+      {hasLeft && (
         <View style={[styles.sideSection, { minWidth: tokens.layout.sideMinWidth }]}>
           {leftIcon}
         </View>
-      ) : null}
+      )}
       <View
         onLayout={handleContainerLayout}
         style={[
@@ -413,39 +391,37 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
               {content}
             </Animated.View>
           )
+        ) : isTextContent ? (
+          <Text
+            onLayout={handleTextLayout}
+            style={[
+              styles.text,
+              { color: resolvedColor, fontSize: tokens.typography.fontSize },
+              wrapable && styles.wrapText,
+            ]}
+            numberOfLines={wrapable ? undefined : 1}
+            ellipsizeMode={wrapable ? 'tail' : 'clip'}
+            {...restTextProps}
+          >
+            {content}
+          </Text>
         ) : (
-          isTextContent ? (
-            <Text
-              onLayout={handleTextLayout}
-              style={[
-                styles.text,
-                { color: resolvedColor, fontSize: tokens.typography.fontSize },
-                wrapable && styles.wrapText,
-              ]}
-              numberOfLines={wrapable ? undefined : 1}
-              ellipsizeMode={wrapable ? 'tail' : 'clip'}
-              {...restTextProps}
-            >
-              {content}
-            </Text>
-          ) : (
-            <View
-              onLayout={handleNodeLayout}
-              style={[
-                styles.text,
-                wrapable && styles.wrapText,
-              ]}
-            >
-              {content}
-            </View>
-          )
+          <View
+            onLayout={handleNodeLayout}
+            style={[
+              styles.text,
+              wrapable && styles.wrapText,
+            ]}
+          >
+            {content}
+          </View>
         )}
       </View>
-      {rightNode ? (
+      {rightNode && (
         <View style={[styles.sideSection, { minWidth: tokens.layout.sideMinWidth }]}>
           {rightNode}
         </View>
-      ) : null}
+      )}
     </Pressable>
   )
 }

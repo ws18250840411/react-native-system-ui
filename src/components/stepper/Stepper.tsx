@@ -103,9 +103,7 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
   )
 
   const valueRef = useRef<number | null>(value ?? null)
-  useEffect(() => {
-    valueRef.current = value ?? null
-  }, [value])
+  useEffect(() => { valueRef.current = value ?? null }, [value])
 
   const inputRef = useRef<TextInput>(null)
   useImperativeHandle(ref, () => ({
@@ -122,10 +120,7 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
   }, [])
 
   useEffect(() => {
-    if (!hasFocus) {
-      const nextText = valueToString(value, decimalLength)
-      setInputText(nextText)
-    }
+    if (!hasFocus) { setInputText(valueToString(value, decimalLength)) }
   }, [decimalLength, hasFocus, setInputText, value])
 
   const getCurrentNumber = useCallback(() => {
@@ -277,9 +272,7 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
 
   useEffect(() => clearLongPress, [clearLongPress])
   useEffect(() => {
-    if (disabled || changing || !longPress) {
-      clearLongPress()
-    }
+    if (disabled || changing || !longPress) { clearLongPress() }
   }, [changing, clearLongPress, disabled, longPress])
 
   const startLongPress = useCallback((type: 'plus' | 'minus') => {
@@ -330,64 +323,25 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
   const minNumber = isFiniteNumber(min) ? min : undefined
   const maxNumber = isFiniteNumber(max) ? max : undefined
   const disabledForAll = disabled || changing
-  const minusDisabled = disabledForAll || disableMinus || (minNumber !== undefined && currentForCompare <= minNumber)
-  const plusDisabled = disabledForAll || disablePlus || (maxNumber !== undefined && currentForCompare >= maxNumber)
+  const minusDisabled = disabledForAll || disableMinus || (minNumber != null && currentForCompare <= minNumber)
+  const plusDisabled = disabledForAll || disablePlus || (maxNumber != null && currentForCompare >= maxNumber)
   const radius = tokens.radii.default
 
   const buttonBaseStyle = useMemo(() => ({ width: resolvedButtonSize, height: resolvedButtonSize }), [resolvedButtonSize])
-  const inputBoxStyle = useMemo(() => ({
-    width: resolvedInputWidth,
-    height: resolvedButtonSize,
-    marginHorizontal: tokens.spacing.gap,
-  }), [resolvedButtonSize, resolvedInputWidth, tokens.spacing.gap])
+  const inputBoxStyle = useMemo(() => ({ width: resolvedInputWidth, height: resolvedButtonSize, marginHorizontal: tokens.spacing.gap }), [resolvedButtonSize, resolvedInputWidth, tokens.spacing.gap])
 
   const getButtonStyle = useCallback((type: 'plus' | 'minus', state: PressableStateCallbackType) => {
     const isPlus = type === 'plus'
     const disabledState = isPlus ? plusDisabled : minusDisabled
 
     if (theme === 'round') {
-      const base = [
-        styles.button,
-        buttonBaseStyle,
-        {
-          borderRadius: resolvedButtonSize / 2,
-          opacity: disabledState ? tokens.opacity.roundDisabled : 1,
-        },
-      ] as const
-
+      const base = [styles.button, buttonBaseStyle, { borderRadius: resolvedButtonSize / 2, opacity: disabledState ? tokens.opacity.roundDisabled : 1 }] as const
       if (isPlus) {
-        return [
-          ...base,
-          {
-            backgroundColor: tokens.colors.roundTheme,
-            ...(state.pressed && !disabledState && { opacity: tokens.opacity.pressed }),
-          },
-          buttonStyle,
-        ]
+        return [...base, { backgroundColor: tokens.colors.roundTheme, ...(state.pressed && !disabledState && { opacity: tokens.opacity.pressed }) }, buttonStyle]
       }
-
-      return [
-        ...base,
-        {
-          backgroundColor: tokens.colors.roundThemeBackground,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: tokens.colors.roundTheme,
-          ...(state.pressed && !disabledState && { opacity: tokens.opacity.pressed }),
-        },
-        buttonStyle,
-      ]
+      return [...base, { backgroundColor: tokens.colors.roundThemeBackground, borderWidth: StyleSheet.hairlineWidth, borderColor: tokens.colors.roundTheme, ...(state.pressed && !disabledState && { opacity: tokens.opacity.pressed }) }, buttonStyle]
     }
-
-    const cornerStyle =
-      type === 'minus'
-        ? {
-          borderTopLeftRadius: radius,
-          borderBottomLeftRadius: radius,
-        }
-        : {
-          borderTopRightRadius: radius,
-          borderBottomRightRadius: radius,
-        }
+    const cornerStyle = type === 'minus' ? { borderTopLeftRadius: radius, borderBottomLeftRadius: radius } : { borderTopRightRadius: radius, borderBottomRightRadius: radius }
 
     const backgroundColor = disabledState
       ? tokens.colors.buttonDisabledBackground
@@ -395,13 +349,7 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
         ? tokens.colors.active
         : tokens.colors.background
 
-    return [
-      styles.button,
-      buttonBaseStyle,
-      cornerStyle,
-      { backgroundColor },
-      buttonStyle,
-    ]
+    return [styles.button, buttonBaseStyle, cornerStyle, { backgroundColor }, buttonStyle]
   }, [
     buttonBaseStyle,
     buttonStyle,
@@ -425,24 +373,9 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
 
     if (theme === 'round') {
       const color = isPlus ? tokens.colors.roundThemeText : tokens.colors.roundTheme
-      return [
-        styles.buttonText,
-        {
-          color,
-          fontSize: tokens.typography.fontSize,
-          fontWeight: tokens.typography.fontWeight,
-        },
-      ]
+      return [styles.buttonText, { color, fontSize: tokens.typography.fontSize, fontWeight: tokens.typography.fontWeight }]
     }
-
-    return [
-      styles.buttonText,
-      {
-        color: disabledState ? tokens.colors.buttonDisabledIcon : tokens.colors.buttonIcon,
-        fontSize: tokens.typography.fontSize,
-        fontWeight: tokens.typography.fontWeight,
-      },
-    ]
+    return [styles.buttonText, { color: disabledState ? tokens.colors.buttonDisabledIcon : tokens.colors.buttonIcon, fontSize: tokens.typography.fontSize, fontWeight: tokens.typography.fontWeight }]
   }, [
     minusDisabled,
     plusDisabled,
@@ -457,72 +390,37 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
 
   const handleChangeText = useCallback((text: string) => {
     if (disableInput || disabled || changingRef.current) return
-
     setInputText(text)
     inputProps?.onChangeText?.(text)
-
     const trimmed = text.trim()
-    if (trimmed === '') {
-      performValueChange(allowEmpty ? null : resolvedDefaultValue)
-      return
-    }
-
+    if (trimmed === '') { performValueChange(allowEmpty ? null : resolvedDefaultValue); return }
     const numeric = Number.parseFloat(trimmed)
     if (!Number.isFinite(numeric)) return
-
     performValueChange(applyNextValue(numeric))
-  }, [
-    allowEmpty,
-    applyNextValue,
-    changingRef,
-    disableInput,
-    disabled,
-    inputProps,
-    performValueChange,
-    resolvedDefaultValue,
-    setInputText,
-  ])
+  }, [allowEmpty, applyNextValue, changingRef, disableInput, disabled, inputProps, performValueChange, resolvedDefaultValue, setInputText])
 
   const inputPropsRef = useRef(inputProps)
   inputPropsRef.current = inputProps
 
-  const handleFocus = useCallback((
-    event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onFocus']>>[0],
-  ) => {
-    if (disableInput) {
-      inputRef.current?.blur()
-      return
-    }
+  const handleFocus = useCallback((event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onFocus']>>[0]) => {
+    if (disableInput) { inputRef.current?.blur(); return }
     setHasFocus(true)
     onFocusRef.current?.(event)
     inputPropsRef.current?.onFocus?.(event)
   }, [disableInput])
 
-  const handleBlur = useCallback((
-    event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onBlur']>>[0],
-  ) => {
+  const handleBlur = useCallback((event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onBlur']>>[0]) => {
     setHasFocus(false)
-
     if (!changingRef.current) {
       const trimmed = inputValueRef.current.trim()
-      if (trimmed === '') {
-        performValueChange(allowEmpty ? null : resolvedDefaultValue)
-      } else {
+      if (trimmed === '') { performValueChange(allowEmpty ? null : resolvedDefaultValue) } else {
         const numeric = Number.parseFloat(trimmed)
-        if (Number.isFinite(numeric)) {
-          performValueChange(applyNextValue(numeric))
-        }
+        if (Number.isFinite(numeric)) { performValueChange(applyNextValue(numeric)) }
       }
     }
-
     onBlurRef.current?.(event)
     inputPropsRef.current?.onBlur?.(event)
-  }, [
-    allowEmpty,
-    applyNextValue,
-    performValueChange,
-    resolvedDefaultValue,
-  ])
+  }, [allowEmpty, applyNextValue, performValueChange, resolvedDefaultValue])
 
   const handleInputPressIn = useCallback((event: GestureResponderEvent) => {
     onClickRef.current?.(event)
@@ -624,17 +522,7 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
       <TextInput
         ref={inputRef}
         {...inputProps}
-        style={[
-          styles.input,
-          inputBoxStyle,
-          {
-            backgroundColor: inputBackground,
-            color: inputTextColor,
-            paddingHorizontal: tokens.spacing.none,
-            paddingVertical: tokens.spacing.none,
-          },
-          inputStyle,
-        ]}
+        style={[styles.input, inputBoxStyle, { backgroundColor: inputBackground, color: inputTextColor, paddingHorizontal: tokens.spacing.none, paddingVertical: tokens.spacing.none }, inputStyle]}
         value={inputValue}
         placeholder={placeholder}
         editable={editable}

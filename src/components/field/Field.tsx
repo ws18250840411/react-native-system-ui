@@ -619,103 +619,27 @@ const FieldImpl = (
     })()
     : null
 
-  const wordLimitNode = showWordLimit && maxLength !== undefined && maxLength !== null
+  const wordLimitNode = showWordLimit && maxLength != null
     ? (() => {
       const currentCount = (value ?? '').length
-      const content = isFunction(showWordLimit)
-        ? showWordLimit({ currentCount, maxLength })
-        : `${currentCount}/${maxLength}`
-
-      if (content === null || content === false) return null
-
-      if (isText(content)) {
-        return (
-          <Text
-            style={[
-              tokens.layout.wordLimit,
-              {
-                color: tokens.colors.wordLimit,
-                fontSize: tokens.typography.wordLimitSize ?? 12,
-                textAlign: 'right',
-                alignSelf: 'flex-end',
-                marginTop: tokens.spacing.wordLimitMarginTop,
-              },
-            ]}
-          >
-            {content}
-          </Text>
-        )
-      }
-
-      return content
+      const content = isFunction(showWordLimit) ? showWordLimit({ currentCount, maxLength }) : `${currentCount}/${maxLength}`
+      if (!isRenderable(content)) return null
+      return isText(content) ? (
+        <Text style={[tokens.layout.wordLimit, { color: tokens.colors.wordLimit, fontSize: tokens.typography.wordLimitSize ?? 12, textAlign: 'right', alignSelf: 'flex-end', marginTop: tokens.spacing.wordLimitMarginTop }]}>{content}</Text>
+      ) : content
     })()
     : null
 
   const messageNode = isRenderable(errorMessage)
-    ? (
-      isText(errorMessage)
-        ? (
-          <Text
-            nativeID={errorId}
-            style={[
-              tokens.layout.message,
-              {
-                color: tokens.colors.error,
-                fontSize: tokens.typography.messageSize,
-                textAlign: errorMessageAlign,
-                marginTop: tokens.spacing.messageMarginTop,
-              },
-              errorMessageStyle,
-            ]}
-            accessibilityLiveRegion="polite"
-          >
-            {errorMessage}
-          </Text>
-        )
-        : (
-          <View
-            nativeID={errorId}
-            style={[
-              tokens.layout.message,
-              {
-                alignSelf: alignMap[errorMessageAlign],
-                marginTop: tokens.spacing.messageMarginTop,
-              },
-            ]}
-            accessibilityLiveRegion="polite"
-          >
-            {errorMessage}
-          </View>
-        )
-    )
+    ? isText(errorMessage)
+      ? <Text nativeID={errorId} style={[tokens.layout.message, { color: tokens.colors.error, fontSize: tokens.typography.messageSize, textAlign: errorMessageAlign, marginTop: tokens.spacing.messageMarginTop }, errorMessageStyle]} accessibilityLiveRegion="polite">{errorMessage}</Text>
+      : <View nativeID={errorId} style={[tokens.layout.message, { alignSelf: alignMap[errorMessageAlign], marginTop: tokens.spacing.messageMarginTop }]} accessibilityLiveRegion="polite">{errorMessage}</View>
     : null
 
   const introNode = isRenderable(resolvedDescription)
-    ? (
-      isText(resolvedDescription)
-        ? (
-          <Text
-            nativeID={introId}
-            style={[
-              tokens.layout.message,
-              {
-                color: tokens.colors.intro,
-                fontSize: tokens.typography.introSize,
-                textAlign: controlAlign,
-                marginTop: tokens.spacing.introMarginTop,
-              },
-              introStyle,
-            ]}
-          >
-            {resolvedDescription}
-          </Text>
-        )
-        : (
-          <View nativeID={introId} style={{ marginTop: tokens.spacing.introMarginTop }}>
-            {resolvedDescription}
-          </View>
-        )
-    )
+    ? isText(resolvedDescription)
+      ? <Text nativeID={introId} style={[tokens.layout.message, { color: tokens.colors.intro, fontSize: tokens.typography.introSize, textAlign: controlAlign, marginTop: tokens.spacing.introMarginTop }, introStyle]}>{resolvedDescription}</Text>
+      : <View nativeID={introId} style={{ marginTop: tokens.spacing.introMarginTop }}>{resolvedDescription}</View>
     : null
 
   const prefixNode = prefix
@@ -727,44 +651,15 @@ const FieldImpl = (
     : null
 
   const suffixNode = resolvedSuffix
-    ? (
-      <View style={[tokens.layout.suffix, { paddingLeft: tokens.spacing.suffixGap }]}>
-        {renderAffix(resolvedSuffix)}
-      </View>
-    )
+    ? <View style={[tokens.layout.suffix, { paddingLeft: tokens.spacing.suffixGap }]}>{renderAffix(resolvedSuffix)}</View>
     : null
 
   const leftIconNode = leftIcon
-    ? (
-      <FieldSlot
-        onPress={onClickLeftIcon}
-        style={[
-          tokens.layout.leftIcon,
-          {
-            marginRight: tokens.spacing.leftIconGap,
-            minWidth: tokens.sizes.icon,
-          },
-        ]}
-      >
-        {leftIcon}
-      </FieldSlot>
-    )
+    ? <FieldSlot onPress={onClickLeftIcon} style={[tokens.layout.leftIcon, { marginRight: tokens.spacing.leftIconGap, minWidth: tokens.sizes.icon }]}>{leftIcon}</FieldSlot>
     : null
 
   const rightIconNode = rightIcon
-    ? (
-      <FieldSlot
-        onPress={onClickRightIcon}
-        style={[
-          tokens.layout.rightIcon,
-          {
-            paddingHorizontal: tokens.spacing.rightIconGap,
-          },
-        ]}
-      >
-        {rightIcon}
-      </FieldSlot>
-    )
+    ? <FieldSlot onPress={onClickRightIcon} style={[tokens.layout.rightIcon, { paddingHorizontal: tokens.spacing.rightIconGap }]}>{rightIcon}</FieldSlot>
     : null
 
   const clearNode = showClear

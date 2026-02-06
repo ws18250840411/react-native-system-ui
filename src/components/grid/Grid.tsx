@@ -91,55 +91,10 @@ const GridImpl: React.FC<GridProps> = props => {
     />
   ) : null), [borderColor, showBorder, tokens.layout.border, tokens.layout.borderBottom])
 
-  const contextValue = useMemo(() => ({
-    columnNum,
-    gutter,
-    border,
-    center,
-    square,
-    direction,
-    reverse,
-    clickable,
-    iconSize,
-    iconColor,
-    count: childArray.length,
-    tokens,
-  }), [
-    border,
-    center,
-    childArray.length,
-    clickable,
-    columnNum,
-    direction,
-    gutter,
-    iconColor,
-    iconSize,
-    reverse,
-    square,
-    tokens,
-  ])
+  const contextValue = useMemo(() => ({ columnNum, gutter, border, center, square, direction, reverse, clickable, iconSize, iconColor, count: childArray.length, tokens }), [border, center, childArray.length, clickable, columnNum, direction, gutter, iconColor, iconSize, reverse, square, tokens])
 
-  const webGridStyle = useMemo(
-    () =>
-      Platform.OS === 'web'
-        ? ({
-            display: 'grid',
-            gridTemplateColumns: `repeat(${columnNum}, minmax(0, 1fr))`,
-            columnGap: gutter,
-            rowGap: gutter,
-          } as unknown as ViewStyle)
-        : undefined,
-    [columnNum, gutter]
-  )
-
-  const containerStyle = useMemo(
-    () => [
-      tokens.layout.container,
-      Platform.OS === 'web' ? webGridStyle : gutter ? { paddingLeft: gutter } : undefined,
-      style,
-    ],
-    [gutter, style, tokens.layout.container, webGridStyle]
-  )
+  const webGridStyle = useMemo(() => Platform.OS === 'web' ? ({ display: 'grid', gridTemplateColumns: `repeat(${columnNum}, minmax(0, 1fr))`, columnGap: gutter, rowGap: gutter } as unknown as ViewStyle) : undefined, [columnNum, gutter])
+  const containerStyle = useMemo(() => [tokens.layout.container, Platform.OS === 'web' ? webGridStyle : gutter ? { paddingLeft: gutter } : undefined, style], [gutter, style, tokens.layout.container, webGridStyle])
 
   const renderedChildren = useMemo(
     () =>

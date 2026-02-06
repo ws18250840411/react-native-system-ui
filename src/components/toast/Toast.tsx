@@ -19,7 +19,8 @@ import { useAriaPress, useOverlayStack } from '../../hooks'
 import Loading from '../loading'
 import { Checked, Close } from 'react-native-system-icon'
 import type { DeepPartial } from '../../types'
-import { isFiniteNumber, isText } from '../../utils/validate'
+import { isFiniteNumber, isText, isRenderable } from '../../utils/validate'
+import { renderTextOrNode } from '../../utils'
 import { nativeDriverEnabled } from '../../platform'
 import { useToastTokens } from './tokens'
 import type { ToastTokens } from './tokens'
@@ -276,7 +277,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
 
   if (!mounted) return null
 
-  const hasMessage = message !== undefined && message !== null && message !== false && message !== ''
+  const hasMessage = isRenderable(message) && (typeof message !== 'string' || message !== '')
   return (
     <View
       style={[
@@ -287,7 +288,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
       ]}
       pointerEvents={forbidClick || overlay || closeOnClick ? 'auto' : 'none'}
     >
-      {overlay || forbidClick ? (
+      {(overlay || forbidClick) && (
         <Pressable
           testID="rv-toast-overlay"
           style={[
@@ -301,7 +302,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
           onStartShouldSetResponder={RETURN_TRUE}
           onMoveShouldSetResponder={RETURN_TRUE}
         />
-      ) : null}
+      )}
       {needsSafeAreaTop && <SafeAreaView edge="top" pointerEvents="none" />}
       <Pressable disabled={!closeOnClick} {...toastPress.interactionProps}>
         <Animated.View
@@ -311,26 +312,14 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
             style,
           ]}
         >
-          {iconNode ? (
-            <View style={iconWrapStyle}>{iconNode}</View>
-          ) : null}
-          {hasMessage
-            ? isText(message)
-              ? (
-                <Text
-                  style={[
-                    styles.message,
-                    messageStyle,
-                    textStyle,
-                  ]}
-                >
-                  {message}
-                </Text>
-              )
-              : (
-                <View style={styles.messageWrap}>{message}</View>
-              )
-            : null}
+          {iconNode && <View style={iconWrapStyle}>{iconNode}</View>}
+          {hasMessage && (
+            isText(message) ? (
+              renderTextOrNode(message, [styles.message, messageStyle, textStyle])
+            ) : (
+              <View style={styles.messageWrap}>{message}</View>
+            )
+          )}
         </Animated.View>
       </Pressable>
       {needsSafeAreaBottom && <SafeAreaView edge="bottom" pointerEvents="none" />}

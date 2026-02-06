@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { Pressable, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 
-import { isNumericLike, isRenderable } from '../../utils'
+import { isNumericLike, isRenderable, renderTextOrNode } from '../../utils'
 import { useBadgeTokens } from './tokens'
 import type { BadgeProps } from './types'
 
@@ -137,9 +137,7 @@ const BadgeImpl = (
         !hasChildren ? style : undefined,
       ]}
     >
-      {!dot && (React.isValidElement(formattedContent) ? formattedContent : (
-        <Text style={mergedTextStyle}>{formattedContent}</Text>
-      ))}
+      {!dot && renderTextOrNode(formattedContent, mergedTextStyle)}
     </View>
   )
 

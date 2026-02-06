@@ -4,7 +4,7 @@ import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
 import { createHairlineBorderBottom } from '../../utils/hairline'
-import { isRenderable, isText } from '../../utils/validate'
+import { isRenderable, isText, renderTextOrNode } from '../../utils'
 import { SafeAreaView } from '../safe-area-view'
 import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
@@ -142,15 +142,7 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
 
     const content = (
       <>
-        {isRenderable(rightText)
-          ? isText(rightText)
-            ? (
-              <Text numberOfLines={1} style={[tokens.layout.sideText, { color: sideColor }]}>
-                {rightText}
-              </Text>
-            )
-            : rightText
-          : null}
+        {isRenderable(rightText) && renderTextOrNode(rightText, [tokens.layout.sideText, { color: sideColor }], { numberOfLines: 1 })}
         {rightIcon}
       </>
     )
@@ -175,49 +167,25 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
     )
   }
 
-  const centerContent = isRenderable(children) ? (
-    children
-  ) : (
+  const centerContent = isRenderable(children) ? children : (
     <View style={tokens.layout.titleWrapper}>
-      {isRenderable(title)
-        ? isText(title)
-          ? (
-            <Text
-              style={[
-                tokens.layout.title,
-                {
-                  color: resolvedColor,
-                  fontSize: tokens.typography.titleSize,
-                  fontWeight: tokens.typography.titleWeight,
-                },
-                titleStyle,
-              ]}
-              numberOfLines={1}
-            >
-              {title}
-            </Text>
-          )
-          : title
-        : null}
-      {isRenderable(description)
-        ? isText(description)
-          ? (
-            <Text
-              style={[
-                tokens.layout.description,
-                {
-                  color: tintColor ?? tokens.colors.description,
-                  fontSize: tokens.typography.descriptionSize,
-                },
-                descriptionStyle,
-              ]}
-              numberOfLines={1}
-            >
-              {description}
-            </Text>
-          )
-          : description
-        : null}
+      {isRenderable(title) && renderTextOrNode(title, [
+        tokens.layout.title,
+        {
+          color: resolvedColor,
+          fontSize: tokens.typography.titleSize,
+          fontWeight: tokens.typography.titleWeight,
+        },
+        titleStyle,
+      ], { numberOfLines: 1 })}
+      {isRenderable(description) && renderTextOrNode(description, [
+        tokens.layout.description,
+        {
+          color: tintColor ?? tokens.colors.description,
+          fontSize: tokens.typography.descriptionSize,
+        },
+        descriptionStyle,
+      ], { numberOfLines: 1 })}
     </View>
   )
 
@@ -262,9 +230,7 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
 
   return (
     <>
-      {enablePlaceholder ? (
-        <View testID="rv-navbar-placeholder" style={{ height }} />
-      ) : null}
+      {enablePlaceholder && <View testID="rv-navbar-placeholder" style={{ height }} />}
       {navContent}
     </>
   )

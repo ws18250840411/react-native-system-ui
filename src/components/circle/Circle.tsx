@@ -75,31 +75,15 @@ const CircleImpl: React.FC<CircleProps> = props => {
 
   const resolvedColor = color ?? tokens.colors.color
   const resolvedLayerColor = layerColor ?? tokens.colors.layerColor
-  const baseStyle = useMemo(
-    () => [tokens.layout.root, { width: resolvedSize, height: resolvedSize }, style],
-    [resolvedSize, style, tokens.layout.root]
-  )
-  const contentStyle = useMemo(
-    () => [tokens.layout.content, { width: resolvedSize, height: resolvedSize }],
-    [resolvedSize, tokens.layout.content]
-  )
+  const baseStyle = useMemo(() => [tokens.layout.root, { width: resolvedSize, height: resolvedSize }, style], [resolvedSize, style, tokens.layout.root])
+  const contentStyle = useMemo(() => [tokens.layout.content, { width: resolvedSize, height: resolvedSize }], [resolvedSize, tokens.layout.content])
 
   const content = useMemo(() => {
     if (children == null || children === false) return null
     const childArray = React.Children.toArray(children)
     if (childArray.every(isText)) {
       return (
-        <Text
-          style={[
-            tokens.layout.text,
-            {
-              color: tokens.colors.text,
-              fontSize: tokens.typography.fontSize,
-              lineHeight: tokens.typography.lineHeight,
-            },
-            textStyle,
-          ]}
-        >
+        <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.lineHeight }, textStyle]}>
           {childArray.map(String).join('')}
         </Text>
       )
@@ -145,24 +129,8 @@ const CircleImpl: React.FC<CircleProps> = props => {
     return (
       <View style={baseStyle}>
         <View style={[tokens.layout.webRing, webRingStyle]} />
-        {shouldRenderInner ? (
-          <View
-            style={[
-              tokens.layout.webInner,
-              {
-                width: innerSize,
-                height: innerSize,
-                borderRadius: innerSize / 2,
-                backgroundColor: fill,
-                left: safeStroke,
-                top: safeStroke,
-              },
-            ]}
-          />
-        ) : null}
-        <View pointerEvents="box-none" style={contentStyle}>
-          {content}
-        </View>
+        {shouldRenderInner ? <View style={[tokens.layout.webInner, { width: innerSize, height: innerSize, borderRadius: innerSize / 2, backgroundColor: fill, left: safeStroke, top: safeStroke }]} /> : null}
+        <View pointerEvents="box-none" style={contentStyle}>{content}</View>
       </View>
     )
   }
@@ -194,32 +162,10 @@ const CircleImpl: React.FC<CircleProps> = props => {
   return (
     <View style={baseStyle}>
       <Svg width={resolvedSize} height={resolvedSize}>
-        <SvgCircle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke={resolvedLayerColor}
-          strokeWidth={resolvedStrokeWidth}
-          fill={fill}
-        />
-        <AnimatedSvgCircle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke={resolvedColor}
-          strokeWidth={resolvedStrokeWidth}
-          fill="transparent"
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={dashOffset}
-          strokeLinecap={lineCap}
-          rotation={rotation}
-          originX={center}
-          originY={center}
-        />
+        <SvgCircle cx={center} cy={center} r={radius} stroke={resolvedLayerColor} strokeWidth={resolvedStrokeWidth} fill={fill} />
+        <AnimatedSvgCircle cx={center} cy={center} r={radius} stroke={resolvedColor} strokeWidth={resolvedStrokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={dashOffset} strokeLinecap={lineCap} rotation={rotation} originX={center} originY={center} />
       </Svg>
-      <View pointerEvents="box-none" style={contentStyle}>
-        {content}
-      </View>
+      <View pointerEvents="box-none" style={contentStyle}>{content}</View>
     </View>
   )
 }

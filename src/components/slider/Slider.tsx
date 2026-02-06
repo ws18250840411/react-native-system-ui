@@ -9,7 +9,7 @@ import type { SliderProps, SliderValue } from './types'
 import { useSliderTokens } from './tokens'
 import { parseNumber } from '../../utils/number'
 import { clamp } from '../../utils'
-import { isFunction, isFiniteNumber } from '../../utils/validate'
+import { isFunction, isFiniteNumber, isRenderable } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
 
 type TrackLayout = { width: number; height: number; x: number; y: number }
@@ -48,16 +48,8 @@ const toSliderValue = (values: readonly number[], range: boolean, fallback: numb
   return values[0] ?? fallback
 }
 
-const createAccessibilityProps = (
-  inputProps?: {
-    role?: string
-    ['aria-value']?: unknown
-    accessibilityActions?: unknown
-    onAccessibilityAction?: unknown
-    disabled?: boolean
-  } | null
-) => {
-  if (!inputProps) return {}
+  const createAccessibilityProps = (inputProps?: { role?: string; ['aria-value']?: unknown; accessibilityActions?: unknown; onAccessibilityAction?: unknown; disabled?: boolean } | null) => {
+    if (!inputProps) return {}
   const {
     role,
     ['aria-value']: ariaValue,
@@ -204,24 +196,10 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
     borderRadius: size / 2,
     borderColor: activeColor,
     transform: [{ translateX: translate }, { translateY: translate }],
+    ...(orientation === 'vertical' ? { top: `${visualPercent}%`, left: '50%' } : { left: `${visualPercent}%`, top: '50%' }),
+    ...(!content ? { backgroundColor: thumbBackgroundColor, elevation: thumbElevation } : {}),
   }
-  if (orientation === 'vertical') {
-    thumbStyle.top = `${visualPercent}%`
-    thumbStyle.left = '50%'
-  } else {
-    thumbStyle.left = `${visualPercent}%`
-    thumbStyle.top = '50%'
-  }
-  if (!content) {
-    thumbStyle.backgroundColor = thumbBackgroundColor
-    thumbStyle.elevation = thumbElevation
-  }
-  const indicatorStyle = {
-    width: indicatorSize,
-    height: indicatorSize,
-    borderRadius: indicatorSize / 2,
-    backgroundColor: indicatorColor,
-  }
+  const indicatorStyle = { width: indicatorSize, height: indicatorSize, borderRadius: indicatorSize / 2, backgroundColor: indicatorColor }
   const accessibilityProps = createAccessibilityProps(inputProps) as unknown as Partial<React.ComponentProps<typeof View>>
 
   return (
@@ -231,9 +209,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
       pointerEvents={isDisabled ? 'none' : 'auto'}
       style={[content ? styles.thumbWrapper : styles.thumb, webGestureStyle, thumbStyle]}
     >
-      {content ?? (
-        <View style={indicatorStyle} />
-      )}
+      {content ?? <View style={indicatorStyle} />}
     </View>
   )
 })
@@ -340,17 +316,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
     defaultValue: !isControlled ? normalized : undefined,
     onChange: handleStateChange,
     onChangeEnd: handleStateChangeEnd,
-  }), [
-    ariaDisabled,
-    handleStateChange,
-    handleStateChangeEnd,
-    isControlled,
-    normalized,
-    orientation,
-    resolvedMax,
-    resolvedMin,
-    resolvedStep,
-  ])
+  }), [ariaDisabled, handleStateChange, handleStateChangeEnd, isControlled, normalized, orientation, resolvedMax, resolvedMin, resolvedStep])
 
   const state = useSliderState(sliderStateOptions)
 
@@ -380,29 +346,13 @@ const SliderImpl: React.FC<SliderProps> = props => {
     if (!state.values.every((_, i) => !state.isThumbDragging(i))) return
 
     const { locationX, locationY, pageX, pageY } = event.nativeEvent
-
-    const localX = isFiniteNumber(locationX)
-      ? locationX
-      : isFiniteNumber(pageX)
-        ? pageX - (trackLayout.x ?? 0)
-        : 0
-    const localY = isFiniteNumber(locationY)
-      ? locationY
-      : isFiniteNumber(pageY)
-        ? pageY - (trackLayout.y ?? 0)
-        : 0
+    const localX = isFiniteNumber(locationX) ? locationX : (isFiniteNumber(pageX) ? pageX - (trackLayout.x ?? 0) : 0)
+    const localY = isFiniteNumber(locationY) ? locationY : (isFiniteNumber(pageY) ? pageY - (trackLayout.y ?? 0) : 0)
 
     const size = orientation === 'vertical' ? trackLayout.height : trackLayout.width
     const local = orientation === 'vertical' ? localY : localX
     const raw = local / Math.max(size, 1)
-    const percent =
-      orientation === 'vertical'
-        ? reverse
-          ? raw
-          : 1 - raw
-        : reverseX
-          ? 1 - raw
-          : raw
+    const percent = orientation === 'vertical' ? (reverse ? raw : 1 - raw) : (reverseX ? 1 - raw : raw)
 
     const value = state.getPercentValue(Math.min(1, Math.max(0, percent)))
     const closestThumb = state.values.reduce(
@@ -585,63 +535,38 @@ const SliderImpl: React.FC<SliderProps> = props => {
     const second = thumbVisualPercents[1] ?? first
     return range && thumbVisualPercents.length > 1
       ? { offset: Math.min(first, second), size: Math.max(first, second) - Math.min(first, second) }
-      : (orientation === 'horizontal' ? !reverseX : reverse)
-        ? { offset: 0, size: first }
-        : { offset: first, size: 100 - first }
+      : (orientation === 'horizontal' ? !reverseX : reverse) ? { offset: 0, size: first } : { offset: first, size: 100 - first }
   }, [orientation, range, reverse, reverseX, thumbVisualPercents])
 
+  const { track: { radius: trackRadius } } = tokens
   const activeTrackStyle: ViewStyle = useMemo(() => {
     const base: ViewStyle = {
       backgroundColor: resolvedActiveColor,
-      borderRadius: tokens.track.radius,
-    }
-    if (orientation === 'vertical') {
-      base.left = 0
-      base.width = '100%'
-      base.height = `${Math.max(activeRange.size, 0)}%`
-      base.top = `${Math.max(activeRange.offset, 0)}%`
-    } else {
-      base.top = 0
-      base.height = '100%'
-      base.width = `${Math.max(activeRange.size, 0)}%`
-      base.left = `${Math.max(activeRange.offset, 0)}%`
+      borderRadius: trackRadius,
+      ...(orientation === 'vertical'
+        ? { left: 0, width: '100%', height: `${Math.max(activeRange.size, 0)}%`, top: `${Math.max(activeRange.offset, 0)}%` }
+        : { top: 0, height: '100%', width: `${Math.max(activeRange.size, 0)}%`, left: `${Math.max(activeRange.offset, 0)}%` }),
     }
     return base
-  }, [activeRange.offset, activeRange.size, orientation, resolvedActiveColor, tokens.track.radius])
+  }, [activeRange.offset, activeRange.size, orientation, resolvedActiveColor, trackRadius])
 
   const trackBaseStyle = useMemo(
-    () =>
-      orientation === 'vertical'
-        ? [
-          styles.trackVertical,
-          {
-            width: resolvedTrackHeight,
-            backgroundColor: resolvedInactiveColor,
-            alignSelf: 'center' as const,
-          },
-        ]
-        : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }],
+    () => orientation === 'vertical'
+      ? [styles.trackVertical, { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' as const }]
+      : [styles.trackHorizontal, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }],
     [orientation, resolvedInactiveColor, resolvedTrackHeight]
   )
 
   const isButtonFunction = isFunction(button)
-  const sharedThumb = isButtonFunction
-    ? (button as ({ value }: { value: SliderValue }) => React.ReactNode)({ value: currentValue })
-    : button ?? thumb
+  const sharedThumb = isButtonFunction ? (button as ({ value }: { value: SliderValue }) => React.ReactNode)({ value: currentValue }) : button ?? thumb
   const leftThumbContent = leftButton ?? leftThumb ?? sharedThumb
   const rightThumbContent = rightButton ?? rightThumb ?? sharedThumb
   const resolveThumbContent = useCallback(
-    (index: number, total: number) =>
-      total > 1 ? (index === 0 ? leftThumbContent : rightThumbContent) : sharedThumb,
+    (index: number, total: number) => total > 1 ? (index === 0 ? leftThumbContent : rightThumbContent) : sharedThumb,
     [leftThumbContent, rightThumbContent, sharedThumb],
   )
 
-  const webGestureStyle: ViewStyle | undefined = Platform.OS === 'web'
-    ? ({
-      touchAction: orientation === 'horizontal' ? 'pan-y' : 'pan-x',
-      userSelect: 'none',
-    } as unknown as ViewStyle)
-    : undefined
+  const webGestureStyle: ViewStyle | undefined = Platform.OS === 'web' ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'pan-x', userSelect: 'none' } as unknown as ViewStyle) : undefined
   const baseTrackPressableStyle: StyleProp<ViewStyle> = [
     styles.trackPressable,
     orientation === 'vertical' ? styles.trackPressableVertical : null,
@@ -654,19 +579,14 @@ const SliderImpl: React.FC<SliderProps> = props => {
     ],
     [baseTrackPressableStyle, trackAriaStyle],
   )
-  const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] =
-    trackAriaStyle && isFunction(trackAriaStyle)
-      ? trackPressableStyleFn
-      : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
+  const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] = trackAriaStyle && isFunction(trackAriaStyle) ? trackPressableStyleFn : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
 
+  const { spacing: { containerPaddingVertical }, layout: { verticalMinHeight, verticalWidth }, states: { disabledOpacity } } = tokens
   const containerStyles = [
     styles.container,
-    { paddingVertical: tokens.spacing.containerPaddingVertical },
-    orientation === 'vertical' && [
-      styles.verticalContainer,
-      { minHeight: tokens.layout.verticalMinHeight, width: tokens.layout.verticalWidth },
-    ],
-    disabled && { opacity: tokens.states.disabledOpacity },
+    { paddingVertical: containerPaddingVertical },
+    orientation === 'vertical' && [styles.verticalContainer, { minHeight: verticalMinHeight, width: verticalWidth }],
+    disabled && { opacity: disabledOpacity },
     style,
   ]
 
@@ -684,7 +604,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
           onLayout={handleCombinedTrackLayout}
           style={trackPressableStyle}
         >
-          <View style={[styles.trackBase, { borderRadius: tokens.track.radius }, ...trackBaseStyle]}>
+          <View style={[styles.trackBase, { borderRadius: trackRadius }, ...trackBaseStyle]}>
             <View style={[styles.active, activeTrackStyle]} />
           </View>
         </Pressable>

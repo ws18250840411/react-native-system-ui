@@ -19,34 +19,12 @@ const SafeAreaViewImpl: React.FC<SafeAreaViewProps> = ({
 }) => {
   const p = useSafeAreaPadding({})
   if (edge === 'top') {
-    return (
-      <View
-        style={[{ width: '100%', minHeight: p.paddingTop } as ViewStyle, style]}
-        onLayout={onLayout}
-        pointerEvents={pointerEvents ?? 'none'}
-      />
-    )
+    return <View style={[{ width: '100%', minHeight: p.paddingTop } as ViewStyle, style]} onLayout={onLayout} pointerEvents={pointerEvents ?? 'none'} />
   }
   if (edge === 'bottom') {
-    return (
-      <View
-        style={[{ width: '100%', minHeight: p.paddingBottom } as ViewStyle, style]}
-        pointerEvents={pointerEvents ?? 'none'}
-      />
-    )
+    return <View style={[{ width: '100%', minHeight: p.paddingBottom } as ViewStyle, style]} pointerEvents={pointerEvents ?? 'none'} />
   }
-  return (
-    <View
-      style={[
-        { width: '100%', paddingTop: p.paddingTop, paddingBottom: p.paddingBottom, paddingLeft: p.paddingLeft, paddingRight: p.paddingRight } as ViewStyle,
-        style,
-      ]}
-      onLayout={onLayout}
-      pointerEvents={pointerEvents}
-    >
-      {children}
-    </View>
-  )
+  return <View style={[{ width: '100%', paddingTop: p.paddingTop, paddingBottom: p.paddingBottom, paddingLeft: p.paddingLeft, paddingRight: p.paddingRight } as ViewStyle, style]} onLayout={onLayout} pointerEvents={pointerEvents}>{children}</View>
 }
 
 export const SafeAreaView = React.memo(SafeAreaViewImpl)

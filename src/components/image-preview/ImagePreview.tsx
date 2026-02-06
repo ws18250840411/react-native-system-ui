@@ -340,7 +340,7 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
       onClosed={onClosed}
     >
       <View style={[styles.content, { backgroundColor: colors.background }]}>
-        {imagesLen === 1 ? renderIndex(0, 1) : null}
+        {imagesLen === 1 && renderIndex(0, 1)}
         {imagesLen === 0 ? (
           <View style={styles.empty} testID="rv-image-preview-empty" />
         ) : (

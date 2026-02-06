@@ -220,16 +220,7 @@ const WheelPickerItemInner = <T extends PickerOption>({
   )
 }
 
-const WheelPickerItem = React.memo(
-  WheelPickerItemInner,
-  (prev, next) =>
-    prev.item === next.item &&
-    prev.index === next.index &&
-    prev.itemHeight === next.itemHeight &&
-    prev.active === next.active &&
-    prev.disabled === next.disabled &&
-    prev.renderItem === next.renderItem
-) as <T extends PickerOption>(props: WheelPickerItemProps<T>) => React.JSX.Element
+const WheelPickerItem = React.memo(WheelPickerItemInner) as <T extends PickerOption>(props: WheelPickerItemProps<T>) => React.JSX.Element
 
 type WheelPickerProps<T extends PickerOption = PickerOption> = {
   data: T[]
@@ -928,28 +919,23 @@ const PickerColumn: React.FC<
       onSelect(option, columnIndex, target)
     }, [columnIndex, onSelect, options])
 
+    const { text: cText, textDisabled: cDisabled, textMuted: cMuted } = tokens.colors
+    const optionFont = { fontSize: tokens.typography.optionSize, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.optionWeight }
+
     const renderItemStable = useCallback(
       (item: PickerOption, _index: number, meta: { active: boolean; disabled: boolean }) => {
-        const active = meta?.active ?? false
-        const disabled = meta?.disabled ?? false
-        const textColor = disabled ? tokens.colors.textDisabled : (active ? tokens.colors.text : tokens.colors.textMuted)
+        const { active = false, disabled = false } = meta ?? {}
+        const color = disabled ? cDisabled : active ? cText : cMuted
         const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
         const testID = getOptionTestID?.(item, { columnIndex, active })
         const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
         return (
           <View style={[wheelStyles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
-            {isText(content) ? (
-              <Text numberOfLines={1} style={[styles.optionText, {
-                color: textColor,
-                fontSize: tokens.typography.optionSize,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.optionWeight,
-              }]}>{content}</Text>
-            ) : content}
+            {isText(content) ? <Text numberOfLines={1} style={[styles.optionText, optionFont, { color }]}>{content}</Text> : content}
           </View>
         )
       },
-      [columnIndex, getOptionA11yLabel, getOptionTestID, itemHeight, optionRender, tokens.colors.text, tokens.colors.textDisabled, tokens.colors.textMuted, tokens.typography.fontFamily, tokens.typography.optionSize, tokens.typography.optionWeight]
+      [cText, cDisabled, cMuted, columnIndex, getOptionA11yLabel, getOptionTestID, itemHeight, optionFont, optionRender]
     )
 
     return (
@@ -1019,26 +1005,18 @@ const PickerImpl: React.FC<PickerProps> = props => {
   })
   const isCascade = preparedColumns.type === 'cascade'
 
+  const toolbarFont = { fontSize: tokens.typography.toolbarSize, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.toolbarWeight }
+
   const renderActionContent = (content: React.ReactNode, color: string) => {
-    if (React.isValidElement(content)) return <View style={{ minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>{content}</View>
-    if (isText(content)) return <Text numberOfLines={1} style={[styles.actionText, {
-      color,
-      fontSize: tokens.typography.toolbarSize,
-      fontFamily: tokens.typography.fontFamily,
-      fontWeight: tokens.typography.toolbarWeight,
-    }]}>{content}</Text>
-    return <View style={{ minWidth: 44 }} />
+    if (React.isValidElement(content)) return <View style={styles.actionWrap}>{content}</View>
+    if (isText(content)) return <Text numberOfLines={1} style={[styles.actionText, toolbarFont, { color }]}>{content}</Text>
+    return <View style={styles.actionWrap} />
   }
 
   const renderTitleContent = (content: React.ReactNode) => {
     if (content == null) return <View />
-    if (React.isValidElement(content)) return <View style={[styles.title, { alignItems: 'center', justifyContent: 'center' }]}>{content}</View>
-    return <Text style={[styles.title, {
-      fontSize: tokens.typography.toolbarSize,
-      fontFamily: tokens.typography.fontFamily,
-      color: tokens.colors.text,
-      fontWeight: tokens.typography.toolbarWeight,
-    }]} numberOfLines={1}>{content}</Text>
+    if (React.isValidElement(content)) return <View style={styles.titleWrap}>{content}</View>
+    return <Text style={[styles.title, toolbarFont, { color: tokens.colors.text }]} numberOfLines={1}>{content}</Text>
   }
 
   const toolbar = showToolbar ? (
@@ -1162,9 +1140,19 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
+  titleWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   actionText: {
     minWidth: 44,
     textAlign: 'center',
+  },
+  actionWrap: {
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loading: {
     position: 'absolute',

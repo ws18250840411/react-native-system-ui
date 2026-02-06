@@ -28,39 +28,18 @@ const OverlayImpl = (
   const tokens = useOverlayTokens()
   const shouldUseModal = useRNModal ?? !IS_WEB
 
-  const webOverlayStyle: ViewStyle | undefined = IS_WEB
-    ? { zIndex: tokens.layer.zIndex, position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
-    : undefined
+  const webOverlayStyle: ViewStyle | undefined = IS_WEB ? { zIndex: tokens.layer.zIndex, position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 } : undefined
 
   const resolvedOpen = isOpen ?? visible ?? false
 
-  useKeyboardDismissable({
-    enabled: !IS_WEB && resolvedOpen && isKeyboardDismissable,
-    callback: onRequestClose ?? (() => { }),
-  })
+  useKeyboardDismissable({ enabled: !IS_WEB && resolvedOpen && isKeyboardDismissable, callback: onRequestClose ?? (() => { }) })
 
   if (!resolvedOpen) return null
 
   if (shouldUseModal || (useRNModalOnAndroid && Platform.OS === 'android')) {
-    return (
-      <Modal
-        statusBarTranslucent
-        transparent
-        visible={resolvedOpen}
-        onRequestClose={onRequestClose}
-        animationType={animationPreset}
-        ref={ref}
-      >
-        {children}
-      </Modal>
-    )
+    return <Modal statusBarTranslucent transparent visible={resolvedOpen} onRequestClose={onRequestClose} animationType={animationPreset} ref={ref}>{children}</Modal>
   }
-
-  return (
-    <OverlayContainer style={[style, webOverlayStyle]}>
-      {children}
-    </OverlayContainer>
-  )
+  return <OverlayContainer style={[style, webOverlayStyle]}>{children}</OverlayContainer>
 }
 
 const OverlayForwardRef = React.forwardRef<React.ComponentRef<typeof Modal>, OverlayProps>(OverlayImpl)

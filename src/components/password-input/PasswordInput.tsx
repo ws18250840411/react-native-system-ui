@@ -15,13 +15,7 @@ import { isString, isText } from '../../utils/validate'
 import type { PasswordInputProps, PasswordInputRef } from './types'
 import { usePasswordInputTokens } from './tokens'
 
-const HIDDEN_INPUT_PROPS: TextInputProps = {
-  caretHidden: true,
-  autoCorrect: false,
-  spellCheck: false,
-  importantForAutofill: 'no',
-  autoComplete: 'off',
-}
+const HIDDEN_INPUT_PROPS: TextInputProps = { caretHidden: true, autoCorrect: false, spellCheck: false, importantForAutofill: 'no', autoComplete: 'off' }
 
 const sanitizeNumber = (value: string) => value.replace(/[^0-9]/g, '')
 
@@ -57,10 +51,7 @@ const PasswordInputImpl = (
       ...rest
     } = props
 
-    const lengthSafe = Math.max(
-      1,
-      Math.floor(parseNumberLike(length, 6) ?? 6),
-    )
+    const lengthSafe = Math.max(1, Math.floor(parseNumberLike(length, 6) ?? 6))
     const tokens = usePasswordInputTokens(tokensOverride)
     const { colors, radii, sizing, typography, opacity, spacing } = tokens
 
@@ -72,10 +63,7 @@ const PasswordInputImpl = (
     const keyboardType = type === 'number' ? 'number-pad' : 'default'
     const inputMode = type === 'number' ? 'numeric' : 'text'
 
-    const [code = '', setCode] = useControllableValue<string>(
-      props,
-      { defaultValue: '' }
-    )
+    const [code = '', setCode] = useControllableValue<string>(props, { defaultValue: '' })
     const normalizeValue = useCallback(
       (nextValue: unknown) => {
         let next =
@@ -251,112 +239,28 @@ const PasswordInputImpl = (
 
     return (
       <View style={style}>
-        <Pressable
-          {...rest}
-          style={wrapperStyle}
-          onPress={focusInput}
-          disabled={disabled}
-          accessibilityRole="button"
-          accessibilityState={{ disabled }}
-        >
-          <View
-            style={securityStyle}
-          >
+        <Pressable {...rest} style={wrapperStyle} onPress={focusInput} disabled={disabled} accessibilityRole="button" accessibilityState={{ disabled }}>
+          <View style={securityStyle}>
             {cells.map((item, index) => {
-              const filledTextStyle = [
-                cellTextBase,
-                cellTextStyle,
-                !mask && item.isFilled && highlightTextStyle,
-              ]
-
-              const baseCell = [
-                styles.cell,
-                { backgroundColor: colors.background, height: sizing.cellHeight },
-                cellStyle,
-                item.isFilled && cellFilledStyle,
-              ]
-
+              const filledTextStyle = [cellTextBase, cellTextStyle, !mask && item.isFilled && highlightTextStyle]
+              const baseCell = [styles.cell, { backgroundColor: colors.background, height: sizing.cellHeight }, cellStyle, item.isFilled && cellFilledStyle]
               if (hasGutter) {
-                baseCell.push(
-                  styles.cellGutter,
-                  { borderColor: colors.border, borderRadius: radii.cellGutter },
-                  index > 0 && { marginLeft: gutterValue },
-                )
+                baseCell.push(styles.cellGutter, { borderColor: colors.border, borderRadius: radii.cellGutter }, index > 0 && { marginLeft: gutterValue })
               } else if (index < lengthSafe - 1) {
-                baseCell.push({
-                  borderRightWidth: StyleSheet.hairlineWidth,
-                  borderRightColor: colors.border,
-                })
+                baseCell.push({ borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: colors.border })
               }
 
               return (
                 <View key={item.key} style={baseCell}>
-                  {mask ? (
-                    <View
-                      style={[
-                        {
-                          width: sizing.maskSize,
-                          height: sizing.maskSize,
-                          borderRadius: sizing.maskSize / 2,
-                          backgroundColor: colors.text,
-                          opacity: item.isFilled ? 1 : 0,
-                        },
-                        maskStyle,
-                      ]}
-                    />
-                  ) : (
-                    <Text style={filledTextStyle} numberOfLines={1}>
-                      {item.char ?? ''}
-                    </Text>
-                  )}
-                  {item.showBlink ? (
-                    <View
-                      testID="password-input-cursor"
-                      style={[
-                        styles.cursor,
-                        {
-                          width: sizing.cursorWidth,
-                          height: `${sizing.cursorHeightRatio * 100}%`,
-                          borderRadius: sizing.cursorWidth / 2,
-                          top: `${sizing.cursorTopRatio * 100}%`,
-                          marginLeft: -sizing.cursorWidth / 2,
-                          backgroundColor: colors.cursor,
-                          opacity: cursorVisible ? 1 : 0,
-                        },
-                        cursorStyle,
-                      ]}
-                    />
-                  ) : null}
+                  {mask ? <View style={[{ width: sizing.maskSize, height: sizing.maskSize, borderRadius: sizing.maskSize / 2, backgroundColor: colors.text, opacity: item.isFilled ? 1 : 0 }, maskStyle]} /> : <Text style={filledTextStyle} numberOfLines={1}>{item.char ?? ''}</Text>}
+                  {item.showBlink ? <View testID="password-input-cursor" style={[styles.cursor, { width: sizing.cursorWidth, height: `${sizing.cursorHeightRatio * 100}%`, borderRadius: sizing.cursorWidth / 2, top: `${sizing.cursorTopRatio * 100}%`, marginLeft: -sizing.cursorWidth / 2, backgroundColor: colors.cursor, opacity: cursorVisible ? 1 : 0 }, cursorStyle]} /> : null}
                 </View>
               )
             })}
-            <TextInput
-              ref={inputRef}
-              value={normalizedCode}
-              editable={!disabled}
-              keyboardType={keyboardType}
-              inputMode={inputMode}
-              maxLength={lengthSafe}
-              autoFocus={false}
-              secureTextEntry={mask}
-              {...hiddenInputProps}
-              style={[styles.hiddenInput, { opacity: opacity.hidden }]}
-              onChangeText={handleChangeText}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              accessible={false}
-            />
+            <TextInput ref={inputRef} value={normalizedCode} editable={!disabled} keyboardType={keyboardType} inputMode={inputMode} maxLength={lengthSafe} autoFocus={false} secureTextEntry={mask} {...hiddenInputProps} style={[styles.hiddenInput, { opacity: opacity.hidden }]} onChangeText={handleChangeText} onFocus={handleFocus} onBlur={handleBlur} accessible={false} />
           </View>
         </Pressable>
-        {tip ? (
-          <View style={[styles.infoWrapper, { marginTop: spacing.infoMarginTop }]}>
-            {isText(tip) ? (
-              <Text style={[styles.infoText, { color: tipColor }]}>{tip}</Text>
-            ) : (
-              tip
-            )}
-          </View>
-        ) : null}
+        {tip ? <View style={[styles.infoWrapper, { marginTop: spacing.infoMarginTop }]}>{isText(tip) ? <Text style={[styles.infoText, { color: tipColor }]}>{tip}</Text> : tip}</View> : null}
       </View>
     )
   }
@@ -368,34 +272,12 @@ const PasswordInput = React.memo(PasswordInputForwardRef)
 export default PasswordInput
 
 const styles = StyleSheet.create({
-  wrapper: {
-    alignSelf: 'stretch',
-  },
-  security: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  cell: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cellGutter: {
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  cursor: {
-    position: 'absolute',
-    left: '50%',
-  },
-  hiddenInput: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  infoWrapper: {
-    alignItems: 'center',
-  },
-  infoText: {
-    textAlign: 'center',
-  },
+  wrapper: { alignSelf: 'stretch' },
+  security: { flexDirection: 'row', alignItems: 'center', position: 'relative', overflow: 'hidden' },
+  cell: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  cellGutter: { borderWidth: StyleSheet.hairlineWidth },
+  cursor: { position: 'absolute', left: '50%' },
+  hiddenInput: { ...StyleSheet.absoluteFillObject },
+  infoWrapper: { alignItems: 'center' },
+  infoText: { textAlign: 'center' },
 })

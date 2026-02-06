@@ -11,6 +11,8 @@ import {
 } from 'react-native'
 
 import { isFunction, isText } from '../../utils'
+import { renderTextOrNode } from '../../utils'
+import { isRenderable } from '../../utils/validate'
 import { useAriaPress, useSafeAreaPadding } from '../../hooks'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../../hooks'
@@ -228,7 +230,7 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
     [animated, contentHeight, position],
   )
 
-  const hasMessage = message !== undefined && message !== null && message !== false && message !== ''
+  const hasMessage = isRenderable(message) && (typeof message !== 'string' || message !== '')
 
   const bar = useMemo(() => (
     <View
@@ -268,32 +270,26 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
                 },
               ]}
             >
-              {hasMessage
-                ? isText(message)
-                  ? (
-                    <Text
-                      style={[
-                        tokens.layout.text,
-                        {
-                          color: resolvedTextColor,
-                          fontSize: tokens.typography.fontSize,
-                          lineHeight: tokens.typography.lineHeight,
-                        },
-                        textStyle,
-                      ]}
-                    >
-                      {message}
-                    </Text>
-                  )
-                  : (
-                    message
-                  )
-                : null}
+              {hasMessage && (
+                isText(message) ? (
+                  renderTextOrNode(message, [
+                    tokens.layout.text,
+                    {
+                      color: resolvedTextColor,
+                      fontSize: tokens.typography.fontSize,
+                      lineHeight: tokens.typography.lineHeight,
+                    },
+                    textStyle,
+                  ])
+                ) : (
+                  message
+                )
+              )}
             </View>
           </View>
         </Animated.View>
       </View>
-      {position === 'bottom' ? <View style={{ height: safeBottomInset }} /> : null}
+      {position === 'bottom' && <View style={{ height: safeBottomInset }} />}
     </View>
   ), [
     accessibilityRole,
@@ -333,9 +329,7 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
       style={[
         tokens.layout.portal,
         position === 'bottom' ? { bottom: 0 } : { top: 0 },
-        resolvedZIndex !== undefined && resolvedZIndex !== null
-          ? { zIndex: resolvedZIndex }
-          : null,
+        resolvedZIndex != null ? { zIndex: resolvedZIndex } : null,
       ]}
     >
       {interactive ? (

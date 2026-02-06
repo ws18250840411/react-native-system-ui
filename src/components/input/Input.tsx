@@ -53,18 +53,14 @@ const InputImpl = (
     onChangeTextRef.current?.(value)
   }, [])
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      focus: () => inputRef.current?.focus?.(),
-      blur: () => inputRef.current?.blur?.(),
-      clear: () => inputRef.current?.clear?.(),
-      get nativeElement() {
-        return inputRef.current?.nativeElement ?? null
-      },
-    }),
-    [],
-  )
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus?.(),
+    blur: () => inputRef.current?.blur?.(),
+    clear: () => inputRef.current?.clear?.(),
+    get nativeElement() {
+      return inputRef.current?.nativeElement ?? null
+    },
+  }), [])
 
   const resolvedInputAlign = align ?? inputAlignProp ?? tokens.defaults.inputAlign
   const resolvedClearTrigger = clearTriggerOverride ?? tokens.defaults.clearTrigger
@@ -78,22 +74,7 @@ const InputImpl = (
     style,
   ]
 
-  return (
-    <Field
-      ref={inputRef}
-      {...rest}
-      type={type}
-      keyboardType={resolvedKeyboardType}
-      tokensOverride={fieldTokensOverride}
-      border={tokens.defaults.border}
-      inputAlign={resolvedInputAlign}
-      clearTrigger={resolvedClearTrigger}
-      style={fieldStyle}
-      inputStyle={inputStyle}
-      showWordLimit={showWordLimit}
-      onChangeText={handleChangeText}
-    />
-  )
+  return <Field ref={inputRef} {...rest} type={type} keyboardType={resolvedKeyboardType} tokensOverride={fieldTokensOverride} border={tokens.defaults.border} inputAlign={resolvedInputAlign} clearTrigger={resolvedClearTrigger} style={fieldStyle} inputStyle={inputStyle} showWordLimit={showWordLimit} onChangeText={handleChangeText} />
 }
 
 const InputForwardRef = React.forwardRef<InputInstance, InputProps>(InputImpl)
@@ -114,17 +95,11 @@ const TextAreaImpl = (
     return Math.max(1, Math.round(height / lineHeight))
   }, [lineHeight])
 
-  const resolvedAutoSize: boolean | FieldAutosizeConfig | undefined = useMemo(
-    () =>
-      !autoSize || isBoolean(autoSize)
-        ? autoSize
-        : (() => {
-          const minRows = toRows(autoSize.minHeight)
-          const maxRows = toRows(autoSize.maxHeight)
-          return minRows || maxRows ? { minRows, maxRows } : undefined
-        })(),
-    [autoSize, toRows]
-  )
+  const resolvedAutoSize: boolean | FieldAutosizeConfig | undefined = useMemo(() => !autoSize || isBoolean(autoSize) ? autoSize : (() => {
+    const minRows = toRows(autoSize.minHeight)
+    const maxRows = toRows(autoSize.maxHeight)
+    return minRows || maxRows ? { minRows, maxRows } : undefined
+  })(), [autoSize, toRows])
 
   return <InputComponent ref={ref} {...rest} type="textarea" autoSize={resolvedAutoSize} />
 }

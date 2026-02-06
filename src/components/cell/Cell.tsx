@@ -10,32 +10,12 @@ import {
 import { Arrow } from 'react-native-system-icon'
 
 import { useAriaPress, useHairline } from '../../hooks'
-import { isRenderable, isText } from '../../utils'
+import { isRenderable, renderTextOrNode } from '../../utils'
 
 import { CellGroupContext } from './CellContext'
 import { useCellTokens } from './tokens'
 import type { CellProps } from './types'
 
-const TextOrView = ({
-  children,
-  textStyle,
-  viewStyle,
-  numberOfLines,
-}: {
-  children: React.ReactNode
-  textStyle?: StyleProp<TextStyle>
-  viewStyle?: StyleProp<ViewStyle>
-  numberOfLines?: number
-}) => {
-  if (isText(children)) {
-    return (
-      <Text style={textStyle} numberOfLines={numberOfLines}>
-        {children}
-      </Text>
-    )
-  }
-  return <View style={viewStyle}>{children}</View>
-}
 
 const CellImpl = (
   props: CellProps,
@@ -147,8 +127,8 @@ const CellImpl = (
               </Text>
             )}
             {hasTitle && (
-              <TextOrView
-                textStyle={[
+              <View style={titleStyle as StyleProp<ViewStyle>}>
+                {renderTextOrNode(title, [
                   {
                     color: tokens.colors.title,
                     fontSize: isLargeSize
@@ -157,36 +137,24 @@ const CellImpl = (
                     fontWeight: tokens.typography.titleWeight,
                   },
                   titleStyle,
-                ]}
-                viewStyle={titleStyle as StyleProp<ViewStyle>}
-                numberOfLines={1}
-              >
-                {title}
-              </TextOrView>
+                ], { numberOfLines: 1 })}
+              </View>
             )}
           </View>
         )}
 
         {hasLabel && (
-          <TextOrView
-            textStyle={[
+          <View style={[{ marginTop: tokens.spacing.labelMarginTop }, labelStyle as StyleProp<ViewStyle>]}>
+            {renderTextOrNode(label, [
               {
-                marginTop: tokens.spacing.labelMarginTop,
                 color: tokens.colors.label,
                 fontSize: isLargeSize
                   ? tokens.typography.largeLabelSize
                   : tokens.typography.labelSize,
               },
               labelStyle,
-            ]}
-            viewStyle={[
-              { marginTop: tokens.spacing.labelMarginTop },
-              labelStyle as StyleProp<ViewStyle>,
-            ]}
-            numberOfLines={2}
-          >
-            {label}
-          </TextOrView>
+            ], { numberOfLines: 2 })}
+          </View>
         )}
       </View>
 
@@ -199,8 +167,8 @@ const CellImpl = (
         ]}
       >
         {hasValue ? (
-          <TextOrView
-            textStyle={[
+          <View style={customContentStyle}>
+            {renderTextOrNode(value, [
               tokens.layout.value,
               onlyValue && tokens.layout.valueOnly,
               {
@@ -210,39 +178,30 @@ const CellImpl = (
                   : tokens.typography.valueSize,
               },
               valueStyle,
-            ]}
-            viewStyle={customContentStyle}
-            numberOfLines={1}
-          >
-            {value}
-          </TextOrView>
-        ) : hasChildren ? (
+            ], { numberOfLines: 1 })}
+          </View>
+        ) : hasChildren && (
           <View style={customContentStyle}>{children}</View>
-        ) : null}
+        )}
       </View>
 
       {hasExtra && (
-        <TextOrView
-          textStyle={{
+        <View style={{ marginLeft: tokens.spacing.extraGap }}>
+          {renderTextOrNode(extra, {
             marginLeft: tokens.spacing.extraGap,
             color: tokens.colors.value,
             fontSize: isLargeSize
               ? tokens.typography.largeValueSize
               : tokens.typography.valueSize,
-          }}
-          viewStyle={{ marginLeft: tokens.spacing.extraGap }}
-        >
-          {extra}
-        </TextOrView>
+          })}
+        </View>
       )}
 
-      {hasRightIcon ? (
-        rightIcon
-      ) : showArrow ? (
+      {hasRightIcon ? rightIcon : showArrow && (
         <View style={[tokens.layout.rightIconWrapper, tokens.layout.arrowTransforms[arrowDirection]]}>
           <Arrow size={tokens.sizing.arrowSize} fill={tokens.colors.arrow} />
         </View>
-      ) : null}
+      )}
     </>
   )
 

@@ -40,9 +40,7 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
       const numeric = parseNumber(size, tokens.defaults.size)
       return Math.max(0, numeric / tokens.defaults.size)
     }
-    if (typeof size === 'number') {
-      return Math.max(0, size / tokens.defaults.size)
-    }
+    if (typeof size === 'number') return Math.max(0, size / tokens.defaults.size)
     return 1
   }, [size, tokens.defaults.size])
 
@@ -68,24 +66,7 @@ const SwitchImpl = <V,>(props: SwitchProps<V>) => {
     triggerChange(next)
   }, [activeValue, disabled, inactiveValue, isChecked, triggerChange, value])
 
-  return (
-    <RNSwitch
-      value={isChecked}
-      disabled={disabled}
-      trackColor={{ false: resolvedInactiveColor, true: resolvedActiveColor }}
-      thumbColor={tokens.colors.handle}
-      ios_backgroundColor={resolvedInactiveColor}
-      style={[
-        { transform: [{ scaleX: scale }, { scaleY: scale }] },
-        { opacity: disabled ? tokens.opacity.disabled : 1 },
-        style,
-      ]}
-      accessibilityRole="switch"
-      accessibilityState={{ checked: isChecked, disabled }}
-      onValueChange={handleValueChange}
-      onTouchEnd={handleTouchEnd}
-    />
-  )
+  return <RNSwitch value={isChecked} disabled={disabled} trackColor={{ false: resolvedInactiveColor, true: resolvedActiveColor }} thumbColor={tokens.colors.handle} ios_backgroundColor={resolvedInactiveColor} style={[{ transform: [{ scaleX: scale }, { scaleY: scale }] }, { opacity: disabled ? tokens.opacity.disabled : 1 }, style]} accessibilityRole="switch" accessibilityState={{ checked: isChecked, disabled }} onValueChange={handleValueChange} onTouchEnd={handleTouchEnd} />
 }
 
 export const Switch = React.memo(SwitchImpl) as unknown as SwitchComponent

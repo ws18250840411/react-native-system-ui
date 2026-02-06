@@ -82,63 +82,24 @@ const SwiperPagIndicator = memo<SwiperPagIndicatorProps>(
     const resolvedActiveColor = activeColor || tokens.colors.active
     const resolvedInactiveColor = inactiveColor || tokens.colors.inactive
 
-    const containerPositionStyle = vertical
-      ? [styles.containerVertical, { right: tokens.offset.verticalRight }]
-      : [styles.containerHorizontal, { bottom: tokens.offset.horizontalBottom }]
+    const containerPositionStyle = vertical ? [styles.containerVertical, { right: tokens.offset.verticalRight }] : [styles.containerHorizontal, { bottom: tokens.offset.horizontalBottom }]
 
     for (let i = 0; i < total; i++) {
       const isActive = current === i
       const size = isActive ? tokens.sizing.dotSizeActive : tokens.sizing.dotSizeInactive
-      dots.push(
-        <View
-          key={i}
-          style={[{
-            marginHorizontal: tokens.spacing.dotMargin,
-            marginVertical: tokens.spacing.dotMargin,
-            backgroundColor: isActive ? resolvedActiveColor : resolvedInactiveColor,
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-          }]}
-        />
-      )
+      dots.push(<View key={i} style={[{ marginHorizontal: tokens.spacing.dotMargin, marginVertical: tokens.spacing.dotMargin, backgroundColor: isActive ? resolvedActiveColor : resolvedInactiveColor, width: size, height: size, borderRadius: size / 2 }]} />)
     }
 
-    return (
-      <View
-        style={[
-          styles.container,
-          { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation },
-          containerPositionStyle,
-          style,
-        ]}
-        {...rest}
-      >
-        {dots}
-      </View>
-    )
+    return <View style={[styles.container, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation }, containerPositionStyle, style]} {...rest}>{dots}</View>
   }
 )
 
 SwiperPagIndicator.displayName = 'SwiperPagIndicator'
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  containerHorizontal: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-  },
-  containerVertical: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    flexDirection: 'column',
-  },
+  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  containerHorizontal: { position: 'absolute', left: 0, right: 0 },
+  containerVertical: { position: 'absolute', top: 0, bottom: 0, flexDirection: 'column' },
 })
 
 export default SwiperPagIndicator

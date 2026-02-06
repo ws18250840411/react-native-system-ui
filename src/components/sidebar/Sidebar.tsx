@@ -6,7 +6,8 @@ import { useControllableValue } from '../../hooks'
 import type { SidebarItemProps, SidebarProps } from './types'
 import { SidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
-import { isText } from '../../utils'
+import { renderTextOrNode } from '../../utils'
+import { isRenderable } from '../../utils/validate'
 
 const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   const { children, sideStyle, style, tokensOverride, ...rest } = props
@@ -60,11 +61,7 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
 
   const activeContentStyle = activeItem?.props?.contentStyle
   const activeContent = activeItem?.props?.children
-  const activeContentNode = activeContent == null || activeContent === false
-    ? null
-    : isText(activeContent)
-      ? <Text>{activeContent}</Text>
-      : activeContent
+  const activeContentNode = !isRenderable(activeContent) ? null : renderTextOrNode(activeContent)
 
   const containerStyle = [
     tokens.layout.container,

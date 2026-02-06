@@ -1,7 +1,7 @@
 import React from 'react'
 import { Text, View } from 'react-native'
 
-import { createHairlineView, isRenderable, isText } from '../../utils'
+import { createHairlineView, isRenderable, renderTextOrNode } from '../../utils'
 import { useDividerTokens } from './tokens'
 import type { DividerProps } from './types'
 
@@ -31,23 +31,17 @@ const DividerImpl: React.FC<DividerProps> = props => {
   const borderStyle = dashed ? 'dashed' : 'solid'
 
   const hasContent = orientation === 'horizontal' && isRenderable(children)
-  const content = !hasContent ? null : isText(children) ? (
-    <Text
-      style={[
-        tokens.layout.text,
-        {
-          color: tokens.colors.text,
-          fontSize: tokens.typography.fontSize,
-          lineHeight: tokens.typography.lineHeight,
-          fontFamily: tokens.typography.fontFamily,
-          fontWeight: tokens.typography.fontWeight,
-        },
-        textStyle,
-      ]}
-    >
-      {children}
-    </Text>
-  ) : children
+  const content = hasContent ? renderTextOrNode(children, [
+    tokens.layout.text,
+    {
+      color: tokens.colors.text,
+      fontSize: tokens.typography.fontSize,
+      lineHeight: tokens.typography.lineHeight,
+      fontFamily: tokens.typography.fontFamily,
+      fontWeight: tokens.typography.fontWeight,
+    },
+    textStyle,
+  ]) : null
 
   const leftGrow = contentPosition === 'left' ? tokens.sizing.sideMinFlex : 1
   const rightGrow = contentPosition === 'right' ? tokens.sizing.sideMinFlex : 1

@@ -1,8 +1,9 @@
 import React from 'react'
-import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native'
+import { Pressable, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
 import { Close } from 'react-native-system-icon'
 
-import { isFunction, isText } from '../../utils'
+import { isFunction, renderTextOrNode } from '../../utils'
+import { isRenderable } from '../../utils/validate'
 import { useTagTokens } from './tokens'
 import type { TagProps } from './types'
 
@@ -69,24 +70,18 @@ const TagImpl: React.FC<TagProps> = props => {
     style,
   ]
 
-  const label = children == null || children === false ? null : isText(children) ? (
-    <Text
-      style={[
-        {
-          color: resolvedTextColor,
-          fontSize: sizeTokens.fontSize,
-          lineHeight: sizeTokens.lineHeight,
-          fontFamily: tokens.typography.fontFamily,
-          fontWeight: tokens.typography.fontWeight,
-        },
-        textStyle,
-      ]}
-    >
-      {children}
-    </Text>
-  ) : children
+  const label = !isRenderable(children) ? null : renderTextOrNode(children, [
+    {
+      color: resolvedTextColor,
+      fontSize: sizeTokens.fontSize,
+      lineHeight: sizeTokens.lineHeight,
+      fontFamily: tokens.typography.fontFamily,
+      fontWeight: tokens.typography.fontWeight,
+    },
+    textStyle,
+  ].filter(Boolean) as StyleProp<TextStyle>)
 
-  const close = !closeable ? null : (
+  const close = closeable && (
     <Pressable
       accessibilityRole="button"
       hitSlop={tokens.spacing.closeHitSlop}
@@ -104,12 +99,7 @@ const TagImpl: React.FC<TagProps> = props => {
     </Pressable>
   )
 
-  const content = (
-    <>
-      {label}
-      {close}
-    </>
-  )
+  const content = <>{label}{close}</>
 
   if (onPress) {
     return (

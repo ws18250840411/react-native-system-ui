@@ -5,6 +5,8 @@ import {
   Text,
   View,
   type GestureResponderEvent,
+  type StyleProp,
+  type TextStyle,
 } from 'react-native'
 import { useRadio } from '@react-native-aria/radio'
 import { useToggleState } from '@react-stately/toggle'
@@ -12,7 +14,8 @@ import { useToggleState } from '@react-stately/toggle'
 import type { RadioProps } from './types'
 import { RadioGroupContext } from './RadioContext'
 import { useRadioTokens } from './tokens'
-import { parseNumber, isText } from '../../utils'
+import { parseNumber, renderTextOrNode } from '../../utils'
+import { isRenderable, isText } from '../../utils/validate'
 
 export const Radio = React.memo((props: RadioProps) => {
   const {
@@ -175,35 +178,24 @@ export const Radio = React.memo((props: RadioProps) => {
   const labelColor = resolvedDisabled ? tokens.colors.labelDisabled : tokens.colors.label
   const borderRadius = shape === 'square' ? tokens.radii.square : tokens.radii.round
 
-  const labelNode = useMemo(() => (
-    children === null || children === undefined || children === false ? null : (
-      <View
-        style={[tokens.layout.labelWrapper, spacingStyle]}
-        pointerEvents="none"
-        accessible={false}
-      >
-        {isText(children) ? (
-          <Text
-            accessible={false}
-            style={[
-              tokens.layout.label,
-              {
-                color: labelColor,
-                fontSize: tokens.typography.fontSize,
-                lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              labelStyle,
-            ]}
-          >
-            {children}
-          </Text>
-        ) : (
-          children
-        )}
-      </View>
-    )
+  const labelNode = useMemo(() => !isRenderable(children) ? null : (
+    <View
+      style={[tokens.layout.labelWrapper, spacingStyle]}
+      pointerEvents="none"
+      accessible={false}
+    >
+      {renderTextOrNode(children, [
+        tokens.layout.label,
+        {
+          color: labelColor,
+          fontSize: tokens.typography.fontSize,
+          lineHeight: tokens.typography.fontSize * tokens.typography.lineHeightMultiplier,
+          fontFamily: tokens.typography.fontFamily,
+          fontWeight: tokens.typography.fontWeight,
+        },
+        labelStyle,
+      ].filter(Boolean) as StyleProp<TextStyle>)}
+    </View>
   ), [
     children,
     labelColor,
@@ -233,7 +225,7 @@ export const Radio = React.memo((props: RadioProps) => {
         },
       ]}
     >
-      {isChecked ? (
+      {isChecked && (
         <View
           style={{
             width: resolvedIconSize * tokens.sizing.dotScale,
@@ -242,7 +234,7 @@ export const Radio = React.memo((props: RadioProps) => {
             backgroundColor: resolvedCheckedColor,
           }}
         />
-      ) : null}
+      )}
     </View>
   ), [
     backgroundColor,

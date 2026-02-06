@@ -6,6 +6,7 @@ import { nativeDriverEnabled } from '../../platform'
 import { createHairlineView } from '../../utils/hairline'
 import { isPromiseLike } from '../../utils/promise'
 import { isNumber, isValidNode } from '../../utils/validate'
+import { renderTextOrNode } from '../../utils'
 import { Close } from 'react-native-system-icon'
 import Button from '../button'
 import Popup from '../popup'
@@ -57,18 +58,12 @@ const ActionButton = (props: ActionButtonProps) => {
       {dividerStyle && <View style={dividerStyle} pointerEvents="none" />}
       {loading ? (
         <ActivityIndicator size="small" color={textColor} />
-      ) : React.isValidElement(text) ? (
-        text
       ) : (
-        <Text
-          style={{
-            color: textColor,
-            fontSize: tokens.typography.actionSize,
-            fontWeight: tokens.typography.actionWeight,
-          }}
-        >
-          {text ?? ''}
-        </Text>
+        renderTextOrNode(text ?? '', {
+          color: textColor,
+          fontSize: tokens.typography.actionSize,
+          fontWeight: tokens.typography.actionWeight,
+        })
       )}
     </Pressable>
   )
@@ -317,9 +312,9 @@ const DialogImpl: React.FC<DialogProps> = props => {
     try { return bc('close') } catch { return true }
   }, [])
 
-  const roundFooterNode = useMemo(() => (hasFooterActions ? (
+  const roundFooterNode = useMemo(() => (hasFooterActions && (
     <View style={roundFooterStyle}>
-      {showCancelButton ? (
+      {showCancelButton && (
         <View
           style={[
             styles.roundButtonWrapper,
@@ -338,8 +333,8 @@ const DialogImpl: React.FC<DialogProps> = props => {
             style={{ minHeight: tokens.sizes.roundButtonHeight }}
           />
         </View>
-      ) : null}
-      {showConfirmButton ? (
+      )}
+      {showConfirmButton && (
         <View
           style={[
             styles.roundButtonWrapper,
@@ -358,9 +353,9 @@ const DialogImpl: React.FC<DialogProps> = props => {
             style={{ minHeight: tokens.sizes.roundButtonHeight }}
           />
         </View>
-      ) : null}
+      )}
     </View>
-  ) : null), [
+  )), [
     cancelButtonColor,
     cancelLoading,
     cancelProps?.disabled,
@@ -379,10 +374,10 @@ const DialogImpl: React.FC<DialogProps> = props => {
     tokens.spacing.roundFooterGap,
   ])
 
-  const defaultFooterNode = useMemo(() => (hasFooterActions ? (
+  const defaultFooterNode = useMemo(() => (hasFooterActions && (
     <View style={styles.footer}>
       <View style={footerBorderTopStyle} pointerEvents="none" />
-      {showCancelButton ? (
+      {showCancelButton && (
         <ActionButton
           tokens={tokens}
           text={cancelText}
@@ -392,8 +387,8 @@ const DialogImpl: React.FC<DialogProps> = props => {
           disabled={cancelProps?.disabled}
           onPress={handleCancel}
         />
-      ) : null}
-      {showConfirmButton ? (
+      )}
+      {showConfirmButton && (
         <ActionButton
           tokens={tokens}
           text={confirmText}
@@ -403,9 +398,9 @@ const DialogImpl: React.FC<DialogProps> = props => {
           disabled={confirmProps?.disabled}
           onPress={handleConfirm}
         />
-      ) : null}
+      )}
     </View>
-  ) : null), [
+  )), [
     cancelButtonColor,
     cancelLoading,
     cancelProps?.disabled,
@@ -462,7 +457,7 @@ const DialogImpl: React.FC<DialogProps> = props => {
       accessibilityLabel={typeof title === 'string' ? title : undefined}
       {...rest}
     >
-      {closeable ? (
+      {closeable && (
         <Pressable
           style={[
             styles.closeIcon,
@@ -479,32 +474,24 @@ const DialogImpl: React.FC<DialogProps> = props => {
             <Close size={tokens.sizes.closeSize} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />
           )}
         </Pressable>
-      ) : null}
-      {hasTitle ? (
+      )}
+      {hasTitle && (
         <View style={titleWrapperStyle}>
-          {React.isValidElement(title) ? (
-            title
-          ) : (
-            <Text style={titleTextStyle}>{title}</Text>
-          )}
+          {renderTextOrNode(title, titleTextStyle)}
         </View>
-      ) : null}
+      )}
 
-      {hasContent ? (
+      {hasContent && (
         <View style={[styles.content, messageContentStyle, contentStyle]}>
           {hasChildren ? (
             children
           ) : (
             <View style={messageWrapperStyle}>
-              {React.isValidElement(message) ? (
-                message
-              ) : (
-                <Text style={messageTextStyle}>{message}</Text>
-              )}
+              {renderTextOrNode(message, messageTextStyle)}
             </View>
           )}
         </View>
-      ) : null}
+      )}
 
       {footerNode}
     </Popup>

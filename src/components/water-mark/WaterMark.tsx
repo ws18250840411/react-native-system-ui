@@ -100,78 +100,22 @@ const WaterMarkImpl: React.FC<WaterMarkProps> = props => {
   const zIndexStyle = useMemo(() => ({ zIndex }), [zIndex])
   const cellStyle = useMemo(() => ({ width: cellWidth, height: cellHeight }), [cellWidth, cellHeight])
   const oddRowStyle = useMemo(() => ({ paddingLeft: cellWidth / 2 }), [cellWidth])
-  const markStyle = useMemo(() => ({
-    width: markWidth,
-    height: markHeight,
-    transform: [{ rotate: `${resolvedRotate}deg` }],
-  }), [markWidth, markHeight, resolvedRotate])
-  const imageStyle = useMemo(() => ({
-    width: markWidth,
-    height: markHeight,
-    opacity: resolvedOpacity,
-  }), [markWidth, markHeight, resolvedOpacity])
-  const textBaseStyle = useMemo(() => ({
-    fontSize: normalizedFontSize,
-    color: resolvedColor,
-    opacity: resolvedOpacity,
-    fontFamily: font?.family,
-    fontWeight: font?.weight,
-  }), [normalizedFontSize, resolvedColor, resolvedOpacity, font?.family, font?.weight])
+  const markStyle = useMemo(() => ({ width: markWidth, height: markHeight, transform: [{ rotate: `${resolvedRotate}deg` }] }), [markWidth, markHeight, resolvedRotate])
+  const imageStyle = useMemo(() => ({ width: markWidth, height: markHeight, opacity: resolvedOpacity }), [markWidth, markHeight, resolvedOpacity])
+  const textBaseStyle = useMemo(() => ({ fontSize: normalizedFontSize, color: resolvedColor, opacity: resolvedOpacity, fontFamily: font?.family, fontWeight: font?.weight }), [normalizedFontSize, resolvedColor, resolvedOpacity, font?.family, font?.weight])
   const rowIndexes = Array.from({ length: rows }, (_, i) => i)
   const colIndexes = Array.from({ length: cols }, (_, i) => i)
 
   return (
-    <View
-      pointerEvents="none"
-      importantForAccessibility="no-hide-descendants"
-      accessibilityElementsHidden
-      style={[
-        fullPage ? tokens.layout.absoluteFill : null,
-        zIndexStyle,
-        style,
-      ]}
-      onLayout={handleLayout}
-      {...rest}
-    >
+    <View pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={[fullPage ? tokens.layout.absoluteFill : null, zIndexStyle, style]} onLayout={handleLayout} {...rest}>
       <View style={tokens.layout.wrapper}>
-        {rowIndexes.map(rowIndex => (
-          <View
-            key={`row-${rowIndex}`}
-            style={[tokens.layout.row, rowIndex % 2 === 0 ? null : oddRowStyle]}
-          >
-            {colIndexes.map(colIndex => (
-              <View
-                key={`col-${rowIndex}-${colIndex}`}
-                style={[tokens.layout.cell, cellStyle]}
-              >
-                <View
-                  style={[
-                    tokens.layout.mark,
-                    markStyle,
-                  ]}
-                >
-                  {image ? (
-                    <Image
-                      source={{ uri: image.src }}
-                      style={imageStyle}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <Text
-                      allowFontScaling={false}
-                      style={[
-                        textBaseStyle,
-                        textStyle,
-                      ]}
-                    >
-                      {content}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-        ))}
+        {rowIndexes.map(rowIndex => <View key={`row-${rowIndex}`} style={[tokens.layout.row, rowIndex % 2 === 0 ? null : oddRowStyle]}>
+          {colIndexes.map(colIndex => <View key={`col-${rowIndex}-${colIndex}`} style={[tokens.layout.cell, cellStyle]}>
+            <View style={[tokens.layout.mark, markStyle]}>
+              {image ? <Image source={{ uri: image.src }} style={imageStyle} resizeMode="contain" /> : <Text allowFontScaling={false} style={[textBaseStyle, textStyle]}>{content}</Text>}
+            </View>
+          </View>)}
+        </View>)}
       </View>
     </View>
   )

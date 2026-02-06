@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View, type DimensionValue, type ViewStyle 
 import { useAriaPress } from '../../hooks'
 import { createHairlineView } from '../../utils/hairline'
 import { isFiniteNumber, isText, isValidNode } from '../../utils/validate'
+import { renderTextOrNode } from '../../utils'
 import Popup from '../popup'
 import type { ShareSheetOption, ShareSheetOptions, ShareSheetProps } from './types'
 import { useShareSheetTokens, type ShareSheetTokens } from './tokens'
@@ -45,39 +46,28 @@ const ShareSheetOptionItem: React.FC<{
       <View style={[styles.icon, iconStyle, { marginHorizontal: tokens.spacing.iconMarginHorizontal }]}>
         {option.icon}
       </View>
-      {isValidNode(option.name)
-        ? isText(option.name)
-          ? (
-            <Text
-              style={[
-                styles.optionText,
-                {
-                  color: tokens.colors.option,
-                  fontSize: tokens.typography.option,
-                  paddingHorizontal: tokens.spacing.optionTextPaddingHorizontal,
-                },
-              ]}
-            >
-              {option.name}
-            </Text>
-          )
-          : option.name
-        : null}
-      {isValidNode(option.description) ? (
+      {isValidNode(option.name) && renderTextOrNode(
+        option.name,
+        [
+          styles.optionText,
+          {
+            color: tokens.colors.option,
+            fontSize: tokens.typography.option,
+            paddingHorizontal: tokens.spacing.optionTextPaddingHorizontal,
+          },
+        ]
+      )}
+      {isValidNode(option.description) && (
         isText(option.description) ? (
-          <Text
-            style={[
-              styles.optionDesc,
-              {
-                color: tokens.colors.optionDesc,
-                marginTop: tokens.spacing.gap,
-                fontSize: tokens.typography.optionDesc,
-                paddingHorizontal: tokens.spacing.optionDescPaddingHorizontal,
-              },
-            ]}
-          >
-            {option.description}
-          </Text>
+          renderTextOrNode(option.description, [
+            styles.optionDesc,
+            {
+              color: tokens.colors.optionDesc,
+              marginTop: tokens.spacing.gap,
+              fontSize: tokens.typography.optionDesc,
+              paddingHorizontal: tokens.spacing.optionDescPaddingHorizontal,
+            },
+          ])
         ) : (
           <View
             style={[
@@ -88,7 +78,7 @@ const ShareSheetOptionItem: React.FC<{
             {option.description}
           </View>
         )
-      ) : null}
+      )}
     </Pressable>
   )
 })
@@ -116,13 +106,7 @@ const ShareSheetCancel: React.FC<{
         ]}
         {...cancelPress.interactionProps}
       >
-        {isText(cancelText) ? (
-          <Text style={[styles.cancelText, { color: tokens.colors.option, fontSize: tokens.typography.cancel }]}>
-            {cancelText}
-          </Text>
-        ) : (
-          cancelText
-        )}
+        {renderTextOrNode(cancelText, [styles.cancelText, { color: tokens.colors.option, fontSize: tokens.typography.cancel }])}
       </Pressable>
     </View>
   )
@@ -189,7 +173,7 @@ const ShareSheetImpl: React.FC<ShareSheetProps> = props => {
     let globalIndex = 0
     return groups.map((group, groupIndex) => (
       <View key={groupIndex}>
-        {groupIndex ? (
+        {groupIndex > 0 && (
           <View
             style={createHairlineView({
               position: 'top',
@@ -198,7 +182,7 @@ const ShareSheetImpl: React.FC<ShareSheetProps> = props => {
               right: tokens.spacing.horizontal,
             })}
           />
-        ) : null}
+        )}
         <View style={groupRowStyle}>
           {group.map(option => {
             const currentIndex = globalIndex++
@@ -231,46 +215,34 @@ const ShareSheetImpl: React.FC<ShareSheetProps> = props => {
           },
         ]}
       >
-        {hasTitle
-          ? isText(title)
-            ? (
-              <Text
-                style={[
-                  styles.title,
-                  {
-                    color: tokens.colors.title,
-                    fontSize: tokens.typography.title,
-                    marginTop: tokens.spacing.titleMarginTop,
-                  },
-                ]}
-              >
-                {title}
-              </Text>
-            )
-            : (
-              <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{title}</View>
-            )
-          : null}
-        {hasDescription
-          ? isText(description)
-            ? (
-              <Text
-                style={[
-                  styles.description,
-                  {
-                    color: tokens.colors.description,
-                    fontSize: tokens.typography.description,
-                    marginTop: tokens.spacing.descriptionMarginTop,
-                  },
-                ]}
-              >
-                {description}
-              </Text>
-            )
-            : (
-              <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{description}</View>
-            )
-          : null}
+        {hasTitle && (
+          isText(title) ? (
+            renderTextOrNode(title, [
+              styles.title,
+              {
+                color: tokens.colors.title,
+                fontSize: tokens.typography.title,
+                marginTop: tokens.spacing.titleMarginTop,
+              },
+            ])
+          ) : (
+            <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{title}</View>
+          )
+        )}
+        {hasDescription && (
+          isText(description) ? (
+            renderTextOrNode(description, [
+              styles.description,
+              {
+                color: tokens.colors.description,
+                fontSize: tokens.typography.description,
+                marginTop: tokens.spacing.descriptionMarginTop,
+              },
+            ])
+          ) : (
+            <View style={[styles.node, { marginTop: tokens.spacing.nodeMarginTop }]}>{description}</View>
+          )
+        )}
       </View>
     )
   }, [
@@ -308,15 +280,13 @@ const ShareSheetImpl: React.FC<ShareSheetProps> = props => {
         {headerNode}
         {groupNodes}
         {children}
-        {hasCancelText
-          ? (
-            <ShareSheetCancel
-              cancelText={cancelText}
-              tokens={tokens}
-              onPress={onPopupClose}
-            />
-          )
-          : null}
+        {hasCancelText && (
+          <ShareSheetCancel
+            cancelText={cancelText}
+            tokens={tokens}
+            onPress={onPopupClose}
+          />
+        )}
       </View>
     </Popup>
   )

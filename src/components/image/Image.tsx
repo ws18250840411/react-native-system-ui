@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
-import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, ViewStyle } from 'react-native'
+import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { SvgUri } from 'react-native-svg'
 
-import { isNumber, isString, isText } from '../../utils'
+import { isNumber, isString, renderTextOrNode } from '../../utils'
+import { isRenderable, isText } from '../../utils/validate'
 import { useImageTokens } from './tokens'
 import type { ImageFit, ImageProps } from './types'
 
@@ -229,15 +230,13 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
   const pressableProps: Pick<PressableProps, 'onPress'> | null = onPress ? { onPress } : null
 
   const renderLabel = (node: React.ReactNode, color: string, marginTop?: number) => {
-    if (node == null || node === false) return null
-    if (isText(node)) {
-      return (
-        <Text style={[tokens.layout.label, { color }, marginTop ? { marginTop } : undefined]}>
-          {node}
-        </Text>
-      )
-    }
-    return marginTop ? <View style={{ marginTop }}>{node}</View> : node
+    if (!isRenderable(node)) return null
+    const textNode = renderTextOrNode(node, [
+      tokens.layout.label,
+      { color },
+      marginTop ? { marginTop } : undefined,
+    ].filter(Boolean) as StyleProp<TextStyle>)
+    return marginTop && !isText(node) ? <View style={{ marginTop }}>{textNode}</View> : textNode
   }
 
   const containerStyles = useMemo<StyleProp<ViewStyle>>(() => [
@@ -285,7 +284,7 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
 
   const content = (
     <>
-      {status === 'loading' && showLoading ? (
+      {status === 'loading' && showLoading && (
         <View style={tokens.layout.overlay} pointerEvents="none" testID="rv-image-loading">
           {loadingIcon || (
             <ActivityIndicator
@@ -296,11 +295,11 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
           )}
           {renderLabel(loadingText, tokens.colors.text, tokens.defaults.loadingLabelMarginTop)}
         </View>
-      ) : null}
+      )}
       {imageNode}
-      {status === 'error' && showError ? (
+      {status === 'error' && showError && (
         <View style={tokens.layout.overlay} pointerEvents="none" testID="rv-image-error">
-          {errorIcon ? (
+          {errorIcon && (
             <View
               style={[
                 tokens.layout.iconContainer,
@@ -309,12 +308,10 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
             >
               {errorIcon}
             </View>
-          ) : null}
-          {fallback !== undefined && fallback !== null && fallback !== false
-            ? renderLabel(fallback, tokens.colors.error)
-            : renderLabel(errorText, tokens.colors.error)}
+          )}
+          {isRenderable(fallback) ? renderLabel(fallback, tokens.colors.error) : renderLabel(errorText, tokens.colors.error)}
         </View>
-      ) : null}
+      )}
       {children}
     </>
   )

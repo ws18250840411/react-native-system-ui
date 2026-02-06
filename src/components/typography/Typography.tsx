@@ -83,28 +83,8 @@ const TypographyTextBaseInner = React.forwardRef<Text, TypographyTextProps>((pro
     ? tokens.sizing.titles[level].lineHeight
     : fontSize * tokens.sizing.lineHeightMultiplier
 
-  const textDecorationLine =
-    underline && deleted
-      ? 'underline line-through'
-      : underline
-        ? 'underline'
-        : deleted
-          ? 'line-through'
-          : undefined
-  const baseStyle: StyleProp<TextStyle> = [
-    {
-      color: resolvedColor,
-      fontSize,
-      lineHeight,
-      fontFamily: tokens.typography.fontFamily,
-      fontWeight: strong ? tokens.typography.weight.strong : tokens.typography.weight.regular,
-      includeFontPadding: false,
-      textDecorationLine,
-      textAlign: center ? 'center' : undefined,
-      opacity: disabled ? tokens.opacity.disabled : 1,
-    },
-    style,
-  ]
+  const textDecorationLine = underline && deleted ? 'underline line-through' : underline ? 'underline' : deleted ? 'line-through' : undefined
+  const baseStyle: StyleProp<TextStyle> = [{ color: resolvedColor, fontSize, lineHeight, fontFamily: tokens.typography.fontFamily, fontWeight: strong ? tokens.typography.weight.strong : tokens.typography.weight.regular, includeFontPadding: false, textDecorationLine, textAlign: center ? 'center' : undefined, opacity: disabled ? tokens.opacity.disabled : 1 }, style]
 
   const hasActionText = !!ellipsisConfig && (ellipsisConfig.expandText || ellipsisConfig.collapseText)
   const shouldShowAction = hasActionText && (isTruncated || expanded || isWeb)
@@ -118,50 +98,15 @@ const TypographyTextBaseInner = React.forwardRef<Text, TypographyTextProps>((pro
     })
   }, [ellipsisConfig])
 
-  const actionLabel = !ellipsisConfig
-    ? undefined
-    : expanded
-      ? ellipsisConfig.collapseText ?? ellipsisConfig.expandText
-      : ellipsisConfig.expandText ?? ellipsisConfig.collapseText
-  const actionTextStyle: TextStyle = {
-    color: tokens.colors.primary,
-    fontSize: tokens.sizing.sizes.sm,
-    fontWeight: tokens.typography.weight.medium,
-    marginLeft: tokens.sizing.actionMarginLeft,
-    includeFontPadding: false,
-  }
+  const actionLabel = !ellipsisConfig ? undefined : expanded ? ellipsisConfig.collapseText ?? ellipsisConfig.expandText : ellipsisConfig.expandText ?? ellipsisConfig.collapseText
+  const actionTextStyle: TextStyle = { color: tokens.colors.primary, fontSize: tokens.sizing.sizes.sm, fontWeight: tokens.typography.weight.medium, marginLeft: tokens.sizing.actionMarginLeft, includeFontPadding: false }
   const textStyle: StyleProp<TextStyle> = shouldShowAction ? [baseStyle, FLEX_SHRINK_STYLE] : baseStyle
 
-  const textNode = (
-    <Text
-      ref={ref}
-      style={textStyle}
-      onPress={onPress}
-      numberOfLines={!expanded ? ellipsisRows : undefined}
-      ellipsizeMode="tail"
-      onTextLayout={hasActionText && ellipsisRows && !expanded && !isWeb ? handleTextLayout : undefined}
-      {...textProps}
-    >
-      {children}
-    </Text>
-  )
+  const textNode = <Text ref={ref} style={textStyle} onPress={onPress} numberOfLines={!expanded ? ellipsisRows : undefined} ellipsizeMode="tail" onTextLayout={hasActionText && ellipsisRows && !expanded && !isWeb ? handleTextLayout : undefined} {...textProps}>{children}</Text>
 
-  if (!shouldShowAction) {
-    return center ? <View style={tokens.layout.centerWrapper}>{textNode}</View> : textNode
-  }
+  if (!shouldShowAction) return center ? <View style={tokens.layout.centerWrapper}>{textNode}</View> : textNode
 
-  const actionNode = (
-    <View style={tokens.layout.actionRow}>
-      {textNode}
-      <Text
-        onPress={handleToggleEllipsis}
-        suppressHighlighting
-        style={actionTextStyle}
-      >
-        {actionLabel}
-      </Text>
-    </View>
-  )
+  const actionNode = <View style={tokens.layout.actionRow}>{textNode}<Text onPress={handleToggleEllipsis} suppressHighlighting style={actionTextStyle}>{actionLabel}</Text></View>
 
   return center ? <View style={tokens.layout.centerWrapper}>{actionNode}</View> : actionNode
 })
@@ -174,14 +119,7 @@ TypographyTextBase.displayName = 'TypographyText'
 
 const TypographyTitle = React.forwardRef<Text, TypographyTitleProps>((props, ref) => {
   const { level = 5, accessibilityRole, ...rest } = props
-  return (
-    <TypographyTextBase
-      ref={ref}
-      level={level}
-      accessibilityRole={accessibilityRole ?? 'header'}
-      {...rest}
-    />
-  )
+  return <TypographyTextBase ref={ref} level={level} accessibilityRole={accessibilityRole ?? 'header'} {...rest} />
 })
 
 TypographyTitle.displayName = 'TypographyTitle'
@@ -202,16 +140,7 @@ const TypographyLink = React.forwardRef<Text, TypographyLinkProps>((props, ref) 
     }
   }, [onPress, href])
 
-  return (
-    <TypographyTextBase
-      ref={ref}
-      underline={underline}
-      type={type}
-      onPress={handlePress}
-      accessibilityRole={accessibilityRole ?? 'link'}
-      {...rest}
-    />
-  )
+  return <TypographyTextBase ref={ref} underline={underline} type={type} onPress={handlePress} accessibilityRole={accessibilityRole ?? 'link'} {...rest} />
 })
 
 TypographyLink.displayName = 'TypographyLink'

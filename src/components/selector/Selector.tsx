@@ -46,14 +46,8 @@ const SelectorOptionItemImpl = <V extends SelectorValue>({
   const labelContent = option.label
   const descriptionContent = option.description
   const hasDescription = descriptionContent != null
-  const accessibilityLabel =
-    isText(labelContent)
-      ? String(labelContent)
-      : String(option.value)
-  const accessibilityHint =
-    isText(descriptionContent)
-      ? String(descriptionContent)
-      : undefined
+  const accessibilityLabel = isText(labelContent) ? String(labelContent) : String(option.value)
+  const accessibilityHint = isText(descriptionContent) ? String(descriptionContent) : undefined
 
   const { interactionProps, states } = useAriaPress({
     disabled,
@@ -62,99 +56,19 @@ const SelectorOptionItemImpl = <V extends SelectorValue>({
       accessibilityRole: multiple ? 'checkbox' : 'radio',
       accessibilityLabel,
       accessibilityHint,
-      accessibilityState: multiple
-        ? { checked: active, disabled }
-        : { selected: active, disabled },
+      accessibilityState: multiple ? { checked: active, disabled } : { selected: active, disabled },
     },
   })
 
   return (
-    <Pressable
-      {...interactionProps}
-      style={[tokens.layout.pressable, { width: basis }]}
-    >
-      <View
-        style={[
-          tokens.layout.item,
-          {
-            marginHorizontal: itemMargin,
-            marginVertical: itemMargin,
-            paddingHorizontal: tokens.spacing.paddingHorizontal,
-            paddingVertical: tokens.spacing.paddingVertical,
-            borderRadius: tokens.radii.item,
-            borderColor: active ? tokens.colors.borderActive : tokens.colors.border,
-            backgroundColor: active ? tokens.colors.backgroundActive : tokens.colors.background,
-            opacity: disabled ? tokens.states.disabledOpacity : 1,
-          },
-          states.pressed && { opacity: 0.9 },
-          itemStyle,
-        ]}
-      >
-        {isText(labelContent) ? (
-          <Text
-            style={[
-              tokens.layout.label,
-              {
-                color: active ? tokens.colors.textActive : tokens.colors.text,
-                fontSize: tokens.typography.fontSize,
-                lineHeight: tokens.typography.fontSize * 1.4,
-                fontFamily: tokens.typography.fontFamily,
-                fontWeight: tokens.typography.fontWeight,
-              },
-              labelStyle,
-            ]}
-          >
-            {labelContent}
-          </Text>
-        ) : (
-          labelContent
-        )}
-
-        {hasDescription ? (
-          isText(descriptionContent) ? (
-            <Text
-              style={[
-                tokens.layout.description,
-                {
-                  marginTop: tokens.spacing.descriptionMarginTop,
-                  color: disabled
-                    ? tokens.colors.disabledText
-                    : tokens.colors.description,
-                  fontSize: tokens.typography.descriptionSize,
-                  lineHeight: tokens.typography.descriptionSize * 1.4,
-                },
-                descriptionStyle,
-              ]}
-            >
-              {descriptionContent}
-            </Text>
-          ) : (
-            <View style={{ marginTop: tokens.spacing.descriptionMarginTop }}>
-              {descriptionContent}
-            </View>
-          )
-        ) : null}
-
-        {active && showCheckMark ? (
-          <>
-            <View
-              style={[
-                tokens.layout.checkMarkTriangle,
-                {
-                  borderTopWidth: CHECK_MARK_CORNER_HEIGHT,
-                  borderBottomWidth: CHECK_MARK_CORNER_HEIGHT,
-                  borderLeftWidth: CHECK_MARK_CORNER_WIDTH,
-                  borderRightWidth: CHECK_MARK_CORNER_WIDTH,
-                  borderBottomColor: tokens.colors.check,
-                  borderRightColor: tokens.colors.check,
-                },
-              ]}
-            />
-            <Text style={[tokens.layout.checkMark, { color: tokens.colors.checkForeground }]}>
-              {CHECK_MARK}
-            </Text>
-          </>
-        ) : null}
+    <Pressable {...interactionProps} style={[tokens.layout.pressable, { width: basis }]}>
+      <View style={[tokens.layout.item, { marginHorizontal: itemMargin, marginVertical: itemMargin, paddingHorizontal: tokens.spacing.paddingHorizontal, paddingVertical: tokens.spacing.paddingVertical, borderRadius: tokens.radii.item, borderColor: active ? tokens.colors.borderActive : tokens.colors.border, backgroundColor: active ? tokens.colors.backgroundActive : tokens.colors.background, opacity: disabled ? tokens.states.disabledOpacity : 1 }, states.pressed && { opacity: 0.9 }, itemStyle]}>
+        {isText(labelContent) ? <Text style={[tokens.layout.label, { color: active ? tokens.colors.textActive : tokens.colors.text, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.fontSize * 1.4, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.fontWeight }, labelStyle]}>{labelContent}</Text> : labelContent}
+        {hasDescription ? isText(descriptionContent) ? <Text style={[tokens.layout.description, { marginTop: tokens.spacing.descriptionMarginTop, color: disabled ? tokens.colors.disabledText : tokens.colors.description, fontSize: tokens.typography.descriptionSize, lineHeight: tokens.typography.descriptionSize * 1.4 }, descriptionStyle]}>{descriptionContent}</Text> : <View style={{ marginTop: tokens.spacing.descriptionMarginTop }}>{descriptionContent}</View> : null}
+        {active && showCheckMark ? <>
+          <View style={[tokens.layout.checkMarkTriangle, { borderTopWidth: CHECK_MARK_CORNER_HEIGHT, borderBottomWidth: CHECK_MARK_CORNER_HEIGHT, borderLeftWidth: CHECK_MARK_CORNER_WIDTH, borderRightWidth: CHECK_MARK_CORNER_WIDTH, borderBottomColor: tokens.colors.check, borderRightColor: tokens.colors.check }]} />
+          <Text style={[tokens.layout.checkMark, { color: tokens.colors.checkForeground }]}>{CHECK_MARK}</Text>
+        </> : null}
       </View>
     </Pressable>
   )
@@ -204,55 +118,22 @@ const SelectorImpl = <V extends SelectorValue>(props: SelectorProps<V>) => {
   const itemMargin = tokens.spacing.gap / 2
   const selectedSet = useMemo(() => new Set(value), [value])
 
-  const toggleOption = useCallback(
-    (option: (typeof options)[number]) => {
-      if (disabled || option.disabled) return
-
-      const active = selectedSet.has(option.value)
-      let next: V[]
-      if (multiple) {
-        next = active
-          ? value.filter(item => item !== option.value)
-          : [...value, option.value]
-      } else {
-        next = active ? [] : [option.value]
-      }
-
-      const items = next
-        .map(v => optionByValue.get(v))
-        .filter(Boolean) as (typeof options)[number][]
-      triggerChange(next, { items })
-    },
-    [disabled, multiple, optionByValue, selectedSet, triggerChange, value],
-  )
+  const toggleOption = useCallback((option: (typeof options)[number]) => {
+    if (disabled || option.disabled) return
+    const active = selectedSet.has(option.value)
+    let next: V[]
+    if (multiple) {
+      next = active ? value.filter(item => item !== option.value) : [...value, option.value]
+    } else {
+      next = active ? [] : [option.value]
+    }
+    const items = next.map(v => optionByValue.get(v)).filter(Boolean) as (typeof options)[number][]
+    triggerChange(next, { items })
+  }, [disabled, multiple, optionByValue, selectedSet, triggerChange, value])
 
   return (
-    <View
-      {...rest}
-      style={[
-        tokens.layout.container,
-        { marginHorizontal: -itemMargin, marginVertical: -itemMargin },
-        style,
-      ]}
-      accessibilityRole={multiple ? undefined : 'radiogroup'}
-    >
-      {options.map(option => (
-        <SelectorOptionItem
-          key={String(option.value)}
-          option={option}
-          active={selectedSet.has(option.value)}
-          disabled={disabled || Boolean(option.disabled)}
-          multiple={multiple}
-          showCheckMark={showCheckMark}
-          basis={basis}
-          itemMargin={itemMargin}
-          tokens={tokens}
-          itemStyle={itemStyle}
-          labelStyle={labelStyle}
-          descriptionStyle={descriptionStyle}
-          onToggle={toggleOption}
-        />
-      ))}
+    <View {...rest} style={[tokens.layout.container, { marginHorizontal: -itemMargin, marginVertical: -itemMargin }, style]} accessibilityRole={multiple ? undefined : 'radiogroup'}>
+      {options.map(option => <SelectorOptionItem key={String(option.value)} option={option} active={selectedSet.has(option.value)} disabled={disabled || Boolean(option.disabled)} multiple={multiple} showCheckMark={showCheckMark} basis={basis} itemMargin={itemMargin} tokens={tokens} itemStyle={itemStyle} labelStyle={labelStyle} descriptionStyle={descriptionStyle} onToggle={toggleOption} />)}
     </View>
   )
 }

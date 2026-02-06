@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useImperativeHandle } from 'react'
 import { Text, View } from 'react-native'
 
 import { useCountDown } from '../../hooks'
-import { formatDuration, isFunction, isText } from '../../utils'
+import { formatDuration, isFunction, renderTextOrNode } from '../../utils'
+import { isText } from '../../utils/validate'
 import { useCountDownTokens } from './tokens'
 import type { CountDownInstance, CountDownProps } from './types'
 
@@ -51,9 +52,8 @@ const CountDownImpl = (props: CountDownProps, ref: React.ForwardedRef<CountDownI
 
   useImperativeHandle(ref, () => ({ start, pause, reset: resetTime }))
 
-  const defaultTextStyle = tokens.layout.text
   const content = isFunction(children) ? children(current) : formatDuration(format, current)
-  const contentNode = isText(content) ? <Text style={defaultTextStyle}>{content}</Text> : content
+  const contentNode = renderTextOrNode(content, tokens.layout.text)
   const a11yText = isText(content) ? String(content) : `${current.hours}h ${current.minutes}m ${current.seconds}s`
 
   return (

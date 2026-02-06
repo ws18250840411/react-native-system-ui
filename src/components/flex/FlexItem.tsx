@@ -59,18 +59,7 @@ const FlexItemImpl: React.FC<FlexItemProps> = ({ span, flex, style, children }) 
     widthStyle.flexShrink = 0
   }
 
-  return (
-    <View
-      style={[
-        supportsGap ? null : { paddingHorizontal: horizontalGap / 2, paddingVertical: verticalGap / 2 },
-        widthStyle,
-        parseFlex(flex),
-        style,
-      ]}
-    >
-      {children}
-    </View>
-  )
+  return <View style={[supportsGap ? null : { paddingHorizontal: horizontalGap / 2, paddingVertical: verticalGap / 2 }, widthStyle, parseFlex(flex), style]}>{children}</View>
 }
 
 export const FlexItem = React.memo(FlexItemImpl)

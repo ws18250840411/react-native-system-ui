@@ -47,20 +47,14 @@ const runRuleValidation = (
   if (rule.pattern && isString(value) && !rule.pattern.test(value)) return message
 
   if (rule.len !== undefined || rule.min !== undefined || rule.max !== undefined) {
-    const length =
-      isNumber(value)
-        ? value
-        : isString(value) || Array.isArray(value)
-          ? value.length
-          : 0
+      const length = isNumber(value) ? value : isString(value) || Array.isArray(value) ? value.length : 0
     if (rule.len !== undefined && length !== rule.len) return message
     if (rule.min !== undefined && length < rule.min) return message
     if (rule.max !== undefined && length > rule.max) return message
   }
 
   if (!rule.validator) return null
-  const handle = (result: unknown) =>
-    isString(result) ? result : result === false ? message : null
+  const handle = (result: unknown) => isString(result) ? result : result === false ? message : null
   const result = rule.validator(value, values)
   return isPromiseLike(result) ? result.then(handle) : handle(result)
 }
@@ -126,9 +120,7 @@ const InternalFormImpl = (
       notify({ [key]: getValueByName(valuesRef.current, name) }, valuesRef.current)
       return
     }
-    if (prevErrors?.[0] === nextErrors[0] && prevErrors.length === nextErrors.length) {
-      return
-    }
+    if (prevErrors?.[0] === nextErrors[0] && prevErrors.length === nextErrors.length) return
     errorsRef.current = { ...errorsRef.current, [key]: nextErrors }
     notify({ [key]: getValueByName(valuesRef.current, name) }, valuesRef.current)
   }, [notify])
@@ -206,12 +198,10 @@ const InternalFormImpl = (
         return true
       }
 
-      let activeRules = trigger
-        ? fieldRules.filter(rule => {
-          const ruleTrigger = rule.validateTrigger ?? fieldOptions.validateTrigger
-          return !ruleTrigger || normalizeTrigger(ruleTrigger).includes(trigger)
-        })
-        : fieldRules
+      let activeRules = trigger ? fieldRules.filter(rule => {
+        const ruleTrigger = rule.validateTrigger ?? fieldOptions.validateTrigger
+        return !ruleTrigger || normalizeTrigger(ruleTrigger).includes(trigger)
+      }) : fieldRules
 
       if (!activeRules.length) {
         if (!errorsRef.current[key]?.length) return true
@@ -227,61 +217,45 @@ const InternalFormImpl = (
         if (validationSeqRef.current[key] !== validationSeq) {
           return true
         }
-        if (error) {
-          setFieldErrors(name, [error])
-          return false
-        }
+        if (error) { setFieldErrors(name, [error]); return false }
       }
 
-      if (validationSeqRef.current[key] !== validationSeq) {
-        return true
-      }
+      if (validationSeqRef.current[key] !== validationSeq) return true
       setFieldErrors(name, [])
       return true
     },
     [setFieldErrors],
   )
 
-  const validateFields = useCallback(
-    async (names?: NamePath[]) => {
-      const fieldNames = names ?? Object.values(fieldsRef.current).map(item => item.name)
-      const results = await Promise.all(fieldNames.map(name => runFieldValidation(name)))
-      const hasError = results.some(result => !result)
-      if (hasError) {
-        throw errorsRef.current
-      }
-      return valuesRef.current
-    },
-    [runFieldValidation],
-  )
+  const validateFields = useCallback(async (names?: NamePath[]) => {
+    const fieldNames = names ?? Object.values(fieldsRef.current).map(item => item.name)
+    const results = await Promise.all(fieldNames.map(name => runFieldValidation(name)))
+    const hasError = results.some(result => !result)
+    if (hasError) throw errorsRef.current
+    return valuesRef.current
+  }, [runFieldValidation])
 
-  const validateWithDependents = useCallback(
-    (key: string, name: NamePath, trigger: string | undefined, value: unknown, values: Record<string, unknown>) => {
-      runFieldValidation(name, trigger, value, values)
-      const dependents = dependencyGraphRef.current.get(key)
-      if (dependents?.size) {
-        for (const dk of dependents) {
-          const meta = fieldsRef.current[dk]
-          if (meta) runFieldValidation(meta.name, trigger, getValueByName(values, meta.name), values)
-        }
+  const validateWithDependents = useCallback((key: string, name: NamePath, trigger: string | undefined, value: unknown, values: Record<string, unknown>) => {
+    runFieldValidation(name, trigger, value, values)
+    const dependents = dependencyGraphRef.current.get(key)
+    if (dependents?.size) {
+      for (const dk of dependents) {
+        const meta = fieldsRef.current[dk]
+        if (meta) runFieldValidation(meta.name, trigger, getValueByName(values, meta.name), values)
       }
-    },
-    [runFieldValidation],
-  )
+    }
+  }, [runFieldValidation])
 
-  const setFieldValue = useCallback(
-    (name: NamePath, value: unknown, trigger?: string) => {
-      const nameKey = serializeNamePath(name)
-      const prev = valuesRef.current
-      if (getValueByName(prev, name) === value) return
-      const next = setValueByName(prev, name, value)
-      valuesRef.current = next
-      onValuesChangeRef.current?.(next, nameKey, value)
-      validateWithDependents(nameKey, name, trigger, value, next)
-      notify({ [nameKey]: value }, next)
-    },
-    [notify, validateWithDependents],
-  )
+  const setFieldValue = useCallback((name: NamePath, value: unknown, trigger?: string) => {
+    const nameKey = serializeNamePath(name)
+    const prev = valuesRef.current
+    if (getValueByName(prev, name) === value) return
+    const next = setValueByName(prev, name, value)
+    valuesRef.current = next
+    onValuesChangeRef.current?.(next, nameKey, value)
+    validateWithDependents(nameKey, name, trigger, value, next)
+    notify({ [nameKey]: value }, next)
+  }, [notify, validateWithDependents])
 
   const formApi = useMemo((): FormInstance => ({
     submit: async () => {
@@ -289,9 +263,7 @@ const InternalFormImpl = (
         const result = await validateFields()
         onFinishRef.current?.(result)
         return result
-      } catch {
-        return undefined
-      }
+      } catch { return undefined }
     },
     getFieldsValue: () => valuesRef.current,
     setFieldsValue: (next, options) => {
@@ -347,10 +319,7 @@ const InternalFormImpl = (
 
   return (
     <FormContext.Provider value={contextValue}>
-      <View style={style} {...rest}>
-        {children}
-        {footer}
-      </View>
+      <View style={style} {...rest}>{children}{footer}</View>
     </FormContext.Provider>
   )
 }
@@ -363,39 +332,24 @@ const InternalForm = React.memo(InternalFormRef)
 export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRefObject<FormInstance | null>) => {
   const context = useContext(FormContext)
 
-  const names =
-    name === undefined
-      ? undefined
-      : !Array.isArray(name)
-        ? [name]
-        : name.length && isText(name[0])
-          ? [name as NamePath]
-          : (name as NamePath[])
+  const names = name === undefined ? undefined : !Array.isArray(name) ? [name] : name.length && isText(name[0]) ? [name as NamePath] : (name as NamePath[])
 
-  const getSnapshot = useCallback(
-    (allValues?: Record<string, unknown>) => {
-      const source = allValues ?? context?.getFieldsValue?.() ?? formRef?.current?.getFieldsValue?.() ?? {}
-      if (!names) return source
-      if (names.length === 1) return getValueByName(source, names[0])
-      const picked: Record<string, unknown> = {}
-      for (const key of names) picked[serializeNamePath(key)] = getValueByName(source, key)
-      return picked
-    },
-    [context, formRef, names],
-  )
+  const getSnapshot = useCallback((allValues?: Record<string, unknown>) => {
+    const source = allValues ?? context?.getFieldsValue?.() ?? formRef?.current?.getFieldsValue?.() ?? {}
+    if (!names) return source
+    if (names.length === 1) return getValueByName(source, names[0])
+    const picked: Record<string, unknown> = {}
+    for (const key of names) picked[serializeNamePath(key)] = getValueByName(source, key)
+    return picked
+  }, [context, formRef, names])
 
   const [value, setValue] = useState(() => getSnapshot())
 
   useEffect(() => {
     if (!context?.subscribe) return undefined
     return context.subscribe((changed, all) => {
-      if (FORM_ALL_FIELDS_KEY in changed) {
-        setValue(getSnapshot(all))
-        return
-      }
-      if (!names || names.some(key => serializeNamePath(key) in changed)) {
-        setValue(getSnapshot(all))
-      }
+      if (FORM_ALL_FIELDS_KEY in changed) { setValue(getSnapshot(all)); return }
+      if (!names || names.some(key => serializeNamePath(key) in changed)) setValue(getSnapshot(all))
     })
   }, [context, getSnapshot, names])
 

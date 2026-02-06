@@ -332,17 +332,14 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const verticalPadding = isCompactType ? 0 : tokens.tabList.paddingVertical
   const labelWrapperStyles: ViewStyle[] = [
     styles.labelWrapper,
-    isJumbo ? styles.labelWrapperJumbo : null,
-    isCard ? styles.cardLabel : null,
-    isCard ? { paddingHorizontal: tokens.card.paddingHorizontal, paddingVertical: tokens.card.paddingVertical } : null,
-    isCapsule ? { flex: 1, alignSelf: 'stretch', paddingHorizontal: tokens.capsule.paddingHorizontal, paddingVertical: tokens.capsule.paddingVertical } : null,
-    isJumbo ? { paddingHorizontal: tokens.jumbo.paddingHorizontal, paddingVertical: tokens.jumbo.paddingVertical, alignItems: 'center' } : null,
+    isJumbo && styles.labelWrapperJumbo,
+    isCard && styles.cardLabel,
+    isCard && { paddingHorizontal: tokens.card.paddingHorizontal, paddingVertical: tokens.card.paddingVertical },
+    isCapsule && { flex: 1, alignSelf: 'stretch', paddingHorizontal: tokens.capsule.paddingHorizontal, paddingVertical: tokens.capsule.paddingVertical },
+    isJumbo && { paddingHorizontal: tokens.jumbo.paddingHorizontal, paddingVertical: tokens.jumbo.paddingVertical, alignItems: 'center' },
   ].filter(Boolean) as ViewStyle[]
   const labelTextWrapperStyles: ViewStyle[] | null = isCapsule ? [{
-    flex: 1,
-    alignSelf: 'stretch',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1, alignSelf: 'stretch', justifyContent: 'center', alignItems: 'center',
     borderRadius: tokens.capsule.radius,
     backgroundColor: isActive ? color ?? tokens.colors.capsuleActiveBackground : tokens.colors.capsuleBackground,
   }] : null
@@ -367,14 +364,12 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const descriptionMarginTop = isJumbo
     ? tokens.spacing.jumboDescriptionMarginTop
     : tokens.spacing.descriptionMarginTop
-  const descriptionJumboStyle = isJumbo
-    ? {
-      backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
-      paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
-      paddingVertical: tokens.jumbo.descriptionPaddingVertical,
-      borderRadius: tokens.jumbo.descriptionRadius,
-    }
-    : null
+  const descriptionJumboStyle = isJumbo ? {
+    backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground,
+    paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal,
+    paddingVertical: tokens.jumbo.descriptionPaddingVertical,
+    borderRadius: tokens.jumbo.descriptionRadius,
+  } : null
   const descriptionTextStyle = [
     styles.descriptionText,
     {
@@ -417,26 +412,13 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
             {titleNode}
           </View>
         ) : titleNode}
-        {isRenderable(renderDescription) && (isText(renderDescription) ? (
-          <Text style={descriptionTextStyle}>
-            {renderDescription}
-          </Text>
-        ) : (
-          <View style={descriptionViewStyle}>
-            {renderDescription}
-          </View>
-        ))}
+        {isRenderable(renderDescription) && (isText(renderDescription)
+          ? <Text style={descriptionTextStyle}>{renderDescription}</Text>
+          : <View style={descriptionViewStyle}>{renderDescription}</View>
+        )}
         {isRenderable(pane.badge) && (
           <View style={{ marginTop: tokens.spacing.badgeMarginTop }}>
-            {isText(pane.badge) ? (
-              <Text
-                style={{ color: tokens.colors.badgeText, fontSize: tokens.typography.badgeTextSize }}
-              >
-                {pane.badge}
-              </Text>
-            ) : (
-              pane.badge
-            )}
+            {isText(pane.badge) ? <Text style={{ color: tokens.colors.badgeText, fontSize: tokens.typography.badgeTextSize }}>{pane.badge}</Text> : pane.badge}
           </View>
         )}
       </View>
@@ -907,11 +889,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
         backgroundColor: background,
       }, tabBarStyle]}
     >
-      {navLeft && (
-        <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>
-          {navLeft}
-        </View>
-      )}
+      {navLeft && <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>{navLeft}</View>}
       <View
         style={[styles.nav, {
           minHeight: navHeight + navPaddingBottom,
@@ -927,11 +905,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
       >
         {navBody}
       </View>
-      {navRight && (
-        <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>
-          {navRight}
-        </View>
-      )}
+      {navRight && <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>{navRight}</View>}
     </View>
   )
 

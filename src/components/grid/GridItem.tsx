@@ -39,19 +39,7 @@ const GridItemImpl: React.FC<GridItemProps> = props => {
   const rowIndex = Math.floor(gridItemIndex / columnNum)
   const lastRowIndex = Math.floor((count - 1) / columnNum)
 
-  const contentWrapperStyle = [
-    tokens.layout.itemContentBase,
-    direction === 'horizontal' ? tokens.layout.itemHorizontal : tokens.layout.itemVertical,
-    center && tokens.layout.itemCenter,
-    reverse ? (direction === 'horizontal' ? tokens.layout.itemReverseRow : tokens.layout.itemReverseColumn) : null,
-    square ? tokens.layout.itemContentSquare : null,
-    {
-      paddingHorizontal: tokens.spacing.paddingHorizontal,
-      paddingVertical: tokens.spacing.paddingVertical,
-      backgroundColor: tokens.colors.background,
-    },
-    contentStyle,
-  ]
+  const contentWrapperStyle = [tokens.layout.itemContentBase, direction === 'horizontal' ? tokens.layout.itemHorizontal : tokens.layout.itemVertical, center && tokens.layout.itemCenter, reverse ? (direction === 'horizontal' ? tokens.layout.itemReverseRow : tokens.layout.itemReverseColumn) : null, square ? tokens.layout.itemContentSquare : null, { paddingHorizontal: tokens.spacing.paddingHorizontal, paddingVertical: tokens.spacing.paddingVertical, backgroundColor: tokens.colors.background }, contentStyle]
 
   const hasText = isRenderable(text)
   const resolvedIconColor = iconColorProp ?? iconColor ?? tokens.colors.text
@@ -72,15 +60,7 @@ const GridItemImpl: React.FC<GridItemProps> = props => {
       ]
       const iconNode = isFunction(icon) ? icon(iconSize, resolvedIconColor) : icon
       const content = <View style={iconWrapperStyle}>{iconNode}</View>
-      iconElement = (badge || dot) ? (
-        <Badge
-          dot={dot}
-          {...badgeRest}
-          style={center ? [badgeWrapperStyle, { alignSelf: 'center' }] : badgeWrapperStyle}
-        >
-          {content}
-        </Badge>
-      ) : content
+      iconElement = (badge || dot) ? <Badge dot={dot} {...badgeRest} style={center ? [badgeWrapperStyle, { alignSelf: 'center' }] : badgeWrapperStyle}>{content}</Badge> : content
     }
 
     const textElement = hasText && (
