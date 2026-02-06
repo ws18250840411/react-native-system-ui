@@ -42,23 +42,14 @@ interface ParsedPane extends TabPaneProps {
   index: number
 }
 
-const canUseRaf =
-  typeof requestAnimationFrame !== 'undefined' &&
-  isFunction(requestAnimationFrame) &&
-  typeof cancelAnimationFrame !== 'undefined' &&
-  isFunction(cancelAnimationFrame)
+const hasRaf = typeof requestAnimationFrame === 'function' && typeof cancelAnimationFrame === 'function'
 
-const requestFrame = canUseRaf
-  ? (cb: (time?: number) => void) => requestAnimationFrame(cb)
-  : (cb: (time?: number) => void) => setTimeout(cb, 16) as unknown as number
+const requestFrame: (cb: (time?: number) => void) => number = hasRaf
+  ? requestAnimationFrame
+  : (cb) => setTimeout(cb, 16) as unknown as number
 
 const cancelFrame = (id: number | null) => {
-  if (id == null) return
-  if (canUseRaf) {
-    cancelAnimationFrame(id)
-  } else {
-    clearTimeout(id)
-  }
+  if (id != null) (hasRaf ? cancelAnimationFrame : clearTimeout)(id)
 }
 
 const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> => {
@@ -339,7 +330,14 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
   const isCompactType = isCard || isJumbo || isCapsule
   const horizontalPadding = isCompactType ? 0 : tokens.tabList.paddingHorizontal
   const verticalPadding = isCompactType ? 0 : tokens.tabList.paddingVertical
-  const labelWrapperStyles: ViewStyle[] = [styles.labelWrapper]
+  const labelWrapperStyles: ViewStyle[] = [
+    styles.labelWrapper,
+    isJumbo ? styles.labelWrapperJumbo : null,
+    isCard ? styles.cardLabel : null,
+    isCard ? { paddingHorizontal: tokens.card.paddingHorizontal, paddingVertical: tokens.card.paddingVertical } : null,
+    isCapsule ? { flex: 1, alignSelf: 'stretch', paddingHorizontal: tokens.capsule.paddingHorizontal, paddingVertical: tokens.capsule.paddingVertical } : null,
+    isJumbo ? { paddingHorizontal: tokens.jumbo.paddingHorizontal, paddingVertical: tokens.jumbo.paddingVertical, alignItems: 'center' } : null,
+  ].filter(Boolean) as ViewStyle[]
   const labelTextWrapperStyles: ViewStyle[] | null = isCapsule ? [{
     flex: 1,
     alignSelf: 'stretch',
@@ -348,30 +346,6 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
     borderRadius: tokens.capsule.radius,
     backgroundColor: isActive ? color ?? tokens.colors.capsuleActiveBackground : tokens.colors.capsuleBackground,
   }] : null
-  if (isJumbo) {
-    labelWrapperStyles.push(styles.labelWrapperJumbo)
-  }
-  if (isCard) {
-    labelWrapperStyles.push(styles.cardLabel)
-    labelWrapperStyles.push({
-      paddingHorizontal: tokens.card.paddingHorizontal,
-      paddingVertical: tokens.card.paddingVertical,
-    })
-  }
-  if (isCapsule) {
-    labelWrapperStyles.push({ flex: 1, alignSelf: 'stretch' })
-    labelWrapperStyles.push({
-      paddingHorizontal: tokens.capsule.paddingHorizontal,
-      paddingVertical: tokens.capsule.paddingVertical,
-    })
-  }
-  if (isJumbo) {
-    labelWrapperStyles.push({
-      paddingHorizontal: tokens.jumbo.paddingHorizontal,
-      paddingVertical: tokens.jumbo.paddingVertical,
-      alignItems: 'center',
-    })
-  }
 
   const titleTextStyle = [
     styles.title,
@@ -413,7 +387,6 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
     descriptionStyle,
   ]
   const descriptionViewStyle = [
-    styles.descriptionView,
     {
       marginTop: descriptionMarginTop,
       alignItems: 'center' as const,
@@ -450,13 +423,10 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
           </View>
         ))}
         {isRenderable(pane.badge) && (
-          <View style={[styles.badge, { marginTop: tokens.spacing.badgeMarginTop }]}>
+          <View style={{ marginTop: tokens.spacing.badgeMarginTop }}>
             {isText(pane.badge) ? (
               <Text
-                style={[
-                  styles.badgeText,
-                  { color: tokens.colors.badgeText, fontSize: tokens.typography.badgeTextSize },
-                ]}
+                style={{ color: tokens.colors.badgeText, fontSize: tokens.typography.badgeTextSize }}
               >
                 {pane.badge}
               </Text>
@@ -831,19 +801,16 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     return null
   }
 
-  const indicatorNode = useMemo(() => {
-    if (!showIndicator) return null
-    return (
-      <Animated.View testID="rv-tabs-indicator" style={[styles.indicator, {
-        height: resolvedLineHeight,
-        borderRadius: indicatorCornerRadius,
-        backgroundColor: indicatorColor,
-        width: indicatorWidth,
-        bottom: indicatorBottom,
-        transform: [{ translateX: indicatorX }],
-      }]} />
-    )
-  }, [indicatorBottom, indicatorColor, indicatorCornerRadius, indicatorWidth, indicatorX, resolvedLineHeight, showIndicator])
+  const indicatorNode = showIndicator ? (
+    <Animated.View testID="rv-tabs-indicator" style={[styles.indicator, {
+      height: resolvedLineHeight,
+      borderRadius: indicatorCornerRadius,
+      backgroundColor: indicatorColor,
+      width: indicatorWidth,
+      bottom: indicatorBottom,
+      transform: [{ translateX: indicatorX }],
+    }]} />
+  ) : null
 
   const navItems = useMemo(
     () => panes.map(pane => (
@@ -931,7 +898,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
       }, tabBarStyle]}
     >
       {navLeft && (
-        <View style={[styles.navSide, { paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }]}>
+        <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>
           {navLeft}
         </View>
       )}
@@ -951,7 +918,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
         {navBody}
       </View>
       {navRight && (
-        <View style={[styles.navSide, { paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }]}>
+        <View style={{ paddingHorizontal: tokens.spacing.navSidePaddingHorizontal }}>
           {navRight}
         </View>
       )}
@@ -984,14 +951,11 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
   }), [containerWidth, currentName, handlePaneLayout, isSwipeable, lazyRender, lazyRenderPlaceholder, panes, swipeableConfig?.autoHeight])
 
   const baseContentStyle = [styles.content, contentStyle]
-  const swipeableContentStyle = useMemo(
-    () => [
-      styles.content,
-      contentStyle,
-      swipeableConfig?.autoHeight && swipeableHeight !== undefined && { height: swipeableHeight },
-    ],
-    [contentStyle, swipeableConfig?.autoHeight, swipeableHeight]
-  )
+  const swipeableContentStyle = [
+    styles.content,
+    contentStyle,
+    swipeableConfig?.autoHeight && swipeableHeight !== undefined && { height: swipeableHeight },
+  ]
 
   const contentNode = isSwipeable ? (
     <View style={swipeableContentStyle}>
@@ -1016,7 +980,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
   return (
     <View {...rest} style={[styles.container, style]} onLayout={handleContainerLayout}>
       {navContent}
-      {navBottom && <View style={[styles.navBottom, { marginTop: tokens.spacing.navBottomMarginTop }]}>{navBottom}</View>}
+      {navBottom && <View style={{ marginTop: tokens.spacing.navBottomMarginTop }}>{navBottom}</View>}
       {contentNode}
     </View>
   )
@@ -1044,10 +1008,6 @@ const styles = StyleSheet.create({
   },
   navContentStatic: {
     flex: 1,
-  },
-  navSide: {
-  },
-  navBottom: {
   },
   labelWrapper: {
     justifyContent: 'center',
@@ -1079,15 +1039,9 @@ const styles = StyleSheet.create({
   descriptionText: {
     includeFontPadding: false,
   },
-  descriptionView: {
-  },
   ellipsis: {
     maxWidth: '100%',
     flexShrink: 1,
-  },
-  badge: {
-  },
-  badgeText: {
   },
   indicator: {
     position: 'absolute',

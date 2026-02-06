@@ -184,21 +184,9 @@ export const normalizePicker = (
 }
 
 const wheelStyles = StyleSheet.create({
-  column: {
-    flex: 1,
-  },
-  option: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  indicator: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    zIndex: 3,
-  },
+  column: { flex: 1 },
+  option: { justifyContent: 'center', alignItems: 'center' },
+  grab: { cursor: 'pointer', userSelect: 'none', touchAction: 'none' } as unknown as ViewStyle,
 })
 
 type WheelPickerRender<T> = (
@@ -332,10 +320,7 @@ const WheelPickerInner = <T extends PickerOption,>({
   const effectiveScrollThrottle = total > visibleCount * 20 ? 32 : scrollEventThrottle
   const webVirtualEnabled = total > visibleCount * 4
   const Spacer = useCallback(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
-  const indicatorStyle = useMemo(
-    () => [wheelStyles.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }],
-    [itemHeight, visibleRest, indicatorColor]
-  )
+  const indicatorStyle = [styles.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }]
 
   const dragEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const momentumRef = useRef(false)
@@ -558,19 +543,15 @@ const WheelPickerInner = <T extends PickerOption,>({
     webVirtualEnabled,
   ])
 
-  const webTransform = useMemo(() => ({ transform: [{ translateY: webOffset }] }), [webOffset])
-  const webTransitionStyle: ViewStyle | undefined = useMemo(
-    () =>
-      webTransition
-        ? ({
-          transitionProperty: 'transform',
-          transitionDuration: `${webTransition}ms`,
-          transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
-          willChange: 'transform',
-        } as unknown as ViewStyle)
-        : undefined,
-    [webTransition]
-  )
+  const webTransform = { transform: [{ translateY: webOffset }] }
+  const webTransitionStyle: ViewStyle | undefined = webTransition
+    ? ({
+      transitionProperty: 'transform',
+      transitionDuration: `${webTransition}ms`,
+      transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
+      willChange: 'transform',
+    } as unknown as ViewStyle)
+    : undefined
   const handleWebTransitionEnd = useCallback(
     (event: { nativeEvent?: { propertyName?: string } } & { propertyName?: string }) => {
       const propertyName = event.nativeEvent?.propertyName ?? event.propertyName
@@ -643,16 +624,13 @@ const WheelPickerInner = <T extends PickerOption,>({
   if (isWeb) {
     return (
       <View
-        style={[wheelStyles.column, { height: containerHeight }, webOnlyStyles.grab]}
+        style={[wheelStyles.column, { height: containerHeight }, wheelStyles.grab]}
         {...({ onWheel: handleWheel } as unknown as React.ComponentProps<typeof View>)}
         {...panResponder.panHandlers}
       >
         <View style={indicatorStyle} pointerEvents="none" />
         <View
-          style={[
-            webTransform,
-            isWeb ? webTransitionStyle : undefined,
-          ]}
+          style={[webTransform, webTransitionStyle]}
           {...({ onTransitionEnd: handleWebTransitionEnd } as unknown as React.ComponentProps<typeof View>)}
         >
           <Spacer />
@@ -741,13 +719,6 @@ const WheelPickerInner = <T extends PickerOption,>({
 
 const WheelPicker = React.memo(WheelPickerInner) as typeof WheelPickerInner
 
-const webOnlyStyles = StyleSheet.create({
-  grab: ({
-    cursor: 'pointer',
-    userSelect: 'none',
-    touchAction: 'none',
-  } as unknown as ViewStyle),
-})
 
 export function usePickerValue({
   columns,
@@ -846,7 +817,7 @@ const getVisibleCount = (count: number) => {
 
 const GRADIENT_OVERLAY_ALPHA = 0.25
 const GRADIENT_STEPS = [0.95, 0.75, 0.55, 0.35]
-const GRADIENT_STEPS_REVERSED = [...GRADIENT_STEPS].reverse()
+const GRADIENT_STEPS_REVERSED = [0.35, 0.55, 0.75, 0.95]
 
 const GradientMask: React.FC<{
   height: number
@@ -855,16 +826,13 @@ const GradientMask: React.FC<{
   maskType: NonNullable<PickerProps['maskType']>
 }> = ({ height, color, position, maskType }) => {
   const isWeb = Platform.OS === 'web'
-  const baseStyle = useMemo(
-    () => [
-      styles.gradientMask,
-      { height },
-      position === 'top' ? { top: 0 } : { bottom: 0 },
-    ],
-    [height, position]
-  )
+  const baseStyle = [
+    styles.gradientMask,
+    { height },
+    position === 'top' ? { top: 0 } : { bottom: 0 },
+  ]
 
-  const overlayColor = useMemo(() => withAlpha(color, GRADIENT_OVERLAY_ALPHA), [color])
+  const overlayColor = withAlpha(color, GRADIENT_OVERLAY_ALPHA)
 
   if (maskType === 'solid') {
     return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: withAlpha(color, 0.9) }]} />
@@ -942,7 +910,7 @@ const PickerColumn: React.FC<
     }, [columnIndex, onSelect, options])
 
     return (
-      <View style={[styles.column, { height: itemHeight * visibleItemCount }]}>
+      <View style={[wheelStyles.column, { height: itemHeight * visibleItemCount }]}>
         <WheelPicker
           data={options}
           itemHeight={itemHeight}
@@ -962,7 +930,7 @@ const PickerColumn: React.FC<
             const testID = getOptionTestID?.(item, { columnIndex, active })
             const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
             return (
-              <View style={[styles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
+              <View style={[wheelStyles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
                 {isText(content) ? (
                   <Text numberOfLines={1} style={[styles.optionText, {
                     color: textColor,
@@ -1100,7 +1068,6 @@ const Picker: React.FC<PickerProps> = props => {
     <View
       {...rest}
       style={[
-        styles.container,
         { backgroundColor: tokens.colors.background, borderRadius: tokens.radius.container },
         style,
       ]}
@@ -1136,7 +1103,6 @@ const Picker: React.FC<PickerProps> = props => {
 }
 
 const styles = StyleSheet.create({
-  container: {},
   body: {
     position: 'relative',
     overflow: 'hidden',
@@ -1144,13 +1110,6 @@ const styles = StyleSheet.create({
   columns: {
     flex: 1,
     flexDirection: 'row',
-  },
-  column: {
-    flex: 1,
-  },
-  option: {
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   optionText: {
     includeFontPadding: false,

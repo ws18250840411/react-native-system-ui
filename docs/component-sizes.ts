@@ -7,95 +7,95 @@
 export default [
   {
     "name": "picker",
-    "size": 8647
+    "size": 8565
   },
   {
     "name": "tabs",
-    "size": 8038
+    "size": 7909
   },
   {
     "name": "form",
-    "size": 6772
+    "size": 6741
   },
   {
     "name": "cascader",
-    "size": 5991
+    "size": 5984
   },
   {
     "name": "dialog",
-    "size": 5787
+    "size": 5734
   },
   {
     "name": "slider",
-    "size": 5600
+    "size": 5565
   },
   {
     "name": "field",
-    "size": 5593
+    "size": 5523
   },
   {
     "name": "calendar",
-    "size": 5277
+    "size": 5271
   },
   {
     "name": "popup",
-    "size": 5176
-  },
-  {
-    "name": "button",
-    "size": 5027
+    "size": 5145
   },
   {
     "name": "number-keyboard",
-    "size": 4989
+    "size": 4949
   },
   {
     "name": "checkbox",
-    "size": 4957
+    "size": 4942
   },
   {
     "name": "notify",
-    "size": 4848
+    "size": 4836
+  },
+  {
+    "name": "button",
+    "size": 4822
   },
   {
     "name": "toast",
-    "size": 4754
-  },
-  {
-    "name": "radio",
-    "size": 4701
+    "size": 4725
   },
   {
     "name": "swiper",
-    "size": 4666
+    "size": 4645
   },
   {
     "name": "stepper",
-    "size": 4648
+    "size": 4636
+  },
+  {
+    "name": "radio",
+    "size": 4632
   },
   {
     "name": "image-preview",
-    "size": 4436
+    "size": 4400
   },
   {
     "name": "cell",
-    "size": 4292
+    "size": 4238
   },
   {
     "name": "grid",
-    "size": 4140
+    "size": 3957
   },
   {
     "name": "tabbar",
-    "size": 3871
+    "size": 3774
   },
   {
     "name": "notice-bar",
-    "size": 3621
+    "size": 3608
   },
   {
     "name": "collapse",
-    "size": 3514
+    "size": 3482
   },
   {
     "name": "password-input",
@@ -103,7 +103,7 @@ export default [
   },
   {
     "name": "action-sheet",
-    "size": 3461
+    "size": 3414
   },
   {
     "name": "portal",
@@ -111,39 +111,35 @@ export default [
   },
   {
     "name": "image",
-    "size": 3364
-  },
-  {
-    "name": "sidebar",
-    "size": 3237
+    "size": 3300
   },
   {
     "name": "datetime-picker",
     "size": 3141
   },
   {
-    "name": "progress",
-    "size": 2913
+    "name": "sidebar",
+    "size": 3110
   },
   {
     "name": "share-sheet",
-    "size": 2829
+    "size": 2789
+  },
+  {
+    "name": "progress",
+    "size": 2776
   },
   {
     "name": "selector",
-    "size": 2784
+    "size": 2767
+  },
+  {
+    "name": "nav-bar",
+    "size": 2617
   },
   {
     "name": "typography",
     "size": 2617
-  },
-  {
-    "name": "nav-bar",
-    "size": 2614
-  },
-  {
-    "name": "search",
-    "size": 2510
   },
   {
     "name": "circle",
@@ -155,15 +151,19 @@ export default [
   },
   {
     "name": "badge",
-    "size": 2400
+    "size": 2387
+  },
+  {
+    "name": "search",
+    "size": 2386
   },
   {
     "name": "skeleton",
-    "size": 2391
+    "size": 2335
   },
   {
     "name": "water-mark",
-    "size": 2212
+    "size": 2209
   },
   {
     "name": "space",
@@ -179,7 +179,7 @@ export default [
   },
   {
     "name": "avatar",
-    "size": 1779
+    "size": 1757
   },
   {
     "name": "divider",
@@ -190,24 +190,24 @@ export default [
     "size": 1663
   },
   {
-    "name": "area",
-    "size": 1571
+    "name": "input",
+    "size": 1549
   },
   {
-    "name": "input",
-    "size": 1562
+    "name": "area",
+    "size": 1536
   },
   {
     "name": "switch",
-    "size": 1347
-  },
-  {
-    "name": "count-down",
-    "size": 1281
+    "size": 1316
   },
   {
     "name": "loading",
     "size": 1254
+  },
+  {
+    "name": "count-down",
+    "size": 1250
   },
   {
     "name": "overlay",

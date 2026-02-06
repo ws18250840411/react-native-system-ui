@@ -154,31 +154,15 @@ export const FormItem: React.FC<FormItemProps> = ({
     }
   })
 
-  if (label !== undefined && child.props.label === undefined) {
-    injectedProps.label = label
-  }
-  if (context.colon !== undefined && injectedProps.label !== undefined && child.props.colon === undefined) {
-    injectedProps.colon = context.colon
-  }
-  if (context.labelWidth !== undefined && child.props.labelWidth === undefined) {
-    injectedProps.labelWidth = context.labelWidth
-  }
-  if (description && child.props.description === undefined) {
-    injectedProps.description = description
-  }
-  if (intro && child.props.intro === undefined) {
-    injectedProps.intro = intro
-  }
-  if (tooltip && child.props.tooltip === undefined) {
-    injectedProps.tooltip = tooltip
-  }
-  if (mergedRequired && child.props.required === undefined) {
-    injectedProps.required = true
-  }
-  if (firstError && child.props.errorMessage === undefined) {
-    injectedProps.error = true
-    injectedProps.errorMessage = firstError
-  }
+  const cp = child.props
+  if (label !== undefined && cp.label === undefined) injectedProps.label = label
+  if (context.colon !== undefined && injectedProps.label !== undefined && cp.colon === undefined) injectedProps.colon = context.colon
+  if (context.labelWidth !== undefined && cp.labelWidth === undefined) injectedProps.labelWidth = context.labelWidth
+  if (description && cp.description === undefined) injectedProps.description = description
+  if (intro && cp.intro === undefined) injectedProps.intro = intro
+  if (tooltip && cp.tooltip === undefined) injectedProps.tooltip = tooltip
+  if (mergedRequired && cp.required === undefined) injectedProps.required = true
+  if (firstError && cp.errorMessage === undefined) { injectedProps.error = true; injectedProps.errorMessage = firstError }
 
   return React.cloneElement(child, injectedProps)
 }

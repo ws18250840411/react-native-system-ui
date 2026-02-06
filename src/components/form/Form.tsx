@@ -247,27 +247,32 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
     [runFieldValidation],
   )
 
+  const validateWithDependents = useCallback(
+    (key: string, name: NamePath, trigger: string | undefined, value: unknown, values: Record<string, unknown>) => {
+      runFieldValidation(name, trigger, value, values)
+      const dependents = dependencyGraphRef.current.get(key)
+      if (dependents?.size) {
+        for (const dk of dependents) {
+          const meta = fieldsRef.current[dk]
+          if (meta) runFieldValidation(meta.name, trigger, getValueByName(values, meta.name), values)
+        }
+      }
+    },
+    [runFieldValidation],
+  )
+
   const setFieldValue = useCallback(
     (name: NamePath, value: unknown, trigger?: string) => {
       const nameKey = serializeNamePath(name)
       const prev = valuesRef.current
-      const prevValue = getValueByName(prev, name)
-      if (prevValue === value) return
+      if (getValueByName(prev, name) === value) return
       const next = setValueByName(prev, name, value)
       valuesRef.current = next
       onValuesChange?.(next, nameKey, value)
-      runFieldValidation(name, trigger, value, next)
-      const dependents = dependencyGraphRef.current.get(nameKey)
-      if (dependents?.size) {
-        for (const dependentKey of dependents) {
-          const meta = fieldsRef.current[dependentKey]
-          if (!meta) continue
-          runFieldValidation(meta.name, trigger, getValueByName(next, meta.name), next)
-        }
-      }
+      validateWithDependents(nameKey, name, trigger, value, next)
       notify({ [nameKey]: value }, next)
     },
-    [notify, onValuesChange, runFieldValidation],
+    [notify, onValuesChange, validateWithDependents],
   )
 
   const formApi: FormInstance = {
@@ -292,17 +297,7 @@ const InternalForm = React.forwardRef<FormInstance, FormProps>((props, ref) => {
         changed[key] = newVal
         merged = setValueByName(merged, key, newVal)
         onValuesChange?.(merged, key, newVal)
-        if (shouldValidate) {
-          runFieldValidation(key, undefined, newVal, merged)
-          const dependents = dependencyGraphRef.current.get(key)
-          if (dependents?.size) {
-            for (const dependentKey of dependents) {
-              const meta = fieldsRef.current[dependentKey]
-              if (!meta) continue
-              runFieldValidation(meta.name, undefined, getValueByName(merged, meta.name), merged)
-            }
-          }
-        }
+        if (shouldValidate) validateWithDependents(key, key, undefined, newVal, merged)
       })
       if (merged === prev) return
       valuesRef.current = merged
