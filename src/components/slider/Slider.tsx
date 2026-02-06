@@ -300,6 +300,16 @@ const SliderImpl: React.FC<SliderProps> = props => {
   const normalized = normalizeValue(valueProp, range, resolvedMin, resolvedMax)
   const isControlled = valueProp !== undefined
 
+
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const onChangeAfterRef = useRef(onChangeAfter)
+  onChangeAfterRef.current = onChangeAfter
+  const onDragStartRef = useRef(onDragStart)
+  onDragStartRef.current = onDragStart
+  const onDragEndRef = useRef(onDragEnd)
+  onDragEndRef.current = onDragEnd
+
   const formatOutput = useCallback(
     (values: readonly number[]) => toSliderValue(values, range, resolvedMin),
     [range, resolvedMin],
@@ -307,16 +317,16 @@ const SliderImpl: React.FC<SliderProps> = props => {
 
   const handleStateChange = useCallback(
     (values: readonly number[]) => {
-      onChange?.(formatOutput(values))
+      onChangeRef.current?.(formatOutput(values))
     },
-    [formatOutput, onChange],
+    [formatOutput],
   )
 
   const handleStateChangeEnd = useCallback(
     (values: readonly number[]) => {
-      onChangeAfter?.(formatOutput(values))
+      onChangeAfterRef.current?.(formatOutput(values))
     },
-    [formatOutput, onChangeAfter],
+    [formatOutput],
   )
 
   const sliderStateOptions = useMemo(() => ({
@@ -359,6 +369,11 @@ const SliderImpl: React.FC<SliderProps> = props => {
   )
   const trackPressableProps = trackProps as unknown as Partial<React.ComponentProps<typeof Pressable>>
   const { style: trackAriaStyle, onLayout: trackAriaOnLayout, ...restTrackProps } = trackPressableProps
+
+  const handleCombinedTrackLayout = useCallback((event: LayoutChangeEvent) => {
+    handleTrackLayout(event)
+    trackAriaOnLayout?.(event)
+  }, [handleTrackLayout, trackAriaOnLayout])
 
   const handleTrackPress = useCallback((event: GestureResponderEvent) => {
     if (ariaDisabled) return
@@ -421,10 +436,6 @@ const SliderImpl: React.FC<SliderProps> = props => {
   const enhancedHandlersCacheRef = useRef<WeakMap<object, Map<number, HandlerBag>>>(new WeakMap())
 
   useEffect(() => {
-    enhancedHandlersCacheRef.current = new WeakMap()
-  }, [onDragStart, onDragEnd])
-
-  useEffect(() => {
     return () => {
       const cancel = typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : undefined
       if (!cancel) return
@@ -439,7 +450,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
   const enhanceHandlers = useCallback(
     (handlers: HandlerBag | undefined, index: number) => {
       if (!handlers) return handlers
-      if (!onDragStart && !onDragEnd) {
+      if (!onDragStartRef.current && !onDragEndRef.current) {
         return handlers
       }
       const cached = enhancedHandlersCacheRef.current.get(handlers)
@@ -518,7 +529,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
         wrapBefore(key, event => {
           if (!dragStartedRef.current[index]) {
             dragStartedRef.current[index] = true
-            onDragStart?.(event, dragStartValueRef.current[index] ?? currentValueRef.current)
+            onDragStartRef.current?.(event, dragStartValueRef.current[index] ?? currentValueRef.current)
           }
         })
       }
@@ -527,7 +538,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
         if (dragStartedRef.current[index]) {
           dragStartedRef.current[index] = false
           dragStartValueRef.current[index] = undefined
-          onDragEnd?.(event, currentValueRef.current)
+          onDragEndRef.current?.(event, currentValueRef.current)
         }
         const rafId = moveRafIdRef.current[index]
         if (rafId != null && caf) {
@@ -548,7 +559,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
       }
       return wrapped
     },
-    [onDragStart, onDragEnd]
+    []
   )
 
   const values = state.values as readonly number[]
@@ -670,10 +681,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
           ref={trackRef}
           {...trackInteractionProps}
           disabled={ariaDisabled}
-          onLayout={(event: LayoutChangeEvent) => {
-            handleTrackLayout(event)
-            trackAriaOnLayout?.(event)
-          }}
+          onLayout={handleCombinedTrackLayout}
           style={trackPressableStyle}
         >
           <View style={[styles.trackBase, { borderRadius: tokens.track.radius }, ...trackBaseStyle]}>

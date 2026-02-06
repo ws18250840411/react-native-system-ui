@@ -1,6 +1,6 @@
 import { Platform, StyleSheet, type ViewStyle } from 'react-native'
 
-export const getHairlineWidth = () => Platform.OS === 'web' ? 1 : StyleSheet.hairlineWidth
+export const getHairlineWidth = () => Platform.OS === 'web' ? 0.5 : StyleSheet.hairlineWidth
 
 export interface HairlineBorderOptions {
   color?: string

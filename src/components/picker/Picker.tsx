@@ -320,7 +320,7 @@ const WheelPickerInner = <T extends PickerOption,>({
   const effectiveScrollThrottle = total > visibleCount * 20 ? 32 : scrollEventThrottle
   const webVirtualEnabled = total > visibleCount * 4
   const Spacer = useCallback(() => <View style={{ height: spacerHeight }} />, [spacerHeight])
-  const indicatorStyle = [styles.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }]
+  const indicatorStyle = useMemo(() => [styles.indicator, { height: itemHeight, top: itemHeight * visibleRest, borderColor: indicatorColor }], [indicatorColor, itemHeight, visibleRest])
 
   const dragEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const momentumRef = useRef(false)
@@ -366,18 +366,23 @@ const WheelPickerInner = <T extends PickerOption,>({
   const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rafIdRef = useRef<number | null>(null)
   const isInteractingRef = useRef(false)
+  const onInteractStartRef = useRef(onInteractStart)
+  onInteractStartRef.current = onInteractStart
+  const onInteractEndRef = useRef(onInteractEnd)
+  onInteractEndRef.current = onInteractEnd
+
   const notifyInteractStart = useCallback(() => {
     if (readOnly) return
     if (isInteractingRef.current) return
     isInteractingRef.current = true
-    onInteractStart?.()
-  }, [onInteractStart, readOnly])
+    onInteractStartRef.current?.()
+  }, [readOnly])
 
   const notifyInteractEnd = useCallback(() => {
     if (!isInteractingRef.current) return
     isInteractingRef.current = false
-    onInteractEnd?.()
-  }, [onInteractEnd])
+    onInteractEndRef.current?.()
+  }, [])
 
   const stopRaf = useCallback(() => {
     if (rafIdRef.current != null && typeof cancelAnimationFrame !== 'undefined') {
@@ -543,15 +548,15 @@ const WheelPickerInner = <T extends PickerOption,>({
     webVirtualEnabled,
   ])
 
-  const webTransform = { transform: [{ translateY: webOffset }] }
-  const webTransitionStyle: ViewStyle | undefined = webTransition
+  const webTransform = useMemo(() => ({ transform: [{ translateY: webOffset }] }), [webOffset])
+  const webTransitionStyle = useMemo<ViewStyle | undefined>(() => webTransition
     ? ({
       transitionProperty: 'transform',
       transitionDuration: `${webTransition}ms`,
       transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.68, 1)',
       willChange: 'transform',
     } as unknown as ViewStyle)
-    : undefined
+    : undefined, [webTransition])
   const handleWebTransitionEnd = useCallback(
     (event: { nativeEvent?: { propertyName?: string } } & { propertyName?: string }) => {
       const propertyName = event.nativeEvent?.propertyName ?? event.propertyName
@@ -644,8 +649,47 @@ const WheelPickerInner = <T extends PickerOption,>({
   }
 
   const shouldCapture = !readOnly
+  const handleResponderCapture = useCallback(() => shouldCapture, [shouldCapture])
 
-  const contentContainerStyle = { paddingVertical: spacerHeight }
+  const contentContainerStyle = useMemo(() => ({ paddingVertical: spacerHeight }), [spacerHeight])
+
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    lastOffsetRef.current = e.nativeEvent.contentOffset.y
+  }, [])
+
+  const handleScrollBeginDrag = useCallback(() => {
+    momentumRef.current = false
+    clearDragEndTimer()
+    notifyInteractStart()
+  }, [clearDragEndTimer, notifyInteractStart])
+
+  const handleScrollEndDrag = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (readOnly) return
+    const y = e.nativeEvent.contentOffset.y
+    lastOffsetRef.current = y
+    clearDragEndTimer()
+    dragEndTimerRef.current = setTimeout(() => {
+      if (!momentumRef.current) {
+        emitIndexFromOffset(lastOffsetRef.current, true)
+        notifyInteractEnd()
+      }
+    }, 80)
+  }, [clearDragEndTimer, emitIndexFromOffset, notifyInteractEnd, readOnly])
+
+  const handleMomentumScrollBegin = useCallback(() => {
+    momentumRef.current = true
+    clearDragEndTimer()
+    notifyInteractStart()
+  }, [clearDragEndTimer, notifyInteractStart])
+
+  const handleMomentumScrollEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    momentumRef.current = false
+    clearDragEndTimer()
+    const y = e.nativeEvent.contentOffset.y
+    lastOffsetRef.current = y
+    emitIndexFromOffset(y, false)
+    notifyInteractEnd()
+  }, [clearDragEndTimer, emitIndexFromOffset, notifyInteractEnd])
 
   return (
     <View
@@ -664,41 +708,13 @@ const WheelPickerInner = <T extends PickerOption,>({
         overScrollMode="never"
         nestedScrollEnabled
         contentContainerStyle={contentContainerStyle}
-        onStartShouldSetResponderCapture={() => shouldCapture}
-        onMoveShouldSetResponderCapture={() => shouldCapture}
-        onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-          lastOffsetRef.current = e.nativeEvent.contentOffset.y
-        }}
-        onScrollBeginDrag={() => {
-          momentumRef.current = false
-          clearDragEndTimer()
-          notifyInteractStart()
-        }}
-        onScrollEndDrag={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-          if (readOnly) return
-          const y = e.nativeEvent.contentOffset.y
-          lastOffsetRef.current = y
-          clearDragEndTimer()
-          dragEndTimerRef.current = setTimeout(() => {
-            if (!momentumRef.current) {
-              emitIndexFromOffset(lastOffsetRef.current, true)
-              notifyInteractEnd()
-            }
-          }, 80)
-        }}
-        onMomentumScrollBegin={() => {
-          momentumRef.current = true
-          clearDragEndTimer()
-          notifyInteractStart()
-        }}
-        onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-          momentumRef.current = false
-          clearDragEndTimer()
-          const y = e.nativeEvent.contentOffset.y
-          lastOffsetRef.current = y
-          emitIndexFromOffset(y, false)
-          notifyInteractEnd()
-        }}
+        onStartShouldSetResponderCapture={handleResponderCapture}
+        onMoveShouldSetResponderCapture={handleResponderCapture}
+        onScroll={handleScroll}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         scrollEnabled={!readOnly}
       >
         {data.map((item, index) => (
@@ -738,6 +754,11 @@ export function usePickerValue({
   const preparedColumns = useMemo(() => prepareColumns(columns), [columns])
   const isControlled = valueProp !== undefined
 
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const onConfirmRef = useRef(onConfirm)
+  onConfirmRef.current = onConfirm
+
   const [innerValue, setInnerValue] = useState<PickerValue[]>(() => {
     const initial = toArrayValue(valueProp ?? defaultValue)
     return normalizePicker(preparedColumns, initial).values
@@ -766,9 +787,9 @@ export function usePickerValue({
     if (isControlled) return
     if (!shallowEqualArray(innerValue, normalized.values)) {
       commitValue(normalized.values)
-      onChange?.(normalized.values, normalized.options)
+      onChangeRef.current?.(normalized.values, normalized.options)
       if (emitConfirmOnAutoSelect) {
-        onConfirm?.(normalized.values, normalized.options)
+        onConfirmRef.current?.(normalized.values, normalized.options)
       }
     }
   }, [
@@ -777,8 +798,6 @@ export function usePickerValue({
     innerValue,
     isControlled,
     normalized,
-    onChange,
-    onConfirm,
   ])
 
   const handleSelect = useCallback(
@@ -793,14 +812,14 @@ export function usePickerValue({
       const final = normalizePicker(preparedColumns, next)
       if (shallowEqualArray(innerValueRef.current, final.values)) return
       commitValue(final.values)
-      onChange?.(final.values, final.options)
+      onChangeRef.current?.(final.values, final.options)
     },
-    [commitValue, onChange, preparedColumns],
+    [commitValue, preparedColumns],
   )
 
   const handleConfirm = useCallback(() => {
-    onConfirm?.(normalized.values, normalized.options)
-  }, [normalized, onConfirm])
+    onConfirmRef.current?.(normalized.values, normalized.options)
+  }, [normalized])
 
   return {
     preparedColumns,
@@ -909,6 +928,30 @@ const PickerColumn: React.FC<
       onSelect(option, columnIndex, target)
     }, [columnIndex, onSelect, options])
 
+    const renderItemStable = useCallback(
+      (item: PickerOption, _index: number, meta: { active: boolean; disabled: boolean }) => {
+        const active = meta?.active ?? false
+        const disabled = meta?.disabled ?? false
+        const textColor = disabled ? tokens.colors.textDisabled : (active ? tokens.colors.text : tokens.colors.textMuted)
+        const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
+        const testID = getOptionTestID?.(item, { columnIndex, active })
+        const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
+        return (
+          <View style={[wheelStyles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
+            {isText(content) ? (
+              <Text numberOfLines={1} style={[styles.optionText, {
+                color: textColor,
+                fontSize: tokens.typography.optionSize,
+                fontFamily: tokens.typography.fontFamily,
+                fontWeight: tokens.typography.optionWeight,
+              }]}>{content}</Text>
+            ) : content}
+          </View>
+        )
+      },
+      [columnIndex, getOptionA11yLabel, getOptionTestID, itemHeight, optionRender, tokens.colors.text, tokens.colors.textDisabled, tokens.colors.textMuted, tokens.typography.fontFamily, tokens.typography.optionSize, tokens.typography.optionWeight]
+    )
+
     return (
       <View style={[wheelStyles.column, { height: itemHeight * visibleItemCount }]}>
         <WheelPicker
@@ -922,26 +965,7 @@ const PickerColumn: React.FC<
           decelerationRate={decelerationRate}
           scrollEventThrottle={scrollEventThrottle}
           swipeDuration={swipeDuration}
-          renderItem={(item: PickerOption, _index: number, meta: { active: boolean; disabled: boolean }) => {
-            const active = meta?.active ?? false
-            const disabled = meta?.disabled ?? false
-            const textColor = disabled ? tokens.colors.textDisabled : (active ? tokens.colors.text : tokens.colors.textMuted)
-            const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
-            const testID = getOptionTestID?.(item, { columnIndex, active })
-            const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
-            return (
-              <View style={[wheelStyles.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
-                {isText(content) ? (
-                  <Text numberOfLines={1} style={[styles.optionText, {
-                    color: textColor,
-                    fontSize: tokens.typography.optionSize,
-                    fontFamily: tokens.typography.fontFamily,
-                    fontWeight: tokens.typography.optionWeight,
-                  }]}>{content}</Text>
-                ) : content}
-              </View>
-            )
-          }}
+          renderItem={renderItemStable}
         />
       </View>
     )

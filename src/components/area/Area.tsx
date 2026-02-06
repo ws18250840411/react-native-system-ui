@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 
 import Picker from '../picker'
 import type { PickerOption, PickerValue } from '../picker/types'
@@ -107,9 +107,21 @@ const AreaImpl: React.FC<AreaProps> = props => {
   const normalizedValue = useMemo(() => normalize(value), [normalize, value])
   const normalizedDefaultValue = useMemo(() => normalize(defaultValue), [normalize, defaultValue])
 
-  const wrapHandler = useCallback(
-    (cb?: (values: string[], options: (AreaOption | undefined)[]) => void) =>
-      cb ? (values: PickerValue[], options: (PickerOption | undefined)[]) => cb(values.map(String), options as (AreaOption | undefined)[]) : undefined,
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const onConfirmRef = useRef(onConfirm)
+  onConfirmRef.current = onConfirm
+
+  const wrappedOnChange = useCallback(
+    (values: PickerValue[], options: (PickerOption | undefined)[]) => {
+      onChangeRef.current?.(values.map(String), options as (AreaOption | undefined)[])
+    },
+    []
+  )
+  const wrappedOnConfirm = useCallback(
+    (values: PickerValue[], options: (PickerOption | undefined)[]) => {
+      onConfirmRef.current?.(values.map(String), options as (AreaOption | undefined)[])
+    },
     []
   )
 
@@ -120,8 +132,8 @@ const AreaImpl: React.FC<AreaProps> = props => {
       interactionMode={interactionMode}
       value={normalizedValue}
       defaultValue={normalizedDefaultValue}
-      onChange={wrapHandler(onChange)}
-      onConfirm={wrapHandler(onConfirm)}
+      onChange={onChange ? wrappedOnChange : undefined}
+      onConfirm={onConfirm ? wrappedOnConfirm : undefined}
     />
   )
 }

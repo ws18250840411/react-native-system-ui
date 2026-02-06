@@ -49,6 +49,17 @@ export const useGestureScroll = (
     onMomentumScrollEnd,
   } = options
 
+  const onScrollRef = useRef(onScroll)
+  onScrollRef.current = onScroll
+  const onScrollBeginDragRef = useRef(onScrollBeginDrag)
+  onScrollBeginDragRef.current = onScrollBeginDrag
+  const onScrollEndDragRef = useRef(onScrollEndDrag)
+  onScrollEndDragRef.current = onScrollEndDrag
+  const onMomentumScrollBeginRef = useRef(onMomentumScrollBegin)
+  onMomentumScrollBeginRef.current = onMomentumScrollBegin
+  const onMomentumScrollEndRef = useRef(onMomentumScrollEnd)
+  onMomentumScrollEndRef.current = onMomentumScrollEnd
+
   const scrollValue = useRef(new Animated.Value(0)).current
   const lastOffsetRef = useRef(0)
   const lastTimestampRef = useRef<number | null>(null)
@@ -68,7 +79,7 @@ export const useGestureScroll = (
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScroll?.(event)
+      onScrollRef.current?.(event)
       const contentOffset = event.nativeEvent.contentOffset
       const current = axis === 'x' ? contentOffset.x ?? 0 : contentOffset.y ?? 0
       const delta = current - lastOffsetRef.current
@@ -88,7 +99,7 @@ export const useGestureScroll = (
       lastTimestampRef.current = timestamp
       lastOffsetRef.current = current
     },
-    [axis, onScroll, updateDirection]
+    [axis, updateDirection]
   )
 
   const animatedScrollHandler = useMemo(() => {
@@ -106,33 +117,33 @@ export const useGestureScroll = (
   const handleScrollBeginDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setIsDragging(true)
-      onScrollBeginDrag?.(event)
+      onScrollBeginDragRef.current?.(event)
     },
-    [onScrollBeginDrag]
+    []
   )
 
   const handleScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setIsDragging(false)
-      onScrollEndDrag?.(event)
+      onScrollEndDragRef.current?.(event)
     },
-    [onScrollEndDrag]
+    []
   )
 
   const handleMomentumBegin = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setIsMomentum(true)
-      onMomentumScrollBegin?.(event)
+      onMomentumScrollBeginRef.current?.(event)
     },
-    [onMomentumScrollBegin]
+    []
   )
 
   const handleMomentumEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setIsMomentum(false)
-      onMomentumScrollEnd?.(event)
+      onMomentumScrollEndRef.current?.(event)
     },
-    [onMomentumScrollEnd]
+    []
   )
 
   const resetOffset = useCallback(

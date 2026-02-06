@@ -47,7 +47,7 @@ export const SwiperItem = memo(SwiperItemForwardRef)
 const DEFAULT_AUTOPLAY_INTERVAL = 3000
 const LOOP_RENDER_ALL_THRESHOLD = 10
 
-const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
+const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const {
     data,
     renderItem,
@@ -137,13 +137,16 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     }
   }, [])
 
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+
   const updateIndex = useCallback((next: number) => {
     const clamped = clamp(next, 0, Math.max(0, count - 1))
     if (currentIndexRef.current === clamped) return
     currentIndexRef.current = clamped
     setCurrentIndex(clamped)
-    onChange?.(clamped)
-  }, [count, onChange])
+    onChangeRef.current?.(clamped)
+  }, [count])
 
   const scrollToDisplayIndex = useCallback((displayIndex: number, animated: boolean) => {
     try {
@@ -247,15 +250,15 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     return clearAutoplay
   }, [scheduleAutoplay, clearAutoplay, currentIndex])
 
-  const resetScrollState = () => {
+  const resetScrollState = useCallback(() => {
     isAnimatingRef.current = false
     isInteractingRef.current = false
     isMomentumRef.current = false
     scheduleAutoplay()
     flushQueuedSwipe()
-  }
+  }, [scheduleAutoplay])
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (count <= 1) return
     const offset = vertical
       ? event.nativeEvent.contentOffset.y
@@ -274,9 +277,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         resetScrollState()
       }
     }
-  }
+  }, [count, vertical, mainSize, shouldLoop, displayCount, updateIndex, getRealIndex, scrollToDisplayIndex, resetScrollState])
 
-  const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (isWeb || count === 0) return
     const offset = vertical
       ? event.nativeEvent.contentOffset.y
@@ -292,7 +295,26 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     }
     updateIndex(getRealIndex(nextDisplayIndex))
     resetScrollState()
-  }
+  }, [vertical, count, mainSize, shouldLoop, displayCount, scrollToDisplayIndex, updateIndex, getRealIndex, resetScrollState])
+
+  const handleScrollBeginDrag = useCallback(() => {
+    isInteractingRef.current = true
+    clearAutoplay()
+  }, [clearAutoplay])
+
+  const handleScrollEndDrag = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (!isMomentumRef.current) handleScrollEnd(e)
+  }, [handleScrollEnd])
+
+  const handleMomentumScrollBegin = useCallback(() => {
+    isMomentumRef.current = true
+  }, [])
+
+  const handleScrollToIndexFailed = useCallback((info: { index: number }) => {
+    scrollToDisplayIndex(info.index, false)
+    updateIndex(getRealIndex(info.index))
+    resetScrollState()
+  }, [scrollToDisplayIndex, updateIndex, getRealIndex, resetScrollState])
 
   const webMouseProps = isWeb && touchable && count > 1 ? ({
     onPointerDown: (e: any) => {
@@ -321,9 +343,12 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
     },
   } as Record<string, any>) : undefined
 
+  const renderItemRef = useRef(renderItem)
+  renderItemRef.current = renderItem
+
   const renderSlide = useCallback((info: { item: T | ReactElement }) => {
     const content = usingData
-      ? renderItem?.(info as Parameters<NonNullable<typeof renderItem>>[0]) ?? null
+      ? renderItemRef.current?.(info as Parameters<NonNullable<typeof renderItem>>[0]) ?? null
       : (info.item as ReactElement)
     if (!content) return null
     return (
@@ -331,7 +356,13 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         {content}
       </View>
     )
-  }, [usingData, renderItem, itemStyle])
+  }, [usingData, itemStyle])
+
+  const getItemLayout = useCallback((_: unknown, index: number) => ({
+    length: mainSize, offset: mainSize * index, index,
+  }), [mainSize])
+
+  const keyExtractor = useCallback((_item: unknown, index: number) => `swiper-${index}`, [])
 
   if (count === 0) return null
 
@@ -347,9 +378,9 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         ref={flatListRef}
         data={displayData}
         renderItem={renderSlide as any}
-        keyExtractor={(_item, index) => `swiper-${index}`}
+        keyExtractor={keyExtractor}
         horizontal={!vertical}
-        getItemLayout={(_, index) => ({ length: mainSize, offset: mainSize * index, index })}
+        getItemLayout={getItemLayout}
         initialScrollIndex={layoutReady ? initialDisplayIndex : undefined}
         scrollEnabled={touchable && count > 1}
         removeClippedSubviews={!shouldLoop || !loopRenderAll}
@@ -362,17 +393,13 @@ const SwiperImpl = <T,>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        onScrollBeginDrag={() => { isInteractingRef.current = true; clearAutoplay() }}
+        onScrollBeginDrag={handleScrollBeginDrag}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        onScrollEndDrag={(e) => { if (!isMomentumRef.current) handleScrollEnd(e) }}
-        onMomentumScrollBegin={() => { isMomentumRef.current = true }}
+        onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
         onMomentumScrollEnd={handleScrollEnd}
-        onScrollToIndexFailed={(info) => {
-          scrollToDisplayIndex(info.index, false)
-          updateIndex(getRealIndex(info.index))
-          resetScrollState()
-        }}
+        onScrollToIndexFailed={handleScrollToIndexFailed}
       />
       <View pointerEvents="none" style={styles.indicatorOverlay}>
         {indicatorNode}

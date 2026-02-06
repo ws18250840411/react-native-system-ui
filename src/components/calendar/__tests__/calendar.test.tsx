@@ -270,7 +270,6 @@ describe("Calendar", () => {
       />
     )
     
-    // Header subtitle
     const texts = tree.root.findAllByType(Text)
     const title = texts.find(n => n.props.children === 'Title 1')
     expect(title).toBeDefined()

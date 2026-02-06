@@ -88,7 +88,6 @@ describe('Field', () => {
     })
     
     expect(handleChange).toHaveBeenCalledWith('abc')
-    // Internal state update
     expect(input.props.value).toBe('abc')
   })
 
@@ -125,17 +124,11 @@ describe('Field', () => {
       />
     )
     
-    // Simulate focus to show clear icon (clearTrigger=focus by default)
     const input = tree.root.findByType(TextInput)
     act(() => {
         input.props.onFocus?.({} as any)
     })
     
-    // Find clear icon (it's a Pressable with accessibilityRole="button" and inside controlWrapper)
-    // The implementation uses isValidElement(clearIcon) check or default Clear icon.
-    // It is wrapped in Pressable.
-    // Let's find by accessibilityRole="button" that is NOT left/right icon/tooltip
-    // Or easier: find the Pressable that has onMouseDown prop (specific to clear icon implementation for Web)
     const pressables = tree.root.findAllByType(Pressable)
     const clearBtn = pressables.find(p => p.props.onMouseDown)
     

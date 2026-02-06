@@ -102,10 +102,15 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
     setContainerWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next))
   }, [])
 
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onReplayRef = useRef(onReplay)
+  onReplayRef.current = onReplay
+
   const handleClose = useCallback(() => {
     setVisible(false)
-    onClose?.()
-  }, [onClose])
+    onCloseRef.current?.()
+  }, [])
 
   const closePress = useAriaPress({
     disabled: mode !== 'closeable' || !visible,
@@ -174,7 +179,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
         }),
       ]).start(({ finished }) => {
         if (finished && !cancelled) {
-          onReplay?.()
+          onReplayRef.current?.()
           run(false)
         }
       })
@@ -194,7 +199,6 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
     resolvedSpeed,
     contentWidth,
     containerWidth,
-    onReplay,
     isVertical,
   ])
 

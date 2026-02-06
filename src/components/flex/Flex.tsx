@@ -59,7 +59,6 @@ const FlexImpl: React.FC<FlexProps> = props => {
   const verticalGap = Math.max(0, vRaw ?? 0)
   const supportsGap = Platform.OS === 'web'
 
-  // Memoize context value — prevents all FlexItem consumers from re-rendering
   const contextValue = useMemo(
     () => ({ horizontalGap, verticalGap, columns: resolvedColumns }),
     [horizontalGap, verticalGap, resolvedColumns],

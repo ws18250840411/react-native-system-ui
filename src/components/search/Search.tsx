@@ -50,27 +50,38 @@ const SearchComponent = (props: SearchProps, ref: React.Ref<SearchRef>) => {
   const inputValue = value ?? ''
   const resolvedInputAlign = align ?? inputAlign
 
+  const onChangeTextRef = useRef(onChangeText)
+  onChangeTextRef.current = onChangeText
+  const onCancelRef = useRef(onCancel)
+  onCancelRef.current = onCancel
+  const onSearchRef = useRef(onSearch)
+  onSearchRef.current = onSearch
+  const onSubmitEditingRef = useRef(onSubmitEditing)
+  onSubmitEditingRef.current = onSubmitEditing
+  const inputValueRef = useRef(inputValue)
+  inputValueRef.current = inputValue
+
   const handleChange = useCallback(
     (next: string) => {
       triggerChange(next)
-      onChangeText?.(next)
+      onChangeTextRef.current?.(next)
     },
-    [onChangeText, triggerChange],
+    [triggerChange],
   )
 
   const handleCancel = useCallback(() => {
     handleChange('')
-    onCancel?.()
-  }, [handleChange, onCancel])
+    onCancelRef.current?.()
+  }, [handleChange])
 
   type SubmitEvent = Parameters<NonNullable<FieldProps['onSubmitEditing']>>[0]
 
   const handleSubmit = useCallback(
     (event: SubmitEvent) => {
-      onSearch?.(inputValue)
-      onSubmitEditing?.(event)
+      onSearchRef.current?.(inputValueRef.current)
+      onSubmitEditingRef.current?.(event)
     },
-    [inputValue, onSearch, onSubmitEditing],
+    [],
   )
 
   const resolvedBackground = background ?? tokens.colors.background

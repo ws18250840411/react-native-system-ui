@@ -394,10 +394,14 @@ const TabBarItemInner: React.FC<TabItemProps> = ({
     descriptionJumboStyle,
   ]
 
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    onLayout(pane.name, event)
+  }, [onLayout, pane.name])
+
   return (
     <Pressable
       {...ariaPress.interactionProps}
-      onLayout={event => onLayout(pane.name, event)}
+      onLayout={handleLayout}
       style={[styles.tabItem, shouldFlex ? styles.flexItem : null, {
         paddingHorizontal: horizontalPadding,
         paddingVertical: verticalPadding,
@@ -681,16 +685,19 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     setContainerWidth(prev => prev === nextWidth ? prev : nextWidth)
   }, [])
 
+  const beforeChangeRef = useRef(beforeChange)
+  beforeChangeRef.current = beforeChange
+
   const runBeforeChange = useCallback((name: TabsValue) => {
-    if (!beforeChange) return Promise.resolve(true)
+    if (!beforeChangeRef.current) return Promise.resolve(true)
     try {
-      return Promise.resolve(beforeChange(name))
+      return Promise.resolve(beforeChangeRef.current(name))
         .then(res => res !== false)
         .catch(() => false)
     } catch (error) {
       return Promise.resolve(false)
     }
-  }, [beforeChange])
+  }, [])
 
   const changeSeqRef = useRef(0)
   const requestChange = useCallback((name: TabsValue, index: number) => {
@@ -752,12 +759,15 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
     node.scrollTo({ x: containerWidth * activeIndex, y: 0, animated: true })
   }, [activeIndex, containerWidth, isSwipeable])
 
+  const onClickTabRef = useRef(onClickTab)
+  onClickTabRef.current = onClickTab
+
   const handleSelect = useCallback((pane: ParsedPane, index: number, event?: unknown) => {
     const payload = { name: pane.name, index, disabled: !!pane.disabled, event }
-    onClickTab?.(payload)
+    onClickTabRef.current?.(payload)
     if (pane.disabled || pane.name === currentNameRef.current) return
     requestChange(pane.name, index)
-  }, [onClickTab, requestChange])
+  }, [requestChange])
 
   const scrollTo = useCallback((name: TabsValue, _options?: { immediate?: boolean }) => {
     const target = panes.find(pane => pane.name === name && !pane.disabled)

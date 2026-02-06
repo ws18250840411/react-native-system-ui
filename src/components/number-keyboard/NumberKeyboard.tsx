@@ -16,7 +16,7 @@ const keyboardRegistry = new Set<() => void>()
 const NUMBER_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 const ZERO_KEY = '0'
 
-const shuffle = <T,>(list: T[]) => {
+const shuffle = <T extends unknown>(list: T[]) => {
   const next = [...list]
   for (let i = next.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -86,23 +86,36 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const isCustomTheme = theme === 'custom'
   const resolvedCloseText = isCustomTheme ? closeButtonText ?? '完成' : closeButtonText
 
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onBlurRef = useRef(onBlur)
+  onBlurRef.current = onBlur
+  const onShowRef = useRef(onShow)
+  onShowRef.current = onShow
+  const onHideRef = useRef(onHide)
+  onHideRef.current = onHide
+  const onDeleteRef = useRef(onDelete)
+  onDeleteRef.current = onDelete
+  const onInputRef = useRef(onInput)
+  onInputRef.current = onInput
+
   const closeSelf = useCallback(() => {
-    onClose?.()
+    onCloseRef.current?.()
     if (blurOnClose) {
-      onBlur?.()
+      onBlurRef.current?.()
     }
-  }, [blurOnClose, onBlur, onClose])
+  }, [blurOnClose])
 
   const prevVisible = useRef(visible)
   useEffect(() => {
     if (visible && !prevVisible.current) {
-      onShow?.()
+      onShowRef.current?.()
     }
     if (!visible && prevVisible.current) {
-      onHide?.()
+      onHideRef.current?.()
     }
     prevVisible.current = visible
-  }, [visible, onShow, onHide])
+  }, [visible])
 
   useEffect(() => {
     if (visible) {
@@ -153,7 +166,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
       if (type === 'delete') {
         const currentValue = valueRef.current
         if (!currentValue) return
-        onDelete?.()
+        onDeleteRef.current?.()
         setMergedValue(currentValue.slice(0, -1))
         return
       }
@@ -165,10 +178,10 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
       const currentValue = valueRef.current
       const currentMaxlength = maxlengthRef.current
       if (currentMaxlength !== undefined && currentValue.length >= currentMaxlength) return
-      onInput?.(text)
+      onInputRef.current?.(text)
       setMergedValue(`${currentValue}${text}`)
     },
-    [closeSelf, onDelete, onInput, setMergedValue],
+    [closeSelf, setMergedValue],
   )
 
   const wrapperShadow = useMemo(() => createPlatformShadow(shadow), [shadow.color, shadow.elevation, shadow.offsetY, shadow.opacity, shadow.radius])

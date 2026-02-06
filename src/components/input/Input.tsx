@@ -43,11 +43,15 @@ const InputImpl = (
 
   const tokens = useInputTokens(tokensOverride)
   const inputRef = useRef<FieldInstance | null>(null)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const onChangeTextRef = useRef(onChangeText)
+  onChangeTextRef.current = onChangeText
 
   const handleChangeText = useCallback((value: string) => {
-    onChange?.(value)
-    onChangeText?.(value)
-  }, [onChange, onChangeText])
+    onChangeRef.current?.(value)
+    onChangeTextRef.current?.(value)
+  }, [])
 
   useImperativeHandle(
     ref,

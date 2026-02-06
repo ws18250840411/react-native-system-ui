@@ -74,10 +74,9 @@ describe('DatetimePicker', () => {
 
   it('respects minDate and maxDate', () => {
     const onConfirm = jest.fn()
-    const minDate = new Date(2023, 0, 10) // Jan 10
-    const maxDate = new Date(2023, 0, 20) // Jan 20
+    const minDate = new Date(2023, 0, 10)
+    const maxDate = new Date(2023, 0, 20)
 
-    // Initial value out of range (too early) -> should clamp to minDate
     let tree = create(
       <DatetimePicker
         type="date"
@@ -94,7 +93,6 @@ describe('DatetimePicker', () => {
     })
     expect(onConfirm).toHaveBeenLastCalledWith(minDate)
 
-    // Initial value out of range (too late) -> should clamp to maxDate
     tree = create(
       <DatetimePicker
         type="date"
@@ -129,10 +127,8 @@ describe('DatetimePicker', () => {
       confirmBtn.props.onPress()
     })
 
-    // Day should be 1 for year-month
     expect(onConfirm).toHaveBeenCalledWith(new Date(2023, 5, 1))
 
-    // Check columns count (Year, Month)
     const columns = tree.root.findAllByType(require('react-native').View).filter(n => n.props.testID?.startsWith('column-'))
     expect(columns.length).toBe(2)
   })
@@ -153,10 +149,8 @@ describe('DatetimePicker', () => {
       />
     )
 
-    // Minute column is index 1
     const minuteColumn = tree.root.findByProps({ testID: 'column-1' })
     const items = minuteColumn.props.children
-    // 00, 15, 30, 45
     expect(items.length).toBe(4)
     expect(items[1].key).toBe('15')
   })
@@ -167,15 +161,12 @@ describe('DatetimePicker', () => {
         type="time"
         minHour={9}
         maxHour={18}
-        value="08:00" // Should clamp to 09:00
+        value="08:00"
       />
     )
 
-    // Hour column is index 0
     const hourColumn = tree.root.findByProps({ testID: 'column-0' })
     const items = hourColumn.props.children
-
-    // 9 to 18 = 10 items
     expect(items.length).toBe(10)
     expect(items[0].key).toBe('09')
     expect(items[items.length - 1].key).toBe('18')

@@ -5,9 +5,7 @@ import { useListState, type ListState } from '@react-stately/list'
 import type { AriaListBoxProps } from '@react-types/listbox'
 
 export interface UseAriaListBoxOptions<T> extends AriaListBoxProps<T> {
-  
   isVirtualized?: boolean
-  
   label?: React.ReactNode
 }
 

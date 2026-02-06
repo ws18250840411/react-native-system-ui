@@ -372,6 +372,21 @@ const FieldImpl = (
   )
   const [textareaHeight, setTextareaHeight] = useState<number | undefined>(minHeight)
 
+  const onChangeTextRef = useRef(onChangeText)
+  onChangeTextRef.current = onChangeText
+  const onOverlimitRef = useRef(onOverlimit)
+  onOverlimitRef.current = onOverlimit
+  const onFocusRef = useRef(onFocus)
+  onFocusRef.current = onFocus
+  const onBlurRef = useRef(onBlur)
+  onBlurRef.current = onBlur
+  const onPressInRef = useRef(onPressIn)
+  onPressInRef.current = onPressIn
+  const onClickInputRef = useRef(onClickInput)
+  onClickInputRef.current = onClickInput
+  const onClearRef = useRef(onClear)
+  onClearRef.current = onClear
+
   const formatValue = useCallback(
     (inputValue: string, trigger: 'onChange' | 'onBlur' = 'onChange') =>
       formatter && trigger === formatTrigger ? formatter(inputValue) : inputValue,
@@ -384,9 +399,9 @@ const FieldImpl = (
       if (!isControlled) {
         setInternalValue(formatted)
       }
-      onChangeText?.(formatted)
+      onChangeTextRef.current?.(formatted)
     },
-    [formatValue, isControlled, onChangeText],
+    [formatValue, isControlled],
   )
 
   useImperativeHandle(
@@ -419,37 +434,37 @@ const FieldImpl = (
     }
 
     if (isFiniteNumber(maxLength) && maxLength >= 0 && next.length > maxLength) {
-      onOverlimit?.(next)
+      onOverlimitRef.current?.(next)
       next = next.slice(0, maxLength)
     }
 
     updateValue(next, 'onChange')
-  }, [maxLength, onOverlimit, type, updateValue])
+  }, [maxLength, type, updateValue])
 
   const handleFocus = useCallback((event: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
     setFocused(true)
-    onFocus?.(event)
+    onFocusRef.current?.(event)
     if (readOnly) {
       inputRef.current?.blur()
     }
-  }, [onFocus, readOnly])
+  }, [readOnly])
 
   const handleBlur = useCallback((event: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
     if (Platform.OS !== 'web' && clearJustHandledRef.current) {
       clearJustHandledRef.current = false
       setFocused(false)
-      onBlur?.(event)
+      onBlurRef.current?.(event)
       return
     }
     updateValue(value ?? '', 'onBlur')
     setFocused(false)
-    onBlur?.(event)
-  }, [onBlur, updateValue, value])
+    onBlurRef.current?.(event)
+  }, [updateValue, value])
 
   const handlePressIn = useCallback((event: Parameters<NonNullable<TextInputProps['onPressIn']>>[0]) => {
-    onPressIn?.(event)
-    onClickInput?.()
-  }, [onClickInput, onPressIn])
+    onPressInRef.current?.(event)
+    onClickInputRef.current?.()
+  }, [])
 
   const handleContentSizeChange = useCallback((event: { nativeEvent: { contentSize: { height: number } } }) => {
     if (!isTextarea) return
@@ -475,8 +490,8 @@ const FieldImpl = (
     updateValue('')
     inputRef.current?.clear?.()
     inputRef.current?.focus?.()
-    onClear?.()
-  }, [onClear, updateValue])
+    onClearRef.current?.()
+  }, [updateValue])
 
   const handleClearPressIn = useCallback(() => {
     setPressingClear(true)

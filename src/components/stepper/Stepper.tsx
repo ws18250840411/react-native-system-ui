@@ -67,6 +67,20 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
   const [changing, setChanging] = useState(false)
   const changingRef = useRef(false)
 
+
+  const onPlusRef = useRef(onPlus)
+  onPlusRef.current = onPlus
+  const onMinusRef = useRef(onMinus)
+  onMinusRef.current = onMinus
+  const onOverlimitRef = useRef(onOverlimit)
+  onOverlimitRef.current = onOverlimit
+  const onFocusRef = useRef(onFocus)
+  onFocusRef.current = onFocus
+  const onBlurRef = useRef(onBlur)
+  onBlurRef.current = onBlur
+  const onClickRef = useRef(onClick)
+  onClickRef.current = onClick
+
   const decimalLength = parseDecimalLength(decimalLengthProp)
 
   const resolvedStepRaw = Number(step ?? 1)
@@ -218,7 +232,7 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
     const emitButtonCallbacks = options?.emitButtonCallbacks ?? Boolean(event)
 
     if (isActionDisabled(type)) {
-      if (emitOverlimit) onOverlimit?.(type)
+      if (emitOverlimit) onOverlimitRef.current?.(type)
       return 'overlimit' as const
     }
 
@@ -229,18 +243,15 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
     return performValueChange(next, committedValue => {
       if (!emitButtonCallbacks || !event) return
       if (type === 'plus') {
-        onPlus?.(event, committedValue)
+        onPlusRef.current?.(event, committedValue)
       } else {
-        onMinus?.(event, committedValue)
+        onMinusRef.current?.(event, committedValue)
       }
     })
   }, [
     applyNextValue,
     getCurrentNumber,
     isActionDisabled,
-    onMinus,
-    onOverlimit,
-    onPlus,
     performValueChange,
     resolvedStep,
   ])
@@ -323,12 +334,12 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
   const plusDisabled = disabledForAll || disablePlus || (maxNumber !== undefined && currentForCompare >= maxNumber)
   const radius = tokens.radii.default
 
-  const buttonBaseStyle = { width: resolvedButtonSize, height: resolvedButtonSize }
-  const inputBoxStyle = {
+  const buttonBaseStyle = useMemo(() => ({ width: resolvedButtonSize, height: resolvedButtonSize }), [resolvedButtonSize])
+  const inputBoxStyle = useMemo(() => ({
     width: resolvedInputWidth,
     height: resolvedButtonSize,
     marginHorizontal: tokens.spacing.gap,
-  }
+  }), [resolvedButtonSize, resolvedInputWidth, tokens.spacing.gap])
 
   const getButtonStyle = useCallback((type: 'plus' | 'minus', state: PressableStateCallbackType) => {
     const isPlus = type === 'plus'
@@ -472,6 +483,9 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
     setInputText,
   ])
 
+  const inputPropsRef = useRef(inputProps)
+  inputPropsRef.current = inputProps
+
   const handleFocus = useCallback((
     event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onFocus']>>[0],
   ) => {
@@ -480,9 +494,9 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
       return
     }
     setHasFocus(true)
-    onFocus?.(event)
-    inputProps?.onFocus?.(event)
-  }, [disableInput, inputProps, onFocus])
+    onFocusRef.current?.(event)
+    inputPropsRef.current?.onFocus?.(event)
+  }, [disableInput])
 
   const handleBlur = useCallback((
     event: Parameters<NonNullable<React.ComponentProps<typeof TextInput>['onBlur']>>[0],
@@ -501,21 +515,19 @@ const StepperImpl = (p: StepperProps, ref: React.ForwardedRef<StepperInstance>) 
       }
     }
 
-    onBlur?.(event)
-    inputProps?.onBlur?.(event)
+    onBlurRef.current?.(event)
+    inputPropsRef.current?.onBlur?.(event)
   }, [
     allowEmpty,
     applyNextValue,
-    inputProps,
-    onBlur,
     performValueChange,
     resolvedDefaultValue,
   ])
 
   const handleInputPressIn = useCallback((event: GestureResponderEvent) => {
-    onClick?.(event)
-    inputProps?.onPressIn?.(event)
-  }, [inputProps, onClick])
+    onClickRef.current?.(event)
+    inputPropsRef.current?.onPressIn?.(event)
+  }, [])
 
   const handleMinusPress = useCallback(
     (event: GestureResponderEvent) => handleButtonPress('minus', event),

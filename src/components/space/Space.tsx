@@ -87,7 +87,6 @@ export const Space = React.memo((props: SpaceProps) => {
   const resolvedAlign: SpaceAlign = align ?? (isHorizontal ? 'center' : 'stretch')
   const shouldFillMainAxis = isHorizontal && ((fill ?? false) || shouldStretchJustify)
 
-  // Use native gap — RN >=0.79 supports gap on all platforms
   const containerBaseStyle: ViewStyle = {
     flexDirection: isHorizontal ? 'row' : 'column',
     flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',

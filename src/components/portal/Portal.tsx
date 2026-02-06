@@ -1,6 +1,5 @@
-import React, { useContext, useLayoutEffect, useMemo, useRef } from 'react'
+import React, { useContext, useLayoutEffect, useRef } from 'react'
 
-import Overlay, { type OverlayProps } from '../overlay'
 import {
   PortalHost,
   portalManager as globalManager,
@@ -8,56 +7,28 @@ import {
 } from './PortalHost'
 import { PortalContext } from './PortalContext'
 
-export type PortalProps = OverlayProps
+export interface PortalProps {
+  children?: React.ReactNode
+  isOpen?: boolean
+  visible?: boolean
+}
 
 const PortalComponentImpl = (
-  {
-    children,
-    isOpen,
-    visible,
-    useRNModal,
-    useRNModalOnAndroid,
-    isKeyboardDismissable,
-    animationPreset,
-    onRequestClose,
-    style,
-  }: PortalProps,
-  _ref: React.ForwardedRef<React.ComponentRef<typeof Overlay>>,
+  { children, isOpen, visible }: PortalProps,
+  _ref: React.ForwardedRef<any>,
 ) => {
   const manager = useContext(PortalContext) ?? globalManager
   const keyRef = useRef<number | null>(null)
   const resolvedOpen = isOpen ?? visible ?? true
-
-  const overlayNode = useMemo(() => (
-    <Overlay
-      isOpen={resolvedOpen}
-      useRNModal={useRNModal ?? false}
-      useRNModalOnAndroid={useRNModalOnAndroid}
-      isKeyboardDismissable={isKeyboardDismissable}
-      animationPreset={animationPreset}
-      onRequestClose={onRequestClose}
-      style={style}
-    >
-      {children}
-    </Overlay>
-  ), [
-    animationPreset,
-    children,
-    isKeyboardDismissable,
-    onRequestClose,
-    resolvedOpen,
-    style,
-    useRNModal,
-    useRNModalOnAndroid,
-  ])
+  const content = resolvedOpen ? children : null
 
   useLayoutEffect(() => {
     if (keyRef.current === null) {
-      keyRef.current = manager.mount(overlayNode)
+      keyRef.current = manager.mount(content)
     } else {
-      manager.update(keyRef.current, overlayNode)
+      manager.update(keyRef.current, content)
     }
-  }, [manager, overlayNode])
+  }, [manager, content])
 
   useLayoutEffect(() => () => {
     if (keyRef.current !== null) {
@@ -69,7 +40,7 @@ const PortalComponentImpl = (
   return null
 }
 
-const PortalComponentRef = React.forwardRef<React.ComponentRef<typeof Overlay>, PortalProps>(PortalComponentImpl)
+const PortalComponentRef = React.forwardRef<any, PortalProps>(PortalComponentImpl)
 PortalComponentRef.displayName = 'Portal'
 const PortalComponent = React.memo(PortalComponentRef)
 

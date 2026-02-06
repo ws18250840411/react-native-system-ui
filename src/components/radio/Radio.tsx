@@ -62,6 +62,10 @@ export const Radio = React.memo((props: RadioProps) => {
 
   const inputRef = useRef<View>(null)
   const inputElementRef = useRef<HTMLInputElement | null>(null)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const onClickRef = useRef(onClick)
+  onClickRef.current = onClick
   const resolvedAccessibilityLabel =
     accessibilityLabel ??
     ariaLabel ??
@@ -123,7 +127,7 @@ export const Radio = React.memo((props: RadioProps) => {
 
   const handlePress = useCallback(
     (e: GestureResponderEvent) => {
-      onClick?.(e)
+      onClickRef.current?.(e)
       if (resolvedDisabled) return
 
       if (isGroup && group && serializedValue !== undefined) {
@@ -132,11 +136,11 @@ export const Radio = React.memo((props: RadioProps) => {
       }
 
       if (checked !== undefined) {
-        onChange?.(!checked)
+        onChangeRef.current?.(!checked)
         return
       }
 
-      if (onChange) {
+      if (onChangeRef.current) {
         setStandaloneSelected(!standaloneSelected)
         return
       }
@@ -149,8 +153,6 @@ export const Radio = React.memo((props: RadioProps) => {
       inputOnPress,
       isChecked,
       isGroup,
-      onChange,
-      onClick,
       resolvedDisabled,
       serializedValue,
       setStandaloneSelected,

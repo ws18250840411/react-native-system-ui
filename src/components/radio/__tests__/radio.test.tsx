@@ -209,32 +209,18 @@ describe('RadioGroup', () => {
     expect(iconView).toBeDefined()
   })
 
-  it('injects spacing into items on native platforms', () => {
-    const originalOS = Platform.OS
-    Object.defineProperty(Platform, 'OS', { get: () => 'ios', configurable: true })
+  it('applies gap to container on all platforms', () => {
+    const tree = renderer.create(
+      <RadioGroup direction="horizontal" gap={8}>
+        <Radio name="a">A</Radio>
+        <Radio name="b">B</Radio>
+      </RadioGroup>
+    )
 
-    try {
-      const tree = renderer.create(
-        <RadioGroup direction="horizontal" gap={8}>
-          <Radio name="a">A</Radio>
-          <Radio name="b">B</Radio>
-        </RadioGroup>
-      )
-
-      const containers = tree.root
-        .findAllByType(Pressable)
-        .filter(p => p.props.accessibilityRole === 'radio')
-        .filter(p => {
-          const style = StyleSheet.flatten(p.props.style)
-          return style?.flexDirection === 'row'
-        })
-
-      expect(containers.length).toBe(2)
-      const firstStyle = StyleSheet.flatten(containers[0].props.style)
-      expect(firstStyle.marginRight).toBe(8)
-    } finally {
-      Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
-    }
+    const group = tree.root.findByProps({ role: 'radiogroup' })
+    const groupStyle = StyleSheet.flatten(group.props.style)
+    expect(groupStyle.columnGap).toBe(8)
+    expect(groupStyle.rowGap).toBe(8)
   })
 
   it('uses gap on web without injecting margins into items', () => {

@@ -132,6 +132,18 @@ const DialogImpl: React.FC<DialogProps> = props => {
   const actionSeqRef = useRef(0)
   const beforeCloseRef = useRef(beforeClose)
   beforeCloseRef.current = beforeClose
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onCancelRef = useRef(onCancel)
+  onCancelRef.current = onCancel
+  const onConfirmRef = useRef(onConfirm)
+  onConfirmRef.current = onConfirm
+  const onClickCloseIconRef = useRef(onClickCloseIcon)
+  onClickCloseIconRef.current = onClickCloseIcon
+  const cancelLoadingRef = useRef(cancelLoading)
+  cancelLoadingRef.current = cancelLoading
+  const confirmLoadingRef = useRef(confirmLoading)
+  confirmLoadingRef.current = confirmLoading
 
   const runAction = useCallback(
     (action: 'confirm' | 'cancel' | 'close', handler?: () => void) => {
@@ -161,19 +173,19 @@ const DialogImpl: React.FC<DialogProps> = props => {
   )
 
   const handleCloseIcon = useCallback(() => {
-    onClickCloseIcon?.()
-    runAction('close', onClose)
-  }, [onClickCloseIcon, onClose, runAction])
+    onClickCloseIconRef.current?.()
+    runAction('close', () => onCloseRef.current?.())
+  }, [runAction])
 
   const handleCancel = useCallback(() => {
-    if (cancelLoading) return
-    runAction('cancel', onCancel)
-  }, [cancelLoading, onCancel, runAction])
+    if (cancelLoadingRef.current) return
+    runAction('cancel', () => onCancelRef.current?.())
+  }, [runAction])
 
   const handleConfirm = useCallback(() => {
-    if (confirmLoading) return
-    runAction('confirm', onConfirm)
-  }, [confirmLoading, onConfirm, runAction])
+    if (confirmLoadingRef.current) return
+    runAction('confirm', () => onConfirmRef.current?.())
+  }, [runAction])
 
   const scaleAnim = useRef(new Animated.Value(0.7)).current
   const scaleAnimRef = useRef<Animated.CompositeAnimation | null>(null)
@@ -245,7 +257,7 @@ const DialogImpl: React.FC<DialogProps> = props => {
     tokens.typography.titleWeight,
   ])
 
-  const messageTextStyle = [
+  const messageTextStyle = useMemo(() => [
     styles.message,
     {
       color: isRoundTheme ? tokens.colors.title : tokens.colors.message,
@@ -254,9 +266,9 @@ const DialogImpl: React.FC<DialogProps> = props => {
       textAlign: messageAlign,
     },
     messageStyle,
-  ]
+  ], [isRoundTheme, messageAlign, messageStyle, tokens.colors.message, tokens.colors.title, tokens.typography.messageLineHeight, tokens.typography.messageSize])
 
-  const messageContentStyle = !hasChildren
+  const messageContentStyle = useMemo(() => !hasChildren
     ? {
       alignItems:
         messageAlign === 'center'
@@ -265,16 +277,16 @@ const DialogImpl: React.FC<DialogProps> = props => {
             ? ('flex-start' as const)
             : ('flex-end' as const),
     }
-    : null
+    : null, [hasChildren, messageAlign])
 
-  const messageWrapperStyle = [
+  const messageWrapperStyle = useMemo(() => [
     styles.messageWrapper,
     {
       paddingTop: hasTitle ? tokens.spacing.messagePaddingTop : tokens.spacing.messagePadding,
       paddingBottom: isRoundTheme ? tokens.spacing.roundFooterPadding : tokens.spacing.messagePadding,
       paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
     },
-  ]
+  ], [hasTitle, isRoundTheme, tokens.spacing.messagePadding, tokens.spacing.messagePaddingHorizontal, tokens.spacing.messagePaddingTop, tokens.spacing.roundFooterPadding])
 
   const footerBorderTopStyle = useMemo(() => ([
     styles.footerBorderTop,
@@ -288,16 +300,22 @@ const DialogImpl: React.FC<DialogProps> = props => {
   ]), [tokens.colors.divider])
 
   const mergedCloseOnOverlayPress = closeOnOverlayPress || closeOnClickOverlay
-  const animatedStyle = { transform: [{ scale: scaleAnim }] }
+  const animatedStyle = useMemo(() => ({ transform: [{ scale: scaleAnim }] }), [scaleAnim])
 
-  const roundFooterStyle = [
+  const roundFooterStyle = useMemo(() => [
     styles.roundFooter,
     {
       paddingTop: tokens.spacing.messagePaddingTop,
       paddingHorizontal: tokens.spacing.messagePaddingHorizontal,
       paddingBottom: tokens.spacing.roundFooterPadding,
     },
-  ]
+  ], [tokens.spacing.messagePaddingHorizontal, tokens.spacing.messagePaddingTop, tokens.spacing.roundFooterPadding])
+
+  const popupBeforeClose = useCallback(() => {
+    const bc = beforeCloseRef.current
+    if (!bc) return true
+    try { return bc('close') } catch { return true }
+  }, [])
 
   const roundFooterNode = useMemo(() => (hasFooterActions ? (
     <View style={roundFooterStyle}>
@@ -435,11 +453,7 @@ const DialogImpl: React.FC<DialogProps> = props => {
       closeOnPopstate={closeOnPopstate}
       closeOnClickOverlay={mergedCloseOnOverlayPress}
       onClickOverlay={onClickOverlay}
-      beforeClose={() => {
-        const bc = beforeCloseRef.current
-        if (!bc) return true
-        try { return bc('close') } catch { return true }
-      }}
+      beforeClose={popupBeforeClose}
       onClose={onClose}
       onClosed={onClosed}
       contentAnimationStyle={animatedStyle}

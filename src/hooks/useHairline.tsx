@@ -10,18 +10,12 @@ import { createHairlineView } from '../utils/hairline'
 import { isNumber } from '../utils/validate'
 
 export interface UseHairlineOptions {
-  
   show?: boolean
-  
   containerStyle?: StyleProp<ViewStyle>
-  
   color: string
-  
   width: number
-  
   defaultPaddingHorizontal?: number
 }
-
 
 export const useHairline = ({
   show = true,

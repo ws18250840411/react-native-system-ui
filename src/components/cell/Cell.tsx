@@ -94,7 +94,6 @@ const CellImpl = (
       !!rest.onPressIn ||
       !!rest.onPressOut)
 
-  // Memoize container styles — stable reference for useHairline hook
   const containerStyles = useMemo<StyleProp<ViewStyle>>(() => [
     size === 'large' ? tokens.layout.containerLarge : tokens.layout.container,
     center && tokens.layout.center,
@@ -109,7 +108,6 @@ const CellImpl = (
     defaultPaddingHorizontal: tokens.sizing.paddingHorizontal,
   })
 
-  // Memoize custom content style — used in multiple render paths
   const customContentStyle = useMemo(() => [
     tokens.layout.customContent,
     { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] },

@@ -10,6 +10,8 @@ import { isString } from '../../utils/validate'
 const clampIndex = (index: number, total: number) =>
   total <= 0 ? 0 : Math.max(0, Math.min(total - 1, index))
 
+const indicatorStyle = { bottom: 32 }
+
 const IS_WEB = Platform.OS === 'web'
 const TAP_MOVE_THRESHOLD_PX = 8
 const TAP_MOVE_THRESHOLD_SQ = TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX
@@ -157,11 +159,16 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
     },
   }), [imagesLen])
 
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const safeActiveRef = useRef(safeActive)
+  safeActiveRef.current = safeActive
+
   const handleSwiperChange = useCallback((idx: number) => {
-    if (safeActive === idx) return
+    if (safeActiveRef.current === idx) return
     setActive(idx)
-    onChange?.(idx)
-  }, [onChange, safeActive])
+    onChangeRef.current?.(idx)
+  }, [])
 
   const handleImagePress = useCallback(() => {
     if (closeOnlyClickCloseIcon) return
@@ -278,6 +285,25 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
 
   const lazyBuffer = lazyRender ? Math.max(0, lazyRenderBuffer | 0) : 0
 
+  const swiperIndicator = useCallback(
+    (total: number, current: number) => (
+      <>
+        {renderIndex(current, total)}
+        {showIndicators && total > 1 && (
+          <Swiper.PagIndicator
+            total={total}
+            current={current}
+            activeColor={colors.indicatorActive}
+            inactiveColor={colors.indicatorInactive}
+            style={indicatorStyle}
+            testID="rv-image-preview-indicators"
+          />
+        )}
+      </>
+    ),
+    [colors.indicatorActive, colors.indicatorInactive, renderIndex, showIndicators],
+  )
+
   return (
     <Popup
       visible={visible}
@@ -316,21 +342,7 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
             loop={false}
             autoplay={false}
             touchable={imagesLen > 1}
-            indicator={(total, current) => (
-              <>
-                {renderIndex(current, total)}
-                {showIndicators && total > 1 && (
-                  <Swiper.PagIndicator
-                    total={total}
-                    current={current}
-                    activeColor={colors.indicatorActive}
-                    inactiveColor={colors.indicatorInactive}
-                    style={{ bottom: 32 }}
-                    testID="rv-image-preview-indicators"
-                  />
-                )}
-              </>
-            )}
+            indicator={swiperIndicator}
             onChange={handleSwiperChange}
             testID="rv-image-preview-swiper"
           >

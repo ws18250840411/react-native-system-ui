@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import {
   Animated,
   Easing,
@@ -83,6 +83,17 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
   const resolvedTextColor = color ?? variant.text
   const resolvedDuration = durationProp ?? tokens.defaults.duration
 
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onOpenRef = useRef(onOpen)
+  onOpenRef.current = onOpen
+  const onOpenedRef = useRef(onOpened)
+  onOpenedRef.current = onOpened
+  const onClosedRef = useRef(onClosed)
+  onClosedRef.current = onClosed
+  const onClickRef = useRef(onClick)
+  onClickRef.current = onClick
+
   const [barHeight, setBarHeight] = React.useState(0)
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const height = event.nativeEvent.layout.height
@@ -90,7 +101,6 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
     setBarHeight(prev => (prev === height ? prev : height))
   }, [])
 
-  // 关键：静态调用时 Notify 初次挂载的 visible=true，需要执行进入动画
   const canAnimate = barHeight > 0
   const [mounted, setMounted] = React.useState(visible)
   const animated = React.useRef(new Animated.Value(0)).current
@@ -153,8 +163,11 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
     if (visible) {
       closingRef.current = false
       if (!prevVisibleRef.current) {
-        onOpen?.()
-        if (onOpened) openedTimer = setTimeout(onOpened, tokens.defaults.animationDuration)
+        onOpenRef.current?.()
+        if (onOpenedRef.current) {
+          const cb = onOpenedRef.current
+          openedTimer = setTimeout(cb, tokens.defaults.animationDuration)
+        }
       }
     } else if (prevVisibleRef.current) {
       closingRef.current = true
@@ -163,34 +176,34 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
     return () => {
       if (openedTimer) clearTimeout(openedTimer)
     }
-  }, [onOpen, onOpened, tokens.defaults.animationDuration, visible])
+  }, [tokens.defaults.animationDuration, visible])
 
   React.useEffect(() => {
     if (!mounted && closingRef.current) {
       closingRef.current = false
-      onClosed?.()
+      onClosedRef.current?.()
     }
-  }, [mounted, onClosed])
+  }, [mounted])
 
   React.useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
     if (visible && resolvedDuration > 0) {
       timer = setTimeout(() => {
-        onClose?.()
+        onCloseRef.current?.()
       }, resolvedDuration)
     }
     return () => {
       if (timer) clearTimeout(timer)
     }
-  }, [onClose, resolvedDuration, visible])
+  }, [resolvedDuration, visible])
 
   const contentHeight = barHeight > 0 ? barHeight : tokens.sizing.minHeight
 
   const interactive = closeOnClick || isFunction(onClick)
   const handlePress = useCallback(() => {
-    onClick?.()
-    if (closeOnClick) onClose?.()
-  }, [closeOnClick, onClick, onClose])
+    onClickRef.current?.()
+    if (closeOnClick) onCloseRef.current?.()
+  }, [closeOnClick])
   const accessibilityRole = interactive ? 'button' : 'alert'
   const press = useAriaPress({
     disabled: !interactive,

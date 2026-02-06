@@ -23,6 +23,8 @@
     "build:types": "tsc -p tsconfig.types.json",
     "docs:update-size": "node scripts/generate-docs-size-data.mjs",
     "docs:build": "npm run build && npm run docs:update-size && NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
+    "git:push:gitee": "git remote set-url --push origin https://gitee.com/ws18250840411/react-native-system-ui.git",
+    "git:push:github": "git remote set-url --push origin https://github.com/ws18250840411/react-native-system-ui.git",
     "preview": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc preview",
     "rn:demos:sync": "node scripts/generate-rn-demo-registry.js",
     "rn:demos:watch": "node scripts/generate-rn-demo-registry.js --watch",
@@ -81,7 +83,6 @@
     "@react-stately/toggle": "^3.9.3",
     "@react-types/checkbox": "^3.10.2",
     "@react-types/listbox": "^3.7.4",
-    "react-native-image-picker": "^8.2.1",
     "react-native-system-icon": "^1.0.2"
   },
   "react-native": "./dist/es/index.js",

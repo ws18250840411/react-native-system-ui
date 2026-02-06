@@ -220,31 +220,39 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
 
   const lastPopupCloseReasonRef = useRef<ActionSheetCloseAction>('close')
   const closingRef = useRef(false)
+  const beforeCloseRef = useRef(beforeClose)
+  beforeCloseRef.current = beforeClose
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onCancelRef = useRef(onCancel)
+  onCancelRef.current = onCancel
+  const onSelectRef = useRef(onSelect)
+  onSelectRef.current = onSelect
 
   const runBeforeClose = useCallback(
     async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => {
-      if (!beforeClose) return true
+      if (!beforeCloseRef.current) return true
       try {
-        return (await beforeClose(action)) !== false
+        return (await beforeCloseRef.current(action)) !== false
       } catch (error) {
         return true
       }
     },
-    [beforeClose],
+    [],
   )
 
   const emitClose = useCallback(
     (reason: ActionSheetCloseAction) => {
-      if (onClose) {
+      if (onCloseRef.current) {
         if (reason === 'cancel') {
-          onCancel?.()
+          onCancelRef.current?.()
         }
-        onClose()
+        onCloseRef.current()
         return
       }
-      onCancel?.()
+      onCancelRef.current?.()
     },
-    [onCancel, onClose]
+    []
   )
 
   const requestClose = useCallback(
@@ -289,12 +297,12 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
       }
       action.onPress?.(action)
       action.callback?.(action)
-      onSelect?.(action, index)
+      onSelectRef.current?.(action, index)
       if (shouldCloseOnClickAction) {
         void requestClose('action')
       }
     },
-    [onSelect, requestClose, shouldCloseOnClickAction]
+    [requestClose, shouldCloseOnClickAction]
   )
 
   const popupStyleMemo = [tokens.layout.popup, popupStyle]

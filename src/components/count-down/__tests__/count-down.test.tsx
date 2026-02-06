@@ -63,7 +63,6 @@ describe('CountDown', () => {
   })
 
   it('supports millisecond format', () => {
-    // 500ms -> SSS should be 500
     const tree = renderer.create(
       <CountDown time={500} format="SSS" millisecond autoStart={false} />
     )

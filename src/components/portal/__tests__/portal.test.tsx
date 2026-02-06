@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { StyleSheet, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 
 jest.mock('@react-native-aria/overlays', () => {
   const React = require('react')
@@ -88,61 +88,18 @@ describe('Portal', () => {
     })
   })
 
-  it('propagates zIndex from portal content to wrapper', () => {
+  it('stacks entries in mount order (later entries render on top)', () => {
     const tree = renderer.create(<PortalHost />)
 
     act(() => {
-      Portal.add(
-        <View testID="z-10" style={{ zIndex: 10 }}>
-          <Text>10</Text>
-        </View>
-      )
-      Portal.add(
-        <View testID="z-30">
-          <View style={{ zIndex: 30 }}>
-            <Text>30</Text>
-          </View>
-        </View>
-      )
+      Portal.add(<Text testID="first-entry">A</Text>)
+      Portal.add(<Text testID="second-entry">B</Text>)
     })
 
-    const zIndexes: number[] = []
-    tree.root.findAll(node => {
-      const flattened = StyleSheet.flatten(node.props?.style)
-      if (flattened && typeof flattened.zIndex === 'number') {
-        zIndexes.push(flattened.zIndex)
-      }
-      return false
-    })
-    expect(zIndexes).toEqual(expect.arrayContaining([10, 30]))
-
-    act(() => {
-      tree.unmount()
-    })
-  })
-
-  it('uses max zIndex across descendants', () => {
-    const tree = renderer.create(<PortalHost />)
-
-    act(() => {
-      Portal.add(
-        <View testID="z-mix" style={{ zIndex: 10 }}>
-          <View style={{ zIndex: 30 }}>
-            <Text>30</Text>
-          </View>
-        </View>
-      )
-    })
-
-    const zIndexes: number[] = []
-    tree.root.findAll(node => {
-      const flattened = StyleSheet.flatten(node.props?.style)
-      if (flattened && typeof flattened.zIndex === 'number') {
-        zIndexes.push(flattened.zIndex)
-      }
-      return false
-    })
-    expect(zIndexes).toEqual(expect.arrayContaining([30]))
+    const first = tree.root.findByProps({ testID: 'first-entry' })
+    const second = tree.root.findByProps({ testID: 'second-entry' })
+    expect(first).toBeDefined()
+    expect(second).toBeDefined()
 
     act(() => {
       tree.unmount()

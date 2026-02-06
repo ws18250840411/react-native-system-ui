@@ -7,11 +7,8 @@ import type { ViewProps } from 'react-native'
 export interface UseAriaOverlayOptions {
   isOpen: boolean
   onClose?: () => void
-  
   isDismissable?: boolean
-  
   shouldCloseOnInteractOutside?: (target: unknown) => boolean
-  
   overlayProps?: Record<string, unknown>
 }
 

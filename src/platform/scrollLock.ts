@@ -18,4 +18,3 @@ export const setBodyScrollLocked = (nextLocked: boolean) => {
 }
 
 export const isBodyScrollLocked = () => locked
-

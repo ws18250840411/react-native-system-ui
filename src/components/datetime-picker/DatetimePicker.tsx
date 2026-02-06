@@ -54,18 +54,23 @@ const DatetimePickerImpl: React.FC<DatetimePickerProps> = props => {
     ...pickerProps
   } = props
 
+  const onConfirmRef = useRef(onConfirm)
+  onConfirmRef.current = onConfirm
+  const onCancelRef = useRef(onCancel)
+  onCancelRef.current = onCancel
+
   const handleConfirm = useCallback(
     (value: Date | string) => {
-      (onConfirm as ((v: Date | string) => void) | undefined)?.(value)
+      (onConfirmRef.current as ((v: Date | string) => void) | undefined)?.(value)
       if (popup) close()
     },
-    [close, onConfirm, popup],
+    [close, popup],
   )
 
   const handleCancel = useCallback(() => {
-    onCancel?.()
+    onCancelRef.current?.()
     if (popup) close()
-  }, [close, onCancel, popup])
+  }, [close, popup])
 
   const pickerNode = props.type === 'time'
     ? <TimePicker {...pickerProps as DatetimePickerTimeProps} onConfirm={handleConfirm} onCancel={handleCancel} />
@@ -260,16 +265,23 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     [currentDate, formatValue, originColumns, type],
   )
 
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const onConfirmRef = useRef(onConfirm)
+  onConfirmRef.current = onConfirm
+
   const handleChange = useCallback(
     (values: (string | number)[]) => {
       const next = buildDateFromValues(values.map(String))
       setCurrentDate(next)
-      onChange?.(next)
+      onChangeRef.current?.(next)
     },
-    [buildDateFromValues, onChange],
+    [buildDateFromValues],
   )
 
-  const handleConfirm = useCallback(() => onConfirm?.(currentDate), [currentDate, onConfirm])
+  const currentDateRef = useRef(currentDate)
+  currentDateRef.current = currentDate
+  const handleConfirm = useCallback(() => onConfirmRef.current?.(currentDateRef.current), [])
 
   return (
     <Picker
@@ -344,6 +356,11 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
     [formatter, hourValues, minuteValues]
   )
 
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const onConfirmRef = useRef(onConfirm)
+  onConfirmRef.current = onConfirm
+
   const handleChange = useCallback(
     (values: (string | number)[]) => {
       const nextHour = values[0] ?? hourValues[0]
@@ -351,12 +368,12 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
       const next = `${String(nextHour)}:${String(nextMinute)}`
       timeRef.current = next
       setCurrentTime(next)
-      onChange?.(next)
+      onChangeRef.current?.(next)
     },
-    [hourValues, minuteValues, onChange],
+    [hourValues, minuteValues],
   )
 
-  const handleConfirm = useCallback(() => onConfirm?.(timeRef.current), [onConfirm])
+  const handleConfirm = useCallback(() => onConfirmRef.current?.(timeRef.current), [])
   const pickerValue = currentTime.split(':')
 
   return (

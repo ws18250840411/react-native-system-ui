@@ -339,7 +339,7 @@ const Home = () => {
                   <Button type="primary" block>主要按钮</Button>
                   <Button type="success" block>成功按钮</Button>
                   <Button type="default" block>默认按钮</Button>
-                  <Button type="default" block plain>朴素按钮</Button>
+                  <Button text="朴素按钮" type="primary" plain block>朴素按钮</Button>
                 </Space>
               </View>
             </View>

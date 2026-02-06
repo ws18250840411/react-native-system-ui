@@ -156,7 +156,6 @@ export const CheckboxGroup = React.forwardRef<{ toggleAll: (options?: boolean | 
     unregisterValue,
   ])
 
-  // Use native gap — RN >=0.79 supports gap on all platforms
   const containerStyle = [
     direction === 'horizontal' ? tokens.layout.groupHorizontal : tokens.layout.groupVertical,
     {

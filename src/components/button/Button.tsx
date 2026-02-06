@@ -79,7 +79,6 @@ const ButtonImpl = (
   const tone = tokens.colors.tones[type] ?? tokens.colors.tones.default
   const sizeTokens = tokens.sizing.sizes[size]
 
-  // Color resolution — memoize to skip conditional logic on press-triggered re-renders
   const [bgColor, bdColor, txtColor] = useMemo(() => {
     if (plain) {
       return [
@@ -100,7 +99,6 @@ const ButtonImpl = (
     : 0
   const borderRadius = square ? 0 : round ? sizeTokens.height / 2 : sizeTokens.radius
 
-  // Shadow — memoize as createPlatformShadow allocates new objects
   const shadowStyle = useMemo(() => {
     if (plain) return undefined
     const level = isFiniteNumber(shadowValue)
@@ -136,7 +134,6 @@ const ButtonImpl = (
         ? tokens.states.pressedOpacity
         : 1
 
-  // Text style — memoize for stable reference passed to Text component
   const sharedTextStyle = useMemo(() => ({
     fontFamily: tokens.typography.fontFamily,
     fontWeight: tokens.typography.fontWeight,
@@ -149,9 +146,16 @@ const ButtonImpl = (
 
   const renderIcon = () => {
     if (!icon) return null
-    const el = isFunction(icon) ? icon(txtColor, sizeTokens.iconSize) : icon
-    const margin = iconPosition === 'left' ? { marginRight: iconGap } : { marginLeft: iconGap }
-    return <View style={[tokens.layout.iconWrapper, margin]}>{el}</View>
+    try {
+      const el = isFunction(icon) ? icon(txtColor, sizeTokens.iconSize) : icon
+      const margin = iconPosition === 'left' ? { marginRight: iconGap } : { marginLeft: iconGap }
+      return <View style={[tokens.layout.iconWrapper, margin]}>{el}</View>
+    } catch (error) {
+      if (__DEV__) {
+        console.warn('[Button] Failed to render icon:', error)
+      }
+      return null
+    }
   }
 
   const renderLoading = () => (
@@ -186,14 +190,12 @@ const ButtonImpl = (
   const resolvedAccessibilityLabel =
     accessibilityLabel ?? (isText(label) ? String(label) : undefined)
 
-  // Accessibility state — memoize for stable reference
   const mergedAccessibilityState = useMemo(() => ({
     ...accessibilityState,
     disabled: isDisabled,
     busy: loading,
   }), [accessibilityState, isDisabled, loading])
 
-  // Android ripple — memoize to avoid object re-creation per render
   const resolvedAndroidRipple = useMemo(() => {
     if (Platform.OS !== 'android') return androidRippleProp
     if (androidRippleProp) return androidRippleProp

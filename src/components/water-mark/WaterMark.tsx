@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LayoutChangeEvent } from 'react-native'
 import { Image, Text, View, useWindowDimensions } from 'react-native'
 
@@ -71,7 +71,10 @@ const WaterMarkImpl: React.FC<WaterMarkProps> = props => {
   const rows = size.height ? Math.ceil(size.height / cellHeight) + 1 : 1
   const cols = size.width ? Math.ceil(size.width / cellWidth) + 1 : 1
 
-  const handleLayout = (event: LayoutChangeEvent) => {
+  const onLayoutCalculatedRef = useRef(onLayoutCalculated)
+  onLayoutCalculatedRef.current = onLayoutCalculated
+
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
     if (fullPage) return
     const { width, height } = event.nativeEvent.layout
     if (!isFiniteNumber(width) || !isFiniteNumber(height)) return
@@ -84,36 +87,36 @@ const WaterMarkImpl: React.FC<WaterMarkProps> = props => {
       return
     lastLayoutRef.current = { width: nextWidth, height: nextHeight }
     setLayoutSize({ width: nextWidth, height: nextHeight })
-    onLayoutCalculated?.({ width: nextWidth, height: nextHeight })
-  }
+    onLayoutCalculatedRef.current?.({ width: nextWidth, height: nextHeight })
+  }, [fullPage])
 
   useEffect(() => {
     if (!fullPage) return
     if (!isFiniteNumber(window.width) || !isFiniteNumber(window.height)) return
     if (window.width <= 0 || window.height <= 0) return
-    onLayoutCalculated?.({ width: window.width, height: window.height })
-  }, [fullPage, onLayoutCalculated, window.width, window.height])
+    onLayoutCalculatedRef.current?.({ width: window.width, height: window.height })
+  }, [fullPage, window.width, window.height])
 
-  const zIndexStyle = { zIndex }
-  const cellStyle = { width: cellWidth, height: cellHeight }
-  const oddRowStyle = { paddingLeft: cellWidth / 2 }
-  const markStyle = {
+  const zIndexStyle = useMemo(() => ({ zIndex }), [zIndex])
+  const cellStyle = useMemo(() => ({ width: cellWidth, height: cellHeight }), [cellWidth, cellHeight])
+  const oddRowStyle = useMemo(() => ({ paddingLeft: cellWidth / 2 }), [cellWidth])
+  const markStyle = useMemo(() => ({
     width: markWidth,
     height: markHeight,
     transform: [{ rotate: `${resolvedRotate}deg` }],
-  }
-  const imageStyle = {
+  }), [markWidth, markHeight, resolvedRotate])
+  const imageStyle = useMemo(() => ({
     width: markWidth,
     height: markHeight,
     opacity: resolvedOpacity,
-  }
-  const textBaseStyle = {
+  }), [markWidth, markHeight, resolvedOpacity])
+  const textBaseStyle = useMemo(() => ({
     fontSize: normalizedFontSize,
     color: resolvedColor,
     opacity: resolvedOpacity,
     fontFamily: font?.family,
     fontWeight: font?.weight,
-  }
+  }), [normalizedFontSize, resolvedColor, resolvedOpacity, font?.family, font?.weight])
   const rowIndexes = Array.from({ length: rows }, (_, i) => i)
   const colIndexes = Array.from({ length: cols }, (_, i) => i)
 

@@ -50,8 +50,9 @@ describe('Checkbox', () => {
     ).not.toThrow()
   })
 
-  it('is a forwardRef component', () => {
-    expect((Checkbox as any).$$typeof).toBe(Symbol.for('react.forward_ref'))
+  it('is a memoized forwardRef component', () => {
+    expect((Checkbox as any).$$typeof).toBe(Symbol.for('react.memo'))
+    expect((Checkbox as any).type?.$$typeof).toBe(Symbol.for('react.forward_ref'))
   })
 
   it('passes testID to the internal Pressable', () => {

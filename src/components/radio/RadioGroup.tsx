@@ -95,7 +95,6 @@ const RadioGroupImpl: React.FC<RadioGroupProps> = props => {
     unregisterValue,
   ])
 
-  // Use native gap — RN >=0.79 supports gap on all platforms
   const containerStyle = [
     direction === 'horizontal'
       ? tokens.layout.groupHorizontal

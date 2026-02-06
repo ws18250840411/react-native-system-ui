@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import { Pressable, StyleSheet, Text, View, type DimensionValue, type ViewStyle } from 'react-native'
 
 import { useAriaPress } from '../../hooks'
@@ -159,16 +159,23 @@ const ShareSheetImpl: React.FC<ShareSheetProps> = props => {
   const hasDescription = isValidNode(description)
   const hasCancelText = isValidNode(cancelText)
 
+  const onCancelRef = useRef(onCancel)
+  onCancelRef.current = onCancel
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onSelectRef = useRef(onSelect)
+  onSelectRef.current = onSelect
+
   const close = useCallback((isCancel?: boolean) => {
-    if (isCancel) onCancel?.()
-    onClose?.()
-  }, [onCancel, onClose])
+    if (isCancel) onCancelRef.current?.()
+    onCloseRef.current?.()
+  }, [])
 
   const handleSelect = useCallback((option: ShareSheetOption, index: number) => {
-    onSelect?.(option, index)
+    onSelectRef.current?.(option, index)
     option.onPress?.(option)
     if (closeOnSelect) close()
-  }, [close, closeOnSelect, onSelect])
+  }, [close, closeOnSelect])
 
   const onPopupClose = useCallback(() => close(true), [close])
 

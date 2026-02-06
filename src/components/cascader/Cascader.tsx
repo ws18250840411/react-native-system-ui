@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   FlatList,
   Pressable,
@@ -157,13 +157,24 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
     setPopupVisible(true)
   }, [cascaderValue, poppable, popupVisible, setPopupVisible])
 
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const onFinishRef = useRef(onFinish)
+  onFinishRef.current = onFinish
+  const onClickTabRef = useRef(onClickTab)
+  onClickTabRef.current = onClickTab
+  const onTabChangeRef = useRef(onTabChange)
+  onTabChangeRef.current = onTabChange
+
   const closePopup = useCallback(
     (notify?: boolean) => {
       if (!poppable || !popupVisible) return
       setPopupVisible(false)
-      if (notify) onClose?.()
+      if (notify) onCloseRef.current?.()
     },
-    [onClose, poppable, popupVisible, setPopupVisible],
+    [poppable, popupVisible, setPopupVisible],
   )
 
   const togglePopup = useCallback(() => {
@@ -180,9 +191,9 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
       if (Number.isNaN(index)) return
       const titleNode = items[index]?.[keys.textKey] as React.ReactNode
       const titleText = isText(titleNode) ? String(titleNode) : placeholder
-      onClickTab?.(index, titleText)
+      onClickTabRef.current?.(index, titleText)
     },
-    [items, keys.textKey, onClickTab, placeholder],
+    [items, keys.textKey, placeholder],
   )
 
   const handleTabChange = useCallback(
@@ -190,9 +201,9 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
       const index = isNumber(indexFromEvent) ? indexFromEvent : Number(tabValue)
       if (Number.isNaN(index)) return
       setActiveTab(index)
-      onTabChange?.(index)
+      onTabChangeRef.current?.(index)
     },
-    [onTabChange],
+    [],
   )
 
   const handleSelect = useCallback(
@@ -213,7 +224,7 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
 
       if (poppable) {
         setPanelValue(nextValue)
-        onChange?.(nextValue, rows)
+        onChangeRef.current?.(nextValue, rows)
       } else {
         setValue(nextValue, rows)
       }
@@ -223,7 +234,7 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
           setValue(nextValue, rows)
           if (closeOnFinish) closePopup(true)
         }
-        onFinish?.(nextValue, rows)
+        onFinishRef.current?.(nextValue, rows)
       }
     },
     [
@@ -232,8 +243,6 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
       closePopup,
       depth,
       keys,
-      onChange,
-      onFinish,
       options,
       panelValue,
       poppable,
@@ -385,7 +394,7 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
                 if (poppable) {
                   closePopup(true)
                 } else {
-                  onClose?.()
+                  onCloseRef.current?.()
                 }
               }}
               style={[tokens.layout.closeButton, { marginLeft: tokens.spacing.closeButtonMarginLeft }]}
@@ -436,6 +445,14 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
   const resolvedOverlay = popupOverlay ?? true
   const resolvedCloseOnOverlayPress = overrideCloseOnOverlayPress ?? closeOnClickOverlay
 
+  const popupOnCloseRef = useRef(popupOnClose)
+  popupOnCloseRef.current = popupOnClose
+
+  const handlePopupClose = useCallback(() => {
+    popupOnCloseRef.current?.()
+    closePopup(true)
+  }, [closePopup])
+
   const cascaderActions = {
     open: openPopup,
     close: () => closePopup(true),
@@ -485,10 +502,7 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
         }
         onOpen={popupOnOpen}
         onOpened={popupOnOpened}
-        onClose={() => {
-          popupOnClose?.()
-          closePopup(true)
-        }}
+        onClose={handlePopupClose}
         onClosed={popupOnClosed}
         {...popupRestProps}
         style={{ paddingLeft: 0, paddingRight: 0 }}

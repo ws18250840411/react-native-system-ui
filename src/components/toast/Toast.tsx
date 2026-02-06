@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AccessibilityInfo,
   Animated,
@@ -23,6 +23,8 @@ import { isFiniteNumber, isText } from '../../utils/validate'
 import { nativeDriverEnabled } from '../../platform'
 import { useToastTokens } from './tokens'
 import type { ToastTokens } from './tokens'
+
+const RETURN_TRUE = () => true as const
 
 export type ToastPosition = 'top' | 'middle' | 'bottom'
 export type ToastType = 'info' | 'success' | 'fail' | 'loading'
@@ -86,6 +88,15 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
   const animated = useRef(new Animated.Value(visible ? 1 : 0)).current
   const animationRef = useRef<Animated.CompositeAnimation | null>(null)
   const animationIdRef = useRef(0)
+
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onOpenRef = useRef(onOpen)
+  onOpenRef.current = onOpen
+  const onOpenedRef = useRef(onOpened)
+  onOpenedRef.current = onOpened
+  const onClosedRef = useRef(onClosed)
+  onClosedRef.current = onClosed
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'toast' })
   const prevVisibleRef = useRef(visible)
   const closingRef = useRef(false)
@@ -145,14 +156,14 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     if (visible) {
       if (durationMs > 0) {
         timer = setTimeout(() => {
-          onClose?.()
+          onCloseRef.current?.()
         }, durationMs)
       }
     }
     return () => {
       if (timer) clearTimeout(timer)
     }
-  }, [durationMs, onClose, visible])
+  }, [durationMs, visible])
 
   useEffect(() => {
     if (!visible) return
@@ -167,9 +178,10 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     if (visible) {
       closingRef.current = false
       if (!prevVisibleRef.current) {
-        onOpen?.()
-        if (onOpened) {
-          openedTimer = setTimeout(onOpened, tokens.animationDuration)
+        onOpenRef.current?.()
+        if (onOpenedRef.current) {
+          const cb = onOpenedRef.current
+          openedTimer = setTimeout(cb, tokens.animationDuration)
         }
       }
     } else if (prevVisibleRef.current) {
@@ -179,18 +191,19 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     return () => {
       if (openedTimer) clearTimeout(openedTimer)
     }
-  }, [onOpen, onOpened, tokens.animationDuration, visible])
+  }, [tokens.animationDuration, visible])
 
   useEffect(() => {
     if (!mounted && closingRef.current) {
       closingRef.current = false
-      onClosed?.()
+      onClosedRef.current?.()
     }
-  }, [mounted, onClosed])
+  }, [mounted])
 
+  const stableOnClose = useRef(() => onCloseRef.current?.()).current
   const toastPress = useAriaPress({
     disabled: !closeOnClick,
-    onPress: onClose,
+    onPress: stableOnClose,
     extraProps: {
       accessibilityRole: closeOnClick ? 'button' : 'alert',
       accessibilityHint: closeOnClick ? '双击关闭提示' : undefined,
@@ -216,6 +229,12 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
         return null
     }
   }, [colors.text, icon, iconSize, loadingIndicator, tokens.iconSize, type])
+  const iconWrapStyle = useMemo(() => ({ marginBottom: tokens.gap }), [tokens.gap])
+  const messageStyle = useMemo(() => ({
+    color: colors.text,
+    fontSize: tokens.fontSize,
+    lineHeight: tokens.lineHeight,
+  }), [colors.text, tokens.fontSize, tokens.lineHeight])
   const isTextToast = type === 'info' && !iconNode
   const boxStyle: ViewStyle = useMemo(() => (isTextToast
     ? {
@@ -278,9 +297,9 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
             overlayStyle,
           ]}
           pointerEvents="auto"
-          onPress={overlay && closeOnClickOverlay ? onClose : undefined}
-          onStartShouldSetResponder={() => true}
-          onMoveShouldSetResponder={() => true}
+          onPress={overlay && closeOnClickOverlay ? stableOnClose : undefined}
+          onStartShouldSetResponder={RETURN_TRUE}
+          onMoveShouldSetResponder={RETURN_TRUE}
         />
       ) : null}
       {needsSafeAreaTop && <SafeAreaView edge="top" pointerEvents="none" />}
@@ -293,7 +312,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
           ]}
         >
           {iconNode ? (
-            <View style={{ marginBottom: tokens.gap }}>{iconNode}</View>
+            <View style={iconWrapStyle}>{iconNode}</View>
           ) : null}
           {hasMessage
             ? isText(message)
@@ -301,7 +320,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
                 <Text
                   style={[
                     styles.message,
-                    { color: colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight },
+                    messageStyle,
                     textStyle,
                   ]}
                 >
@@ -309,7 +328,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
                 </Text>
               )
               : (
-                <View style={{ alignItems: 'center' }}>{message}</View>
+                <View style={styles.messageWrap}>{message}</View>
               )
             : null}
         </Animated.View>
@@ -342,6 +361,9 @@ const styles = StyleSheet.create({
   },
   message: {
     textAlign: 'center',
+  },
+  messageWrap: {
+    alignItems: 'center',
   },
 })
 

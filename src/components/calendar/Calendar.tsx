@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, Text, View, type TextStyle } from 'react-native'
 
 import { useControllableValue } from '../../hooks'
@@ -98,31 +98,53 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
     ...popupRestProps
   } = popupPropsOverrides ?? {}
 
+
+  const onConfirmRef = useRef(onConfirm)
+  onConfirmRef.current = onConfirm
+  const onOverRangeRef = useRef(onOverRange)
+  onOverRangeRef.current = onOverRange
+  const popupOnOpenRef = useRef(popupOnOpen)
+  popupOnOpenRef.current = popupOnOpen
+  const onOpenRef = useRef(onOpen)
+  onOpenRef.current = onOpen
+  const popupOnOpenedRef = useRef(popupOnOpened)
+  popupOnOpenedRef.current = popupOnOpened
+  const onOpenedRef = useRef(onOpened)
+  onOpenedRef.current = onOpened
+  const popupOnCloseRef = useRef(popupOnClose)
+  popupOnCloseRef.current = popupOnClose
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const popupOnClosedRef = useRef(popupOnClosed)
+  popupOnClosedRef.current = popupOnClosed
+  const onClosedRef = useRef(onClosed)
+  onClosedRef.current = onClosed
+
   const closePopup = useCallback(() => {
     if (!poppable) return
     setPopupVisible(false)
   }, [poppable, setPopupVisible])
 
   const handlePopupOpen = useCallback(() => {
-    popupOnOpen?.()
-    onOpen?.()
-  }, [popupOnOpen, onOpen])
+    popupOnOpenRef.current?.()
+    onOpenRef.current?.()
+  }, [])
 
   const handlePopupOpened = useCallback(() => {
-    popupOnOpened?.()
-    onOpened?.()
-  }, [popupOnOpened, onOpened])
+    popupOnOpenedRef.current?.()
+    onOpenedRef.current?.()
+  }, [])
 
   const handlePopupClose = useCallback(() => {
     closePopup()
-    popupOnClose?.()
-    onClose?.()
-  }, [closePopup, popupOnClose, onClose])
+    popupOnCloseRef.current?.()
+    onCloseRef.current?.()
+  }, [closePopup])
 
   const handlePopupClosed = useCallback(() => {
-    popupOnClosed?.()
-    onClosed?.()
-  }, [popupOnClosed, onClosed])
+    popupOnClosedRef.current?.()
+    onClosedRef.current?.()
+  }, [])
 
   const resolvedCloseOnOverlayPress = overrideCloseOnOverlayPress ?? closeOnClickOverlay
   const resolvedOverlay = popupOverlay ?? true
@@ -203,6 +225,9 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
     [minDate, maxDate]
   )
 
+  const goPrev = useCallback(() => goToMonth(-1), [goToMonth])
+  const goNext = useCallback(() => goToMonth(1), [goToMonth])
+
   const confirmDisabled = type === 'range' ? value.length < 2 : value.length === 0
   const columnPadding = tokens.spacing.column / 2
 
@@ -212,23 +237,23 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
       if (type === 'range' && next.length < 2) return
       if (type === 'multiple' && next.length === 0) return
       if (!next.length) return
-      onConfirm?.(mapValue(next, type))
+      onConfirmRef.current?.(mapValue(next, type))
       if (poppable && closeOnConfirm) {
         closePopup()
       }
     },
-    [showConfirm, type, onConfirm, poppable, closeOnConfirm, closePopup]
+    [showConfirm, type, poppable, closeOnConfirm, closePopup]
   )
 
   const handleConfirm = useCallback(() => {
     if (showConfirm && confirmDisabled) {
       return
     }
-    onConfirm?.(mapValue(value, type))
+    onConfirmRef.current?.(mapValue(value, type))
     if (poppable && closeOnConfirm) {
       closePopup()
     }
-  }, [showConfirm, confirmDisabled, onConfirm, value, type, poppable, closeOnConfirm, closePopup])
+  }, [showConfirm, confirmDisabled, value, type, poppable, closeOnConfirm, closePopup])
 
   const isSelectionAllowed = useCallback(
     (next: Date[]) => {
@@ -238,18 +263,20 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
           return false
         }
         if (maxRange && daysBetween(start, end) + 1 > maxRange) {
-          onOverRange?.(maxRange)
+          onOverRangeRef.current?.(maxRange)
           return false
         }
       }
       if (type === 'multiple' && maxRange && next.length > maxRange) {
-        onOverRange?.(maxRange)
+        onOverRangeRef.current?.(maxRange)
         return false
       }
       return true
     },
-    [type, allowSameDay, maxRange, onOverRange]
+    [type, allowSameDay, maxRange]
   )
+
+  const handleSelectDayRef = useRef<(day: Date) => void>(undefined)
 
   const handleSelectDay = useCallback((day: Date) => {
     const dayTime = startOfDay(day).getTime()
@@ -294,6 +321,12 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
       maybeAutoConfirm(normalizedNext)
     }
   }, [value, type, minDay, maxDay, allowSameDay, isSelectionAllowed, setSelectedValue, showConfirm, maybeAutoConfirm])
+  handleSelectDayRef.current = handleSelectDay
+
+
+  const stableDayPress = useCallback((day: Date) => {
+    handleSelectDayRef.current?.(day)
+  }, [])
 
   const valueTimes = useMemo(
     () => value.map(item => startOfDay(item).getTime()),
@@ -350,13 +383,13 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
           { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding },
         ]}
         disabled={isDisabled}
-        onPress={() => handleSelectDay(day)}
+        onPress={() => stableDayPress(day)}
         testID={getCalendarDayTestId(day)}
       >
         <Text style={dayStyle}>{dateValue}</Text>
       </Pressable>
     )
-  }, [selectedSet, type, rangeBounds, minDay, maxDay, tokens, color, handleSelectDay, columnPadding])
+  }, [selectedSet, type, rangeBounds, minDay, maxDay, tokens, color, stableDayPress, columnPadding])
 
   const content = (
     <View
@@ -374,7 +407,7 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
         <View style={[tokens.layout.header, { marginBottom: tokens.spacing.headerMarginBottom }]}>
           <Pressable
             testID="calendar-nav-prev"
-            onPress={() => canGoPrev && goToMonth(-1)}
+            onPress={goPrev}
             disabled={!canGoPrev}
           >
             <Text
@@ -429,7 +462,7 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
           </View>
           <Pressable
             testID="calendar-nav-next"
-            onPress={() => canGoNext && goToMonth(1)}
+            onPress={goNext}
             disabled={!canGoNext}
           >
             <Text

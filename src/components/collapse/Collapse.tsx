@@ -112,6 +112,9 @@ const CollapseImpl = ((props: CollapseProps) => {
   const normalizedValue = normalizeValue(value)
   const normalizedDefault = normalizeValue(defaultValue) ?? []
 
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+
   const [internalValue, setInternalValue] = useState<string[]>(() =>
     accordion ? normalizedDefault.slice(0, 1) : normalizedDefault,
   )
@@ -136,9 +139,9 @@ const CollapseImpl = ((props: CollapseProps) => {
           : (exists ? activeKeys.filter(item => item !== name) : activeKeys)
       }
       if (!controlled) setInternalValue(next)
-      onChange?.(buildOutputValue(next, accordion))
+      onChangeRef.current?.(buildOutputValue(next, accordion))
     },
-    [accordion, activeKeys, controlled, disabled, onChange],
+    [accordion, activeKeys, controlled, disabled],
   )
 
   const contextValue: CollapseContextValue = useMemo(() => ({

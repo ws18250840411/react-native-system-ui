@@ -52,3 +52,34 @@ renderer.create = (...args) => {
   })
   return result
 }
+
+const unwrapMemo = (type) => {
+  if (type && typeof type === 'object' && type.$$typeof === Symbol.for('react.memo')) {
+    return type.type
+  }
+  return type
+}
+
+const proto =
+  Object.getPrototypeOf(renderer.create(require('react').createElement('div')).root)
+
+const origFindByType = proto.findByType
+proto.findByType = function (type) {
+  try {
+    return origFindByType.call(this, type)
+  } catch {
+    return origFindByType.call(this, unwrapMemo(type))
+  }
+}
+
+const origFindAllByType = proto.findAllByType
+proto.findAllByType = function (type, options) {
+  const results = origFindAllByType.call(this, type, options)
+  if (results.length === 0) {
+    const unwrapped = unwrapMemo(type)
+    if (unwrapped !== type) {
+      return origFindAllByType.call(this, unwrapped, options)
+    }
+  }
+  return results
+}

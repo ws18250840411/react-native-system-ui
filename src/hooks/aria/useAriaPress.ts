@@ -12,13 +12,9 @@ const mergePropsCompat = (...args: Array<Record<string, unknown>>) => {
 }
 
 export interface UseAriaPressOptions extends PressEvents {
-  
   disabled?: boolean
-  
   allowHover?: boolean
-  
   allowFocus?: boolean
-  
   extraProps?: Record<string, unknown>
 }
 
@@ -31,9 +27,7 @@ export interface AriaInteractionStates {
 }
 
 export interface UseAriaPressResult {
-  
   interactionProps: Record<string, unknown>
-  
   states: AriaInteractionStates
 }
 

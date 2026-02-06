@@ -6,7 +6,6 @@ import { useToggleState } from '@react-stately/toggle'
 import type { AriaToggleProps } from '@react-types/checkbox'
 
 export interface UseAriaToggleOptions extends AriaToggleProps {
-  
   inputRef?: React.RefObject<unknown>
 }
 

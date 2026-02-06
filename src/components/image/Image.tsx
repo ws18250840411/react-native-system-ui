@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, ViewStyle } from 'react-native'
 import { SvgUri } from 'react-native-svg'
@@ -92,6 +92,10 @@ const PRESERVE_ASPECT_RATIO_MAP: Record<string, string> = {
 const resolvePreserveAspectRatio = (fit: ImageFit): string =>
   PRESERVE_ASPECT_RATIO_MAP[fit] || 'xMidYMid slice'
 
+const WEB_IMAGE_STYLE = Platform.OS === 'web'
+  ? ({ height: 'revert-layer', width: 'revert-layer' } as unknown as ImageStyle)
+  : undefined
+
 const resolveSourceUri = (source?: ImageSourcePropType): string | undefined => {
   if (!source) return undefined
   if (typeof source === 'number') return undefined
@@ -179,20 +183,25 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
     setStatus(actualSource ? 'loading' : 'idle')
   }, [sourceKey])
 
+  const onLoadRef = useRef(onLoad)
+  onLoadRef.current = onLoad
+  const onErrorRef = useRef(onError)
+  onErrorRef.current = onError
+
   const handleLoad = useCallback(
     (event: RNImageOnLoadEvent) => {
       setStatus('loaded')
-      onLoad?.(event)
+      onLoadRef.current?.(event)
     },
-    [onLoad]
+    []
   )
 
   const handleError = useCallback(
     (event: RNImageOnErrorEvent) => {
       setStatus('error')
-      onError?.(event)
+      onErrorRef.current?.(event)
     },
-    [onError]
+    []
   )
 
   const handleSvgLoad = useCallback(() => {
@@ -231,7 +240,7 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
     return marginTop ? <View style={{ marginTop }}>{node}</View> : node
   }
 
-  const containerStyles: StyleProp<ViewStyle> = [
+  const containerStyles = useMemo<StyleProp<ViewStyle>>(() => [
     tokens.layout.container,
     {
       width: width as ViewStyle['width'],
@@ -241,13 +250,10 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
     round ? { borderRadius: tokens.defaults.roundRadius } : isNumber(radius) ? { borderRadius: radius } : undefined,
     containerStyle,
     containerLayoutStyle,
-  ]
+  ], [containerLayoutStyle, containerStyle, height, radius, round, tokens.colors.background, tokens.defaults.roundRadius, tokens.layout.container, width])
 
   const imageAccessibilityLabel = !onPress ? resolvedAccessibilityLabel : undefined
 
-  const webImageStyle = Platform.OS === 'web'
-    ? ({ height: 'revert-layer', width: 'revert-layer' } as unknown as ImageStyle)
-    : undefined
   const imageNode = actualSource ? (
     isSvg && Platform.OS !== 'web' && uri ? (
       <SvgUri
@@ -269,7 +275,7 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
         accessibilityLabel={imageAccessibilityLabel}
         {...rest}
         source={actualSource}
-        style={[tokens.layout.absoluteFill, imageStyleWithoutLayout, webImageStyle]}
+        style={[tokens.layout.absoluteFill, imageStyleWithoutLayout, WEB_IMAGE_STYLE]}
         resizeMode={resolveFitMode(fit)}
         onLoad={handleLoad}
         onError={handleError}

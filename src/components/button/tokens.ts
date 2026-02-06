@@ -1,8 +1,6 @@
-import { StyleSheet } from 'react-native'
-
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-import { hexToRgb } from '../../utils'
+import { getHairlineWidth, hexToRgb } from '../../utils'
 import type { ButtonTokens } from './types'
 
 const isDarkThemeBackground = (color: string) => {
@@ -134,7 +132,7 @@ const createButtonTokens = (foundations: Foundations): ButtonTokens => {
     },
     borders: {
       width: 1,
-      hairlineWidth: StyleSheet.hairlineWidth,
+      hairlineWidth: getHairlineWidth(),
     },
     spacing: {
       iconGap: spacing.sm,

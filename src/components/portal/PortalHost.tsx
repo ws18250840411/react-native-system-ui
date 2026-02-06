@@ -2,18 +2,17 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   DeviceEventEmitter,
   NativeEventEmitter,
+  Platform,
   StyleSheet,
   View,
 } from 'react-native'
 
 import { isNumber } from '../../utils'
-import { OverlayProvider } from '../overlay'
 import { PortalContext, type PortalManager } from './PortalContext'
 
 interface PortalEntry {
   key: number
   children: React.ReactNode
-  zIndex?: number
 }
 
 interface PortalManagerHandle extends PortalManager {
@@ -32,40 +31,7 @@ const UPDATE_EVENT = 'RNSU_PORTAL_UPDATE'
 const REMOVE_EVENT = 'RNSU_PORTAL_REMOVE'
 const CLEAR_EVENT = 'RNSU_PORTAL_CLEAR'
 const TopViewEventEmitter = DeviceEventEmitter || new NativeEventEmitter()
-
-const getMaxZIndex = (node: React.ReactNode): number | undefined => {
-  if (!node) return undefined
-  if (Array.isArray(node)) {
-    let max: number | undefined
-    for (const child of node) {
-      const value = getMaxZIndex(child)
-      if (!isNumber(value)) continue
-      max = isNumber(max) ? Math.max(max, value) : value
-    }
-    return max
-  }
-
-  if (!React.isValidElement(node)) return undefined
-
-  const element = node as React.ReactElement<{ style?: unknown; children?: React.ReactNode }>
-  const style = element.props.style
-  let max: number | undefined
-  if (style && typeof style !== 'function') {
-    const flattened =
-      typeof style === 'object' && !Array.isArray(style) && style !== null
-        ? (style as { zIndex?: unknown })
-        : (StyleSheet.flatten(style) as { zIndex?: unknown } | null)
-    const zIndex = flattened?.zIndex
-    if (isNumber(zIndex)) {
-      max = zIndex
-    }
-  }
-
-  const childMax = getMaxZIndex(element.props.children)
-  if (!isNumber(childMax)) return max
-  if (!isNumber(max)) return childMax
-  return Math.max(max, childMax)
-}
+const IS_WEB = Platform.OS === 'web'
 
 const applyOperation = (manager: PortalManagerHandle, operation: Operation) => {
   if (operation.type === 'mount') {
@@ -94,12 +60,12 @@ const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>(
     const mount = useCallback((children: React.ReactNode, key?: number) => {
       const resolvedKey = key ?? ++keySeed.current
       if (isNumber(key) && key >= keySeed.current) keySeed.current = key + 1
-      upsert({ key: resolvedKey, children, zIndex: getMaxZIndex(children) })
+      upsert({ key: resolvedKey, children })
       return resolvedKey
     }, [upsert])
 
     const update = useCallback((key: number, children: React.ReactNode) => {
-      upsert({ key, children, zIndex: getMaxZIndex(children) })
+      upsert({ key, children })
     }, [upsert])
 
     const unmount = useCallback((key: number) => {
@@ -129,7 +95,7 @@ const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>(
             key={entry.key}
             pointerEvents="box-none"
             collapsable={false}
-            style={[styles.portalEntry, isNumber(entry.zIndex) && { zIndex: entry.zIndex }]}
+            style={styles.portalEntry}
           >
             {entry.children}
           </View>
@@ -257,16 +223,14 @@ const PortalHostImpl: React.FC<PortalHostProps> = ({ children }) => {
   }, [enqueueOrRun])
 
   return (
-    <OverlayProvider>
-      <PortalContext.Provider value={scopedManager}>
-        <View style={styles.host} collapsable={false}>
-          <View style={styles.root} collapsable={false} pointerEvents="box-none">
-            {children}
-          </View>
-          <PortalManagerView ref={handleManagerRef} />
+    <PortalContext.Provider value={scopedManager}>
+      <View style={styles.host} collapsable={false}>
+        <View style={styles.root} collapsable={false} pointerEvents="box-none">
+          {children}
         </View>
-      </PortalContext.Provider>
-    </OverlayProvider>
+        <PortalManagerView ref={handleManagerRef} />
+      </View>
+    </PortalContext.Provider>
   )
 }
 
@@ -281,9 +245,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  portalLayer: {
-    ...StyleSheet.absoluteFillObject,
-  },
+  portalLayer: IS_WEB
+    ? { position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
+    : { ...StyleSheet.absoluteFillObject },
   portalEntry: {
     ...StyleSheet.absoluteFillObject,
   },

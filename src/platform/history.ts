@@ -5,4 +5,3 @@ export const addPopStateListener = (listener: () => void) => {
     window.removeEventListener('popstate', listener)
   }
 }
-

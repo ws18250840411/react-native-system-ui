@@ -96,14 +96,23 @@ const PasswordInputImpl = (
     )
     const normalizedCode = normalizeValue(code)
 
+    const validatorRef = useRef(validator)
+    validatorRef.current = validator
+    const onFocusRef = useRef(onFocus)
+    onFocusRef.current = onFocus
+    const onBlurRef = useRef(onBlur)
+    onBlurRef.current = onBlur
+    const onSubmitRef = useRef(onSubmit)
+    onSubmitRef.current = onSubmit
+
     const updateValue = useCallback(
       (nextValue: string) => {
         const normalized = normalizeValue(nextValue)
         if (normalized === normalizedCode) return
-        if (validator && !validator(normalized)) return
+        if (validatorRef.current && !validatorRef.current(normalized)) return
         setCode(normalized)
       },
-      [normalizeValue, normalizedCode, setCode, validator],
+      [normalizeValue, normalizedCode, setCode],
     )
 
     const focusInput = useCallback(() => {
@@ -141,13 +150,13 @@ const PasswordInputImpl = (
 
     const handleFocus = useCallback(() => {
       setFocused(true)
-      onFocus?.()
-    }, [onFocus])
+      onFocusRef.current?.()
+    }, [])
 
     const handleBlur = useCallback(() => {
       setFocused(false)
-      onBlur?.()
-    }, [onBlur])
+      onBlurRef.current?.()
+    }, [])
 
     const prevSubmitRef = useRef({
       value: normalizedCode,
@@ -158,14 +167,14 @@ const PasswordInputImpl = (
       const prev = prevSubmitRef.current
       prevSubmitRef.current = { value: normalizedCode, length: lengthSafe }
 
-      if (!onSubmit) return
+      if (!onSubmitRef.current) return
       if (prev.length !== lengthSafe) return
       if (lengthSafe <= 0 || normalizedCode.length !== lengthSafe) return
       if (prev.value === normalizedCode) return
 
-      onSubmit(normalizedCode)
+      onSubmitRef.current(normalizedCode)
       inputRef.current?.blur()
-    }, [lengthSafe, normalizedCode, onSubmit])
+    }, [lengthSafe, normalizedCode])
 
     useEffect(() => {
       const shouldBlink = showCursor && focused && !disabled

@@ -28,9 +28,7 @@ const OverlayImpl = (
     style,
   } = props
 
-  // On native, default to Modal for reliable full-screen overlay.
-  // OverlayContainer's absoluteFill only fills the nearest parent, not the viewport.
-  // On web, position:fixed in OverlayContainer handles viewport-relative positioning.
+
   const shouldUseModal = useRNModal ?? !IS_WEB
 
   const resolvedOpen = isOpen ?? visible ?? false
