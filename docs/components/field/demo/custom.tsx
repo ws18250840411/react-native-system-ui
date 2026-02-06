@@ -1,22 +1,22 @@
-import React from "react"
-import { Text, Pressable } from "react-native"
-import { ArrowDown } from "react-native-system-icon"
-import { Button, Field, Popup, Picker } from "react-native-system-ui"
+import React from 'react'
+import { Text, Pressable } from 'react-native'
+import { ArrowDown } from 'react-native-system-icon'
+import { Button, Field, Popup, Picker } from 'react-native-system-ui'
 
 export default function FieldButtonDemo() {
-  const [code, setCode] = React.useState("")
+  const [code, setCode] = React.useState('')
   const [visible, setVisible] = React.useState(false)
-  const [area, setArea] = React.useState(["86"])
-  const [tempArea, setTempArea] = React.useState(["86"])
+  const [area, setArea] = React.useState(['86'])
+  const [tempArea, setTempArea] = React.useState(['86'])
   const columns = [
     [
-      { label: "86 🇨🇳", value: "86" },
-      { label: "87 🇺🇸", value: "87" },
-      { label: "88 🏳️‍🌈", value: "88" },
-      { label: "89 🏳️‍⚧️", value: "89" },
-      { label: "90 🇵🇪", value: "90" },
-      { label: "91 🇩🇪", value: "91" },
-      { label: "92 🇯🇵", value: "92" },
+      { label: '86 🇨🇳', value: '86' },
+      { label: '87 🇺🇸', value: '87' },
+      { label: '88 🏳️‍🌈', value: '88' },
+      { label: '89 🏳️‍⚧️', value: '89' },
+      { label: '90 🇵🇪', value: '90' },
+      { label: '91 🇩🇪', value: '91' },
+      { label: '92 🇯🇵', value: '92' },
     ],
   ]
 
@@ -28,7 +28,7 @@ export default function FieldButtonDemo() {
         label="短信验证码"
         prefix={
           <Pressable
-            style={{ flexDirection: "row", alignItems: "center" }}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
             onPress={() => {
               setTempArea(area)
               setVisible(true)

@@ -2,7 +2,7 @@ import React from 'react'
 import { Cell, Dialog } from 'react-native-system-ui'
 import { Text, View } from 'react-native'
 
-export default () => {
+export default function DialogCustomDemo() {
   return (
     <Cell.Group>
       <Cell

@@ -3,7 +3,7 @@ import { Cell } from 'react-native-system-ui'
 
 import { useCalendarLauncher } from './useCalendarLauncher'
 
-export default () => {
+export default function CalendarPopupDemo() {
   const basicSingle = useCalendarLauncher({ key: 'single', title: '单个日期', showConfirm: false })
   const basicMultiple = useCalendarLauncher({ key: 'multiple', title: '多个日期', type: 'multiple' })
   const basicRange = useCalendarLauncher({ key: 'range', title: '日期区间', type: 'range' })

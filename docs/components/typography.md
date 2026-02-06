@@ -81,7 +81,7 @@ import { Typography } from 'react-native-system-ui'
 | `collapseText` | 收起操作文案 | `string` | - |
 | `onExpand` | 展开/收起时触发 | `(expanded: boolean) => void` | - |
 
-> 移动端依赖 `numberOfLines` 实现省略，目前仅支持 `rows/expandText/collapseText` 等基础能力；React Vant 的 `symbol/suffixText/suffixCount/onContentClick` 等高级截断能力暂不支持。
+> 移动端依赖 `numberOfLines` 实现省略，目前仅支持 `rows/expandText/collapseText` 等基础能力；`symbol/suffixText/suffixCount/onContentClick` 等高级截断能力暂不支持。
 
 ### Typography.Title Props
 
@@ -103,5 +103,5 @@ import { Typography } from 'react-native-system-ui'
 
 ## 差异说明
 
-- React Vant 提供 `tag`、`onClick` 等 DOM 能力；本库在 React Native 环境使用 `Text` 渲染，并以 `onPress` 对齐事件模型。
-- React Vant 的 `Typography.Link` 支持 `target` 等 DOM 属性；本库暂不支持。
+- React Native 环境使用 `Text` 渲染，事件模型以 `onPress` 替代 `onClick`。
+- `Typography.Link` 暂不支持 `target` 等 DOM 属性。

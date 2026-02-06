@@ -16,7 +16,7 @@ const data: SlideItem[] = [
   { id: 5, color: '#6c5ce7', title: '第五张' },
 ]
 
-export default () => {
+export default function SwiperDataModeDemo() {
   return (
     <View style={styles.container}>
       <Swiper

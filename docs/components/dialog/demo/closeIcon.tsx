@@ -2,7 +2,7 @@ import React from 'react'
 import { Cell, Dialog } from 'react-native-system-ui'
 import { Close } from 'react-native-system-icon'
 
-export default () => {
+export default function DialogCloseIconDemo() {
   return (
     <>
       <Cell

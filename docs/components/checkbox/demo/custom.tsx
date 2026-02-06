@@ -4,7 +4,8 @@ import { Checkbox, Image, Space } from 'react-native-system-ui'
 const activeIcon = 'https://img.yzcdn.cn/vant/user-active.png'
 const inactiveIcon = 'https://img.yzcdn.cn/vant/user-inactive.png'
 
-export default () => (
+export default function CheckboxCustomDemo() {
+  return (
   <Space direction="vertical" gap={12}>
     <Checkbox
       defaultChecked
@@ -38,4 +39,5 @@ export default () => (
       自定义图标
     </Checkbox>
   </Space>
-)
+  )
+}

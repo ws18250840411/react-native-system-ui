@@ -47,7 +47,7 @@ import { Grid } from 'react-native-system-ui'
 
 <code title="格子间距" src="./grid/demo/gutter.tsx"></code>
 
-> Web 端对齐 Gluestack Grid：容器使用 CSS grid 布局，`gutter` 会映射为 `rowGap/columnGap`。
+> Web 端容器使用 CSS grid 布局，`gutter` 会映射为 `rowGap/columnGap`。
 
 ### 内容横排
 

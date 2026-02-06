@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Cell, Image } from 'react-native-system-ui'
 
-export default () => (
+export default function CellListDemo() {
+  return (
   <Cell.Group>
     {Array.from({ length: 4 }).map((_, idx) => (
       <Cell
@@ -22,4 +23,5 @@ export default () => (
       />
     ))}
   </Cell.Group>
-)
+  )
+}

@@ -26,6 +26,7 @@ import {
 import { clamp } from '../../utils/number'
 import type { SwiperProps, SwiperInstance, SwiperItemProps } from './types'
 import SwiperPagIndicator from './SwiperPagIndicator'
+import { useSwiperTokens } from './tokens'
 
 type SwiperComponent = (<T>(
   props: SwiperProps<T> & RefAttributes<SwiperInstance>
@@ -44,7 +45,6 @@ const SwiperItemForwardRef = forwardRef<View, SwiperItemProps>(SwiperItemImpl)
 SwiperItemForwardRef.displayName = 'SwiperItem'
 export const SwiperItem = memo(SwiperItemForwardRef)
 
-const DEFAULT_AUTOPLAY_INTERVAL = 3000
 const LOOP_RENDER_ALL_THRESHOLD = 10
 
 const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
@@ -64,6 +64,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
     testID,
   } = props
 
+  const tokens = useSwiperTokens()
   const flatListRef = useRef<FlatList>(null)
   const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isInteractingRef = useRef(false)
@@ -199,7 +200,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   }, [count, getDisplayIndex, scrollToDisplayIndex, shouldLoop, displayCount, updateIndex])
 
   const scheduleAutoplay = useCallback(() => {
-    const interval = typeof autoplay === 'number' ? Math.max(0, autoplay) : autoplay ? DEFAULT_AUTOPLAY_INTERVAL : 0
+    const interval = typeof autoplay === 'number' ? Math.max(0, autoplay) : autoplay ? tokens.defaults.autoplayInterval : 0
     if (!interval || count <= 1) return
     if (isInteractingRef.current && !isWeb) return
     clearAutoplay()
@@ -373,7 +374,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
       : <SwiperPagIndicator {...indicatorProps} total={count} current={currentIndex} vertical={vertical} />
 
   return (
-    <View style={[styles.container, webMouseProps && styles.webDrag, style]} onLayout={handleLayout} testID={testID} {...webMouseProps}>
+    <View accessibilityRole="adjustable" accessibilityLabel={`swiper, ${currentIndex + 1} of ${count}`} accessibilityValue={{ min: 0, max: count - 1, now: currentIndex }} style={[styles.container, webMouseProps && styles.webDrag, style]} onLayout={handleLayout} testID={testID} {...webMouseProps}>
       <FlatList
         ref={flatListRef}
         data={displayData}
@@ -395,13 +396,13 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
         showsVerticalScrollIndicator={false}
         onScrollBeginDrag={handleScrollBeginDrag}
         onScroll={handleScroll}
-        scrollEventThrottle={16}
+        scrollEventThrottle={tokens.defaults.scrollEventThrottle}
         onScrollEndDrag={handleScrollEndDrag}
         onMomentumScrollBegin={handleMomentumScrollBegin}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollToIndexFailed={handleScrollToIndexFailed}
       />
-      <View pointerEvents="none" style={styles.indicatorOverlay}>
+      <View pointerEvents="none" style={[styles.indicatorOverlay, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation }]}>
         {indicatorNode}
       </View>
     </View>
@@ -429,8 +430,6 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    zIndex: 10,
-    elevation: 10,
   },
 })
 

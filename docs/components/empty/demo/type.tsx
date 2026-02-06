@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Empty, Tabs } from 'react-native-system-ui'
 
-export default () => (
+export default function EmptyTypeDemo() {
+  return (
   <Tabs defaultActive="error">
     <Tabs.TabPane name="error" title="错误">
       <Empty image="error" description="描述信息" />
@@ -14,4 +15,5 @@ export default () => (
       <Empty image="search" description="描述信息" />
     </Tabs.TabPane>
   </Tabs>
-)
+  )
+}

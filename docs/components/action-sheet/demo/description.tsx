@@ -1,7 +1,7 @@
 import React from 'react'
 import { ActionSheet, Cell, Toast } from 'react-native-system-ui'
 
-export default () => {
+export default function ActionSheetDescriptionDemo() {
   const [visible, setVisible] = React.useState(false)
   const onCancel = () => setVisible(false)
   return (

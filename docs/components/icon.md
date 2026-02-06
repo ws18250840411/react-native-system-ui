@@ -63,4 +63,4 @@ import { LocationO } from 'react-native-system-icon'
 
 ## 差异说明
 
-- React Vant 提供 `Icon` 组件与 `createFromIconfontCN` 等能力；本库以 `react-native-system-icon` 的“按需导出图标组件”形式提供图标（更符合 React Native 生态与 Tree Shaking 习惯）。
+- 本库以 `react-native-system-icon` 的"按需导出图标组件"形式提供图标（更符合 React Native 生态与 Tree Shaking 习惯），而非 Web 端常见的统一 `Icon` 组件 + iconfont 方式。

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Sidebar, Toast } from 'react-native-system-ui'
 
-export default () => {
+export default function SidebarContentDemo() {
   const [active, setActive] = React.useState(0)
 
   return (

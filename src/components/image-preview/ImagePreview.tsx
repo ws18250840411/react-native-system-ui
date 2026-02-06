@@ -30,12 +30,19 @@ const SlideContent = React.memo(
     source: ImageSourcePropType
     rendered: boolean
     pressableHandlers: PressableHandlers
+    index: number
+    total: number
   }) => {
-    const { source, rendered, pressableHandlers } = props
+    const { source, rendered, pressableHandlers, index, total } = props
     return (
-      <Pressable style={styles.slidePressable} {...pressableHandlers}>
+      <Pressable
+        accessibilityRole="image"
+        accessibilityLabel={`image ${index + 1} of ${total}`}
+        style={styles.slidePressable}
+        {...pressableHandlers}
+      >
         {rendered ? (
-          <RNImage source={source} resizeMode="contain" style={styles.image} />
+          <RNImage source={source} resizeMode="contain" style={styles.image} accessible accessibilityRole="image" />
         ) : (
           <View style={styles.imagePlaceholder} />
         )}
@@ -45,7 +52,9 @@ const SlideContent = React.memo(
   (prev, next) =>
     prev.source === next.source &&
     prev.rendered === next.rendered &&
-    prev.pressableHandlers === next.pressableHandlers,
+    prev.pressableHandlers === next.pressableHandlers &&
+    prev.index === next.index &&
+    prev.total === next.total,
 )
 
 const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<ImagePreviewRef>) => {
@@ -352,6 +361,8 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
                   source={source}
                   rendered={!lazyRender || Math.abs(idx - safeActive) <= lazyBuffer}
                   pressableHandlers={pressableHandlers}
+                  index={idx}
+                  total={resolvedImages.length}
                 />
               </Swiper.Item>
             ))}

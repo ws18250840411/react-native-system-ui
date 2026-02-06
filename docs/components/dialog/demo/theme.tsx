@@ -1,7 +1,7 @@
 import React from 'react'
 import { Cell, Dialog } from 'react-native-system-ui'
 
-export default () => {
+export default function DialogThemeDemo() {
   return (
     <Cell.Group>
       <Cell

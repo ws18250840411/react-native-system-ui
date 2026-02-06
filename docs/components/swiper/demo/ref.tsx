@@ -2,86 +2,43 @@ import React, { useRef } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { Swiper, Button } from 'react-native-system-ui'
 import type { SwiperInstance } from 'react-native-system-ui'
+import { colors, swiperStyles } from './shared'
 
-const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7']
-
-export default () => {
+export default function SwiperRefDemo() {
   const swiperRef = useRef<SwiperInstance>(null)
   const lastIndex = colors.length - 1
 
   return (
-    <View style={styles.container}>
-      <Swiper ref={swiperRef} indicator style={styles.swiper}>
+    <View style={styles.wrapper}>
+      <Swiper ref={swiperRef} indicator style={swiperStyles.swiper}>
         {colors.map((color, index) => (
           <Swiper.Item key={index}>
-            <View style={[styles.slide, { backgroundColor: color }]}>
-              <Text style={styles.text}>{index + 1}</Text>
+            <View style={[swiperStyles.slide, { backgroundColor: color }]}>
+              <Text style={swiperStyles.text}>{index + 1}</Text>
             </View>
           </Swiper.Item>
         ))}
       </Swiper>
       <View style={styles.controls}>
-        <Button
-          size="small"
-          text="上一张"
-          onPress={() => {
-            swiperRef.current?.swipePrev()
-          }}
-        />
+        <Button size="small" text="上一张" onPress={() => swiperRef.current?.swipePrev()} />
         <View style={styles.spacer} />
-        <Button
-          size="small"
-          text="下一张"
-          onPress={() => {
-            swiperRef.current?.swipeNext()
-          }}
-        />
+        <Button size="small" text="下一张" onPress={() => swiperRef.current?.swipeNext()} />
         <View style={styles.spacer} />
-        <Button
-          size="small"
-          text="第一张"
-          onPress={() => {
-            swiperRef.current?.swipeTo(0)
-          }}
-        />
+        <Button size="small" text="第一张" onPress={() => swiperRef.current?.swipeTo(0)} />
         <View style={styles.spacer} />
-        <Button
-          size="small"
-          text="最后一张"
-          onPress={() => {
-            swiperRef.current?.swipeTo(lastIndex)
-          }}
-        />
+        <Button size="small" text="最后一张" onPress={() => swiperRef.current?.swipeTo(lastIndex)} />
       </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: 300,
-  },
-  swiper: {
-    height: 200,
-  },
-  slide: {
-    width: '100%',
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  text: {
-    fontSize: 48,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  wrapper: { height: 300 },
   controls: {
     flexDirection: 'row',
     padding: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  spacer: {
-    width: 8,
-  },
+  spacer: { width: 8 },
 })

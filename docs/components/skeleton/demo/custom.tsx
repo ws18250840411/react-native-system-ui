@@ -1,7 +1,8 @@
 import React from 'react'
 import { Skeleton } from 'react-native-system-ui'
 
-export default () => (
+export default function SkeletonCustomDemo() {
+  return (
   <Skeleton
     title
     row={4}
@@ -9,4 +10,5 @@ export default () => (
     rowHeight={[18, 18, 12, 12]}
     round
   />
-)
+  )
+}

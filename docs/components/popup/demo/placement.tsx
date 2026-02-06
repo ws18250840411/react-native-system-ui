@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Cell, Popup, type PopupPlacement } from 'react-native-system-ui'
 
-export default () => {
+export default function PopupPlacementDemo() {
   const [state, setState] = React.useState<PopupPlacement | ''>('')
 
   const close = () => setState('')

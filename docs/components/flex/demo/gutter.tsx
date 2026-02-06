@@ -9,7 +9,8 @@ const Cell = ({ label }: { label: string }) => (
   </View>
 )
 
-export default () => (
+export default function FlexGutterDemo() {
+  return (
   <View>
     <View style={styles.row}>
       <Flex gutter={[12, 12]}>
@@ -30,7 +31,8 @@ export default () => (
       </Flex>
     </View>
   </View>
-)
+  )
+}
 
 const styles = StyleSheet.create({
   row: {

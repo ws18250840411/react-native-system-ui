@@ -1,10 +1,9 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text } from 'react-native'
 import { Swiper } from 'react-native-system-ui'
+import { colors, swiperStyles as styles } from './shared'
 
-const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7']
-
-export default () => {
+export default function SwiperAutoplayDemo() {
   return (
     <View style={styles.container}>
       <Swiper autoplay={3000} indicator loop style={styles.swiper}>
@@ -19,23 +18,3 @@ export default () => {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    height: 200,
-  },
-  swiper: {
-    height: 200,
-  },
-  slide: {
-    width: '100%',
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  text: {
-    fontSize: 48,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-})

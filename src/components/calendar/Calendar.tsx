@@ -375,9 +375,14 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
       dayStyle.push({ backgroundColor: color ?? tokens.colors.selectedBackground, color: tokens.colors.selectedText })
     }
 
+    const a11yLabel = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}${isSelected ? ', selected' : ''}${isDisabled ? ', disabled' : ''}`
+
     return (
       <Pressable
         key={key}
+        accessibilityRole="button"
+        accessibilityLabel={a11yLabel}
+        accessibilityState={{ selected: isSelected, disabled: isDisabled }}
         style={[
           tokens.layout.dayButton,
           { paddingVertical: tokens.spacing.dayPaddingVertical, paddingHorizontal: columnPadding },
@@ -407,6 +412,8 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
         <View style={[tokens.layout.header, { marginBottom: tokens.spacing.headerMarginBottom }]}>
           <Pressable
             testID="calendar-nav-prev"
+            accessibilityRole="button"
+            accessibilityLabel="previous month"
             onPress={goPrev}
             disabled={!canGoPrev}
           >
@@ -462,6 +469,8 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
           </View>
           <Pressable
             testID="calendar-nav-next"
+            accessibilityRole="button"
+            accessibilityLabel="next month"
             onPress={goNext}
             disabled={!canGoNext}
           >

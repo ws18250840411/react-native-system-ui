@@ -52,7 +52,7 @@ import { ActionSheet } from 'react-native-system-ui'
 | `title` | 顶部标题 | `ReactNode` | - |
 | `description` | 顶部描述 | `ReactNode` | - |
 | `cancelText` | 底部取消按钮文字 | `ReactNode` | - |
-| `closeOnClickAction` | 点击选项后是否自动关闭（对齐 Vant `close-on-click-action`） | `boolean` | `false` |
+| `closeOnClickAction` | 点击选项后是否自动关闭 | `boolean` | `false` |
 | `closeable` | 是否展示右上角关闭按钮 | `boolean` | `true` |
 | `overlay` | 是否展示蒙层（透传给 Popup） | `boolean` | `true` |
 | `closeOnClickOverlay` | 点击蒙层后是否关闭（透传给 Popup） | `boolean` | `true` |

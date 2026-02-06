@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Cell, Dialog, Toast } from 'react-native-system-ui'
 import { Image, View } from 'react-native'
 
-export default () => {
+export default function DialogComponentDemo() {
   const [visible, setVisible] = useState(false)
 
   return (

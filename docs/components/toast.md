@@ -99,5 +99,5 @@ toast.config({ type: 'success', message: '完成', duration: 1500 })
 
 ## 差异说明
 
-- React Vant 支持直接调用 `Toast(options \| message)`；本库使用 `Toast.show(options \| message)`，并额外提供 `<Toast visible />` 受控用法。
-- React Vant 提供 `teleport/className/overlayClass/transition` 等 DOM 能力；本库在 React Native 环境不适用，统一通过 Portal + 样式 props（如 `style/overlayStyle`）实现。
+- 本库使用 `Toast.show(options \| message)` 调用，并额外提供 `<Toast visible />` 受控用法。
+- React Native 环境不适用 `teleport/className/overlayClass/transition` 等 DOM 能力，统一通过 Portal + 样式 props（如 `style/overlayStyle`）实现。

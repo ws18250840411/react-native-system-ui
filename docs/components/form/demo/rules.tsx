@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Button, Field, Form, Toast } from 'react-native-system-ui'
 
-export default () => {
+export default function FormRulesDemo() {
   const formRef = Form.useForm()
 
   const asyncValidator = async (value?: string) => {

@@ -7,7 +7,8 @@ const Block = () => (
   <View style={{ height: 120, backgroundColor: '#f4f5f7', margin: 16, borderRadius: 12 }} />
 )
 
-export default () => (
+export default function NavBarBasicDemo() {
+  return (
   <>
     <NavBar
       title="标题"
@@ -20,4 +21,5 @@ export default () => (
     <Block />
     <Block />
   </>
-)
+  )
+}

@@ -9,7 +9,7 @@ const images = [
   'https://img.yzcdn.cn/vant/apple-4.jpg',
 ]
 
-export default () => {
+export default function SwiperImagesDemo() {
   return (
     <View style={styles.container}>
       <Swiper autoplay={3000} indicator style={styles.swiper}>
@@ -35,5 +35,3 @@ const styles = StyleSheet.create({
     height: '100%',
   },
 })
-
-

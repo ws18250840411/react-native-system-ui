@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Space, Tag } from 'react-native-system-ui'
 
-export default () => {
+export default function TagStyleDemo() {
   const [visible, setVisible] = React.useState(true)
 
   return (

@@ -23,7 +23,8 @@ const styles = StyleSheet.create({
   },
 })
 
-export default () => (
+export default function CountDownCustomStyleDemo() {
+  return (
   <CountDown time={30 * 60 * 60 * 1000} millisecond format="HH:mm:ss:SS">
     {current => (
       <View style={styles.row}>
@@ -35,5 +36,6 @@ export default () => (
       </View>
     )}
   </CountDown>
-)
+  )
+}
 

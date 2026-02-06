@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Space, Typography } from 'react-native-system-ui'
 
-export default () => (
+export default function TypographyTypeDemo() {
+  return (
   <Space direction="vertical" gap={8}>
     <Typography.Text type="primary">Primary 文本</Typography.Text>
     <Typography.Text type="success">Success 文本</Typography.Text>
@@ -24,4 +25,5 @@ export default () => (
       Disabled 文本
     </Typography.Text>
   </Space>
-)
+  )
+}

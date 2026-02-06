@@ -48,8 +48,8 @@ import { Stepper } from 'react-native-system-ui'
 | `min` | 最小值 | `number` | - |
 | `max` | 最大值 | `number` | - |
 | `step` | 步长，每次点击时改变的值 | `number` | `1` |
-| `autoFixed` | 超出范围时是否自动修正到 `min/max`（对齐 Vant `auto-fixed`） | `boolean` | `true` |
-| `beforeChange` | 变更前拦截（对齐 Vant `before-change`），返回 `false` 可阻止变更，支持 Promise | `(value) => boolean \| Promise<boolean>` | - |
+| `autoFixed` | 超出范围时是否自动修正到 `min/max` | `boolean` | `true` |
+| `beforeChange` | 变更前拦截，返回 `false` 可阻止变更，支持 Promise | `(value) => boolean \| Promise<boolean>` | - |
 | `name` | 标识符，可在 `onChange` 回调参数中获取 | `string` | - |
 | `inputWidth` | 输入框宽度，默认单位为 `px` | `number \| string` | `32px` |
 | `buttonSize` | 按钮大小以及输入框高度，默认单位为 `px` | `number \| string` | `28px` |

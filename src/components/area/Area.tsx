@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useRef } from 'react'
 import Picker from '../picker'
 import type { PickerOption, PickerValue } from '../picker/types'
 import type { AreaProps, AreaOption } from './types'
+import { useAreaTokens } from './tokens'
 
 const sortEntries = (records?: Record<string, string>) => {
   if (!records) return []
@@ -78,19 +79,20 @@ const normalizeCascadeValue = (
 }
 
 const AreaImpl: React.FC<AreaProps> = props => {
+  const tokens = useAreaTokens()
   const {
     areaList,
-    columnsNum = 3,
+    columnsNum = tokens.defaults.columnsNum,
     value,
     defaultValue,
     onChange,
     onConfirm,
-    interactionMode = 'sync',
+    interactionMode = tokens.defaults.interactionMode,
     ...pickerProps
   } = props
 
   const resolvedColumnsNum = useMemo(
-    () => (columnsNum >= 1 && columnsNum <= 3 ? columnsNum : 3),
+    () => (columnsNum >= 1 && columnsNum <= 3 ? columnsNum : tokens.defaults.columnsNum),
     [columnsNum]
   )
   const { province_list, city_list, county_list } = areaList

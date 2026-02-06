@@ -7,10 +7,12 @@ const Link = ({ text, color }: { text: string; color?: string }) => (
   <Text style={{ color: color ?? '#2563eb' }}>{text}</Text>
 )
 
-export default () => (
+export default function SpaceDividerDemo() {
+  return (
   <Space align="center" divider={<Text style={{ color: '#cbd5f5' }}>|</Text>}>
     <Link text="信息" />
     <Link text="编辑" />
     <Link text="删除" color="#dc2626" />
   </Space>
-)
+  )
+}

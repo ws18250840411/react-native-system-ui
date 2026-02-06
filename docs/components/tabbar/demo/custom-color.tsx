@@ -4,7 +4,7 @@ import { View } from 'react-native'
 import { Tabbar } from 'react-native-system-ui'
 import { FriendsO, HomeO, Search, SettingO } from 'react-native-system-icon'
 
-export default () => {
+export default function TabbarCustomColorDemo() {
   return (
     <View>
       <Tabbar fixed={false} activeColor="#f44336" inactiveColor="#000">
@@ -16,5 +16,3 @@ export default () => {
     </View>
   )
 }
-
-

@@ -1,6 +1,6 @@
-import React from "react"
+import React from 'react'
 
-import { Field } from "react-native-system-ui"
+import { Field } from 'react-native-system-ui'
 
 export default function FieldBasicDemo() {
   const [value, setValue] = React.useState("")

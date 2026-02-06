@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Button, Space } from 'react-native-system-ui'
 
-export default () => (
+export default function SpaceFillDemo() {
+  return (
   <Space direction="vertical" fill gap={[6, 12]}>
     <Space fill>
       <Button type="primary" block>
@@ -21,4 +22,5 @@ export default () => (
       </Button>
     </Space>
   </Space>
-)
+  )
+}

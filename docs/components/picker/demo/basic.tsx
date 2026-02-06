@@ -20,10 +20,8 @@ export default function PickerBasicDemo() {
       title="基础使用"
       columns={columns}
       defaultValue={0}
-      onChange={(values, opts) => {
-        const index = columns.findIndex(option => option.value === values[0])
-        Toast.info(`选中值${values[0]}，索引: ${index}`)
-        console.log('选中项: ', opts)
+      onChange={(values) => {
+        Toast.info(`选中值: ${values[0]}`)
       }}
       onCancel={() => Toast.info('点击取消按钮')}
       onConfirm={() => Toast.info('点击确认按钮')}

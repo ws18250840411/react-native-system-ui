@@ -18,7 +18,8 @@ const Block = ({ label, tone }: { label: string; tone: Tone }) => (
   </View>
 )
 
-export default () => (
+export default function FlexBaseDemo() {
+  return (
   <View>
     <View style={styles.row}>
       <Flex justify="center" align="center">
@@ -44,7 +45,8 @@ export default () => (
       </Flex>
     </View>
   </View>
-)
+  )
+}
 
 const styles = StyleSheet.create({
   row: {

@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-按钮用于触发一个操作，如提交表单。
+用于触发操作的交互元素，支持多种语义类型、尺寸、形状与加载态，可组合为按钮组。
 
 ## 引入
 
@@ -47,7 +47,7 @@ import { Button } from 'react-native-system-ui'
 
 通过 `loading` 属性设置按钮为加载状态，`loadingText` 可以自定义加载提示文字。
 
-- 本库在 `loading` 状态下默认仍会展示原文字（与 react-native-paper 行为一致）；如需与 React Vant 一致可传 `loadingText={null}` 隐藏文字。
+- 在 `loading` 状态下默认仍会展示原文字；如需隐藏可传 `loadingText={null}`。
 
 <code src="./button/demo/loading.tsx" title="加载状态"></code>
 
@@ -146,5 +146,5 @@ import { Button } from 'react-native-system-ui'
 
 ## 差异说明
 
-- React Vant 的 `ButtonType` 不包含 `success`，本库额外提供 `success` 以配合主题色体系。
-- React Vant 支持 `tag`/`nativeType` 等 DOM 属性，本库在 React Native 环境不支持对应能力。
+- 本库额外提供 `success` 类型以配合主题色体系。
+- React Native 环境不支持 `tag`/`nativeType` 等 DOM 属性。

@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Space, Tag } from 'react-native-system-ui'
 
-export default () => (
+export default function TagBasicDemo() {
+  return (
   <Space gap={12} wrap>
     <Tag type="primary">主要</Tag>
     <Tag type="success">成功</Tag>
@@ -10,4 +11,5 @@ export default () => (
     <Tag type="danger">危险</Tag>
     <Tag>默认</Tag>
   </Space>
-)
+  )
+}

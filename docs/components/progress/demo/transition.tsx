@@ -8,7 +8,7 @@ const clamp = (value: number, min: number, max: number) => {
   return value
 }
 
-export default () => {
+export default function ProgressTransitionDemo() {
   const [value, setValue] = React.useState(50)
 
   const update = (delta: number) => {

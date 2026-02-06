@@ -3,9 +3,11 @@ import React from 'react'
 import { Space } from 'react-native-system-ui'
 import { ChatO, FireO } from 'react-native-system-icon'
 
-export default () => (
+export default function IconColorDemo() {
+  return (
   <Space gap={20}>
     <ChatO fill="#f44336" />
     <FireO fill="#3f45ff" />
   </Space>
-)
+  )
+}

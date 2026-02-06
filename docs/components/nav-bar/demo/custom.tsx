@@ -4,7 +4,8 @@ import { Search as SearchIcon } from 'react-native-system-icon'
 
 import { NavBar } from 'react-native-system-ui'
 
-export default () => (
+export default function NavBarCustomDemo() {
+  return (
   <NavBar
     title="标题"
     leftText="返回"
@@ -13,4 +14,5 @@ export default () => (
     onClickLeft={() => Alert.alert('点击返回')}
     onClickRight={() => Alert.alert('点击按钮')}
   />
-)
+  )
+}

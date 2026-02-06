@@ -9,7 +9,7 @@ const icon = {
   inactive: 'https://img.yzcdn.cn/vant/user-inactive.png',
 }
 
-export default () => {
+export default function TabbarCustomIconDemo() {
   return (
     <View>
       <Tabbar fixed={false}>
@@ -30,5 +30,3 @@ export default () => {
     </View>
   )
 }
-
-

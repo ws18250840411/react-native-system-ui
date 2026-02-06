@@ -54,9 +54,10 @@ const CountDownImpl = (props: CountDownProps, ref: React.ForwardedRef<CountDownI
   const defaultTextStyle = tokens.layout.text
   const content = isFunction(children) ? children(current) : formatDuration(format, current)
   const contentNode = isText(content) ? <Text style={defaultTextStyle}>{content}</Text> : content
+  const a11yText = isText(content) ? String(content) : `${current.hours}h ${current.minutes}m ${current.seconds}s`
 
   return (
-    <View style={style} {...rest}>
+    <View accessibilityRole="timer" accessibilityLiveRegion="polite" accessibilityLabel={a11yText} accessibilityValue={{ text: a11yText }} style={style} {...rest}>
       {contentNode}
     </View>
   )

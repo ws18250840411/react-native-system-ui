@@ -7,7 +7,8 @@ const icon = (label: string, active: boolean) => (
   <Text style={{ fontSize: 20 }}>{active ? `● ${label}` : `○ ${label}`}</Text>
 )
 
-export default () => (
+export default function TabbarBasicDemo() {
+  return (
   <Tabbar defaultValue="tab1">
     <Tabbar.Item name="tab1" icon={active => icon('1', active)}>
       标签名1
@@ -19,4 +20,5 @@ export default () => (
       标签名3
     </Tabbar.Item>
   </Tabbar>
-)
+  )
+}

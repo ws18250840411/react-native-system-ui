@@ -13,7 +13,8 @@ const Card = ({ children }: { children: React.ReactNode }) => (
   </View>
 )
 
-export default () => (
+export default function SpaceAlignDemo() {
+  return (
   <Space direction="vertical" gap={16}>
     <Space justify="center" block>
       <Card>1</Card>
@@ -42,7 +43,8 @@ export default () => (
       </Card>
     </Space>
   </Space>
-)
+  )
+}
 
 const styles = StyleSheet.create({
   card: {

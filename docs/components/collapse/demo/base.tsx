@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Collapse } from 'react-native-system-ui'
 
-export default () => (
+export default function CollapseBaseDemo() {
+  return (
   <Collapse defaultValue={['1']}>
     <Collapse.Item name="1" title="标题1" label="描述信息">
       文字
@@ -14,4 +15,5 @@ export default () => (
       文字
     </Collapse.Item>
   </Collapse>
-)
+  )
+}

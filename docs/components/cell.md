@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-单元格为列表中的单个展示项。
+列表中的单行展示项，支持标题、描述、图标、箭头、分组等常见布局，适用于设置页、信息列表等场景。
 
 ## 引入
 
@@ -122,5 +122,5 @@ import { Cell } from 'react-native-system-ui'
 
 ## 差异说明
 
-- React Vant 提供 `titleClass/valueClass/labelClass` 等 className 能力；本库在 React Native 环境以 `titleStyle/valueStyle/labelStyle` 等样式 props 作为替代。
-- React Vant 的点击事件为 `onClick`；本库使用 `onPress`（基于 `Pressable`）。
+- React Native 环境以 `titleStyle/valueStyle/labelStyle` 等样式 props 替代 `className` 能力。
+- 点击事件使用 `onPress`（基于 `Pressable`），而非 `onClick`。

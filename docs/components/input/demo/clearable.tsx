@@ -1,5 +1,5 @@
-import React from "react"
-import { Cell, Input } from "react-native-system-ui"
+import React from 'react'
+import { Cell, Input } from 'react-native-system-ui'
 
 export default function InputClearableDemo() {
   const [value, setValue] = React.useState("")

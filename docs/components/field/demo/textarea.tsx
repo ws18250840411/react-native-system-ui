@@ -1,5 +1,5 @@
-import React from "react"
-import { Field } from "react-native-system-ui"
+import React from 'react'
+import { Field } from 'react-native-system-ui'
 
 export default function FieldTextareaAutoDemo() {
   const [content, setContent] = React.useState("")

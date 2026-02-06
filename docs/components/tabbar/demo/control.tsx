@@ -4,7 +4,7 @@ import { View } from 'react-native'
 import { Tabbar } from 'react-native-system-ui'
 import { FriendsO, HomeO, Search, SettingO } from 'react-native-system-icon'
 
-export default () => {
+export default function TabbarControlDemo() {
   const [name, setName] = React.useState<string | number>('setting')
 
   return (
@@ -26,5 +26,3 @@ export default () => {
     </View>
   )
 }
-
-

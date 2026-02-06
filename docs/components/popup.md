@@ -109,6 +109,6 @@ import type { PopupPlacement, PopupCloseIconPosition } from 'react-native-system
 
 ## 差异说明
 
-- React Vant 的 `duration` 单位为秒，本库为毫秒（ms）。
-- React Vant 提供 `teleport`（挂载节点）能力；本库不提供该 prop，但可通过在局部区域内包裹 `Portal.Host` / `ConfigProvider` 来控制弹层挂载位置与配置作用域。
-- React Vant 的 `className/overlayClass/transition` 等 DOM 能力在 React Native 环境不适用，本库以样式 props（如 `style/overlayStyle`）替代。
+- `duration` 单位为毫秒（ms）。
+- 本库不提供 `teleport` 挂载节点能力，但可通过在局部区域内包裹 `Portal.Host` / `ConfigProvider` 来控制弹层挂载位置与配置作用域。
+- React Native 环境不适用 `className/overlayClass/transition` 等 DOM 能力，本库以样式 props（如 `style/overlayStyle`）替代。

@@ -2,8 +2,12 @@ import React from 'react'
 
 import { Loading, Space } from 'react-native-system-ui'
 
-export default () => (
-  <Space gap={24}>
+export default function LoadingTypeDemo() {
+  return (
+  <Space gap={24} direction="horizontal" align="center">
     <Loading />
+    <Loading size={20} />
+    <Loading size={40} />
   </Space>
-)
+  )
+}

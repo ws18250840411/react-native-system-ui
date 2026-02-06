@@ -3,7 +3,8 @@ import React from 'react'
 import { Minus, Plus, VolumeO } from 'react-native-system-icon'
 import { Collapse, Space } from 'react-native-system-ui'
 
-export default () => (
+export default function CollapseCustomDemo() {
+  return (
   <Space direction="vertical" gap={12}>
     <Collapse
       expandIcon={active =>
@@ -26,4 +27,5 @@ export default () => (
       </Collapse.Item>
     </Collapse>
   </Space>
-)
+  )
+}

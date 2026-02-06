@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Space, Tag } from 'react-native-system-ui'
 
-export default () => (
+export default function TagColorDemo() {
+  return (
   <Space gap={12} wrap>
     <Tag color="#7c3aed">定制背景</Tag>
     <Tag color="#ffe1e1" textColor="#ad0000">
@@ -12,4 +13,5 @@ export default () => (
       空心配色
     </Tag>
   </Space>
-)
+  )
+}

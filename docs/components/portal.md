@@ -69,4 +69,4 @@ import { Portal } from 'react-native-system-ui'
 
 ## 差异说明
 
-- React Vant 不提供独立的 `Portal` 组件，类似能力以 `teleport` 参数内置在 `Popup/Toast` 等组件中；本库将其抽象为独立的 `Portal`，便于跨端统一弹层出口与静态 API 实现。
+- 本库将 Portal 抽象为独立组件，便于跨端统一弹层出口与静态 API 实现（Web 框架通常以 `teleport` 参数内置在弹层组件中）。

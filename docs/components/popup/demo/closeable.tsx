@@ -3,7 +3,7 @@ import React from 'react'
 import { Popup, Cell } from 'react-native-system-ui'
 import { Fire } from 'react-native-system-icon'
 
-export default () => {
+export default function PopupCloseableDemo() {
   const [showCloseIcon, setShowCloseIcon] = React.useState(false)
   const [showCustomCloseIcon, setShowCustomCloseIcon] = React.useState(false)
   const [showCustomIconPosition, setShowCustomIconPosition] = React.useState(false)

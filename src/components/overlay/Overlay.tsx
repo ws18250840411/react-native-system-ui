@@ -5,12 +5,9 @@ import { Modal, Platform } from 'react-native'
 import { OverlayContainer } from '@react-native-aria/overlays'
 import { useKeyboardDismissable } from '@react-native-aria/interactions'
 import type { OverlayProps } from './types'
+import { useOverlayTokens } from './tokens'
 
 const IS_WEB = Platform.OS === 'web'
-
-const webOverlayStyle: ViewStyle | undefined = IS_WEB
-  ? { zIndex: 9999, position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
-  : undefined
 
 const OverlayImpl = (
   props: OverlayProps,
@@ -28,8 +25,12 @@ const OverlayImpl = (
     style,
   } = props
 
-
+  const tokens = useOverlayTokens()
   const shouldUseModal = useRNModal ?? !IS_WEB
+
+  const webOverlayStyle: ViewStyle | undefined = IS_WEB
+    ? { zIndex: tokens.layer.zIndex, position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
+    : undefined
 
   const resolvedOpen = isOpen ?? visible ?? false
 

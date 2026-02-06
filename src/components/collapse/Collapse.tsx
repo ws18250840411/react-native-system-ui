@@ -178,12 +178,12 @@ const CollapseImpl = ((props: CollapseProps) => {
   )
 }) as CollapseComponent
 
-const Hairline: React.FC<{
+const Hairline = React.memo<{
   tokens: CollapseTokens
   position: 'top' | 'bottom'
   color: string
   inset?: number
-}> = ({ tokens, position, color, inset = 0 }) => {
+}>(({ tokens, position, color, inset = 0 }) => {
   const hairlineStyle = createHairlineView({
     position,
     color,
@@ -192,7 +192,7 @@ const Hairline: React.FC<{
   })
 
   return <View pointerEvents="none" style={[tokens.layout.hairline, hairlineStyle]} />
-}
+})
 
 const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps>((props, ref) => {
   const context = useContext(CollapseContext)

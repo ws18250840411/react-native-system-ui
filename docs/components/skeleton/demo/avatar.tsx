@@ -1,7 +1,7 @@
 import React from 'react'
 import { Skeleton, Switch, Space, Typography } from 'react-native-system-ui'
 
-export default () => {
+export default function SkeletonAvatarDemo() {
   const [loading, setLoading] = React.useState(true)
   return (
     <>

@@ -1,5 +1,6 @@
 import React from 'react'
-
 import { Divider } from 'react-native-system-ui'
 
-export default () => <Divider />
+export default function DividerBasicDemo() {
+  return <Divider />
+}

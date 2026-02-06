@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Typography } from 'react-native-system-ui'
 
-export default () => (
+export default function TypographyTitleDemo() {
+  return (
   <>
     {[1, 2, 3, 4, 5, 6].map(level => (
       <Typography.Title key={level} level={level as any}>
@@ -10,4 +11,5 @@ export default () => (
       </Typography.Title>
     ))}
   </>
-)
+  )
+}

@@ -72,7 +72,8 @@ const ActionSheetItem: React.FC<{
     disabled: !!disabled || !!loading,
     onPress: useCallback(() => onActionPress(action, index), [action, index, onActionPress]),
     extraProps: {
-      accessibilityRole: 'button',
+      accessibilityRole: 'menuitem' as any,
+      accessibilityLabel: isText(name) ? String(name) : undefined,
       accessibilityState: { disabled: !!disabled, busy: !!loading },
       testID: `rv-action-sheet-item-${index}`,
     },
@@ -391,7 +392,7 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
       style={popupStyleMemo}
       {...popupProps}
     >
-      <View style={panelStyle}>
+      <View accessibilityRole="menu" style={panelStyle}>
         {headerNode}
         {descriptionNode}
         <View style={tokens.layout.actions}>

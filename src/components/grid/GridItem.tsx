@@ -168,6 +168,7 @@ const GridItemImpl: React.FC<GridItemProps> = props => {
   if (isInteractive) {
     return (
       <Pressable
+        accessibilityRole="button"
         style={(pressableState) => [
           baseItemStyle,
           typeof style === 'function' ? style(pressableState) : style,

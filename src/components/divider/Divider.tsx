@@ -119,6 +119,7 @@ const DividerImpl: React.FC<DividerProps> = props => {
 
     return (
       <View
+        accessibilityRole={'separator' as any}
         style={[
           tokens.layout.container,
           { marginVertical: tokens.spacing.vertical, flexDirection: 'column' },
@@ -133,6 +134,7 @@ const DividerImpl: React.FC<DividerProps> = props => {
 
   return (
     <View
+      accessibilityRole={'separator' as any}
       style={[
         tokens.layout.container,
         { marginVertical: tokens.spacing.vertical },

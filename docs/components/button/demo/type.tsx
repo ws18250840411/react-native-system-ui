@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Button, Space } from 'react-native-system-ui'
 
-export default () => (
+export default function ButtonTypeDemo() {
+  return (
   <Space wrap gap={[8, 12]}>
     <Button text="主要按钮" type="primary" />
     <Button text="信息按钮" type="info" />
@@ -11,4 +12,5 @@ export default () => (
     <Button text="危险按钮" type="danger" />
     <Button text="成功按钮" type="success" />
   </Space>
-)
+  )
+}

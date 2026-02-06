@@ -1,7 +1,8 @@
 import React from 'react'
 import { Radio } from 'react-native-system-ui'
 
-export default () => (
+export default function RadioDisabledDemo() {
+  return (
   <Radio.Group defaultValue="1">
     <Radio name="1" disabled>
       单选框1
@@ -10,5 +11,6 @@ export default () => (
       单选框2
     </Radio>
   </Radio.Group>
-)
+  )
+}
 

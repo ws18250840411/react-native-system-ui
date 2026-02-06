@@ -34,7 +34,8 @@ const Spin: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   )
 }
 
-export default () => (
+export default function IconRotateDemo() {
+  return (
   <Space gap={20}>
     <Spin>
       <ChatO />
@@ -43,4 +44,5 @@ export default () => (
       <FireO />
     </Spin>
   </Space>
-)
+  )
+}

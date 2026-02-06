@@ -4,7 +4,7 @@ import { View } from 'react-native'
 import { Tabbar } from 'react-native-system-ui'
 import { FriendsO, HomeO, Search, SettingO } from 'react-native-system-icon'
 
-export default () => {
+export default function TabbarBadgeDemo() {
   return (
     <View>
       <Tabbar fixed={false}>

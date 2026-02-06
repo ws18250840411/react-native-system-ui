@@ -9,7 +9,8 @@ const Box = () => (
   />
 )
 
-export default () => (
+export default function BadgeBasicDemo() {
+  return (
   <Space gap={20}>
     <Badge content={5}>
       <Box />
@@ -24,4 +25,5 @@ export default () => (
       <Box />
     </Badge>
   </Space>
-)
+  )
+}

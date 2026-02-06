@@ -32,12 +32,14 @@ const DirectionRow = ({ direction }: { direction: 'row' | 'row-reverse' }) => {
   )
 }
 
-export default () => (
+export default function FlexDirectionDemo() {
+  return (
   <View>
     <DirectionRow direction="row" />
     <DirectionRow direction="row-reverse" />
   </View>
-)
+  )
+}
 
 const styles = StyleSheet.create({
   row: {

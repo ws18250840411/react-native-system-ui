@@ -85,7 +85,7 @@ const Home = () => {
             面向 React Native 的<span className="home-primary-color">设计系统级</span>组件库
           </p>
           <p className="home-hero-desc">
-            Tokens + ThemeProvider 主题体系，按需引入、体积小；API 统一可组合、高效可靠，支持可访问性与多端一致。
+            基于 Design Tokens 的主题体系 · 按需引入零冗余 · API 统一可组合 · 内置无障碍与多端一致性
           </p>
           <div className="home-hero-actions">
             <Button

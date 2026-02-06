@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Cell } from 'react-native-system-ui'
 
-export default () => (
+export default function CellGroupDemo() {
+  return (
   <>
     <Cell.Group title="分组1">
       <Cell title="单元格" value="内容" />
@@ -11,4 +12,5 @@ export default () => (
       <Cell title="单元格" value="内容" />
     </Cell.Group>
   </>
-)
+  )
+}

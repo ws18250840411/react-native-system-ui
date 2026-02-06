@@ -31,7 +31,7 @@ const theme = {
   },
 }
 
-export default () => {
+export default function ConfigProviderThemeDemo() {
   const [progress, setProgress] = React.useState(60)
 
   const handleSliderChange = (value: number | [number, number]) => {

@@ -2,7 +2,7 @@
 
 里程碑划分与组件状态表，用于跟踪进度与规划。
 
-> 目标：在 React Native 上交付高质量移动端组件集，依托 `@react-native-aria` 提供一致可访问能力，并同步文档与测试。
+> 目标：在 React Native 上交付高质量移动端组件集，提供一致的无障碍能力，并同步文档与测试。
 
 ## 1. 当前基线
 
@@ -30,7 +30,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 基础展示 | Button, Badge, Cell, Collapse, Divider, Empty, Flex, Grid, Loading, NoticeBar, Popup, Portal, Progress, Slider, Space, Tag, Toast, Typography | ✅ 已完成 | - | 设计系统 | 需持续补全单测覆盖率 |
 | 设计/主题 | ConfigProvider, ThemeProvider, tokens | ✅ 已完成 | - | - | 已内置 themePresets.light/dark/aurora |
-| a11y Hooks | useAriaPress, useAriaToggle, useAriaListBox, useAriaOverlay | ⏳ 进行中 | P0 | `@react-native-aria/*` | hooks + 文档 + 单测已就位，等待批量接入 |
+| a11y Hooks | useAriaPress, useAriaToggle, useAriaListBox, useAriaOverlay | ⏳ 进行中 | P0 | aria hooks | hooks + 文档 + 单测已就位，等待批量接入 |
 | Overlay 能力 | OverlayStack, BackHandler 管理, SafeArea helper, 动画 preset | ⏳ 进行中 | P0 | Portal | 栈管理/BackHandler/滚动锁 + 单测完成，需继续完善动画、SafeArea |
 | 表单容器 | Form, Form.Item, useFormContext | ⏳ 计划中 | P0 | Tokens + Hook | 设计对齐既定表单交互 |
 | 输入控件 | Field, Input, TextArea | ⏳ 计划中 | P0 | Form, useAriaPress | 先实现受控 + 校验态 |

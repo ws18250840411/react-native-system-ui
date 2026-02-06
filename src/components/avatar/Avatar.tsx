@@ -122,6 +122,8 @@ const AvatarImpl = (
     return (
       <Pressable
         ref={ref}
+        accessibilityRole="image"
+        accessibilityLabel={text ?? (src ? 'avatar' : undefined)}
         style={[
           tokens.layout.container,
           {

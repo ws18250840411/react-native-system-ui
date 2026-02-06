@@ -79,6 +79,6 @@ import { Space } from 'react-native-system-ui'
 
 ## 差异说明
 
-- React Vant 仅提供 `gap`，本库额外提供 `size`（预设间距）与 `fill`（主轴填充）以便更贴近 React Native 端的常用写法。
-- React Vant 未传 `align` 时在 CSS 中等同 `alignItems: stretch`；本库在 `direction="horizontal"` 时默认 `align="center"`，如需保持一致可显式传 `align="stretch"`。
-- 本库在 `direction="vertical"` 且未显式传 `block` 时会默认占满宽度（便于列表/表单场景）；如需与 React Vant 的“非 block”一致，可传 `block={false}`。
+- 本库额外提供 `size`（预设间距）与 `fill`（主轴填充），更贴近 React Native 端的常用写法。
+- `direction="horizontal"` 时默认 `align="center"`（Web 端 CSS 默认为 `stretch`），如需一致可显式传 `align="stretch"`。
+- `direction="vertical"` 且未显式传 `block` 时会默认占满宽度（便于列表/表单场景），如需内容宽度自适应可传 `block={false}`。

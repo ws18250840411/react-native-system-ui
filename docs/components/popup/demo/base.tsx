@@ -3,7 +3,7 @@ import { Text, View } from 'react-native'
 
 import { Cell, Popup } from 'react-native-system-ui'
 
-export default () => {
+export default function PopupBaseDemo() {
   const [visible, setVisible] = React.useState(false)
   const [safeVisible, setSafeVisible] = React.useState(false)
   const [safeBottomVisible, setSafeBottomVisible] = React.useState(false)

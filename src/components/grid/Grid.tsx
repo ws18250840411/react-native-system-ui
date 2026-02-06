@@ -154,7 +154,7 @@ const GridImpl: React.FC<GridProps> = props => {
 
   return (
     <GridContext.Provider value={contextValue}>
-      <View style={containerStyle} {...rest}>
+      <View accessibilityRole={'grid' as any} style={containerStyle} {...rest}>
         {topBorder}
         {renderedChildren}
         {bottomBorder}

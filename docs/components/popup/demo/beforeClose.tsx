@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 
 import { Cell, Popup, Space } from 'react-native-system-ui'
 
-export default () => {
+export default function PopupBeforeCloseDemo() {
   const [visible, setVisible] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
 

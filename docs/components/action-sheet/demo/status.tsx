@@ -7,7 +7,7 @@ const actions2 = [
   { loading: true },
 ]
 
-export default () => {
+export default function ActionSheetStatusDemo() {
   const [visible, setVisible] = React.useState(false)
   const onCancel = () => setVisible(false)
   return (

@@ -63,6 +63,7 @@ const LoadingImpl: React.FC<LoadingProps> = props => {
 
   return (
     <View
+      accessibilityRole="progressbar"
       style={[
         tokens.layout.container,
         {

@@ -10,7 +10,7 @@ const options = [
   { name: '二维码', icon: <Qr /> },
 ]
 
-export default () => {
+export default function ShareSheetDescriptionDemo() {
   const [visible, setVisible] = React.useState(false)
   return (
     <>

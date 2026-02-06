@@ -16,6 +16,8 @@ const areaList = {
   },
 }
 
-export default () => (
+export default function AreaColumnsDemo() {
+  return (
   <Area areaList={areaList} columnsNum={2} title="省市选择" />
-)
+  )
+}

@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-用于展示加载中的状态，基于 React Native `ActivityIndicator` 提供统一的 spinner 指示器。
+用于展示加载中状态的指示器，支持自定义大小、颜色与文案，可内联使用或搭配 Overlay 作为全屏遮罩。
 
 ## 引入
 
@@ -53,7 +53,7 @@ import { Loading } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `size` | 指示器尺寸（px） | `number` | `30` |
 | `color` | 指示器颜色 | `string` | `tokens.colors.indicator` |
-| `aria-label` | 兼容 Gluestack：无障碍标签 | `string` | `'loading'` |
+| `aria-label` | 无障碍标签 | `string` | `'loading'` |
 | `textSize` | 文案字号 | `number` | `tokens.defaults.textSize` |
 | `textColor` | 文案颜色 | `string` | `tokens.colors.text` |
 | `vertical` | 是否纵向排列 | `boolean` | `false` |

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, CountDown, Space, type CountDownInstance } from 'react-native-system-ui'
 
-export default () => {
+export default function CountDownRefDemo() {
   const ref = React.useRef<CountDownInstance>(null)
 
   return (

@@ -3,7 +3,8 @@ import { StyleSheet, Text, View } from 'react-native'
 
 import { Image, Space } from 'react-native-system-ui'
 
-export default () => (
+export default function ImageRoundDemo() {
+  return (
   <Space wrap gap={12}>
     <View style={styles.item}>
       <Image width={96} height={96} round src="https://fastly.jsdelivr.net/npm/@vant/assets/user-active.png" />
@@ -14,7 +15,8 @@ export default () => (
       <Text style={styles.label}>自定义圆角</Text>
     </View>
   </Space>
-)
+  )
+}
 
 const styles = StyleSheet.create({
   item: {

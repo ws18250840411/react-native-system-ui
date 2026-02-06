@@ -15,13 +15,13 @@ export default function CheckboxCellDemo() {
       <Cell.Group>
         <Cell
           clickable
-          title="单选框1"
+          title="复选框 1"
           onPress={() => toggle('a')}
           rightIcon={<Checkbox name="a" />}
         />
         <Cell
           clickable
-          title="单选框2"
+          title="复选框 2"
           onPress={() => toggle('b')}
           rightIcon={<Checkbox name="b" />}
         />

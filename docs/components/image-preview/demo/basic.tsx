@@ -7,7 +7,7 @@ const images = [
   'https://img.yzcdn.cn/vant/apple-3.jpg',
 ]
 
-export default () => {
+export default function ImagePreviewBasicDemo() {
   return (
     <Cell.Group>
       <Cell

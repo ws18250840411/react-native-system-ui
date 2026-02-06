@@ -82,27 +82,5 @@ import { Cascader } from 'react-native-system-ui';
 | `color`   | 选项文字颜色             | `string`                    |
 | `children`| 子选项列表               | `CascaderOption[]`          |
 | `disabled`| 是否禁用选项             | `boolean`                   |
-| `className`| 为对应列添加额外的 class | `string \| Array \| object` |
 
-## 主题定制
-
-### 样式变量
-
-组件提供了下列 CSS 变量，可用于自定义样式，使用方法请参考 [ConfigProvider 组件](/components/config-provider)。
-
-| 名称                                  | 默认值                   | 描述 |
-| ------------------------------------- | ------------------------ | ---- |
-| --rv-cascader-header-height           | _48px_                   | -    |
-| --rv-cascader-header-padding          | _0 var(--rv-padding-md)_ | -    |
-| --rv-cascader-title-font-size         | _var(--rv-font-size-lg)_ | -    |
-| --rv-cascader-title-line-height       | _20px_                   | -    |
-| --rv-cascader-close-icon-size         | _22px_                   | -    |
-| --rv-cascader-close-icon-color        | _var(--rv-gray-5)_       | -    |
-| --rv-cascader-close-icon-active-color | _var(--rv-gray-6)_       | -    |
-| --rv-cascader-selected-icon-size      | _18px_                   | -    |
-| --rv-cascader-tabs-height             | _48px_                   | -    |
-| --rv-cascader-active-color            | _var(--rv-danger-color)_ | -    |
-| --rv-cascader-options-height          | _384px_                  | -    |
-| --rv-cascader-option-disabled-color   | _var(--rv-gray-5)_       | -    |
-| --rv-cascader-tab-color               | _var(--rv-text-color)_   | -    |
-| --rv-cascader-unselected-tab-color    | _var(--rv-gray-6)_       | -    |
+> 支持通过主题的 `components.cascader` 覆盖 tokens，统一控制标题、选中色、选项高度等设计语言。

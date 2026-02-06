@@ -10,12 +10,15 @@ import type {
   DatetimePickerProps,
   DatetimePickerTimeProps,
 } from './types'
+import { useDatetimePickerTokens } from './tokens'
 
 const currentYear = new Date().getFullYear()
-const DEFAULT_MIN_DATE = new Date(currentYear - 10, 0, 1)
-const DEFAULT_MAX_DATE = new Date(currentYear + 10, 11, 31)
+const DEFAULT_YEAR_RANGE_OFFSET = 10
+const DEFAULT_MIN_DATE = new Date(currentYear - DEFAULT_YEAR_RANGE_OFFSET, 0, 1)
+const DEFAULT_MAX_DATE = new Date(currentYear + DEFAULT_YEAR_RANGE_OFFSET, 11, 31)
 
 const DatetimePickerImpl: React.FC<DatetimePickerProps> = props => {
+  const tokens = useDatetimePickerTokens()
   const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, {
     defaultValue: false,
     valuePropName: 'popupVisible',
@@ -31,16 +34,16 @@ const DatetimePickerImpl: React.FC<DatetimePickerProps> = props => {
         <Popup
           visible={popupVisible}
           onClose={close}
-          placement="bottom"
-          round
-          safeAreaInsetBottom={true}
+          placement={tokens.defaults.popupPlacement}
+          round={tokens.defaults.popupRound}
+          safeAreaInsetBottom={tokens.defaults.popupSafeAreaInsetBottom}
           {...popupProps}
         >
           {node}
         </Popup>
       )
     },
-    [close, popupVisible],
+    [close, popupVisible, tokens.defaults.popupPlacement, tokens.defaults.popupRound, tokens.defaults.popupSafeAreaInsetBottom],
   )
 
   const {

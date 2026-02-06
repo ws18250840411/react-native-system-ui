@@ -3,7 +3,7 @@ import { Cell, Toast } from 'react-native-system-ui'
 
 import { useCalendarLauncher } from './useCalendarLauncher'
 
-export default () => {
+export default function CalendarRangeDemo() {
   const defaultRange = useCalendarLauncher({ key: 'range-default', title: '日期区间', type: 'range' })
   const quickRange = useCalendarLauncher({
     key: 'range-quick',

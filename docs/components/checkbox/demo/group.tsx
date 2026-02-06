@@ -1,7 +1,7 @@
 import React from 'react'
 import { Checkbox } from 'react-native-system-ui'
 
-export default () => {
+export default function CheckboxGroupDemo() {
   return (
     <Checkbox.Group defaultValue={['a', 'b']} onChange={v => console.log(v)}>
       <Checkbox name="a">复选框组a</Checkbox>

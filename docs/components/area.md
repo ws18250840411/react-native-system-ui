@@ -54,4 +54,4 @@ interface AreaList {
 }
 ```
 
-> 省市区数据结构兼容 Vant 的 [Area](https://vant-contrib.gitee.io/vant/v3/#/zh-CN/area) 示例；若需要自定义异步加载，可先处理数据再传入组件。
+> 省市区数据结构采用 `province_list / city_list / county_list` 格式，key 为地区编码，value 为地区名称；若需要自定义异步加载，可先处理数据再传入组件。

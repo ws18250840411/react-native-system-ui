@@ -34,7 +34,7 @@ import { Skeleton } from 'react-native-system-ui'
 | 属性 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `loading` | 是否展示骨架屏，为 `false` 时展示子节点 | `boolean` | `true` |
-| `isLoaded` | 兼容 Gluestack：为 `true` 时展示子节点 | `boolean` | - |
+| `isLoaded` | 为 `true` 时展示子节点（与 `loading` 互斥） | `boolean` | - |
 | `animate` | 是否启用闪烁动画 | `boolean` | `true` |
 | `speed` | 动画速度倍率（值越大越快） | `number \| string` | `1` |
 | `startColor` | 骨架块底色 | `string` | `tokens.colors.block` |

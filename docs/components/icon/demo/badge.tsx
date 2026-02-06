@@ -3,7 +3,8 @@ import React from 'react'
 import { Badge, Space } from 'react-native-system-ui'
 import { ChatO } from 'react-native-system-icon'
 
-export default () => (
+export default function IconBadgeDemo() {
+  return (
   <Space gap={20}>
     <Badge dot>
       <ChatO />
@@ -12,4 +13,5 @@ export default () => (
       <ChatO />
     </Badge>
   </Space>
-)
+  )
+}

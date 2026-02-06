@@ -7,7 +7,7 @@ const AnimatedScrollView = Animated.ScrollView
 
 const blocks = Array.from({ length: 12 }).map((_, index) => index + 1)
 
-export default () => {
+export default function TabbarFixedDemo() {
   const { scrollProps } = useGestureScroll()
 
   return (

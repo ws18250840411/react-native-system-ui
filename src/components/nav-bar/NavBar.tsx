@@ -249,6 +249,7 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
   const navContent = (
     <View
       {...rest}
+      accessibilityRole={'navigation' as any}
       style={[
         tokens.layout.container,
         fixed && [tokens.layout.fixed, { zIndex }],

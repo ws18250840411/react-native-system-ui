@@ -143,11 +143,16 @@ const BadgeImpl = (
     </View>
   )
 
+  const badgeA11yLabel = visible
+    ? dot ? 'has new content' : `${formattedContent}`
+    : undefined
+
   if (hasChildren) {
     return onPress ? (
       <Pressable
         ref={ref}
         onPress={onPress}
+        accessibilityLabel={badgeA11yLabel}
         style={({ pressed }) => [
           tokens.layout.wrapper,
           style,

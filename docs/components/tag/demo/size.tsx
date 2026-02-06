@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Space, Tag } from 'react-native-system-ui'
 
-export default () => (
+export default function TagSizeDemo() {
+  return (
   <Space gap={12} wrap>
     <Tag size="mini" type="primary">
       迷你
@@ -15,4 +16,5 @@ export default () => (
       大型
     </Tag>
   </Space>
-)
+  )
+}

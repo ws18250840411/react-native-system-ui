@@ -114,7 +114,7 @@ const Fields: React.FC<{ formRef: ReturnType<typeof Form.useForm> }> = ({ formRe
   )
 }
 
-export default () => {
+export default function FormPopupDemo() {
   const formRef = Form.useForm()
 
   return (

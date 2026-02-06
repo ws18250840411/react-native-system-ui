@@ -3,7 +3,8 @@ import { StyleSheet, Text, View } from 'react-native'
 
 import { Image, Space } from 'react-native-system-ui'
 
-export default () => (
+export default function ImageLoadingDemo() {
+  return (
   <Space wrap gap={12}>
     <View style={styles.item}>
       <Image
@@ -24,7 +25,8 @@ export default () => (
       <Text style={styles.label}>失败占位</Text>
     </View>
   </Space>
-)
+  )
+}
 
 const styles = StyleSheet.create({
   item: {

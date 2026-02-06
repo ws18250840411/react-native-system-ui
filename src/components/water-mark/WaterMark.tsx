@@ -123,6 +123,8 @@ const WaterMarkImpl: React.FC<WaterMarkProps> = props => {
   return (
     <View
       pointerEvents="none"
+      importantForAccessibility="no-hide-descendants"
+      accessibilityElementsHidden
       style={[
         fullPage ? tokens.layout.absoluteFill : null,
         zIndexStyle,

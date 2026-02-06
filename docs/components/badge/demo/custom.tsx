@@ -9,7 +9,8 @@ const Box = () => (
   />
 )
 
-export default () => (
+export default function BadgeCustomDemo() {
+  return (
   <Space gap={20}>
     <Badge dot offset={[12, 0]}>
       <Box />
@@ -24,4 +25,5 @@ export default () => (
       <Box />
     </Badge>
   </Space>
-)
+  )
+}

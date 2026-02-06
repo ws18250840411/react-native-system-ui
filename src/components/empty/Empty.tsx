@@ -116,6 +116,8 @@ const EmptyImpl: React.FC<EmptyProps> = props => {
 
   return (
     <View
+      accessibilityRole="summary"
+      accessibilityLabel={isText(description) ? String(description) : undefined}
       style={[
         tokens.layout.container,
         style,

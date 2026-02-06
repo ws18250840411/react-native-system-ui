@@ -19,9 +19,11 @@ const Dot = ({ size = 24, color = '#3b82f6' }: { size?: number; color?: string }
   </View>
 )
 
-export default () => (
+export default function IconCustomDemo() {
+  return (
   <Space gap={20}>
     <Dot size={32} color="#ef4444" />
     <Dot size={32} color="#3f45ff" />
   </Space>
-)
+  )
+}

@@ -1,5 +1,5 @@
-import React from "react"
-import { Button, Cell, Input } from "react-native-system-ui"
+import React from 'react'
+import { Button, Cell, Input } from 'react-native-system-ui'
 
 export default function InputSlotsDemo() {
   const [value, setValue] = React.useState("")

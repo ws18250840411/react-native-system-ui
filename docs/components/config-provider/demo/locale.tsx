@@ -23,7 +23,7 @@ const LocaleViewer = () => {
   )
 }
 
-export default () => {
+export default function ConfigProviderLocaleDemo() {
   const [language, setLanguage] = React.useState<'zh' | 'en'>('en')
   const locale = language === 'en' ? enUS : zhCN
 

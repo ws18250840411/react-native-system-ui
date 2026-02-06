@@ -6,7 +6,8 @@ import type { ImageFit } from 'react-native-system-ui'
 
 const fits: ImageFit[] = ['contain', 'cover', 'fill', 'none', 'scale-down']
 
-export default () => (
+export default function ImageFitDemo() {
+  return (
   <Space wrap gap={12}>
     {fits.map(fit => (
       <View style={styles.item} key={fit}>
@@ -15,7 +16,8 @@ export default () => (
       </View>
     ))}
   </Space>
-)
+  )
+}
 
 const styles = StyleSheet.create({
   item: {

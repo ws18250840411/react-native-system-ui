@@ -1,5 +1,6 @@
 import React from 'react'
 import { CountDown } from 'react-native-system-ui'
 
-export default () => <CountDown time={30 * 60 * 60 * 1000} format="DD 天 HH 时 mm 分 ss 秒" />
-
+export default function CountDownFormatDemo() {
+  return <CountDown time={30 * 60 * 60 * 1000} format="DD 天 HH 时 mm 分 ss 秒" />
+}

@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { ActionSheet, Cell } from 'react-native-system-ui'
 
-export default () => {
+export default function ActionSheetCustomDemo() {
   const [visible, setVisible] = React.useState(false)
   const onCancel = () => setVisible(false)
   return (

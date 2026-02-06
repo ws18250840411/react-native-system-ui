@@ -5,7 +5,7 @@ import { Area, Button, Field } from 'react-native-system-ui'
 
 import { areaList } from './areaList'
 
-export default () => {
+export default function AreaControlledDemo() {
   const [value, setValue] = React.useState<string[]>(['110000', '110100', '110101'])
 
   const displayValue = [

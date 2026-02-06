@@ -9,7 +9,8 @@ const Box = () => (
   />
 )
 
-export default () => (
+export default function BadgeMaxDemo() {
+  return (
   <Space gap={20}>
     <Badge content={20} max={9}>
       <Box />
@@ -21,4 +22,5 @@ export default () => (
       <Box />
     </Badge>
   </Space>
-)
+  )
+}

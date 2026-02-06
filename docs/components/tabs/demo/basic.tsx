@@ -1,131 +1,108 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-
 import { Tabs } from 'react-native-system-ui'
 
 const primaryColor = '#3a7afe'
-const baseTabs = [1, 2, 3]
+const tabStyle = { flexGrow: 1, flexShrink: 1, flexBasis: 0 }
 
-const makeTab = (prefix: string, index: number) => ({
-  key: `${prefix}-${index}`,
-  title: `标签名${index}`,
-})
-
-const DemoBlock: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <View style={styles.block}>{children}</View>
-)
-
-const fullTabStyle = { flexGrow: 1, flexShrink: 1, flexBasis: 0 }
-
-const Pane: React.FC<{ children: React.ReactNode; tone?: 'default' | 'plain' }> = ({
-  children,
-  tone = 'default',
-}) => (
-  <View style={[styles.pane, tone === 'plain' ? styles.panePlain : null]}>
-    {typeof children === 'string' || typeof children === 'number' ? (
-      <Text style={styles.paneText}>{children}</Text>
-    ) : (
-      children
-    )}
-  </View>
-)
+const tabs = [
+  { key: '1', title: '标签 1' },
+  { key: '2', title: '标签 2' },
+  { key: '3', title: '标签 3' },
+]
 
 export default function TabsBasicDemo() {
-  const lineTabs = baseTabs.map(item => ({ ...makeTab('line', item), desc: `内容 ${item}` }))
-  const capsuleTabs = baseTabs.map(item => ({ ...makeTab('capsule', item), desc: `内容 ${item}` }))
-  const jumboTabs = baseTabs.map(item => ({ ...makeTab('jumbo', item), desc: `内容 ${item}`, badge: item }))
-  const cardTabs = baseTabs.map(item => ({ ...makeTab('card', item), desc: `内容 ${item}` }))
-
   return (
     <View style={styles.root}>
-      <DemoBlock>
-        <Tabs
-          defaultActive={lineTabs[0].key}
-          border={false}
-          color={primaryColor}
-          titleActiveColor={primaryColor}
-          tabStyle={fullTabStyle}
-        >
-          {lineTabs.map(tab => (
-            <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
-              <Pane>{tab.desc}</Pane>
-            </Tabs.TabPane>
-          ))}
-        </Tabs>
-      </DemoBlock>
+      {/* 下划线风格（默认） */}
+      <Tabs
+        defaultActive="1"
+        border={false}
+        color={primaryColor}
+        titleActiveColor={primaryColor}
+        tabStyle={tabStyle}
+      >
+        {tabs.map(tab => (
+          <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
+            <View style={styles.pane}>
+              <Text style={styles.paneText}>内容 {tab.key}</Text>
+            </View>
+          </Tabs.TabPane>
+        ))}
+      </Tabs>
 
-      <DemoBlock>
-        <Tabs
-          border
-          type="capsule"
-          color={primaryColor}
-          defaultActive={capsuleTabs[0].key}
-          tabBarStyle={{ paddingHorizontal: 0 }}
-          tabStyle={fullTabStyle}
-        >
-          {capsuleTabs.map(tab => (
-            <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
-              <Pane>{tab.desc}</Pane>
-            </Tabs.TabPane>
-          ))}
-        </Tabs>
-      </DemoBlock>
+      <View style={styles.gap} />
 
-      <DemoBlock>
-        <Tabs
-          border
-          type="jumbo"
-          color={primaryColor}
-          defaultActive={jumboTabs[0].key}
-          tabStyle={fullTabStyle}
-        >
-          {jumboTabs.map(tab => (
-            <Tabs.TabPane
-              key={tab.key}
-              name={tab.key}
-              title={tab.title}
-              description="描述信息"
-              badge={tab.badge}
-            >
-              <Pane>{tab.desc}</Pane>
-            </Tabs.TabPane>
-          ))}
-        </Tabs>
-      </DemoBlock>
+      {/* 胶囊风格 */}
+      <Tabs
+        type="capsule"
+        border
+        color={primaryColor}
+        defaultActive="1"
+        tabBarStyle={{ paddingHorizontal: 0 }}
+        tabStyle={tabStyle}
+      >
+        {tabs.map(tab => (
+          <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
+            <View style={styles.pane}>
+              <Text style={styles.paneText}>内容 {tab.key}</Text>
+            </View>
+          </Tabs.TabPane>
+        ))}
+      </Tabs>
 
-      <DemoBlock>
-        <Tabs
-          type="card"
-          color={primaryColor}
-          defaultActive={cardTabs[0].key}
-          tabStyle={fullTabStyle}
-        >
-          {cardTabs.map(tab => (
-            <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
-              <Pane tone="plain">{tab.desc}</Pane>
-            </Tabs.TabPane>
-          ))}
-        </Tabs>
-      </DemoBlock>
+      <View style={styles.gap} />
+
+      {/* Jumbo 带描述 */}
+      <Tabs
+        type="jumbo"
+        border
+        color={primaryColor}
+        defaultActive="1"
+        tabStyle={tabStyle}
+      >
+        {tabs.map((tab, i) => (
+          <Tabs.TabPane
+            key={tab.key}
+            name={tab.key}
+            title={tab.title}
+            description="描述信息"
+            badge={i + 1}
+          >
+            <View style={styles.pane}>
+              <Text style={styles.paneText}>内容 {tab.key}</Text>
+            </View>
+          </Tabs.TabPane>
+        ))}
+      </Tabs>
+
+      <View style={styles.gap} />
+
+      {/* 卡片风格 */}
+      <Tabs
+        type="card"
+        color={primaryColor}
+        defaultActive="1"
+        tabStyle={tabStyle}
+      >
+        {tabs.map(tab => (
+          <Tabs.TabPane key={tab.key} name={tab.key} title={tab.title}>
+            <View style={styles.pane}>
+              <Text style={styles.paneText}>内容 {tab.key}</Text>
+            </View>
+          </Tabs.TabPane>
+        ))}
+      </Tabs>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
-    width: '100%',
-  },
-  block: {
-    paddingTop: 6,
-    marginBottom: 16,
-    backgroundColor: '#ffffff',
-  },
+  root: { width: '100%' },
+  gap: { height: 16 },
   pane: {
     paddingVertical: 24,
     paddingHorizontal: 20,
-    backgroundColor: '#ffffff',
-  },
-  panePlain: {
     backgroundColor: '#ffffff',
   },
   paneText: {

@@ -10,7 +10,7 @@ export type { FormItemProps, FormItemRule } from './types'
 const EMPTY_RULES: FormItemRule[] = []
 const EMPTY_VALUES: Record<string, unknown> = {}
 
-export const FormItem: React.FC<FormItemProps> = ({
+const FormItemImpl: React.FC<FormItemProps> = ({
   name,
   label,
   description,
@@ -158,4 +158,6 @@ export const FormItem: React.FC<FormItemProps> = ({
   return React.cloneElement(child, injectedProps)
 }
 
-FormItem.displayName = 'FormItem'
+FormItemImpl.displayName = 'FormItem'
+
+export const FormItem = React.memo(FormItemImpl)

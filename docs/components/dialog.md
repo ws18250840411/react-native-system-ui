@@ -7,7 +7,7 @@ simulator:
 
 ## 介绍
 
-弹出模态框，常用于消息提示、消息确认，或在当前页面内完成特定的交互操作。
+模态对话框组件，常用于消息提示、操作确认等场景，同时支持函数式调用（`Dialog.alert` / `Dialog.confirm`）与受控组件两种用法。
 
 弹出框组件支持函数调用和组件调用两种方式。使用前需在应用根节点包裹 **ConfigProvider** 或 **Portal.Host**，否则弹层无法挂载。详见 [ConfigProvider](./config-provider.md) / [Portal](./portal.md)。
 
@@ -93,7 +93,7 @@ export default function App() {
       ),
     });
   };
-  return <Button onClick={showCaptcha}>Show Dialog</Button>;
+  return <Button onPress={showCaptcha} text="Show Dialog" />;
 }
 ```
 
@@ -106,58 +106,35 @@ export default function App() {
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `visible` | 是否显示弹窗 | `boolean` | - |
-| `title` | 标题 | `string` | - |
-| `width` | 弹窗宽度，默认单位为`px` | `number \| string` | `320px` |
-| `message` | 文本内容，支持通过`\n`换行 | `string` | - |
+| `title` | 标题 | `ReactNode` | - |
+| `width` | 弹窗宽度，默认单位为 `px` | `number \| string` | `320` |
+| `message` | 文本内容，支持通过 `\n` 换行 | `ReactNode` | - |
 | `messageAlign` | 内容对齐方式 | `'left' \| 'center' \| 'right'` | `'center'` |
 | `theme` | 样式风格 | `'default' \| 'round-button'` | `'default'` |
-| `className` | 自定义类名 | `any` | - |
+| `closeable` | 是否展示关闭图标 | `boolean` | `false` |
+| `closeIcon` | 自定义关闭图标 | `ReactNode` | - |
 | `showConfirmButton` | 是否展示确认按钮 | `boolean` | `true` |
 | `showCancelButton` | 是否展示取消按钮 | `boolean` | `false` |
-| `confirmButtonText` | 确认按钮文案 | `string` | `'确认'` |
-| `confirmButtonColor` | 确认按钮颜色 | `string` | `#ee0a24` |
-| `cancelButtonText` | 取消按钮文案 | `string` | `'取消'` |
-| `cancelButtonColor` | 取消按钮颜色 | `string` | `black` |
+| `confirmButtonText` | 确认按钮文案 | `ReactNode` | `'确认'` |
+| `confirmButtonColor` | 确认按钮颜色 | `string` | 主题色 |
+| `confirmProps` | 确认按钮扩展状态（`loading`/`disabled`） | `DialogActionState` | - |
+| `cancelButtonText` | 取消按钮文案 | `ReactNode` | `'取消'` |
+| `cancelButtonColor` | 取消按钮颜色 | `string` | 主题默认色 |
+| `cancelProps` | 取消按钮扩展状态（`loading`/`disabled`） | `DialogActionState` | - |
 | `overlay` | 是否展示遮罩层 | `boolean` | `true` |
-| `overlayClass` | 自定义遮罩层类名 | `string` | - |
-| `overlayStyle` | 自定义遮罩层样式 | `object` | - |
-| `closeable` | 是否展示关闭图标 | `boolean` | `false` |
+| `overlayStyle` | 自定义遮罩层样式 | `StyleProp<ViewStyle>` | - |
 | `closeOnBackPress` | Android 返回键是否关闭 | `boolean` | `false` |
-| `closeOnPopstate` | 是否在页面回退时自动关闭 | `boolean` | `true` |
-| `closeOnClickOverlay` | 是否在点击遮罩层后关闭弹窗 | `boolean` | `false` |
-| `lockScroll` | 是否锁定背景滚动 | `boolean` | `true` |
-| `transition` | 动画类名 [see](https://reactcommunity.org/react-transition-group/) | `string` | - |
-| `onCancel` | 点击取消按钮时触发 | `Function` | - |
-| `onConfirm` | 点击确认按钮时触发 | `Function` | - |
-| `onClose` | Dialog 关闭时的回调 | `Function` | - |
-| `onClosed` | Dialog 完全关闭时的回调 | `Function` | - |
-| `teleport` | 指定挂载的节点 | `HTMLElement \| (() => HTMLElement)` | `body` |
+| `closeOnPopstate` | 浏览器返回（popstate）是否关闭 | `boolean` | `true` |
+| `closeOnOverlayPress` / `closeOnClickOverlay` | 点击遮罩层后是否关闭弹窗 | `boolean` | `false` |
+| `beforeClose` | 关闭前回调，返回 `false` 可阻止关闭（支持 Promise） | `(action: 'confirm' \| 'cancel' \| 'close') => boolean \| Promise<boolean>` | - |
 | `footer` | 自定义底部按钮区域 | `ReactNode` | - |
+| `contentStyle` | 内容区样式 | `StyleProp<ViewStyle>` | - |
+| `titleStyle` | 标题样式 | `StyleProp<TextStyle>` | - |
+| `messageStyle` | 消息文本样式 | `StyleProp<TextStyle>` | - |
+| `tokensOverride` | 覆盖 Dialog tokens | `DeepPartial<DialogTokens>` | - |
+| `onCancel` | 点击取消按钮时触发 | `() => void` | - |
+| `onConfirm` | 点击确认按钮时触发 | `() => void` | - |
+| `onClose` | Dialog 关闭时的回调 | `() => void` | - |
+| `onClosed` | Dialog 完全关闭（动画结束）时的回调 | `() => void` | - |
 
-## 主题定制
-
-### 样式变量
-
-组件提供了下列 CSS 变量，可用于自定义样式，使用方法请参考 [ConfigProvider 组件](/components/config-provider)。
-
-| 名称 | 默认值 | 描述 |
-| --- | --- | --- |
-| --rv-dialog-width | _320px_ | - |
-| --rv-dialog-small-screen-width | _90%_ | - |
-| --rv-dialog-font-size | _var(--rv-font-size-lg)_ | - |
-| --rv-dialog-transition | _var(--rv-animation-duration-base)_ | - |
-| --rv-dialog-border-radius | _16px_ | - |
-| --rv-dialog-background-color | _var(--rv-white)_ | - |
-| --rv-dialog-header-font-weight | _var(--rv-font-weight-bold)_ | - |
-| --rv-dialog-header-line-height | _24px_ | - |
-| --rv-dialog-header-padding-top | _26px_ | - |
-| --rv-dialog-header-isolated-padding | _var(--rv-padding-lg) 0_ | - |
-| --rv-dialog-message-padding | _var(--rv-padding-lg)_ | - |
-| --rv-dialog-message-font-size | _var(--rv-font-size-md)_ | - |
-| --rv-dialog-message-line-height | _var(--rv-line-height-md)_ | - |
-| --rv-dialog-message-max-height | _60vh_ | - |
-| --rv-dialog-has-title-message-text-color | _var(--rv-gray-7)_ | - |
-| --rv-dialog-has-title-message-padding-top | _var(--rv-padding-xs)_ | - |
-| --rv-dialog-button-height | _48px_ | - |
-| --rv-dialog-round-button-height | _36px_ | - |
-| --rv-dialog-confirm-button-text-color | _var(--rv-danger-color)_ | - |
+> 支持通过主题的 `components.dialog` 覆盖 tokens，统一控制弹窗宽度、圆角、配色等设计语言。

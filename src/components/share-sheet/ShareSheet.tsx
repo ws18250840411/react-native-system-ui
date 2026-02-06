@@ -28,7 +28,8 @@ const ShareSheetOptionItem: React.FC<{
   const press = useAriaPress({
     onPress: () => onSelect(option, index),
     extraProps: {
-      accessibilityRole: 'button',
+      accessibilityRole: 'menuitem' as any,
+      accessibilityLabel: isText(option.name) ? String(option.name) : undefined,
       testID: `rv-share-sheet-item-${index}`,
     },
   })
@@ -303,7 +304,7 @@ const ShareSheetImpl: React.FC<ShareSheetProps> = props => {
       onClose={onPopupClose}
       style={popupStyleMemo}
     >
-      <View style={wrapperStyle}>
+      <View accessibilityRole="menu" style={wrapperStyle}>
         {headerNode}
         {groupNodes}
         {children}

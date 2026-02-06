@@ -5,7 +5,8 @@ import { Divider, Space, Typography } from 'react-native-system-ui'
 const content =
   'React Native System UI 追求跨平台的一致体验，同时尊重移动端的交互习惯，提供丰富的基础组件和排版样式，欢迎一起共建。'
 
-export default () => (
+export default function TypographyEllipsisDemo() {
+  return (
   <Space direction="vertical" gap={12}>
     <Typography.Text ellipsis>{content}</Typography.Text>
     <Divider style={{ marginVertical: 4 }}>多行省略</Divider>
@@ -15,4 +16,5 @@ export default () => (
       {content}
     </Typography.Text>
   </Space>
-)
+  )
+}

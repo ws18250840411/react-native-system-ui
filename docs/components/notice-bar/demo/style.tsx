@@ -3,7 +3,8 @@ import React from 'react'
 import { Info } from 'react-native-system-icon'
 import { NoticeBar } from 'react-native-system-ui'
 
-export default () => (
+export default function NoticeBarStyleDemo() {
+  return (
   <NoticeBar
     color="#2563eb"
     background="#e0edff"
@@ -11,4 +12,5 @@ export default () => (
   >
     自定义颜色通知栏
   </NoticeBar>
-)
+  )
+}

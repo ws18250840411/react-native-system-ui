@@ -16,7 +16,7 @@ const options = [
   },
 ]
 
-export default () => {
+export default function ShareSheetCustomDemo() {
   const [visible, setVisible] = React.useState(false)
   return (
     <>

@@ -61,6 +61,6 @@ import { ConfigProvider, zhCN, enUS, useLocale } from 'react-native-system-ui'
 
 ## 差异说明
 
-- React Vant 通过 `themeVars` 覆盖 CSS 变量实现主题定制；本库以设计 tokens（`theme`）驱动样式，适配 React Native 的跨端渲染模型。
-- React Vant 支持 `tag` 指定根节点标签；本库在 React Native 环境不支持对应 DOM 能力。
+- 本库以设计 tokens（`theme`）驱动样式，适配 React Native 的跨端渲染模型（Web 端通常通过 CSS 变量实现主题定制）。
+- React Native 环境不支持 `tag` 指定根节点标签等 DOM 能力。
 - 本库在 `ConfigProvider` 内置 `PortalHost`，保证弹层组件有统一的渲染出口。

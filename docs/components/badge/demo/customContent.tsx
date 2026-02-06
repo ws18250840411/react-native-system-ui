@@ -10,7 +10,8 @@ const Box = () => (
   />
 )
 
-export default () => (
+export default function BadgeCustomContentDemo() {
+  return (
   <Space gap={20}>
     <Badge content={<Checked size={12} fill="#fff" color="#fff" />}>
       <Box />
@@ -22,4 +23,5 @@ export default () => (
       <Box />
     </Badge>
   </Space>
-)
+  )
+}

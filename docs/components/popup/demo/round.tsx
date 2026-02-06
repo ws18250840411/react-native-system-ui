@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Cell, Popup } from 'react-native-system-ui'
 
-export default () => {
+export default function PopupRoundDemo() {
   const [visible, setVisible] = React.useState(false)
 
   return (

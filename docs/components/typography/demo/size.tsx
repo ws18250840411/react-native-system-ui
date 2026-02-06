@@ -2,7 +2,8 @@ import React from 'react'
 
 import { Space, Typography } from 'react-native-system-ui'
 
-export default () => (
+export default function TypographySizeDemo() {
+  return (
   <Space direction="vertical" gap={8}>
     <Typography.Text size="xs">超小文本</Typography.Text>
     <Typography.Text size="sm">小号文本</Typography.Text>
@@ -15,4 +16,5 @@ export default () => (
       特大文本
     </Typography.Text>
   </Space>
-)
+  )
+}

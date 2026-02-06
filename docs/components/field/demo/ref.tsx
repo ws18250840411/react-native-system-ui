@@ -1,6 +1,6 @@
-import React from "react"
-import { Button, Field } from "react-native-system-ui"
-import type { FieldInstance } from "react-native-system-ui"
+import React from 'react'
+import { Button, Field } from 'react-native-system-ui'
+import type { FieldInstance } from 'react-native-system-ui'
 
 export default function FieldRefDemo() {
   const ref = React.useRef<FieldInstance>(null)

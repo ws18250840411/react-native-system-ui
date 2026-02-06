@@ -1,7 +1,7 @@
 import React from 'react'
 import { Space, Checkbox } from 'react-native-system-ui'
 
-export default () => {
+export default function CheckboxBasicDemo() {
   const [checked, setChecked] = React.useState(false)
 
   return (

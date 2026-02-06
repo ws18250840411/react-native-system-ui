@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native'
 
 import { Button, Space, Swiper, SwiperItem } from 'react-native-system-ui'
 
-export default () => {
+export default function ConfigProviderTokensOverrideDemo() {
   return (
     <View style={styles.root}>
       <View style={styles.panel}>
