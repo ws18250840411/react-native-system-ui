@@ -141,6 +141,5 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
   )
 }
 const ImageForwardRef = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>(ImageImpl)
-ImageForwardRef.displayName = 'Image'
 const Image = React.memo(ImageForwardRef)
 export default Image

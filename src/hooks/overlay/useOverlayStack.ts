@@ -2,15 +2,8 @@ import { useEffect, useRef, useSyncExternalStore } from 'react'
 import type { OverlayStackEntry, OverlayStackMountOptions } from './OverlayStackStore'
 import { overlayStackStore } from './OverlayStackStore'
 
-export interface UseOverlayStackOptions extends OverlayStackMountOptions {
-  visible: boolean
-}
-
-export interface UseOverlayStackResult {
-  entryKey: number | null
-  zIndex?: number
-  isTopMost: boolean
-}
+export interface UseOverlayStackOptions extends OverlayStackMountOptions { visible: boolean }
+export interface UseOverlayStackResult { entryKey: number | null; zIndex?: number; isTopMost: boolean }
 
 const useEntries = () => useSyncExternalStore(overlayStackStore.subscribe, overlayStackStore.getSnapshot, overlayStackStore.getSnapshot)
 

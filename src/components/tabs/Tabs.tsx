@@ -11,11 +11,7 @@ import { useTabsTokens } from './tokens'
 const TabPane: FC<TabPaneProps> = () => null
 TabPane.displayName = 'Tabs.TabPane'
 
-interface ParsedPane extends TabPaneProps {
-  key: React.Key
-  name: TabsValue
-  index: number
-}
+interface ParsedPane extends TabPaneProps { key: React.Key; name: TabsValue; index: number }
 
 const hasRaf = typeof requestAnimationFrame === 'function' && typeof cancelAnimationFrame === 'function'
 const requestFrame: (cb: (time?: number) => void) => number = hasRaf ? requestAnimationFrame : (cb) => setTimeout(cb, 16) as unknown as number
@@ -23,24 +19,10 @@ const cancelFrame = (id: number | null) => { if (id != null) (hasRaf ? cancelAni
 const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<TabPaneProps> => {
   if (!React.isValidElement(child)) return false
   if (child.type === TabPane) return true
-  const type = child.type as unknown as { displayName?: string }
-  return type.displayName === 'Tabs.TabPane'
+  return (child.type as unknown as { displayName?: string }).displayName === 'Tabs.TabPane'
 }
 
-interface UseTabsAnimationParams {
-  type: 'line' | 'card' | 'jumbo' | 'capsule'
-  animated: boolean
-  scrollable: boolean
-  align: 'start' | 'center' | 'end'
-  panes: Array<{ name: TabsValue; index: number }>
-  nameIndexMap: Map<TabsValue, number>
-  resolvedLineWidth?: number
-  resolvedLineHeight: number
-  resolvedDuration: number
-  currentName?: TabsValue | null
-  layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>
-  navContainerWidthRef: React.MutableRefObject<number>
-}
+interface UseTabsAnimationParams { type: 'line' | 'card' | 'jumbo' | 'capsule'; animated: boolean; scrollable: boolean; align: 'start' | 'center' | 'end'; panes: Array<{ name: TabsValue; index: number }>; nameIndexMap: Map<TabsValue, number>; resolvedLineWidth?: number; resolvedLineHeight: number; resolvedDuration: number; currentName?: TabsValue | null; layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>; navContainerWidthRef: React.MutableRefObject<number> }
 
 const useTabsAnimation = ({ type, animated, scrollable, align, panes, nameIndexMap, resolvedLineWidth, resolvedDuration, currentName, layoutMap, navContainerWidthRef }: UseTabsAnimationParams) => {
   const indicatorX = useRef(new Animated.Value(0)).current
@@ -73,15 +55,7 @@ const useTabsAnimation = ({ type, animated, scrollable, align, panes, nameIndexM
   return { indicatorX, indicatorWidth, indicatorInitializedRef, animateIndicator }
 }
 
-interface UseTabsScrollParams {
-  scrollable: boolean
-  animated: boolean
-  currentName?: TabsValue | null
-  resolvedDuration: number
-  layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>
-  navContainerWidthRef: React.MutableRefObject<number>
-  navContentWidthRef: React.MutableRefObject<number>
-}
+interface UseTabsScrollParams { scrollable: boolean; animated: boolean; currentName?: TabsValue | null; resolvedDuration: number; layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>; navContainerWidthRef: React.MutableRefObject<number>; navContentWidthRef: React.MutableRefObject<number> }
 
 const useTabsScroll = ({ scrollable, animated, currentName, resolvedDuration, layoutMap, navContainerWidthRef, navContentWidthRef }: UseTabsScrollParams) => {
   const navScrollRef = useRef<ScrollView>(null)
@@ -143,24 +117,7 @@ const useTabsScroll = ({ scrollable, animated, currentName, resolvedDuration, la
   return { navScrollRef, navScrollX, scrollIntoView, handleNavScrollBeginDrag, handleNavScroll }
 }
 
-interface TabItemProps {
-  pane: ParsedPane
-  isActive: boolean
-  align: TabsProps['align']
-  scrollable: boolean
-  type: TabsProps['type']
-  ellipsis: boolean
-  tokens: ReturnType<typeof useTabsTokens>
-  color?: string
-  titleActiveColor?: string
-  titleInactiveColor?: string
-  tabStyle?: TabsProps['tabStyle']
-  titleStyle?: TabsProps['titleStyle']
-  descriptionStyle?: TabsProps['descriptionStyle']
-  onSelect: (pane: ParsedPane, index: number, event?: unknown) => void
-  onLayout: (name: TabsValue, event: LayoutChangeEvent) => void
-  isLast: boolean
-}
+interface TabItemProps { pane: ParsedPane; isActive: boolean; align: TabsProps['align']; scrollable: boolean; type: TabsProps['type']; ellipsis: boolean; tokens: ReturnType<typeof useTabsTokens>; color?: string; titleActiveColor?: string; titleInactiveColor?: string; tabStyle?: TabsProps['tabStyle']; titleStyle?: TabsProps['titleStyle']; descriptionStyle?: TabsProps['descriptionStyle']; onSelect: (pane: ParsedPane, index: number, event?: unknown) => void; onLayout: (name: TabsValue, event: LayoutChangeEvent) => void; isLast: boolean }
 
 const TabBarItemInner: React.FC<TabItemProps> = ({ pane, isActive, align, scrollable, type, ellipsis, tokens, color, titleActiveColor, titleInactiveColor, tabStyle, titleStyle, descriptionStyle, onSelect, onLayout, isLast }) => {
   const isDisabled = !!pane.disabled
@@ -420,8 +377,6 @@ const S = StyleSheet.create({
 })
 
 const TabsBaseRef = React.forwardRef(TabsBaseInner) as React.ForwardRefExoticComponent<TabsProps & React.RefAttributes<TabsRef>>
-TabsBaseRef.displayName = 'Tabs'
-const TabsBase = React.memo(TabsBaseRef)
-const TabsWithPane = Object.assign(TabsBase, { TabPane })
+const TabsWithPane = Object.assign(React.memo(TabsBaseRef), { TabPane })
 export { TabPane }
 export default TabsWithPane

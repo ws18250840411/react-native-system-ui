@@ -14,14 +14,7 @@ const toRgba = (color: string, alpha: number) => {
   return color
 }
 
-interface ShadowConfig {
-  color: string
-  opacity: number
-  radius: number
-  offsetY: number
-  offsetX?: number
-  elevation?: number
-}
+interface ShadowConfig { color: string; opacity: number; radius: number; offsetY: number; offsetX?: number; elevation?: number }
 
 export const createPlatformShadow = ({ color, opacity, radius, offsetY, offsetX = 0, elevation }: ShadowConfig): ViewStyle => {
   if (Platform.OS !== 'web')

@@ -15,34 +15,9 @@ import { useToastTokens } from './tokens'
 import type { ToastTokens } from './tokens'
 
 const RT = () => true as const
-
 export type ToastPosition = 'top' | 'middle' | 'bottom'
 export type ToastType = 'info' | 'success' | 'fail' | 'loading'
-
-export interface ToastProps {
-  visible: boolean
-  message?: React.ReactNode
-  icon?: React.ReactNode
-  type?: ToastType
-  iconSize?: number
-  duration?: number
-  position?: ToastPosition
-  forbidClick?: boolean
-  overlay?: boolean
-  overlayStyle?: StyleProp<ViewStyle>
-  closeOnClickOverlay?: boolean
-  closeOnClick?: boolean
-  loadingIndicator?: React.ReactNode
-  safeAreaInsetTop?: boolean
-  safeAreaInsetBottom?: boolean
-  tokensOverride?: DeepPartial<ToastTokens>
-  style?: StyleProp<ViewStyle>
-  textStyle?: StyleProp<TextStyle>
-  onClose?: () => void
-  onOpen?: () => void
-  onOpened?: () => void
-  onClosed?: () => void
-}
+export interface ToastProps { visible: boolean; message?: React.ReactNode; icon?: React.ReactNode; type?: ToastType; iconSize?: number; duration?: number; position?: ToastPosition; forbidClick?: boolean; overlay?: boolean; overlayStyle?: StyleProp<ViewStyle>; closeOnClickOverlay?: boolean; closeOnClick?: boolean; loadingIndicator?: React.ReactNode; safeAreaInsetTop?: boolean; safeAreaInsetBottom?: boolean; tokensOverride?: DeepPartial<ToastTokens>; style?: StyleProp<ViewStyle>; textStyle?: StyleProp<TextStyle>; onClose?: () => void; onOpen?: () => void; onOpened?: () => void; onClosed?: () => void }
 
 const ToastContentImpl: React.FC<ToastProps> = props => {
   const { visible, message, icon, type = 'info', iconSize, duration = 2000, position = 'middle', forbidClick = false, overlay = false, overlayStyle, closeOnClickOverlay = false, closeOnClick = false, loadingIndicator, safeAreaInsetTop: safeAreaInsetTopProp, safeAreaInsetBottom: safeAreaInsetBottomProp, tokensOverride, style, textStyle, onClose, onOpen, onOpened, onClosed } = props
@@ -87,20 +62,13 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
   }, [animatedValue, reducedMotion, tokens.animationDuration, visible])
   useEffect(() => () => { animationRef.current?.stop() }, [])
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout> | null = null
-    if (visible) {
-      if (resolvedDuration > 0) {
-        timeout = setTimeout(() => { onCloseRef.current?.() }, resolvedDuration)
-      }
-    }
-    return () => { if (timeout) clearTimeout(timeout) }
+    if (!visible || resolvedDuration <= 0) return
+    const timeout = setTimeout(() => { onCloseRef.current?.() }, resolvedDuration)
+    return () => clearTimeout(timeout)
   }, [resolvedDuration, visible])
   useEffect(() => {
-    if (!visible) return
-    if (!isText(message)) return
-    const text = String(message)
-    if (!text) return
-    AccessibilityInfo.announceForAccessibility?.(text)
+    if (!visible || !isText(message)) return
+    const text = String(message); if (text) AccessibilityInfo.announceForAccessibility?.(text)
   }, [message, visible])
   const resolvedAnimDuration = reducedMotion ? 0 : tokens.animationDuration
   useEffect(() => {
@@ -161,19 +129,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
 }
 
 export const ToastContent = React.memo(ToastContentImpl)
-
 const ToastImpl: React.FC<ToastProps> = props => <Portal><ToastContent {...props} /></Portal>
 export const Toast = React.memo(ToastImpl)
-
-const S = StyleSheet.create({
-  b: { flex: 1, alignItems: 'center' },
-  o: { ...StyleSheet.absoluteFillObject },
-  t: { alignItems: 'center', justifyContent: 'center' },
-  m: { textAlign: 'center' },
-  mw: { alignItems: 'center' },
-})
-
-ToastContent.displayName = 'ToastContent'
-Toast.displayName = 'Toast'
-
+const S = StyleSheet.create({ b: { flex: 1, alignItems: 'center' }, o: { ...StyleSheet.absoluteFillObject }, t: { alignItems: 'center', justifyContent: 'center' }, m: { textAlign: 'center' }, mw: { alignItems: 'center' } })
 export default Toast

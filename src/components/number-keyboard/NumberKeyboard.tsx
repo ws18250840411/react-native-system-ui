@@ -154,6 +154,4 @@ const S = StyleSheet.create({
   cS: { flex: 1, flexDirection: 'column', justifyContent: 'flex-start' },
 })
 
-NumberKeyboard.displayName = 'NumberKeyboard'
-
 export default NumberKeyboard

@@ -166,15 +166,6 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
 }
 
 const SwiperFR = forwardRef(SwiperImpl) as unknown as SwiperComponent
-SwiperFR.displayName = 'Swiper'
 const Swiper = memo(SwiperFR) as unknown as SwiperComponent
-
-const S = StyleSheet.create({
-  ctr: { position: 'relative', overflow: 'hidden' },
-  web: { cursor: 'grab', userSelect: 'none' } as any,
-  slide: { flex: 1 },
-  item: { flex: 1 },
-  ind: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
-})
-
+const S = StyleSheet.create({ ctr: { position: 'relative', overflow: 'hidden' }, web: { cursor: 'grab', userSelect: 'none' } as any, slide: { flex: 1 }, item: { flex: 1 }, ind: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 } })
 export default Swiper

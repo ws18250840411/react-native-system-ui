@@ -1,16 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Platform, Pressable, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
-import { isFunction, isText } from '../../utils'
-import { renderTextOrNode } from '../../utils'
+import { isFunction, isText, renderTextOrNode } from '../../utils'
 import { isRenderable } from '../../utils/validate'
-import { useAriaPress, useSafeAreaPadding } from '../../hooks'
+import { useAriaPress, useSafeAreaPadding, useOverlayStack } from '../../hooks'
 import Portal from '../portal/Portal'
-import { useOverlayStack } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
 import { useReducedMotion } from '../../hooks/animation'
 import type { NotifyProps, NotifyPosition } from './types'
 import { useNotifyTokens } from './tokens'
-
 export type { NotifyProps, NotifyPosition, NotifyType, NotifyTokens } from './types'
 
 const NotifyContentImpl: React.FC<NotifyProps> = props => {
@@ -74,34 +71,17 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
   useEffect(() => () => { animationRef.current?.stop() }, [])
   const resolvedAnimDuration = reducedMotion ? 0 : tokens.defaults.animationDuration
   useEffect(() => {
-    let openedTimeout: ReturnType<typeof setTimeout> | null = null
     if (visible) {
       closingRef.current = false
-      if (!previousVisibleRef.current) {
-        onOpenRef.current?.()
-        if (onOpenedRef.current) {
-          const callback = onOpenedRef.current
-          openedTimeout = setTimeout(callback, resolvedAnimDuration)
-        }
-      }
-    } else if (previousVisibleRef.current) {
-      closingRef.current = true
-    }
+      if (!previousVisibleRef.current) { onOpenRef.current?.(); if (onOpenedRef.current) { const cb = onOpenedRef.current; const t = setTimeout(cb, resolvedAnimDuration); previousVisibleRef.current = visible; return () => clearTimeout(t) } }
+    } else if (previousVisibleRef.current) closingRef.current = true
     previousVisibleRef.current = visible
-    return () => { if (openedTimeout) clearTimeout(openedTimeout) }
   }, [resolvedAnimDuration, visible])
+  useEffect(() => { if (!mounted && closingRef.current) { closingRef.current = false; onClosedRef.current?.() } }, [mounted])
   useEffect(() => {
-    if (!mounted && closingRef.current) {
-      closingRef.current = false
-      onClosedRef.current?.()
-    }
-  }, [mounted])
-  useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout> | null = null
-    if (visible && resolvedDuration > 0) {
-      timeout = setTimeout(() => { onCloseRef.current?.() }, resolvedDuration)
-    }
-    return () => { if (timeout) clearTimeout(timeout) }
+    if (!visible || resolvedDuration <= 0) return
+    const timeout = setTimeout(() => { onCloseRef.current?.() }, resolvedDuration)
+    return () => clearTimeout(timeout)
   }, [resolvedDuration, visible])
   const contentHeight = barHeight > 0 ? barHeight : tokens.sizing.minHeight
   const interactive = closeOnClick || isFunction(onClick)
@@ -133,11 +113,6 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
 }
 
 export const NotifyContent = React.memo(NotifyContentImpl)
-
 const NotifyImpl: React.FC<NotifyProps> = props => <Portal><NotifyContent {...props} /></Portal>
 export const Notify = React.memo(NotifyImpl)
-
-NotifyContent.displayName = 'NotifyContent'
-Notify.displayName = 'Notify'
-
 export default Notify

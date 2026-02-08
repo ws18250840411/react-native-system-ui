@@ -2,27 +2,9 @@ import { BackHandler, Platform } from 'react-native'
 import { setBodyScrollLocked } from '../../platform'
 import { isNumber } from '../../utils'
 
-export interface OverlayStackEntry {
-  key: number
-  zIndex: number
-  onClose?: () => void
-  closeOnBack?: boolean
-  lockScroll?: boolean
-  type?: string
-  meta?: Record<string, any>
-}
-
+export interface OverlayStackEntry { key: number; zIndex: number; onClose?: () => void; closeOnBack?: boolean; lockScroll?: boolean; type?: string; meta?: Record<string, any> }
 export type OverlayStackSnapshot = readonly OverlayStackEntry[]
-
-export interface OverlayStackMountOptions {
-  onClose?: () => void
-  closeOnBack?: boolean
-  lockScroll?: boolean
-  type?: string
-  zIndex?: number
-  meta?: Record<string, any>
-}
-
+export interface OverlayStackMountOptions { onClose?: () => void; closeOnBack?: boolean; lockScroll?: boolean; type?: string; zIndex?: number; meta?: Record<string, any> }
 type Listener = () => void
 
 export class OverlayStackStore {

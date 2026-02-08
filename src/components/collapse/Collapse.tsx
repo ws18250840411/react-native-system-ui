@@ -9,47 +9,10 @@ import { useCollapseTokens } from './tokens'
 import type { CollapseTokens } from './types'
 
 export type CollapseValue = string | string[]
-export interface CollapseProps extends ViewProps {
-  children?: React.ReactNode
-  accordion?: boolean
-  value?: CollapseValue
-  defaultValue?: CollapseValue
-  onChange?: (value: CollapseValue) => void
-  border?: boolean
-  iconPosition?: 'left' | 'right'
-  expandIcon?: React.ReactNode | ((active: boolean) => React.ReactNode)
-  disabled?: boolean
-  tokensOverride?: DeepPartial<CollapseTokens>
-}
-export interface CollapsePanelProps extends ViewProps {
-  index?: number
-  name?: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  label?: React.ReactNode
-  icon?: React.ReactNode
-  extra?: React.ReactNode
-  value?: React.ReactNode
-  border?: boolean
-  isLink?: boolean
-  size?: 'normal' | 'large'
-  disabled?: boolean
-  readOnly?: boolean
-  children?: React.ReactNode
-  titleStyle?: TextProps['style']
-  descriptionStyle?: TextProps['style']
-}
+export interface CollapseProps extends ViewProps { children?: React.ReactNode; accordion?: boolean; value?: CollapseValue; defaultValue?: CollapseValue; onChange?: (value: CollapseValue) => void; border?: boolean; iconPosition?: 'left' | 'right'; expandIcon?: React.ReactNode | ((active: boolean) => React.ReactNode); disabled?: boolean; tokensOverride?: DeepPartial<CollapseTokens> }
+export interface CollapsePanelProps extends ViewProps { index?: number; name?: string; title?: React.ReactNode; description?: React.ReactNode; label?: React.ReactNode; icon?: React.ReactNode; extra?: React.ReactNode; value?: React.ReactNode; border?: boolean; isLink?: boolean; size?: 'normal' | 'large'; disabled?: boolean; readOnly?: boolean; children?: React.ReactNode; titleStyle?: TextProps['style']; descriptionStyle?: TextProps['style'] }
 export type CollapsePanelInstance = { toggle: (expand?: boolean) => void }
-interface CollapseContextValue {
-  activeKeys: string[]
-  toggle: (name: string, expand?: boolean) => void
-  accordion: boolean
-  iconPosition: 'left' | 'right'
-  expandIcon?: CollapseProps['expandIcon']
-  border: boolean
-  disabled?: boolean
-  tokens: CollapseTokens
-}
+interface CollapseContextValue { activeKeys: string[]; toggle: (name: string, expand?: boolean) => void; accordion: boolean; iconPosition: 'left' | 'right'; expandIcon?: CollapseProps['expandIcon']; border: boolean; disabled?: boolean; tokens: CollapseTokens }
 const CollapseContext = React.createContext<CollapseContextValue | null>(null)
 const normalizeValue = (value?: CollapseValue): string[] | undefined => {
   if (value === undefined) return undefined
@@ -176,5 +139,4 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
 CollapseImpl.Panel = CollapsePanel
 CollapseImpl.Item = CollapsePanel
 export const Collapse = Object.assign(React.memo(CollapseImpl), { Panel: CollapsePanel, Item: CollapsePanel })
-Collapse.displayName = 'Collapse'
 export default Collapse

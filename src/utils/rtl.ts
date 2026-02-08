@@ -2,7 +2,6 @@ import type { FlexStyle } from 'react-native'
 
 type Dir = 'ltr' | 'rtl'
 
-/** Flip horizontal style values for RTL layouts */
 export const flipStyle = <T extends FlexStyle>(style: T, dir: Dir): T => {
   if (dir !== 'rtl') return style
   const out = { ...style } as Record<string, unknown>
@@ -22,6 +21,5 @@ export const flipStyle = <T extends FlexStyle>(style: T, dir: Dir): T => {
   return out as T
 }
 
-/** Get `flexDirection` respecting RTL */
 export const rtlRow = (dir: Dir): FlexStyle['flexDirection'] =>
   dir === 'rtl' ? 'row-reverse' : 'row'

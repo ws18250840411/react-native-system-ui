@@ -5,33 +5,9 @@ import { Animated } from 'react-native'
 export type ScrollAxis = 'x' | 'y'
 export type ScrollDirection = 'forward' | 'backward' | null
 
-export interface UseGestureScrollOptions {
-  axis?: ScrollAxis
-  scrollEventThrottle?: number
-  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-  onScrollBeginDrag?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-  onScrollEndDrag?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-  onMomentumScrollBegin?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-  onMomentumScrollEnd?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-}
-
-export interface UseGestureScrollResult {
-  scrollValue: Animated.Value
-  scrollProps: {
-    onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-    scrollEventThrottle: number
-    onScrollBeginDrag?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-    onScrollEndDrag?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-    onMomentumScrollBegin?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-    onMomentumScrollEnd?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-  }
-  direction: ScrollDirection
-  isDragging: boolean
-  isMomentum: boolean
-  getVelocity: () => number
-  getCurrentOffset: () => number
-  resetOffset: (value?: number) => void
-}
+type SE = NativeSyntheticEvent<NativeScrollEvent>
+export interface UseGestureScrollOptions { axis?: ScrollAxis; scrollEventThrottle?: number; onScroll?: (event: SE) => void; onScrollBeginDrag?: (event: SE) => void; onScrollEndDrag?: (event: SE) => void; onMomentumScrollBegin?: (event: SE) => void; onMomentumScrollEnd?: (event: SE) => void }
+export interface UseGestureScrollResult { scrollValue: Animated.Value; scrollProps: { onScroll: (event: SE) => void; scrollEventThrottle: number; onScrollBeginDrag?: (event: SE) => void; onScrollEndDrag?: (event: SE) => void; onMomentumScrollBegin?: (event: SE) => void; onMomentumScrollEnd?: (event: SE) => void }; direction: ScrollDirection; isDragging: boolean; isMomentum: boolean; getVelocity: () => number; getCurrentOffset: () => number; resetOffset: (value?: number) => void }
 
 export const useGestureScroll = (options: UseGestureScrollOptions = {}): UseGestureScrollResult => {
   const { axis = 'y', scrollEventThrottle = 16, onScroll, onScrollBeginDrag, onScrollEndDrag, onMomentumScrollBegin, onMomentumScrollEnd } = options

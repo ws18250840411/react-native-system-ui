@@ -228,7 +228,6 @@ const InternalFormImpl = (props: FormProps, ref: React.ForwardedRef<FormInstance
 }
 
 const InternalFormRef = React.forwardRef<FormInstance, FormProps>(InternalFormImpl)
-InternalFormRef.displayName = 'Form'
 const InternalForm = React.memo(InternalFormRef)
 
 export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRefObject<FormInstance | null>) => {

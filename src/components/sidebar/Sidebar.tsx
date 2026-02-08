@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import { Text, View } from 'react-native'
-
 import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
 import { useDirection } from '../config-provider/useDirection'
@@ -14,90 +13,24 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   const { children, sideStyle, style, tokensOverride, ...rest } = props
   const tokens = useSidebarTokens(tokensOverride)
   const dir = useDirection()
-
-  const sidebarItems = useMemo(() => {
-    const validItems: { element: React.ReactElement<SidebarItemProps>; index: number }[] = []
-    const childrenArray = React.Children.toArray(children)
-    for (let index = 0; index < childrenArray.length; index++) {
-      const child = childrenArray[index]
-      if (!React.isValidElement<SidebarItemProps>(child)) continue
-      validItems.push({ element: child, index })
-    }
-    return validItems
-  }, [children])
-
+  const sidebarItems = useMemo(() => { const items: { element: React.ReactElement<SidebarItemProps>; index: number }[] = []; React.Children.toArray(children).forEach((child, index) => { if (React.isValidElement<SidebarItemProps>(child)) items.push({ element: child, index }) }); return items }, [children])
   const firstIndex = sidebarItems[0]?.index ?? 0
-  const [activeIndex, setActiveIndex] = useControllableValue<number>(props, {
-    defaultValue: firstIndex,
-    valuePropName: 'value',
-    defaultValuePropName: 'defaultValue',
-    trigger: 'onChange',
-  })
-
-  const currentIndex = useMemo(() => {
-    let resolvedIndex = firstIndex
-    for (let index = 0; index < sidebarItems.length; index++) {
-      if (sidebarItems[index].index === activeIndex) {
-        resolvedIndex = activeIndex
-        break
-      }
-    }
-    return resolvedIndex
-  }, [activeIndex, firstIndex, sidebarItems])
-
-  const contextValue = useMemo(() => ({
-    activeIndex: currentIndex,
-    onSelect: setActiveIndex,
-  }), [currentIndex, setActiveIndex])
-
-  const clonedItems = useMemo(
-    () => sidebarItems.map(item => {
-      const key = item.element.key ?? item.index
-      const merged = mergeTokensOverride(tokensOverride, item.element.props.tokensOverride)
-      return React.cloneElement(item.element, { key, index: item.index, tokensOverride: merged })
-    }),
-    [sidebarItems, tokensOverride]
-  )
-
+  const [activeIndex, setActiveIndex] = useControllableValue<number>(props, { defaultValue: firstIndex, valuePropName: 'value', defaultValuePropName: 'defaultValue', trigger: 'onChange' })
+  const currentIndex = useMemo(() => { for (const item of sidebarItems) { if (item.index === activeIndex) return activeIndex } return firstIndex }, [activeIndex, firstIndex, sidebarItems])
+  const contextValue = useMemo(() => ({ activeIndex: currentIndex, onSelect: setActiveIndex }), [currentIndex, setActiveIndex])
+  const clonedItems = useMemo(() => sidebarItems.map(item => React.cloneElement(item.element, { key: item.element.key ?? item.index, index: item.index, tokensOverride: mergeTokensOverride(tokensOverride, item.element.props.tokensOverride) })), [sidebarItems, tokensOverride])
   const activeItem = sidebarItems.find(item => item.index === currentIndex)?.element
-
-  const activeContentStyle = activeItem?.props?.contentStyle
-  const activeContent = activeItem?.props?.children
-  const activeContentNode = !isRenderable(activeContent) ? null : renderTextOrNode(activeContent)
-
-  const containerStyle = [
-    tokens.layout.container,
-    { backgroundColor: tokens.colors.background },
-    style,
-  ]
-
-  const sideContainerStyle = [
-    tokens.layout.side,
-    {
-      width: tokens.sizing.width,
-    },
-    sideStyle,
-  ]
-
+  const activeContentNode = !isRenderable(activeItem?.props?.children) ? null : renderTextOrNode(activeItem.props.children)
   return (
-    <View {...rest} style={containerStyle}>
-      <View
-        style={sideContainerStyle}
-        accessibilityRole="tablist"
-      >
-        <SidebarContext.Provider value={contextValue}>
-          {clonedItems}
-        </SidebarContext.Provider>
+    <View {...rest} style={[tokens.layout.container, { backgroundColor: tokens.colors.background }, style]}>
+      <View style={[tokens.layout.side, { width: tokens.sizing.width }, sideStyle]} accessibilityRole="tablist">
+        <SidebarContext.Provider value={contextValue}>{clonedItems}</SidebarContext.Provider>
         <View style={createHairlineView({ position: dir === 'rtl' ? 'left' : 'right', color: tokens.colors.border, top: 0, bottom: 0 })} />
       </View>
-      <View style={[tokens.layout.content, activeContentStyle]}>
-        {activeContentNode}
-      </View>
+      <View style={[tokens.layout.content, activeItem?.props?.contentStyle]}>{activeContentNode}</View>
     </View>
   )
 }
 
 const SidebarBase = React.memo(SidebarBaseImpl)
-SidebarBase.displayName = 'Sidebar'
-
 export default SidebarBase

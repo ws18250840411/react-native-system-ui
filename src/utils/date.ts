@@ -18,13 +18,7 @@ export const getMonthEndDay = (year: number, month: number) =>
 export const isValidDate = (value: unknown): value is Date =>
   value instanceof Date && !Number.isNaN(value.getTime())
 
-export interface TimeDuration {
-  days: number
-  hours: number
-  minutes: number
-  seconds: number
-  milliseconds: number
-}
+export interface TimeDuration { days: number; hours: number; minutes: number; seconds: number; milliseconds: number }
 
 export const formatDuration = (format: string, time: TimeDuration) => {
   let { days, hours, minutes, seconds, milliseconds } = time

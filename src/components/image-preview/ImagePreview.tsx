@@ -143,21 +143,6 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
 }
 
 const ImagePreviewForwardRef = React.forwardRef<ImagePreviewRef, ImagePreviewProps>(ImagePreviewImpl)
-ImagePreviewForwardRef.displayName = 'ImagePreview'
 const ImagePreview = React.memo(ImagePreviewForwardRef)
-
 export default ImagePreview
-
-const S = StyleSheet.create({
-  popup: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%' },
-  content: { flex: 1 },
-  swiper: { flex: 1 },
-  slide: { justifyContent: 'center', alignItems: 'center', flex: 1 },
-  slidePressable: { flex: 1, width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
-  image: { width: '100%', height: '100%' },
-  imagePlaceholder: { width: '100%', height: '100%' },
-  empty: { flex: 1 },
-  index: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 1 },
-  indexBadge: {},
-  indexText: { fontWeight: '500' },
-})
+const S = StyleSheet.create({ popup: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%' }, content: { flex: 1 }, swiper: { flex: 1 }, slide: { justifyContent: 'center', alignItems: 'center', flex: 1 }, slidePressable: { flex: 1, width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }, image: { width: '100%', height: '100%' }, imagePlaceholder: { width: '100%', height: '100%' }, empty: { flex: 1 }, index: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 1 }, indexBadge: {}, indexText: { fontWeight: '500' } })

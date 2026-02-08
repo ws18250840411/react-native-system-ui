@@ -107,6 +107,5 @@ const ButtonImpl = (props: ButtonProps, forwardedRef: React.ForwardedRef<React.E
   )
 }
 const ButtonForwardRef = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(ButtonImpl)
-ButtonForwardRef.displayName = 'Button'
 export const Button = React.memo(ButtonForwardRef)
 export default Button

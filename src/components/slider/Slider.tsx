@@ -79,24 +79,7 @@ const useTrackLayout = () => {
   return { trackRef, trackLayout, handleTrackLayout }
 }
 
-interface ThumbNodeProps {
-  index: number
-  orientation: 'horizontal' | 'vertical'
-  ariaReverse: boolean
-  trackLayout: TrackLayout
-  isDisabled: boolean
-  state: ReturnType<typeof useSliderState>
-  size: number
-  activeColor: string
-  content: React.ReactNode
-  visualPercent: number
-  thumbBackgroundColor: string
-  thumbElevation: number
-  indicatorSize: number
-  indicatorColor: string
-  webGestureStyle?: ViewStyle
-  enhanceHandlers: (handlers: HandlerBag | undefined, index: number) => HandlerBag | undefined
-}
+interface ThumbNodeProps { index: number; orientation: 'horizontal' | 'vertical'; ariaReverse: boolean; trackLayout: TrackLayout; isDisabled: boolean; state: ReturnType<typeof useSliderState>; size: number; activeColor: string; content: React.ReactNode; visualPercent: number; thumbBackgroundColor: string; thumbElevation: number; indicatorSize: number; indicatorColor: string; webGestureStyle?: ViewStyle; enhanceHandlers: (handlers: HandlerBag | undefined, index: number) => HandlerBag | undefined }
 
 const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({ index, orientation, ariaReverse, trackLayout, isDisabled, state, size, activeColor, content, visualPercent, thumbBackgroundColor, thumbElevation, indicatorSize, indicatorColor, webGestureStyle, enhanceHandlers }) => {
   const inputRef = useRef(null)
@@ -281,22 +264,6 @@ const SliderImpl: React.FC<SliderProps> = props => {
   )
 }
 
-const S = StyleSheet.create({
-  c: { position: 'relative', justifyContent: 'center', width: '100%' },
-  vc: { height: '100%', alignItems: 'center', paddingVertical: 0 },
-  tw: { width: '100%', justifyContent: 'center', position: 'relative' },
-  twv: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' },
-  tp: { width: '100%', justifyContent: 'center' },
-  tpv: { flex: 1, alignItems: 'center' },
-  tb: { overflow: 'hidden', position: 'relative' },
-  th: { width: '100%' },
-  tv: { height: '100%' },
-  a: { position: 'absolute' },
-  t: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-  thw: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-})
-
+const S = StyleSheet.create({ c: { position: 'relative', justifyContent: 'center', width: '100%' }, vc: { height: '100%', alignItems: 'center', paddingVertical: 0 }, tw: { width: '100%', justifyContent: 'center', position: 'relative' }, twv: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }, tp: { width: '100%', justifyContent: 'center' }, tpv: { flex: 1, alignItems: 'center' }, tb: { overflow: 'hidden', position: 'relative' }, th: { width: '100%' }, tv: { height: '100%' }, a: { position: 'absolute' }, t: { position: 'absolute', alignItems: 'center', justifyContent: 'center' }, thw: { position: 'absolute', alignItems: 'center', justifyContent: 'center' } })
 export const Slider = React.memo(SliderImpl)
-Slider.displayName = 'Slider'
-
 export default Slider

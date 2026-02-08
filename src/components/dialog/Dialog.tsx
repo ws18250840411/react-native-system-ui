@@ -13,15 +13,7 @@ import Popup from '../popup'
 import type { DialogProps } from './types'
 import { useDialogTokens, type DialogTokens } from './tokens'
 
-interface ActionButtonProps {
-  text: React.ReactNode
-  color?: string
-  tokens: DialogTokens
-  dividerPosition?: 'left' | 'right' | 'none'
-  loading?: boolean
-  disabled?: boolean
-  onPress?: () => void
-}
+interface ActionButtonProps { text: React.ReactNode; color?: string; tokens: DialogTokens; dividerPosition?: 'left' | 'right' | 'none'; loading?: boolean; disabled?: boolean; onPress?: () => void }
 
 const ActionButton = (props: ActionButtonProps) => {
   const { text, color, tokens, dividerPosition = 'none', loading, disabled, onPress } = props
@@ -136,21 +128,6 @@ const DialogImpl: React.FC<DialogProps> = props => {
   )
 }
 
-const S = StyleSheet.create({
-  titleWrap: { alignItems: 'center' },
-  title: { textAlign: 'center' },
-  content: { width: '100%' },
-  msg: { textAlign: 'center' },
-  footer: { flexDirection: 'row', position: 'relative' },
-  footerBorder: { position: 'absolute', top: 0, left: 0, right: 0, height: 0 },
-  btn: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  btnDiv: { position: 'absolute', pointerEvents: 'none' },
-  msgWrap: { width: '100%' },
-  roundFooter: { width: '100%', flexDirection: 'row' },
-  roundBtnWrap: { flex: 1 },
-  closeIcon: { position: 'absolute', zIndex: 1 },
-})
-
+const S = StyleSheet.create({ titleWrap: { alignItems: 'center' }, title: { textAlign: 'center' }, content: { width: '100%' }, msg: { textAlign: 'center' }, footer: { flexDirection: 'row', position: 'relative' }, footerBorder: { position: 'absolute', top: 0, left: 0, right: 0, height: 0 }, btn: { flex: 1, alignItems: 'center', justifyContent: 'center' }, btnDiv: { position: 'absolute', pointerEvents: 'none' }, msgWrap: { width: '100%' }, roundFooter: { width: '100%', flexDirection: 'row' }, roundBtnWrap: { flex: 1 }, closeIcon: { position: 'absolute', zIndex: 1 } })
 export const Dialog = React.memo(DialogImpl)
-Dialog.displayName = 'Dialog'
 export default Dialog

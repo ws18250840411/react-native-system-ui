@@ -124,5 +124,4 @@ const CascaderOptionList = React.memo(({ optionList, tabIndex, selectedValue, ac
 })
 
 const Cascader = React.memo(CascaderImpl)
-Cascader.displayName = 'Cascader'
 export default Cascader

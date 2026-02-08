@@ -8,21 +8,7 @@ import { useCheckboxTokens } from './tokens'
 import { createHairlineView, renderTextOrNode } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 
-/**
- * Dummy CheckboxGroupState used when the checkbox is NOT inside a group.
- * This allows us to always call useCheckboxGroupItem unconditionally,
- * satisfying React's Rules of Hooks (hooks must not be called conditionally).
- */
-const EMPTY_CHECKBOX_GROUP_STATE = {
-  value: [] as string[],
-  isDisabled: false,
-  isReadOnly: false,
-  isSelected: () => false,
-  setValue: () => {},
-  addValue: () => {},
-  removeValue: () => {},
-  toggleValue: () => {},
-} as any
+const EMPTY_CHECKBOX_GROUP_STATE = { value: [] as string[], isDisabled: false, isReadOnly: false, isSelected: () => false, setValue: () => {}, addValue: () => {}, removeValue: () => {}, toggleValue: () => {} } as any
 
 const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
   const { children, name, value, iconRender, bindGroup: bgp, shape, iconSize, checkedColor, labelPosition, labelDisabled, disabled, style, labelStyle, tokensOverride, hitSlop = 8, accessibilityLabel, ['aria-label']: al, onClick, onChange, ...rest } = p
@@ -52,8 +38,6 @@ const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
   }, [bg, g, sv, rv, rd])
   const ral = accessibilityLabel ?? al ?? (isText(children) ? String(children) : undefined) ?? sv ?? 'checkbox'
   const ar = ir as unknown as React.RefObject<HTMLInputElement>
-  // Always call both hooks unconditionally to satisfy React's Rules of Hooks.
-  // When not in a group, a dummy state is used for useCheckboxGroupItem.
   const { inputProps: gip } = useCheckboxGroupItem(
     { ...cr, value: sv ?? '', isDisabled: rd, 'aria-label': ral },
     ig && g ? g.state : EMPTY_CHECKBOX_GROUP_STATE,
@@ -145,8 +129,5 @@ const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
 }
 
 const CheckboxForwardRef = React.forwardRef<View, CheckboxProps>(CheckboxImpl)
-CheckboxForwardRef.displayName = 'Checkbox'
-
 export const Checkbox = React.memo(CheckboxForwardRef)
-
 export default Checkbox

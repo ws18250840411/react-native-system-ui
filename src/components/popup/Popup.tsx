@@ -195,19 +195,7 @@ const PopupImpl: React.FC<PopupProps> = props => {
   )
 }
 
-const S = StyleSheet.create({
-  root: { ...StyleSheet.absoluteFillObject, justifyContent: 'center' },
-  ctr: { flex: 1 },
-  ovl: { ...StyleSheet.absoluteFillObject, opacity: 0 },
-  header: { width: '100%' },
-  title: { includeFontPadding: false },
-  desc: { includeFontPadding: false },
-  popV: { alignSelf: 'stretch' },
-  closeBase: { position: 'absolute', zIndex: 999, alignItems: 'center', justifyContent: 'center' },
-  lock: { ...StyleSheet.absoluteFillObject },
-})
-
+const S = StyleSheet.create({ root: { ...StyleSheet.absoluteFillObject, justifyContent: 'center' }, ctr: { flex: 1 }, ovl: { ...StyleSheet.absoluteFillObject, opacity: 0 }, header: { width: '100%' }, title: { includeFontPadding: false }, desc: { includeFontPadding: false }, popV: { alignSelf: 'stretch' }, closeBase: { position: 'absolute', zIndex: 999, alignItems: 'center', justifyContent: 'center' }, lock: { ...StyleSheet.absoluteFillObject } })
 export type { PopupPlacement, PopupCloseIconPosition, PopupProps } from './types'
 export const Popup = React.memo(PopupImpl)
-Popup.displayName = 'Popup'
 export default Popup

@@ -148,5 +148,4 @@ const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
 }
 
 const DatetimePicker = React.memo(DatetimePickerImpl)
-DatetimePicker.displayName = 'DatetimePicker'
 export default DatetimePicker

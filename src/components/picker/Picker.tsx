@@ -9,24 +9,11 @@ import { usePickerTokens } from './tokens'
 import { createHairlineView } from '../../utils/hairline'
 import type { PickerColumn, PickerColumnProps, PickerColumns, PickerOption, PickerProps, PickerValue } from './types'
 
-export interface NormalizedPickerResult {
-  columns: PickerOption[][]
-  values: PickerValue[]
-  options: (PickerOption | undefined)[]
-}
+export interface NormalizedPickerResult { columns: PickerOption[][]; values: PickerValue[]; options: (PickerOption | undefined)[] }
+export interface PreparedPickerColumns { type: 'single' | 'multiple' | 'cascade'; columnsList: PickerOption[][]; defaults: (PickerValue | undefined)[]; cascadeRoot?: PickerOption[] }
 
-export interface PreparedPickerColumns {
-  type: 'single' | 'multiple' | 'cascade'
-  columnsList: PickerOption[][]
-  defaults: (PickerValue | undefined)[]
-  cascadeRoot?: PickerOption[]
-}
-
-export const toArrayValue = (value?: PickerValue[] | PickerValue | null): PickerValue[] => {
-  if (Array.isArray(value)) return value.filter(v => v !== undefined && v !== null) as PickerValue[]
-  if (value === undefined || value === null) return []
-  return [value]
-}
+export const toArrayValue = (value?: PickerValue[] | PickerValue | null): PickerValue[] =>
+  Array.isArray(value) ? value.filter(v => v !== undefined && v !== null) as PickerValue[] : value == null ? [] : [value]
 
 const isColumnWithOptions = (col: PickerColumn | PickerOption): col is { options: PickerOption[]; defaultValue?: PickerValue } =>
   !!col && isObject(col) && 'options' in col && Array.isArray((col as { options?: unknown }).options)
@@ -75,52 +62,30 @@ const normalizeCascade = (root: PickerOption[], raw: PickerValue[]): NormalizedP
     const tgt: PickerOption | undefined = tgtIdx >= 0 ? curr[tgtIdx] : curr[0]
     vals[d] = tgt?.value as PickerValue
     opts[d] = tgt
-    if (tgt && hasChildren(tgt)) {
-      curr = tgt.children
-      d += 1
-    } else {
-      break
-    }
+    if (tgt && hasChildren(tgt)) { curr = tgt.children; d += 1 } else break
   }
   return { columns: cols, values: vals, options: opts }
 }
 
 export const prepareColumns = (input: PickerColumns = []): PreparedPickerColumns => {
-  if (!Array.isArray(input) || input.length === 0) {
-    return { type: 'single', columnsList: [], defaults: [], cascadeRoot: [] }
-  }
+  if (!Array.isArray(input) || input.length === 0) return { type: 'single', columnsList: [], defaults: [], cascadeRoot: [] }
   const everyPlain = input.every(item => !Array.isArray(item) && !isColumnWithOptions(item as unknown as PickerColumn | PickerOption))
   const cascade = everyPlain && input.some(item => hasChildren(item as PickerOption))
-  if (cascade) {
-    return { type: 'cascade', columnsList: [], defaults: [], cascadeRoot: input as PickerOption[] }
-  }
+  if (cascade) return { type: 'cascade', columnsList: [], defaults: [], cascadeRoot: input as PickerOption[] }
   const asArray = input as unknown[]
   const cols: PickerOption[][] = [], defs: (PickerValue | undefined)[] = []
   const treatAsSingle = everyPlain && !cascade
-  if (treatAsSingle) {
-    cols.push(input as PickerOption[])
-    defs.push(undefined)
-  } else {
-    asArray.forEach(col => {
-      if (Array.isArray(col)) {
-        cols.push(col as PickerOption[])
-        defs.push(undefined)
-      } else if (isColumnWithOptions(col as unknown as PickerColumn | PickerOption)) {
-        const c = col as { options?: PickerOption[]; defaultValue?: PickerValue }
-        cols.push(c.options ?? [])
-        defs.push(c.defaultValue)
-      }
-    })
-  }
+  if (treatAsSingle) { cols.push(input as PickerOption[]); defs.push(undefined) }
+  else asArray.forEach(col => {
+    if (Array.isArray(col)) { cols.push(col as PickerOption[]); defs.push(undefined) }
+    else if (isColumnWithOptions(col as unknown as PickerColumn | PickerOption)) { const c = col as { options?: PickerOption[]; defaultValue?: PickerValue }; cols.push(c.options ?? []); defs.push(c.defaultValue) }
+  })
   return { type: 'multiple', columnsList: cols, defaults: defs }
 }
 
 export const normalizePicker = (prep: PreparedPickerColumns, raw: PickerValue[] = []): NormalizedPickerResult => {
   const rawVal = Array.isArray(raw) ? raw : []
-  if (prep.type === 'cascade' && prep.cascadeRoot?.length) {
-    return normalizeCascade(prep.cascadeRoot, rawVal)
-  }
-  return normalizeMultiple(prep.columnsList, prep.defaults, rawVal)
+  return prep.type === 'cascade' && prep.cascadeRoot?.length ? normalizeCascade(prep.cascadeRoot, rawVal) : normalizeMultiple(prep.columnsList, prep.defaults, rawVal)
 }
 
 const W = StyleSheet.create({
@@ -130,15 +95,7 @@ const W = StyleSheet.create({
 })
 
 type WheelPickerRender<T> = (item: T, index: number, meta: { active: boolean; disabled: boolean }) => React.ReactNode
-
-type WheelPickerItemProps<T> = {
-  item: T
-  index: number
-  itemHeight: number
-  active: boolean
-  disabled: boolean
-  renderItem: WheelPickerRender<T>
-}
+type WheelPickerItemProps<T> = { item: T; index: number; itemHeight: number; active: boolean; disabled: boolean; renderItem: WheelPickerRender<T> }
 
 const WheelPickerItemInner = <T extends PickerOption>({ item, index, itemHeight, active, disabled, renderItem }: WheelPickerItemProps<T>) => {
   const content = renderItem(item, index, { active, disabled })
@@ -147,21 +104,7 @@ const WheelPickerItemInner = <T extends PickerOption>({ item, index, itemHeight,
 
 const WheelPickerItem = React.memo(WheelPickerItemInner) as <T extends PickerOption>(props: WheelPickerItemProps<T>) => React.JSX.Element
 
-type WheelPickerProps<T extends PickerOption = PickerOption> = {
-  data: T[]
-  selectedIndex: number
-  onChange: (index: number) => void
-  onInteractStart?: () => void
-  onInteractEnd?: () => void
-  renderItem: WheelPickerRender<T>
-  itemHeight: number
-  visibleRest: number
-  readOnly?: boolean
-  indicatorColor: string
-  decelerationRate?: 'normal' | 'fast' | number
-  scrollEventThrottle?: number
-  swipeDuration?: number
-}
+type WheelPickerProps<T extends PickerOption = PickerOption> = { data: T[]; selectedIndex: number; onChange: (index: number) => void; onInteractStart?: () => void; onInteractEnd?: () => void; renderItem: WheelPickerRender<T>; itemHeight: number; visibleRest: number; readOnly?: boolean; indicatorColor: string; decelerationRate?: 'normal' | 'fast' | number; scrollEventThrottle?: number; swipeDuration?: number }
 
 const getVelocityBucket = (v: number) => {
   const abs = Math.abs(v)
@@ -403,7 +346,6 @@ const WheelPickerInner = <T extends PickerOption,>({
       setWebTransition(0)
     },
   }), [data, itemHeight, minOff, notifyEnd, notifyStart, readOnly, setVelocityBucket, startWebSnap, stopRaf, total])
-  // --- Native-only hooks (must be called unconditionally to satisfy Rules of Hooks) ---
   const shouldCapture = !readOnly
   const handleResponderCapture = useCallback(() => shouldCapture, [shouldCapture])
   const nativeContainerStyle = useMemo(() => ({ paddingVertical: spacerHeight }), [spacerHeight])
@@ -430,7 +372,6 @@ const WheelPickerInner = <T extends PickerOption,>({
     emitIdx(y, false)
     notifyEnd()
   }, [clearDragEndTimer, emitIdx, notifyEnd])
-  // --- End native-only hooks ---
   if (isWeb) {
     return (
       <View style={[W.column, { height: containerHeight }, W.grab]} {...({ onWheel: handleWheel } as unknown as React.ComponentProps<typeof View>)} {...panResponder.panHandlers}>
@@ -519,36 +460,23 @@ export function usePickerValue({
   return { preparedColumns, normalized, handleSelect, handleConfirm }
 }
 
-const getVisibleCount = (count: number) => {
-  const normalized = isFiniteNumber(count) ? Math.max(3, Math.floor(count)) : 5
-  return normalized % 2 === 0 ? normalized + 1 : normalized
-}
+const getVisibleCount = (count: number) => { const n = isFiniteNumber(count) ? Math.max(3, Math.floor(count)) : 5; return n % 2 === 0 ? n + 1 : n }
 
 const GRADIENT_OVERLAY_ALPHA = 0.25
 const GRADIENT_STEPS = [0.95, 0.75, 0.55, 0.35]
 const GRADIENT_STEPS_REVERSED = [0.35, 0.55, 0.75, 0.95]
 
 const GradientMask: React.FC<{ height: number; color: string; position: 'top' | 'bottom'; maskType: NonNullable<PickerProps['maskType']> }> = ({ height, color, position, maskType }) => {
-  const isWeb = Platform.OS === 'web'
   const baseStyle = [S.gMask, { height }, position === 'top' ? { top: 0 } : { bottom: 0 }]
   const overlayColor = withAlpha(color, GRADIENT_OVERLAY_ALPHA)
-  if (maskType === 'solid') {
-    return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: withAlpha(color, 0.9) }]} />
-  }
-  if (isWeb) {
+  if (maskType === 'solid') return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: withAlpha(color, 0.9) }]} />
+  if (Platform.OS === 'web') {
     const angle = position === 'top' ? '180deg' : '0deg'
-    const gradientStart = withAlpha(color, 0.98)
-    const gradientEnd = withAlpha(color, 0.4)
-    return (
-      <View pointerEvents="none" style={[...baseStyle, ({ backgroundColor: overlayColor, backgroundImage: `linear-gradient(${angle}, ${gradientStart}, ${gradientEnd})` } as unknown as ViewStyle)]} />
-    )
+    return <View pointerEvents="none" style={[...baseStyle, ({ backgroundColor: overlayColor, backgroundImage: `linear-gradient(${angle}, ${withAlpha(color, 0.98)}, ${withAlpha(color, 0.4)})` } as unknown as ViewStyle)]} />
   }
-  const steps = position === 'top' ? GRADIENT_STEPS : GRADIENT_STEPS_REVERSED
   return (
     <View pointerEvents="none" style={[...baseStyle, { backgroundColor: overlayColor }]}>
-      {steps.map((opacity, idx) => (
-        <View key={idx} style={{ flex: 1, backgroundColor: withAlpha(color, opacity) }} />
-      ))}
+      {(position === 'top' ? GRADIENT_STEPS : GRADIENT_STEPS_REVERSED).map((opacity, idx) => <View key={idx} style={{ flex: 1, backgroundColor: withAlpha(color, opacity) }} />)}
     </View>
   )
 }
@@ -599,16 +527,8 @@ const PickerImpl: React.FC<PickerProps> = props => {
   const { normalized, handleSelect, handleConfirm, preparedColumns } = usePickerValue({ columns, valueProp, defaultValue, emitConfirmOnAutoSelect, onChange, onConfirm })
   const isCascade = preparedColumns.type === 'cascade'
   const toolbarFont = { fontSize: tokens.typography.toolbarSize, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.toolbarWeight }
-  const renderActionContent = (content: React.ReactNode, color: string) => {
-    if (React.isValidElement(content)) return <View style={S.actW}>{content}</View>
-    if (isText(content)) return <Text numberOfLines={1} style={[S.actTxt, toolbarFont, { color }]}>{content}</Text>
-    return <View style={S.actW} />
-  }
-  const renderTitleContent = (content: React.ReactNode) => {
-    if (content == null) return <View />
-    if (React.isValidElement(content)) return <View style={S.ttlW}>{content}</View>
-    return <Text style={[S.title, toolbarFont, { color: tokens.colors.text }]} numberOfLines={1}>{content}</Text>
-  }
+  const renderActionContent = (content: React.ReactNode, color: string) => React.isValidElement(content) ? <View style={S.actW}>{content}</View> : isText(content) ? <Text numberOfLines={1} style={[S.actTxt, toolbarFont, { color }]}>{content}</Text> : <View style={S.actW} />
+  const renderTitleContent = (content: React.ReactNode) => content == null ? <View /> : React.isValidElement(content) ? <View style={S.ttlW}>{content}</View> : <Text style={[S.title, toolbarFont, { color: tokens.colors.text }]} numberOfLines={1}>{content}</Text>
   const toolbar = showToolbar ? (
     <View style={[S.toolbar, { height: tokens.spacing.toolbarHeight, paddingHorizontal: tokens.spacing.actionPadding }]}>
       <Pressable onPress={onCancel} accessibilityRole="button">{renderActionContent(cancelButtonText, tokens.colors.cancel)}</Pressable>
@@ -673,6 +593,4 @@ const S = StyleSheet.create({
 })
 
 const Picker = React.memo(PickerImpl)
-Picker.displayName = 'Picker'
-
 export default Picker
