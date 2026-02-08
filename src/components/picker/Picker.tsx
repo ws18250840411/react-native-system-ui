@@ -403,23 +403,10 @@ const WheelPickerInner = <T extends PickerOption,>({
       setWebTransition(0)
     },
   }), [data, itemHeight, minOff, notifyEnd, notifyStart, readOnly, setVelocityBucket, startWebSnap, stopRaf, total])
-  if (isWeb) {
-    return (
-      <View style={[W.column, { height: containerHeight }, W.grab]} {...({ onWheel: handleWheel } as unknown as React.ComponentProps<typeof View>)} {...panResponder.panHandlers}>
-        <View style={indicatorStyle} pointerEvents="none"><View style={createHairlineView({ position: 'top', color: indicatorColor, left: 0, right: 0 })} /><View style={createHairlineView({ position: 'bottom', color: indicatorColor, left: 0, right: 0 })} /></View>
-        <View style={[webTransform, webTransitionStyle]} {...({ onTransitionEnd: handleWebTransitionEnd } as unknown as React.ComponentProps<typeof View>)}>
-          <Spacer />
-          {webRender.topSpacer}
-          {webRender.items}
-          {webRender.bottomSpacer}
-          <Spacer />
-        </View>
-      </View>
-    )
-  }
+  // --- Native-only hooks (must be called unconditionally to satisfy Rules of Hooks) ---
   const shouldCapture = !readOnly
   const handleResponderCapture = useCallback(() => shouldCapture, [shouldCapture])
-  const containerStyle = useMemo(() => ({ paddingVertical: spacerHeight }), [spacerHeight])
+  const nativeContainerStyle = useMemo(() => ({ paddingVertical: spacerHeight }), [spacerHeight])
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { lastOffsetRef.current = e.nativeEvent.contentOffset.y }, [])
   const onDragStart = useCallback(() => { momentumRef.current = false; clearDragEndTimer(); notifyStart() }, [clearDragEndTimer, notifyStart])
   const handleScrollEndDrag = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -443,10 +430,25 @@ const WheelPickerInner = <T extends PickerOption,>({
     emitIdx(y, false)
     notifyEnd()
   }, [clearDragEndTimer, emitIdx, notifyEnd])
+  // --- End native-only hooks ---
+  if (isWeb) {
+    return (
+      <View style={[W.column, { height: containerHeight }, W.grab]} {...({ onWheel: handleWheel } as unknown as React.ComponentProps<typeof View>)} {...panResponder.panHandlers}>
+        <View style={indicatorStyle} pointerEvents="none"><View style={createHairlineView({ position: 'top', color: indicatorColor, left: 0, right: 0 })} /><View style={createHairlineView({ position: 'bottom', color: indicatorColor, left: 0, right: 0 })} /></View>
+        <View style={[webTransform, webTransitionStyle]} {...({ onTransitionEnd: handleWebTransitionEnd } as unknown as React.ComponentProps<typeof View>)}>
+          <Spacer />
+          {webRender.topSpacer}
+          {webRender.items}
+          {webRender.bottomSpacer}
+          <Spacer />
+        </View>
+      </View>
+    )
+  }
   return (
     <View style={[W.column, { height: containerHeight }]} collapsable={false}>
       <View style={indicatorStyle} pointerEvents="none"><View style={createHairlineView({ position: 'top', color: indicatorColor, left: 0, right: 0 })} /><View style={createHairlineView({ position: 'bottom', color: indicatorColor, left: 0, right: 0 })} /></View>
-      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} scrollEventThrottle={effectiveScrollThrottle} decelerationRate={decelerationRate} snapToInterval={itemHeight} snapToAlignment="start" bounces={false} overScrollMode="never" nestedScrollEnabled contentContainerStyle={containerStyle} onStartShouldSetResponderCapture={handleResponderCapture} onMoveShouldSetResponderCapture={handleResponderCapture} onScroll={handleScroll} onScrollBeginDrag={onDragStart} onScrollEndDrag={handleScrollEndDrag} onMomentumScrollBegin={handleMomentumScrollBegin} onMomentumScrollEnd={onMomEnd} scrollEnabled={!readOnly}>
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} scrollEventThrottle={effectiveScrollThrottle} decelerationRate={decelerationRate} snapToInterval={itemHeight} snapToAlignment="start" bounces={false} overScrollMode="never" nestedScrollEnabled contentContainerStyle={nativeContainerStyle} onStartShouldSetResponderCapture={handleResponderCapture} onMoveShouldSetResponderCapture={handleResponderCapture} onScroll={handleScroll} onScrollBeginDrag={onDragStart} onScrollEndDrag={handleScrollEndDrag} onMomentumScrollBegin={handleMomentumScrollBegin} onMomentumScrollEnd={onMomEnd} scrollEnabled={!readOnly}>
         {data.map((item, index) => (
           <WheelPickerItem key={`${index}-${String(item.value ?? '')}`} item={item} index={index} itemHeight={itemHeight} active={index === safeSelIdx} disabled={!!item.disabled} renderItem={renderItem} />
         ))}

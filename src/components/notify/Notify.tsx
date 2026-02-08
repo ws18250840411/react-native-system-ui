@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Platform, Pressable, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 import { isFunction, isText } from '../../utils'
 import { renderTextOrNode } from '../../utils'
@@ -42,18 +42,18 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
   onClosedRef.current = onClosed
   const onClickRef = useRef(onClick)
   onClickRef.current = onClick
-  const [barHeight, setBarHeight] = React.useState(0)
+  const [barHeight, setBarHeight] = useState(0)
   const handleLayout = useCallback((e: LayoutChangeEvent) => { const height = e.nativeEvent.layout.height; if (!height) return; setBarHeight(prev => prev === height ? prev : height) }, [])
   const canAnimate = barHeight > 0
-  const [mounted, setMounted] = React.useState(visible)
-  const animatedValue = React.useRef(new Animated.Value(0)).current
-  const animationRef = React.useRef<Animated.CompositeAnimation | null>(null)
-  const animationIdRef = React.useRef(0)
+  const [mounted, setMounted] = useState(visible)
+  const animatedValue = useRef(new Animated.Value(0)).current
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null)
+  const animationIdRef = useRef(0)
   const { zIndex: stackZIndex } = useOverlayStack({ visible: mounted, type: 'notify', zIndex })
   const resolvedZIndex = stackZIndex ?? zIndex
-  const previousVisibleRef = React.useRef(visible)
-  const closingRef = React.useRef(false)
-  React.useEffect(() => {
+  const previousVisibleRef = useRef(visible)
+  const closingRef = useRef(false)
+  useEffect(() => {
     animationIdRef.current += 1
     const animationId = animationIdRef.current
     animationRef.current?.stop()
@@ -76,8 +76,8 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
       animationRef.current.start(({ finished }) => { if (!finished || animationId !== animationIdRef.current) return; setMounted(false) })
     }
   }, [animatedValue, canAnimate, tokens.defaults.animationDuration, visible])
-  React.useEffect(() => () => { animationRef.current?.stop() }, [])
-  React.useEffect(() => {
+  useEffect(() => () => { animationRef.current?.stop() }, [])
+  useEffect(() => {
     let openedTimeout: ReturnType<typeof setTimeout> | null = null
     if (visible) {
       closingRef.current = false
@@ -94,13 +94,13 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
     previousVisibleRef.current = visible
     return () => { if (openedTimeout) clearTimeout(openedTimeout) }
   }, [tokens.defaults.animationDuration, visible])
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mounted && closingRef.current) {
       closingRef.current = false
       onClosedRef.current?.()
     }
   }, [mounted])
-  React.useEffect(() => {
+  useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | null = null
     if (visible && resolvedDuration > 0) {
       timeout = setTimeout(() => { onCloseRef.current?.() }, resolvedDuration)

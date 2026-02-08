@@ -29,9 +29,17 @@ const getList = (context: { getFieldsValue: () => Record<string, unknown> }, nam
 
 export const FormList: React.FC<FormListProps> = ({ name, initialValue, children }) => {
   const context = useContext(FormContext)
-  const keyRef = useRef(0)
+  const keyCounterRef = useRef(0)
+  const keysRef = useRef<number[]>([])
   const nameKey = serializeNamePath(name)
   const [listValue, setListValue] = useState<unknown[]>(() => context ? getList(context, name) : [])
+
+  /** Ensure keysRef has exactly `length` entries, appending fresh keys or trimming as needed. */
+  const syncKeys = useCallback((length: number) => {
+    const keys = keysRef.current
+    while (keys.length < length) keys.push(keyCounterRef.current++)
+    if (keys.length > length) keysRef.current = keys.slice(0, length)
+  }, [])
 
   const ensureInitial = useCallback(() => {
     if (!context) return
@@ -49,10 +57,12 @@ export const FormList: React.FC<FormListProps> = ({ name, initialValue, children
     return context.subscribe((changed, all) => {
       if (FORM_ALL_FIELDS_KEY in changed || nameKey in changed) {
         const nextRaw = getValueByName(all, name)
-        setListValue(Array.isArray(nextRaw) ? nextRaw : [])
+        const nextList = Array.isArray(nextRaw) ? nextRaw : []
+        syncKeys(nextList.length)
+        setListValue(nextList)
       }
     })
-  }, [context, name, nameKey])
+  }, [context, name, nameKey, syncKeys])
 
   const add = useCallback((defaultValue?: unknown, index?: number) => {
     if (!context) return
@@ -60,14 +70,15 @@ export const FormList: React.FC<FormListProps> = ({ name, initialValue, children
     const insertIndex = typeof index === 'number' ? index : arr.length
     const next = [...arr]
     next.splice(insertIndex, 0, defaultValue)
+    keysRef.current.splice(insertIndex, 0, keyCounterRef.current++)
     context.setFieldValue(name, next)
-    keyRef.current += 1
   }, [context, name])
 
   const remove = useCallback((index: number) => {
     if (!context) return
     const arr = getList(context, name)
     if (index < 0 || index >= arr.length) return
+    keysRef.current.splice(index, 1)
     context.setFieldValue(name, arr.slice(0, index).concat(arr.slice(index + 1)))
   }, [context, name])
 
@@ -78,14 +89,18 @@ export const FormList: React.FC<FormListProps> = ({ name, initialValue, children
     const next = [...arr]
     const item = next.splice(from, 1)[0]
     next.splice(to, 0, item)
+    const [movedKey] = keysRef.current.splice(from, 1)
+    keysRef.current.splice(to, 0, movedKey)
     context.setFieldValue(name, next)
   }, [context, name])
 
   if (!context) return null
 
+  syncKeys(listValue.length)
+
   const fields: FormListField[] = listValue.map((_, index) => ({
     name: index,
-    key: keyRef.current + index,
+    key: keysRef.current[index],
     isListField: true,
   }))
 

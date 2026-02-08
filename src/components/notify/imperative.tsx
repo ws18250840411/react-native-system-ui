@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import Portal from '../portal/Portal'
 import { isFunction, isString, isText } from '../../utils'
@@ -79,15 +79,15 @@ const NotifyPortal: React.FC<NotifyPortalProps> = ({ id, options }) => {
     }
   }, [id])
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     options.onClose?.()
     setVisible(false)
-  }
+  }, [options])
 
-  const handleClosed = () => {
+  const handleClosed = useCallback(() => {
     options.onClosed?.()
     removeNotify(id)
-  }
+  }, [id, options])
 
   return <NotifyContent {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
 }
@@ -96,7 +96,7 @@ const showNotify = (input?: NotifyInput, fallbackType: NotifyType = 'primary'): 
   const opts = mergeOptions(parseOptions(input), fallbackType)
 
   if (!allowMultiple) {
-    Array.from(activeKeys).forEach(key => removeNotify(key))
+    Array.from(activeKeys).forEach(key => closeNotify(key))
   }
 
   const key = Portal.add(null)

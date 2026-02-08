@@ -8,6 +8,22 @@ import { useCheckboxTokens } from './tokens'
 import { createHairlineView, renderTextOrNode } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 
+/**
+ * Dummy CheckboxGroupState used when the checkbox is NOT inside a group.
+ * This allows us to always call useCheckboxGroupItem unconditionally,
+ * satisfying React's Rules of Hooks (hooks must not be called conditionally).
+ */
+const EMPTY_CHECKBOX_GROUP_STATE = {
+  value: [] as string[],
+  isDisabled: false,
+  isReadOnly: false,
+  isSelected: () => false,
+  setValue: () => {},
+  addValue: () => {},
+  removeValue: () => {},
+  toggleValue: () => {},
+} as any
+
 const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
   const { children, name, value, iconRender, bindGroup: bgp, shape, iconSize, checkedColor, labelPosition, labelDisabled, disabled, style, labelStyle, tokensOverride, hitSlop = 8, accessibilityLabel, ['aria-label']: al, onClick, onChange, ...rest } = p
   const t = useCheckboxTokens(tokensOverride)
@@ -35,18 +51,25 @@ const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
     return undefined
   }, [bg, g, sv, rv, rd])
   const ral = accessibilityLabel ?? al ?? (isText(children) ? String(children) : undefined) ?? sv ?? 'checkbox'
-  let ip: Partial<React.ComponentProps<typeof Pressable>> | undefined
-  let ic: boolean
   const ar = ir as unknown as React.RefObject<HTMLInputElement>
-  if (ig && g) {
-    const { inputProps: gip } = useCheckboxGroupItem({ ...cr, value: sv!, isDisabled: rd, 'aria-label': ral }, g.state, ar)
-    ip = gip as unknown as Partial<React.ComponentProps<typeof Pressable>>
-    ic = g.state.isSelected(sv!)
-  } else {
-    const { inputProps: sp } = useCheckbox({ ...cr, isDisabled: rd, value: sv, 'aria-label': ral }, ss, ar)
-    ip = sp as unknown as Partial<React.ComponentProps<typeof Pressable>>
-    ic = p.checked !== undefined ? p.checked : ss.isSelected
-  }
+  // Always call both hooks unconditionally to satisfy React's Rules of Hooks.
+  // When not in a group, a dummy state is used for useCheckboxGroupItem.
+  const { inputProps: gip } = useCheckboxGroupItem(
+    { ...cr, value: sv ?? '', isDisabled: rd, 'aria-label': ral },
+    ig && g ? g.state : EMPTY_CHECKBOX_GROUP_STATE,
+    ar,
+  )
+  const { inputProps: sip } = useCheckbox(
+    { ...cr, isDisabled: rd, value: sv, 'aria-label': ral },
+    ss,
+    ar,
+  )
+  const ip: Partial<React.ComponentProps<typeof Pressable>> = ig && g
+    ? (gip as unknown as Partial<React.ComponentProps<typeof Pressable>>)
+    : (sip as unknown as Partial<React.ComponentProps<typeof Pressable>>)
+  const ic = ig && g
+    ? g.state.isSelected(sv!)
+    : (p.checked !== undefined ? p.checked : ss.isSelected)
   const br = rs === 'round' ? ris / 2 : t.radii.square
   const bc = rd ? t.colors.disabledBorder : ic ? rcc : t.colors.border
   const bgc = rd ? t.colors.disabledBackground : ic ? rcc : t.colors.background

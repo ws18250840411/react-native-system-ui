@@ -45,7 +45,7 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
   return {
     defaults: {
       itemHeight: 44,
-      visibleItemCount: 6,
+      visibleItemCount: 5,
       showToolbar: true,
       toolbarPosition: 'top',
       swipeDuration: 700,

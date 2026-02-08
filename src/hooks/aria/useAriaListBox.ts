@@ -19,11 +19,8 @@ export interface UseAriaListBoxResult<T> {
 export const useAriaListBox = <T extends object>(props: UseAriaListBoxOptions<T>): UseAriaListBoxResult<T> => {
   const ref = useRef<unknown>(null)
   const { label, ...rest } = props
-  const resolved = useMemo(() => {
-    if (label == null) return rest
-    const al = typeof label === 'string' ? label : undefined
-    return { ...rest, ...(al ? { 'aria-label': al } : null) }
-  }, [label, rest])
+  const ariaLabel = typeof label === 'string' ? label : undefined
+  const resolved = ariaLabel ? { ...rest, 'aria-label': ariaLabel } : rest
   const state = useListState(resolved)
   const { listBoxProps, labelProps } = useListBox(resolved, state, ref as unknown as React.RefObject<HTMLElement>)
   return {

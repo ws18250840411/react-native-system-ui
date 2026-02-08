@@ -276,7 +276,7 @@ const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
     [requestClose, shouldCloseOnClickAction]
   )
 
-  const popupStyleMemo = [tokens.layout.popup, popupStyle]
+  const popupStyleMemo = useMemo(() => [tokens.layout.popup, popupStyle], [tokens.layout.popup, popupStyle])
 
   const panelStyle = [tokens.layout.panel, { backgroundColor: tokens.colors.background }]
 
