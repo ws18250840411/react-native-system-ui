@@ -4,6 +4,7 @@ import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
+import { useDirection } from '../config-provider/useDirection'
 import { createHairlineView } from '../../utils/hairline'
 import { isRenderable, isText, renderTextOrNode } from '../../utils'
 import { SafeAreaView } from '../safe-area-view'
@@ -40,6 +41,7 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
   } = props
 
   const locale = useLocale()
+  const dir = useDirection()
   const tokens = useNavBarTokens(tokensOverride)
   const leftArrow = leftArrowProp ?? tokens.defaults.leftArrow
   const fixed = fixedProp ?? tokens.defaults.fixed
@@ -88,7 +90,7 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
 
   const renderLeft = () => {
     const arrowNode = leftArrow === true
-      ? <ArrowLeft size={18} fill={sideColor} color={sideColor} />
+      ? <ArrowLeft size={18} fill={sideColor} color={sideColor} style={dir === 'rtl' ? { transform: [{ scaleX: -1 }] } : undefined} />
       : (isRenderable(leftArrow) && leftArrow)
 
     const hasAction = !!handlePressLeft

@@ -51,3 +51,11 @@ import { NavBar } from 'react-native-system-ui'
 | --- | --- | --- |
 | `onClickLeft` | 点击左侧按钮时触发 | - |
 | `onClickRight` | 点击右侧按钮时触发 | - |
+
+## 国际化
+
+NavBar 的左右按钮无障碍标签通过 `locale.vanNavBar` 读取，可通过 `ConfigProvider` 的 `locale` 属性切换语言。
+
+## RTL 支持
+
+在 RTL 布局下，返回箭头会自动水平镜像（指向右侧）。通过 `ConfigProvider` 的 `direction="rtl"` 生效。

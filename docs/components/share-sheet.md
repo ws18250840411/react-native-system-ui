@@ -51,7 +51,7 @@ import { ShareSheet } from 'react-native-system-ui'
 | `options` | 分享选项（支持二维数组分组） | `ShareSheetOptions` | `[]` |
 | `title` | 顶部标题 | `ReactNode` | - |
 | `description` | 标题下方描述 | `ReactNode` | - |
-| `cancelText` | 底部取消按钮文字，传空隐藏 | `ReactNode` | `'取消'` |
+| `cancelText` | 底部取消按钮文字，传空隐藏 | `ReactNode` | `locale.vanShareSheet.cancel`（中文：取消） |
 | `columns` | 每行展示数量，用于计算宽度 | `number` | `4` |
 | `closeOnSelect` | 点击选项后是否关闭 | `boolean` | `true` |
 | `safeAreaInsetBottom` | 是否适配底部安全区 | `boolean` | `true` |
@@ -69,3 +69,7 @@ import { ShareSheet } from 'react-native-system-ui'
 | `onPress` | 点击回调（先于 `onSelect` 执行） | `(option) => void` |
 
 > 当前实现聚焦分享栅格场景，暂未提供图片资源加载、懒加载等能力；如需网络图标，可在 `icon` 中传入自定义组件。
+
+## 国际化
+
+ShareSheet 的取消按钮文案通过 `locale.vanShareSheet.cancel` 读取，可通过 `ConfigProvider` 的 `locale` 属性切换语言。

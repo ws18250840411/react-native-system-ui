@@ -3,12 +3,14 @@ import { Pressable, Text, View, type StyleProp, type TextStyle, type ViewStyle }
 import { Close } from 'react-native-system-icon'
 import { createHairlineView, isFunction, renderTextOrNode } from '../../utils'
 import { isRenderable } from '../../utils/validate'
+import { useDirection } from '../config-provider/useDirection'
 import { useTagTokens } from './tokens'
 import type { TagProps } from './types'
 
 const TagImpl: React.FC<TagProps> = props => {
   const { tokensOverride, children, type: typeProp, size: sizeProp, plain: plainProp, round: roundProp, mark: markProp, color, textColor, show: showProp, closeable, closeIcon, onClose, onPress, textStyle, style, ...rest } = props
   const tokens = useTagTokens(tokensOverride)
+  const dir = useDirection()
   const type = typeProp ?? tokens.defaults.type
   const size = sizeProp ?? tokens.defaults.size
   const plain = plainProp ?? tokens.defaults.plain
@@ -22,7 +24,11 @@ const TagImpl: React.FC<TagProps> = props => {
   const resolvedTextColor = textColor ?? (plain ? color ?? tone.background : tone.text)
   const borderColor = plain ? color ?? tone.background : 'transparent'
   const borderRadius = round ? tokens.radii.round : sizeTokens.borderRadius
-  const markRadii = mark ? { borderTopLeftRadius: tokens.radii.markLeading, borderBottomLeftRadius: tokens.radii.markLeading, borderTopRightRadius: tokens.radii.round, borderBottomRightRadius: tokens.radii.round } : null
+  const markRadii = mark
+    ? dir === 'rtl'
+      ? { borderTopRightRadius: tokens.radii.markLeading, borderBottomRightRadius: tokens.radii.markLeading, borderTopLeftRadius: tokens.radii.round, borderBottomLeftRadius: tokens.radii.round }
+      : { borderTopLeftRadius: tokens.radii.markLeading, borderBottomLeftRadius: tokens.radii.markLeading, borderTopRightRadius: tokens.radii.round, borderBottomRightRadius: tokens.radii.round }
+    : null
   const resolvedRadius = mark ? tokens.radii.round : borderRadius
   const containerStyle: StyleProp<ViewStyle> = [tokens.layout.container, { backgroundColor, paddingHorizontal: sizeTokens.paddingHorizontal, paddingVertical: sizeTokens.paddingVertical, borderRadius }, markRadii, style]
   const label = !isRenderable(children) ? null : renderTextOrNode(children, [{ color: resolvedTextColor, fontSize: sizeTokens.fontSize, lineHeight: sizeTokens.lineHeight, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.fontWeight }, textStyle].filter(Boolean) as StyleProp<TextStyle>)

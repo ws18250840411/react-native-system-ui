@@ -120,6 +120,10 @@ import { Cell } from 'react-native-system-ui'
 
 > React Native 环境不支持路由 `replace` 等 DOM 能力，因此 `replace`、`to` 等属性未实现，如需跳转请结合 React Navigation / Expo Router 使用。
 
+## RTL 支持
+
+在 RTL 布局下，`isLink` 的右箭头会自动水平镜像（指向左侧），整体布局也会自动翻转。通过 `ConfigProvider` 的 `direction="rtl"` 生效。
+
 ## 差异说明
 
 - React Native 环境以 `titleStyle/valueStyle/labelStyle` 等样式 props 替代 `className` 能力。

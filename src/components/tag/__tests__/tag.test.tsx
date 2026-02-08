@@ -33,10 +33,16 @@ describe('Tag', () => {
       </Tag>
     )
 
-    const container = tree.root.findByType(View)
-    const style = StyleSheet.flatten(container.props.style)
+    // The border is rendered via a hairline overlay View, not on the container
+    const views = tree.root.findAllByType(View)
+    const hairline = views.find(v => {
+      const s = StyleSheet.flatten(v.props.style)
+      return s?.borderColor !== undefined
+    })
+    expect(hairline).toBeDefined()
+    const hairlineStyle = StyleSheet.flatten(hairline!.props.style)
+    expect(hairlineStyle.borderColor).toBe('#123456')
 
-    expect(style.borderColor).toBe('#123456')
     const text = tree.root.findByType(Text)
     const textStyle = StyleSheet.flatten(text.props.style)
     expect(textStyle.color).toBe('#654321')

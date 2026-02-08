@@ -63,3 +63,7 @@ import { Tag } from 'react-native-system-ui'
 | `textStyle` | 文本样式 | `StyleProp<TextStyle>` | - |
 
 > React Native 不支持 DOM 中的 `tag` / `className`，如需自定义样式请直接通过 `style`、`textStyle` 或主题 tokens 操作。
+
+## RTL 支持
+
+在 RTL 布局下，`mark` 标记样式的圆角方向会自动镜像。通过 `ConfigProvider` 的 `direction="rtl"` 生效。

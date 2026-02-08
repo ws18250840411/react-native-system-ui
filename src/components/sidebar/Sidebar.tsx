@@ -3,6 +3,7 @@ import { Text, View } from 'react-native'
 
 import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
+import { useDirection } from '../config-provider/useDirection'
 import type { SidebarItemProps, SidebarProps } from './types'
 import { SidebarContext } from './SidebarContext'
 import { useSidebarTokens } from './tokens'
@@ -12,6 +13,7 @@ import { isRenderable } from '../../utils/validate'
 const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   const { children, sideStyle, style, tokensOverride, ...rest } = props
   const tokens = useSidebarTokens(tokensOverride)
+  const dir = useDirection()
 
   const sidebarItems = useMemo(() => {
     const validItems: { element: React.ReactElement<SidebarItemProps>; index: number }[] = []
@@ -86,7 +88,7 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
         <SidebarContext.Provider value={contextValue}>
           {clonedItems}
         </SidebarContext.Provider>
-        <View style={createHairlineView({ position: 'right', color: tokens.colors.border, top: 0, bottom: 0 })} />
+        <View style={createHairlineView({ position: dir === 'rtl' ? 'left' : 'right', color: tokens.colors.border, top: 0, bottom: 0 })} />
       </View>
       <View style={[tokens.layout.content, activeContentStyle]}>
         {activeContentNode}

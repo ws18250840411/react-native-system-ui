@@ -98,3 +98,7 @@ import type { StepperTheme, StepperInstance } from 'react-native-system-ui'
 ```
 
 > 支持通过主题的 `components.stepper` 覆盖 tokens，统一控制按钮尺寸、配色等设计语言。
+
+## RTL 支持
+
+在 RTL 布局下，加减按钮的圆角方向会自动镜像（减号按钮圆角在右侧，加号按钮圆角在左侧）。通过 `ConfigProvider` 的 `direction="rtl"` 生效。

@@ -38,13 +38,14 @@ describe('Slider', () => {
 
   it('renders range slider with two thumbs', () => {
     const tree = renderer.create(<Slider range value={[20, 60]} />)
+    // Thumb nodes have inline styles with borderColor and borderRadius
     const thumbViews = tree.root.findAll(
       node =>
         Array.isArray(node.props.style) &&
         node.props.style.some((style: unknown) => {
           if (!style || typeof style !== 'object') return false
           const obj = style as Record<string, unknown>
-          return obj.position === 'absolute' && obj.borderWidth !== undefined
+          return obj.borderColor !== undefined && obj.borderRadius !== undefined && typeof obj.left === 'string'
         }),
     )
     expect(thumbViews.length).toBeGreaterThanOrEqual(2)
@@ -60,7 +61,7 @@ describe('Slider', () => {
         node.props.style.some((style: unknown) => {
           if (!style || typeof style !== 'object') return false
           const obj = style as Record<string, unknown>
-          return obj.position === 'absolute' && obj.borderWidth !== undefined
+          return obj.borderColor !== undefined && obj.borderRadius !== undefined && typeof obj.left === 'string'
         }),
     )[0]
 
@@ -76,7 +77,7 @@ describe('Slider', () => {
         node.props.style.some((style: unknown) => {
           if (!style || typeof style !== 'object') return false
           const obj = style as Record<string, unknown>
-          return obj.position === 'absolute' && obj.borderWidth !== undefined
+          return obj.borderColor !== undefined && obj.borderRadius !== undefined && typeof obj.left === 'string'
         }),
     )[0]
 

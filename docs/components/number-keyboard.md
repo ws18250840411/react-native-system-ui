@@ -58,3 +58,7 @@ import { NumberKeyboard } from 'react-native-system-ui'
 | `extraKeyRender` | 自定义额外按键 | `(key: string) => ReactNode` | - |
 
 > 需要与 Field 联动时，可将 `visible` 和输入值托管在父组件中，由 Field 的 `onFocus` 控制弹出。
+
+## 国际化
+
+NumberKeyboard 的完成/删除/收起按钮文案通过 `locale.vanNumberKeyboard` 读取，可通过 `ConfigProvider` 的 `locale` 属性切换语言。

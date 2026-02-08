@@ -67,7 +67,7 @@ import { Popup } from 'react-native-system-ui'
 | `placement` / `position` | 弹出位置 | `'top' \| 'bottom' \| 'left' \| 'right' \| 'center'` | `'center'` |
 | `overlay` | 是否显示遮罩 | `boolean` | `true` |
 | `overlayStyle` | 自定义遮罩样式 | `StyleProp<ViewStyle>` | - |
-| `overlayAccessibilityLabel` | 无障碍描述，用于提示遮罩按钮的用途 | `string` | `关闭弹层` |
+| `overlayAccessibilityLabel` | 无障碍描述，用于提示遮罩按钮的用途 | `string` | `locale.vanPopup.closeOverlay`（中文：关闭弹层） |
 | `overlayTestID` | 遮罩测试标识 | `string` | `popup-overlay` |
 | `closeOnOverlayPress` / `closeOnClickOverlay` | 点击遮罩是否关闭 | `boolean` | `true` |
 | `closeOnBackPress` | Android 返回键是否关闭 | `boolean` | `false` |
@@ -106,6 +106,14 @@ import type { PopupPlacement, PopupCloseIconPosition } from 'react-native-system
 ```
 
 > `beforeClose` 会收到触发来源（`close-icon`、`overlay`、`close`），可用于二次确认或异步校验。
+
+## 国际化
+
+Popup 的遮罩无障碍描述与关闭提示通过 `locale.vanPopup` 读取，可通过 `ConfigProvider` 的 `locale` 属性切换语言。
+
+## RTL 支持
+
+在 RTL 布局下，关闭图标的位置会自动镜像（如 `top-right` 在 RTL 下仍在视觉右侧）。通过 `ConfigProvider` 的 `direction="rtl"` 生效。
 
 ## 差异说明
 

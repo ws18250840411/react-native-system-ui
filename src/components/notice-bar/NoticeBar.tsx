@@ -13,6 +13,7 @@ import {
 import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
+import { useDirection } from '../config-provider/useDirection'
 import { parseNumber } from '../../utils/number'
 import { isRenderable, isText } from '../../utils/validate'
 import { renderTextOrNode } from '../../utils'
@@ -62,6 +63,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
   } = props
 
   const locale = useLocale()
+  const layoutDir = useDirection()
   const tokens = useNoticeBarTokens(tokensOverride)
   const resolvedColor = color ?? tokens.colors.text
   const resolvedBackground = background ?? tokens.colors.background
@@ -170,12 +172,14 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
     let cancelled = false
     const duration = ((contentWidth + containerWidth) / resolvedSpeed) * 1000
 
+    const rtlSign = layoutDir === 'rtl' ? -1 : 1
+
     const run = (initial: boolean) => {
-      translateX.setValue(initial ? 0 : containerWidth)
+      translateX.setValue(initial ? 0 : rtlSign * containerWidth)
       Animated.sequence([
         Animated.delay(resolvedDelay * 1000),
         Animated.timing(translateX, {
-          toValue: -contentWidth,
+          toValue: -rtlSign * contentWidth,
           duration,
           easing: Easing.linear,
           useNativeDriver: nativeDriverEnabled,
@@ -203,6 +207,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
     contentWidth,
     containerWidth,
     isVertical,
+    layoutDir,
   ])
 
   useEffect(() => {

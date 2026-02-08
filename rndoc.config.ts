@@ -206,6 +206,7 @@ export default defineConfig({
         children: [
           '/components/action-sheet',
           '/components/dialog',
+          '/components/error-boundary',
           '/components/loading',
           '/components/notify',
           '/components/overlay',

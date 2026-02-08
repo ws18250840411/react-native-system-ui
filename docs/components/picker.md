@@ -56,8 +56,8 @@ Picker 的 `columns` 接受三种结构：
 | `title` | 顶部标题 | `ReactNode` | - |
 | `showToolbar` | 是否展示工具栏 | `boolean` | `true` |
 | `toolbarPosition` | 工具栏位置 | `'top' \| 'bottom'` | `'top'` |
-| `confirmButtonText` | 确认按钮文案 | `ReactNode` | `'确定'` |
-| `cancelButtonText` | 取消按钮文案 | `ReactNode` | `'取消'` |
+| `confirmButtonText` | 确认按钮文案 | `ReactNode` | `locale.confirm`（中文：确定） |
+| `cancelButtonText` | 取消按钮文案 | `ReactNode` | `locale.cancel`（中文：取消） |
 | `itemHeight` | 每个选项高度 | `number` | 44 |
 | `visibleItemCount` | 可见选项个数（会兜底为 ≥3 的奇数） | `number` | `tokens.defaults.visibleItemCount` |
 | `loading` | 是否显示加载状态 | `boolean` | `false` |

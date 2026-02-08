@@ -115,10 +115,10 @@ export default function App() {
 | `closeIcon` | 自定义关闭图标 | `ReactNode` | - |
 | `showConfirmButton` | 是否展示确认按钮 | `boolean` | `true` |
 | `showCancelButton` | 是否展示取消按钮 | `boolean` | `false` |
-| `confirmButtonText` | 确认按钮文案 | `ReactNode` | `'确认'` |
+| `confirmButtonText` | 确认按钮文案 | `ReactNode` | `locale.confirm`（中文：确认） |
 | `confirmButtonColor` | 确认按钮颜色 | `string` | 主题色 |
 | `confirmProps` | 确认按钮扩展状态（`loading`/`disabled`） | `DialogActionState` | - |
-| `cancelButtonText` | 取消按钮文案 | `ReactNode` | `'取消'` |
+| `cancelButtonText` | 取消按钮文案 | `ReactNode` | `locale.cancel`（中文：取消） |
 | `cancelButtonColor` | 取消按钮颜色 | `string` | 主题默认色 |
 | `cancelProps` | 取消按钮扩展状态（`loading`/`disabled`） | `DialogActionState` | - |
 | `overlay` | 是否展示遮罩层 | `boolean` | `true` |
@@ -138,3 +138,7 @@ export default function App() {
 | `onClosed` | Dialog 完全关闭（动画结束）时的回调 | `() => void` | - |
 
 > 支持通过主题的 `components.dialog` 覆盖 tokens，统一控制弹窗宽度、圆角、配色等设计语言。
+
+## 国际化
+
+当通过 `ConfigProvider` 的 `locale` 属性切换语言时，Dialog 的确认/取消按钮文案会自动切换。也可以通过 `confirmButtonText` / `cancelButtonText` 手动指定文案。

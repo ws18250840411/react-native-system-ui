@@ -67,3 +67,7 @@ import { Sidebar } from 'react-native-system-ui'
 | `children` | 内容区域内容（仅激活项展示） | `ReactNode` | - |
 
 > 差异说明：当前版本暂未提供 `beforeChange` 等切换拦截能力，如需异步确认可在 `onChange` 中自行处理并回退选中态。
+
+## RTL 支持
+
+在 RTL 布局下，侧边导航的激活指示条位置会自动镜像（从左侧切换到右侧）。通过 `ConfigProvider` 的 `direction="rtl"` 生效。

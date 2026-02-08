@@ -74,3 +74,11 @@ import { NoticeBar } from 'react-native-system-ui'
 | `onReplay` | 每次横向滚动重新开始时触发 | `() => void` | - |
 
 > 当前滚动能力依赖 `Animated` 与 `measure` API，在 React Native Web 环境下需要组件挂载完成后才能正确计算宽度；纯原生端不受此限制。
+
+## 国际化
+
+NoticeBar 的关闭按钮无障碍标签通过 `locale.vanNoticeBar` 读取，可通过 `ConfigProvider` 的 `locale` 属性切换语言。
+
+## RTL 支持
+
+在 RTL 布局下，横向滚动方向会自动翻转。通过 `ConfigProvider` 的 `direction="rtl"` 生效。

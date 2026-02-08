@@ -11,6 +11,7 @@ import { Arrow } from 'react-native-system-icon'
 
 import { useAriaPress, useHairline } from '../../hooks'
 import { isRenderable, renderTextOrNode } from '../../utils'
+import { useDirection } from '../config-provider/useDirection'
 
 import { CellGroupContext } from './CellContext'
 import { useCellTokens } from './tokens'
@@ -49,10 +50,14 @@ const CellImpl = (
   } = props
 
   const tokens = useCellTokens(tokensOverride)
+  const dir = useDirection()
   const group = useContext(CellGroupContext)
   const border = borderProp ?? tokens.defaults.border
   const size = sizeProp ?? tokens.defaults.size
-  const arrowDirection = arrowDirectionProp ?? tokens.defaults.arrowDirection
+  const arrowDirectionRaw = arrowDirectionProp ?? tokens.defaults.arrowDirection
+  const arrowDirection = dir === 'rtl'
+    ? (arrowDirectionRaw === 'left' ? 'right' : arrowDirectionRaw === 'right' ? 'left' : arrowDirectionRaw)
+    : arrowDirectionRaw
   const lineHeight = tokens.typography.lineHeight
 
   const hasTitle = isRenderable(title)

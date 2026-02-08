@@ -54,7 +54,7 @@ import { Cascader } from 'react-native-system-ui';
 | `defaultValue` | 默认选中的值 | `(string \| number)[]` | - |
 | `options` | 可选项数据源 | `CascaderOption[]` | `[]` |
 | `optionRender` | 自定义选项文字 | `({ option: CascaderOption, selected: boolean }) => ReactNode` | - |
-| `placeholder` | 未选中时的提示文案 | `string` | `'请选择'` |
+| `placeholder` | 未选中时的提示文案 | `string` | `locale.vanCascader.select`（中文：请选择） |
 | `activeColor` | 选中状态的高亮颜色 | `string` | - |
 | `closeable` | 是否显示关闭图标 | `boolean` | `true` |
 | `closeIcon` | 关闭图标 | `ReactNode` | - |
@@ -84,3 +84,7 @@ import { Cascader } from 'react-native-system-ui';
 | `disabled`| 是否禁用选项             | `boolean`                   |
 
 > 支持通过主题的 `components.cascader` 覆盖 tokens，统一控制标题、选中色、选项高度等设计语言。
+
+## 国际化
+
+Cascader 的占位文案、关闭按钮等通过 `locale.vanCascader` 读取，可通过 `ConfigProvider` 的 `locale` 属性切换语言。

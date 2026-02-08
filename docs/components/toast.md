@@ -97,6 +97,10 @@ toast.config({ type: 'success', message: '完成', duration: 1500 })
 | `Toast.setDefaultOptions(options)` | 设置全局默认配置，或针对某个 `type` 设置默认项 |
 | `Toast.resetDefaultOptions(type?)` | 重置默认配置，`type` 为空时清空所有默认项 |
 
+## 国际化
+
+Toast 的无障碍关闭提示通过 `locale.vanToast.closeHint` 读取，可通过 `ConfigProvider` 的 `locale` 属性切换语言。
+
 ## 差异说明
 
 - 本库使用 `Toast.show(options \| message)` 调用，并额外提供 `<Toast visible />` 受控用法。

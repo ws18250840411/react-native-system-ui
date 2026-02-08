@@ -54,8 +54,8 @@ import { Image } from 'react-native-system-ui'
 | `fit` | 填充方式（cover/contain 等） | `'cover' \| 'contain' \| 'fill' \| 'none' \| 'scale-down'` | `'cover'` |
 | `showLoading` | 是否展示加载状态 | `boolean` | `true` |
 | `showError` | 是否展示错误状态 | `boolean` | `true` |
-| `loadingText` | 加载中文案 | `ReactNode` | `加载中…` |
-| `errorText` | 错误文案 | `ReactNode` | `加载失败` |
+| `loadingText` | 加载中文案 | `ReactNode` | `locale.vanImage.loading`（中文：加载中…） |
+| `errorText` | 错误文案 | `ReactNode` | `locale.vanImage.loadFailed`（中文：加载失败） |
 | `fallback` | 自定义错误内容 | `ReactNode` | - |
 | `containerStyle` | 容器样式，可定制背景或圆角 | `StyleProp<ViewStyle>` | - |
 | 其余 | 继承 RN `Image` 属性 | - | - |
@@ -65,6 +65,10 @@ import { Image } from 'react-native-system-ui'
 > 提示：如果通过 `style` 传入了布局属性（如 `width/height/flex/margin`），组件会同步应用到外层容器以保证占位层与圆角裁剪一致。
 
 > Web 端图片元素会应用 `revert-layer` 修复尺寸样式。
+
+## 国际化
+
+Image 的加载中/加载失败文案通过 `locale.vanImage` 读取，可通过 `ConfigProvider` 的 `locale` 属性切换语言。
 
 ## 差异说明
 

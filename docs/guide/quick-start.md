@@ -50,6 +50,7 @@ export const Providers = ({ children }: { children: React.ReactNode }) => (
 | 主题（tokens） | ✅ 内置 ThemeProvider | ✅ |
 | 弹层挂载点（PortalHost） | ✅ 内置 | ❌ 需再包一层 `<Portal.Host>` |
 | 语言包（locale） | ✅ | ❌ |
+| RTL 布局方向（direction） | ✅ | ❌ |
 
 若一开始用了 ThemeProvider，后来要接 Toast/Popup/Dialog，要么在根节点再包一层 `<Portal.Host>`，要么改为使用 ConfigProvider。详见 [ConfigProvider](../components/config-provider.md) 与 [Portal](../components/portal.md)。
 
@@ -62,6 +63,34 @@ export const Page = () => (
   <Button text="立即下单" type="warning" block />
 )
 ```
+
+## 国际化
+
+ConfigProvider 内置 `locale` 属性切换语言，自带 `zhCN`（中文，默认）和 `enUS`（英文）两套语言包。组件中的默认文案（确认、取消、加载中等）均会随之切换。
+
+```tsx | pure
+import { ConfigProvider, enUS } from 'react-native-system-ui'
+
+export const EnApp = ({ children }: { children: React.ReactNode }) => (
+  <ConfigProvider locale={enUS}>{children}</ConfigProvider>
+)
+```
+
+语言包覆盖了 Toast、Dialog、Picker、Calendar、Cascader、Image、Form、NumberKeyboard、ShareSheet、NoticeBar、NavBar 等组件的文案。你也可以使用 `useLocale()` 在自定义组件中读取当前语言。
+
+## RTL 布局
+
+通过 `direction` 属性支持从右到左（RTL）的语言环境（如阿拉伯语、希伯来语）。设置后 NavBar、Cell、Popup、Sidebar、Tag、Stepper、NoticeBar 等组件会自动镜像布局。
+
+```tsx | pure
+import { ConfigProvider } from 'react-native-system-ui'
+
+export const RTLApp = ({ children }: { children: React.ReactNode }) => (
+  <ConfigProvider direction="rtl">{children}</ConfigProvider>
+)
+```
+
+> `direction` 默认值由 `I18nManager.isRTL` 决定；也可在子组件中通过 `useDirection()` hook 读取当前方向。
 
 ## 自定义主题
 

@@ -156,7 +156,7 @@ describe('Portal', () => {
       }
       if (!portalStore.hasHosts()) {
         expect(spy).toHaveBeenCalledWith(
-          expect.stringContaining('请在根节点挂载')
+          expect.stringContaining('Please mount <PortalHost>')
         )
       } else {
         expect(spy).not.toHaveBeenCalled()

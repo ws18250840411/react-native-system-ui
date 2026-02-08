@@ -21,9 +21,17 @@ import { ConfigProvider } from 'react-native-system-ui'
 
 ### 语言切换
 
-通过 `locale` 属性切换语言。
+通过 `locale` 属性切换语言。内置 `zhCN`（中文）与 `enUS`（英文）两套语言包，也可以自行扩展。
 
 <code title="语言切换" src="./config-provider/demo/locale.tsx"></code>
+
+### RTL 布局
+
+通过 `direction` 属性设置文本与布局方向，支持阿拉伯语、希伯来语等从右到左（RTL）的语言环境。设置后，NavBar、Cell、Popup、Sidebar、Tag、Stepper、NoticeBar 等组件会自动镜像布局。
+
+<code title="RTL 布局" src="./config-provider/demo/rtl.tsx"></code>
+
+> `direction` 默认值由 `I18nManager.isRTL` 决定。你也可以在子组件中通过 `useDirection()` hook 读取当前方向。
 
 ### 定制主题
 
@@ -50,11 +58,20 @@ import { ConfigProvider } from 'react-native-system-ui'
 | --- | --- | --- | --- |
 | `theme` | 主题配置，等同于 `ThemeProvider` 的 `value` | `ThemeProviderValue` | `undefined` |
 | `locale` | 语言包（可与 `zhCN`、`enUS` merge） | `Locale` | `zhCN` |
+| `direction` | 布局方向，用于 RTL 语言环境 | `'ltr' \| 'rtl'` | `I18nManager.isRTL ? 'rtl' : 'ltr'` |
+
+### 相关 Hooks
+
+| Hook | 说明 | 返回值 |
+| --- | --- | --- |
+| `useLocale()` | 获取当前 locale 对象 | `Locale` |
+| `useDirection()` | 获取当前布局方向 | `'ltr' \| 'rtl'` |
 
 ### 类型定义
 
 ```ts
-import { ConfigProvider, zhCN, enUS, useLocale } from 'react-native-system-ui'
+import { ConfigProvider, zhCN, enUS, useLocale, useDirection } from 'react-native-system-ui'
+import type { ConfigProviderProps, Direction, Locale } from 'react-native-system-ui'
 ```
 
 > React Native 环境不存在 `tag`、`prefers-color-scheme` 等 DOM 能力，如需深度主题切换，可结合 `ConfigProvider` + `ThemeProvider` 自行注入 tokens。

@@ -8,6 +8,7 @@ import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useAriaOverlay, useOverlayStack } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
+import { useDirection } from '../config-provider/useDirection'
 import { usePopupTokens } from './tokens'
 import type { PopupPlacement, PopupProps } from './types'
 
@@ -37,6 +38,7 @@ const hiddenStyle: ViewStyle = { opacity: 0, shadowOpacity: 0, shadowRadius: 0, 
 
 const PopupImpl: React.FC<PopupProps> = props => {
   const locale = useLocale()
+  const layoutDir = useDirection()
   const { visible, placement: placementProp, position, title, description, tokensOverride, overlay = true, overlayStyle, overlayAccessibilityLabel = locale?.vanPopup?.closeOverlay ?? 'Close overlay', closeOnOverlayPress, closeOnClickOverlay, overlayTestID = 'popup-overlay', closeable = false, closeIcon, closeIconPosition = 'top-right', round, safeArea = false, safeAreaInsetTop = false, safeAreaInsetBottom: safeAreaInsetBottomProp, lockScroll = true, destroyOnClose = true, duration = 300, zIndex, closeOnBackPress = false, closeOnPopstate = false, children, beforeClose, onClickOverlay, onClose, onOpen, onOpened, onClosed, stopPropagation = true, style, contentAnimationStyle, ...rest } = props
 
   const placement = placementProp ?? position ?? 'center'
@@ -158,7 +160,10 @@ const PopupImpl: React.FC<PopupProps> = props => {
     if (!closeable) return null
     const custom = closeIcon != null
     const v = closeIconPosition.includes('bottom') ? { bottom: tokens.spacing.closeIconTop } : { top: tokens.spacing.closeIconTop + saTopH }
-    const h = closeIconPosition.endsWith('left') ? { left: tokens.spacing.closeIconRight } : { right: tokens.spacing.closeIconRight }
+    const isRtl = layoutDir === 'rtl'
+    const h = closeIconPosition.endsWith('left')
+      ? (isRtl ? { right: tokens.spacing.closeIconRight } : { left: tokens.spacing.closeIconRight })
+      : (isRtl ? { left: tokens.spacing.closeIconRight } : { right: tokens.spacing.closeIconRight })
     return <Pressable style={[S.closeBase, ds.closeBase, v, h, !custom && ds.closeDef]} hitSlop={8} onPress={handleClosePress}>{custom ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}</Pressable>
   }, [closeIcon, closeIconPosition, closeable, ds, handleClosePress, saTopH, tokens.colors.closeIcon, tokens.spacing.closeIconRight, tokens.spacing.closeIconTop])
 
