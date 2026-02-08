@@ -7,6 +7,7 @@ import { isRenderable, isText } from '../../utils/validate'
 import { Cross } from 'react-native-system-icon'
 import Portal from '../portal/Portal'
 import { useAriaOverlay, useOverlayStack } from '../../hooks'
+import { useLocale } from '../config-provider/useLocale'
 import { usePopupTokens } from './tokens'
 import type { PopupPlacement, PopupProps } from './types'
 
@@ -35,7 +36,8 @@ const buildRadius = (round: boolean | undefined, p: PopupPlacement, r: number): 
 const hiddenStyle: ViewStyle = { opacity: 0, shadowOpacity: 0, shadowRadius: 0, elevation: 0 }
 
 const PopupImpl: React.FC<PopupProps> = props => {
-  const { visible, placement: placementProp, position, title, description, tokensOverride, overlay = true, overlayStyle, overlayAccessibilityLabel = '关闭弹层', closeOnOverlayPress, closeOnClickOverlay, overlayTestID = 'popup-overlay', closeable = false, closeIcon, closeIconPosition = 'top-right', round, safeArea = false, safeAreaInsetTop = false, safeAreaInsetBottom: safeAreaInsetBottomProp, lockScroll = true, destroyOnClose = true, duration = 300, zIndex, closeOnBackPress = false, closeOnPopstate = false, children, beforeClose, onClickOverlay, onClose, onOpen, onOpened, onClosed, stopPropagation = true, style, contentAnimationStyle, ...rest } = props
+  const locale = useLocale()
+  const { visible, placement: placementProp, position, title, description, tokensOverride, overlay = true, overlayStyle, overlayAccessibilityLabel = locale?.vanPopup?.closeOverlay ?? 'Close overlay', closeOnOverlayPress, closeOnClickOverlay, overlayTestID = 'popup-overlay', closeable = false, closeIcon, closeIconPosition = 'top-right', round, safeArea = false, safeAreaInsetTop = false, safeAreaInsetBottom: safeAreaInsetBottomProp, lockScroll = true, destroyOnClose = true, duration = 300, zIndex, closeOnBackPress = false, closeOnPopstate = false, children, beforeClose, onClickOverlay, onClose, onOpen, onOpened, onClosed, stopPropagation = true, style, contentAnimationStyle, ...rest } = props
 
   const placement = placementProp ?? position ?? 'center'
   const shouldCloseOnOverlay = closeOnClickOverlay ?? closeOnOverlayPress ?? true
@@ -173,7 +175,7 @@ const PopupImpl: React.FC<PopupProps> = props => {
     <Portal>
       <View style={[S.root, rz ? { zIndex: rz } : undefined]} pointerEvents="box-none">
         <View style={[S.ctr, cfg.container]} pointerEvents={isOpen ? 'auto' : 'none'} accessibilityViewIsModal={isOpen} accessibilityLiveRegion="polite" onAccessibilityEscape={handleEscape}>
-          {overlay && isOpen ? <AnimatedPressable testID={overlayTestID} style={[S.ovl, { backgroundColor: tokens.colors.overlay, opacity: progress }, overlayStyle]} renderToHardwareTextureAndroid={Platform.OS === 'android'} shouldRasterizeIOS={Platform.OS === 'ios'} pointerEvents={isOpen ? 'auto' : 'none'} {...(canCloseOvl ? { accessibilityRole: 'button' as const, accessibilityLabel: overlayAccessibilityLabel, accessibilityHint: '双击即可关闭弹层' } : { accessible: false })} onPress={handleOvlPress} /> : null}
+          {overlay && isOpen ? <AnimatedPressable testID={overlayTestID} style={[S.ovl, { backgroundColor: tokens.colors.overlay, opacity: progress }, overlayStyle]} renderToHardwareTextureAndroid={Platform.OS === 'android'} shouldRasterizeIOS={Platform.OS === 'ios'} pointerEvents={isOpen ? 'auto' : 'none'} {...(canCloseOvl ? { accessibilityRole: 'button' as const, accessibilityLabel: overlayAccessibilityLabel, accessibilityHint: locale?.vanPopup?.closeHint ?? 'Double-tap to close' } : { accessible: false })} onPress={handleOvlPress} /> : null}
           {!overlay && lockScroll && isOpen ? <View style={S.lock} pointerEvents="auto" onStartShouldSetResponder={CAPTURE} onMoveShouldSetResponder={CAPTURE} /> : null}
           <Animated.View ref={overlayRef as any} {...contentProps} onLayout={ovlOnLayout} renderToHardwareTextureAndroid={Platform.OS === 'android'} shouldRasterizeIOS={Platform.OS === 'ios'} style={[ds.popup, isCenter && ds.center, isV && S.popV, isH && ds.side, radiusStyle, animStyle, style, hidden && hiddenStyle]} {...rest}>
             {closeNode}

@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { Arrow, Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
+import { useLocale } from '../config-provider/useLocale'
 import { parseNumber } from '../../utils/number'
 import { isRenderable, isText } from '../../utils/validate'
 import { renderTextOrNode } from '../../utils'
@@ -60,6 +61,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
     ...rest
   } = props
 
+  const locale = useLocale()
   const tokens = useNoticeBarTokens(tokensOverride)
   const resolvedColor = color ?? tokens.colors.text
   const resolvedBackground = background ?? tokens.colors.background
@@ -118,7 +120,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
     onPress: handleClose,
     extraProps: {
       accessibilityRole: 'button',
-      accessibilityLabel: '关闭',
+      accessibilityLabel: locale?.vanNoticeBar?.close ?? 'Close',
     },
   })
 

@@ -16,7 +16,8 @@ export interface UseAriaToggleResult {
 }
 
 export const useAriaToggle = (props: UseAriaToggleOptions): UseAriaToggleResult => {
-  const inputRef = props.inputRef ?? useRef<unknown>(null)
+  const fallbackRef = useRef<unknown>(null)
+  const inputRef = props.inputRef ?? fallbackRef
   const state = useToggleState(props)
   const { inputProps } = useToggle(props, state, inputRef as unknown as React.RefObject<HTMLInputElement>)
   return {

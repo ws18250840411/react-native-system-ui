@@ -1,5 +1,6 @@
 export { ConfigProvider } from './ConfigProvider'
 export { useLocale } from './useLocale'
+export { useDirection } from './useDirection'
 export { zhCN } from './locale/zh-CN'
 export { enUS } from './locale/en-US'
-export type { ConfigProviderProps } from './types'
+export type { ConfigProviderProps, Direction } from './types'

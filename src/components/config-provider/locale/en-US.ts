@@ -71,4 +71,36 @@ export const enUS = {
   vanAddressList: {
       add: 'Add address',
   },
+  vanForm: {
+    validationFailed: 'Validation failed',
+  },
+  vanPopup: {
+    closeOverlay: 'Close overlay',
+    closeHint: 'Double-tap to close',
+  },
+  vanToast: {
+    closeHint: 'Double-tap to dismiss',
+  },
+  vanShareSheet: {
+    cancel: 'Cancel',
+  },
+  vanNumberKeyboard: {
+    close: 'Done',
+  },
+  vanNoticeBar: {
+    close: 'Close',
+  },
+  vanNavBar: {
+    back: 'Back',
+    action: 'Actions',
+  },
+  vanImage: {
+    loading: 'Loading...',
+    error: 'Failed to load',
+  },
+  vanCascader: {
+    placeholder: 'Select',
+    loading: 'Loading...',
+    close: 'Close',
+  },
 }

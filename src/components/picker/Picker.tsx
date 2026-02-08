@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, Text, View, Platform, StyleSheet, FlatList, ScrollView, PanResponder, type NativeScrollEvent, type NativeSyntheticEvent, type ViewStyle } from 'react-native'
 import Loading from '../loading'
+import { useLocale } from '../config-provider/useLocale'
 import { withAlpha } from '../../utils/color'
 import { isFiniteNumber, isText } from '../../utils/validate'
 import { clamp, isObject, shallowEqualArray } from '../../utils'
@@ -589,8 +590,9 @@ const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof use
 
 const PickerImpl: React.FC<PickerProps> = props => {
   const { tokensOverride } = props
+  const locale = useLocale()
   const tokens = usePickerTokens(tokensOverride)
-  const { columns = [], value: valueProp, defaultValue, title, showToolbar = tokens.defaults.showToolbar, toolbarPosition = tokens.defaults.toolbarPosition, confirmButtonText = '确定', cancelButtonText = '取消', itemHeight = tokens.defaults.itemHeight, visibleItemCount: visibleItemCountProp = tokens.defaults.visibleItemCount, loading = false, readOnly = false, decelerationRate = Platform.select({ ios: 0.999, android: 0.997, default: 0.989 }) ?? 'normal', swipeDuration = tokens.defaults.swipeDuration, scrollEventThrottle = 16, columnsTop, columnsBottom, optionRender, getOptionTestID, getOptionA11yLabel, emitConfirmOnAutoSelect = true, maskColor, maskType = tokens.defaults.maskType, onChange, onConfirm, onCancel, style, testID, ...rest } = props
+  const { columns = [], value: valueProp, defaultValue, title, showToolbar = tokens.defaults.showToolbar, toolbarPosition = tokens.defaults.toolbarPosition, confirmButtonText = locale?.confirm ?? 'Confirm', cancelButtonText = locale?.cancel ?? 'Cancel', itemHeight = tokens.defaults.itemHeight, visibleItemCount: visibleItemCountProp = tokens.defaults.visibleItemCount, loading = false, readOnly = false, decelerationRate = Platform.select({ ios: 0.999, android: 0.997, default: 0.989 }) ?? 'normal', swipeDuration = tokens.defaults.swipeDuration, scrollEventThrottle = 16, columnsTop, columnsBottom, optionRender, getOptionTestID, getOptionA11yLabel, emitConfirmOnAutoSelect = true, maskColor, maskType = tokens.defaults.maskType, onChange, onConfirm, onCancel, style, testID, ...rest } = props
   const visibleItemCount = getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount)
   const { normalized, handleSelect, handleConfirm, preparedColumns } = usePickerValue({ columns, valueProp, defaultValue, emitConfirmOnAutoSelect, onChange, onConfirm })
   const isCascade = preparedColumns.type === 'cascade'

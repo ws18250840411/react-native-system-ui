@@ -4,6 +4,7 @@ import { useControllableValue } from '../../hooks'
 import { renderTextOrNode } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 import Popup from '../popup'
+import { useLocale } from '../config-provider/useLocale'
 import { useCalendarTokens } from './tokens'
 import type { CalendarProps, CalendarType } from './types'
 
@@ -17,11 +18,13 @@ const DEFAULT_MAX = new Date(new Date().getFullYear() + 10, 11, 31)
 
 const CalendarImpl: React.FC<CalendarProps> = props => {
   const { tokensOverride, value: _value, defaultValue: _defaultValue, minDate = DEFAULT_MIN, maxDate = DEFAULT_MAX, type, title, showSubtitle, showHeader, showConfirm, confirmText, weekStartsOn, weekdays, formatMonthTitle, allowSameDay, maxRange, onOverRange, poppable, visible: _visible, defaultVisible: _defaultVisible, onVisibleChange: _onVisibleChange, closeOnClickOverlay, closeOnConfirm, popupPlacement, popupRound, popupProps, onOpen, onOpened, onClose, onClosed, color, onConfirm, onSelect: _onSelect, style, ...rest } = props
+  const locale = useLocale()
+  const calendarLocale = locale?.vanCalendar
   const tokens = useCalendarTokens(tokensOverride)
-  const resolvedTitle = title ?? tokens.defaults.title
+  const resolvedTitle = title ?? (calendarLocale?.title ?? tokens.defaults.title)
   const resolvedShowSubtitle = showSubtitle ?? tokens.defaults.showSubtitle
   const resolvedShowHeader = showHeader ?? tokens.defaults.showHeader
-  const resolvedConfirmText = confirmText ?? tokens.defaults.confirmText
+  const resolvedConfirmText = confirmText ?? (calendarLocale?.confirm ?? tokens.defaults.confirmText)
   const resolvedWeekStartsOn = weekStartsOn ?? tokens.defaults.weekStartsOn
   const resolvedAllowSameDay = allowSameDay ?? tokens.defaults.allowSameDay
   const resolvedPoppable = poppable ?? tokens.defaults.poppable
@@ -62,8 +65,9 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
   const monthDaysMapped = useMemo(() => monthDays.map(day => day ? { day, key: day.toISOString(), timeValue: startOfDay(day).getTime(), dateValue: day.getDate() } : null), [monthDays])
   const minDayTime = startOfDay(minDate).getTime()
   const maxDayTime = startOfDay(maxDate).getTime()
-  const weekLabels = useMemo(() => reorderWeekdays(weekdays ?? tokens.defaults.weekdays, resolvedWeekStartsOn, tokens.defaults.weekdays), [tokens.defaults.weekdays, resolvedWeekStartsOn, weekdays])
-  const monthLabel = useMemo(() => (formatMonthTitle ? formatMonthTitle(currentMonth) : formatMonth(currentMonth)), [currentMonth, formatMonthTitle])
+  const resolvedWeekdays = weekdays ?? calendarLocale?.weekdays ?? tokens.defaults.weekdays
+  const weekLabels = useMemo(() => reorderWeekdays(resolvedWeekdays, resolvedWeekStartsOn, tokens.defaults.weekdays), [resolvedWeekdays, tokens.defaults.weekdays, resolvedWeekStartsOn])
+  const monthLabel = useMemo(() => (formatMonthTitle ? formatMonthTitle(currentMonth) : calendarLocale?.monthTitle ? calendarLocale.monthTitle(currentMonth.getFullYear(), currentMonth.getMonth() + 1) : formatMonth(currentMonth)), [currentMonth, formatMonthTitle, calendarLocale])
   const minMonthStart = startOfMonth(minDate)
   const maxMonthStart = startOfMonth(maxDate)
   const canGoPrev = currentMonth.getTime() > minMonthStart.getTime()
@@ -91,7 +95,7 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
 
 function mapValue(value: Date[], type: CalendarType): Date | Date[] { if (type === 'single') return value[0] ?? new Date(); if (type === 'range' && value.length === 2) return value; return value }
 function normalizeValue(value: Date[], type: CalendarType) { if (type === 'single') return value.slice(0, 1); if (type === 'range') return value.slice(0, 2).sort((a, b) => a.getTime() - b.getTime()); return value }
-function formatMonth(date: Date) { return `${date.getFullYear()}年${date.getMonth() + 1}月` }
+function formatMonth(date: Date) { return `${date.getFullYear()}/${date.getMonth() + 1}` }
 function reorderWeekdays(labels: React.ReactNode[], start: number, fallback: React.ReactNode[]) { const normalizedStart = ((start % 7) + 7) % 7; const source = labels.length === 7 ? [...labels] : fallback; return [...source.slice(normalizedStart), ...source.slice(0, normalizedStart)] }
 function buildMonth(month: Date, weekStartsOn: number): (Date | null)[] { const normalizedStart = ((weekStartsOn % 7) + 7) % 7; const firstDay = startOfMonth(month); const startOffset = (firstDay.getDay() - normalizedStart + 7) % 7; const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate(); const calendar: (Date | null)[] = []; for (let i = 0; i < startOffset; i += 1) calendar.push(null); for (let day = 1; day <= daysInMonth; day += 1) calendar.push(new Date(month.getFullYear(), month.getMonth(), day)); while (calendar.length < 42) calendar.push(null); return calendar }
 function getCalendarDayTestId(date: Date) { return `calendar-day-${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')}` }

@@ -5,6 +5,7 @@ import { createHairlineView } from '../../utils/hairline'
 import { isFiniteNumber, isText, isValidNode } from '../../utils/validate'
 import { renderTextOrNode } from '../../utils'
 import Popup from '../popup'
+import { useLocale } from '../config-provider/useLocale'
 import type { ShareSheetOption, ShareSheetOptions, ShareSheetProps } from './types'
 import { useShareSheetTokens, type ShareSheetTokens } from './tokens'
 
@@ -23,7 +24,8 @@ const ShareSheetCancel: React.FC<{ cancelText: React.ReactNode; tokens: ShareShe
 })
 
 const ShareSheetImpl: React.FC<ShareSheetProps> = p => {
-  const { visible, title, description, cancelText = '取消', options, columns = 4, closeOnSelect = true, safeAreaInsetBottom = true, children, tokensOverride, onSelect, onCancel, onClose, lockScroll = true, overlay = true, round = true, style: ps, placement: _p, position: _pos, ...pp } = p
+  const locale = useLocale()
+  const { visible, title, description, cancelText = locale?.vanShareSheet?.cancel ?? locale?.cancel ?? 'Cancel', options, columns = 4, closeOnSelect = true, safeAreaInsetBottom = true, children, tokensOverride, onSelect, onCancel, onClose, lockScroll = true, overlay = true, round = true, style: ps, placement: _p, position: _pos, ...pp } = p
   const t = useShareSheetTokens(tokensOverride)
   const gs = no(options)
   const rc = isFiniteNumber(columns) ? Math.max(1, Math.floor(columns)) : 4

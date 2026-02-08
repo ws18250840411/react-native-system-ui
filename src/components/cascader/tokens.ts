@@ -5,7 +5,7 @@ import type { CascaderTokens } from "./types"
 export const createCascaderTokens = (foundations: Foundations): CascaderTokens => {
   const { palette, spacing, radii } = foundations
   const surfaceMuted = palette.default[100]
-  const placeholderText = "请选择"
+  const placeholderText = "Select"
   return {
     defaults: {
       placeholder: placeholderText,
@@ -18,7 +18,7 @@ export const createCascaderTokens = (foundations: Foundations): CascaderTokens =
       closeOnFinish: true,
       popupPlacement: "bottom",
       popupRound: true,
-      loadingText: "加载中...",
+      loadingText: "Loading...",
     },
     layout: {
       container: {

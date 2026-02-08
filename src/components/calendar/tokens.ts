@@ -8,7 +8,7 @@ export const createCalendarTokens = (foundations: Foundations): CalendarTokens =
   return {
     defaults: {
       type: "single",
-      title: "选择日期",
+      title: "Select Date",
       showSubtitle: true,
       showHeader: true,
       showConfirm: {
@@ -16,9 +16,9 @@ export const createCalendarTokens = (foundations: Foundations): CalendarTokens =
         range: true,
         multiple: true,
       },
-      confirmText: "确定",
+      confirmText: "Confirm",
       weekStartsOn: 0,
-      weekdays: ["日", "一", "二", "三", "四", "五", "六"],
+      weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       allowSameDay: false,
       poppable: false,
       closeOnClickOverlay: true,

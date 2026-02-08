@@ -8,6 +8,7 @@ import { parseNumberLike } from '../../utils/number'
 import { isRenderable, renderTextOrNode } from '../../utils'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
+import { useLocale } from '../config-provider/useLocale'
 import { SafeAreaView } from '../safe-area-view'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
@@ -33,6 +34,7 @@ interface Key {
 
 const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const { visible, title, tokensOverride, theme = 'default', extraKey, randomKeyOrder, showDeleteKey = true, closeButtonText, deleteButtonText, closeButtonLoading, onChange, onInput, onDelete, onClose, onBlur, onHide, onShow, value: _value, defaultValue: _defaultValue, maxlength: maxlengthProp, blurOnClose = true, safeAreaInsetBottom = true, transition = true, transitionDuration = 300, numberKeyRender, deleteRender, extraKeyRender, style, ...rest } = props
+  const locale = useLocale()
   const tokens = useNumberKeyboardTokens(tokensOverride)
   const { colors, radii, shadow, sizing, spacing } = tokens
   const [value, setValue] = useControllableValue<string>(props, { defaultValue: '', valuePropName: 'value', defaultValuePropName: 'defaultValue', trigger: 'onChange' })
@@ -49,7 +51,8 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   onDeleteRef.current = onDelete
   onInputRef.current = onInput
   const isCustom = theme === 'custom'
-  const closeText = isCustom ? closeButtonText ?? '完成' : closeButtonText
+  const defaultCloseText = locale?.vanNumberKeyboard?.close ?? 'Done'
+  const closeText = isCustom ? closeButtonText ?? defaultCloseText : closeButtonText
   const handleClose = useCallback(() => { onCloseRef.current?.(); if (blurOnClose) onBlurRef.current?.() }, [blurOnClose])
   const prevVisible = useRef(visible)
   useEffect(() => { if (visible && !prevVisible.current) onShowRef.current?.(); if (!visible && prevVisible.current) onHideRef.current?.(); prevVisible.current = visible }, [visible])
@@ -93,7 +96,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     const auxFontSize = Math.round(sizing.fontSize * 0.64)
     const textFontSize = key.type === 'close' || key.type === 'extra' || key.type === 'delete' ? auxFontSize : sizing.fontSize
     const keyText = key.text ?? ''
-    const contentNode = key.type === 'delete' ? deleteRender?.() ?? deleteButtonText ?? '⌫' : key.type === 'extra' ? extraKeyRender ? extraKeyRender(keyText) : keyText || '⌨︎' : key.type === 'close' ? closeText ?? '完成' : numberKeyRender ? numberKeyRender(keyText) : keyText
+    const contentNode = key.type === 'delete' ? deleteRender?.() ?? deleteButtonText ?? '⌫' : key.type === 'extra' ? extraKeyRender ? extraKeyRender(keyText) : keyText || '⌨︎' : key.type === 'close' ? closeText ?? defaultCloseText : numberKeyRender ? numberKeyRender(keyText) : keyText
     return <Pressable key={`${key.type}-${index}-${key.text ?? index}`} onPress={onPress} disabled={disabled} style={[{ opacity: isPlaceholder ? 1 : disabled ? 0.6 : 1 }, fullWidth ? { width: '100%', flexBasis: 'auto' as unknown as number, flexGrow: 0, alignSelf: 'stretch' } : { flexBasis: 0, flexGrow: key.wider ? 2 : 1, flexShrink: 1, minWidth: 0 }]} accessible={!isPlaceholder} accessibilityRole={isPlaceholder ? undefined : 'button'} accessibilityLabel={isPlaceholder ? undefined : key.type === 'delete' ? 'delete' : key.type === 'close' ? closeText ?? 'close' : key.type === 'extra' ? keyText || 'collapse' : keyText} accessibilityState={isPlaceholder ? undefined : { disabled: !!disabled }} accessibilityElementsHidden={isPlaceholder} importantForAccessibility={isPlaceholder ? 'no-hide-descendants' : undefined}>{({ pressed }) => { const isPressed = pressed && !disabled; const keyBackground = disabled ? colors.keyBackground : isPressed ? activeBackground : background; const textColor = isPressed ? pressedTextColor : inactiveTextColor; return <View style={[S.k, { height: keyHeight, backgroundColor: keyBackground, borderRadius: radii.key }]}>{isCustomTheme && closeButtonLoading ? <Loading size={18} color={textColor} /> : isRenderable(contentNode) ? renderTextOrNode(contentNode, [S.kT, { color: textColor, fontSize: textFontSize }]) : null}</View> }}</Pressable>
   }, [closeButtonLoading, colors.closeActiveBackground, colors.closeBackground, colors.closeText, colors.keyActiveBackground, colors.keyBackground, colors.keyText, colors.keyTextActive, deleteButtonText, deleteRender, extraKeyRender, handleInput, numberKeyRender, radii.key, sizing.closeHeight, sizing.fontSize, sizing.keyHeight, closeText])
   const animatedValue = useRef(new Animated.Value(visible ? 1 : 0)).current

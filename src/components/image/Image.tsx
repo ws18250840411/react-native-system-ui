@@ -4,6 +4,7 @@ import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, TextSt
 import { SvgUri } from 'react-native-svg'
 import { isNumber, isString, renderTextOrNode } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
+import { useLocale } from '../config-provider/useLocale'
 import { useImageTokens } from './tokens'
 import type { ImageFit, ImageProps } from './types'
 
@@ -54,12 +55,13 @@ const resolveSourceUri = (source?: ImageSourcePropType): string | undefined => {
 }
 const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<typeof RNImage>>) => {
   const { src, source, width, height, radius, round, fit: fitProp, showLoading: showLoadingProp, showError: showErrorProp, loadingText: loadingTextProp, loadingIcon, errorIcon, iconSize: iconSizeProp, loadingSize, errorText: errorTextProp, fallback, onPress, alt, accessibilityLabel, ['aria-label']: ariaLabel, containerStyle, style, children, tokensOverride, onLoad, onError, ...rest } = props
+  const locale = useLocale()
   const tokens = useImageTokens(tokensOverride)
   const fit = fitProp ?? tokens.defaults.fit
   const showLoading = showLoadingProp ?? tokens.defaults.showLoading
   const showError = showErrorProp ?? tokens.defaults.showError
-  const loadingText = loadingTextProp !== undefined ? loadingTextProp : tokens.defaults.loadingText
-  const errorText = errorTextProp !== undefined ? errorTextProp : tokens.defaults.errorText
+  const loadingText = loadingTextProp !== undefined ? loadingTextProp : (locale?.vanImage?.loading ?? tokens.defaults.loadingText)
+  const errorText = errorTextProp !== undefined ? errorTextProp : (locale?.vanImage?.error ?? tokens.defaults.errorText)
   const { container: containerLayoutStyle, image: imageStyleWithLayout } = useMemo(() => splitImageStyle(style), [style])
   const actualSource = useMemo(() => (source ? source : src ? { uri: src } : undefined), [source, src])
   const sourceKey = useMemo(() => {

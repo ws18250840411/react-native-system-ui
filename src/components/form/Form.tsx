@@ -5,6 +5,7 @@ import { isPromiseLike } from '../../utils/promise'
 import { isNumber, isString, isText } from '../../utils/validate'
 import type { FormInstance, FormItemRule, FormProps, FormSubscribeProps, NamePath, RegisteredFieldOptions } from './types'
 import { FORM_ALL_FIELDS_KEY, getValueByName, normalizeTrigger, serializeNamePath, setValueByName } from './utils'
+import { useLocale } from '../config-provider/useLocale'
 
 export interface FormContextValue {
   getFieldValue: (name: NamePath) => unknown
@@ -22,8 +23,8 @@ export interface FormContextValue {
 
 export const FormContext = React.createContext<FormContextValue | null>(null)
 
-const runRuleValidation = (rule: FormItemRule, value: unknown, values: Record<string, unknown>): string | null | Promise<string | null> => {
-  const msg = rule.message ?? '表单验证未通过'
+const runRuleValidation = (rule: FormItemRule, value: unknown, values: Record<string, unknown>, fallbackMsg?: string): string | null | Promise<string | null> => {
+  const msg = rule.message ?? fallbackMsg ?? 'Validation failed'
   const empty = value == null || value === '' || (Array.isArray(value) && value.length === 0)
   if (rule.required && (empty || (rule.whitespace && isString(value) && value.trim().length === 0))) return msg
   if (empty) return null
@@ -42,6 +43,7 @@ const runRuleValidation = (rule: FormItemRule, value: unknown, values: Record<st
 
 const InternalFormImpl = (props: FormProps, ref: React.ForwardedRef<FormInstance>) => {
   const { initialValues, colon, labelWidth, showValidateMessage = true, onValuesChange, onFinish, style, footer, children, ...rest } = props
+  const locale = useLocale()
   const defaultValuesRef = useRef<Record<string, unknown>>({}), errorsRef = useRef<Record<string, string[]>>({}), lastInitialValuesRef = useRef<Record<string, unknown>>(initialValues ?? defaultValuesRef.current), fieldsRef = useRef<Record<string, RegisteredFieldOptions & { name: NamePath }>>({}), dependencyGraphRef = useRef(new Map<string, Set<string>>()), valuesRef = useRef<Record<string, unknown>>(initialValues ?? defaultValuesRef.current), validationSeqRef = useRef<Record<string, number>>({}), subscribersRef = useRef(new Set<(changedValues: Record<string, unknown>, allValues: Record<string, unknown>) => void>()), onValuesChangeRef = useRef(onValuesChange), onFinishRef = useRef(onFinish)
   onValuesChangeRef.current = onValuesChange
   onFinishRef.current = onFinish
@@ -117,6 +119,8 @@ const InternalFormImpl = (props: FormProps, ref: React.ForwardedRef<FormInstance
       setFieldErrors(name, [])
     }
   }, [notify, setFieldErrors])
+  const localeRef = useRef(locale)
+  localeRef.current = locale
   const validateField = useCallback(async (name: NamePath, trigger?: string, valueOverride?: unknown, valuesOverride?: Record<string, unknown>): Promise<boolean> => {
     const key = serializeNamePath(name)
     const validationSeq = (validationSeqRef.current[key] ?? 0) + 1
@@ -134,8 +138,9 @@ const InternalFormImpl = (props: FormProps, ref: React.ForwardedRef<FormInstance
     }
     const currentValues = valuesOverride ?? valuesRef.current
     const value = valueOverride ?? getValueByName(currentValues, name)
+    const fallbackMsg = localeRef.current?.vanForm?.validationFailed
     for (const rule of applicableRules) {
-      const result = runRuleValidation(rule, value, currentValues)
+      const result = runRuleValidation(rule, value, currentValues, fallbackMsg)
       const error = isPromiseLike(result) ? await result : result
       if (validationSeqRef.current[key] !== validationSeq) return true
       if (error) { setFieldErrors(name, [error]); return false }

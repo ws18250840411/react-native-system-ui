@@ -71,4 +71,36 @@ export const zhCN = {
   vanAddressList: {
     add: '新增地址',
   },
+  vanForm: {
+    validationFailed: '表单验证未通过',
+  },
+  vanPopup: {
+    closeOverlay: '关闭弹层',
+    closeHint: '双击即可关闭弹层',
+  },
+  vanToast: {
+    closeHint: '双击关闭提示',
+  },
+  vanShareSheet: {
+    cancel: '取消',
+  },
+  vanNumberKeyboard: {
+    close: '完成',
+  },
+  vanNoticeBar: {
+    close: '关闭',
+  },
+  vanNavBar: {
+    back: '返回',
+    action: '操作',
+  },
+  vanImage: {
+    loading: '加载中…',
+    error: '加载失败',
+  },
+  vanCascader: {
+    placeholder: '请选择',
+    loading: '加载中...',
+    close: '关闭',
+  },
 }

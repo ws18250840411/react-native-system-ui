@@ -3,6 +3,7 @@ import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native'
 import { ArrowLeft } from 'react-native-system-icon'
 
 import { useAriaPress } from '../../hooks'
+import { useLocale } from '../config-provider/useLocale'
 import { createHairlineView } from '../../utils/hairline'
 import { isRenderable, isText, renderTextOrNode } from '../../utils'
 import { SafeAreaView } from '../safe-area-view'
@@ -38,6 +39,7 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
     ...rest
   } = props
 
+  const locale = useLocale()
   const tokens = useNavBarTokens(tokensOverride)
   const leftArrow = leftArrowProp ?? tokens.defaults.leftArrow
   const fixed = fixedProp ?? tokens.defaults.fixed
@@ -63,8 +65,8 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
 
   const resolvedColor = tintColor ?? tokens.colors.text
   const sideColor = tintColor ?? tokens.colors.icon
-  const leftAccessibilityLabel = isText(leftText) ? `${leftText}` : '返回'
-  const rightAccessibilityLabel = isText(rightText) ? `${rightText}` : '操作'
+  const leftAccessibilityLabel = isText(leftText) ? `${leftText}` : (locale?.vanNavBar?.back ?? 'Back')
+  const rightAccessibilityLabel = isText(rightText) ? `${rightText}` : (locale?.vanNavBar?.action ?? 'Actions')
 
   const leftPress = useAriaPress({
     disabled: !handlePressLeft,

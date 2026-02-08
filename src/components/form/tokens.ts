@@ -11,7 +11,7 @@ export interface FormTokens {
 const createFormTokens = (_foundations: Foundations): FormTokens => ({
   defaults: {
     showValidateMessage: true,
-    defaultValidationMessage: '表单验证未通过',
+    defaultValidationMessage: 'Validation failed',
   },
 })
 

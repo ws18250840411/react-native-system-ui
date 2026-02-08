@@ -9,6 +9,7 @@ import type { DeepPartial } from '../../types'
 import { isFiniteNumber, isText, isRenderable } from '../../utils/validate'
 import { renderTextOrNode } from '../../utils'
 import { nativeDriverEnabled } from '../../platform'
+import { useLocale } from '../config-provider/useLocale'
 import { useToastTokens } from './tokens'
 import type { ToastTokens } from './tokens'
 
@@ -44,6 +45,7 @@ export interface ToastProps {
 
 const ToastContentImpl: React.FC<ToastProps> = props => {
   const { visible, message, icon, type = 'info', iconSize, duration = 2000, position = 'middle', forbidClick = false, overlay = false, overlayStyle, closeOnClickOverlay = false, closeOnClick = false, loadingIndicator, safeAreaInsetTop: safeAreaInsetTopProp, safeAreaInsetBottom: safeAreaInsetBottomProp, tokensOverride, style, textStyle, onClose, onOpen, onOpened, onClosed } = props
+  const locale = useLocale()
   const tokens = useToastTokens(tokensOverride)
   const { colors } = tokens
   const { height: windowHeight } = useWindowDimensions()
@@ -122,7 +124,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     }
   }, [mounted])
   const handleClose = useRef(() => onCloseRef.current?.()).current
-  const pressProps = useAriaPress({ disabled: !closeOnClick, onPress: handleClose, extraProps: { accessibilityRole: closeOnClick ? 'button' : 'alert', accessibilityHint: closeOnClick ? '双击关闭提示' : undefined, accessibilityLiveRegion: 'assertive' } })
+  const pressProps = useAriaPress({ disabled: !closeOnClick, onPress: handleClose, extraProps: { accessibilityRole: closeOnClick ? 'button' : 'alert', accessibilityHint: closeOnClick ? (locale?.vanToast?.closeHint ?? 'Double-tap to dismiss') : undefined, accessibilityLiveRegion: 'assertive' } })
   const iconNode = useMemo(() => {
     if (icon) return icon
     const resolvedIconSize = iconSize ?? tokens.iconSize
