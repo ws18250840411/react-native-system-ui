@@ -15,11 +15,11 @@ export default [
   },
   {
     "name": "form",
-    "size": 7100
+    "size": 6987
   },
   {
     "name": "cascader",
-    "size": 6034
+    "size": 5993
   },
   {
     "name": "dialog",
