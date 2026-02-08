@@ -7,15 +7,15 @@
 export default [
   {
     "name": "picker",
-    "size": 8783
+    "size": 8867
   },
   {
     "name": "tabs",
-    "size": 7958
+    "size": 8060
   },
   {
     "name": "form",
-    "size": 6929
+    "size": 7117
   },
   {
     "name": "cascader",
@@ -23,7 +23,7 @@ export default [
   },
   {
     "name": "dialog",
-    "size": 5938
+    "size": 5978
   },
   {
     "name": "slider",
@@ -38,40 +38,40 @@ export default [
     "size": 5544
   },
   {
+    "name": "number-keyboard",
+    "size": 5044
+  },
+  {
     "name": "swiper",
     "size": 4973
   },
   {
-    "name": "number-keyboard",
-    "size": 4969
-  },
-  {
     "name": "toast",
-    "size": 4851
+    "size": 4936
   },
   {
     "name": "notify",
-    "size": 4784
+    "size": 4883
+  },
+  {
+    "name": "stepper",
+    "size": 4856
   },
   {
     "name": "popup",
-    "size": 4757
+    "size": 4812
+  },
+  {
+    "name": "checkbox",
+    "size": 4716
   },
   {
     "name": "button",
     "size": 4594
   },
   {
-    "name": "stepper",
-    "size": 4583
-  },
-  {
     "name": "image-preview",
     "size": 4556
-  },
-  {
-    "name": "checkbox",
-    "size": 4464
   },
   {
     "name": "radio",
@@ -86,12 +86,16 @@ export default [
     "size": 3923
   },
   {
+    "name": "notice-bar",
+    "size": 3782
+  },
+  {
     "name": "tabbar",
     "size": 3733
   },
   {
-    "name": "notice-bar",
-    "size": 3678
+    "name": "collapse",
+    "size": 3622
   },
   {
     "name": "password-input",
@@ -99,11 +103,7 @@ export default [
   },
   {
     "name": "action-sheet",
-    "size": 3525
-  },
-  {
-    "name": "collapse",
-    "size": 3501
+    "size": 3534
   },
   {
     "name": "image",
@@ -123,7 +123,7 @@ export default [
   },
   {
     "name": "progress",
-    "size": 2811
+    "size": 2861
   },
   {
     "name": "selector",
@@ -147,7 +147,7 @@ export default [
   },
   {
     "name": "circle",
-    "size": 2507
+    "size": 2556
   },
   {
     "name": "badge",
@@ -158,12 +158,12 @@ export default [
     "size": 2421
   },
   {
-    "name": "water-mark",
-    "size": 2357
+    "name": "skeleton",
+    "size": 2390
   },
   {
-    "name": "skeleton",
-    "size": 2338
+    "name": "water-mark",
+    "size": 2357
   },
   {
     "name": "tag",

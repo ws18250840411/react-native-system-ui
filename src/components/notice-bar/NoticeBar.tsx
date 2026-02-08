@@ -19,6 +19,7 @@ import { isRenderable, isText } from '../../utils/validate'
 import { renderTextOrNode } from '../../utils'
 
 import { nativeDriverEnabled } from '../../platform'
+import { useReducedMotion } from '../../hooks/animation'
 import type { NoticeBarProps } from './types'
 import { useNoticeBarTokens } from './tokens'
 
@@ -64,6 +65,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
 
   const locale = useLocale()
   const layoutDir = useDirection()
+  const reducedMotion = useReducedMotion()
   const tokens = useNoticeBarTokens(tokensOverride)
   const resolvedColor = color ?? tokens.colors.text
   const resolvedBackground = background ?? tokens.colors.background
@@ -91,7 +93,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
     return text !== undefined ? [text] : []
   }, [children, isVertical, items, text])
 
-  const hasVerticalLoop = isVertical && verticalItems.length > 1
+  const hasVerticalLoop = !reducedMotion && isVertical && verticalItems.length > 1
   const verticalTrackItems = useMemo(
     () => (hasVerticalLoop ? [...verticalItems, verticalItems[0]] : verticalItems),
     [hasVerticalLoop, verticalItems]
@@ -150,7 +152,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
       (hasLeft ? tokens.spacing.sidePadding : 0) -
       (hasRight ? tokens.spacing.sidePadding : 0),
   )
-  const shouldScroll = !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth)
+  const shouldScroll = !reducedMotion && !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth)
 
   useEffect(() => {
     if (!visible) {
@@ -183,6 +185,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
           duration,
           easing: Easing.linear,
           useNativeDriver: nativeDriverEnabled,
+          isInteraction: false,
         }),
       ]).start(({ finished }) => {
         if (finished && !cancelled) {
@@ -228,6 +231,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
           duration: resolvedVerticalDuration,
           easing: Easing.linear,
           useNativeDriver: nativeDriverEnabled,
+          isInteraction: false,
         }),
       )
     }
@@ -236,6 +240,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
         toValue: 0,
         duration: 0,
         useNativeDriver: nativeDriverEnabled,
+        isInteraction: false,
       }),
     )
 
@@ -278,6 +283,8 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
         pointerEvents="none"
       >
         <Animated.View
+          renderToHardwareTextureAndroid
+          shouldRasterizeIOS
           style={[styles.verticalTrack, { transform: [{ translateY: verticalTranslateY }] }]}
         >
           {verticalTrackItems.map((item, index) => (
@@ -371,6 +378,8 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
           isTextContent ? (
             <AnimatedText
               onLayout={handleTextLayout}
+              renderToHardwareTextureAndroid
+              shouldRasterizeIOS
               style={[
                 styles.text,
                 styles.scrollText,
@@ -390,6 +399,8 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
           ) : (
             <Animated.View
               onLayout={handleNodeLayout}
+              renderToHardwareTextureAndroid
+              shouldRasterizeIOS
               style={[
                 styles.text,
                 { transform: [{ translateX }] },

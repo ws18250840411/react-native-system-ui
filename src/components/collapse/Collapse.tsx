@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Text, View, type LayoutChangeEvent, type ViewProps, type TextProps } from 'react-native'
 import { Arrow } from 'react-native-system-icon'
+import { useReducedMotion } from '../../hooks/animation'
 import { Cell } from '../cell'
 import type { DeepPartial } from '../../types'
 import { createHairlineView, isFunction, isNumber, isObject, isRenderable, renderTextOrNode } from '../../utils'
@@ -111,6 +112,7 @@ const Hairline = React.memo<{ tokens: CollapseTokens; position: 'top' | 'bottom'
 })
 const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps>((props, ref) => {
   const context = useContext(CollapseContext)
+  const reducedMotion = useReducedMotion()
   if (!context) throw new Error('Collapse.Panel must be used within Collapse')
   const { activeKeys, toggle, iconPosition, expandIcon, disabled: contextDisabled, tokens } = context
   const { name = '0', index = 0, title, description, label, icon, extra, value, border: panelBorder = tokens.defaults.panelBorder, isLink: isLinkProp = tokens.defaults.panelIsLink, size: sizeProp = tokens.defaults.panelSize, disabled, readOnly, children, style, titleStyle, descriptionStyle, ...rest } = props
@@ -120,10 +122,15 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const { colors, spacing, typography } = tokens
   const [contentHeight, setContentHeight] = useState(0)
   const animation = useRef(new Animated.Value(isActive ? 1 : 0)).current
+  const collapseAnimRef = useRef<Animated.CompositeAnimation | null>(null)
   const rotation = animation.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '-90deg'] })
   useEffect(() => {
-    Animated.timing(animation, { toValue: isActive ? 1 : 0, duration: tokens.defaults.animationDuration, easing: Easing.ease, useNativeDriver: false }).start()
-  }, [animation, isActive, tokens.defaults.animationDuration])
+    collapseAnimRef.current?.stop()
+    const anim = Animated.timing(animation, { toValue: isActive ? 1 : 0, duration: reducedMotion ? 0 : tokens.defaults.animationDuration, easing: Easing.ease, useNativeDriver: false, isInteraction: false })
+    collapseAnimRef.current = anim
+    anim.start(({ finished }) => { if (finished) collapseAnimRef.current = null })
+    return () => { collapseAnimRef.current?.stop(); collapseAnimRef.current = null }
+  }, [animation, isActive, reducedMotion, tokens.defaults.animationDuration])
   const renderedLabel = description ?? label
   const renderedValue = extra ?? value
   const handleToggle = useCallback(() => { if (mergedDisabled || readOnly) return; toggle(nameKey) }, [mergedDisabled, nameKey, readOnly, toggle])

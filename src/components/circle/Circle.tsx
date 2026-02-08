@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import { Animated, Platform, Text, View, type ViewStyle } from 'react-native'
 import Svg, { Circle as SvgCircle } from 'react-native-svg'
 import { isText, clamp, parseNumber, parsePercentage } from '../../utils'
+import { useReducedMotion } from '../../hooks/animation'
 import { useCircleTokens } from './tokens'
 import type { CircleProps, CircleStartPosition } from './types'
 
@@ -23,6 +24,7 @@ const AnimatedSvgCircle = Animated.createAnimatedComponent(SvgCircle)
 const CircleImpl: React.FC<CircleProps> = props => {
   const { tokensOverride, rate: rateProp, size, strokeWidth, color, layerColor, fill: fillProp, clockwise: clockwiseProp, startPosition: startPositionProp, lineCap: lineCapProp, animated: animatedProp, animationDuration, style, textStyle, children } = props
   const tokens = useCircleTokens(tokensOverride)
+  const reducedMotion = useReducedMotion()
   const fill = fillProp ?? tokens.defaults.fill
   const clockwise = clockwiseProp ?? tokens.defaults.clockwise
   const startPosition = startPositionProp ?? tokens.defaults.startPosition
@@ -74,11 +76,11 @@ const CircleImpl: React.FC<CircleProps> = props => {
   const dashOffset = useRef(new Animated.Value(dashOffsetTarget)).current
 
   useEffect(() => {
-    if (!animated || safeDuration <= 0) { dashOffset.setValue(dashOffsetTarget); return }
-    const animation = Animated.timing(dashOffset, { toValue: dashOffsetTarget, duration: safeDuration, useNativeDriver: false })
+    if (!animated || safeDuration <= 0 || reducedMotion) { dashOffset.setValue(dashOffsetTarget); return }
+    const animation = Animated.timing(dashOffset, { toValue: dashOffsetTarget, duration: safeDuration, useNativeDriver: false, isInteraction: false })
     animation.start()
     return () => animation.stop()
-  }, [animated, dashOffset, dashOffsetTarget, safeDuration])
+  }, [animated, dashOffset, dashOffsetTarget, reducedMotion, safeDuration])
 
   const center = resolvedSize / 2
   return (

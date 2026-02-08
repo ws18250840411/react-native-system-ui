@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react'
 import { Animated, StyleSheet, View, type ViewStyle } from 'react-native'
 import { nativeDriverEnabled } from '../../platform'
+import { useReducedMotion } from '../../hooks/animation'
 import { isFiniteNumber, isString } from '../../utils'
 import type { SkeletonProps } from './types'
 import { useSkeletonTokens } from './tokens'
@@ -12,6 +13,7 @@ const resolveSeries = (count: number, input: number | string | Array<number | st
 const SkeletonImpl = (props: SkeletonProps, ref: React.ForwardedRef<View>) => {
   const { tokensOverride, isLoaded, loading: loadingProp, animate: animateProp, startColor, speed: speedProp, avatar: avatarProp, avatarSize: avatarSizeProp, avatarShape: avatarShapeProp, title: titleProp, titleWidth: titleWidthProp, row: rowProp, rowWidth: rowWidthProp, rowHeight, round: roundProp, style, children, ...rest } = props
   const tokens = useSkeletonTokens(tokensOverride)
+  const reducedMotion = useReducedMotion()
   const loading = loadingProp ?? (isLoaded != null ? !isLoaded : true)
   const animate = animateProp ?? true
   const avatar = avatarProp ?? false
@@ -40,14 +42,14 @@ const SkeletonImpl = (props: SkeletonProps, ref: React.ForwardedRef<View>) => {
   const animated = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
-    if (!loading || !animate || duration <= 0) { animated.setValue(0); return }
+    if (!loading || !animate || duration <= 0 || reducedMotion) { animated.setValue(0); return }
     const loop = Animated.loop(Animated.sequence([
-      Animated.timing(animated, { toValue: 1, duration: duration / 2, useNativeDriver: nativeDriverEnabled }),
-      Animated.timing(animated, { toValue: 0, duration: duration / 2, useNativeDriver: nativeDriverEnabled }),
+      Animated.timing(animated, { toValue: 1, duration: duration / 2, useNativeDriver: nativeDriverEnabled, isInteraction: false }),
+      Animated.timing(animated, { toValue: 0, duration: duration / 2, useNativeDriver: nativeDriverEnabled, isInteraction: false }),
     ]))
     loop.start()
     return () => loop.stop()
-  }, [animate, animated, duration, loading])
+  }, [animate, animated, duration, loading, reducedMotion])
 
   const animatedStyle = useMemo(() => (!loading || !animate ? undefined : ({ opacity: animated.interpolate({ inputRange: [0, 1], outputRange: [tokens.animation.minOpacity, tokens.animation.maxOpacity] }) } as unknown as ViewStyle)), [animate, animated, loading, tokens.animation.maxOpacity, tokens.animation.minOpacity])
   const containerStyles = [S.ctr, { gap: tokens.spacing.containerGap }, style]

@@ -9,6 +9,7 @@ import type { DeepPartial } from '../../types'
 import { isFiniteNumber, isText, isRenderable } from '../../utils/validate'
 import { renderTextOrNode } from '../../utils'
 import { nativeDriverEnabled } from '../../platform'
+import { useReducedMotion } from '../../hooks/animation'
 import { useLocale } from '../config-provider/useLocale'
 import { useToastTokens } from './tokens'
 import type { ToastTokens } from './tokens'
@@ -47,6 +48,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
   const { visible, message, icon, type = 'info', iconSize, duration = 2000, position = 'middle', forbidClick = false, overlay = false, overlayStyle, closeOnClickOverlay = false, closeOnClick = false, loadingIndicator, safeAreaInsetTop: safeAreaInsetTopProp, safeAreaInsetBottom: safeAreaInsetBottomProp, tokensOverride, style, textStyle, onClose, onOpen, onOpened, onClosed } = props
   const locale = useLocale()
   const tokens = useToastTokens(tokensOverride)
+  const reducedMotion = useReducedMotion()
   const { colors } = tokens
   const { height: windowHeight } = useWindowDimensions()
   const resolvedDuration = isFiniteNumber(duration) ? Math.max(0, duration) : 0
@@ -73,16 +75,16 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     animationIdRef.current += 1
     const animationId = animationIdRef.current
     animationRef.current?.stop()
-    const animationDuration = tokens.animationDuration
+    const d = reducedMotion ? 0 : tokens.animationDuration
     if (visible) {
       setMounted(true)
-      animationRef.current = Animated.timing(animatedValue, { toValue: 1, duration: animationDuration, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
+      animationRef.current = Animated.timing(animatedValue, { toValue: 1, duration: d, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
       animationRef.current.start()
     } else {
-      animationRef.current = Animated.timing(animatedValue, { toValue: 0, duration: animationDuration, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
+      animationRef.current = Animated.timing(animatedValue, { toValue: 0, duration: d, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
       animationRef.current.start(({ finished }) => { if (!finished || animationId !== animationIdRef.current) return; setMounted(false) })
     }
-  }, [animatedValue, tokens.animationDuration, visible])
+  }, [animatedValue, reducedMotion, tokens.animationDuration, visible])
   useEffect(() => () => { animationRef.current?.stop() }, [])
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | null = null
@@ -100,6 +102,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     if (!text) return
     AccessibilityInfo.announceForAccessibility?.(text)
   }, [message, visible])
+  const resolvedAnimDuration = reducedMotion ? 0 : tokens.animationDuration
   useEffect(() => {
     let openedTimeout: ReturnType<typeof setTimeout> | null = null
     if (visible) {
@@ -108,7 +111,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
         onOpenRef.current?.()
         if (onOpenedRef.current) {
           const callback = onOpenedRef.current
-          openedTimeout = setTimeout(callback, tokens.animationDuration)
+          openedTimeout = setTimeout(callback, resolvedAnimDuration)
         }
       }
     } else if (previousVisibleRef.current) {
@@ -116,7 +119,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     }
     previousVisibleRef.current = visible
     return () => { if (openedTimeout) clearTimeout(openedTimeout) }
-  }, [tokens.animationDuration, visible])
+  }, [resolvedAnimDuration, visible])
   useEffect(() => {
     if (!mounted && closingRef.current) {
       closingRef.current = false
@@ -147,7 +150,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
       {(overlay || forbidClick) && <Pressable testID="rv-toast-overlay" style={[S.o, { backgroundColor: tokens.colors.transparent }, overlay && { backgroundColor: colors.backdrop }, overlayStyle]} pointerEvents="auto" onPress={overlay && closeOnClickOverlay ? handleClose : undefined} onStartShouldSetResponder={RT} onMoveShouldSetResponder={RT} />}
       {needsSafeAreaTop && <SafeAreaView edge="top" pointerEvents="none" />}
       <Pressable disabled={!closeOnClick} {...pressProps.interactionProps}>
-        <Animated.View style={[S.t, toastStyle, style]}>
+        <Animated.View renderToHardwareTextureAndroid shouldRasterizeIOS style={[S.t, toastStyle, style]}>
           {iconNode && <View style={iconWrapperStyle}>{iconNode}</View>}
           {hasMessage && (isText(message) ? renderTextOrNode(message, [S.m, messageStyle, textStyle]) : <View style={S.mw}>{message}</View>)}
         </Animated.View>

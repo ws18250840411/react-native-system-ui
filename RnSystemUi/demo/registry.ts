@@ -60,6 +60,7 @@ import CollapseDemoBase from '../../docs/components/collapse/demo/base'
 import CollapseDemoCustom from '../../docs/components/collapse/demo/custom'
 import CollapseDemoDisabled from '../../docs/components/collapse/demo/disabled'
 import ConfigProviderDemoLocale from '../../docs/components/config-provider/demo/locale'
+import ConfigProviderDemoRtl from '../../docs/components/config-provider/demo/rtl'
 import ConfigProviderDemoTheme from '../../docs/components/config-provider/demo/theme'
 import ConfigProviderDemoTokensOverride from '../../docs/components/config-provider/demo/tokens-override'
 import CountDownDemoBasic from '../../docs/components/count-down/demo/basic'
@@ -93,6 +94,8 @@ import EmptyDemoBase from '../../docs/components/empty/demo/base'
 import EmptyDemoCustom from '../../docs/components/empty/demo/custom'
 import EmptyDemoFooter from '../../docs/components/empty/demo/footer'
 import EmptyDemoType from '../../docs/components/empty/demo/type'
+import ErrorBoundaryDemoBasic from '../../docs/components/error-boundary/demo/basic'
+import ErrorBoundaryDemoReset from '../../docs/components/error-boundary/demo/reset'
 import FieldDemoAlign from '../../docs/components/field/demo/align'
 import FieldDemoBasic from '../../docs/components/field/demo/basic'
 import FieldDemoCustom from '../../docs/components/field/demo/custom'
@@ -348,6 +351,7 @@ export const menuGroups: MenuGroup[] = [
     "slugs": [
       "action-sheet",
       "dialog",
+      "error-boundary",
       "loading",
       "notify",
       "overlay",
@@ -575,6 +579,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "locale",
         title: "语言切换",
         Component: ConfigProviderDemoLocale,
+      },
+      {
+        id: "rtl",
+        title: "RTL 布局",
+        Component: ConfigProviderDemoRtl,
       },
       {
         id: "theme",
@@ -1380,6 +1389,21 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "component",
         title: "组件调用",
         Component: DialogDemoComponent,
+      },
+    ],
+  },
+  "error-boundary": {
+    title: "ErrorBoundary 错误边界",
+    demos: [
+      {
+        id: "basic",
+        title: "基础用法",
+        Component: ErrorBoundaryDemoBasic,
+      },
+      {
+        id: "reset",
+        title: "错误恢复",
+        Component: ErrorBoundaryDemoReset,
       },
     ],
   },

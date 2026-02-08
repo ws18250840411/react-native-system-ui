@@ -7,6 +7,7 @@ import { useAriaPress, useSafeAreaPadding } from '../../hooks'
 import Portal from '../portal/Portal'
 import { useOverlayStack } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
+import { useReducedMotion } from '../../hooks/animation'
 import type { NotifyProps, NotifyPosition } from './types'
 import { useNotifyTokens } from './tokens'
 
@@ -15,6 +16,7 @@ export type { NotifyProps, NotifyPosition, NotifyType, NotifyTokens } from './ty
 const NotifyContentImpl: React.FC<NotifyProps> = props => {
   const { visible, message, type: typeProp, duration: durationProp, position: positionProp, offset: offsetProp, color, background, zIndex, closeOnClick: closeOnClickProp, style, textStyle, tokensOverride, onClick, onClose, onOpen, onOpened, onClosed } = props
   const tokens = useNotifyTokens(tokensOverride)
+  const reducedMotion = useReducedMotion()
   const safeAreaPadding = useSafeAreaPadding({ top: 0, bottom: 0 })
   const type = typeProp ?? tokens.defaults.type
   const position: NotifyPosition = positionProp ?? tokens.defaults.position
@@ -57,26 +59,20 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
     animationIdRef.current += 1
     const animationId = animationIdRef.current
     animationRef.current?.stop()
-    const animationDuration = tokens.defaults.animationDuration
+    const d = reducedMotion ? 0 : tokens.defaults.animationDuration
     if (visible) {
       setMounted(true)
-      if (!canAnimate) {
-        animatedValue.setValue(0)
-        return
-      }
-      animationRef.current = Animated.timing(animatedValue, { toValue: 1, duration: animationDuration, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
+      if (!canAnimate) { animatedValue.setValue(0); return }
+      animationRef.current = Animated.timing(animatedValue, { toValue: 1, duration: d, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
       animationRef.current.start()
     } else {
-      if (!canAnimate) {
-        animatedValue.setValue(0)
-        setMounted(false)
-        return
-      }
-      animationRef.current = Animated.timing(animatedValue, { toValue: 0, duration: animationDuration, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
+      if (!canAnimate) { animatedValue.setValue(0); setMounted(false); return }
+      animationRef.current = Animated.timing(animatedValue, { toValue: 0, duration: d, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
       animationRef.current.start(({ finished }) => { if (!finished || animationId !== animationIdRef.current) return; setMounted(false) })
     }
-  }, [animatedValue, canAnimate, tokens.defaults.animationDuration, visible])
+  }, [animatedValue, canAnimate, reducedMotion, tokens.defaults.animationDuration, visible])
   useEffect(() => () => { animationRef.current?.stop() }, [])
+  const resolvedAnimDuration = reducedMotion ? 0 : tokens.defaults.animationDuration
   useEffect(() => {
     let openedTimeout: ReturnType<typeof setTimeout> | null = null
     if (visible) {
@@ -85,7 +81,7 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
         onOpenRef.current?.()
         if (onOpenedRef.current) {
           const callback = onOpenedRef.current
-          openedTimeout = setTimeout(callback, tokens.defaults.animationDuration)
+          openedTimeout = setTimeout(callback, resolvedAnimDuration)
         }
       }
     } else if (previousVisibleRef.current) {
@@ -93,7 +89,7 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
     }
     previousVisibleRef.current = visible
     return () => { if (openedTimeout) clearTimeout(openedTimeout) }
-  }, [tokens.defaults.animationDuration, visible])
+  }, [resolvedAnimDuration, visible])
   useEffect(() => {
     if (!mounted && closingRef.current) {
       closingRef.current = false
@@ -117,7 +113,7 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
   const barRender = useMemo(() => (
     <View style={[tokens.layout.container, position === 'top' ? ({ paddingTop: webTopPadding ?? addOffset(safeAreaTopValue, offset) } as ViewStyle) : null, webBottomPadding !== undefined ? ({ paddingBottom: webBottomPadding } as ViewStyle) : null]}>
       <View style={{ height: contentHeight, overflow: 'hidden' }}>
-        <Animated.View testID="rv-notify-bar" accessibilityRole={!interactive ? accessibilityRole : undefined} accessibilityLiveRegion={!interactive ? 'assertive' : undefined} onLayout={handleLayout} style={[tokens.layout.container, { opacity: animatedValue, transform: [{ translateY }] } as ViewStyle, style]}>
+        <Animated.View testID="rv-notify-bar" accessibilityRole={!interactive ? accessibilityRole : undefined} accessibilityLiveRegion={!interactive ? 'assertive' : undefined} renderToHardwareTextureAndroid shouldRasterizeIOS onLayout={handleLayout} style={[tokens.layout.container, { opacity: animatedValue, transform: [{ translateY }] } as ViewStyle, style]}>
           <View style={{ backgroundColor: resolvedBackground }}>
             <View style={[tokens.layout.content, { paddingHorizontal: tokens.spacing.paddingHorizontal, paddingVertical: tokens.spacing.paddingVertical, minHeight: tokens.sizing.minHeight }]}>
               {hasMessage && (isText(message) ? renderTextOrNode(message, [tokens.layout.text, { color: resolvedTextColor, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.lineHeight }, textStyle]) : message)}

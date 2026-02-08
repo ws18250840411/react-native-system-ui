@@ -1,4 +1,5 @@
 export * from './useSafeAreaPadding'
+export * from './animation'
 export * from './aria'
 export * from './gesture'
 export * from './overlay'

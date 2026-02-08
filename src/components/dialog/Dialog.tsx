@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 import { useLocale } from '../config-provider/useLocale'
 import { nativeDriverEnabled } from '../../platform'
+import { useReducedMotion } from '../../hooks/animation'
 import { createHairlineView } from '../../utils/hairline'
 import { isPromiseLike } from '../../utils/promise'
 import { isNumber, isValidNode } from '../../utils/validate'
@@ -38,6 +39,7 @@ const DialogImpl: React.FC<DialogProps> = props => {
   const locale = useLocale()
   const { visible, title, message, messageAlign = 'center', theme = 'default', width, closeable = false, closeIcon, overlay = true, overlayStyle, overlayTestID = 'dialog-overlay', closeOnBackPress = false, closeOnPopstate = true, closeOnOverlayPress = false, closeOnClickOverlay = false, onClickOverlay, onClickCloseIcon, beforeClose, showCancelButton = false, showConfirmButton = true, cancelButtonText, cancelButtonColor, cancelProps, confirmButtonText, confirmButtonColor, confirmProps, footer, contentStyle, titleStyle, messageStyle, tokensOverride, style, children, onCancel, onConfirm, onClose, onClosed, ...rest } = props
   const tokens = useDialogTokens(tokensOverride)
+  const reducedMotion = useReducedMotion()
   const hTitle = isValidNode(title)
   const hMsg = isValidNode(message)
   const hChildren = isValidNode(children)
@@ -85,10 +87,10 @@ const DialogImpl: React.FC<DialogProps> = props => {
   useEffect(() => {
     scaleAnimRef.current?.stop()
     scaleAnim.setValue(visible ? 0.7 : 1)
-    const anim = Animated.timing(scaleAnim, { toValue: visible ? 1 : 0.9, duration: 300, easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
+    const anim = Animated.timing(scaleAnim, { toValue: visible ? 1 : 0.9, duration: reducedMotion ? 0 : 300, easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic), useNativeDriver: nativeDriverEnabled, isInteraction: false })
     scaleAnimRef.current = anim
     anim.start()
-  }, [scaleAnim, visible])
+  }, [scaleAnim, visible, reducedMotion])
   useEffect(() => () => { scaleAnimRef.current?.stop() }, [])
   const widthStyle = useMemo(() => width ? isNumber(width) ? { width } : { width: String(width) as ViewStyle['width'] } : { width: '90%' as ViewStyle['width'], maxWidth: tokens.sizes.maxWidth }, [tokens.sizes.maxWidth, width])
   const titleWrapStyle = useMemo(() => hTitle ? [S.titleWrap, { paddingTop: hContent ? tokens.spacing.titlePaddingTop : tokens.spacing.titleIsolatedPadding, paddingBottom: hContent ? 0 : tokens.spacing.titleIsolatedPadding, paddingHorizontal: hContent ? tokens.spacing.paddingHorizontal : 0, marginBottom: hContent ? tokens.spacing.titleGap : 0 }] : null, [hContent, hTitle, tokens.spacing.paddingHorizontal, tokens.spacing.titleGap, tokens.spacing.titleIsolatedPadding, tokens.spacing.titlePaddingTop])

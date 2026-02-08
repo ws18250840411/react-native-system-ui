@@ -173,7 +173,7 @@
 
 > 审查维度：逻辑正确性 · 性能 · 多端兼容 · 无障碍 · 类型安全 · Token 集成 · i18n/RTL · 内存安全
 >
-> 审查状态：✅ 全部完成 | 总测试：**490 用例 / 67 套件 全部通过**
+> 审查状态：✅ 全部完成 | 总测试：**505 用例 / 70 套件 全部通过**
 
 ---
 
@@ -277,6 +277,8 @@
 | useAriaToggle | 28 | ⭐⭐⭐⭐⭐ | fallback ref、inputProps memo |
 | useAriaListBox | 35 | ⭐⭐⭐⭐⭐ | label → aria-label 自动转换、inline 计算 |
 | useGestureScroll | 102 | ⭐⭐⭐⭐⭐ | Animated.event 双通道、时间戳速度计算 |
+| useReducedMotion | 41 | ⭐⭐⭐⭐⭐ | 跨平台减少动效检测（AccessibilityInfo / prefers-reduced-motion）、全局单例 + 订阅 |
+| useAnimatedTransition | 57 | ⭐⭐⭐⭐⭐ | 通用 show/hide 动画、自动 mount/unmount、reducedMotion 集成 |
 | OverlayStackStore | 101 | ⭐⭐⭐⭐⭐ | useSyncExternalStore、BackHandler + scrollLock |
 | useOverlayStack | 45 | ⭐⭐⭐⭐⭐ | mount/option effect 分离、逐字段变更检测 |
 
@@ -299,7 +301,7 @@
 
 | 模块 | 行数 | 评分 | 核心亮点 |
 |------|------|------|----------|
-| animation.ts | 3 | ⭐⭐⭐⭐⭐ | nativeDriverEnabled 自动检测 |
+| animation.ts | 12 | ⭐⭐⭐⭐⭐ | nativeDriverEnabled 自动检测、defaultAnimationConfig、hardwareAccelerationProps |
 | history.ts | 7 | ⭐⭐⭐⭐⭐ | SSR 安全 + 清理函数 |
 | measure.ts | 20 | ⭐⭐⭐⭐⭐ | measureInWindow / getBoundingClientRect + try/catch |
 | runtime.ts | 5 | ⭐⭐⭐⭐⭐ | 函数式 isWeb/isIOS/isAndroid |
@@ -333,6 +335,18 @@
 | 10 | useAriaListBox.ts | 🟢 Suggestion | `useMemo` 依赖 `rest`（每次新对象），memo 永不缓存 | 移除无效 useMemo，改为直接内联计算 |
 | 11 | Stepper.tsx | 🟢 Suggestion | 变量名极度简短（`p`/`t`/`c`/`cR`/`sO` 等 30+ 个），可读性低 | 全量重命名为语义化变量 |
 
+#### 动画/手势性能层升级（Phase 5）
+
+| # | 变更 | 涉及文件 | 说明 |
+|---|------|----------|------|
+| 12 | 新增 `useReducedMotion` hook | `hooks/animation/useReducedMotion.ts` | 跨平台检测用户"减少动效"偏好（Native: AccessibilityInfo / Web: prefers-reduced-motion） |
+| 13 | 新增 `useAnimatedTransition` hook | `hooks/animation/useAnimatedTransition.ts` | 通用 show/hide 动画封装，自动 mount/unmount 生命周期、reducedMotion 集成 |
+| 14 | 增强 `platform/animation.ts` | `platform/animation.ts` | 新增 `defaultAnimationConfig`、`hardwareAccelerationProps` 导出 |
+| 15 | 11 个动画组件集成 reducedMotion | Popup / Toast / Notify / NumberKeyboard / Dialog / Skeleton / NoticeBar / Collapse / Circle / Progress / Tabs | 所有动画均尊重用户减少动效偏好，reducedMotion 时 duration=0 |
+| 16 | 硬件加速属性集成 | Popup / Toast / Notify / NumberKeyboard / NoticeBar / Collapse | `renderToHardwareTextureAndroid` + `shouldRasterizeIOS` GPU 加速 |
+| 17 | 手势组件验证 | Picker / Slider / useGestureScroll | 确认已使用 RAF 节流、Web touchAction、proper cleanup，无需修改 |
+| 18 | 测试覆盖 | `hooks/animation/__tests__/` + `platform/__tests__/animation.test.ts` | useReducedMotion 6 用例 + useAnimatedTransition 4 用例 + platform 7 用例 |
+
 ---
 
 ### 三、质量维度总评
@@ -344,11 +358,11 @@
 | **内存管理** | ✅ 全部 effect 有正确 cleanup（timer / listener / subscription） |
 | **跨平台兼容** | ✅ Web / iOS / Android 全覆盖；SSR 安全检查到位 |
 | **类型安全** | ✅ 泛型 / 类型守卫 / 重载签名完备 |
-| **性能** | ✅ useMemo / useCallback 合理使用；Animated 双通道设计 |
+| **性能** | ✅ useMemo / useCallback 合理使用；Animated 双通道设计；reducedMotion 无障碍动效 |
 | **无障碍** | ✅ accessibilityRole / Label / Hint 全覆盖；Web 键盘导航 |
 | **Token 集成** | ✅ 三层合并链（base → theme → instance）统一规范 |
 | **i18n / RTL** | ✅ locale 引用正确；flipStyle + useDirection 完整覆盖 |
-| **测试覆盖** | ✅ 490 用例 / 67 套件，全部通过 |
+| **测试覆盖** | ✅ 505 用例 / 70 套件，全部通过 |
 
 ---
 
@@ -363,4 +377,5 @@
 | 原子组件 | button / tag / badge / typography / stepper / loading / switch / divider / space / number-keyboard / field / progress | 110 | ✅ |
 | Hooks 工具 | useAriaPress / useAriaOverlay / useAriaToggle / useAriaListBox / useGestureScroll / OverlayStackStore / useOverlayStack | 16 | ✅ |
 | 补审组件 | area / avatar / circle / count-down / empty / error-boundary / flex / grid / input / overlay / password-input / search / selector / share-sheet / skeleton / tabbar / water-mark / design-system | 136 | ✅ |
-| **合计** | **67 套件** | **490** | **✅ 全部通过** |
+| 动画性能层 | useReducedMotion / useAnimatedTransition / platform animation | 15 | ✅ |
+| **合计** | **70 套件** | **505** | **✅ 全部通过** |

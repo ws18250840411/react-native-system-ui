@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo, Children, isValidElement, Fragment, type FC, type ForwardRefRenderFunction } from 'react'
 import { Animated, Pressable, StyleSheet, Text, ScrollView, View, Platform, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent, type ViewStyle } from 'react-native'
 import { useAriaPress, useControllableValue } from '../../hooks'
+import { useReducedMotion } from '../../hooks/animation'
 import { createHairlineView } from '../../utils/hairline'
 import { parseNumberLike } from '../../utils/number'
 import { isBoolean, isFunction, isObject, isRenderable, isText } from '../../utils/validate'
@@ -45,6 +46,7 @@ const useTabsAnimation = ({ type, animated, scrollable, align, panes, nameIndexM
   const indicatorX = useRef(new Animated.Value(0)).current
   const indicatorWidth = useRef(new Animated.Value(0)).current
   const indicatorInitializedRef = useRef(false)
+  const indicatorAnimRef = useRef<Animated.CompositeAnimation | null>(null)
   const animateIndicator = useCallback((name?: TabsValue, immediate?: boolean) => {
     if (name == null || type !== 'line') return false
     const shouldUseEqualWidth = !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
@@ -52,10 +54,13 @@ const useTabsAnimation = ({ type, animated, scrollable, align, panes, nameIndexM
     const equalTabWidth = shouldUseEqualWidth ? navContainerWidthRef.current / panes.length : 0
     const layout = shouldUseEqualWidth ? { x: Math.max(index, 0) * equalTabWidth, width: equalTabWidth } : layoutMap.current.get(name)
     if (!layout || index < 0) return false
-    const timing = (value: Animated.Value, toValue: number) => Animated.timing(value, { toValue, duration: immediate || !animated ? 0 : resolvedDuration, useNativeDriver: false })
+    indicatorAnimRef.current?.stop()
+    const timing = (value: Animated.Value, toValue: number) => Animated.timing(value, { toValue, duration: immediate || !animated ? 0 : resolvedDuration, useNativeDriver: false, isInteraction: false })
     const targetWidth = resolvedLineWidth ?? layout.width
     const targetX = resolvedLineWidth ? layout.x + (layout.width - targetWidth) / 2 : layout.x
-    Animated.parallel([timing(indicatorX, targetX), timing(indicatorWidth, targetWidth)]).start()
+    const anim = Animated.parallel([timing(indicatorX, targetX), timing(indicatorWidth, targetWidth)])
+    indicatorAnimRef.current = anim
+    anim.start(({ finished }) => { if (finished) indicatorAnimRef.current = null })
     return true
   }, [align, animated, indicatorWidth, indicatorX, nameIndexMap, panes.length, resolvedDuration, resolvedLineWidth, scrollable, type, layoutMap, navContainerWidthRef])
   useEffect(() => {
@@ -64,6 +69,7 @@ const useTabsAnimation = ({ type, animated, scrollable, align, panes, nameIndexM
     const didAnimate = animateIndicator(currentName, !shouldAnimate)
     if (didAnimate && !indicatorInitializedRef.current) indicatorInitializedRef.current = true
   }, [animateIndicator, currentName])
+  useEffect(() => () => { indicatorAnimRef.current?.stop(); indicatorAnimRef.current = null }, [])
   return { indicatorX, indicatorWidth, indicatorInitializedRef, animateIndicator }
 }
 
@@ -106,7 +112,7 @@ const useTabsScroll = ({ scrollable, animated, currentName, resolvedDuration, la
     }
     navScrollX.setValue(navLastScrollXRef.current)
     navAutoScrollingRef.current = true
-    navScrollAnimRef.current = Animated.timing(navScrollX, { toValue: clampedX, duration: resolvedDuration, useNativeDriver: false })
+    navScrollAnimRef.current = Animated.timing(navScrollX, { toValue: clampedX, duration: resolvedDuration, useNativeDriver: false, isInteraction: false })
     navScrollAnimRef.current.start(({ finished }) => {
       navScrollAnimRef.current = null
       navAutoScrollingRef.current = false
@@ -198,6 +204,7 @@ const TabBarItem = memo(TabBarItemInner)
 const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref) => {
   const { tokensOverride, children, type: typeProp, align: alignProp, ellipsis: ellipsisProp, swipeThreshold: swipeThresholdProp, animated: animatedProp, duration: durationProp, lazyRender: lazyRenderProp, lazyRenderPlaceholder, scrollable: scrollableProp, swipeable, color, background: backgroundProp, border, navLeft, navRight, navBottom, tabBarStyle, tabStyle, titleStyle, descriptionStyle, contentStyle, lineWidth, lineHeight, titleActiveColor, titleInactiveColor, beforeChange, onClickTab, onChange, style, ...rest } = props
   const tokens = useTabsTokens(tokensOverride)
+  const reducedMotion = useReducedMotion()
   const type = typeProp ?? tokens.defaults.type
   const align = alignProp ?? tokens.defaults.align
   const ellipsis = ellipsisProp ?? tokens.defaults.ellipsis
@@ -209,7 +216,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
   const parsedLineWidth = parseNumberLike(lineWidth ?? tokens.indicator.width)
   const resLineW = parsedLineWidth != null && parsedLineWidth < 0 ? undefined : parsedLineWidth
   const resLineH = Math.max(0, parseNumberLike(lineHeight) ?? tokens.indicator.height)
-  const resDur = Math.max(0, parseNumberLike(duration) ?? tokens.defaults.duration)
+  const resDur = reducedMotion ? 0 : Math.max(0, parseNumberLike(duration) ?? tokens.defaults.duration)
   const resSwipeTh = Math.max(0, parseNumberLike(swipeThreshold) ?? tokens.defaults.swipeThreshold)
   const swipeCfg = !swipeable ? undefined : isObject(swipeable) ? { autoHeight: swipeable.autoHeight ?? true, preventScroll: swipeable.preventScroll ?? true } : { autoHeight: true, preventScroll: true }
   const isSwipe = !!swipeCfg

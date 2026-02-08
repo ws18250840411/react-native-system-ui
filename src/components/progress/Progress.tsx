@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, type LayoutChangeEvent, Platform, Text, View, type ViewStyle } from 'react-native'
 import { clamp, parseNumberLike, parsePercentage, isString, isText } from '../../utils'
+import { useReducedMotion } from '../../hooks/animation'
 import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'
 
@@ -32,6 +33,7 @@ export const ProgressFilledTrack: React.FC<{ style?: ViewStyle | ViewStyle[] }> 
 export const Progress = memo((props: ProgressProps) => {
   const { tokensOverride, percentage: percentageProp, strokeWidth, color, trackColor, pivotText, pivotColor, textColor, inactive: inactiveProp, showPivot: showPivotProp, animated, transition: transitionProp, animationDuration: animationDurationProp, style, pivotStyle, indicatorStyle, orientation: orientationProp, children, ...rest } = props
   const tokens = useProgressTokens(tokensOverride)
+  const reducedMotion = useReducedMotion()
   const percentageClamped = clamp(parsePercentage(percentageProp ?? tokens.defaults.percentage), 0, 100)
   const height = parseNumberLike(strokeWidth, tokens.sizing.height) ?? tokens.sizing.height
   const inactive = inactiveProp ?? tokens.defaults.inactive
@@ -47,7 +49,7 @@ export const Progress = memo((props: ProgressProps) => {
   const pivotContentText = pivotText ?? `${percentageClamped}%`
   const hasPivot = showPivotValue && pivotContentText !== null && pivotContentText !== false
   const animatedValue = useRef(new Animated.Value(percentageClamped)).current
-  useEffect(() => { if (shouldAnimate && duration > 0) { const animation = Animated.timing(animatedValue, { toValue: percentageClamped, duration: duration, useNativeDriver: false }); animation.start(); return () => animation.stop() } else { animatedValue.setValue(percentageClamped) } }, [percentageClamped, shouldAnimate, duration, animatedValue])
+  useEffect(() => { if (shouldAnimate && duration > 0 && !reducedMotion) { const animation = Animated.timing(animatedValue, { toValue: percentageClamped, duration, useNativeDriver: false, isInteraction: false }); animation.start(); return () => animation.stop() } else { animatedValue.setValue(percentageClamped) } }, [percentageClamped, shouldAnimate, duration, animatedValue, reducedMotion])
   const [layout, setLayout] = useState({ track: 0, pivot: 0 })
   const onTrackLayout = useCallback((event: LayoutChangeEvent) => { const width = event.nativeEvent.layout.width; setLayout(prev => (prev.track === width ? prev : { ...prev, track: width })) }, [])
   const onPivotLayout = useCallback((event: LayoutChangeEvent) => { const width = event.nativeEvent.layout.width; setLayout(prev => (prev.pivot === width ? prev : { ...prev, pivot: width })) }, [])

@@ -3,6 +3,7 @@ import { Animated, Easing, Pressable, StyleSheet, Text, View, type LayoutChangeE
 
 import { useControllableValue } from '../../hooks'
 import { nativeDriverEnabled } from '../../platform'
+import { useReducedMotion } from '../../hooks/animation'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { parseNumberLike } from '../../utils/number'
 import { isRenderable, renderTextOrNode } from '../../utils'
@@ -35,6 +36,7 @@ interface Key {
 const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const { visible, title, tokensOverride, theme = 'default', extraKey, randomKeyOrder, showDeleteKey = true, closeButtonText, deleteButtonText, closeButtonLoading, onChange, onInput, onDelete, onClose, onBlur, onHide, onShow, value: _value, defaultValue: _defaultValue, maxlength: maxlengthProp, blurOnClose = true, safeAreaInsetBottom = true, transition = true, transitionDuration = 300, numberKeyRender, deleteRender, extraKeyRender, style, ...rest } = props
   const locale = useLocale()
+  const reducedMotion = useReducedMotion()
   const tokens = useNumberKeyboardTokens(tokensOverride)
   const { colors, radii, shadow, sizing, spacing } = tokens
   const [value, setValue] = useControllableValue<string>(props, { defaultValue: '', valuePropName: 'value', defaultValuePropName: 'defaultValue', trigger: 'onChange' })
@@ -104,8 +106,8 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const animationSequence = useRef(0)
   const [contentHeight, setContentHeight] = useState(0)
   const [shouldRender, setShouldRender] = useState(visible)
-  const effectiveDuration = transition === false ? 0 : transitionDuration
-  useEffect(() => { animationSequence.current += 1; const currentSequence = animationSequence.current; if (visible) setShouldRender(true); animationRef.current?.stop(); const animation = Animated.timing(animatedValue, { toValue: visible ? 1 : 0, duration: effectiveDuration, useNativeDriver: nativeDriverEnabled, easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic) }); animationRef.current = animation; animation.start(({ finished }) => { if (finished && !visible && animationSequence.current === currentSequence) setShouldRender(false) }); return () => { animationRef.current?.stop(); animationRef.current = null } }, [animatedValue, visible, effectiveDuration])
+  const effectiveDuration = reducedMotion ? 0 : (transition === false ? 0 : transitionDuration)
+  useEffect(() => { animationSequence.current += 1; const currentSequence = animationSequence.current; if (visible) setShouldRender(true); animationRef.current?.stop(); const animation = Animated.timing(animatedValue, { toValue: visible ? 1 : 0, duration: effectiveDuration, useNativeDriver: nativeDriverEnabled, easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic), isInteraction: false }); animationRef.current = animation; animation.start(({ finished }) => { if (finished && !visible && animationSequence.current === currentSequence) setShouldRender(false) }); return () => { animationRef.current?.stop(); animationRef.current = null } }, [animatedValue, visible, effectiveDuration])
   const translateY = animatedValue.interpolate({ inputRange: [0, 1], outputRange: [contentHeight || 320, 0] })
   const handleLayout = useCallback((e: LayoutChangeEvent) => { const { height } = e.nativeEvent.layout; setContentHeight(prev => (Math.abs(height - prev) > 0.5 ? height : prev)) }, [])
   const hasHeader = !isCustom && (title || closeButtonText)
@@ -135,7 +137,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     return { headerNode, bodyNode, safeAreaNode }
   }, [handleClose, colors.title, doubleKeyHeight, extraKeyRender, hasHeader, isCustom, keys, renderKey, closeText, safeAreaInsetBottom, sizing.titleFontSize, spacing.keyGap, spacing.paddingHorizontal, spacing.titlePadding, title])
   if (!shouldRender && !visible) return null
-  return <Portal><Animated.View {...rest} pointerEvents={visible ? 'auto' : 'none'} onLayout={handleLayout} style={[S.w, windowShadow, style, { transform: [{ translateY }], backgroundColor: colors.background }]}>{memoized.headerNode}{memoized.bodyNode}{memoized.safeAreaNode}</Animated.View></Portal>
+  return <Portal><Animated.View {...rest} pointerEvents={visible ? 'auto' : 'none'} renderToHardwareTextureAndroid shouldRasterizeIOS onLayout={handleLayout} style={[S.w, windowShadow, style, { transform: [{ translateY }], backgroundColor: colors.background }]}>{memoized.headerNode}{memoized.bodyNode}{memoized.safeAreaNode}</Animated.View></Portal>
 })
 
 const S = StyleSheet.create({

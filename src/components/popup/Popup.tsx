@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 import { SafeAreaView } from '../safe-area-view'
 import { addPopStateListener, nativeDriverEnabled } from '../../platform'
+import { useReducedMotion } from '../../hooks/animation'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { isRenderable, isText } from '../../utils/validate'
 import { Cross } from 'react-native-system-icon'
@@ -13,8 +14,8 @@ import { usePopupTokens } from './tokens'
 import type { PopupPlacement, PopupProps } from './types'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
-const EASE_IN = Easing.bezier(0.55, 0.055, 0.675, 0.19)
 const EASE_OUT = Easing.bezier(0.075, 0.82, 0.165, 1.0)
+const EASE_IN = Easing.bezier(0.55, 0.055, 0.675, 0.19)
 const CAPTURE = () => true
 
 const placementConfig: Record<PopupPlacement, { container: ViewStyle; axis: 'x' | 'y' }> = {
@@ -46,6 +47,7 @@ const PopupImpl: React.FC<PopupProps> = props => {
   const isCenter = placement === 'center'
   const safeAreaInsetBottom = safeAreaInsetBottomProp ?? false
   const tokens = usePopupTokens(tokensOverride)
+  const reducedMotion = useReducedMotion()
 
   const cbRef = useRef({ onOpened, onClosed, onOpen, onClose, beforeClose, onClickOverlay })
   cbRef.current = { onOpened, onClosed, onOpen, onClose, beforeClose, onClickOverlay }
@@ -80,11 +82,12 @@ const PopupImpl: React.FC<PopupProps> = props => {
   const isH = placement === 'left' || placement === 'right'
   const dir = placement === 'top' || placement === 'left' ? -1 : 1
 
-  const runAnim = useCallback((show: boolean) => {
+  const runAnim = useCallback((show: boolean, rm: boolean) => {
     seqRef.current += 1
     const seq = seqRef.current
     animRef.current?.stop()
-    const a = Animated.timing(progress, { toValue: show ? 1 : 0, duration, easing: show ? EASE_OUT : EASE_IN, useNativeDriver: nativeDriverEnabled, isInteraction: false })
+    const d = rm ? 0 : duration
+    const a = Animated.timing(progress, { toValue: show ? 1 : 0, duration: d, easing: show ? EASE_OUT : EASE_IN, useNativeDriver: nativeDriverEnabled, isInteraction: false })
     animRef.current = a
     a.start(({ finished }) => {
       if (!finished || seq !== seqRef.current) return
@@ -93,8 +96,8 @@ const PopupImpl: React.FC<PopupProps> = props => {
   }, [destroyOnClose, duration, progress])
 
   useEffect(() => {
-    if (visible) { setMounted(true); setInterVis(true); runAnim(true) } else { if (prevVis.current) runAnim(false) }
-  }, [runAnim, visible])
+    if (visible) { setMounted(true); setInterVis(true); runAnim(true, reducedMotion) } else { if (prevVis.current) runAnim(false, reducedMotion) }
+  }, [runAnim, visible, reducedMotion])
 
   useEffect(() => { if (visible && !prevVis.current) cbRef.current.onOpen?.(); prevVis.current = visible }, [visible])
   useEffect(() => () => { animRef.current?.stop() }, [])
