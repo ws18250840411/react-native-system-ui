@@ -3,30 +3,9 @@ import type { DeepPartial } from '../types'
 import { deepMerge } from '../utils/deepMerge'
 
 export type FontWeight = Exclude<TextStyle['fontWeight'], undefined>
-
-export type PaletteRamp = {
-  50: string
-  100: string
-  200: string
-  300: string
-  400: string
-  500: string
-  600: string
-  700: string
-  800: string
-  900: string
-  foreground?: string
-}
-
+export type PaletteRamp = { 50: string; 100: string; 200: string; 300: string; 400: string; 500: string; 600: string; 700: string; 800: string; 900: string; foreground?: string }
 export interface Foundations {
-  palette: {
-    default: PaletteRamp
-    primary: PaletteRamp
-    info: PaletteRamp
-    success: PaletteRamp
-    warning: PaletteRamp
-    danger: PaletteRamp
-  }
+  palette: { default: PaletteRamp; primary: PaletteRamp; info: PaletteRamp; success: PaletteRamp; warning: PaletteRamp; danger: PaletteRamp }
   spacing: { none: number; xxs: number; xs: number; ssm: number; sm: number; md: number; lg: number; xl: number; xxl: number }
   radii: { none: number; xs: number; sm: number; md: number; lg: number; pill: number; full: number }
   fontSize: { xxs: number; xs: number; sm: number; md: number; lg: number; xl: number }
@@ -46,17 +25,10 @@ export const defaultFoundations: Foundations = {
   spacing: { none: 0, xxs: 2, xs: 4, ssm: 6, sm: 8, md: 12, lg: 16, xl: 20, xxl: 28 },
   radii: { none: 0, xs: 4, sm: 6, md: 8, lg: 12, pill: 999, full: 9999 },
   fontSize: { xxs: 10, xs: 12, sm: 14, md: 16, lg: 18, xl: 20 },
-  typography: {
-    fontFamily: 'System',
-    weight: { regular: '400', medium: '500', semiBold: '600', bold: '700' },
-    lineHeightMultiplier: 1.2,
-  },
+  typography: { fontFamily: 'System', weight: { regular: '400', medium: '500', semiBold: '600', bold: '700' }, lineHeightMultiplier: 1.2 },
   opacity: { disabled: 0.45, loading: 0.65, pressed: 0.85 },
 }
 
 export type ThemeTokens = Foundations
-
-export const createTokens = (overrides?: DeepPartial<Foundations>): ThemeTokens =>
-  overrides ? deepMerge(defaultFoundations, overrides) : defaultFoundations
-
+export const createTokens = (overrides?: DeepPartial<Foundations>): ThemeTokens => overrides ? deepMerge(defaultFoundations, overrides) : defaultFoundations
 export const defaultTokens = defaultFoundations
