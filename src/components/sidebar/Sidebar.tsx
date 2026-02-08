@@ -20,7 +20,7 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   const contextValue = useMemo(() => ({ activeIndex: currentIndex, onSelect: setActiveIndex }), [currentIndex, setActiveIndex])
   const clonedItems = useMemo(() => sidebarItems.map(item => React.cloneElement(item.element, { key: item.element.key ?? item.index, index: item.index, tokensOverride: mergeTokensOverride(tokensOverride, item.element.props.tokensOverride) })), [sidebarItems, tokensOverride])
   const activeItem = sidebarItems.find(item => item.index === currentIndex)?.element
-  const activeContentNode = !isRenderable(activeItem?.props?.children) ? null : renderTextOrNode(activeItem.props.children)
+  const activeContentNode = !isRenderable(activeItem?.props?.children) ? null : renderTextOrNode(activeItem!.props.children)
   return (
     <View {...rest} style={[tokens.layout.container, { backgroundColor: tokens.colors.background }, style]}>
       <View style={[tokens.layout.side, { width: tokens.sizing.width }, sideStyle]} accessibilityRole="tablist">

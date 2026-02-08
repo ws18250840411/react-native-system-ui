@@ -120,7 +120,7 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
       <View onLayout={handleContainerLayout} style={[S.content, wrapable && S.contentWrap, hasLeft && { paddingLeft: tokens.spacing.sidePadding }, hasRight && { paddingRight: tokens.spacing.sidePadding }]} pointerEvents="none">
         {isVertical ? verticalContentNode : shouldScroll ? (
           isTextContent ? (
-            <AnimatedText onLayout={handleTextLayout} renderToHardwareTextureAndroid shouldRasterizeIOS style={[S.text, S.scrollText, { color: resolvedColor, fontSize: tokens.typography.fontSize, transform: [{ translateX }] }]} {...(IS_WEB ? {} : { numberOfLines: 1 as const, ellipsizeMode: 'clip' as const })} {...restTextProps}>{content}</AnimatedText>
+            <AnimatedText onLayout={handleTextLayout} style={[S.text, S.scrollText, { color: resolvedColor, fontSize: tokens.typography.fontSize, transform: [{ translateX }] }]} {...(IS_WEB ? {} : { numberOfLines: 1 as const, ellipsizeMode: 'clip' as const })} {...restTextProps}>{content}</AnimatedText>
           ) : (
             <Animated.View onLayout={handleNodeLayout} renderToHardwareTextureAndroid shouldRasterizeIOS style={[S.text, { transform: [{ translateX }] }]}>{content}</Animated.View>
           )
