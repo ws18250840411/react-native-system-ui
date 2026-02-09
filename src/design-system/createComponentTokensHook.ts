@@ -11,9 +11,5 @@ export const createComponentTokensHook = <K extends ThemeComponentKey>(
 ) => (overrides?: DeepPartial<ThemeComponentTokensMap[K]>) => {
   const { foundations, components } = useTheme()
   const co = components?.[key]
-  return useMemo(() => {
-    const base = createBaseTokens(foundations)
-    const merged = co && overrides ? deepMerge(co, overrides) : co ?? overrides
-    return merged ? deepMerge(base, merged) : base
-  }, [co, foundations, overrides])
+  return useMemo(() => { const base = createBaseTokens(foundations); const m = co && overrides ? deepMerge(co, overrides) : co ?? overrides; return m ? deepMerge(base, m) : base }, [co, foundations, overrides])
 }

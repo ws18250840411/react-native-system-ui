@@ -33,19 +33,7 @@ const parseFlex = (v?: number | string): FlexStyle | undefined => {
   return undefined
 }
 
-const FlexItemImpl: React.FC<FlexItemProps> = ({ span, flex, style: s, children: c }) => {
-  const { horizontalGap: hg, verticalGap: vg, columns: cols } = useContext(FlexContext)
-  const sg = Platform.OS === 'web'
-  if (isNumber(span) && span <= 0) return null
-  const ws: ViewStyle = {}
-  if (isNumber(span)) {
-    const sc = Math.max(1, cols)
-    const p = Math.min(Math.max(span, 0), sc) / sc
-    ws.width = `${p * 100}%`
-    ws.flexGrow = 0
-    ws.flexShrink = 0
-  }
-  return <View style={[sg ? null : { paddingHorizontal: hg / 2, paddingVertical: vg / 2 }, ws, parseFlex(flex), s]}>{c}</View>
+const FlexItemImpl: React.FC<FlexItemProps> = ({ span, flex, style: s, children: c }) => { const { horizontalGap: hg, verticalGap: vg, columns: cols } = useContext(FlexContext); const sg = Platform.OS === 'web'; if (isNumber(span) && span <= 0) return null; const ws: ViewStyle = {}; if (isNumber(span)) { const sc = Math.max(1, cols); const p = Math.min(Math.max(span, 0), sc) / sc; ws.width = `${p * 100}%`; ws.flexGrow = 0; ws.flexShrink = 0 }; return <View style={[sg ? null : { paddingHorizontal: hg / 2, paddingVertical: vg / 2 }, ws, parseFlex(flex), s]}>{c}</View>
 }
 
 export const FlexItem = React.memo(FlexItemImpl)

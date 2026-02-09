@@ -26,41 +26,8 @@ type CollapseComponent = React.FC<CollapseProps> & {
   Item: React.ForwardRefExoticComponent<CollapsePanelProps & React.RefAttributes<CollapsePanelInstance>>
 }
 const CollapseImpl = ((props: CollapseProps) => {
-  const { tokensOverride, children, accordion: accordionProp, value, defaultValue, onChange, border: borderProp, iconPosition: iconPositionProp, expandIcon, disabled, style, ...rest } = props
-  const tokens = useCollapseTokens(tokensOverride)
-  const accordion = accordionProp ?? tokens.defaults.accordion
-  const border = borderProp ?? tokens.defaults.border
-  const iconPosition = iconPositionProp ?? tokens.defaults.iconPosition
-  const { colors } = tokens
-  const controlled = value !== undefined
-  const normalizedValue = normalizeValue(value)
-  const normalizedDefaultValue = normalizeValue(defaultValue) ?? []
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
-  const [internalValue, setInternalValue] = useState<string[]>(() => accordion ? normalizedDefaultValue.slice(0, 1) : normalizedDefaultValue)
-  const activeKeys = controlled ? (accordion ? (normalizedValue ?? []).slice(0, 1) : normalizedValue ?? []) : internalValue
-  const toggle = useCallback((name: string, expand?: boolean) => {
-    if (disabled) return
-    const existing = activeKeys.includes(name)
-    const shouldExpand = expand ?? !existing
-    let nextKeys: string[]
-    if (accordion) nextKeys = shouldExpand ? [name] : existing ? [] : activeKeys
-    else nextKeys = shouldExpand ? (existing ? activeKeys : [...activeKeys, name]) : (existing ? activeKeys.filter(key => key !== name) : activeKeys)
-    if (!controlled) setInternalValue(nextKeys)
-    onChangeRef.current?.(buildOutputValue(nextKeys, accordion))
-  }, [accordion, activeKeys, controlled, disabled])
-  const contextValue: CollapseContextValue = useMemo(() => ({ activeKeys, toggle, accordion, iconPosition, expandIcon, border, disabled, tokens }), [accordion, activeKeys, border, disabled, expandIcon, iconPosition, tokens, toggle])
-  const renderedChildren = useMemo(() => {
-    const items = React.Children.toArray(children)
-    return items.map((child, index) => {
-      if (!React.isValidElement(child)) return child
-      if (!isFunction(child.type) && !isObject(child.type)) return child
-      const name = (child.props as CollapsePanelProps).name ?? String(index)
-      return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { name, index })
-    })
-  }, [children])
-  return (
-    <CollapseContext.Provider value={contextValue}>
+  const { tokensOverride, children, accordion: accP, value, defaultValue, onChange, border: borderP, iconPosition: iconPosP, expandIcon, disabled, style, ...rest } = props; const tokens = useCollapseTokens(tokensOverride); const accordion = accP ?? tokens.defaults.accordion; const border = borderP ?? tokens.defaults.border; const iconPosition = iconPosP ?? tokens.defaults.iconPosition; const { colors } = tokens; const controlled = value !== undefined; const normVal = normalizeValue(value); const normDef = normalizeValue(defaultValue) ?? []; const onChangeRef = useRef(onChange); onChangeRef.current = onChange; const [internalValue, setInternalValue] = useState<string[]>(() => accordion ? normDef.slice(0, 1) : normDef); const activeKeys = controlled ? (accordion ? (normVal ?? []).slice(0, 1) : normVal ?? []) : internalValue; const toggle = useCallback((name: string, expand?: boolean) => { if (disabled) return; const existing = activeKeys.includes(name); const shouldExpand = expand ?? !existing; const nextKeys = accordion ? (shouldExpand ? [name] : existing ? [] : activeKeys) : (shouldExpand ? (existing ? activeKeys : [...activeKeys, name]) : (existing ? activeKeys.filter(k => k !== name) : activeKeys)); if (!controlled) setInternalValue(nextKeys); onChangeRef.current?.(buildOutputValue(nextKeys, accordion)) }, [accordion, activeKeys, controlled, disabled]); const ctxVal: CollapseContextValue = useMemo(() => ({ activeKeys, toggle, accordion, iconPosition, expandIcon, border, disabled, tokens }), [accordion, activeKeys, border, disabled, expandIcon, iconPosition, tokens, toggle]); const renderedChildren = useMemo(() => { const items = React.Children.toArray(children); return items.map((child, i) => { if (!React.isValidElement(child)) return child; if (!isFunction(child.type) && !isObject(child.type)) return child; const name = (child.props as CollapsePanelProps).name ?? String(i); return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { name, index: i }) }) }, [children]); return (
+    <CollapseContext.Provider value={ctxVal}>
       <View style={[tokens.layout.container, border && { backgroundColor: colors.background }, style]} {...rest}>
         {border && <Hairline tokens={tokens} position="top" color={colors.border} />}
         {border && <Hairline tokens={tokens} position="bottom" color={colors.border} />}

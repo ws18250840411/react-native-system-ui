@@ -272,6 +272,8 @@ import TagDemoBasic from '../../docs/components/tag/demo/basic'
 import TagDemoColor from '../../docs/components/tag/demo/color'
 import TagDemoSize from '../../docs/components/tag/demo/size'
 import TagDemoStyle from '../../docs/components/tag/demo/style'
+import TextDemoGlobalFont from '../../docs/components/text/demo/global-font'
+import TextDemoOverride from '../../docs/components/text/demo/override'
 import ToastDemoBase from '../../docs/components/toast/demo/base'
 import ToastDemoCustomIcon from '../../docs/components/toast/demo/customIcon'
 import ToastDemoForbidClick from '../../docs/components/toast/demo/forbidClick'
@@ -315,10 +317,11 @@ export const menuGroups: MenuGroup[] = [
   {
     "title": "基础组件",
     "slugs": [
+      "config-provider",
+      "text",
+      "typography",
       "button",
       "cell",
-      "config-provider",
-      "typography",
       "icon",
       "image",
       "popup",
@@ -457,6 +460,81 @@ export const componentRegistry: Record<string, ComponentEntry> = {
       },
     ],
   },
+  "config-provider": {
+    title: "ConfigProvider 全局配置",
+    demos: [
+      {
+        id: "locale",
+        title: "语言切换",
+        Component: ConfigProviderDemoLocale,
+      },
+      {
+        id: "rtl",
+        title: "RTL 布局",
+        Component: ConfigProviderDemoRtl,
+      },
+      {
+        id: "theme",
+        title: "定制主题",
+        Component: ConfigProviderDemoTheme,
+      },
+      {
+        id: "tokens-override",
+        title: "实例级 tokensOverride",
+        Component: ConfigProviderDemoTokensOverride,
+      },
+    ],
+  },
+  "text": {
+    title: "Text 主题文案",
+    demos: [
+      {
+        id: "global-font",
+        title: "全局字体",
+        Component: TextDemoGlobalFont,
+      },
+      {
+        id: "override",
+        title: "局部覆盖",
+        Component: TextDemoOverride,
+      },
+    ],
+  },
+  "typography": {
+    title: "Typography 文本",
+    demos: [
+      {
+        id: "base",
+        title: "基础用法",
+        Component: TypographyDemoBase,
+      },
+      {
+        id: "type",
+        title: "语义类型",
+        Component: TypographyDemoType,
+      },
+      {
+        id: "size",
+        title: "文本尺寸",
+        Component: TypographyDemoSize,
+      },
+      {
+        id: "title",
+        title: "标题",
+        Component: TypographyDemoTitle,
+      },
+      {
+        id: "ellipsis",
+        title: "文本省略",
+        Component: TypographyDemoEllipsis,
+      },
+      {
+        id: "link",
+        title: "链接",
+        Component: TypographyDemoLink,
+      },
+    ],
+  },
   "button": {
     title: "Button 按钮",
     demos: [
@@ -569,66 +647,6 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "vertical",
         title: "垂直居中",
         Component: CellDemoVertical,
-      },
-    ],
-  },
-  "config-provider": {
-    title: "ConfigProvider 全局配置",
-    demos: [
-      {
-        id: "locale",
-        title: "语言切换",
-        Component: ConfigProviderDemoLocale,
-      },
-      {
-        id: "rtl",
-        title: "RTL 布局",
-        Component: ConfigProviderDemoRtl,
-      },
-      {
-        id: "theme",
-        title: "定制主题",
-        Component: ConfigProviderDemoTheme,
-      },
-      {
-        id: "tokens-override",
-        title: "实例级 tokensOverride",
-        Component: ConfigProviderDemoTokensOverride,
-      },
-    ],
-  },
-  "typography": {
-    title: "Typography 文本",
-    demos: [
-      {
-        id: "base",
-        title: "基础用法",
-        Component: TypographyDemoBase,
-      },
-      {
-        id: "type",
-        title: "语义类型",
-        Component: TypographyDemoType,
-      },
-      {
-        id: "size",
-        title: "文本尺寸",
-        Component: TypographyDemoSize,
-      },
-      {
-        id: "title",
-        title: "标题",
-        Component: TypographyDemoTitle,
-      },
-      {
-        id: "ellipsis",
-        title: "文本省略",
-        Component: TypographyDemoEllipsis,
-      },
-      {
-        id: "link",
-        title: "链接",
-        Component: TypographyDemoLink,
       },
     ],
   },

@@ -11,10 +11,5 @@ export interface ThemeProviderProps { value?: ThemeProviderValue; children: Reac
 const isTokens = (v?: ThemeProviderValue): v is ThemeTokens =>
   Boolean(isObject(v) && 'palette' in v && 'spacing' in v)
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ value, children }) => {
-  const resolved = useMemo(() => ({
-    foundations: isTokens(value) ? value : createTokens(value?.foundations),
-    components: isTokens(value) ? undefined : value?.components,
-  }), [value])
-  return <ThemeContext.Provider value={resolved}>{children}</ThemeContext.Provider>
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ value, children }) => { const resolved = useMemo(() => ({ foundations: isTokens(value) ? value : createTokens(value?.foundations), components: isTokens(value) ? undefined : value?.components }), [value]); return <ThemeContext.Provider value={resolved}>{children}</ThemeContext.Provider>
 }

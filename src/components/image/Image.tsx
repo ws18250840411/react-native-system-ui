@@ -54,45 +54,7 @@ const resolveSourceUri = (source?: ImageSourcePropType): string | undefined => {
   return undefined
 }
 const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<typeof RNImage>>) => {
-  const { src, source, width, height, radius, round, fit: fitProp, showLoading: showLoadingProp, showError: showErrorProp, loadingText: loadingTextProp, loadingIcon, errorIcon, iconSize: iconSizeProp, loadingSize, errorText: errorTextProp, fallback, onPress, alt, accessibilityLabel, ['aria-label']: ariaLabel, containerStyle, style, children, tokensOverride, onLoad, onError, ...rest } = props
-  const locale = useLocale()
-  const tokens = useImageTokens(tokensOverride)
-  const fit = fitProp ?? tokens.defaults.fit
-  const showLoading = showLoadingProp ?? tokens.defaults.showLoading
-  const showError = showErrorProp ?? tokens.defaults.showError
-  const loadingText = loadingTextProp !== undefined ? loadingTextProp : (locale?.vanImage?.loading ?? tokens.defaults.loadingText)
-  const errorText = errorTextProp !== undefined ? errorTextProp : (locale?.vanImage?.error ?? tokens.defaults.errorText)
-  const { container: containerLayoutStyle, image: imageStyleWithLayout } = useMemo(() => splitImageStyle(style), [style])
-  const actualSource = useMemo(() => (source ? source : src ? { uri: src } : undefined), [source, src])
-  const sourceKey = useMemo(() => {
-    if (source) {
-      if (typeof source === 'number') return `res:${source}`
-      const uri = resolveSourceUri(source)
-      if (uri) return `uri:${uri}`
-      return 'source:unknown'
-    }
-    if (src) return `src:${src}`
-    return 'none'
-  }, [source, src])
-  const resolvedAccessibilityLabel = alt ?? accessibilityLabel ?? ariaLabel
-  const [state, setState] = useState<'idle' | 'loading' | 'loaded' | 'error'>(() => actualSource ? 'loading' : 'idle')
-  useEffect(() => { setState(actualSource ? 'loading' : 'idle') }, [sourceKey])
-  const onLoadRef = useRef(onLoad)
-  onLoadRef.current = onLoad
-  const onErrorRef = useRef(onError)
-  onErrorRef.current = onError
-  const handleLoad = useCallback((event: RNImageOnLoadEvent) => { setState('loaded'); onLoadRef.current?.(event) }, [])
-  const handleError = useCallback((event: RNImageOnErrorEvent) => { setState('error'); onErrorRef.current?.(event) }, [])
-  const handleSvgLoad = useCallback(() => { handleLoad({ nativeEvent: {} } as unknown as RNImageOnLoadEvent) }, [handleLoad])
-  const handleSvgError = useCallback((err: Error) => { handleError({ nativeEvent: { error: err } } as unknown as RNImageOnErrorEvent) }, [handleError])
-  const uri = useMemo(() => resolveSourceUri(actualSource), [actualSource])
-  const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined
-  const isSvg = !!normalizedUri && (normalizedUri.endsWith('.svg') || normalizedUri.includes('.svg?') || normalizedUri.includes('/svg?'))
-  const resolvedLoadingSize = isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize
-  const resolvedErrorIconSize = iconSizeProp ?? tokens.defaults.iconSize
-  const clickableRole = onPress ? 'button' : undefined
-  const pressableProps: Pick<PressableProps, 'onPress'> | null = onPress ? { onPress } : null
-  const renderLabel = (node: React.ReactNode, color: string, marginTop?: number) => {
+  const { src, source, width, height, radius, round, fit: fitP, showLoading: showLoadP, showError: showErrP, loadingText: loadTxtP, loadingIcon, errorIcon, iconSize: iconSzP, loadingSize, errorText: errTxtP, fallback, onPress, alt, accessibilityLabel, ['aria-label']: ariaLabel, containerStyle, style, children, tokensOverride, onLoad, onError, ...rest } = props; const locale = useLocale(); const tokens = useImageTokens(tokensOverride); const fit = fitP ?? tokens.defaults.fit; const showLoading = showLoadP ?? tokens.defaults.showLoading; const showError = showErrP ?? tokens.defaults.showError; const loadingText = loadTxtP !== undefined ? loadTxtP : (locale?.vanImage?.loading ?? tokens.defaults.loadingText); const errorText = errTxtP !== undefined ? errTxtP : (locale?.vanImage?.error ?? tokens.defaults.errorText); const { container: containerLayoutStyle, image: imageStyleWithLayout } = useMemo(() => splitImageStyle(style), [style]); const actualSource = useMemo(() => (source ? source : src ? { uri: src } : undefined), [source, src]); const sourceKey = useMemo(() => { if (source) { if (typeof source === 'number') return `res:${source}`; const u = resolveSourceUri(source); if (u) return `uri:${u}`; return 'source:unknown' }; if (src) return `src:${src}`; return 'none' }, [source, src]); const accLabel = alt ?? accessibilityLabel ?? ariaLabel; const [state, setState] = useState<'idle' | 'loading' | 'loaded' | 'error'>(() => actualSource ? 'loading' : 'idle'); useEffect(() => { setState(actualSource ? 'loading' : 'idle') }, [sourceKey]); const onLoadRef = useRef(onLoad); onLoadRef.current = onLoad; const onErrorRef = useRef(onError); onErrorRef.current = onError; const handleLoad = useCallback((event: RNImageOnLoadEvent) => { setState('loaded'); onLoadRef.current?.(event) }, []); const handleError = useCallback((event: RNImageOnErrorEvent) => { setState('error'); onErrorRef.current?.(event) }, []); const handleSvgLoad = useCallback(() => { handleLoad({ nativeEvent: {} } as unknown as RNImageOnLoadEvent) }, [handleLoad]); const handleSvgError = useCallback((err: Error) => { handleError({ nativeEvent: { error: err } } as unknown as RNImageOnErrorEvent) }, [handleError]); const uri = useMemo(() => resolveSourceUri(actualSource), [actualSource]); const normalizedUri = isString(uri) ? uri.toLowerCase() : undefined; const isSvg = !!normalizedUri && (normalizedUri.endsWith('.svg') || normalizedUri.includes('.svg?') || normalizedUri.includes('/svg?')); const rLoadSz = isNumber(loadingSize) ? loadingSize : tokens.defaults.loadingIndicatorBaseSize; const rErrIconSz = iconSzP ?? tokens.defaults.iconSize; const clickableRole = onPress ? 'button' : undefined; const pressableProps: Pick<PressableProps, 'onPress'> | null = onPress ? { onPress } : null; const renderLabel = (node: React.ReactNode, color: string, marginTop?: number) => {
     if (!isRenderable(node)) return null
     const textNode = renderTextOrNode(node, [tokens.layout.label, { color: color }, marginTop ? { marginTop: marginTop } : undefined].filter(Boolean) as StyleProp<TextStyle>)
     return marginTop && !isText(node) ? <View style={{ marginTop: marginTop }}>{textNode}</View> : textNode
@@ -103,42 +65,7 @@ const ImageImpl = (props: ImageProps, ref: React.ForwardedRef<React.ElementRef<t
     round ? { borderRadius: tokens.defaults.roundRadius } : isNumber(radius) ? { borderRadius: radius } : undefined,
     containerStyle,
     containerLayoutStyle,
-  ], [containerLayoutStyle, containerStyle, height, radius, round, tokens.colors.background, tokens.defaults.roundRadius, tokens.layout.container, width])
-  const imageAccessibilityLabel = !onPress ? resolvedAccessibilityLabel : undefined
-  const imageNode = actualSource ? (
-    isSvg && Platform.OS !== 'web' && uri ? (
-      <SvgUri width="100%" height="100%" uri={uri} preserveAspectRatio={resolvePreserveAspectRatio(fit)} accessible={!onPress} accessibilityLabel={imageAccessibilityLabel} {...rest} style={[tokens.layout.absoluteFill, imageStyleWithLayout]} onLoad={handleSvgLoad} onError={handleSvgError} />
-    ) : (
-      <RNImage ref={ref} accessible={!onPress} accessibilityLabel={imageAccessibilityLabel} {...rest} source={actualSource} style={[tokens.layout.absoluteFill, imageStyleWithLayout, WEB_IMAGE_STYLE]} resizeMode={resolveFitMode(fit)} onLoad={handleLoad} onError={handleError} />
-    )
-  ) : null
-  const content = (
-    <>
-      {state === 'loading' && showLoading && (
-        <View style={tokens.layout.overlay} pointerEvents="none" testID="rv-image-loading">
-          {loadingIcon || <ActivityIndicator color={tokens.colors.text} size={isString(loadingSize) ? loadingSize : 'small'} style={{ transform: [{ scale: resolvedLoadingSize / tokens.defaults.loadingIndicatorBaseSize }] }} />}
-          {renderLabel(loadingText, tokens.colors.text, tokens.defaults.loadingLabelMarginTop)}
-        </View>
-      )}
-      {imageNode}
-      {state === 'error' && showError && (
-        <View style={tokens.layout.overlay} pointerEvents="none" testID="rv-image-error">
-          {errorIcon && <View style={[tokens.layout.iconContainer, { width: resolvedErrorIconSize, height: resolvedErrorIconSize }]}>{errorIcon}</View>}
-          {isRenderable(fallback) ? renderLabel(fallback, tokens.colors.error) : renderLabel(errorText, tokens.colors.error)}
-        </View>
-      )}
-      {children}
-    </>
-  )
-  return pressableProps ? (
-    <Pressable {...pressableProps} accessibilityRole={clickableRole} accessibilityLabel={resolvedAccessibilityLabel} style={computedContainerStyle}>
-      {content}
-    </Pressable>
-  ) : (
-    <View accessibilityLabel={resolvedAccessibilityLabel} style={computedContainerStyle}>
-      {content}
-    </View>
-  )
+  ], [containerLayoutStyle, containerStyle, height, radius, round, tokens.colors.background, tokens.defaults.roundRadius, tokens.layout.container, width]); const imgAccLabel = !onPress ? accLabel : undefined; const imageNode = actualSource ? (isSvg && Platform.OS !== 'web' && uri ? <SvgUri width="100%" height="100%" uri={uri} preserveAspectRatio={resolvePreserveAspectRatio(fit)} accessible={!onPress} accessibilityLabel={imgAccLabel} {...rest} style={[tokens.layout.absoluteFill, imageStyleWithLayout]} onLoad={handleSvgLoad} onError={handleSvgError} /> : <RNImage ref={ref} accessible={!onPress} accessibilityLabel={imgAccLabel} {...rest} source={actualSource} style={[tokens.layout.absoluteFill, imageStyleWithLayout, WEB_IMAGE_STYLE]} resizeMode={resolveFitMode(fit)} onLoad={handleLoad} onError={handleError} />) : null; const content = (<>{state === 'loading' && showLoading && (<View style={tokens.layout.overlay} pointerEvents="none" testID="rv-image-loading">{loadingIcon || <ActivityIndicator color={tokens.colors.text} size={isString(loadingSize) ? loadingSize : 'small'} style={{ transform: [{ scale: rLoadSz / tokens.defaults.loadingIndicatorBaseSize }] }} />}{renderLabel(loadingText, tokens.colors.text, tokens.defaults.loadingLabelMarginTop)}</View>)}{imageNode}{state === 'error' && showError && (<View style={tokens.layout.overlay} pointerEvents="none" testID="rv-image-error">{errorIcon && <View style={[tokens.layout.iconContainer, { width: rErrIconSz, height: rErrIconSz }]}>{errorIcon}</View>}{isRenderable(fallback) ? renderLabel(fallback, tokens.colors.error) : renderLabel(errorText, tokens.colors.error)}</View>)}{children}</>); return pressableProps ? <Pressable {...pressableProps} accessibilityRole={clickableRole} accessibilityLabel={accLabel} style={computedContainerStyle}>{content}</Pressable> : <View accessibilityLabel={accLabel} style={computedContainerStyle}>{content}</View>
 }
 const ImageForwardRef = React.forwardRef<React.ElementRef<typeof RNImage>, ImageProps>(ImageImpl)
 const Image = React.memo(ImageForwardRef)

@@ -11,31 +11,7 @@ import { isRenderable, isText } from '../../utils/validate'
 const EMPTY_CHECKBOX_GROUP_STATE = { value: [] as string[], isDisabled: false, isReadOnly: false, isSelected: () => false, setValue: () => {}, addValue: () => {}, removeValue: () => {}, toggleValue: () => {} } as any
 
 const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
-  const { children, name, value, iconRender, bindGroup: bgp, shape, iconSize, checkedColor, labelPosition, labelDisabled, disabled, style, labelStyle, tokensOverride, hitSlop = 8, accessibilityLabel, ['aria-label']: al, onClick, onChange, ...rest } = p
-  const t = useCheckboxTokens(tokensOverride)
-  const g = useContext(CheckboxGroupContext)
-  const bg = bgp ?? t.defaults.bindGroup
-  const rs = shape ?? g?.shape ?? t.defaults.shape
-  const ris = iconSize ?? g?.iconSize ?? t.defaults.iconSize
-  const rcc = checkedColor ?? g?.checkedColor ?? t.colors.checkedBackground
-  const rir = iconRender ?? g?.iconRender
-  const rlp = labelPosition ?? t.defaults.labelPosition
-  const rld = labelDisabled ?? g?.labelDisabled ?? t.defaults.labelDisabled
-  const rd = Boolean(disabled || g?.state.isDisabled)
-  const rv = value ?? name
-  const sv = rv == null ? undefined : String(rv)
-  const ir = useRef<View>(null)
-  useImperativeHandle(ref, () => ir.current!)
-  const ss = useToggleState({ isSelected: p.checked, defaultSelected: p.defaultChecked, onChange })
-  const ig = !!g && sv !== undefined && bg
-  const { onBlur, onFocus, ...cr } = rest
-  useEffect(() => {
-    if (g && bg && sv !== undefined && rv !== undefined) {
-      g.registerValue(sv, rv, rd)
-      return () => g.unregisterValue(sv)
-    }
-    return undefined
-  }, [bg, g, sv, rv, rd])
+  const { children, name, value, iconRender, bindGroup: bgp, shape, iconSize, checkedColor, labelPosition, labelDisabled, disabled, style, labelStyle, tokensOverride, hitSlop = 8, accessibilityLabel, ['aria-label']: al, onClick, onChange, ...rest } = p; const t = useCheckboxTokens(tokensOverride); const g = useContext(CheckboxGroupContext); const bg = bgp ?? t.defaults.bindGroup; const rs = shape ?? g?.shape ?? t.defaults.shape; const ris = iconSize ?? g?.iconSize ?? t.defaults.iconSize; const rcc = checkedColor ?? g?.checkedColor ?? t.colors.checkedBackground; const rir = iconRender ?? g?.iconRender; const rlp = labelPosition ?? t.defaults.labelPosition; const rld = labelDisabled ?? g?.labelDisabled ?? t.defaults.labelDisabled; const rd = Boolean(disabled || g?.state.isDisabled); const rv = value ?? name; const sv = rv == null ? undefined : String(rv); const ir = useRef<View>(null); useImperativeHandle(ref, () => ir.current!); const ss = useToggleState({ isSelected: p.checked, defaultSelected: p.defaultChecked, onChange }); const ig = !!g && sv !== undefined && bg; const { onBlur, onFocus, ...cr } = rest; useEffect(() => { if (g && bg && sv !== undefined && rv !== undefined) { g.registerValue(sv, rv, rd); return () => g.unregisterValue(sv) }; return undefined }, [bg, g, sv, rv, rd])
   const ral = accessibilityLabel ?? al ?? (isText(children) ? String(children) : undefined) ?? sv ?? 'checkbox'
   const ar = ir as unknown as React.RefObject<HTMLInputElement>
   const { inputProps: gip } = useCheckboxGroupItem(

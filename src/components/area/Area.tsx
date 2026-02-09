@@ -7,16 +7,7 @@ import { useAreaTokens } from './tokens'
 const sortEntries = (record?: Record<string, string>) => record ? Object.entries(record).sort(([a], [b]) => a.localeCompare(b)) : []
 const getProvinceCode = (code: string) => code.slice(0, 2)
 const getCityCode = (code: string) => code.slice(0, 4)
-const groupBy = (list: Record<string, string> | undefined, getKey: (code: string) => string) => {
-  const map = new Map<string, AreaOption[]>()
-  sortEntries(list).forEach(([code, name]) => {
-    const key = getKey(code)
-    const array = map.get(key)
-    if (array) array.push({ label: name, value: code })
-    else map.set(key, [{ label: name, value: code }])
-  })
-  return map
-}
+const groupBy = (list: Record<string, string> | undefined, getKey: (code: string) => string) => { const m = new Map<string, AreaOption[]>(); sortEntries(list).forEach(([code, name]) => { const k = getKey(code); const arr = m.get(k); if (arr) arr.push({ label: name, value: code }); else m.set(k, [{ label: name, value: code }]) }); return m }
 
 const buildAreaColumns = (areaList: { province_list?: Record<string, string>; city_list?: Record<string, string>; county_list?: Record<string, string> }, columnsNum: 1 | 2 | 3 = 3): AreaOption[] => {
   const provinces = sortEntries(areaList.province_list)
@@ -58,21 +49,12 @@ const normalizeCascadeValue = (root: PickerOption[], rawValue: AreaProps['value'
 }
 
 const AreaImpl: React.FC<AreaProps> = props => {
-  const tokens = useAreaTokens()
-  const { areaList, columnsNum: columnsNumProp = tokens.defaults.columnsNum, value, defaultValue, onChange, onConfirm, interactionMode: interactionModeProp = tokens.defaults.interactionMode, ...rest } = props
-  const resolvedColumnsNum = useMemo(() => (columnsNumProp >= 1 && columnsNumProp <= 3 ? columnsNumProp : tokens.defaults.columnsNum), [columnsNumProp])
-  const { province_list, city_list, county_list } = areaList
-  const columns = useMemo(() => buildAreaColumns({ province_list, city_list, county_list }, resolvedColumnsNum), [city_list, county_list, province_list, resolvedColumnsNum])
-  const normalize = useCallback((val?: string[]) => val === undefined ? undefined : normalizeCascadeValue(columns as PickerOption[], val, resolvedColumnsNum), [columns, resolvedColumnsNum])
-  const normalizedValue = useMemo(() => normalize(value), [normalize, value])
-  const normalizedDefaultValue = useMemo(() => normalize(defaultValue), [normalize, defaultValue])
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
-  const onConfirmRef = useRef(onConfirm)
-  onConfirmRef.current = onConfirm
-  const wrappedOnChange = useCallback((values: PickerValue[], options: (PickerOption | undefined)[]) => { onChangeRef.current?.(values.map(String), options as (AreaOption | undefined)[]) }, [])
-  const wrappedOnConfirm = useCallback((values: PickerValue[], options: (PickerOption | undefined)[]) => { onConfirmRef.current?.(values.map(String), options as (AreaOption | undefined)[]) }, [])
-  return <Picker {...rest} columns={columns} interactionMode={interactionModeProp} value={normalizedValue} defaultValue={normalizedDefaultValue} onChange={onChange ? wrappedOnChange : undefined} onConfirm={onConfirm ? wrappedOnConfirm : undefined} />
+  const tokens = useAreaTokens(); const { areaList, columnsNum: colP = tokens.defaults.columnsNum, value, defaultValue, onChange, onConfirm, interactionMode: modeP = tokens.defaults.interactionMode, ...rest } = props
+  const cols = useMemo(() => (colP >= 1 && colP <= 3 ? colP : tokens.defaults.columnsNum), [colP]); const { province_list, city_list, county_list } = areaList
+  const columns = useMemo(() => buildAreaColumns({ province_list, city_list, county_list }, cols), [city_list, county_list, province_list, cols]); const norm = useCallback((val?: string[]) => val === undefined ? undefined : normalizeCascadeValue(columns as PickerOption[], val, cols), [columns, cols]); const normVal = useMemo(() => norm(value), [norm, value]); const normDef = useMemo(() => norm(defaultValue), [norm, defaultValue])
+  const onChangeRef = useRef(onChange); onChangeRef.current = onChange; const onConfirmRef = useRef(onConfirm); onConfirmRef.current = onConfirm
+  const onCh = useCallback((values: PickerValue[], opts: (PickerOption | undefined)[]) => { onChangeRef.current?.(values.map(String), opts as (AreaOption | undefined)[]) }, []); const onConf = useCallback((values: PickerValue[], opts: (PickerOption | undefined)[]) => { onConfirmRef.current?.(values.map(String), opts as (AreaOption | undefined)[]) }, [])
+  return <Picker {...rest} columns={columns} interactionMode={modeP} value={normVal} defaultValue={normDef} onChange={onChange ? onCh : undefined} onConfirm={onConfirm ? onConf : undefined} />
 }
 
 const Area = React.memo(AreaImpl)

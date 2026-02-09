@@ -5,48 +5,12 @@ import { useBadgeTokens } from './tokens'
 import type { BadgeProps } from './types'
 
 const BadgeImpl = (props: BadgeProps, ref: React.ForwardedRef<View>) => {
-  const { children, content, color, textColor, dot: dotProp, max, offset, showZero: showZeroProp, badgeStyle, textStyle, onPress, style, tokensOverride, ...rest } = props
-  const tokens = useBadgeTokens(tokensOverride)
-  const dot = dotProp ?? tokens.defaults.dot
-  const showZero = showZeroProp ?? tokens.defaults.showZero
-  const hasChildren = React.Children.count(children) > 0
-  const { visible, formattedContent } = useMemo(() => {
-    const numericContent = isNumericLike(content) ? Number(content) : null
-    const shouldHide = numericContent === 0 && !showZero
-    const isVisible = dot || (isRenderable(content) && !shouldHide)
-    if (!isVisible || dot) return { visible: isVisible, formattedContent: null }
-    const numericMax = isNumericLike(max) ? Number(max) : null
-    const formatted = numericContent !== null && numericMax !== null && numericContent > numericMax ? `${numericMax}+` : content
-    return { visible: true, formattedContent: formatted }
-  }, [content, dot, max, showZero])
-  const [size, setSize] = useState({ width: 0, height: 0 })
-  const handleLayout = useCallback((event: LayoutChangeEvent) => {
-    const { width, height } = event.nativeEvent.layout
-    setSize(prev => (prev.width === width && prev.height === height ? prev : { width, height }))
-  }, [])
-  const transformStyle = useMemo(() => {
-    if (!hasChildren) return undefined
-    if (dot) {
-      const halfSize = tokens.sizing.dotSize / 2
-      return { transform: [{ translateX: halfSize }, { translateY: -halfSize }] }
-    }
-    if (size.width === 0) return { opacity: 0 }
-    return { transform: [{ translateX: size.width / 2 }, { translateY: -size.height / 2 }] }
-  }, [dot, hasChildren, size.height, size.width, tokens.sizing.dotSize])
-  const badgeBoxStyle = useMemo(() => dot ? { width: tokens.sizing.dotSize, height: tokens.sizing.dotSize, borderRadius: tokens.radii.dot, backgroundColor: color ?? tokens.colors.dot } : { minWidth: tokens.sizing.minWidth, minHeight: tokens.sizing.height, paddingHorizontal: tokens.sizing.paddingHorizontal, paddingVertical: tokens.sizing.paddingVertical, borderRadius: tokens.radii.badge, borderWidth: tokens.borders.width, borderColor: tokens.colors.border, backgroundColor: color ?? tokens.colors.background }, [color, dot, tokens.borders.width, tokens.colors.background, tokens.colors.border, tokens.colors.dot, tokens.radii.badge, tokens.radii.dot, tokens.sizing.dotSize, tokens.sizing.height, tokens.sizing.minWidth, tokens.sizing.paddingHorizontal, tokens.sizing.paddingVertical])
-  const mergedTextStyle = [tokens.layout.text, { color: textColor ?? tokens.colors.text, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.lineHeight, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.fontWeight }, textStyle]
-  const offsetStyle = useMemo(() => {
-    if (!offset) return undefined
-    const [x, y] = offset
-    return (hasChildren ? { right: x, top: y } : { marginLeft: x, marginTop: y }) as ViewStyle
-  }, [hasChildren, offset])
-  const badgeElement = !visible ? null : <View pointerEvents={hasChildren ? 'none' : 'auto'} onLayout={hasChildren && !dot ? handleLayout : undefined} style={[hasChildren ? tokens.layout.badgeAbsolute : tokens.layout.badgeStandalone, badgeBoxStyle, transformStyle, offsetStyle, badgeStyle, !hasChildren ? style : undefined]}>{!dot && renderTextOrNode(formattedContent, mergedTextStyle)}</View>
-  const accessibilityLabel = visible ? dot ? 'has new content' : `${formattedContent}` : undefined
-  if (hasChildren) {
-    return onPress ? <Pressable ref={ref} onPress={onPress} accessibilityLabel={accessibilityLabel} style={({ pressed }) => [tokens.layout.wrapper, style, pressed && { opacity: tokens.defaults.pressedOpacity }]} {...rest}>{children}{badgeElement}</Pressable> : <View ref={ref} style={[tokens.layout.wrapper, style]} {...rest}>{children}{badgeElement}</View>
-  }
-  if (!visible) return null
-  return onPress ? <Pressable ref={ref} onPress={onPress} style={({ pressed }) => [tokens.layout.pressableStandalone, pressed && { opacity: tokens.defaults.pressedOpacity }]} {...rest}>{badgeElement}</Pressable> : React.cloneElement(badgeElement as React.ReactElement<any>, { ref, ...rest })
+  const { children, content, color, textColor, dot: dotP, max, offset, showZero: showZeroP, badgeStyle, textStyle, onPress, style, tokensOverride, ...rest } = props; const tokens = useBadgeTokens(tokensOverride); const dot = dotP ?? tokens.defaults.dot; const showZero = showZeroP ?? tokens.defaults.showZero; const hasCh = React.Children.count(children) > 0
+  const { visible, formattedContent } = useMemo(() => { const num = isNumericLike(content) ? Number(content) : null; const hide = num === 0 && !showZero; const vis = dot || (isRenderable(content) && !hide); if (!vis || dot) return { visible: vis, formattedContent: null }; const numMax = isNumericLike(max) ? Number(max) : null; const fmt = num !== null && numMax !== null && num > numMax ? `${numMax}+` : content; return { visible: true, formattedContent: fmt } }, [content, dot, max, showZero]); const [sz, setSz] = useState({ width: 0, height: 0 }); const onLay = useCallback((e: LayoutChangeEvent) => { const { width, height } = e.nativeEvent.layout; setSz(prev => prev.width === width && prev.height === height ? prev : { width, height }) }, [])
+  const transStyle = useMemo(() => { if (!hasCh) return undefined; if (dot) { const h = tokens.sizing.dotSize / 2; return { transform: [{ translateX: h }, { translateY: -h }] } }; if (sz.width === 0) return { opacity: 0 }; return { transform: [{ translateX: sz.width / 2 }, { translateY: -sz.height / 2 }] } }, [dot, hasCh, sz.height, sz.width, tokens.sizing.dotSize]); const boxStyle = useMemo(() => dot ? { width: tokens.sizing.dotSize, height: tokens.sizing.dotSize, borderRadius: tokens.radii.dot, backgroundColor: color ?? tokens.colors.dot } : { minWidth: tokens.sizing.minWidth, minHeight: tokens.sizing.height, paddingHorizontal: tokens.sizing.paddingHorizontal, paddingVertical: tokens.sizing.paddingVertical, borderRadius: tokens.radii.badge, borderWidth: tokens.borders.width, borderColor: tokens.colors.border, backgroundColor: color ?? tokens.colors.background }, [color, dot, tokens.borders.width, tokens.colors.background, tokens.colors.border, tokens.colors.dot, tokens.radii.badge, tokens.radii.dot, tokens.sizing.dotSize, tokens.sizing.height, tokens.sizing.minWidth, tokens.sizing.paddingHorizontal, tokens.sizing.paddingVertical]); const txtStyle = [tokens.layout.text, { color: textColor ?? tokens.colors.text, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.lineHeight, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.fontWeight }, textStyle]; const offStyle = useMemo(() => !offset ? undefined : (hasCh ? { right: offset[0], top: offset[1] } : { marginLeft: offset[0], marginTop: offset[1] }) as ViewStyle, [hasCh, offset])
+  const badgeEl = !visible ? null : <View pointerEvents={hasCh ? 'none' : 'auto'} onLayout={hasCh && !dot ? onLay : undefined} style={[hasCh ? tokens.layout.badgeAbsolute : tokens.layout.badgeStandalone, boxStyle, transStyle, offStyle, badgeStyle, !hasCh ? style : undefined]}>{!dot && renderTextOrNode(formattedContent, txtStyle)}</View>; const accLabel = visible ? (dot ? 'has new content' : `${formattedContent}`) : undefined
+  if (hasCh) return onPress ? <Pressable ref={ref} onPress={onPress} accessibilityLabel={accLabel} style={({ pressed }) => [tokens.layout.wrapper, style, pressed && { opacity: tokens.defaults.pressedOpacity }]} {...rest}>{children}{badgeEl}</Pressable> : <View ref={ref} style={[tokens.layout.wrapper, style]} {...rest}>{children}{badgeEl}</View>
+  if (!visible) return null; return onPress ? <Pressable ref={ref} onPress={onPress} style={({ pressed }) => [tokens.layout.pressableStandalone, pressed && { opacity: tokens.defaults.pressedOpacity }]} {...rest}>{badgeEl}</Pressable> : React.cloneElement(badgeEl as React.ReactElement<any>, { ref, ...rest })
 }
 
 const BadgeForwardRef = React.forwardRef<View, BadgeProps>(BadgeImpl)

@@ -8,35 +8,9 @@ import { useTagTokens } from './tokens'
 import type { TagProps } from './types'
 
 const TagImpl: React.FC<TagProps> = props => {
-  const { tokensOverride, children, type: typeProp, size: sizeProp, plain: plainProp, round: roundProp, mark: markProp, color, textColor, show: showProp, closeable, closeIcon, onClose, onPress, textStyle, style, ...rest } = props
-  const tokens = useTagTokens(tokensOverride)
-  const dir = useDirection()
-  const type = typeProp ?? tokens.defaults.type
-  const size = sizeProp ?? tokens.defaults.size
-  const plain = plainProp ?? tokens.defaults.plain
-  const round = roundProp ?? tokens.defaults.round
-  const mark = markProp ?? tokens.defaults.mark
-  const show = showProp ?? tokens.defaults.show
-  if (!show) return null
-  const tone = tokens.colors.toneMap[type] ?? tokens.colors.toneMap.default
-  const sizeTokens = tokens.sizing.sizes[size]
-  const backgroundColor = plain ? tokens.colors.plainBackground : color ?? tone.background
-  const resolvedTextColor = textColor ?? (plain ? color ?? tone.background : tone.text)
-  const borderColor = plain ? color ?? tone.background : 'transparent'
-  const borderRadius = round ? tokens.radii.round : sizeTokens.borderRadius
-  const markRadii = mark
-    ? dir === 'rtl'
-      ? { borderTopRightRadius: tokens.radii.markLeading, borderBottomRightRadius: tokens.radii.markLeading, borderTopLeftRadius: tokens.radii.round, borderBottomLeftRadius: tokens.radii.round }
-      : { borderTopLeftRadius: tokens.radii.markLeading, borderBottomLeftRadius: tokens.radii.markLeading, borderTopRightRadius: tokens.radii.round, borderBottomRightRadius: tokens.radii.round }
-    : null
-  const resolvedRadius = mark ? tokens.radii.round : borderRadius
-  const containerStyle: StyleProp<ViewStyle> = [tokens.layout.container, { backgroundColor, paddingHorizontal: sizeTokens.paddingHorizontal, paddingVertical: sizeTokens.paddingVertical, borderRadius }, markRadii, style]
-  const label = !isRenderable(children) ? null : renderTextOrNode(children, [{ color: resolvedTextColor, fontSize: sizeTokens.fontSize, lineHeight: sizeTokens.lineHeight, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.fontWeight }, textStyle].filter(Boolean) as StyleProp<TextStyle>)
-  const close = closeable && <Pressable accessibilityRole="button" hitSlop={tokens.spacing.closeHitSlop} style={[tokens.layout.close, { marginLeft: tokens.spacing.closeGap }]} onPress={event => { event.stopPropagation?.(); onClose?.() }}>{isFunction(closeIcon) ? closeIcon(resolvedTextColor, tokens.sizing.closeIconSize) : closeIcon ?? <Close color={resolvedTextColor} size={tokens.sizing.closeIconSize} />}</Pressable>
-  const hairlineOverlay = plain ? <View style={createHairlineView({ position: 'all', color: borderColor, borderRadius: resolvedRadius })} /> : null
-  const content = <>{label}{close}{hairlineOverlay}</>
-  if (onPress) return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [containerStyle, pressed && { opacity: tokens.defaults.pressedOpacity }]} {...rest}>{content}</Pressable>
-  return <View style={containerStyle} {...rest}>{content}</View>
+  const { tokensOverride, children, type: typeP, size: sizeP, plain: plainP, round: roundP, mark: markP, color, textColor, show: showP, closeable, closeIcon, onClose, onPress, textStyle, style, ...rest } = props; const tokens = useTagTokens(tokensOverride); const dir = useDirection(); const type = typeP ?? tokens.defaults.type; const size = sizeP ?? tokens.defaults.size; const plain = plainP ?? tokens.defaults.plain; const round = roundP ?? tokens.defaults.round; const mark = markP ?? tokens.defaults.mark; const show = showP ?? tokens.defaults.show; if (!show) return null
+  const tone = tokens.colors.toneMap[type] ?? tokens.colors.toneMap.default; const szTok = tokens.sizing.sizes[size]; const bgClr = plain ? tokens.colors.plainBackground : color ?? tone.background; const txtClr = textColor ?? (plain ? color ?? tone.background : tone.text); const borderClr = plain ? color ?? tone.background : 'transparent'; const radius = round ? tokens.radii.round : szTok.borderRadius; const markR = mark ? (dir === 'rtl' ? { borderTopRightRadius: tokens.radii.markLeading, borderBottomRightRadius: tokens.radii.markLeading, borderTopLeftRadius: tokens.radii.round, borderBottomLeftRadius: tokens.radii.round } : { borderTopLeftRadius: tokens.radii.markLeading, borderBottomLeftRadius: tokens.radii.markLeading, borderTopRightRadius: tokens.radii.round, borderBottomRightRadius: tokens.radii.round }) : null; const resRadius = mark ? tokens.radii.round : radius
+  const ctrStyle: StyleProp<ViewStyle> = [tokens.layout.container, { backgroundColor: bgClr, paddingHorizontal: szTok.paddingHorizontal, paddingVertical: szTok.paddingVertical, borderRadius: radius }, markR, style]; const label = !isRenderable(children) ? null : renderTextOrNode(children, [{ color: txtClr, fontSize: szTok.fontSize, lineHeight: szTok.lineHeight, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.fontWeight }, textStyle].filter(Boolean) as StyleProp<TextStyle>); const close = closeable && <Pressable accessibilityRole="button" hitSlop={tokens.spacing.closeHitSlop} style={[tokens.layout.close, { marginLeft: tokens.spacing.closeGap }]} onPress={e => { e.stopPropagation?.(); onClose?.() }}>{isFunction(closeIcon) ? closeIcon(txtClr, tokens.sizing.closeIconSize) : closeIcon ?? <Close color={txtClr} size={tokens.sizing.closeIconSize} />}</Pressable>; const hlOverlay = plain ? <View style={createHairlineView({ position: 'all', color: borderClr, borderRadius: resRadius })} /> : null; const content = <>{label}{close}{hlOverlay}</>; if (onPress) return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [ctrStyle, pressed && { opacity: tokens.defaults.pressedOpacity }]} {...rest}>{content}</Pressable>; return <View style={ctrStyle} {...rest}>{content}</View>
 }
 
 export const Tag = React.memo(TagImpl)

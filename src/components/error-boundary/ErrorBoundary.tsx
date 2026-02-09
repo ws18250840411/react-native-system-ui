@@ -7,20 +7,9 @@ class ErrorBoundaryClass extends React.Component<ErrorBoundaryProps & { forwarde
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void { this.props.onError?.(error, errorInfo) }
   componentDidMount(): void { this.bindRef() }
   componentDidUpdate(): void { this.bindRef() }
-  private bindRef(): void {
-    const { forwardedRef } = this.props
-    if (!forwardedRef) return
-    const refValue: ErrorBoundaryRef = { reset: this.reset }
-    if (typeof forwardedRef === 'function') forwardedRef(refValue)
-    else if (forwardedRef && typeof forwardedRef === 'object') (forwardedRef as React.MutableRefObject<ErrorBoundaryRef | null>).current = refValue
-  }
+  private bindRef(): void { const { forwardedRef } = this.props; if (!forwardedRef) return; const refVal: ErrorBoundaryRef = { reset: this.reset }; if (typeof forwardedRef === 'function') forwardedRef(refVal); else if (forwardedRef && typeof forwardedRef === 'object') (forwardedRef as React.MutableRefObject<ErrorBoundaryRef | null>).current = refVal }
   reset = (): void => { this.props.onReset?.(); this.setState({ error: null }) }
-  render(): React.ReactNode {
-    const { error } = this.state
-    const { fallback, children } = this.props
-    if (error !== null) { if (typeof fallback === 'function') return fallback(error, this.reset); if (fallback !== undefined) return fallback; return null }
-    return children ?? null
-  }
+  render(): React.ReactNode { const { error } = this.state; const { fallback, children } = this.props; if (error !== null) { if (typeof fallback === 'function') return fallback(error, this.reset); if (fallback !== undefined) return fallback; return null }; return children ?? null }
 }
 
 const ErrorBoundary = React.forwardRef<ErrorBoundaryRef, ErrorBoundaryProps>((props, ref) => <ErrorBoundaryClass {...props} forwardedRef={ref} />)

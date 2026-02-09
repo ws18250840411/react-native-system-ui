@@ -9,13 +9,7 @@ export interface PortalProps {
 }
 
 const PortalComponentImpl = ({ children, isOpen, visible }: PortalProps, _ref: React.ForwardedRef<any>) => {
-  const manager = useContext(PortalContext) ?? globalManager
-  const keyRef = useRef<number | null>(null)
-  const shouldRender = isOpen ?? visible ?? true
-  const content = shouldRender ? children : null
-  useLayoutEffect(() => { if (keyRef.current === null) keyRef.current = manager.mount(content); else manager.update(keyRef.current, content) }, [manager, content])
-  useLayoutEffect(() => () => { if (keyRef.current !== null) { manager.unmount(keyRef.current); keyRef.current = null } }, [manager])
-  return null
+  const manager = useContext(PortalContext) ?? globalManager; const keyRef = useRef<number | null>(null); const content = (isOpen ?? visible ?? true) ? children : null; useLayoutEffect(() => { keyRef.current === null ? (keyRef.current = manager.mount(content)) : manager.update(keyRef.current!, content) }, [manager, content]); useLayoutEffect(() => () => { if (keyRef.current != null) { manager.unmount(keyRef.current); keyRef.current = null } }, [manager]); return null
 }
 
 const PortalComponentRef = React.forwardRef<any, PortalProps>(PortalComponentImpl)

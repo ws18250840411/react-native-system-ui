@@ -7,17 +7,7 @@ import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
 const GridItemImpl: React.FC<GridItemProps> = p => {
-  const ctx = useContext(GridContext)
-  if (!ctx) throw new Error('GridItem must be used within Grid')
-  const { gridItemIndex = 0, text, icon, iconColor: icp, badge, dot, contentStyle, textStyle, children, style, onPress, ...rest } = p as GridItemProps & { gridItemIndex?: number }
-  const { tokens: t, columnNum: cn, gutter: g, border: b, center: c, square: sq, direction: d, reverse: r, clickable: cl, iconSize: is, iconColor: ic, count } = ctx
-  const wp = `${100 / cn}%` as DimensionValue
-  const ilc = (gridItemIndex + 1) % cn === 0
-  const ri = Math.floor(gridItemIndex / cn)
-  const lri = Math.floor((count - 1) / cn)
-  const cws = [t.layout.itemContentBase, d === 'horizontal' ? t.layout.itemHorizontal : t.layout.itemVertical, c && t.layout.itemCenter, r ? (d === 'horizontal' ? t.layout.itemReverseRow : t.layout.itemReverseColumn) : null, sq ? t.layout.itemContentSquare : null, { paddingHorizontal: t.spacing.paddingHorizontal, paddingVertical: t.spacing.paddingVertical, backgroundColor: t.colors.background }, contentStyle]
-  const ht = isRenderable(text)
-  const ric = icp ?? ic ?? t.colors.text
+  const ctx = useContext(GridContext); if (!ctx) throw new Error('GridItem must be used within Grid'); const { gridItemIndex = 0, text, icon, iconColor: icp, badge, dot, contentStyle, textStyle, children, style, onPress, ...rest } = p as GridItemProps & { gridItemIndex?: number }; const { tokens: t, columnNum: cn, gutter: g, border: b, center: c, square: sq, direction: d, reverse: r, clickable: cl, iconSize: is, iconColor: ic, count } = ctx; const wp = `${100 / cn}%` as DimensionValue; const ilc = (gridItemIndex + 1) % cn === 0; const ri = Math.floor(gridItemIndex / cn); const lri = Math.floor((count - 1) / cn); const cws = [t.layout.itemContentBase, d === 'horizontal' ? t.layout.itemHorizontal : t.layout.itemVertical, c && t.layout.itemCenter, r ? (d === 'horizontal' ? t.layout.itemReverseRow : t.layout.itemReverseColumn) : null, sq ? t.layout.itemContentSquare : null, { paddingHorizontal: t.spacing.paddingHorizontal, paddingVertical: t.spacing.paddingVertical, backgroundColor: t.colors.background }, contentStyle]; const ht = isRenderable(text); const ric = icp ?? ic ?? t.colors.text
   const icn = useMemo(() => {
     if (children) return isText(children) ? renderTextOrNode(children, [t.layout.text, { color: t.colors.text, fontSize: t.typography.fontSize, lineHeight: t.typography.lineHeight, fontFamily: t.typography.fontFamily, fontWeight: t.typography.fontWeight }, textStyle]) : children
     let ie: React.ReactNode = null

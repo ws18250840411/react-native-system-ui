@@ -11,26 +11,7 @@ import type { NavBarProps } from './types'
 import { useNavBarTokens } from './tokens'
 
 const NavBarBaseImpl: React.FC<NavBarProps> = props => {
-  const { tokensOverride, title, description, children, leftText, rightText, leftIcon, rightIcon, leftArrow: leftArrowProp, fixed: fixedProp, placeholder: placeholderProp, zIndex: zIndexProp, border: borderProp, safeAreaInsetTop: safeAreaInsetTopProp, background: backgroundProp, tintColor, titleStyle, descriptionStyle, sideStyle, onPressLeft, onClickLeft, onPressRight, onClickRight, style, ...rest } = props
-  const locale = useLocale()
-  const dir = useDirection()
-  const tokens = useNavBarTokens(tokensOverride)
-  const leftArrow = leftArrowProp ?? tokens.defaults.leftArrow
-  const fixed = fixedProp ?? tokens.defaults.fixed
-  const placeholder = placeholderProp ?? tokens.defaults.placeholder
-  const zIndex = zIndexProp ?? tokens.defaults.zIndex
-  const border = borderProp ?? tokens.defaults.border
-  const safeAreaInsetTop = safeAreaInsetTopProp ?? fixed
-  const background = backgroundProp ?? tokens.colors.background
-  const handlePressLeft = onPressLeft ?? onClickLeft
-  const handlePressRight = onPressRight ?? onClickRight
-  const [height, setHeight] = useState(tokens.sizing.height)
-  const enablePlaceholder = fixed && placeholder
-  const handleLayout = useCallback((event: LayoutChangeEvent) => { if (!enablePlaceholder) return; const nextHeight = event.nativeEvent.layout.height; setHeight(prev => (Math.abs(prev - nextHeight) < 0.5 ? prev : nextHeight)) }, [enablePlaceholder])
-  const resolvedColor = tintColor ?? tokens.colors.text
-  const sideColor = tintColor ?? tokens.colors.icon
-  const leftPress = useAriaPress({ disabled: !handlePressLeft, onPress: handlePressLeft, extraProps: { accessibilityRole: 'button', accessibilityLabel: isText(leftText) ? `${leftText}` : (locale?.vanNavBar?.back ?? 'Back') } })
-  const rightPress = useAriaPress({ disabled: !handlePressRight, onPress: handlePressRight, extraProps: { accessibilityRole: 'button', accessibilityLabel: isText(rightText) ? `${rightText}` : (locale?.vanNavBar?.action ?? 'Actions') } })
+  const { tokensOverride, title, description, children, leftText, rightText, leftIcon, rightIcon, leftArrow: leftArrP, fixed: fixedP, placeholder: placeP, zIndex: zIdxP, border: borderP, safeAreaInsetTop: safeTopP, background: bgP, tintColor, titleStyle, descriptionStyle, sideStyle, onPressLeft, onClickLeft, onPressRight, onClickRight, style, ...rest } = props; const locale = useLocale(); const dir = useDirection(); const tokens = useNavBarTokens(tokensOverride); const leftArrow = leftArrP ?? tokens.defaults.leftArrow; const fixed = fixedP ?? tokens.defaults.fixed; const placeholder = placeP ?? tokens.defaults.placeholder; const zIndex = zIdxP ?? tokens.defaults.zIndex; const border = borderP ?? tokens.defaults.border; const safeAreaInsetTop = safeTopP ?? fixed; const background = bgP ?? tokens.colors.background; const handlePressLeft = onPressLeft ?? onClickLeft; const handlePressRight = onPressRight ?? onClickRight; const [height, setHeight] = useState(tokens.sizing.height); const enablePlaceholder = fixed && placeholder; const handleLayout = useCallback((event: LayoutChangeEvent) => { if (!enablePlaceholder) return; const nextH = event.nativeEvent.layout.height; setHeight(prev => (Math.abs(prev - nextH) < 0.5 ? prev : nextH)) }, [enablePlaceholder]); const resolvedColor = tintColor ?? tokens.colors.text; const sideColor = tintColor ?? tokens.colors.icon; const leftPress = useAriaPress({ disabled: !handlePressLeft, onPress: handlePressLeft, extraProps: { accessibilityRole: 'button', accessibilityLabel: isText(leftText) ? `${leftText}` : (locale?.vanNavBar?.back ?? 'Back') } }); const rightPress = useAriaPress({ disabled: !handlePressRight, onPress: handlePressRight, extraProps: { accessibilityRole: 'button', accessibilityLabel: isText(rightText) ? `${rightText}` : (locale?.vanNavBar?.action ?? 'Actions') } })
   const renderSide = (side: 'left' | 'right') => {
     const isLeft = side === 'left'
     const sideText = isLeft ? leftText : rightText

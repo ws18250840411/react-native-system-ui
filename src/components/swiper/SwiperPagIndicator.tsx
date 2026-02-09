@@ -12,13 +12,7 @@ export const useSwiperPagIndicatorTokens = createComponentTokensHook('swiperPagI
 
 export interface SwiperPagIndicatorProps extends ViewProps { total: number; current: number; vertical?: boolean; style?: StyleProp<ViewStyle>; activeColor?: string; inactiveColor?: string; tokensOverride?: DeepPartial<SwiperPagIndicatorTokens> }
 
-const SwiperPagIndicator = memo<SwiperPagIndicatorProps>(({ total, current, vertical = false, style, activeColor, inactiveColor, tokensOverride, ...rest }) => {
-  const tokens = useSwiperPagIndicatorTokens(tokensOverride)
-  const dots: ReactElement[] = []
-  const ac = activeColor || tokens.colors.active, ic = inactiveColor || tokens.colors.inactive
-  const posStyle = vertical ? [S.cv, { right: tokens.offset.verticalRight }] : [S.ch, { bottom: tokens.offset.horizontalBottom }]
-  for (let i = 0; i < total; i++) { const a = current === i; const sz = a ? tokens.sizing.dotSizeActive : tokens.sizing.dotSizeInactive; dots.push(<View key={i} style={{ marginHorizontal: tokens.spacing.dotMargin, marginVertical: tokens.spacing.dotMargin, backgroundColor: a ? ac : ic, width: sz, height: sz, borderRadius: sz / 2 }} />) }
-  return <View style={[S.c, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation }, posStyle, style]} {...rest}>{dots}</View>
+const SwiperPagIndicator = memo<SwiperPagIndicatorProps>(({ total, current, vertical = false, style, activeColor, inactiveColor, tokensOverride, ...rest }) => { const tokens = useSwiperPagIndicatorTokens(tokensOverride); const dots: ReactElement[] = []; const ac = activeColor || tokens.colors.active; const ic = inactiveColor || tokens.colors.inactive; const posStyle = vertical ? [S.cv, { right: tokens.offset.verticalRight }] : [S.ch, { bottom: tokens.offset.horizontalBottom }]; for (let i = 0; i < total; i++) { const a = current === i; const sz = a ? tokens.sizing.dotSizeActive : tokens.sizing.dotSizeInactive; dots.push(<View key={i} style={{ marginHorizontal: tokens.spacing.dotMargin, marginVertical: tokens.spacing.dotMargin, backgroundColor: a ? ac : ic, width: sz, height: sz, borderRadius: sz / 2 }} />) }; return <View style={[S.c, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation }, posStyle, style]} {...rest}>{dots}</View>
 })
 
 const S = StyleSheet.create({ c: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }, ch: { position: 'absolute', left: 0, right: 0 }, cv: { position: 'absolute', top: 0, bottom: 0, flexDirection: 'column' } })

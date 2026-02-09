@@ -24,6 +24,8 @@ export interface NumberKeyboardTokens {
     keyHeight: number
     closeHeight: number
     fontSize: number
+    defaultIconFontSize?: number
+    auxFontSize?: number
     titleFontSize: number
   }
   typography: {
@@ -67,6 +69,8 @@ const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
       keyHeight: 54,
       closeHeight: 44,
       fontSize: 28,
+      defaultIconFontSize: 30,
+      auxFontSize: 18,
       titleFontSize: fontSize.md,
     },
     typography: {

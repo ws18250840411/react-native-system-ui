@@ -12,41 +12,11 @@ const DEFAULT_MIN_DATE = new Date(currentYear - DEFAULT_YEAR_RANGE_OFFSET, 0, 1)
 const DEFAULT_MAX_DATE = new Date(currentYear + DEFAULT_YEAR_RANGE_OFFSET, 11, 31)
 
 const DatetimePickerImpl: React.FC<DatetimePickerProps> = props => {
-  const tokens = useDatetimePickerTokens()
-  const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, { defaultValue: false, valuePropName: 'popupVisible', defaultValuePropName: 'defaultPopupVisible', trigger: 'onPopupVisibleChange' })
-  const handleClose = useCallback(() => setPopupVisible(false), [setPopupVisible])
-  const renderPopup = useCallback((node: React.ReactElement, popup?: boolean, popupProps?: Omit<PopupProps, 'visible' | 'children'>) => {
-    if (!popup) return node
-    return <Popup visible={popupVisible} onClose={handleClose} placement={tokens.defaults.popupPlacement} round={tokens.defaults.popupRound} safeAreaInsetBottom={tokens.defaults.popupSafeAreaInsetBottom} {...popupProps}>{node}</Popup>
-  }, [handleClose, popupVisible, tokens.defaults.popupPlacement, tokens.defaults.popupRound, tokens.defaults.popupSafeAreaInsetBottom])
-
-  const { popup, popupVisible: _popupVisible, defaultPopupVisible: _defaultPopupVisible, popupProps, onPopupVisibleChange: _onPopupVisibleChange, onConfirm, onCancel, ...pickerProps } = props
-  const onConfirmRef = useRef(onConfirm), onCancelRef = useRef(onCancel)
-  onConfirmRef.current = onConfirm; onCancelRef.current = onCancel
-
-  const handleConfirm = useCallback((value: Date | string) => { (onConfirmRef.current as ((v: Date | string) => void) | undefined)?.(value); if (popup) handleClose() }, [handleClose, popup])
-  const handleCancel = useCallback(() => { onCancelRef.current?.(); if (popup) handleClose() }, [handleClose, popup])
-
-  const pickerNode = props.type === 'time'
-    ? <TimePicker {...pickerProps as DatetimePickerTimeProps} onConfirm={handleConfirm} onCancel={handleCancel} />
-    : <DatePicker {...pickerProps as DatetimePickerDateProps} onConfirm={handleConfirm} onCancel={handleCancel} />
-  return renderPopup(pickerNode, popup, popupProps)
+  const tokens = useDatetimePickerTokens(); const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, { defaultValue: false, valuePropName: 'popupVisible', defaultValuePropName: 'defaultPopupVisible', trigger: 'onPopupVisibleChange' }); const handleClose = useCallback(() => setPopupVisible(false), [setPopupVisible]); const renderPopup = useCallback((node: React.ReactElement, popup?: boolean, popupProps?: Omit<PopupProps, 'visible' | 'children'>) => !popup ? node : <Popup visible={popupVisible} onClose={handleClose} placement={tokens.defaults.popupPlacement} round={tokens.defaults.popupRound} safeAreaInsetBottom={tokens.defaults.popupSafeAreaInsetBottom} {...popupProps}>{node}</Popup>, [handleClose, popupVisible, tokens.defaults.popupPlacement, tokens.defaults.popupRound, tokens.defaults.popupSafeAreaInsetBottom]); const { popup, popupVisible: _popupVisible, defaultPopupVisible: _defaultPopupVisible, popupProps, onPopupVisibleChange: _onPopupVisibleChange, onConfirm, onCancel, ...pickerProps } = props; const onConfirmRef = useRef(onConfirm); const onCancelRef = useRef(onCancel); onConfirmRef.current = onConfirm; onCancelRef.current = onCancel; const handleConfirm = useCallback((value: Date | string) => { (onConfirmRef.current as ((v: Date | string) => void) | undefined)?.(value); if (popup) handleClose() }, [handleClose, popup]); const handleCancel = useCallback(() => { onCancelRef.current?.(); if (popup) handleClose() }, [handleClose, popup]); const pickerNode = props.type === 'time' ? <TimePicker {...pickerProps as DatetimePickerTimeProps} onConfirm={handleConfirm} onCancel={handleCancel} /> : <DatePicker {...pickerProps as DatetimePickerDateProps} onConfirm={handleConfirm} onCancel={handleCancel} />; return renderPopup(pickerNode, popup, popupProps)
 }
 
 const DatePicker: React.FC<DatetimePickerDateProps> = props => {
-  const { type = 'datetime', minDate = DEFAULT_MIN_DATE, maxDate = DEFAULT_MAX_DATE, formatter = (_type, value) => value, filter, columnsOrder, interactionMode = 'freeze', value, defaultValue, onChange, onConfirm, ...pickerProps } = props
-
-  const formatValue = useCallback((dateValue?: Date) => {
-    const fallback = isValidDate(dateValue) ? dateValue : new Date()
-    const date = new Date(clamp(fallback.getTime(), minDate.getTime(), maxDate.getTime()))
-    if (type === 'year-month') { date.setDate(1); date.setHours(0, 0, 0, 0) }
-    else if (type === 'date' || type === 'month-day') { date.setHours(0, 0, 0, 0) }
-    else if (type === 'datehour') { date.setMinutes(0, 0, 0) }
-    return date
-  }, [maxDate, minDate, type])
-
-  const [currentDate, setCurrentDate] = useState<Date>(() => formatValue(value ?? defaultValue))
-  useEffect(() => { setCurrentDate(prev => (value && isValidDate(value) ? formatValue(value) : formatValue(prev))) }, [formatValue, value])
+  const { type = 'datetime', minDate = DEFAULT_MIN_DATE, maxDate = DEFAULT_MAX_DATE, formatter = (_type, value) => value, filter, columnsOrder, interactionMode = 'freeze', value, defaultValue, onChange, onConfirm, ...pickerProps } = props; const formatValue = useCallback((dateValue?: Date) => { const fb = isValidDate(dateValue) ? dateValue : new Date(); const date = new Date(clamp(fb.getTime(), minDate.getTime(), maxDate.getTime())); if (type === 'year-month') { date.setDate(1); date.setHours(0, 0, 0, 0) } else if (type === 'date' || type === 'month-day') { date.setHours(0, 0, 0, 0) } else if (type === 'datehour') { date.setMinutes(0, 0, 0) }; return date }, [maxDate, minDate, type]); const [currentDate, setCurrentDate] = useState<Date>(() => formatValue(value ?? defaultValue)); useEffect(() => { setCurrentDate(prev => (value && isValidDate(value) ? formatValue(value) : formatValue(prev))) }, [formatValue, value])
 
   const { originColumns, columns, pickerValue } = useMemo(() => {
     const getBoundary = (boundaryType: 'min' | 'max', date: Date) => {
@@ -109,42 +79,11 @@ const DatePicker: React.FC<DatetimePickerDateProps> = props => {
     return formatValue(new Date(year, month - 1, day, hour, minute))
   }, [currentDate, formatValue, originColumns, type])
 
-  const onChangeRef = useRef(onChange), onConfirmRef = useRef(onConfirm)
-  onChangeRef.current = onChange; onConfirmRef.current = onConfirm
-  const handleChange = useCallback((values: (string | number)[]) => { const next = buildDateFromValues(values.map(String)); setCurrentDate(next); onChangeRef.current?.(next) }, [buildDateFromValues])
-  const currentDateRef = useRef(currentDate)
-  currentDateRef.current = currentDate
-  const handleConfirm = useCallback(() => onConfirmRef.current?.(currentDateRef.current), [])
-
-  return <Picker {...pickerProps} columns={columns} interactionMode={interactionMode} value={pickerValue} onChange={handleChange} onConfirm={handleConfirm} />
+  const onChangeRef = useRef(onChange); const onConfirmRef = useRef(onConfirm); onChangeRef.current = onChange; onConfirmRef.current = onConfirm; const handleChange = useCallback((values: (string | number)[]) => { const next = buildDateFromValues(values.map(String)); setCurrentDate(next); onChangeRef.current?.(next) }, [buildDateFromValues]); const curDateRef = useRef(currentDate); curDateRef.current = currentDate; const handleConfirm = useCallback(() => onConfirmRef.current?.(curDateRef.current), []); return <Picker {...pickerProps} columns={columns} interactionMode={interactionMode} value={pickerValue} onChange={handleChange} onConfirm={handleConfirm} />
 }
 
 const TimePicker: React.FC<DatetimePickerTimeProps> = props => {
-  const { type: _type, formatter = (_type, value) => value, filter, columnsOrder: _columnsOrder, minHour = 0, maxHour = 23, minMinute = 0, maxMinute = 59, interactionMode = 'freeze', value, defaultValue, onChange, onConfirm, ...pickerProps } = props
-
-  const timeRef = useRef<string>('')
-  const formatTime = useCallback((timeValue?: string) => {
-    const [hour = 0, minute = 0] = (timeValue ?? '').split(':').map(num => parseInt(num, 10))
-    return `${padZero(clamp(Number.isNaN(hour) ? minHour : hour, minHour, maxHour))}:${padZero(clamp(Number.isNaN(minute) ? minMinute : minute, minMinute, maxMinute))}`
-  }, [maxHour, maxMinute, minHour, minMinute])
-
-  const [currentTime, setCurrentTime] = useState(() => { const initial = formatTime(value ?? defaultValue); timeRef.current = initial; return initial })
-  useEffect(() => { const next = isString(value) ? formatTime(value) : formatTime(timeRef.current); if (next !== timeRef.current) { timeRef.current = next; setCurrentTime(next) } }, [formatTime, value])
-
-  const [hourValues, minuteValues] = useMemo(() => {
-    let hours = times(maxHour - minHour + 1, index => padZero(minHour + index))
-    let minutes = times(maxMinute - minMinute + 1, index => padZero(minMinute + index))
-    if (filter) { hours = filter('hour', hours); minutes = filter('minute', minutes) }
-    return [hours, minutes] as [string[], string[]]
-  }, [filter, maxHour, maxMinute, minHour, minMinute])
-
-  const columns = useMemo(() => [hourValues.map(value => ({ label: formatter('hour', value), value })), minuteValues.map(value => ({ label: formatter('minute', value), value }))], [formatter, hourValues, minuteValues])
-  const onChangeRef = useRef(onChange), onConfirmRef = useRef(onConfirm)
-  onChangeRef.current = onChange; onConfirmRef.current = onConfirm
-  const handleChange = useCallback((values: (string | number)[]) => { const next = `${String(values[0] ?? hourValues[0])}:${String(values[1] ?? minuteValues[0])}`; timeRef.current = next; setCurrentTime(next); onChangeRef.current?.(next) }, [hourValues, minuteValues])
-  const handleConfirm = useCallback(() => onConfirmRef.current?.(timeRef.current), [])
-
-  return <Picker {...pickerProps} columns={columns} interactionMode={interactionMode} value={currentTime.split(':')} onChange={handleChange} onConfirm={handleConfirm} />
+  const { type: _type, formatter = (_type, value) => value, filter, columnsOrder: _columnsOrder, minHour = 0, maxHour = 23, minMinute = 0, maxMinute = 59, interactionMode = 'freeze', value, defaultValue, onChange, onConfirm, ...pickerProps } = props; const timeRef = useRef<string>(''); const formatTime = useCallback((timeValue?: string) => { const [hour = 0, minute = 0] = (timeValue ?? '').split(':').map(num => parseInt(num, 10)); return `${padZero(clamp(Number.isNaN(hour) ? minHour : hour, minHour, maxHour))}:${padZero(clamp(Number.isNaN(minute) ? minMinute : minute, minMinute, maxMinute))}` }, [maxHour, maxMinute, minHour, minMinute]); const [currentTime, setCurrentTime] = useState(() => { const init = formatTime(value ?? defaultValue); timeRef.current = init; return init }); useEffect(() => { const next = isString(value) ? formatTime(value) : formatTime(timeRef.current); if (next !== timeRef.current) { timeRef.current = next; setCurrentTime(next) } }, [formatTime, value]); const [hourValues, minuteValues] = useMemo(() => { let h = times(maxHour - minHour + 1, i => padZero(minHour + i)); let m = times(maxMinute - minMinute + 1, i => padZero(minMinute + i)); if (filter) { h = filter('hour', h); m = filter('minute', m) }; return [h, m] as [string[], string[]] }, [filter, maxHour, maxMinute, minHour, minMinute]); const columns = useMemo(() => [hourValues.map(v => ({ label: formatter('hour', v), value: v })), minuteValues.map(v => ({ label: formatter('minute', v), value: v }))], [formatter, hourValues, minuteValues]); const onChangeRef = useRef(onChange); const onConfirmRef = useRef(onConfirm); onChangeRef.current = onChange; onConfirmRef.current = onConfirm; const handleChange = useCallback((values: (string | number)[]) => { const next = `${String(values[0] ?? hourValues[0])}:${String(values[1] ?? minuteValues[0])}`; timeRef.current = next; setCurrentTime(next); onChangeRef.current?.(next) }, [hourValues, minuteValues]); const handleConfirm = useCallback(() => onConfirmRef.current?.(timeRef.current), []); return <Picker {...pickerProps} columns={columns} interactionMode={interactionMode} value={currentTime.split(':')} onChange={handleChange} onConfirm={handleConfirm} />
 }
 
 const DatetimePicker = React.memo(DatetimePickerImpl)

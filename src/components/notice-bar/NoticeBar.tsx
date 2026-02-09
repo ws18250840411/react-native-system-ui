@@ -22,50 +22,8 @@ if (IS_WEB) {
 }
 
 const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
-  const { text, children, color, background, leftIcon, rightIcon, mode, tokensOverride, delay = 1, speed = 60, scrollable, wrapable = false, direction = 'horizontal', items, verticalInterval = 3000, verticalDuration = 300, onPress, onClose, onReplay, textProps, style, ...rest } = props
-  const locale = useLocale()
-  const layoutDir = useDirection()
-  const reducedMotion = useReducedMotion()
-  const tokens = useNoticeBarTokens(tokensOverride)
-  const resolvedColor = color ?? tokens.colors.text
-  const resolvedBackground = background ?? tokens.colors.background
-  const content = text ?? children
-  const isTextContent = isText(content)
-  const isVertical = direction === 'vertical'
-  const [visible, setVisible] = useState(true)
-  const { onLayout: textOnLayout, ...restTextProps } = textProps ?? {}
-  const [contentWidth, setContentWidth] = useState(0)
-  const [containerWidth, setContainerWidth] = useState(0)
-  const translateX = useRef(new Animated.Value(0)).current
-  const resolvedDelay = Math.max(0, parseNumber(delay, 1))
-  const resolvedSpeed = parseNumber(speed, 60)
-  const resolvedVerticalInterval = Math.max(0, parseNumber(verticalInterval, 3000))
-  const resolvedVerticalDuration = Math.max(0, parseNumber(verticalDuration, 300))
-  const verticalItems = useMemo(() => {
-    if (!isVertical) return []
-    if (items && items.length) return items
-    const childArray = React.Children.toArray(children)
-    if (childArray.length) return childArray
-    return text !== undefined ? [text] : []
-  }, [children, isVertical, items, text])
-  const hasVerticalLoop = !reducedMotion && isVertical && verticalItems.length > 1
-  const verticalTrackItems = useMemo(() => (hasVerticalLoop ? [...verticalItems, verticalItems[0]] : verticalItems), [hasVerticalLoop, verticalItems])
-  const verticalTranslateY = useRef(new Animated.Value(0)).current
-  const [itemHeight, setItemHeight] = useState(0)
-  const setContentWidthSafe = useCallback((next: number) => { setContentWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next)) }, [])
-  const setContainerWidthSafe = useCallback((next: number) => { setContainerWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next)) }, [])
-  const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
-  const onReplayRef = useRef(onReplay)
-  onReplayRef.current = onReplay
-  const handleClose = useCallback(() => { setVisible(false); onCloseRef.current?.() }, [])
-  const closePress = useAriaPress({ disabled: mode !== 'closeable' || !visible, onPress: handleClose, extraProps: { accessibilityRole: 'button', accessibilityLabel: locale?.vanNoticeBar?.close ?? 'Close' } })
-  const barPress = useAriaPress({ disabled: !onPress || !visible, onPress, extraProps: onPress ? { accessibilityRole: 'button' } : undefined })
-  const rightNode = mode === 'closeable' ? <Pressable hitSlop={8} {...closePress.interactionProps}><Close size={16} fill={resolvedColor} color={resolvedColor} /></Pressable> : mode === 'link' ? <Arrow size={16} fill={resolvedColor} color={resolvedColor} /> : rightIcon || null
-  const hasLeft = isRenderable(leftIcon)
-  const hasRight = Boolean(rightNode)
-  const effectiveContainerWidth = Math.max(0, containerWidth - (hasLeft ? tokens.spacing.sidePadding : 0) - (hasRight ? tokens.spacing.sidePadding : 0))
-  const shouldScroll = !reducedMotion && !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth)
+  const { text, children, color, background, leftIcon, rightIcon, mode, tokensOverride, delay = 1, speed = 60, scrollable, wrapable = false, direction = 'horizontal', items, verticalInterval = 3000, verticalDuration = 300, onPress, onClose, onReplay, textProps, style, ...rest } = props; const locale = useLocale(); const layoutDir = useDirection(); const reducedMotion = useReducedMotion(); const tokens = useNoticeBarTokens(tokensOverride); const resolvedColor = color ?? tokens.colors.text; const resolvedBackground = background ?? tokens.colors.background; const content = text ?? children; const isTextContent = isText(content); const isVertical = direction === 'vertical'; const [visible, setVisible] = useState(true); const { onLayout: textOnLayout, ...restTextProps } = textProps ?? {}; const [contentWidth, setContentWidth] = useState(0); const [containerWidth, setContainerWidth] = useState(0); const translateX = useRef(new Animated.Value(0)).current; const resolvedDelay = Math.max(0, parseNumber(delay, 1)); const resolvedSpeed = parseNumber(speed, 60); const resolvedVerticalInterval = Math.max(0, parseNumber(verticalInterval, 3000)); const resolvedVerticalDuration = Math.max(0, parseNumber(verticalDuration, 300))
+  const verticalItems = useMemo(() => { if (!isVertical) return []; if (items && items.length) return items; const arr = React.Children.toArray(children); if (arr.length) return arr; return text !== undefined ? [text] : [] }, [children, isVertical, items, text]); const hasVerticalLoop = !reducedMotion && isVertical && verticalItems.length > 1; const verticalTrackItems = useMemo(() => (hasVerticalLoop ? [...verticalItems, verticalItems[0]] : verticalItems), [hasVerticalLoop, verticalItems]); const verticalTranslateY = useRef(new Animated.Value(0)).current; const [itemHeight, setItemHeight] = useState(0); const setContentWidthSafe = useCallback((next: number) => { setContentWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next)) }, []); const setContainerWidthSafe = useCallback((next: number) => { setContainerWidth(prev => (Math.abs(prev - next) < 0.5 ? prev : next)) }, []); const onCloseRef = useRef(onClose); onCloseRef.current = onClose; const onReplayRef = useRef(onReplay); onReplayRef.current = onReplay; const handleClose = useCallback(() => { setVisible(false); onCloseRef.current?.() }, []); const closePress = useAriaPress({ disabled: mode !== 'closeable' || !visible, onPress: handleClose, extraProps: { accessibilityRole: 'button', accessibilityLabel: locale?.vanNoticeBar?.close ?? 'Close' } }); const barPress = useAriaPress({ disabled: !onPress || !visible, onPress, extraProps: onPress ? { accessibilityRole: 'button' } : undefined }); const rightNode = mode === 'closeable' ? <Pressable hitSlop={8} {...closePress.interactionProps}><Close size={16} fill={resolvedColor} color={resolvedColor} /></Pressable> : mode === 'link' ? <Arrow size={16} fill={resolvedColor} color={resolvedColor} /> : rightIcon || null; const hasLeft = isRenderable(leftIcon); const hasRight = Boolean(rightNode); const effectiveContainerWidth = Math.max(0, containerWidth - (hasLeft ? tokens.spacing.sidePadding : 0) - (hasRight ? tokens.spacing.sidePadding : 0)); const shouldScroll = !reducedMotion && !isVertical && !wrapable && (scrollable ?? contentWidth > effectiveContainerWidth)
   useEffect(() => {
     if (!visible || isVertical) { translateX.stopAnimation(); return }
     if (!shouldScroll || contentWidth === 0 || containerWidth === 0 || resolvedSpeed <= 0 || !Number.isFinite(resolvedSpeed)) { translateX.setValue(0); return }

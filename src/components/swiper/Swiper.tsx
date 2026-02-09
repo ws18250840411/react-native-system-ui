@@ -15,32 +15,14 @@ export const SwiperItem = memo(SwiperItemFR)
 const LOOP_THRESHOLD = 10
 
 const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
-  const { data, renderItem, children, initialSwipe = 0, touchable = true, loop = true, autoplay = false, vertical = false, onChange, indicator = true, indicatorProps, style, testID } = props
-  const tokens = useSwiperTokens()
-  const listRef = useRef<FlatList>(null)
-  const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const interRef = useRef(false)
-  const animRef = useRef(false)
-  const queueRef = useRef<number | null>(null)
-  const momRef = useRef(false)
-  const dragRef = useRef<number | null>(null)
-  const isWeb = Platform.OS === 'web'
-  const [layout, setLayout] = useState({ width: 0, height: 0 })
-
+  const { data, renderItem, children, initialSwipe = 0, touchable = true, loop = true, autoplay = false, vertical = false, onChange, indicator = true, indicatorProps, style, testID } = props; const tokens = useSwiperTokens(); const listRef = useRef<FlatList>(null); const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null); const interRef = useRef(false); const animRef = useRef(false); const queueRef = useRef<number | null>(null); const momRef = useRef(false); const dragRef = useRef<number | null>(null); const isWeb = Platform.OS === 'web'; const [layout, setLayout] = useState({ width: 0, height: 0 })
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     const { width: w, height: h } = e.nativeEvent.layout
     setLayout(p => (p.width === w && p.height === h ? p : { width: w, height: h }))
   }, [])
 
-  const items = useMemo(() => !children ? [] : Children.toArray(children).filter((c): c is ReactElement => isValidElement(c)), [children])
-  const usingData = Array.isArray(data)
-  const base = usingData ? data! : items
-  const count = base.length
-  const shouldLoop = loop && count > 1
-
-  const display = useMemo(() => shouldLoop ? [base[count - 1], ...base, base[0]] : base, [base, shouldLoop, count])
-  const dCount = display.length
-  const loopAll = shouldLoop && dCount <= LOOP_THRESHOLD
+  const items = useMemo(() => !children ? [] : Children.toArray(children).filter((c): c is ReactElement => isValidElement(c)), [children]); const usingData = Array.isArray(data); const base = usingData ? data! : items; const count = base.length; const shouldLoop = loop && count > 1
+  const display = useMemo(() => shouldLoop ? [base[count - 1], ...base, base[0]] : base, [base, shouldLoop, count]); const dCount = display.length; const loopAll = shouldLoop && dCount <= LOOP_THRESHOLD
 
   const realIdx = useCallback((di: number) => !shouldLoop ? clamp(di, 0, count - 1) : di === 0 ? count - 1 : di === dCount - 1 ? 0 : di - 1, [shouldLoop, count, dCount])
   const dispIdx = useCallback((ri: number) => shouldLoop ? clamp(ri, 0, count - 1) + 1 : clamp(ri, 0, count - 1), [shouldLoop, count])

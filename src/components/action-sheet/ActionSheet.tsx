@@ -54,48 +54,11 @@ const ActionSheetCancel: React.FC<{ cancelText: React.ReactNode; tokens: ActionS
 })
 
 const ActionSheetImpl: React.FC<ActionSheetProps> = props => {
-  const { tokensOverride, visible, title, description, cancelText, actions = [], closeOnClickAction: closeOnClickActionProp, closeOnSelect, closeable: closeableProp, closeIcon = defaultCloseIcon, beforeClose, onSelect, onCancel, onClose, children, round: roundProp, safeAreaInsetBottom: safeAreaInsetBottomProp, overlay: overlayProp, lockScroll: lockScrollProp, style: popupStyle, ...popupProps } = props
-  const tokens = useActionSheetTokens(tokensOverride)
-  const closeable = closeableProp ?? tokens.defaults.closeable
-  const round = roundProp ?? tokens.defaults.round
-  const safeAreaInsetBottom = safeAreaInsetBottomProp ?? tokens.defaults.safeAreaInsetBottom
-  const overlay = overlayProp ?? tokens.defaults.overlay
-  const lockScroll = lockScrollProp ?? tokens.defaults.lockScroll
-  const shouldCloseOnClickAction = closeOnClickActionProp ?? closeOnSelect ?? tokens.defaults.closeOnClickAction
-  const hasTitle = isRenderable(title)
-  const hasDescription = isRenderable(description)
-  const hasCancelText = isRenderable(cancelText)
-  const lastPopupCloseReasonRef = useRef<ActionSheetCloseAction>('close')
-  const closingRef = useRef(false)
-  const beforeCloseRef = useRef(beforeClose); beforeCloseRef.current = beforeClose
-  const onCloseRef = useRef(onClose); onCloseRef.current = onClose
-  const onCancelRef = useRef(onCancel); onCancelRef.current = onCancel
-  const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect
-  const runBeforeClose = useCallback(async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => { if (!beforeCloseRef.current) return true; try { return (await beforeCloseRef.current(action)) !== false } catch { return true } }, [])
-  const emitClose = useCallback((reason: ActionSheetCloseAction) => { if (onCloseRef.current) { if (reason === 'cancel') onCancelRef.current?.(); onCloseRef.current(); return }; onCancelRef.current?.() }, [])
-  const requestClose = useCallback(async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => { if (closingRef.current) return; closingRef.current = true; try { const allowed = await runBeforeClose(action); if (!allowed) return; emitClose(action) } finally { closingRef.current = false } }, [emitClose, runBeforeClose])
-  const handlePopupBeforeClose = useCallback((reason: 'close-icon' | 'overlay' | 'close') => { lastPopupCloseReasonRef.current = reason; return runBeforeClose(reason) }, [runBeforeClose])
-  const handlePopupClose = useCallback(() => { emitClose(lastPopupCloseReasonRef.current) }, [emitClose])
-  const handleCancel = useCallback(() => { void requestClose('cancel') }, [requestClose])
-  const handleCloseIcon = useCallback(() => { void requestClose('close-icon') }, [requestClose])
-  const handleActionPress = useCallback((action: ActionSheetAction, index: number) => { if (action.disabled || action.loading) return; action.onPress?.(action); action.callback?.(action); onSelectRef.current?.(action, index); if (shouldCloseOnClickAction) void requestClose('action') }, [requestClose, shouldCloseOnClickAction])
-  const popupStyleMemo = useMemo(() => [tokens.layout.popup, popupStyle], [tokens.layout.popup, popupStyle])
-  return (
-    <Popup visible={visible} placement="bottom" round={round} safeAreaInsetTop={hasTitle && closeable} safeAreaInsetBottom={safeAreaInsetBottom} overlay={overlay} lockScroll={lockScroll} beforeClose={handlePopupBeforeClose} onClose={handlePopupClose} style={popupStyleMemo} {...popupProps}>
-      <View accessibilityRole="menu" style={[tokens.layout.panel, { backgroundColor: tokens.colors.background }]}>
-        {hasTitle && <ActionSheetHeader title={title} closeable={closeable} closeIcon={closeIcon} tokens={tokens} onClose={handleCloseIcon} />}
-        {hasDescription && (
-          <View style={tokens.layout.descriptionContainer}>
-            {isText(description) ? renderTextOrNode(description, [tokens.layout.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]) : <View style={tokens.layout.descriptionNode}>{description}</View>}
-            <View style={createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0 })} />
-          </View>
-        )}
-        <View style={tokens.layout.actions}>{actions.map((action, index) => <ActionSheetItem key={action.key ?? index} action={action} index={index} tokens={tokens} onActionPress={handleActionPress} />)}</View>
-        {children}
-        {hasCancelText && <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={handleCancel} />}
-      </View>
-    </Popup>
-  )
+  const { tokensOverride, visible, title, description, cancelText, actions = [], closeOnClickAction: closeOnActP, closeOnSelect, closeable: closeableP, closeIcon = defaultCloseIcon, beforeClose, onSelect, onCancel, onClose, children, round: roundP, safeAreaInsetBottom: safeP, overlay: ovP, lockScroll: lockP, style: popStyle, ...popProps } = props; const tokens = useActionSheetTokens(tokensOverride)
+  const closeable = closeableP ?? tokens.defaults.closeable; const round = roundP ?? tokens.defaults.round; const safeBottom = safeP ?? tokens.defaults.safeAreaInsetBottom; const overlay = ovP ?? tokens.defaults.overlay; const lockScroll = lockP ?? tokens.defaults.lockScroll; const closeOnAct = closeOnActP ?? closeOnSelect ?? tokens.defaults.closeOnClickAction; const hasT = isRenderable(title); const hasD = isRenderable(description); const hasC = isRenderable(cancelText)
+  const lastReasonRef = useRef<ActionSheetCloseAction>('close'); const closingRef = useRef(false); const beforeCloseRef = useRef(beforeClose); beforeCloseRef.current = beforeClose; const onCloseRef = useRef(onClose); onCloseRef.current = onClose; const onCancelRef = useRef(onCancel); onCancelRef.current = onCancel; const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect
+  const runBefore = useCallback(async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => { if (!beforeCloseRef.current) return true; try { return (await beforeCloseRef.current(action)) !== false } catch { return true } }, []); const emitClose = useCallback((reason: ActionSheetCloseAction) => { if (onCloseRef.current) { if (reason === 'cancel') onCancelRef.current?.(); onCloseRef.current(); return }; onCancelRef.current?.() }, []); const reqClose = useCallback(async (action: Parameters<NonNullable<ActionSheetProps['beforeClose']>>[0]) => { if (closingRef.current) return; closingRef.current = true; try { const ok = await runBefore(action); if (!ok) return; emitClose(action) } finally { closingRef.current = false } }, [emitClose, runBefore]); const onPopupBefore = useCallback((reason: 'close-icon' | 'overlay' | 'close') => { lastReasonRef.current = reason; return runBefore(reason) }, [runBefore]); const onPopupClose = useCallback(() => { emitClose(lastReasonRef.current) }, [emitClose]); const onActPress = useCallback((action: ActionSheetAction, index: number) => { if (action.disabled || action.loading) return; action.onPress?.(action); action.callback?.(action); onSelectRef.current?.(action, index); if (closeOnAct) void reqClose('action') }, [reqClose, closeOnAct]); const popStyleMemo = useMemo(() => [tokens.layout.popup, popStyle], [tokens.layout.popup, popStyle])
+  return <Popup visible={visible} placement="bottom" round={round} safeAreaInsetTop={hasT && closeable} safeAreaInsetBottom={safeBottom} overlay={overlay} lockScroll={lockScroll} beforeClose={onPopupBefore} onClose={onPopupClose} style={popStyleMemo} {...popProps}><View accessibilityRole="menu" style={[tokens.layout.panel, { backgroundColor: tokens.colors.background }]}>{hasT && <ActionSheetHeader title={title} closeable={closeable} closeIcon={closeIcon} tokens={tokens} onClose={() => void reqClose('close-icon')} />}{hasD && <View style={tokens.layout.descriptionContainer}>{isText(description) ? renderTextOrNode(description, [tokens.layout.description, { color: tokens.colors.description, fontSize: tokens.typography.description }]) : <View style={tokens.layout.descriptionNode}>{description}</View>}<View style={createHairlineView({ position: 'bottom', color: tokens.colors.border, left: 0, right: 0 })} /></View>}<View style={tokens.layout.actions}>{actions.map((action, index) => <ActionSheetItem key={action.key ?? index} action={action} index={index} tokens={tokens} onActionPress={onActPress} />)}</View>{children}{hasC && <ActionSheetCancel cancelText={cancelText} tokens={tokens} onPress={() => void reqClose('cancel')} />}</View></Popup>
 }
 
 const ActionSheet = React.memo(ActionSheetImpl)

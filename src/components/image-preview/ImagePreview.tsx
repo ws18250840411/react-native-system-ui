@@ -28,29 +28,7 @@ const ImageSlide = React.memo((props: { source: ImageSourcePropType; rendered: b
 }, (prev, next) => prev.source === next.source && prev.rendered === next.rendered && prev.pressableHandlers === next.pressableHandlers && prev.index === next.index && prev.total === next.total)
 
 const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<ImagePreviewRef>) => {
-  const { visible, images = [], startPosition = 0, tokensOverride, lazyRender = false, lazyRenderBuffer = 1, showIndex = true, indexRender, showIndicators = false, closeable = false, closeIcon, closeIconPosition = 'top-right', closeOnlyClickCloseIcon = false, overlay = true, overlayStyle, closeOnBackPress, closeOnPopstate, zIndex, duration, safeAreaInsetTop = true, safeAreaInsetBottom = true, onChange, onClose, onClosed, beforeClose } = props
-  const { colors, layout, radii, typography, spacing } = useImagePreviewTokens(tokensOverride)
-  const swiperRef = useRef<SwiperInstance>(null)
-  const pendingCloseReason = useRef<ImagePreviewCloseReason>('close')
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
-  const touchMovedRef = useRef(false)
-  const imagesLength = images.length
-  const [activeIndex, setActiveIndex] = useState(() => clampIndex(startPosition, imagesLength))
-  const safeActiveIndex = clampIndex(activeIndex, imagesLength)
-  const latestRef = useRef({ images, index: safeActiveIndex, beforeClose, onClose })
-  latestRef.current = { images, index: safeActiveIndex, beforeClose, onClose }
-  const resolvedImages: ImageSourcePropType[] = useMemo(() => images.map(img => isString(img) ? { uri: img } : img), [images])
-  useEffect(() => { setActiveIndex(current => clampIndex(current, imagesLength)) }, [imagesLength])
-  useEffect(() => {
-    if (!visible) return
-    const next = clampIndex(startPosition, imagesLength)
-    setActiveIndex(next)
-    if (typeof requestAnimationFrame !== 'undefined') {
-      const raf = requestAnimationFrame(() => { swiperRef.current?.swipeTo(next, false) })
-      return () => cancelAnimationFrame(raf)
-    }
-  }, [imagesLength, startPosition, visible])
-  const runBeforeClose = useCallback(async (reason: ImagePreviewCloseReason) => {
+  const { visible, images = [], startPosition = 0, tokensOverride, lazyRender = false, lazyRenderBuffer = 1, showIndex = true, indexRender, showIndicators = false, closeable = false, closeIcon, closeIconPosition = 'top-right', closeOnlyClickCloseIcon = false, overlay = true, overlayStyle, closeOnBackPress, closeOnPopstate, zIndex, duration, safeAreaInsetTop = true, safeAreaInsetBottom = true, onChange, onClose, onClosed, beforeClose } = props; const { colors, layout, radii, typography, spacing } = useImagePreviewTokens(tokensOverride); const swiperRef = useRef<SwiperInstance>(null); const pendingCloseReason = useRef<ImagePreviewCloseReason>('close'); const touchStartRef = useRef<{ x: number; y: number } | null>(null); const touchMovedRef = useRef(false); const imgLen = images.length; const [activeIndex, setActiveIndex] = useState(() => clampIndex(startPosition, imgLen)); const safeIdx = clampIndex(activeIndex, imgLen); const latestRef = useRef({ images, index: safeIdx, beforeClose, onClose }); latestRef.current = { images, index: safeIdx, beforeClose, onClose }; const resolvedImages: ImageSourcePropType[] = useMemo(() => images.map(img => isString(img) ? { uri: img } : img), [images]); useEffect(() => { setActiveIndex(cur => clampIndex(cur, imgLen)) }, [imgLen]); useEffect(() => { if (!visible) return; const next = clampIndex(startPosition, imgLen); setActiveIndex(next); if (typeof requestAnimationFrame !== 'undefined') { const raf = requestAnimationFrame(() => { swiperRef.current?.swipeTo(next, false) }); return () => cancelAnimationFrame(raf) } }, [imgLen, startPosition, visible]); const runBeforeClose = useCallback(async (reason: ImagePreviewCloseReason) => {
     const { beforeClose: bc, images: imgs, index } = latestRef.current
     if (!bc) return true
     const res = await bc({ reason, index, image: imgs[index] })
@@ -66,12 +44,7 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
   }, [runBeforeClose])
   const handlePopupBeforeClose = useCallback(async (reason: 'close-icon' | 'overlay' | 'close') => { pendingCloseReason.current = reason; return runBeforeClose(reason) }, [runBeforeClose])
   const handlePopupClose = useCallback(() => { void executeClose(pendingCloseReason.current, true) }, [executeClose])
-  useImperativeHandle(ref, () => ({ swipeTo: (index: number, anim = true) => { const next = clampIndex(index, imagesLength); setActiveIndex(next); swiperRef.current?.swipeTo(next, anim) } }), [imagesLength])
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
-  const safeActiveIndexRef = useRef(safeActiveIndex)
-  safeActiveIndexRef.current = safeActiveIndex
-  const handleSwiperChange = useCallback((index: number) => { if (safeActiveIndexRef.current === index) return; setActiveIndex(index); onChangeRef.current?.(index) }, [])
+  useImperativeHandle(ref, () => ({ swipeTo: (index: number, anim = true) => { const next = clampIndex(index, imgLen); setActiveIndex(next); swiperRef.current?.swipeTo(next, anim) } }), [imgLen]); const onChangeRef = useRef(onChange); onChangeRef.current = onChange; const safeIdxRef = useRef(safeIdx); safeIdxRef.current = safeIdx; const handleSwiperChange = useCallback((index: number) => { if (safeIdxRef.current === index) return; setActiveIndex(index); onChangeRef.current?.(index) }, [])
   const handleImagePress = useCallback(() => { if (closeOnlyClickCloseIcon) return; void executeClose('content') }, [closeOnlyClickCloseIcon, executeClose])
   const resetTouch = useCallback(() => { touchStartRef.current = null; touchMovedRef.current = false }, [])
   const handleTouchStart = useCallback((x: number, y: number) => { touchStartRef.current = { x, y }; touchMovedRef.current = false }, [])
@@ -127,12 +100,12 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
   return (
     <Popup visible={visible} overlay={overlay} overlayStyle={overlayStyle} closeOnOverlayPress={!closeOnlyClickCloseIcon} closeOnBackPress={closeOnBackPress} closeOnPopstate={closeOnPopstate} zIndex={zIndex} duration={duration} closeable={closeable} closeIcon={closeIcon} closeIconPosition={closeIconPosition} stopPropagation={false} round={false} safeAreaInsetTop={safeAreaInsetTop} safeAreaInsetBottom={safeAreaInsetBottom} overlayTestID="rv-image-preview-overlay" style={[S.popup, { backgroundColor: colors.transparent, padding: layout.popupPadding, borderRadius: layout.popupRadius }]} beforeClose={handlePopupBeforeClose} onClose={handlePopupClose} onClosed={onClosed}>
       <View style={[S.content, { backgroundColor: colors.background }]}>
-        {imagesLength === 1 && renderIndex(0, 1)}
-        {imagesLength === 0 ? <View style={S.empty} testID="rv-image-preview-empty" /> : (
-          <Swiper ref={swiperRef} style={S.swiper} initialSwipe={clampIndex(startPosition, imagesLength)} loop={false} autoplay={false} touchable={imagesLength > 1} indicator={renderIndicator} onChange={handleSwiperChange} testID="rv-image-preview-swiper">
+        {imgLen === 1 && renderIndex(0, 1)}
+        {imgLen === 0 ? <View style={S.empty} testID="rv-image-preview-empty" /> : (
+          <Swiper ref={swiperRef} style={S.swiper} initialSwipe={clampIndex(startPosition, imgLen)} loop={false} autoplay={false} touchable={imgLen > 1} indicator={renderIndicator} onChange={handleSwiperChange} testID="rv-image-preview-swiper">
             {resolvedImages.map((source, index) => (
               <Swiper.Item key={index} style={S.slide} testID={`rv-image-preview-slide-${index}`}>
-                <ImageSlide source={source} rendered={!lazyRender || Math.abs(index - safeActiveIndex) <= lazyBuffer} pressableHandlers={pressableHandlers} index={index} total={resolvedImages.length} />
+                <ImageSlide source={source} rendered={!lazyRender || Math.abs(index - safeIdx) <= lazyBuffer} pressableHandlers={pressableHandlers} index={index} total={resolvedImages.length} />
               </Swiper.Item>
             ))}
           </Swiper>

@@ -22,76 +22,10 @@ type WebRingStyle = ViewStyle & { backgroundImage?: string; WebkitMaskImage?: st
 const AnimatedSvgCircle = Animated.createAnimatedComponent(SvgCircle)
 
 const CircleImpl: React.FC<CircleProps> = props => {
-  const { tokensOverride, rate: rateProp, size, strokeWidth, color, layerColor, fill: fillProp, clockwise: clockwiseProp, startPosition: startPositionProp, lineCap: lineCapProp, animated: animatedProp, animationDuration, style, textStyle, children } = props
-  const tokens = useCircleTokens(tokensOverride)
-  const reducedMotion = useReducedMotion()
-  const fill = fillProp ?? tokens.defaults.fill
-  const clockwise = clockwiseProp ?? tokens.defaults.clockwise
-  const startPosition = startPositionProp ?? tokens.defaults.startPosition
-  const lineCap = lineCapProp ?? tokens.defaults.lineCap
-  const animated = animatedProp ?? tokens.defaults.animated
-  const resolvedSize = Math.max(0, parseNumber(size, tokens.defaults.size))
-  const resolvedStrokeWidth = Math.max(0, parseNumber(strokeWidth, tokens.defaults.strokeWidth))
-  const rate = clamp(parsePercentage(rateProp ?? tokens.defaults.rate), 0, 100)
-  const resolvedColor = color ?? tokens.colors.color
-  const resolvedLayerColor = layerColor ?? tokens.colors.layerColor
-  const baseStyle = useMemo(() => [tokens.layout.root, { width: resolvedSize, height: resolvedSize }, style], [resolvedSize, style, tokens.layout.root])
-  const contentStyle = useMemo(() => [tokens.layout.content, { width: resolvedSize, height: resolvedSize }], [resolvedSize, tokens.layout.content])
+  const { tokensOverride, rate: rateP, size, strokeWidth, color, layerColor, fill: fillP, clockwise: cwP, startPosition: startP, lineCap: capP, animated: animP, animationDuration, style, textStyle, children } = props; const tokens = useCircleTokens(tokensOverride); const reducedMotion = useReducedMotion(); const fill = fillP ?? tokens.defaults.fill; const clockwise = cwP ?? tokens.defaults.clockwise; const startPosition = startP ?? tokens.defaults.startPosition; const lineCap = capP ?? tokens.defaults.lineCap; const animated = animP ?? tokens.defaults.animated; const rSize = Math.max(0, parseNumber(size, tokens.defaults.size)); const rStroke = Math.max(0, parseNumber(strokeWidth, tokens.defaults.strokeWidth)); const rate = clamp(parsePercentage(rateP ?? tokens.defaults.rate), 0, 100); const rColor = color ?? tokens.colors.color; const rLayerColor = layerColor ?? tokens.colors.layerColor; const baseStyle = useMemo(() => [tokens.layout.root, { width: rSize, height: rSize }, style], [rSize, style, tokens.layout.root]); const contentStyle = useMemo(() => [tokens.layout.content, { width: rSize, height: rSize }], [rSize, tokens.layout.content]); const content = useMemo(() => { if (children == null || children === false) return null; const arr = React.Children.toArray(children); if (arr.every(isText)) return <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.lineHeight }, textStyle]}>{arr.map(String).join('')}</Text>; return children }, [children, textStyle, tokens.colors.text, tokens.layout.text, tokens.typography.fontSize, tokens.typography.lineHeight])
 
-  const content = useMemo(() => {
-    if (children == null || children === false) return null
-    const childArray = React.Children.toArray(children)
-    if (childArray.every(isText)) return <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.lineHeight }, textStyle]}>{childArray.map(String).join('')}</Text>
-    return children
-  }, [children, textStyle, tokens.colors.text, tokens.layout.text, tokens.typography.fontSize, tokens.typography.lineHeight])
-
-  if (Platform.OS === 'web') {
-    const safeStroke = Math.min(resolvedStrokeWidth, resolvedSize / 2)
-    const innerSize = Math.max(0, resolvedSize - safeStroke * 2)
-    const progressAngle = (rate / 100) * 360
-    const rotation = WEB_ROTATION[startPosition]
-    const shouldRenderInner = innerSize > 0 && !isTransparentColor(fill)
-    const gradient = clockwise
-      ? `conic-gradient(from ${rotation}deg, ${resolvedColor} 0deg ${progressAngle}deg, ${resolvedLayerColor} ${progressAngle}deg 360deg)`
-      : `conic-gradient(from ${rotation}deg, ${resolvedLayerColor} 0deg ${360 - progressAngle}deg, ${resolvedColor} ${360 - progressAngle}deg 360deg)`
-    const webRingStyle: WebRingStyle = { width: resolvedSize, height: resolvedSize, borderRadius: resolvedSize / 2, backgroundImage: gradient }
-    if (safeStroke > 0) {
-      const mask = `radial-gradient(farthest-side, transparent calc(100% - ${safeStroke}px), #000 calc(100% - ${safeStroke}px))`
-      Object.assign(webRingStyle, { WebkitMaskImage: mask, maskImage: mask, WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: '100% 100%', maskSize: '100% 100%' })
-    }
-    return (
-      <View style={baseStyle}>
-        <View style={[tokens.layout.webRing, webRingStyle]} />
-        {shouldRenderInner ? <View style={[tokens.layout.webInner, { width: innerSize, height: innerSize, borderRadius: innerSize / 2, backgroundColor: fill, left: safeStroke, top: safeStroke }]} /> : null}
-        <View pointerEvents="box-none" style={contentStyle}>{isText(content) ? <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize }, textStyle]}>{content}</Text> : content}</View>
-      </View>
-    )
-  }
-
-  const radius = Math.max(0, (resolvedSize - resolvedStrokeWidth) / 2)
-  const circumference = 2 * Math.PI * radius
-  const rotation = SVG_ROTATION[startPosition]
-  const safeDuration = Math.max(0, animationDuration ?? tokens.defaults.animationDuration)
-  const dashOffsetTarget = (clockwise ? 1 : -1) * circumference * (1 - rate / 100)
-  const dashOffset = useRef(new Animated.Value(dashOffsetTarget)).current
-
-  useEffect(() => {
-    if (!animated || safeDuration <= 0 || reducedMotion) { dashOffset.setValue(dashOffsetTarget); return }
-    const animation = Animated.timing(dashOffset, { toValue: dashOffsetTarget, duration: safeDuration, useNativeDriver: false, isInteraction: false })
-    animation.start()
-    return () => animation.stop()
-  }, [animated, dashOffset, dashOffsetTarget, reducedMotion, safeDuration])
-
-  const center = resolvedSize / 2
-  return (
-    <View style={baseStyle}>
-      <Svg width={resolvedSize} height={resolvedSize}>
-        <SvgCircle cx={center} cy={center} r={radius} stroke={resolvedLayerColor} strokeWidth={resolvedStrokeWidth} fill={fill} />
-        <AnimatedSvgCircle cx={center} cy={center} r={radius} stroke={resolvedColor} strokeWidth={resolvedStrokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={dashOffset} strokeLinecap={lineCap} rotation={rotation} originX={center} originY={center} />
-      </Svg>
-      <View pointerEvents="box-none" style={contentStyle}>{isText(content) ? <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize }, textStyle]}>{content}</Text> : content}</View>
-    </View>
-  )
+  if (Platform.OS === 'web') { const safeStroke = Math.min(rStroke, rSize / 2); const innerSize = Math.max(0, rSize - safeStroke * 2); const progressAngle = (rate / 100) * 360; const rotation = WEB_ROTATION[startPosition]; const showInner = innerSize > 0 && !isTransparentColor(fill); const gradient = clockwise ? `conic-gradient(from ${rotation}deg, ${rColor} 0deg ${progressAngle}deg, ${rLayerColor} ${progressAngle}deg 360deg)` : `conic-gradient(from ${rotation}deg, ${rLayerColor} 0deg ${360 - progressAngle}deg, ${rColor} ${360 - progressAngle}deg 360deg)`; const webRingStyle: WebRingStyle = { width: rSize, height: rSize, borderRadius: rSize / 2, backgroundImage: gradient }; if (safeStroke > 0) { const mask = `radial-gradient(farthest-side, transparent calc(100% - ${safeStroke}px), #000 calc(100% - ${safeStroke}px))`; Object.assign(webRingStyle, { WebkitMaskImage: mask, maskImage: mask, WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: '100% 100%', maskSize: '100% 100%' }) }; return <View style={baseStyle}><View style={[tokens.layout.webRing, webRingStyle]} />{showInner ? <View style={[tokens.layout.webInner, { width: innerSize, height: innerSize, borderRadius: innerSize / 2, backgroundColor: fill, left: safeStroke, top: safeStroke }]} /> : null}<View pointerEvents="box-none" style={contentStyle}>{isText(content) ? <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize }, textStyle]}>{content}</Text> : content}</View></View> }
+  const radius = Math.max(0, (rSize - rStroke) / 2); const circumference = 2 * Math.PI * radius; const rotation = SVG_ROTATION[startPosition]; const safeDur = Math.max(0, animationDuration ?? tokens.defaults.animationDuration); const dashTarget = (clockwise ? 1 : -1) * circumference * (1 - rate / 100); const dashOffset = useRef(new Animated.Value(dashTarget)).current; useEffect(() => { if (!animated || safeDur <= 0 || reducedMotion) { dashOffset.setValue(dashTarget); return }; const anim = Animated.timing(dashOffset, { toValue: dashTarget, duration: safeDur, useNativeDriver: false, isInteraction: false }); anim.start(); return () => anim.stop() }, [animated, dashOffset, dashTarget, reducedMotion, safeDur]); const center = rSize / 2; return <View style={baseStyle}><Svg width={rSize} height={rSize}><SvgCircle cx={center} cy={center} r={radius} stroke={rLayerColor} strokeWidth={rStroke} fill={fill} /><AnimatedSvgCircle cx={center} cy={center} r={radius} stroke={rColor} strokeWidth={rStroke} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={dashOffset} strokeLinecap={lineCap} rotation={rotation} originX={center} originY={center} /></Svg><View pointerEvents="box-none" style={contentStyle}>{isText(content) ? <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize }, textStyle]}>{content}</Text> : content}</View></View>
 }
 
 export const Circle = React.memo(CircleImpl)

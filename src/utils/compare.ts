@@ -5,10 +5,7 @@ export const shallowEqualArray = <T>(a: T[] = [], b: T[] = []) => {
 }
 
 export const shallowEqualObject = (a?: Record<string, unknown> | null, b?: Record<string, unknown> | null): boolean => {
-  if (a === b) return true
-  if (!a || !b) return false
-  const ak = Object.keys(a)
-  if (ak.length !== Object.keys(b).length) return false
-  for (const k of ak) if (a[k] !== b[k]) return false
-  return true
+  if (a === b) return true; if (!a || !b) return false
+  const ks = Object.keys(a); if (ks.length !== Object.keys(b).length) return false
+  for (const k of ks) if (a[k] !== b[k]) return false; return true
 }

@@ -14,11 +14,15 @@ const ThrowError: React.FC<{ shouldThrow?: boolean }> = ({ shouldThrow }) => {
 const originalConsoleError = console.error
 beforeAll(() => {
   console.error = (...args: unknown[]) => {
-    const msg = typeof args[0] === 'string' ? args[0] : ''
+    const msg = typeof args[0] === 'string' ? args[0] : (args[0] instanceof Error ? args[0].message : '')
+    const full = args.map(a => (typeof a === 'string' ? a : a instanceof Error ? a.message : '')).join(' ')
     if (
       msg.includes('Error: Uncaught') ||
       msg.includes('The above error occurred') ||
-      msg.includes('React will try to recreate')
+      msg.includes('React will try to recreate') ||
+      msg.includes('Test error') ||
+      full.includes('ThrowError') ||
+      full.includes('Test error')
     ) {
       return
     }

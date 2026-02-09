@@ -22,41 +22,11 @@ const parseGap = (v: SpaceGap | undefined, presets: Record<SpaceSizePreset, numb
 }
 
 export const Space = React.memo((props: SpaceProps) => {
-  const { children, gap, size: sizeProp, direction: directionProp, align: alignProp, justify: justifyProp = 'start', wrap: wrapProp, block: blockProp, fill: fillProp, divider, tokensOverride, style, onClick, ...rest } = props
-  const tokens = useSpaceTokens(tokensOverride)
-  const isHorizontal = (directionProp ?? tokens.defaults.direction) === 'horizontal'
-  const wrap = wrapProp ?? tokens.defaults.wrap
-  const gapInput = resolveGapInput(gap, sizeProp, tokens.defaults.gapPreset)
-  const [resolvedHorizontalGap, resolvedVerticalGap] = parseGap(gapInput, tokens.sizing.presets)
-  const horizontalGap = Math.max(0, resolvedHorizontalGap)
-  const verticalGap = Math.max(0, resolvedVerticalGap)
-  const shouldJustify = justifyProp === 'stretch'
-  const justifyForStyle: Exclude<SpaceJustify, 'stretch'> = shouldJustify ? 'start' : justifyProp
-  const shouldBlock = blockProp ?? !isHorizontal
-  const resolvedAlign: SpaceAlign = alignProp ?? (isHorizontal ? 'center' : 'stretch')
-  const shouldFillOrMaxAlign = isHorizontal && ((fillProp ?? false) || shouldJustify)
-  const containerBoxStyle: ViewStyle = {
-    flexDirection: isHorizontal ? 'row' : 'column',
-    flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
-    alignItems: alignMap[resolvedAlign],
-    justifyContent: justifyMap[justifyForStyle],
-    width: shouldBlock ? '100%' : undefined,
-    columnGap: isHorizontal ? horizontalGap : undefined,
-    rowGap: verticalGap,
-  }
-  const defaultTextStyle = { fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize }
-  const childrenArray = React.Children.toArray(children).filter(isRenderable)
-  const content: React.ReactNode[] = []
-  for (let i = 0; i < childrenArray.length; i++) {
-    const child = childrenArray[i]
-    const key: React.Key = React.isValidElement(child) && child.key != null ? child.key : i
-    const flexStyle: ViewStyle | undefined = shouldFillOrMaxAlign ? { flexGrow: 1, flexBasis: 0, minWidth: 0 } : !isHorizontal && (fillProp || shouldBlock) ? { width: '100%' } : undefined
-    content.push(<View key={key} style={flexStyle}>{renderTextOrNode(child, defaultTextStyle)}</View>)
-    if (divider && i < childrenArray.length - 1) content.push(<View key={`divider-${String(key)}`}>{renderTextOrNode(divider, defaultTextStyle)}</View>)
-  }
-  const isInteractive = isFunction(onClick)
-  const { interactionProps, states } = useAriaPress({ disabled: !isInteractive, onPress: onClick, extraProps: isInteractive ? { accessibilityRole: 'button' } : undefined })
-  if (isInteractive) return <Pressable style={[tokens.layout.container, containerBoxStyle, style, states.pressed && { opacity: 0.85 }]} {...interactionProps} {...rest}>{content}</Pressable>
-  return <View style={[tokens.layout.container, containerBoxStyle, style]} {...rest}>{content}</View>
+  const { children, gap, size: sizeP, direction: dirP, align: alignP, justify: justP = 'start', wrap: wrapP, block: blockP, fill: fillP, divider, tokensOverride, style, onClick, ...rest } = props; const tokens = useSpaceTokens(tokensOverride)
+  const hor = (dirP ?? tokens.defaults.direction) === 'horizontal'; const wrap = wrapP ?? tokens.defaults.wrap; const gapIn = resolveGapInput(gap, sizeP, tokens.defaults.gapPreset); const [hG, vG] = parseGap(gapIn, tokens.sizing.presets); const hGap = Math.max(0, hG); const vGap = Math.max(0, vG)
+  const justStretch = justP === 'stretch'; const justStyle: Exclude<SpaceJustify, 'stretch'> = justStretch ? 'start' : justP; const block = blockP ?? !hor; const align: SpaceAlign = alignP ?? (hor ? 'center' : 'stretch'); const fillOrJust = hor && ((fillP ?? false) || justStretch)
+  const boxStyle: ViewStyle = { flexDirection: hor ? 'row' : 'column', flexWrap: hor && wrap ? 'wrap' : 'nowrap', alignItems: alignMap[align], justifyContent: justifyMap[justStyle], width: block ? '100%' : undefined, columnGap: hor ? hGap : undefined, rowGap: vGap }; const txtStyle = { fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize }; const arr = React.Children.toArray(children).filter(isRenderable); const content: React.ReactNode[] = []
+  for (let i = 0; i < arr.length; i++) { const child = arr[i]; const key: React.Key = React.isValidElement(child) && child.key != null ? child.key : i; const flexS: ViewStyle | undefined = fillOrJust ? { flexGrow: 1, flexBasis: 0, minWidth: 0 } : !hor && (fillP || block) ? { width: '100%' } : undefined; content.push(<View key={key} style={flexS}>{renderTextOrNode(child, txtStyle)}</View>); if (divider && i < arr.length - 1) content.push(<View key={`divider-${String(key)}`}>{renderTextOrNode(divider, txtStyle)}</View>) }
+  const inter = isFunction(onClick); const { interactionProps, states } = useAriaPress({ disabled: !inter, onPress: onClick, extraProps: inter ? { accessibilityRole: 'button' } : undefined }); if (inter) return <Pressable style={[tokens.layout.container, boxStyle, style, states.pressed && { opacity: 0.85 }]} {...interactionProps} {...rest}>{content}</Pressable>; return <View style={[tokens.layout.container, boxStyle, style]} {...rest}>{content}</View>
 })
 Space.displayName = 'Space'

@@ -400,64 +400,8 @@ const WheelPickerInner = <T extends PickerOption,>({
 
 const WheelPicker = React.memo(WheelPickerInner) as typeof WheelPickerInner
 
-export function usePickerValue({
-  columns,
-  valueProp,
-  defaultValue,
-  emitConfirmOnAutoSelect = true,
-  onChange,
-  onConfirm,
-}: {
-  columns?: PickerColumns
-  valueProp?: PickerProps['value']
-  defaultValue?: PickerProps['defaultValue']
-  emitConfirmOnAutoSelect?: boolean
-  onChange?: PickerProps['onChange']
-  onConfirm?: PickerProps['onConfirm']
-}) {
-  const preparedColumns = useMemo(() => prepareColumns(columns), [columns])
-  const isControlled = valueProp !== undefined
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
-  const onConfirmRef = useRef(onConfirm)
-  onConfirmRef.current = onConfirm
-  const [innerValue, setInnerValue] = useState(() => {
-    const initial = toArrayValue(valueProp ?? defaultValue)
-    return normalizePicker(preparedColumns, initial).values
-  })
-  const innerValueRef = useRef(innerValue)
-  const commitValue = useCallback((next: PickerValue[]) => { innerValueRef.current = next; setInnerValue(next) }, [])
-  useEffect(() => {
-    if (!isControlled) return
-    const next = toArrayValue(valueProp)
-    if (!shallowEqualArray(innerValueRef.current, next)) {
-      commitValue(next)
-    }
-  }, [commitValue, isControlled, valueProp])
-  const normalized = useMemo(() => normalizePicker(preparedColumns, innerValue), [preparedColumns, innerValue])
-  useEffect(() => {
-    if (isControlled) return
-    if (!shallowEqualArray(innerValue, normalized.values)) {
-      commitValue(normalized.values)
-      onChangeRef.current?.(normalized.values, normalized.options)
-      if (emitConfirmOnAutoSelect) {
-        onConfirmRef.current?.(normalized.values, normalized.options)
-      }
-    }
-  }, [commitValue, emitConfirmOnAutoSelect, innerValue, isControlled, normalized])
-  const handleSelect = useCallback((option: PickerOption, colIdx: number) => {
-    const next = [...innerValueRef.current]
-    next[colIdx] = option.value
-    if (preparedColumns.type === 'cascade') {
-      next.length = colIdx + 1
-    }
-    const final = normalizePicker(preparedColumns, next)
-    if (shallowEqualArray(innerValueRef.current, final.values)) return
-    commitValue(final.values)
-    onChangeRef.current?.(final.values, final.options)
-  }, [commitValue, preparedColumns])
-  const handleConfirm = useCallback(() => { onConfirmRef.current?.(normalized.values, normalized.options) }, [normalized])
-  return { preparedColumns, normalized, handleSelect, handleConfirm }
+export function usePickerValue({ columns, valueProp, defaultValue, emitConfirmOnAutoSelect = true, onChange, onConfirm }: { columns?: PickerColumns; valueProp?: PickerProps['value']; defaultValue?: PickerProps['defaultValue']; emitConfirmOnAutoSelect?: boolean; onChange?: PickerProps['onChange']; onConfirm?: PickerProps['onConfirm'] }) {
+  const prep = useMemo(() => prepareColumns(columns), [columns]); const isControlled = valueProp !== undefined; const onChangeRef = useRef(onChange); const onConfirmRef = useRef(onConfirm); onChangeRef.current = onChange; onConfirmRef.current = onConfirm; const [innerValue, setInnerValue] = useState(() => normalizePicker(prep, toArrayValue(valueProp ?? defaultValue)).values); const innerValueRef = useRef(innerValue); innerValueRef.current = innerValue; const commitValue = useCallback((next: PickerValue[]) => { innerValueRef.current = next; setInnerValue(next) }, []); useEffect(() => { if (!isControlled) return; const next = toArrayValue(valueProp); if (!shallowEqualArray(innerValueRef.current, next)) commitValue(next) }, [commitValue, isControlled, valueProp]); const norm = useMemo(() => normalizePicker(prep, innerValue), [prep, innerValue]); useEffect(() => { if (isControlled) return; if (!shallowEqualArray(innerValue, norm.values)) { commitValue(norm.values); onChangeRef.current?.(norm.values, norm.options); if (emitConfirmOnAutoSelect) onConfirmRef.current?.(norm.values, norm.options) } }, [commitValue, emitConfirmOnAutoSelect, innerValue, isControlled, norm]); const handleSelect = useCallback((option: PickerOption, colIdx: number) => { const next = [...innerValueRef.current]; next[colIdx] = option.value; if (prep.type === 'cascade') next.length = colIdx + 1; const final = normalizePicker(prep, next); if (shallowEqualArray(innerValueRef.current, final.values)) return; commitValue(final.values); onChangeRef.current?.(final.values, final.options) }, [commitValue, prep]); const handleConfirm = useCallback(() => { onConfirmRef.current?.(norm.values, norm.options) }, [norm]); return { preparedColumns: prep, normalized: norm, handleSelect, handleConfirm }
 }
 
 const getVisibleCount = (count: number) => { const n = isFiniteNumber(count) ? Math.max(3, Math.floor(count)) : 5; return n % 2 === 0 ? n + 1 : n }
@@ -482,53 +426,11 @@ const GradientMask: React.FC<{ height: number; color: string; position: 'top' | 
 }
 
 const PickerColumn: React.FC<PickerColumnProps & { tokens: ReturnType<typeof usePickerTokens> }> = React.memo(props => {
-  const { columnIndex, options, value, itemHeight, visibleItemCount, optionRender, getOptionTestID, getOptionA11yLabel, onSelect, tokens, readOnly, decelerationRate, scrollEventThrottle, swipeDuration } = props
-  const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
-  const valueIndexMap = useMemo(() => new Map(options.map((option, idx) => [option.value, idx] as const)), [options])
-  const selIdx = useMemo(() => {
-    if (!options.length) return 0
-    const idx = valueIndexMap.get(value as PickerValue)
-    const startIdx = typeof idx === 'number' && idx >= 0 ? idx : 0
-    return findEnabledIndex(options, startIdx)
-  }, [options, value, valueIndexMap])
-  const handleChange = useCallback((index: number) => {
-    const target = findEnabledIndex(options, index)
-    const option = options[target]
-    if (!option || option.disabled) return
-    onSelect(option, columnIndex, target)
-  }, [columnIndex, onSelect, options])
-  const { text: cText, textDisabled: cDisabled, textMuted: cMuted } = tokens.colors
-  const optionFont = { fontSize: tokens.typography.optionSize, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.optionWeight }
-  const renderItemStable = useCallback((item: PickerOption, _index: number, meta: { active: boolean; disabled: boolean }) => {
-    const { active = false, disabled = false } = meta ?? {}
-    const color = disabled ? cDisabled : active ? cText : cMuted
-    const content = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value
-    const testID = getOptionTestID?.(item, { columnIndex, active })
-    const a11yLabel = getOptionA11yLabel?.(item, { columnIndex, active })
-    return (
-      <View style={[W.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11yLabel} accessibilityLabel={a11yLabel}>
-        {isText(content) ? <Text numberOfLines={1} style={[S.optTxt, optionFont, { color }]}>{content}</Text> : content}
-      </View>
-    )
-  }, [cText, cDisabled, cMuted, columnIndex, getOptionA11yLabel, getOptionTestID, itemHeight, optionFont, optionRender])
-  return (
-    <View style={[W.column, { height: itemHeight * visibleItemCount }]}>
-      <WheelPicker data={options} itemHeight={itemHeight} visibleRest={restVisible} selectedIndex={Math.max(0, selIdx)} onChange={handleChange} readOnly={readOnly} indicatorColor={tokens.colors.indicator} decelerationRate={decelerationRate} scrollEventThrottle={scrollEventThrottle} swipeDuration={swipeDuration} renderItem={renderItemStable} />
-    </View>
-  )
+  const { columnIndex, options, value, itemHeight, visibleItemCount, optionRender, getOptionTestID, getOptionA11yLabel, onSelect, tokens, readOnly, decelerationRate, scrollEventThrottle, swipeDuration } = props; const restVisible = Math.max(1, Math.floor((visibleItemCount - 1) / 2)); const valueIndexMap = useMemo(() => new Map(options.map((opt, idx) => [opt.value, idx] as const)), [options]); const selIdx = useMemo(() => { if (!options.length) return 0; const idx = valueIndexMap.get(value as PickerValue); const startIdx = typeof idx === 'number' && idx >= 0 ? idx : 0; return findEnabledIndex(options, startIdx) }, [options, value, valueIndexMap]); const handleChange = useCallback((index: number) => { const tgt = findEnabledIndex(options, index); const opt = options[tgt]; if (!opt || opt.disabled) return; onSelect(opt, columnIndex, tgt) }, [columnIndex, onSelect, options]); const { text: cText, textDisabled: cDisabled, textMuted: cMuted } = tokens.colors; const optFont = { fontSize: tokens.typography.optionSize, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.optionWeight }; const renderItemStable = useCallback((item: PickerOption, _index: number, meta: { active: boolean; disabled: boolean }) => { const { active = false, disabled = false } = meta ?? {}; const clr = disabled ? cDisabled : active ? cText : cMuted; const cnt = optionRender ? optionRender(item, { columnIndex, active }) : item.label ?? item.value; const testID = getOptionTestID?.(item, { columnIndex, active }); const a11y = getOptionA11yLabel?.(item, { columnIndex, active }); return <View style={[W.option, { opacity: disabled ? 0.5 : 1, minHeight: itemHeight }]} testID={testID} accessible={!!a11y} accessibilityLabel={a11y}>{isText(cnt) ? <Text numberOfLines={1} style={[S.optTxt, optFont, { color: clr }]}>{cnt}</Text> : cnt}</View> }, [cText, cDisabled, cMuted, columnIndex, getOptionA11yLabel, getOptionTestID, itemHeight, optFont, optionRender]); return <View style={[W.column, { height: itemHeight * visibleItemCount }]}><WheelPicker data={options} itemHeight={itemHeight} visibleRest={restVisible} selectedIndex={Math.max(0, selIdx)} onChange={handleChange} readOnly={readOnly} indicatorColor={tokens.colors.indicator} decelerationRate={decelerationRate} scrollEventThrottle={scrollEventThrottle} swipeDuration={swipeDuration} renderItem={renderItemStable} /></View>
 })
 
 const PickerImpl: React.FC<PickerProps> = props => {
-  const { tokensOverride } = props
-  const locale = useLocale()
-  const tokens = usePickerTokens(tokensOverride)
-  const { columns = [], value: valueProp, defaultValue, title, showToolbar = tokens.defaults.showToolbar, toolbarPosition = tokens.defaults.toolbarPosition, confirmButtonText = locale?.confirm ?? 'Confirm', cancelButtonText = locale?.cancel ?? 'Cancel', itemHeight = tokens.defaults.itemHeight, visibleItemCount: visibleItemCountProp = tokens.defaults.visibleItemCount, loading = false, readOnly = false, decelerationRate = Platform.select({ ios: 0.999, android: 0.997, default: 0.989 }) ?? 'normal', swipeDuration = tokens.defaults.swipeDuration, scrollEventThrottle = 16, columnsTop, columnsBottom, optionRender, getOptionTestID, getOptionA11yLabel, emitConfirmOnAutoSelect = true, maskColor, maskType = tokens.defaults.maskType, onChange, onConfirm, onCancel, style, testID, ...rest } = props
-  const visibleItemCount = getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount)
-  const { normalized, handleSelect, handleConfirm, preparedColumns } = usePickerValue({ columns, valueProp, defaultValue, emitConfirmOnAutoSelect, onChange, onConfirm })
-  const isCascade = preparedColumns.type === 'cascade'
-  const toolbarFont = { fontSize: tokens.typography.toolbarSize, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.toolbarWeight }
-  const renderActionContent = (content: React.ReactNode, color: string) => React.isValidElement(content) ? <View style={S.actW}>{content}</View> : isText(content) ? <Text numberOfLines={1} style={[S.actTxt, toolbarFont, { color }]}>{content}</Text> : <View style={S.actW} />
-  const renderTitleContent = (content: React.ReactNode) => content == null ? <View /> : React.isValidElement(content) ? <View style={S.ttlW}>{content}</View> : <Text style={[S.title, toolbarFont, { color: tokens.colors.text }]} numberOfLines={1}>{content}</Text>
+  const { tokensOverride } = props; const locale = useLocale(); const tokens = usePickerTokens(tokensOverride); const { columns = [], value: valueProp, defaultValue, title, showToolbar = tokens.defaults.showToolbar, toolbarPosition = tokens.defaults.toolbarPosition, confirmButtonText = locale?.confirm ?? 'Confirm', cancelButtonText = locale?.cancel ?? 'Cancel', itemHeight = tokens.defaults.itemHeight, visibleItemCount: visibleItemCountProp = tokens.defaults.visibleItemCount, loading = false, readOnly = false, decelerationRate = Platform.select({ ios: 0.999, android: 0.997, default: 0.989 }) ?? 'normal', swipeDuration = tokens.defaults.swipeDuration, scrollEventThrottle = 16, columnsTop, columnsBottom, optionRender, getOptionTestID, getOptionA11yLabel, emitConfirmOnAutoSelect = true, maskColor, maskType = tokens.defaults.maskType, onChange, onConfirm, onCancel, style, testID, ...rest } = props; const visCnt = getVisibleCount(visibleItemCountProp ?? tokens.defaults.visibleItemCount); const { normalized: norm, handleSelect, handleConfirm, preparedColumns: prep } = usePickerValue({ columns, valueProp, defaultValue, emitConfirmOnAutoSelect, onChange, onConfirm }); const isCascade = prep.type === 'cascade'; const toolbarFont = { fontSize: tokens.typography.toolbarSize, fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.toolbarWeight }; const renderActionContent = (content: React.ReactNode, color: string) => React.isValidElement(content) ? <View style={S.actW}>{content}</View> : isText(content) ? <Text numberOfLines={1} style={[S.actTxt, toolbarFont, { color }]}>{content}</Text> : <View style={S.actW} />; const renderTitleContent = (content: React.ReactNode) => content == null ? <View /> : React.isValidElement(content) ? <View style={S.ttlW}>{content}</View> : <Text style={[S.title, toolbarFont, { color: tokens.colors.text }]} numberOfLines={1}>{content}</Text>
   const toolbar = showToolbar ? (
     <View style={[S.toolbar, { height: tokens.spacing.toolbarHeight, paddingHorizontal: tokens.spacing.actionPadding }]}>
       <Pressable onPress={onCancel} accessibilityRole="button">{renderActionContent(cancelButtonText, tokens.colors.cancel)}</Pressable>
@@ -537,45 +439,9 @@ const PickerImpl: React.FC<PickerProps> = props => {
       <View style={createHairlineView({ position: 'bottom', color: tokens.colors.indicator, left: 0, right: 0 })} />
     </View>
   ) : null
-  const wrapperH = itemHeight * visibleItemCount
-  const maskVisibleCnt = Math.max(1, Math.floor((visibleItemCount - 1) / 2))
-  const indicatorOff = itemHeight * maskVisibleCnt
-  const maskH = indicatorOff
-  const hasColumns = normalized.columns.length > 0
-  const effectiveMaskColor = maskColor ?? tokens.colors.mask
-  const columnsContent = hasColumns
-    ? normalized.columns.map((column, colIdx) => {
-      const key = isCascade ? `${colIdx}-${normalized.values.slice(0, colIdx).map(String).join('|')}` : String(colIdx)
-      return (
-        <PickerColumn key={key} columnIndex={colIdx} options={column} value={normalized.values[colIdx]} itemHeight={itemHeight} visibleItemCount={visibleItemCount} decelerationRate={decelerationRate} scrollEventThrottle={scrollEventThrottle} optionRender={optionRender} getOptionTestID={getOptionTestID} getOptionA11yLabel={getOptionA11yLabel} readOnly={readOnly} swipeDuration={swipeDuration} onSelect={handleSelect} tokens={tokens} />
-      )
-    })
-    : null
-  return (
-    <View {...rest} style={[{ backgroundColor: tokens.colors.background, borderRadius: tokens.radius.container }, style]} testID={testID}>
-      {toolbarPosition === 'top' && toolbar}
-      <View style={[S.body, { height: wrapperH }]}>
-        <View style={S.columns} pointerEvents={loading ? 'none' : 'auto'}>
-          {columnsTop}
-          {columnsContent}
-          {columnsBottom}
-          {hasColumns && (
-            <>
-              <View pointerEvents="none" style={[S.indicator, { top: indicatorOff, height: itemHeight }]}><View style={createHairlineView({ position: 'top', color: tokens.colors.indicator, left: 0, right: 0 })} /><View style={createHairlineView({ position: 'bottom', color: tokens.colors.indicator, left: 0, right: 0 })} /></View>
-              <GradientMask position="top" height={maskH} color={effectiveMaskColor} maskType={maskType} />
-              <GradientMask position="bottom" height={maskH} color={effectiveMaskColor} maskType={maskType} />
-            </>
-          )}
-        </View>
-        {loading && (
-          <View style={[S.loading, { backgroundColor: tokens.colors.loadingMask }]}>
-            <Loading />
-          </View>
-        )}
-      </View>
-      {toolbarPosition === 'bottom' && toolbar}
-    </View>
-  )
+  const wrapperH = itemHeight * visCnt; const maskVisCnt = Math.max(1, Math.floor((visCnt - 1) / 2)); const indicatorOff = itemHeight * maskVisCnt; const maskH = indicatorOff; const hasCols = norm.columns.length > 0; const effMaskColor = maskColor ?? tokens.colors.mask
+  const columnsContent = hasCols ? norm.columns.map((column, colIdx) => { const key = isCascade ? `${colIdx}-${norm.values.slice(0, colIdx).map(String).join('|')}` : String(colIdx); return <PickerColumn key={key} columnIndex={colIdx} options={column} value={norm.values[colIdx]} itemHeight={itemHeight} visibleItemCount={visCnt} decelerationRate={decelerationRate} scrollEventThrottle={scrollEventThrottle} optionRender={optionRender} getOptionTestID={getOptionTestID} getOptionA11yLabel={getOptionA11yLabel} readOnly={readOnly} swipeDuration={swipeDuration} onSelect={handleSelect} tokens={tokens} /> }) : null
+  return <View {...rest} style={[{ backgroundColor: tokens.colors.background, borderRadius: tokens.radius.container }, style]} testID={testID}>{toolbarPosition === 'top' && toolbar}<View style={[S.body, { height: wrapperH }]}><View style={S.columns} pointerEvents={loading ? 'none' : 'auto'}>{columnsTop}{columnsContent}{columnsBottom}{hasCols && <><View pointerEvents="none" style={[S.indicator, { top: indicatorOff, height: itemHeight }]}><View style={createHairlineView({ position: 'top', color: tokens.colors.indicator, left: 0, right: 0 })} /><View style={createHairlineView({ position: 'bottom', color: tokens.colors.indicator, left: 0, right: 0 })} /></View><GradientMask position="top" height={maskH} color={effMaskColor} maskType={maskType} /><GradientMask position="bottom" height={maskH} color={effMaskColor} maskType={maskType} /></>}</View>{loading && <View style={[S.loading, { backgroundColor: tokens.colors.loadingMask }]}><Loading /></View>}</View>{toolbarPosition === 'bottom' && toolbar}</View>
 }
 
 const S = StyleSheet.create({

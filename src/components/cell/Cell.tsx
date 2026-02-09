@@ -9,46 +9,27 @@ import { useCellTokens } from './tokens'
 import type { CellProps } from './types'
 
 const CellImpl = (props: CellProps, ref: React.ForwardedRef<React.ElementRef<typeof Pressable>>) => {
-  const { title, value, label, extra, icon, rightIcon, border: borderProp, clickable, isLink, required, center, size: sizeProp, arrowDirection: arrowDirectionProp, tokensOverride, children, style, titleStyle, valueStyle, labelStyle, contentStyle, onPress, disabled, android_ripple, ...rest } = props
-  const tokens = useCellTokens(tokensOverride)
-  const dir = useDirection()
-  const group = useContext(CellGroupContext)
-  const border = borderProp ?? tokens.defaults.border
-  const size = sizeProp ?? tokens.defaults.size
-  const arrowDirectionRaw = arrowDirectionProp ?? tokens.defaults.arrowDirection
-  const arrowDirection = dir === 'rtl' ? (arrowDirectionRaw === 'left' ? 'right' : arrowDirectionRaw === 'right' ? 'left' : arrowDirectionRaw) : arrowDirectionRaw
-  const lineHeight = tokens.typography.lineHeight
-  const hasTitle = isRenderable(title), hasValue = isRenderable(value), hasLabel = isRenderable(label), hasExtra = isRenderable(extra), hasChildren = isRenderable(children), hasIcon = isRenderable(icon), hasRightIcon = isRenderable(rightIcon)
-  const onlyValue = !hasTitle && !hasChildren
-  const showBorder = border && group.border && !group.isLast
-  const showArrow = !!isLink || !!clickable
-  const isInteractive = !disabled && (clickable || !!onPress || !!rest.onLongPress || !!rest.onPressIn || !!rest.onPressOut)
-  const isLargeSize = size === 'large'
-  const containerStyles = useMemo<StyleProp<ViewStyle>>(() => [size === 'large' ? tokens.layout.containerLarge : tokens.layout.container, center && tokens.layout.center, style], [size, center, tokens.layout, style])
-  const hairline = useHairline({ show: showBorder, containerStyle: containerStyles, color: tokens.colors.border, width: tokens.borders.width, defaultPaddingHorizontal: tokens.sizing.paddingHorizontal })
-  const customContentStyle = useMemo(() => [tokens.layout.customContent, { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] }, contentStyle], [center, tokens.layout.customContent, contentStyle])
-  const { interactionProps, states } = useAriaPress({ disabled: !isInteractive, onPress: onPress ?? undefined })
-  const Component = isInteractive ? Pressable : View
-  const componentProps = isInteractive ? { android_ripple: android_ripple ?? { color: tokens.colors.ripple }, accessibilityRole: 'button' as const, ...interactionProps } : {}
+  const { title, value, label, extra, icon, rightIcon, border: borderP, clickable, isLink, required, center, size: sizeP, arrowDirection: arrP, tokensOverride, children, style, titleStyle, valueStyle, labelStyle, contentStyle, onPress, disabled, android_ripple, ...rest } = props
+  const tokens = useCellTokens(tokensOverride); const dir = useDirection(); const grp = useContext(CellGroupContext); const border = borderP ?? tokens.defaults.border; const size = sizeP ?? tokens.defaults.size
+  const arrRaw = arrP ?? tokens.defaults.arrowDirection; const arr = dir === 'rtl' ? (arrRaw === 'left' ? 'right' : arrRaw === 'right' ? 'left' : arrRaw) : arrRaw; const lh = tokens.typography.lineHeight
+  const hasT = isRenderable(title); const hasV = isRenderable(value); const hasL = isRenderable(label); const hasE = isRenderable(extra); const hasCh = isRenderable(children); const hasI = isRenderable(icon); const hasRI = isRenderable(rightIcon)
+  const onlyV = !hasT && !hasCh; const showB = border && grp.border && !grp.isLast; const showArr = !!isLink || !!clickable; const inter = !disabled && (clickable || !!onPress || !!rest.onLongPress || !!rest.onPressIn || !!rest.onPressOut); const large = size === 'large'
+  const ctrStyle = useMemo<StyleProp<ViewStyle>>(() => [large ? tokens.layout.containerLarge : tokens.layout.container, center && tokens.layout.center, style], [size, center, tokens.layout, style]); const hair = useHairline({ show: showB, containerStyle: ctrStyle, color: tokens.colors.border, width: tokens.borders.width, defaultPaddingHorizontal: tokens.sizing.paddingHorizontal })
+  const cntStyle = useMemo(() => [tokens.layout.customContent, { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] }, contentStyle], [center, tokens.layout.customContent, contentStyle]); const { interactionProps, states } = useAriaPress({ disabled: !inter, onPress: onPress ?? undefined }); const Comp = inter ? Pressable : View; const compProps = inter ? { android_ripple: android_ripple ?? { color: tokens.colors.ripple }, accessibilityRole: 'button' as const, ...interactionProps } : {}
   return (
-    <Component ref={ref} style={[containerStyles, isInteractive && states.pressed && { opacity: tokens.defaults.activeOpacity }]} {...componentProps} {...rest}>
-      {hasIcon && <View style={[tokens.layout.iconWrapper, { marginRight: tokens.spacing.iconGap, minHeight: tokens.sizing.iconSize, minWidth: tokens.sizing.iconSize }]}>{icon}</View>}
+    <Comp ref={ref} style={[ctrStyle, inter && states.pressed && { opacity: tokens.defaults.activeOpacity }]} {...compProps} {...rest}>
+      {hasI && <View style={[tokens.layout.iconWrapper, { marginRight: tokens.spacing.iconGap, minHeight: tokens.sizing.iconSize, minWidth: tokens.sizing.iconSize }]}>{icon}</View>}
       <View style={tokens.layout.body}>
-        {(hasTitle || required) && (
-          <View style={[tokens.layout.titleRow, { minHeight: lineHeight }]}>
-            {required && <Text style={{ color: tokens.colors.required, marginRight: tokens.spacing.iconGap / 2 }}>*</Text>}
-            {hasTitle && <View style={titleStyle as StyleProp<ViewStyle>}>{renderTextOrNode(title, [{ color: tokens.colors.title, fontSize: isLargeSize ? tokens.typography.largeTitleSize : tokens.typography.titleSize, fontWeight: tokens.typography.titleWeight }, titleStyle], { numberOfLines: 1 })}</View>}
-          </View>
-        )}
-        {hasLabel && <View style={[{ marginTop: tokens.spacing.labelMarginTop }, labelStyle as StyleProp<ViewStyle>]}>{renderTextOrNode(label, [{ color: tokens.colors.label, fontSize: isLargeSize ? tokens.typography.largeLabelSize : tokens.typography.labelSize }, labelStyle], { numberOfLines: 2 })}</View>}
+        {(hasT || required) && <View style={[tokens.layout.titleRow, { minHeight: lh }]}>{required && <Text style={{ color: tokens.colors.required, marginRight: tokens.spacing.iconGap / 2 }}>*</Text>}{hasT && <View style={titleStyle as StyleProp<ViewStyle>}>{renderTextOrNode(title, [{ color: tokens.colors.title, fontSize: large ? tokens.typography.largeTitleSize : tokens.typography.titleSize, fontWeight: tokens.typography.titleWeight }, titleStyle], { numberOfLines: 1 })}</View>}</View>}
+        {hasL && <View style={[{ marginTop: tokens.spacing.labelMarginTop }, labelStyle as StyleProp<ViewStyle>]}>{renderTextOrNode(label, [{ color: tokens.colors.label, fontSize: large ? tokens.typography.largeLabelSize : tokens.typography.labelSize }, labelStyle], { numberOfLines: 2 })}</View>}
       </View>
-      <View style={[tokens.layout.valueContainer, { minHeight: lineHeight, marginLeft: tokens.spacing.valueGap }, !center && onlyValue && tokens.layout.valueOnlyContainer, center && tokens.layout.valueCenter]}>
-        {hasValue ? <View style={customContentStyle}>{renderTextOrNode(value, [tokens.layout.value, onlyValue && tokens.layout.valueOnly, { color: tokens.colors.value, fontSize: isLargeSize ? tokens.typography.largeValueSize : tokens.typography.valueSize }, valueStyle], { numberOfLines: 1 })}</View> : hasChildren && <View style={customContentStyle}>{isText(children) ? renderTextOrNode(children, [tokens.layout.value, { color: tokens.colors.value, fontSize: isLargeSize ? tokens.typography.largeValueSize : tokens.typography.valueSize }, valueStyle]) : children}</View>}
+      <View style={[tokens.layout.valueContainer, { minHeight: lh, marginLeft: tokens.spacing.valueGap }, !center && onlyV && tokens.layout.valueOnlyContainer, center && tokens.layout.valueCenter]}>
+        {hasV ? <View style={cntStyle}>{renderTextOrNode(value, [tokens.layout.value, onlyV && tokens.layout.valueOnly, { color: tokens.colors.value, fontSize: large ? tokens.typography.largeValueSize : tokens.typography.valueSize }, valueStyle], { numberOfLines: 1 })}</View> : hasCh && <View style={cntStyle}>{isText(children) ? renderTextOrNode(children, [tokens.layout.value, { color: tokens.colors.value, fontSize: large ? tokens.typography.largeValueSize : tokens.typography.valueSize }, valueStyle]) : children}</View>}
       </View>
-      {hasExtra && <View style={{ marginLeft: tokens.spacing.extraGap }}>{renderTextOrNode(extra, { marginLeft: tokens.spacing.extraGap, color: tokens.colors.value, fontSize: isLargeSize ? tokens.typography.largeValueSize : tokens.typography.valueSize })}</View>}
-      {hasRightIcon ? rightIcon : showArrow && <View style={[tokens.layout.rightIconWrapper, tokens.layout.arrowTransforms[arrowDirection]]}><Arrow size={tokens.sizing.arrowSize} fill={tokens.colors.arrow} /></View>}
-      {hairline}
-    </Component>
+      {hasE && <View style={{ marginLeft: tokens.spacing.extraGap }}>{renderTextOrNode(extra, { marginLeft: tokens.spacing.extraGap, color: tokens.colors.value, fontSize: large ? tokens.typography.largeValueSize : tokens.typography.valueSize })}</View>}
+      {hasRI ? rightIcon : showArr && <View style={[tokens.layout.rightIconWrapper, tokens.layout.arrowTransforms[arr]]}><Arrow size={tokens.sizing.arrowSize} fill={tokens.colors.arrow} /></View>}
+      {hair}
+    </Comp>
   )
 }
 

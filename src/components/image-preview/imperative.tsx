@@ -9,12 +9,7 @@ const removeInstance = (key: number) => { Portal.remove(key); activeKeys.delete(
 const requestClose = (key: number) => { const c = closers.get(key); c ? c() : removeInstance(key) }
 
 const ImagePreviewPortal: React.FC<{ id: number; options: ImagePreviewOpenOptions }> = ({ id, options }) => {
-  const [visible, setVisible] = useState(true)
-  const close = useCallback(() => setVisible(false), [])
-  useEffect(() => { closers.set(id, close); return () => { if (closers.get(id) === close) closers.delete(id) } }, [close, id])
-  const handleClose = useCallback((params: CloseParams) => { options.onClose?.(params); setVisible(false) }, [options])
-  const handleClosed = useCallback(() => { options.onClosed?.(); removeInstance(id) }, [id, options])
-  return <ImagePreview {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
+  const [visible, setVisible] = useState(true); const close = useCallback(() => setVisible(false), []); useEffect(() => { closers.set(id, close); return () => { if (closers.get(id) === close) closers.delete(id) } }, [close, id]); const handleClose = useCallback((params: CloseParams) => { options.onClose?.(params); setVisible(false) }, [options]); const handleClosed = useCallback(() => { options.onClosed?.(); removeInstance(id) }, [id, options]); return <ImagePreview {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
 }
 
 export const ImagePreviewImperative = {

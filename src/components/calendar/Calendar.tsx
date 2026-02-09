@@ -18,40 +18,12 @@ const DEFAULT_MAX = new Date(new Date().getFullYear() + 10, 11, 31)
 
 const CalendarImpl: React.FC<CalendarProps> = props => {
   const { tokensOverride, value: _value, defaultValue: _defaultValue, minDate = DEFAULT_MIN, maxDate = DEFAULT_MAX, type, title, showSubtitle, showHeader, showConfirm, confirmText, weekStartsOn, weekdays, formatMonthTitle, allowSameDay, maxRange, onOverRange, poppable, visible: _visible, defaultVisible: _defaultVisible, onVisibleChange: _onVisibleChange, closeOnClickOverlay, closeOnConfirm, popupPlacement, popupRound, popupProps, onOpen, onOpened, onClose, onClosed, color, onConfirm, onSelect: _onSelect, style, ...rest } = props
-  const locale = useLocale()
-  const calendarLocale = locale?.vanCalendar
-  const tokens = useCalendarTokens(tokensOverride)
-  const resolvedTitle = title ?? (calendarLocale?.title ?? tokens.defaults.title)
-  const resolvedShowSubtitle = showSubtitle ?? tokens.defaults.showSubtitle
-  const resolvedShowHeader = showHeader ?? tokens.defaults.showHeader
-  const resolvedConfirmText = confirmText ?? (calendarLocale?.confirm ?? tokens.defaults.confirmText)
-  const resolvedWeekStartsOn = weekStartsOn ?? tokens.defaults.weekStartsOn
-  const resolvedAllowSameDay = allowSameDay ?? tokens.defaults.allowSameDay
-  const resolvedPoppable = poppable ?? tokens.defaults.poppable
-  const resolvedCloseOnClickOverlay = closeOnClickOverlay ?? tokens.defaults.closeOnClickOverlay
-  const resolvedCloseOnConfirm = closeOnConfirm ?? tokens.defaults.closeOnConfirm
-  const resolvedPopupPlacement = popupPlacement ?? tokens.defaults.popupPlacement
-  const resolvedPopupRound = popupRound ?? tokens.defaults.popupRound
-  const resolvedType = type ?? tokens.defaults.type
-  const resolvedShowConfirm = showConfirm ?? tokens.defaults.showConfirm[resolvedType]
+  const locale = useLocale(); const calLoc = locale?.vanCalendar; const tokens = useCalendarTokens(tokensOverride)
+  const resolvedTitle = title ?? (calLoc?.title ?? tokens.defaults.title); const resolvedShowSubtitle = showSubtitle ?? tokens.defaults.showSubtitle; const resolvedShowHeader = showHeader ?? tokens.defaults.showHeader; const resolvedConfirmText = confirmText ?? (calLoc?.confirm ?? tokens.defaults.confirmText); const resolvedWeekStartsOn = weekStartsOn ?? tokens.defaults.weekStartsOn; const resolvedAllowSameDay = allowSameDay ?? tokens.defaults.allowSameDay; const resolvedPoppable = poppable ?? tokens.defaults.poppable; const resolvedCloseOnClickOverlay = closeOnClickOverlay ?? tokens.defaults.closeOnClickOverlay; const resolvedCloseOnConfirm = closeOnConfirm ?? tokens.defaults.closeOnConfirm; const resolvedPopupPlacement = popupPlacement ?? tokens.defaults.popupPlacement; const resolvedPopupRound = popupRound ?? tokens.defaults.popupRound; const resolvedType = type ?? tokens.defaults.type; const resolvedShowConfirm = showConfirm ?? tokens.defaults.showConfirm[resolvedType]
   const [popupVisible, setPopupVisible] = useControllableValue<boolean>(props, { defaultValue: false, valuePropName: 'visible', defaultValuePropName: 'defaultVisible', trigger: 'onVisibleChange' })
   const { onClose: popupOnClose, onClosed: popupOnClosed, onOpen: popupOnOpen, onOpened: popupOnOpened, closeOnOverlayPress: overlayCloseOnPress, overlay: popupOverlay, ...popupRestProps } = popupProps ?? {}
-  const callbacksRef = useRef({ onConfirm, onOverRange, popupOnOpen, onOpen, popupOnOpened, onOpened, popupOnClose, onClose, popupOnClosed, onClosed })
-  callbacksRef.current.onConfirm = onConfirm
-  callbacksRef.current.onOverRange = onOverRange
-  callbacksRef.current.popupOnOpen = popupOnOpen
-  callbacksRef.current.onOpen = onOpen
-  callbacksRef.current.popupOnOpened = popupOnOpened
-  callbacksRef.current.onOpened = onOpened
-  callbacksRef.current.popupOnClose = popupOnClose
-  callbacksRef.current.onClose = onClose
-  callbacksRef.current.popupOnClosed = popupOnClosed
-  callbacksRef.current.onClosed = onClosed
-  const closePopup = useCallback(() => { if (!resolvedPoppable) return; setPopupVisible(false) }, [resolvedPoppable, setPopupVisible])
-  const handlePopupOpen = useCallback(() => { callbacksRef.current.popupOnOpen?.(); callbacksRef.current.onOpen?.() }, [])
-  const handlePopupOpened = useCallback(() => { callbacksRef.current.popupOnOpened?.(); callbacksRef.current.onOpened?.() }, [])
-  const handlePopupClose = useCallback(() => { closePopup(); callbacksRef.current.popupOnClose?.(); callbacksRef.current.onClose?.() }, [closePopup])
-  const handlePopupClosed = useCallback(() => { callbacksRef.current.popupOnClosed?.(); callbacksRef.current.onClosed?.() }, [])
+  const cbRef = useRef({ onConfirm, onOverRange, popupOnOpen, onOpen, popupOnOpened, onOpened, popupOnClose, onClose, popupOnClosed, onClosed }); cbRef.current.onConfirm = onConfirm; cbRef.current.onOverRange = onOverRange; cbRef.current.popupOnOpen = popupOnOpen; cbRef.current.onOpen = onOpen; cbRef.current.popupOnOpened = popupOnOpened; cbRef.current.onOpened = onOpened; cbRef.current.popupOnClose = popupOnClose; cbRef.current.onClose = onClose; cbRef.current.popupOnClosed = popupOnClosed; cbRef.current.onClosed = onClosed; const closePopup = useCallback(() => { if (!resolvedPoppable) return; setPopupVisible(false) }, [resolvedPoppable, setPopupVisible])
+  const handlePopupOpen = useCallback(() => { cbRef.current.popupOnOpen?.(); cbRef.current.onOpen?.() }, []); const handlePopupOpened = useCallback(() => { cbRef.current.popupOnOpened?.(); cbRef.current.onOpened?.() }, []); const handlePopupClose = useCallback(() => { closePopup(); cbRef.current.popupOnClose?.(); cbRef.current.onClose?.() }, [closePopup]); const handlePopupClosed = useCallback(() => { cbRef.current.popupOnClosed?.(); cbRef.current.onClosed?.() }, [])
   const overlayCloseOnPressResolved = overlayCloseOnPress ?? resolvedCloseOnClickOverlay
   const overlayResolved = popupOverlay ?? true
   const [selectedValue, setSelectedValue] = useControllableValue<Date | Date[] | null>(props, { defaultValue: null, valuePropName: 'value', defaultValuePropName: 'defaultValue', trigger: 'onSelect' })
@@ -65,9 +37,9 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
   const monthDaysMapped = useMemo(() => monthDays.map(day => day ? { day, key: day.toISOString(), timeValue: startOfDay(day).getTime(), dateValue: day.getDate() } : null), [monthDays])
   const minDayTime = startOfDay(minDate).getTime()
   const maxDayTime = startOfDay(maxDate).getTime()
-  const resolvedWeekdays = weekdays ?? calendarLocale?.weekdays ?? tokens.defaults.weekdays
+  const resolvedWeekdays = weekdays ?? calLoc?.weekdays ?? tokens.defaults.weekdays
   const weekLabels = useMemo(() => reorderWeekdays(resolvedWeekdays, resolvedWeekStartsOn, tokens.defaults.weekdays), [resolvedWeekdays, tokens.defaults.weekdays, resolvedWeekStartsOn])
-  const monthLabel = useMemo(() => (formatMonthTitle ? formatMonthTitle(currentMonth) : calendarLocale?.monthTitle ? calendarLocale.monthTitle(currentMonth.getFullYear(), currentMonth.getMonth() + 1) : formatMonth(currentMonth)), [currentMonth, formatMonthTitle, calendarLocale])
+  const monthLabel = useMemo(() => (formatMonthTitle ? formatMonthTitle(currentMonth) : calLoc?.monthTitle ? calLoc.monthTitle(currentMonth.getFullYear(), currentMonth.getMonth() + 1) : formatMonth(currentMonth)), [currentMonth, formatMonthTitle, calLoc])
   const minMonthStart = startOfMonth(minDate)
   const maxMonthStart = startOfMonth(maxDate)
   const canGoPrev = currentMonth.getTime() > minMonthStart.getTime()
@@ -77,9 +49,9 @@ const CalendarImpl: React.FC<CalendarProps> = props => {
   const goNext = useCallback(() => goToMonth(1), [goToMonth])
   const confirmDisabled = resolvedType === 'range' ? value.length < 2 : value.length === 0
   const columnPadding = tokens.spacing.column / 2
-  const maybeAutoConfirm = useCallback((next: Date[]) => { if (resolvedShowConfirm) return; if (resolvedType === 'range' && next.length < 2) return; if (resolvedType === 'multiple' && next.length === 0) return; if (!next.length) return; callbacksRef.current.onConfirm?.(mapValue(next, resolvedType)); if (resolvedPoppable && resolvedCloseOnConfirm) closePopup() }, [resolvedShowConfirm, resolvedType, resolvedPoppable, resolvedCloseOnConfirm, closePopup])
-  const handleConfirm = useCallback(() => { if (resolvedShowConfirm && confirmDisabled) return; callbacksRef.current.onConfirm?.(mapValue(value, resolvedType)); if (resolvedPoppable && resolvedCloseOnConfirm) closePopup() }, [resolvedShowConfirm, confirmDisabled, value, resolvedType, resolvedPoppable, resolvedCloseOnConfirm, closePopup])
-  const isSelectionAllowed = useCallback((next: Date[]) => { if (resolvedType === 'range' && next.length === 2) { const [start, end] = next; if (!resolvedAllowSameDay && isSameDay(start, end)) return false; if (maxRange && daysBetween(start, end) + 1 > maxRange) { callbacksRef.current.onOverRange?.(maxRange); return false } } if (resolvedType === 'multiple' && maxRange && next.length > maxRange) { callbacksRef.current.onOverRange?.(maxRange); return false }; return true }, [resolvedType, resolvedAllowSameDay, maxRange])
+  const maybeAutoConfirm = useCallback((next: Date[]) => { if (resolvedShowConfirm) return; if (resolvedType === 'range' && next.length < 2) return; if (resolvedType === 'multiple' && next.length === 0) return; if (!next.length) return; cbRef.current.onConfirm?.(mapValue(next, resolvedType)); if (resolvedPoppable && resolvedCloseOnConfirm) closePopup() }, [resolvedShowConfirm, resolvedType, resolvedPoppable, resolvedCloseOnConfirm, closePopup])
+  const handleConfirm = useCallback(() => { if (resolvedShowConfirm && confirmDisabled) return; cbRef.current.onConfirm?.(mapValue(value, resolvedType)); if (resolvedPoppable && resolvedCloseOnConfirm) closePopup() }, [resolvedShowConfirm, confirmDisabled, value, resolvedType, resolvedPoppable, resolvedCloseOnConfirm, closePopup])
+  const isSelectionAllowed = useCallback((next: Date[]) => { if (resolvedType === 'range' && next.length === 2) { const [start, end] = next; if (!resolvedAllowSameDay && isSameDay(start, end)) return false; if (maxRange && daysBetween(start, end) + 1 > maxRange) { cbRef.current.onOverRange?.(maxRange); return false } } if (resolvedType === 'multiple' && maxRange && next.length > maxRange) { cbRef.current.onOverRange?.(maxRange); return false }; return true }, [resolvedType, resolvedAllowSameDay, maxRange])
   const handleSelectDayRef = useRef<(date: Date) => void>(undefined)
   const handleSelectDay = useCallback((date: Date) => { const dateTime = startOfDay(date).getTime(); if (dateTime < minDayTime || dateTime > maxDayTime) return; let next: Date[] = []; const nextValue = value; switch (resolvedType) { case 'single': next = [date]; break; case 'multiple': { const existing = nextValue.find(item => isSameDay(item, date)); next = existing ? nextValue.filter(item => !isSameDay(item, date)) : [...nextValue, date]; break } case 'range': { if (nextValue.length < 1 || nextValue.length > 1) { next = [date] } else { const first = nextValue[0]; if (isSameDay(first, date)) { next = resolvedAllowSameDay ? [first, date] : [date] } else { next = [first, date].sort((a, b) => a.getTime() - b.getTime()) } } break } default: next = [date] }; const normalizedNextValue = normalizeValue(next, resolvedType); if (!isSelectionAllowed(normalizedNextValue)) return; setSelectedValue(mapValue(normalizedNextValue, resolvedType)); if (!resolvedShowConfirm) maybeAutoConfirm(normalizedNextValue) }, [value, resolvedType, minDayTime, maxDayTime, resolvedAllowSameDay, isSelectionAllowed, setSelectedValue, resolvedShowConfirm, maybeAutoConfirm])
   handleSelectDayRef.current = handleSelectDay

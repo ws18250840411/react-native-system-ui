@@ -18,21 +18,13 @@ const useCountDown = (options: UseCountDownOptions) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countingRef = useRef(false)
   const [current, setCurrent] = useState(() => parseTime(remainRef.current))
-  const clearTimer = useCallback(() => { if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null } }, [])
-  const update = useCallback((remain: number) => {
-    remainRef.current = remain; const next = parseTime(remain); setCurrent(next); onChangeRef.current?.(next)
-    if (remain === 0) { countingRef.current = false; clearTimer(); onFinishRef.current?.() }
-  }, [clearTimer])
-  const tick = useCallback(() => {
-    if (!countingRef.current) return; clearTimer()
-    const remain = Math.max(endTimeRef.current - Date.now(), 0); update(remain)
-    if (remain <= 0) return
-    timerRef.current = setTimeout(tick, msRef.current ? Math.max(1, Math.min(30, remain)) : Math.max(1, Math.min(remain, (remain % 1000) + 1)))
-  }, [clearTimer, update])
+  const clear = useCallback(() => { if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null } }, [])
+  const update = useCallback((rem: number) => { remainRef.current = rem; const next = parseTime(rem); setCurrent(next); onChangeRef.current?.(next); if (rem === 0) { countingRef.current = false; clear(); onFinishRef.current?.() } }, [clear])
+  const tick = useCallback(() => { if (!countingRef.current) return; clear(); const rem = Math.max(endTimeRef.current - Date.now(), 0); update(rem); if (rem <= 0) return; timerRef.current = setTimeout(tick, msRef.current ? Math.max(1, Math.min(30, rem)) : Math.max(1, Math.min(rem, (rem % 1000) + 1))) }, [clear, update])
   const start = useCallback(() => { if (countingRef.current || remainRef.current <= 0) return; countingRef.current = true; endTimeRef.current = Date.now() + remainRef.current; tick() }, [tick])
-  const pause = useCallback(() => { if (!countingRef.current) return; countingRef.current = false; remainRef.current = Math.max(endTimeRef.current - Date.now(), 0); clearTimer() }, [clearTimer])
-  const reset = useCallback((newTime?: number) => { pause(); const n = Math.max(0, isNumber(newTime) ? newTime : timeRef.current); remainRef.current = n; endTimeRef.current = Date.now() + n; setCurrent(parseTime(n)) }, [pause])
-  useEffect(() => () => clearTimer(), [clearTimer])
+  const pause = useCallback(() => { if (!countingRef.current) return; countingRef.current = false; remainRef.current = Math.max(endTimeRef.current - Date.now(), 0); clear() }, [clear])
+  const reset = useCallback((newT?: number) => { pause(); const n = Math.max(0, isNumber(newT) ? newT : timeRef.current); remainRef.current = n; endTimeRef.current = Date.now() + n; setCurrent(parseTime(n)) }, [pause])
+  useEffect(() => () => clear(), [clear])
   return { start, pause, reset, current }
 }
 

@@ -101,35 +101,8 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({ index, orientation, ar
 ThumbNode.displayName = 'ThumbNode'
 
 const SliderImpl: React.FC<SliderProps> = props => {
-  const { value: valueProp, min = 0, max = 100, step = 1, range = false, vertical = false, reverse = false, disabled = false, readOnly = false, activeColor, inactiveColor, barHeight, trackHeight, buttonSize, thumbSize, tokensOverride, button, leftButton, rightButton, thumb, leftThumb, rightThumb, ariaLabel, onChange, onChangeAfter, onDragStart, onDragEnd, style, onLayout: containerOnLayout, ...rest } = props
-  const tokens = useSliderTokens(tokensOverride)
-  const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'
-  const { trackRef, trackLayout, handleTrackLayout } = useTrackLayout()
-  const resolvedMin = parseNumber(min, 0), resolvedMax = parseNumber(max, 100), resolvedStepRaw = parseNumber(step, 1), resolvedStep = resolvedStepRaw > 0 ? resolvedStepRaw : 1
-  const resolvedTrackHeight = Math.max(0, parseNumber(barHeight ?? trackHeight, tokens.track.height))
-  const resolvedThumbSize = Math.max(0, parseNumber(buttonSize ?? thumbSize, tokens.thumb.size))
-  const ariaDisabled = disabled || readOnly
-  const resolvedActiveColor = activeColor ?? tokens.colors.active
-  const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive
-  const scope = Math.max(resolvedMax - resolvedMin, 0.00001)
-  const normalized = normalizeValue(valueProp, range, resolvedMin, resolvedMax)
-  const isControlled = valueProp !== undefined
-  const onChangeRef = useRef(onChange), onChangeAfterRef = useRef(onChangeAfter), onDragStartRef = useRef(onDragStart), onDragEndRef = useRef(onDragEnd)
-  onChangeRef.current = onChange
-  onChangeAfterRef.current = onChangeAfter
-  onDragStartRef.current = onDragStart
-  onDragEndRef.current = onDragEnd
-  const formatOutput = useCallback((values: readonly number[]) => toSliderValue(values, range, resolvedMin), [range, resolvedMin])
-  const onStateChange = useCallback((values: readonly number[]) => { onChangeRef.current?.(formatOutput(values)) }, [formatOutput])
-  const onStateChangeEnd = useCallback((values: readonly number[]) => { onChangeAfterRef.current?.(formatOutput(values)) }, [formatOutput])
-  const sliderStateOptions = useMemo(() => ({ minValue: resolvedMin, maxValue: resolvedMax, step: resolvedStep, isDisabled: ariaDisabled, numberFormatter: defaultNumberFormatter, orientation, value: isControlled ? normalized : undefined, defaultValue: !isControlled ? normalized : undefined, onChange: onStateChange, onChangeEnd: onStateChangeEnd }), [ariaDisabled, onStateChange, onStateChangeEnd, isControlled, normalized, orientation, resolvedMax, resolvedMin, resolvedStep])
-  const state = useSliderState(sliderStateOptions)
-  const resolvedReverseX = orientation === 'horizontal' ? reverse || isRTL() : reverse
-  const ariaReverse = orientation === 'horizontal' ? resolvedReverseX : reverse
-  const { trackProps } = useSlider({ orientation, isDisabled: ariaDisabled, 'aria-label': ariaLabel ?? 'Slider' } as Parameters<typeof useSlider>[0], state, trackLayout, ariaReverse)
-  const trackPressableProps = trackProps as unknown as Partial<React.ComponentProps<typeof Pressable>>
-  const { style: trackAriaStyle, onLayout: trackAriaOnLayout, ...remainingTrackProps } = trackPressableProps
-  const onCombinedTrackLayout = useCallback((event: LayoutChangeEvent) => { handleTrackLayout(event); trackAriaOnLayout?.(event) }, [handleTrackLayout, trackAriaOnLayout])
+  const { value: valueProp, min = 0, max = 100, step = 1, range = false, vertical = false, reverse = false, disabled = false, readOnly = false, activeColor, inactiveColor, barHeight, trackHeight, buttonSize, thumbSize, tokensOverride, button, leftButton, rightButton, thumb, leftThumb, rightThumb, ariaLabel, onChange, onChangeAfter, onDragStart, onDragEnd, style, onLayout: containerOnLayout, ...rest } = props; const tokens = useSliderTokens(tokensOverride); const orientation: 'horizontal' | 'vertical' = vertical ? 'vertical' : 'horizontal'; const { trackRef, trackLayout, handleTrackLayout } = useTrackLayout(); const resolvedMin = parseNumber(min, 0), resolvedMax = parseNumber(max, 100), resolvedStepRaw = parseNumber(step, 1), resolvedStep = resolvedStepRaw > 0 ? resolvedStepRaw : 1; const resolvedTrackHeight = Math.max(0, parseNumber(barHeight ?? trackHeight, tokens.track.height)); const resolvedThumbSize = Math.max(0, parseNumber(buttonSize ?? thumbSize, tokens.thumb.size)); const ariaDisabled = disabled || readOnly; const resolvedActiveColor = activeColor ?? tokens.colors.active; const resolvedInactiveColor = inactiveColor ?? tokens.colors.inactive; const scope = Math.max(resolvedMax - resolvedMin, 0.00001); const normalized = normalizeValue(valueProp, range, resolvedMin, resolvedMax); const isControlled = valueProp !== undefined
+  const onChangeRef = useRef(onChange), onChangeAfterRef = useRef(onChangeAfter), onDragStartRef = useRef(onDragStart), onDragEndRef = useRef(onDragEnd); onChangeRef.current = onChange; onChangeAfterRef.current = onChangeAfter; onDragStartRef.current = onDragStart; onDragEndRef.current = onDragEnd; const formatOutput = useCallback((values: readonly number[]) => toSliderValue(values, range, resolvedMin), [range, resolvedMin]); const onStateChange = useCallback((values: readonly number[]) => { onChangeRef.current?.(formatOutput(values)) }, [formatOutput]); const onStateChangeEnd = useCallback((values: readonly number[]) => { onChangeAfterRef.current?.(formatOutput(values)) }, [formatOutput]); const sliderStateOptions = useMemo(() => ({ minValue: resolvedMin, maxValue: resolvedMax, step: resolvedStep, isDisabled: ariaDisabled, numberFormatter: defaultNumberFormatter, orientation, value: isControlled ? normalized : undefined, defaultValue: !isControlled ? normalized : undefined, onChange: onStateChange, onChangeEnd: onStateChangeEnd }), [ariaDisabled, onStateChange, onStateChangeEnd, isControlled, normalized, orientation, resolvedMax, resolvedMin, resolvedStep]); const state = useSliderState(sliderStateOptions); const resolvedReverseX = orientation === 'horizontal' ? reverse || isRTL() : reverse; const ariaReverse = orientation === 'horizontal' ? resolvedReverseX : reverse; const { trackProps } = useSlider({ orientation, isDisabled: ariaDisabled, 'aria-label': ariaLabel ?? 'Slider' } as Parameters<typeof useSlider>[0], state, trackLayout, ariaReverse); const trackPressableProps = trackProps as unknown as Partial<React.ComponentProps<typeof Pressable>>; const { style: trackAriaStyle, onLayout: trackAriaOnLayout, ...remainingTrackProps } = trackPressableProps; const onCombinedTrackLayout = useCallback((event: LayoutChangeEvent) => { handleTrackLayout(event); trackAriaOnLayout?.(event) }, [handleTrackLayout, trackAriaOnLayout])
   const onTrack = useCallback((event: GestureResponderEvent) => {
     if (ariaDisabled) return
     if (!state.values.every((_, i) => !state.isThumbDragging(i))) return
@@ -151,9 +124,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
     }
   }, [ariaDisabled, orientation, reverse, resolvedReverseX, state, trackLayout.height, trackLayout.width, trackLayout.x, trackLayout.y])
   const { interactionProps: trackInteractionProps } = useAriaPress({ disabled: ariaDisabled, onPress: onTrack, extraProps: remainingTrackProps as Record<string, unknown> })
-  const currentValue = formatOutput(state.values)
-  const currentValueRef = useRef<SliderValue>(currentValue), dragStartRef = useRef<boolean[]>([]), dragStartValueRef = useRef<(SliderValue | undefined)[]>([]), moveRafIdRef = useRef<(number | null)[]>([]), movePendingArgsRef = useRef<(unknown[] | null)[]>([]), enhanceHandlersCacheRef = useRef<WeakMap<object, Map<number, HandlerBag>>>(new WeakMap())
-  currentValueRef.current = currentValue
+  const currentValue = formatOutput(state.values); const currentValueRef = useRef<SliderValue>(currentValue), dragStartRef = useRef<boolean[]>([]), dragStartValueRef = useRef<(SliderValue | undefined)[]>([]), moveRafIdRef = useRef<(number | null)[]>([]), movePendingArgsRef = useRef<(unknown[] | null)[]>([]), enhanceHandlersCacheRef = useRef<WeakMap<object, Map<number, HandlerBag>>>(new WeakMap()); currentValueRef.current = currentValue
   useEffect(() => {
     return () => {
       const cancel = typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : undefined
@@ -246,9 +217,7 @@ const SliderImpl: React.FC<SliderProps> = props => {
   const baseTrackPressableStyle: StyleProp<ViewStyle> = [S.tp, orientation === 'vertical' ? S.tpv : null, webGestureStyle]
   const trackPressableStyleFn = useCallback((pressableState: PressableStateCallbackType): StyleProp<ViewStyle> => [baseTrackPressableStyle, (trackAriaStyle as (state: PressableStateCallbackType) => unknown)(pressableState) as StyleProp<ViewStyle>], [baseTrackPressableStyle, trackAriaStyle])
   const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] = trackAriaStyle && isFunction(trackAriaStyle) ? trackPressableStyleFn : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
-  const { spacing: { containerPaddingVertical }, layout: { verticalMinHeight, verticalWidth }, states: { disabledOpacity } } = tokens
-  const containerStyle = [S.c, { paddingVertical: containerPaddingVertical }, orientation === 'vertical' && [S.vc, { minHeight: verticalMinHeight, width: verticalWidth }], disabled && { opacity: disabledOpacity }, style]
-  return (
+  const { spacing: { containerPaddingVertical }, layout: { verticalMinHeight, verticalWidth }, states: { disabledOpacity } } = tokens; const containerStyle = [S.c, { paddingVertical: containerPaddingVertical }, orientation === 'vertical' && [S.vc, { minHeight: verticalMinHeight, width: verticalWidth }], disabled && { opacity: disabledOpacity }, style]; return (
     <View style={containerStyle} onLayout={containerOnLayout} {...rest}>
       <View style={[S.tw, orientation === 'vertical' && S.twv]}>
         <Pressable ref={trackRef} {...trackInteractionProps} disabled={ariaDisabled} onLayout={onCombinedTrackLayout} style={trackPressableStyle}>

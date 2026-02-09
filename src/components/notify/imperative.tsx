@@ -18,42 +18,17 @@ const typeDefaults = new Map<NotifyType, NotifyShowOptions>()
 
 const parseOptions = (input?: NotifyInput): NotifyShowOptions => (React.isValidElement(input) || isText(input)) ? { message: input as React.ReactNode } : (input ?? {}) as NotifyShowOptions
 
-const mergeOptions = (input: NotifyShowOptions, fallbackType: NotifyType): NotifyShowOptions => {
-  const type = input.type ?? fallbackType
-  const merged: NotifyShowOptions = { ...currentOptions, ...typeDefaults.get(type), ...input, type }
-  merged.duration = merged.duration ?? 3000
-  return merged
-}
+const mergeOptions = (input: NotifyShowOptions, fallbackT: NotifyType): NotifyShowOptions => { const t = input.type ?? fallbackT; const m: NotifyShowOptions = { ...currentOptions, ...typeDefaults.get(t), ...input, type: t }; m.duration = m.duration ?? 3000; return m }
 
 const removeNotify = (key: number) => { Portal.remove(key); activeKeys.delete(key); notifyOptions.delete(key); notifyControllers.delete(key) }
 const closeNotify = (key: number) => { const c = notifyControllers.get(key); c ? c.close() : removeNotify(key) }
 
-const NotifyPortal: React.FC<{ id: number; options: NotifyShowOptions }> = ({ id, options }) => {
-  const [visible, setVisible] = useState(true)
-  useEffect(() => { notifyControllers.set(id, { close: () => setVisible(false) }); return () => { notifyControllers.delete(id) } }, [id])
-  const handleClose = useCallback(() => { options.onClose?.(); setVisible(false) }, [options])
-  const handleClosed = useCallback(() => { options.onClosed?.(); removeNotify(id) }, [id, options])
-  return <NotifyContent {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
+const NotifyPortal: React.FC<{ id: number; options: NotifyShowOptions }> = ({ id, options }) => { const [visible, setVisible] = useState(true); useEffect(() => { notifyControllers.set(id, { close: () => setVisible(false) }); return () => { notifyControllers.delete(id) } }, [id]); const handleClose = useCallback(() => { options.onClose?.(); setVisible(false) }, [options]); const handleClosed = useCallback(() => { options.onClosed?.(); removeNotify(id) }, [id, options]); return <NotifyContent {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} />
 }
 
-const showNotify = (input?: NotifyInput, fallbackType: NotifyType = 'primary'): NotifyReturnType => {
-  const opts = mergeOptions(parseOptions(input), fallbackType)
-  if (!allowMultiple) activeKeys.forEach(key => closeNotify(key))
-  const key = Portal.add(null)
-  notifyOptions.set(key, opts)
-  Portal.update(key, <NotifyPortal id={key} options={opts} />)
-  activeKeys.add(key)
-  const config: NotifyReturnType['config'] = next => {
-    const prev = notifyOptions.get(key)
-    if (!prev) return
-    const parsed = parseOptions(isFunction(next) ? next(prev) : next)
-    const nextType = parsed.type ?? prev.type ?? fallbackType
-    const merged: NotifyShowOptions = { ...prev, ...parsed, type: nextType }
-    if ('duration' in parsed && parsed.duration == null) merged.duration = baseOptions.duration ?? 3000
-    notifyOptions.set(key, merged)
-    Portal.update(key, <NotifyPortal id={key} options={merged} />)
-  }
-  return { clear: () => closeNotify(key), update: next => config(next), config }
+const showNotify = (input?: NotifyInput, fallbackT: NotifyType = 'primary'): NotifyReturnType => {
+  const opts = mergeOptions(parseOptions(input), fallbackT); if (!allowMultiple) activeKeys.forEach(k => closeNotify(k)); const key = Portal.add(null); notifyOptions.set(key, opts); Portal.update(key, <NotifyPortal id={key} options={opts} />); activeKeys.add(key)
+  const config: NotifyReturnType['config'] = next => { const prev = notifyOptions.get(key); if (!prev) return; const parsed = parseOptions(isFunction(next) ? next(prev) : next); const nextT = parsed.type ?? prev.type ?? fallbackT; const m: NotifyShowOptions = { ...prev, ...parsed, type: nextT }; if ('duration' in parsed && parsed.duration == null) m.duration = baseOptions.duration ?? 3000; notifyOptions.set(key, m); Portal.update(key, <NotifyPortal id={key} options={m} />) }; return { clear: () => closeNotify(key), update: n => config(n), config }
 }
 
 export const NotifyImperative = {

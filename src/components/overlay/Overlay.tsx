@@ -9,15 +9,8 @@ import { useOverlayTokens } from './tokens'
 const IS_WEB = Platform.OS === 'web'
 
 const OverlayImpl = (props: OverlayProps, ref: React.ForwardedRef<React.ComponentRef<typeof Modal>>) => {
-  const { children, isOpen: isOpenProp, visible: visibleProp, useRNModal: useRNModalProp, useRNModalOnAndroid: useRNModalOnAndroidProp = false, isKeyboardDismissable: isKeyboardDismissableProp = true, animationPreset: animationPresetProp = 'fade', onRequestClose, style } = props
-  const tokens = useOverlayTokens()
-  const shouldUseModal = useRNModalProp ?? !IS_WEB
-  const webOverlayStyle: ViewStyle | undefined = IS_WEB ? { zIndex: tokens.layer.zIndex, position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 } : undefined
-  const resolvedOpen = isOpenProp ?? visibleProp ?? false
-  useKeyboardDismissable({ enabled: !IS_WEB && resolvedOpen && isKeyboardDismissableProp, callback: onRequestClose ?? (() => { }) })
-  if (!resolvedOpen) return null
-  if (shouldUseModal || (useRNModalOnAndroidProp && Platform.OS === 'android')) return <Modal statusBarTranslucent transparent visible={resolvedOpen} onRequestClose={onRequestClose} animationType={animationPresetProp} ref={ref}>{children}</Modal>
-  return <OverlayContainer style={[style, webOverlayStyle]}>{children}</OverlayContainer>
+  const { children, isOpen: openP, visible: visP, useRNModal: useModalP, useRNModalOnAndroid: useModalAndroidP = false, isKeyboardDismissable: kbDismissP = true, animationPreset: animP = 'fade', onRequestClose, style } = props; const tokens = useOverlayTokens(); const useModal = useModalP ?? !IS_WEB; const webStyle: ViewStyle | undefined = IS_WEB ? { zIndex: tokens.layer.zIndex, position: 'fixed' as 'absolute', top: 0, left: 0, right: 0, bottom: 0 } : undefined; const open = openP ?? visP ?? false
+  useKeyboardDismissable({ enabled: !IS_WEB && open && kbDismissP, callback: onRequestClose ?? (() => {}) }); if (!open) return null; if (useModal || (useModalAndroidP && Platform.OS === 'android')) return <Modal statusBarTranslucent transparent visible={open} onRequestClose={onRequestClose} animationType={animP} ref={ref}>{children}</Modal>; return <OverlayContainer style={[style, webStyle]}>{children}</OverlayContainer>
 }
 
 const OverlayForwardRef = React.forwardRef<React.ComponentRef<typeof Modal>, OverlayProps>(OverlayImpl)
