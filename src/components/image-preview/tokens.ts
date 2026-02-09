@@ -23,12 +23,13 @@ export interface ImagePreviewTokens {
     indexBadge: number
   }
   typography: {
+    fontFamily: string
     indexTextSize: number
   }
 }
 
 const createTokens = (foundations: Foundations): ImagePreviewTokens => {
-  const { palette, radii, fontSize, spacing } = foundations
+  const { palette, radii, fontSize, spacing, typography } = foundations
   return {
     colors: {
       background: 'rgba(0,0,0,0.95)',
@@ -51,6 +52,7 @@ const createTokens = (foundations: Foundations): ImagePreviewTokens => {
       indexBadge: radii.pill,
     },
     typography: {
+      fontFamily: typography.fontFamily,
       indexTextSize: fontSize.sm,
     },
   }

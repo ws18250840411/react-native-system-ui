@@ -23,6 +23,7 @@ export interface ProgressTokens {
     pivotText: string
   }
   typography: {
+    fontFamily: string
     pivotFontSize: number
   }
   sizing: {

@@ -1,5 +1,5 @@
 import React from 'react'
-import { ActivityIndicator, Text, View, type StyleProp, type TextStyle } from 'react-native'
+import { ActivityIndicator, View, type StyleProp, type TextStyle } from 'react-native'
 import { renderTextOrNode } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 import type { LoadingProps } from './types'

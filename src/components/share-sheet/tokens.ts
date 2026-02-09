@@ -32,6 +32,7 @@ export interface ShareSheetTokens {
     icon: number
   }
   typography: {
+    fontFamily: string
     title: number
     description: number
     option: number
@@ -41,7 +42,7 @@ export interface ShareSheetTokens {
 }
 
 const createTokens = (foundations: Foundations): ShareSheetTokens => {
-  const { palette, spacing, fontSize } = foundations
+  const { palette, spacing, fontSize, typography } = foundations
   return {
     colors: {
       background: '#ffffff',
@@ -73,6 +74,7 @@ const createTokens = (foundations: Foundations): ShareSheetTokens => {
       icon: 48,
     },
     typography: {
+      fontFamily: typography.fontFamily,
       title: fontSize.md,
       description: fontSize.xs,
       option: fontSize.xs,

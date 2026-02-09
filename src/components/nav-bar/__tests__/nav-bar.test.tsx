@@ -54,8 +54,8 @@ describe('NavBar', () => {
     const title = tree.root.findAllByType(Text).find(node => node.props.children === 'Title')
     expect(title).toBeDefined()
     const titleStyle = title!.props.style
-    
-    const flatStyle = Object.assign({}, ...[].concat(titleStyle))
+    const flatten = (s: any): any[] => (Array.isArray(s) ? s.flatMap(flatten) : s && typeof s === 'object' ? [s] : [])
+    const flatStyle = flatten(titleStyle).reduce((acc: any, s: any) => ({ ...acc, ...s }), {})
     expect(flatStyle.color).toBe('red')
   })
 

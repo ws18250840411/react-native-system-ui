@@ -125,10 +125,8 @@ describe('Dialog', () => {
     const msg = texts.find(t => t.props.children === 'msg')
     expect(msg).toBeTruthy()
     const style = msg?.props.style
-    const hasLeft = Array.isArray(style)
-      ? style.some((s: any) => s?.textAlign === 'left')
-      : (style as any)?.textAlign === 'left'
-
+    const flatStyles = Array.isArray(style) ? style.flat(Infinity) : style ? [style] : []
+    const hasLeft = flatStyles.some((s: any) => s && typeof s === 'object' && !Array.isArray(s) && s.textAlign === 'left')
     expect(hasLeft).toBe(true)
   })
 

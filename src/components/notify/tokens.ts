@@ -54,6 +54,7 @@ export const createNotifyTokens = (foundations: Foundations): NotifyTokens => ({
     },
   },
   typography: {
+    fontFamily: foundations.typography.fontFamily,
     fontSize: foundations.fontSize.sm,
     lineHeight: Math.round(
       foundations.fontSize.sm * foundations.typography.lineHeightMultiplier

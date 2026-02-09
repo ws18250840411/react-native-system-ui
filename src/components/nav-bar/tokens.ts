@@ -6,6 +6,7 @@ export const createNavBarTokens = ({
   palette,
   spacing,
   fontSize,
+  typography,
 }: Foundations): NavBarTokens => {
   return {
     defaults: {
@@ -72,6 +73,7 @@ export const createNavBarTokens = ({
       icon: palette.default[700],
     },
     typography: {
+      fontFamily: typography.fontFamily,
       titleSize: fontSize.lg,
       titleWeight: '600',
       descriptionSize: fontSize.sm,

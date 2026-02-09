@@ -16,6 +16,7 @@ jest.mock('react-native', () => {
 
 jest.mock('../../portal/Portal', () => {
   const React = require('react')
+  void React
   const renderer = require('react-test-renderer')
 
   const mounted = new Map<number, any>()

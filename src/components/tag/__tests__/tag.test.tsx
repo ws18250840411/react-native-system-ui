@@ -126,7 +126,7 @@ describe('Tag', () => {
     const tree = renderer.create(
       <Tag 
         closeable 
-        closeIcon={(color, size) => <View testID="func-close" style={{ width: size }} />} 
+        closeIcon={(_color, size) => <View testID="func-close" style={{ width: size }} />} 
       >
         Tag
       </Tag>

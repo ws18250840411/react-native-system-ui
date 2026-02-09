@@ -27,7 +27,7 @@ describe('Skeleton', () => {
     
     
     
-    const views = tree.root.findAllByType(View) 
+    void tree.root.findAllByType(View) 
     
     
 

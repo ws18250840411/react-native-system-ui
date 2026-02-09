@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, Platform, Pressable, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
+import { Animated, Easing, Platform, Pressable, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 import { isFunction, isText, renderTextOrNode } from '../../utils'
 import { isRenderable } from '../../utils/validate'
 import { useAriaPress, useSafeAreaPadding, useOverlayStack } from '../../hooks'
@@ -96,14 +96,14 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
         <Animated.View testID="rv-notify-bar" accessibilityRole={!interactive ? accessibilityRole : undefined} accessibilityLiveRegion={!interactive ? 'assertive' : undefined} renderToHardwareTextureAndroid shouldRasterizeIOS onLayout={handleLayout} style={[tokens.layout.container, { opacity: animatedValue, transform: [{ translateY }] } as ViewStyle, style]}>
           <View style={{ backgroundColor: resolvedBackground }}>
             <View style={[tokens.layout.content, { paddingHorizontal: tokens.spacing.paddingHorizontal, paddingVertical: tokens.spacing.paddingVertical, minHeight: tokens.sizing.minHeight }]}>
-              {hasMessage && (isText(message) ? renderTextOrNode(message, [tokens.layout.text, { color: resolvedTextColor, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.lineHeight }, textStyle]) : message)}
+              {hasMessage && (isText(message) ? renderTextOrNode(message, [tokens.layout.text, { color: resolvedTextColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize, lineHeight: tokens.typography.lineHeight }, textStyle]) : message)}
             </View>
           </View>
         </Animated.View>
       </View>
       {position === 'bottom' && <View style={{ height: safeAreaBottomInset }} />}
     </View>
-  ), [accessibilityRole, animatedValue, contentHeight, handleLayout, hasMessage, interactive, message, offset, resolvedBackground, resolvedTextColor, safeAreaBottomInset, safeAreaTopValue, style, textStyle, tokens.layout.container, tokens.layout.content, tokens.layout.text, tokens.sizing.minHeight, tokens.spacing.paddingHorizontal, tokens.spacing.paddingVertical, tokens.typography.fontSize, tokens.typography.lineHeight, translateY, webBottomPadding, webTopPadding, position])
+  ), [accessibilityRole, animatedValue, contentHeight, handleLayout, hasMessage, interactive, message, offset, resolvedBackground, resolvedTextColor, safeAreaBottomInset, safeAreaTopValue, style, textStyle, tokens.layout.container, tokens.layout.content, tokens.layout.text, tokens.sizing.minHeight, tokens.spacing.paddingHorizontal, tokens.spacing.paddingVertical, tokens.typography.fontFamily, tokens.typography.fontSize, tokens.typography.lineHeight, translateY, webBottomPadding, webTopPadding, position])
   if (!mounted) return null
   return (
     <View testID="rv-notify" pointerEvents={interactive ? 'box-none' : 'none'} style={[tokens.layout.portal, position === 'bottom' ? { bottom: 0 } : { top: 0 }, resolvedZIndex != null ? { zIndex: resolvedZIndex } : null]}>

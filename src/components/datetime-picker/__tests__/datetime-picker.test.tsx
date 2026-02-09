@@ -1,9 +1,6 @@
 import React from 'react'
 import { act, create } from 'react-test-renderer'
 import DatetimePicker from '../DatetimePicker'
-import { Picker } from '../../picker'
-
-
 jest.mock('../../picker', () => {
   const { View, Text, TouchableOpacity } = require('react-native')
   return (props: any) => (

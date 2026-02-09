@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Image as RNImage, Platform, Pressable, StyleSheet, View } from 'react-native'
 import type { ImageSourcePropType, ImageStyle, PressableProps, StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { SvgUri } from 'react-native-svg'
 import { isNumber, isString, renderTextOrNode } from '../../utils'

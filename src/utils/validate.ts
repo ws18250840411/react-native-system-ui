@@ -27,6 +27,3 @@ export const isPlainObject = (val: unknown): val is Record<string, any> =>
   !!val && typeof val === 'object' && !Array.isArray(val) && !isValidElement(val)
 
 export const isTwoCNChar = (value: string) => /^(?:[\u4e00-\u9fa5]){2}$/.test(value)
-
-export const isImageUrlString = (url: string) =>
-  /\.(jpeg|jpg|gif|png|svg|webp|jfif|bmp|dpg)/i.test(url)

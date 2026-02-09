@@ -29,7 +29,8 @@ const EmptyImpl: React.FC<EmptyProps> = props => {
     if (isText(description)) return <Text style={[tokens.layout.descriptionText, { marginTop: gap, paddingHorizontal: tokens.spacing.descriptionPaddingHorizontal, color: tokens.colors.description, fontSize: tokens.typography.descriptionSize, lineHeight: tokens.typography.descriptionLineHeight, fontFamily: tokens.typography.descriptionFontFamily, fontWeight: tokens.typography.descriptionFontWeight }, descriptionStyle]}>{description}</Text>
     return <View style={{ marginTop: gap, paddingHorizontal: tokens.spacing.descriptionPaddingHorizontal }}>{description}</View>
   }
-  return <View accessibilityRole="summary" accessibilityLabel={isText(description) ? String(description) : undefined} style={[tokens.layout.container, style]} {...rest}>{renderImage()}{renderDescription()}{isRenderable(children) && <View style={{ marginTop: tokens.spacing.footerMarginTop }}>{renderTextOrNode(children)}</View>}</View>
+  const footerTextStyle = { fontFamily: tokens.typography.descriptionFontFamily, fontSize: tokens.typography.descriptionSize, fontWeight: tokens.typography.descriptionFontWeight }
+  return <View accessibilityRole="summary" accessibilityLabel={isText(description) ? String(description) : undefined} style={[tokens.layout.container, style]} {...rest}>{renderImage()}{renderDescription()}{isRenderable(children) && <View style={{ marginTop: tokens.spacing.footerMarginTop }}>{renderTextOrNode(children, footerTextStyle)}</View>}</View>
 }
 
 export const Empty = React.memo(EmptyImpl)

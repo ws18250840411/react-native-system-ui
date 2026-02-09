@@ -1,5 +1,5 @@
 import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
-import { View, type StyleProp, type ViewStyle } from 'react-native'
+import { View } from 'react-native'
 import { useCheckboxGroup } from '@react-native-aria/checkbox'
 import { useCheckboxGroupState, type CheckboxGroupState } from '@react-stately/checkbox'
 import type { CheckboxGroupDirection, CheckboxGroupProps, CheckboxIconRender, CheckboxShape, CheckboxValue } from './types'

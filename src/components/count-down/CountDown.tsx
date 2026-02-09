@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useImperativeHandle } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 import { useCountDown } from '../../hooks'
 import { formatDuration, isFunction, renderTextOrNode } from '../../utils'
 import { isText } from '../../utils/validate'

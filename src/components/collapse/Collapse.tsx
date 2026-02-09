@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, Text, View, type LayoutChangeEvent, type ViewProps, type TextProps } from 'react-native'
+import { Animated, Easing, View, type LayoutChangeEvent, type ViewProps, type TextProps } from 'react-native'
 import { Arrow } from 'react-native-system-icon'
 import { useReducedMotion } from '../../hooks/animation'
 import { Cell } from '../cell'
@@ -109,7 +109,7 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
       </Animated.View>
     )
   }, [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotation])
-  const contentNode = useMemo(() => renderTextOrNode(children, { color: mergedDisabled ? colors.disabled : colors.description, fontSize: typography.descriptionSize, lineHeight: Math.round(typography.descriptionSize * 1.5) }), [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize])
+  const contentNode = useMemo(() => renderTextOrNode(children, { color: mergedDisabled ? colors.disabled : colors.description, fontFamily: typography.fontFamily, fontSize: typography.descriptionSize, lineHeight: Math.round(typography.descriptionSize * 1.5) }), [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize, typography.fontFamily])
   const showInnerBorder = Boolean(panelBorder)
   const showTopBorder = index > 0 && showInnerBorder
   const showHeaderBottomBorder = isActive && showInnerBorder

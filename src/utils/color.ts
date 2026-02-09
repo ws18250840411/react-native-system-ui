@@ -30,10 +30,3 @@ export const withAlpha = (color: string, alpha: number) => {
   return rgb ? `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})` : t
 }
 
-export const ensureRgba = (color: string, alpha: number) =>
-  color.trim().toLowerCase().startsWith('rgba') ? color : withAlpha(color, alpha)
-
-const GRADIENT_RE = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\))/i
-
-export const extractFirstColorToken = (input?: string | null) =>
-  input ? input.match(GRADIENT_RE)?.[0] : undefined

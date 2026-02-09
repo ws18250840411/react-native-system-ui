@@ -11,6 +11,7 @@ export interface ToastTokens {
   }
   fontSize: number
   lineHeight: number
+  fontFamily: string
   radius: number
   gap: number
   iconSize: number
@@ -46,6 +47,7 @@ export const createToastTokens = (foundations: Foundations): ToastTokens => {
     },
     fontSize: foundations.fontSize.sm,
     lineHeight: Math.round(foundations.fontSize.sm * foundations.typography.lineHeightMultiplier),
+    fontFamily: foundations.typography.fontFamily,
     radius: foundations.radii.md,
     gap: foundations.spacing.sm,
     iconSize: 36,

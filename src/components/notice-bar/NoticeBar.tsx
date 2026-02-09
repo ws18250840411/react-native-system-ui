@@ -97,19 +97,19 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
   const handleItemLayout = useCallback((event: LayoutChangeEvent) => { const height = event?.nativeEvent?.layout?.height; if (!height) return; setItemHeight(prev => (prev === 0 || Math.abs(prev - height) >= 0.5 ? height : prev)) }, [])
   const verticalContentNode = useMemo(() => {
     if (!isVertical || verticalTrackItems.length === 0) return null
-    if (!hasVerticalLoop) return renderTextOrNode(verticalTrackItems[0], [S.text, { color: resolvedColor, fontSize: tokens.typography.fontSize }], { numberOfLines: 1, ...restTextProps })
+    if (!hasVerticalLoop) return renderTextOrNode(verticalTrackItems[0], [S.text, { color: resolvedColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize }], { numberOfLines: 1, ...restTextProps })
     return (
       <View style={[S.vViewport, itemHeight ? { height: itemHeight } : undefined]} pointerEvents="none">
         <Animated.View renderToHardwareTextureAndroid shouldRasterizeIOS style={[S.vTrack, { transform: [{ translateY: verticalTranslateY }] }]}>
           {verticalTrackItems.map((item, index) => (
             <View key={index} onLayout={index === 0 ? handleItemLayout : undefined} style={S.vItem}>
-              {renderTextOrNode(item, [S.text, { color: resolvedColor, fontSize: tokens.typography.fontSize }], { numberOfLines: 1, ...restTextProps })}
+              {renderTextOrNode(item, [S.text, { color: resolvedColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize }], { numberOfLines: 1, ...restTextProps })}
             </View>
           ))}
         </Animated.View>
       </View>
     )
-  }, [handleItemLayout, hasVerticalLoop, isVertical, itemHeight, resolvedColor, restTextProps, textOnLayout, tokens.typography.fontSize, verticalTrackItems, verticalTranslateY])
+  }, [handleItemLayout, hasVerticalLoop, isVertical, itemHeight, resolvedColor, restTextProps, textOnLayout, tokens.typography.fontFamily, tokens.typography.fontSize, verticalTrackItems, verticalTranslateY])
   const handleContainerLayout = useCallback((event: LayoutChangeEvent) => { setContainerWidthSafe(event.nativeEvent.layout.width) }, [setContainerWidthSafe])
   const handleTextLayout = useCallback((event: LayoutChangeEvent) => { setContentWidthSafe(event.nativeEvent.layout.width); textOnLayout?.(event) }, [setContentWidthSafe, textOnLayout])
   const handleNodeLayout = useCallback((event: LayoutChangeEvent) => setContentWidthSafe(event.nativeEvent.layout.width), [setContentWidthSafe])
@@ -120,12 +120,12 @@ const NoticeBarImpl: React.FC<NoticeBarProps> = props => {
       <View onLayout={handleContainerLayout} style={[S.content, wrapable && S.contentWrap, hasLeft && { paddingLeft: tokens.spacing.sidePadding }, hasRight && { paddingRight: tokens.spacing.sidePadding }]} pointerEvents="none">
         {isVertical ? verticalContentNode : shouldScroll ? (
           isTextContent ? (
-            <AnimatedText onLayout={handleTextLayout} style={[S.text, S.scrollText, { color: resolvedColor, fontSize: tokens.typography.fontSize, transform: [{ translateX }] }]} {...(IS_WEB ? {} : { numberOfLines: 1 as const, ellipsizeMode: 'clip' as const })} {...restTextProps}>{content}</AnimatedText>
+            <AnimatedText onLayout={handleTextLayout} style={[S.text, S.scrollText, { color: resolvedColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize, transform: [{ translateX }] }]} {...(IS_WEB ? {} : { numberOfLines: 1 as const, ellipsizeMode: 'clip' as const })} {...restTextProps}>{content}</AnimatedText>
           ) : (
             <Animated.View onLayout={handleNodeLayout} renderToHardwareTextureAndroid shouldRasterizeIOS style={[S.text, { transform: [{ translateX }] }]}>{content}</Animated.View>
           )
         ) : isTextContent ? (
-          <Text onLayout={handleTextLayout} style={[S.text, { color: resolvedColor, fontSize: tokens.typography.fontSize }, wrapable && S.wrapText]} numberOfLines={wrapable ? undefined : 1} ellipsizeMode={wrapable ? 'tail' : 'clip'} {...restTextProps}>{content}</Text>
+          <Text onLayout={handleTextLayout} style={[S.text, { color: resolvedColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize }, wrapable && S.wrapText]} numberOfLines={wrapable ? undefined : 1} ellipsizeMode={wrapable ? 'tail' : 'clip'} {...restTextProps}>{content}</Text>
         ) : (
           <View onLayout={handleNodeLayout} style={[S.text, wrapable && S.wrapText]}>{content}</View>
         )}

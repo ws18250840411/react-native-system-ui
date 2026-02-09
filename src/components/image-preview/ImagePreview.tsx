@@ -28,7 +28,7 @@ const ImageSlide = React.memo((props: { source: ImageSourcePropType; rendered: b
 }, (prev, next) => prev.source === next.source && prev.rendered === next.rendered && prev.pressableHandlers === next.pressableHandlers && prev.index === next.index && prev.total === next.total)
 
 const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<ImagePreviewRef>) => {
-  const { visible, images = [], startPosition = 0, swipeDuration = 300, tokensOverride, lazyRender = false, lazyRenderBuffer = 1, showIndex = true, indexRender, showIndicators = false, closeable = false, closeIcon, closeIconPosition = 'top-right', closeOnlyClickCloseIcon = false, overlay = true, overlayStyle, closeOnBackPress, closeOnPopstate, zIndex, duration, safeAreaInsetTop = true, safeAreaInsetBottom = true, onChange, onClose, onClosed, beforeClose } = props
+  const { visible, images = [], startPosition = 0, tokensOverride, lazyRender = false, lazyRenderBuffer = 1, showIndex = true, indexRender, showIndicators = false, closeable = false, closeIcon, closeIconPosition = 'top-right', closeOnlyClickCloseIcon = false, overlay = true, overlayStyle, closeOnBackPress, closeOnPopstate, zIndex, duration, safeAreaInsetTop = true, safeAreaInsetBottom = true, onChange, onClose, onClosed, beforeClose } = props
   const { colors, layout, radii, typography, spacing } = useImagePreviewTokens(tokensOverride)
   const swiperRef = useRef<SwiperInstance>(null)
   const pendingCloseReason = useRef<ImagePreviewCloseReason>('close')
@@ -112,7 +112,7 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
     return (
       <View style={[S.index, { top: spacing.indexTop }]} testID="rv-image-preview-index">
         <View style={[S.indexBadge, { backgroundColor: colors.indexBackground, borderRadius: radii.indexBadge, paddingHorizontal: spacing.indexPaddingHorizontal, paddingVertical: spacing.indexPaddingVertical }]}>
-          {indexRender ? indexRender({ index: current, len: total }) : <Text style={[S.indexText, { color: colors.indexText, fontSize: typography.indexTextSize }]}>{indexText}</Text>}
+          {indexRender ? indexRender({ index: current, len: total }) : <Text style={[S.indexText, { color: colors.indexText, fontFamily: typography.fontFamily, fontSize: typography.indexTextSize }]}>{indexText}</Text>}
         </View>
       </View>
     )

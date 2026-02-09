@@ -3,7 +3,11 @@ import { Platform, View } from 'react-native'
 import { useFlexTokens } from './tokens'
 import type { FlexProps } from './types'
 
-export interface FlexContextValue { horizontalGap: number; verticalGap: number; columns: number }
+export interface FlexContextValue {
+  horizontalGap: number
+  verticalGap: number
+  columns: number
+}
 export const FlexContext = React.createContext<FlexContextValue>({ horizontalGap: 0, verticalGap: 0, columns: 24 })
 
 const alignMap = { start: 'flex-start', center: 'center', end: 'flex-end', baseline: 'baseline', stretch: 'stretch' } as const
@@ -19,12 +23,15 @@ const FlexImpl: React.FC<FlexProps> = props => {
   const justify = justifyProp ?? tokens.defaults.justify
   const resolvedColumns = Math.max(1, columnsProp ?? tokens.defaults.columns)
   const [hRaw, vRaw] = Array.isArray(gutter) ? gutter : [gutter, 0]
-  const hGap = Math.max(0, hRaw ?? 0), vGap = Math.max(0, vRaw ?? 0)
+  const hGap = Math.max(0, hRaw ?? 0)
+  const vGap = Math.max(0, vRaw ?? 0)
   const web = Platform.OS === 'web'
   const contextValue = useMemo(() => ({ horizontalGap: hGap, verticalGap: vGap, columns: resolvedColumns }), [hGap, vGap, resolvedColumns])
   return (
     <FlexContext.Provider value={contextValue}>
-      <View style={[tokens.layout.container, { flexDirection: direction, flexWrap: wrap, alignItems: alignMap[align], justifyContent: justifyMap[justify], marginHorizontal: !web && hGap ? -hGap / 2 : undefined, marginVertical: !web && vGap ? -vGap / 2 : undefined, columnGap: web ? hGap : undefined, rowGap: web ? vGap : undefined }, style]}>{children}</View>
+      <View style={[tokens.layout.container, { flexDirection: direction, flexWrap: wrap, alignItems: alignMap[align], justifyContent: justifyMap[justify], marginHorizontal: !web && hGap ? -hGap / 2 : undefined, marginVertical: !web && vGap ? -vGap / 2 : undefined, columnGap: web ? hGap : undefined, rowGap: web ? vGap : undefined }, style]}>
+        {children}
+      </View>
     </FlexContext.Provider>
   )
 }

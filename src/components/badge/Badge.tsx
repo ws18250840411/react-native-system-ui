@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Pressable, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
+import { Pressable, View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 import { isNumericLike, isRenderable, renderTextOrNode } from '../../utils'
 import { useBadgeTokens } from './tokens'
 import type { BadgeProps } from './types'

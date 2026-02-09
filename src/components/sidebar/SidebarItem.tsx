@@ -17,7 +17,7 @@ const SidebarItemImpl: React.FC<SidebarItemProps> = props => {
   const titleColor = disabled ? tokens.colors.disabled : isActive ? tokens.colors.titleActive : tokens.colors.title
   const press = useAriaPress({ disabled, onPress: () => { onClick?.(index); context.onSelect(index) }, extraProps: { accessibilityRole: 'tab', accessibilityState: { selected: isActive, disabled }, testID: `rv-sidebar-item-${index}` } })
   const indicatorStyle = [tokens.layout.indicator, { width: tokens.sizing.indicatorWidth, borderRadius: tokens.sizing.indicatorWidth, backgroundColor: tokens.colors.indicator }]
-  const titleNode = isRenderable(title) ? isText(title) ? <Text style={[tokens.layout.title, { color: titleColor, fontSize: tokens.typography.fontSize, fontWeight: tokens.typography.fontWeight }, textStyle]}>{title}</Text> : title : null
+  const titleNode = isRenderable(title) ? isText(title) ? <Text style={[tokens.layout.title, { color: titleColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize, fontWeight: tokens.typography.fontWeight }, textStyle]}>{title}</Text> : title : null
   const badgeNode = isRenderable(badge) ? <View style={[tokens.layout.badge, badgeStyle]}>{isText(badge) ? <Badge content={badge} /> : badge}</View> : null
   const dotNode = dot ? <View style={[tokens.layout.dot, { backgroundColor: tokens.colors.indicator }]} /> : null
   return (

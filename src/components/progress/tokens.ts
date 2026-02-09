@@ -35,6 +35,7 @@ export const createProgressTokens = (foundations: Foundations): ProgressTokens =
       pivotText: onPrimary,
     },
     typography: {
+      fontFamily: foundations.typography.fontFamily,
       pivotFontSize: foundations.fontSize.xs,
     },
     sizing: {

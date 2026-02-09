@@ -57,7 +57,7 @@ describe('Sidebar', () => {
     )
     
     
-    const itemB = tree.root.findByProps({ testID: 'rv-sidebar-item-1' })
+    void tree.root.findByProps({ testID: 'rv-sidebar-item-1' })
     
     
     

@@ -119,7 +119,9 @@ describe('Notify', () => {
     
     
     const text = tree.root.findByType(Text)
-    expect(text.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ color: 'red' })]))
+    const flatten = (s: any): any[] => (Array.isArray(s) ? s.flatMap(flatten) : s && typeof s === 'object' ? [s] : [])
+    const hasRed = flatten(text.props.style).some((obj: any) => obj && obj.color === 'red')
+    expect(hasRed).toBe(true)
   })
 
   it('does not block touches when not interactive', () => {

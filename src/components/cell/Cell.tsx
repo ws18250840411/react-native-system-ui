@@ -1,8 +1,8 @@
 import React, { useContext, useMemo } from 'react'
-import { Pressable, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
+import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native'
 import { Arrow } from 'react-native-system-icon'
 import { useAriaPress, useHairline } from '../../hooks'
-import { isRenderable, renderTextOrNode } from '../../utils'
+import { isRenderable, isText, renderTextOrNode } from '../../utils'
 import { useDirection } from '../config-provider/useDirection'
 import { CellGroupContext } from './CellContext'
 import { useCellTokens } from './tokens'
@@ -43,7 +43,7 @@ const CellImpl = (props: CellProps, ref: React.ForwardedRef<React.ElementRef<typ
         {hasLabel && <View style={[{ marginTop: tokens.spacing.labelMarginTop }, labelStyle as StyleProp<ViewStyle>]}>{renderTextOrNode(label, [{ color: tokens.colors.label, fontSize: isLargeSize ? tokens.typography.largeLabelSize : tokens.typography.labelSize }, labelStyle], { numberOfLines: 2 })}</View>}
       </View>
       <View style={[tokens.layout.valueContainer, { minHeight: lineHeight, marginLeft: tokens.spacing.valueGap }, !center && onlyValue && tokens.layout.valueOnlyContainer, center && tokens.layout.valueCenter]}>
-        {hasValue ? <View style={customContentStyle}>{renderTextOrNode(value, [tokens.layout.value, onlyValue && tokens.layout.valueOnly, { color: tokens.colors.value, fontSize: isLargeSize ? tokens.typography.largeValueSize : tokens.typography.valueSize }, valueStyle], { numberOfLines: 1 })}</View> : hasChildren && <View style={customContentStyle}>{children}</View>}
+        {hasValue ? <View style={customContentStyle}>{renderTextOrNode(value, [tokens.layout.value, onlyValue && tokens.layout.valueOnly, { color: tokens.colors.value, fontSize: isLargeSize ? tokens.typography.largeValueSize : tokens.typography.valueSize }, valueStyle], { numberOfLines: 1 })}</View> : hasChildren && <View style={customContentStyle}>{isText(children) ? renderTextOrNode(children, [tokens.layout.value, { color: tokens.colors.value, fontSize: isLargeSize ? tokens.typography.largeValueSize : tokens.typography.valueSize }, valueStyle]) : children}</View>}
       </View>
       {hasExtra && <View style={{ marginLeft: tokens.spacing.extraGap }}>{renderTextOrNode(extra, { marginLeft: tokens.spacing.extraGap, color: tokens.colors.value, fontSize: isLargeSize ? tokens.typography.largeValueSize : tokens.typography.valueSize })}</View>}
       {hasRightIcon ? rightIcon : showArrow && <View style={[tokens.layout.rightIconWrapper, tokens.layout.arrowTransforms[arrowDirection]]}><Arrow size={tokens.sizing.arrowSize} fill={tokens.colors.arrow} /></View>}

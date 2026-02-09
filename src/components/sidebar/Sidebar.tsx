@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 import { mergeTokensOverride } from '../../design-system'
 import { useControllableValue } from '../../hooks'
 import { useDirection } from '../config-provider/useDirection'
@@ -20,7 +20,8 @@ const SidebarBaseImpl: React.FC<SidebarProps> = props => {
   const contextValue = useMemo(() => ({ activeIndex: currentIndex, onSelect: setActiveIndex }), [currentIndex, setActiveIndex])
   const clonedItems = useMemo(() => sidebarItems.map(item => React.cloneElement(item.element, { key: item.element.key ?? item.index, index: item.index, tokensOverride: mergeTokensOverride(tokensOverride, item.element.props.tokensOverride) })), [sidebarItems, tokensOverride])
   const activeItem = sidebarItems.find(item => item.index === currentIndex)?.element
-  const activeContentNode = !isRenderable(activeItem?.props?.children) ? null : renderTextOrNode(activeItem!.props.children)
+  const contentTextStyle = useMemo(() => ({ fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.contentFontSize, fontWeight: tokens.typography.fontWeight }), [tokens.typography.fontFamily, tokens.typography.contentFontSize, tokens.typography.fontWeight])
+  const activeContentNode = !isRenderable(activeItem?.props?.children) ? null : renderTextOrNode(activeItem!.props.children, contentTextStyle)
   return (
     <View {...rest} style={[tokens.layout.container, { backgroundColor: tokens.colors.background }, style]}>
       <View style={[tokens.layout.side, { width: tokens.sizing.width }, sideStyle]} accessibilityRole="tablist">

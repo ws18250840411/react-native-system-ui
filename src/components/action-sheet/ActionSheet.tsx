@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react'
-import { Pressable, Text, View, type PressableStateCallbackType } from 'react-native'
+import { Pressable, View, type PressableStateCallbackType } from 'react-native'
 import { Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 import { createHairlineView, isRenderable, isText, renderTextOrNode } from '../../utils'

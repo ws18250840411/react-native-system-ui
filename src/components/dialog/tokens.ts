@@ -36,6 +36,7 @@ export interface DialogTokens {
     roundButtonHeight: number
   }
   typography: {
+    fontFamily: string
     titleSize: number
     titleLineHeight: number
     titleWeight: TextStyle['fontWeight']
@@ -85,6 +86,7 @@ export const createDialogTokens = (foundations: Foundations): DialogTokens => {
       roundButtonHeight: 40, 
     },
     typography: {
+      fontFamily: typography.fontFamily,
       titleSize: fontSize.md,
       titleLineHeight: fontSize.md * typography.lineHeightMultiplier,
       titleWeight: typography.weight.semiBold,

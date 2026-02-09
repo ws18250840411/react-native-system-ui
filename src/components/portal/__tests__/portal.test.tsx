@@ -1,6 +1,6 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import { Text, View } from 'react-native'
+import { Text } from 'react-native'
 
 jest.mock('@react-native-aria/overlays', () => {
   const React = require('react')

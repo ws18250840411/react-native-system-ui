@@ -62,8 +62,10 @@ export const createSidebarTokens = (foundations: Foundations): SidebarTokens => 
       indicator: palette.primary[600],
     },
     typography: {
+      fontFamily: typography.fontFamily,
       fontSize: fontSize.sm,
       fontWeight: typography.weight.medium,
+      contentFontSize: fontSize.sm,
     },
     sizing: {
       width: 120,

@@ -26,6 +26,10 @@ export interface SpaceTokens {
   layout: {
     container: ViewStyle
   }
+  typography: {
+    fontFamily: string
+    fontSize: number
+  }
   sizing: {
     presets: Record<SpaceSizePreset, number>
   }

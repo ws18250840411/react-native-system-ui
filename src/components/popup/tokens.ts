@@ -27,6 +27,7 @@ export interface PopupTokens {
     closeIconPadding: number
   }
   typography: {
+    fontFamily: string
     titleSize: number
     titleWeight: TextStyle['fontWeight']
     descriptionSize: number
@@ -74,6 +75,7 @@ export const createPopupTokens = (foundations: Foundations): PopupTokens => {
       closeIconPadding: spacing.ssm,
     },
     typography: {
+      fontFamily: typography.fontFamily,
       titleSize: fontSize.md,
       titleWeight: typography.weight.medium,
       descriptionSize: fontSize.sm,

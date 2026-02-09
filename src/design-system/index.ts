@@ -1,5 +1,6 @@
 export { ThemeProvider } from './ThemeProvider'
 export type { ThemeProviderProps, ThemeProviderValue } from './ThemeProvider'
+export { Text } from './Text'
 export { useTheme } from './useTheme'
 export { createComponentTokensHook } from './createComponentTokensHook'
 export { mergeTokensOverride } from './mergeTokensOverride'

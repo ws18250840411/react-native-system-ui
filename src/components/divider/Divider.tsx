@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 import { createHairlineView, isRenderable, renderTextOrNode } from '../../utils'
 import { useDividerTokens } from './tokens'
 import type { DividerProps } from './types'

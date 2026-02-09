@@ -63,7 +63,7 @@ const CircleImpl: React.FC<CircleProps> = props => {
       <View style={baseStyle}>
         <View style={[tokens.layout.webRing, webRingStyle]} />
         {shouldRenderInner ? <View style={[tokens.layout.webInner, { width: innerSize, height: innerSize, borderRadius: innerSize / 2, backgroundColor: fill, left: safeStroke, top: safeStroke }]} /> : null}
-        <View pointerEvents="box-none" style={contentStyle}>{content}</View>
+        <View pointerEvents="box-none" style={contentStyle}>{isText(content) ? <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize }, textStyle]}>{content}</Text> : content}</View>
       </View>
     )
   }
@@ -89,7 +89,7 @@ const CircleImpl: React.FC<CircleProps> = props => {
         <SvgCircle cx={center} cy={center} r={radius} stroke={resolvedLayerColor} strokeWidth={resolvedStrokeWidth} fill={fill} />
         <AnimatedSvgCircle cx={center} cy={center} r={radius} stroke={resolvedColor} strokeWidth={resolvedStrokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={dashOffset} strokeLinecap={lineCap} rotation={rotation} originX={center} originY={center} />
       </Svg>
-      <View pointerEvents="box-none" style={contentStyle}>{content}</View>
+      <View pointerEvents="box-none" style={contentStyle}>{isText(content) ? <Text style={[tokens.layout.text, { color: tokens.colors.text, fontSize: tokens.typography.fontSize }, textStyle]}>{content}</Text> : content}</View>
     </View>
   )
 }

@@ -1,5 +1,6 @@
 import React from 'react'
-import { Text, type StyleProp, type TextStyle } from 'react-native'
+import type { StyleProp, TextStyle } from 'react-native'
+import { Text } from '../design-system'
 import { isText } from './validate'
 
 export const renderTextOrNode = (content: React.ReactNode, textStyle?: StyleProp<TextStyle>, textProps?: { numberOfLines?: number }): React.ReactNode =>

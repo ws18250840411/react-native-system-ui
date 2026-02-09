@@ -31,6 +31,7 @@ export interface StepperTokens {
     default: number
   }
   typography: {
+    fontFamily: string
     fontSize: number
     fontWeight: TextStyle['fontWeight']
   }
@@ -76,6 +77,7 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
       default: radii.md,
     },
     typography: {
+      fontFamily: typography.fontFamily,
       fontSize: fontSize.md,
       fontWeight: typography.weight.semiBold,
     },

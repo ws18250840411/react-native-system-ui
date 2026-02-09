@@ -5,7 +5,7 @@ let hardwareBackHandler: (() => boolean) | null = null
 const mockRemoveListener = jest.fn(() => {
   hardwareBackHandler = null
 })
-const mockAddEventListener = jest.fn((event: string, handler: () => boolean) => {
+const mockAddEventListener = jest.fn((_event: string, handler: () => boolean) => {
   hardwareBackHandler = handler
   return { remove: mockRemoveListener }
 })

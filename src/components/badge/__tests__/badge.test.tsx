@@ -119,7 +119,6 @@ describe('Badge', () => {
     const onPress = jest.fn()
     
     const tree = renderer.create(<Badge content={1} onPress={onPress} />)
-    const pressable = tree.root.findByType(View).parent 
     
     
     

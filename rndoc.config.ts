@@ -170,10 +170,11 @@ export default defineConfig({
       {
         title: '基础组件',
         children: [
+          '/components/config-provider',
+          '/components/text',
+          '/components/typography',
           '/components/button',
           '/components/cell',
-          '/components/config-provider',
-          '/components/typography',
           '/components/icon',
           '/components/image',
           '/components/popup',

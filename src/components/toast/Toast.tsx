@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View, useWindowDimensions, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
 import Portal from '../portal/Portal'
 import { SafeAreaView } from '../safe-area-view'
 import { useAriaPress, useOverlayStack } from '../../hooks'
@@ -107,7 +107,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     }
   }, [colors.text, icon, iconSize, loadingIndicator, tokens.iconSize, type])
   const iconWrapperStyle = useMemo(() => ({ marginBottom: tokens.gap }), [tokens.gap])
-  const messageStyle = useMemo(() => ({ color: colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight }), [colors.text, tokens.fontSize, tokens.lineHeight])
+  const messageStyle = useMemo(() => ({ color: colors.text, fontSize: tokens.fontSize, lineHeight: tokens.lineHeight, fontFamily: tokens.fontFamily }), [colors.text, tokens.fontSize, tokens.fontFamily, tokens.lineHeight])
   const isTextOnly = type === 'info' && !iconNode
   const baseStyle: ViewStyle = useMemo(() => isTextOnly ? { minWidth: tokens.textMinWidth, minHeight: 0, paddingVertical: tokens.textPaddingVertical, paddingHorizontal: tokens.textPaddingHorizontal } : { minWidth: tokens.defaultWidth, minHeight: tokens.defaultMinHeight, padding: tokens.defaultPadding }, [isTextOnly, tokens.defaultMinHeight, tokens.defaultPadding, tokens.defaultWidth, tokens.textMinWidth, tokens.textPaddingHorizontal, tokens.textPaddingVertical])
   const toastStyle = useMemo(() => ({ borderRadius: tokens.radius, opacity: closeOnClick && pressProps.states.pressed ? tokens.pressedOpacity : animatedValue, backgroundColor: tokens.colors.variants[type], maxWidth: tokens.maxWidth, ...baseStyle } as Animated.WithAnimatedValue<ViewStyle>), [animatedValue, baseStyle, closeOnClick, pressProps.states.pressed, tokens.colors.variants, tokens.maxWidth, tokens.pressedOpacity, tokens.radius, type])

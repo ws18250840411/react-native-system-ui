@@ -3,7 +3,7 @@ import { type Foundations } from '../../design-system/tokens'
 import type { ImageTokens } from './types'
 
 const createTokens = (foundations: Foundations): ImageTokens => {
-  const { palette, spacing, fontSize, radii } = foundations
+  const { palette, spacing, fontSize, radii, typography } = foundations
 
   return {
     defaults: {
@@ -33,6 +33,7 @@ const createTokens = (foundations: Foundations): ImageTokens => {
         justifyContent: 'center',
       },
       label: {
+        fontFamily: typography.fontFamily,
         fontSize: fontSize.xs,
       },
       iconContainer: {

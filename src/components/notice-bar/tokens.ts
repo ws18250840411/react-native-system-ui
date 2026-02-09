@@ -7,6 +7,7 @@ export interface NoticeBarTokens {
     background: string
   }
   typography: {
+    fontFamily: string
     fontSize: number
   }
   layout: {
@@ -23,13 +24,14 @@ export interface NoticeBarTokens {
 }
 
 export const createNoticeBarTokens = (foundations: Foundations): NoticeBarTokens => {
-  const { palette, fontSize, spacing, radii } = foundations
+  const { palette, fontSize, spacing, radii, typography } = foundations
   return {
     colors: {
       text: palette.warning[600],
       background: palette.warning[50],
     },
     typography: {
+      fontFamily: typography.fontFamily,
       fontSize: fontSize.sm,
     },
     layout: {

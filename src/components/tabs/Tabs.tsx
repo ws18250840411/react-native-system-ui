@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo, Children, isValidElement, Fragment, type FC, type ForwardRefRenderFunction } from 'react'
+import React, { memo, useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo, Children, isValidElement, type FC, type ForwardRefRenderFunction } from 'react'
 import { Animated, Pressable, StyleSheet, Text, ScrollView, View, Platform, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent, type ViewStyle } from 'react-native'
 import { useAriaPress, useControllableValue } from '../../hooks'
 import { useReducedMotion } from '../../hooks/animation'
@@ -25,135 +25,54 @@ const isTabPaneElement = (child: React.ReactNode): child is React.ReactElement<T
 interface UseTabsAnimationParams { type: 'line' | 'card' | 'jumbo' | 'capsule'; animated: boolean; scrollable: boolean; align: 'start' | 'center' | 'end'; panes: Array<{ name: TabsValue; index: number }>; nameIndexMap: Map<TabsValue, number>; resolvedLineWidth?: number; resolvedLineHeight: number; resolvedDuration: number; currentName?: TabsValue | null; layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>; navContainerWidthRef: React.MutableRefObject<number> }
 
 const useTabsAnimation = ({ type, animated, scrollable, align, panes, nameIndexMap, resolvedLineWidth, resolvedDuration, currentName, layoutMap, navContainerWidthRef }: UseTabsAnimationParams) => {
-  const indicatorX = useRef(new Animated.Value(0)).current
-  const indicatorWidth = useRef(new Animated.Value(0)).current
-  const indicatorInitializedRef = useRef(false)
-  const indicatorAnimRef = useRef<Animated.CompositeAnimation | null>(null)
+  const indX = useRef(new Animated.Value(0)).current; const indW = useRef(new Animated.Value(0)).current; const indInitRef = useRef(false); const animRef = useRef<Animated.CompositeAnimation | null>(null)
   const animateIndicator = useCallback((name?: TabsValue, immediate?: boolean) => {
     if (name == null || type !== 'line') return false
-    const shouldUseEqualWidth = !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0
-    const index = nameIndexMap.get(name) ?? -1
-    const equalTabWidth = shouldUseEqualWidth ? navContainerWidthRef.current / panes.length : 0
-    const layout = shouldUseEqualWidth ? { x: Math.max(index, 0) * equalTabWidth, width: equalTabWidth } : layoutMap.current.get(name)
-    if (!layout || index < 0) return false
-    indicatorAnimRef.current?.stop()
-    const timing = (value: Animated.Value, toValue: number) => Animated.timing(value, { toValue, duration: immediate || !animated ? 0 : resolvedDuration, useNativeDriver: false, isInteraction: false })
-    const targetWidth = resolvedLineWidth ?? layout.width
-    const targetX = resolvedLineWidth ? layout.x + (layout.width - targetWidth) / 2 : layout.x
-    const anim = Animated.parallel([timing(indicatorX, targetX), timing(indicatorWidth, targetWidth)])
-    indicatorAnimRef.current = anim
-    anim.start(({ finished }) => { if (finished) indicatorAnimRef.current = null })
-    return true
-  }, [align, animated, indicatorWidth, indicatorX, nameIndexMap, panes.length, resolvedDuration, resolvedLineWidth, scrollable, type, layoutMap, navContainerWidthRef])
-  useEffect(() => {
-    if (currentName == null) return
-    const shouldAnimate = indicatorInitializedRef.current
-    const didAnimate = animateIndicator(currentName, !shouldAnimate)
-    if (didAnimate && !indicatorInitializedRef.current) indicatorInitializedRef.current = true
-  }, [animateIndicator, currentName])
-  useEffect(() => () => { indicatorAnimRef.current?.stop(); indicatorAnimRef.current = null }, [])
-  return { indicatorX, indicatorWidth, indicatorInitializedRef, animateIndicator }
+    const eqW = !scrollable && align !== 'start' && navContainerWidthRef.current > 0 && panes.length > 0; const idx = nameIndexMap.get(name) ?? -1
+    const eqTabW = eqW ? navContainerWidthRef.current / panes.length : 0; const lay = eqW ? { x: Math.max(idx, 0) * eqTabW, width: eqTabW } : layoutMap.current.get(name)
+    if (!lay || idx < 0) return false; animRef.current?.stop()
+    const timing = (v: Animated.Value, to: number) => Animated.timing(v, { toValue: to, duration: immediate || !animated ? 0 : resolvedDuration, useNativeDriver: false, isInteraction: false })
+    const tW = resolvedLineWidth ?? lay.width; const tX = resolvedLineWidth ? lay.x + (lay.width - tW) / 2 : lay.x
+    const anim = Animated.parallel([timing(indX, tX), timing(indW, tW)]); animRef.current = anim; anim.start(({ finished }) => { if (finished) animRef.current = null }); return true
+  }, [align, animated, indW, indX, nameIndexMap, panes.length, resolvedDuration, resolvedLineWidth, scrollable, type, layoutMap, navContainerWidthRef])
+  useEffect(() => { if (currentName == null) return; const should = indInitRef.current; const did = animateIndicator(currentName, !should); if (did && !indInitRef.current) indInitRef.current = true }, [animateIndicator, currentName])
+  useEffect(() => () => { animRef.current?.stop(); animRef.current = null }, [])
+  return { indicatorX: indX, indicatorWidth: indW, indicatorInitializedRef: indInitRef, animateIndicator }
 }
 
 interface UseTabsScrollParams { scrollable: boolean; animated: boolean; currentName?: TabsValue | null; resolvedDuration: number; layoutMap: React.MutableRefObject<Map<TabsValue, { x: number; width: number }>>; navContainerWidthRef: React.MutableRefObject<number>; navContentWidthRef: React.MutableRefObject<number> }
 
 const useTabsScroll = ({ scrollable, animated, currentName, resolvedDuration, layoutMap, navContainerWidthRef, navContentWidthRef }: UseTabsScrollParams) => {
-  const navScrollRef = useRef<ScrollView>(null)
-  const navScrollX = useRef(new Animated.Value(0)).current
-  const navScrollAnimRef = useRef<Animated.CompositeAnimation | null>(null)
-  const navAutoScrollingRef = useRef(false)
-  const navLastScrollXRef = useRef(0)
-  const navAutoScrollFrameRef = useRef<number | null>(null)
+  const navScrRef = useRef<ScrollView>(null); const navX = useRef(new Animated.Value(0)).current; const navAnimRef = useRef<Animated.CompositeAnimation | null>(null); const autoScrRef = useRef(false); const lastXRef = useRef(0); const frameRef = useRef<number | null>(null)
   const scrollIntoView = useCallback((immediate?: boolean) => {
-    if (!scrollable || currentName == null) return
-    const layout = layoutMap.current.get(currentName)
-    const containerWidth = navContainerWidthRef.current
-    if (!layout || !containerWidth) return
-    const contentWidth = navContentWidthRef.current
-    const targetX = layout.x - (containerWidth - layout.width) / 2
-    const maxScroll = Math.max(contentWidth - containerWidth, 0)
-    const clampedX = Math.max(0, Math.min(targetX, maxScroll))
-    if (maxScroll <= 0) return
-    if (Math.abs(clampedX - navLastScrollXRef.current) < 1) return
-    if (navScrollAnimRef.current) { navScrollAnimRef.current.stop(); navScrollAnimRef.current = null }
-    cancelFrame(navAutoScrollFrameRef.current)
-    navAutoScrollFrameRef.current = null
-    if (immediate || !animated) {
-      navAutoScrollingRef.current = true
-      navScrollX.setValue(clampedX)
-      navAutoScrollFrameRef.current = requestFrame(() => { navAutoScrollFrameRef.current = null; navAutoScrollingRef.current = false })
-      return
-    }
-    navScrollX.setValue(navLastScrollXRef.current)
-    navAutoScrollingRef.current = true
-    navScrollAnimRef.current = Animated.timing(navScrollX, { toValue: clampedX, duration: resolvedDuration, useNativeDriver: false, isInteraction: false })
-    navScrollAnimRef.current.start(({ finished }) => {
-      navScrollAnimRef.current = null
-      navAutoScrollingRef.current = false
-      if (!finished) return
-      navLastScrollXRef.current = clampedX
-    })
-  }, [animated, currentName, navScrollX, resolvedDuration, scrollable, layoutMap, navContainerWidthRef, navContentWidthRef])
-  useEffect(() => {
-    if (!scrollable) return
-    const listenerId = navScrollX.addListener(({ value }) => {
-      const prev = navLastScrollXRef.current
-      navLastScrollXRef.current = value
-      if (Math.abs(value - prev) < 0.5) return
-      navScrollRef.current?.scrollTo({ x: value, y: 0, animated: false })
-    })
-    return () => { navScrollX.removeListener(listenerId) }
-  }, [navScrollX, scrollable])
-  useEffect(() => { return () => { cancelFrame(navAutoScrollFrameRef.current); navAutoScrollFrameRef.current = null } }, [])
-  const handleNavScrollBeginDrag = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    navAutoScrollingRef.current = false
-    if (navScrollAnimRef.current) { navScrollAnimRef.current.stop(); navScrollAnimRef.current = null }
-    navLastScrollXRef.current = event.nativeEvent.contentOffset.x
-  }, [])
-  const handleNavScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (navAutoScrollingRef.current) return
-    navLastScrollXRef.current = event.nativeEvent.contentOffset.x
-  }, [])
-  return { navScrollRef, navScrollX, scrollIntoView, handleNavScrollBeginDrag, handleNavScroll }
+    if (!scrollable || currentName == null) return; const lay = layoutMap.current.get(currentName); const ctrW = navContainerWidthRef.current; if (!lay || !ctrW) return
+    const cntW = navContentWidthRef.current; const tX = lay.x - (ctrW - lay.width) / 2; const maxS = Math.max(cntW - ctrW, 0); const clampX = Math.max(0, Math.min(tX, maxS))
+    if (maxS <= 0 || Math.abs(clampX - lastXRef.current) < 1) return; navAnimRef.current?.stop(); navAnimRef.current = null; cancelFrame(frameRef.current); frameRef.current = null
+    if (immediate || !animated) { autoScrRef.current = true; navX.setValue(clampX); frameRef.current = requestFrame(() => { frameRef.current = null; autoScrRef.current = false }); return }
+    navX.setValue(lastXRef.current); autoScrRef.current = true; navAnimRef.current = Animated.timing(navX, { toValue: clampX, duration: resolvedDuration, useNativeDriver: false, isInteraction: false }); navAnimRef.current.start(({ finished }) => { navAnimRef.current = null; autoScrRef.current = false; if (finished) lastXRef.current = clampX })
+  }, [animated, currentName, navX, resolvedDuration, scrollable, layoutMap, navContainerWidthRef, navContentWidthRef])
+  useEffect(() => { if (!scrollable) return; const id = navX.addListener(({ value }) => { const prev = lastXRef.current; lastXRef.current = value; if (Math.abs(value - prev) >= 0.5) navScrRef.current?.scrollTo({ x: value, y: 0, animated: false }) }); return () => navX.removeListener(id) }, [navX, scrollable])
+  useEffect(() => () => { cancelFrame(frameRef.current); frameRef.current = null }, [])
+  const onNavBeginDrag = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { autoScrRef.current = false; navAnimRef.current?.stop(); navAnimRef.current = null; lastXRef.current = e.nativeEvent.contentOffset.x }, [])
+  const onNavScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { if (autoScrRef.current) return; lastXRef.current = e.nativeEvent.contentOffset.x }, [])
+  return { navScrollRef: navScrRef, navScrollX: navX, scrollIntoView, handleNavScrollBeginDrag: onNavBeginDrag, handleNavScroll: onNavScroll }
 }
 
 interface TabItemProps { pane: ParsedPane; isActive: boolean; align: TabsProps['align']; scrollable: boolean; type: TabsProps['type']; ellipsis: boolean; tokens: ReturnType<typeof useTabsTokens>; color?: string; titleActiveColor?: string; titleInactiveColor?: string; tabStyle?: TabsProps['tabStyle']; titleStyle?: TabsProps['titleStyle']; descriptionStyle?: TabsProps['descriptionStyle']; onSelect: (pane: ParsedPane, index: number, event?: unknown) => void; onLayout: (name: TabsValue, event: LayoutChangeEvent) => void; isLast: boolean }
 
 const TabBarItemInner: React.FC<TabItemProps> = ({ pane, isActive, align, scrollable, type, ellipsis, tokens, color, titleActiveColor, titleInactiveColor, tabStyle, titleStyle, descriptionStyle, onSelect, onLayout, isLast }) => {
-  const isDisabled = !!pane.disabled
-  const ariaPress = useAriaPress({ onPress: event => onSelect(pane, pane.index, event), extraProps: { accessibilityRole: 'tab', accessibilityState: { selected: isActive, disabled: isDisabled }, testID: `rv-tabs-item-${pane.name}` } })
-  const isCapsule = type === 'capsule'
-  const isJumbo = type === 'jumbo'
-  const isCard = type === 'card'
-  const renderTitle = isFunction(pane.title) ? pane.title(isActive) : pane.title ?? pane.name
-  const renderDescription = isFunction(pane.description) ? pane.description(isActive) : pane.description
-  const activeTitleColor = titleActiveColor ?? (isCard ? tokens.colors.cardActiveText : isCapsule ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive)
-  const inactiveTitleColor = titleInactiveColor ?? (isCard ? color ?? tokens.colors.cardBorder : isCapsule ? tokens.colors.capsuleText : tokens.colors.text)
-  const textColor = pane.disabled ? tokens.colors.textDisabled : isActive ? activeTitleColor : inactiveTitleColor
-  const descriptionColor = isDisabled ? tokens.colors.textDisabled : isJumbo ? (isActive ? tokens.colors.jumboDescriptionActive : tokens.colors.jumboDescription) : (isActive ? tokens.colors.descriptionActive : tokens.colors.description)
-  const shouldFlex = !scrollable && (align !== 'start' || isCard)
-  const isCompactType = isCard || isJumbo || isCapsule
-  const horizontalPadding = isCompactType ? 0 : tokens.tabList.paddingHorizontal
-  const verticalPadding = isCompactType ? 0 : tokens.tabList.paddingVertical
-  const labelWrapperStyles: ViewStyle[] = [S.lblW, isJumbo && S.lblWJ, isCard && S.cardLbl, isCard && { paddingHorizontal: tokens.card.paddingHorizontal, paddingVertical: tokens.card.paddingVertical }, isCapsule && { flex: 1, alignSelf: 'stretch', paddingHorizontal: tokens.capsule.paddingHorizontal, paddingVertical: tokens.capsule.paddingVertical }, isJumbo && { paddingHorizontal: tokens.jumbo.paddingHorizontal, paddingVertical: tokens.jumbo.paddingVertical, alignItems: 'center' }].filter(Boolean) as ViewStyle[]
-  const labelTextWrapperStyles: ViewStyle[] | null = isCapsule ? [{ flex: 1, alignSelf: 'stretch', justifyContent: 'center', alignItems: 'center', borderRadius: tokens.capsule.radius, backgroundColor: isActive ? color ?? tokens.colors.capsuleActiveBackground : tokens.colors.capsuleBackground }] : null
-  const titleTextStyle = [S.title, { color: textColor, fontSize: isJumbo ? tokens.typography.jumboTitleSize : tokens.typography.titleSize, fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight, lineHeight: isJumbo ? tokens.typography.jumboLineHeight : undefined, textAlign: 'center' as const }, ellipsis && !isJumbo ? S.ellipsis : null, titleStyle]
-  const titleNode = <Text style={titleTextStyle} numberOfLines={ellipsis && !isJumbo ? 1 : undefined}>{renderTitle}</Text>
-  const descriptionMarginTop = isJumbo ? tokens.spacing.jumboDescriptionMarginTop : tokens.spacing.descriptionMarginTop
-  const descriptionJumboStyle = isJumbo ? { backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground, paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal, paddingVertical: tokens.jumbo.descriptionPaddingVertical, borderRadius: tokens.jumbo.descriptionRadius } : null
-  const descriptionTextStyle = [S.descTxt, { color: descriptionColor, fontSize: tokens.typography.descriptionSize, marginTop: descriptionMarginTop, textAlign: 'center' as const }, descriptionJumboStyle, descriptionStyle]
-  const descriptionViewStyle = [{ marginTop: descriptionMarginTop, alignItems: 'center' as const }, descriptionJumboStyle]
-  const handleLayout = useCallback((event: LayoutChangeEvent) => { onLayout(pane.name, event) }, [onLayout, pane.name])
-  return (
-    <Pressable {...ariaPress.interactionProps} onLayout={handleLayout} style={[S.tabI, shouldFlex ? S.flexI : null, { paddingHorizontal: horizontalPadding, paddingVertical: verticalPadding }, isCard ? { backgroundColor: isActive ? color ?? tokens.colors.cardActiveBackground : tokens.colors.cardBackground } : null, tabStyle]}>
-      <View style={labelWrapperStyles}>
-        {labelTextWrapperStyles ? <View style={labelTextWrapperStyles}>{titleNode}</View> : titleNode}
-        {isRenderable(renderDescription) && (isText(renderDescription) ? <Text style={descriptionTextStyle}>{renderDescription}</Text> : <View style={descriptionViewStyle}>{renderDescription}</View>)}
-        {isRenderable(pane.badge) && <View style={{ marginTop: tokens.spacing.badgeMarginTop }}>{isText(pane.badge) ? <Text style={{ color: tokens.colors.badgeText, fontSize: tokens.typography.badgeTextSize }}>{pane.badge}</Text> : pane.badge}</View>}
-      </View>
-      {isCard && !isLast && <View style={createHairlineView({ position: 'right', color: color ?? tokens.colors.cardBorder, top: 0, bottom: 0 })} />}
-    </Pressable>
-  )
+  const dis = !!pane.disabled; const aria = useAriaPress({ onPress: e => onSelect(pane, pane.index, e), extraProps: { accessibilityRole: 'tab', accessibilityState: { selected: isActive, disabled: dis }, testID: `rv-tabs-item-${pane.name}` } })
+  const isCap = type === 'capsule'; const isJ = type === 'jumbo'; const isC = type === 'card'
+  const rTitle = isFunction(pane.title) ? pane.title(isActive) : pane.title ?? pane.name; const rDesc = isFunction(pane.description) ? pane.description(isActive) : pane.description
+  const actClr = titleActiveColor ?? (isC ? tokens.colors.cardActiveText : isCap ? tokens.colors.capsuleActiveText : color ?? tokens.colors.textActive); const inactClr = titleInactiveColor ?? (isC ? color ?? tokens.colors.cardBorder : isCap ? tokens.colors.capsuleText : tokens.colors.text)
+  const txtClr = pane.disabled ? tokens.colors.textDisabled : isActive ? actClr : inactClr; const descClr = dis ? tokens.colors.textDisabled : isJ ? (isActive ? tokens.colors.jumboDescriptionActive : tokens.colors.jumboDescription) : (isActive ? tokens.colors.descriptionActive : tokens.colors.description)
+  const flex = !scrollable && (align !== 'start' || isC); const compact = isC || isJ || isCap; const hPad = compact ? 0 : tokens.tabList.paddingHorizontal; const vPad = compact ? 0 : tokens.tabList.paddingVertical
+  const lblWrap: ViewStyle[] = [S.lblW, isJ && S.lblWJ, isC && S.cardLbl, isC && { paddingHorizontal: tokens.card.paddingHorizontal, paddingVertical: tokens.card.paddingVertical }, isCap && { flex: 1, alignSelf: 'stretch', paddingHorizontal: tokens.capsule.paddingHorizontal, paddingVertical: tokens.capsule.paddingVertical }, isJ && { paddingHorizontal: tokens.jumbo.paddingHorizontal, paddingVertical: tokens.jumbo.paddingVertical, alignItems: 'center' }].filter(Boolean) as ViewStyle[]
+  const lblTxtWrap: ViewStyle[] | null = isCap ? [{ flex: 1, alignSelf: 'stretch', justifyContent: 'center', alignItems: 'center', borderRadius: tokens.capsule.radius, backgroundColor: isActive ? color ?? tokens.colors.capsuleActiveBackground : tokens.colors.capsuleBackground }] : null
+  const titleStyleArr = [S.title, { color: txtClr, fontFamily: tokens.typography.fontFamily, fontSize: isJ ? tokens.typography.jumboTitleSize : tokens.typography.titleSize, fontWeight: isActive ? tokens.typography.titleActiveWeight : tokens.typography.titleWeight, lineHeight: isJ ? tokens.typography.jumboLineHeight : undefined, textAlign: 'center' as const }, ellipsis && !isJ ? S.ellipsis : null, titleStyle]
+  const descMT = isJ ? tokens.spacing.jumboDescriptionMarginTop : tokens.spacing.descriptionMarginTop; const descJStyle = isJ ? { backgroundColor: isActive ? tokens.colors.jumboDescriptionActiveBackground : tokens.colors.jumboDescriptionBackground, paddingHorizontal: tokens.jumbo.descriptionPaddingHorizontal, paddingVertical: tokens.jumbo.descriptionPaddingVertical, borderRadius: tokens.jumbo.descriptionRadius } : null
+  const onLay = useCallback((e: LayoutChangeEvent) => onLayout(pane.name, e), [onLayout, pane.name])
+  return <Pressable {...aria.interactionProps} onLayout={onLay} style={[S.tabI, flex ? S.flexI : null, { paddingHorizontal: hPad, paddingVertical: vPad }, isC ? { backgroundColor: isActive ? color ?? tokens.colors.cardActiveBackground : tokens.colors.cardBackground } : null, tabStyle]}><View style={lblWrap}>{lblTxtWrap ? <View style={lblTxtWrap}><Text style={titleStyleArr} numberOfLines={ellipsis && !isJ ? 1 : undefined}>{rTitle}</Text></View> : <Text style={titleStyleArr} numberOfLines={ellipsis && !isJ ? 1 : undefined}>{rTitle}</Text>}{isRenderable(rDesc) && (isText(rDesc) ? <Text style={[S.descTxt, { color: descClr, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.descriptionSize, marginTop: descMT, textAlign: 'center' as const }, descJStyle, descriptionStyle]}>{rDesc}</Text> : <View style={[{ marginTop: descMT, alignItems: 'center' as const }, descJStyle]}>{rDesc}</View>)}{isRenderable(pane.badge) && <View style={{ marginTop: tokens.spacing.badgeMarginTop }}>{isText(pane.badge) ? <Text style={{ color: tokens.colors.badgeText, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.badgeTextSize }}>{pane.badge}</Text> : pane.badge}</View>}</View>{isC && !isLast && <View style={createHairlineView({ position: 'right', color: color ?? tokens.colors.cardBorder, top: 0, bottom: 0 })} />}</Pressable>
 }
 
 const TabBarItem = memo(TabBarItemInner)
@@ -184,7 +103,7 @@ const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref)
       Children.forEach(nodes, (node) => {
         if (!isValidElement(node)) return
         const element = node as React.ReactElement<{ children?: React.ReactNode }>
-        if (element.type === Fragment) { walk(element.props.children); return }
+        if (element.type === React.Fragment) { walk(element.props.children); return }
         if (!isTabPaneElement(element)) return
         const paneProps = element.props
         const name = paneProps.name ?? paneIndex

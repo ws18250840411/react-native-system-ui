@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, type CSSProperties } from 'react'
-import { Platform, Pressable, Text, View, type GestureResponderEvent, type StyleProp, type TextStyle } from 'react-native'
+import { Platform, Pressable, View, type GestureResponderEvent, type StyleProp, type TextStyle } from 'react-native'
 import { useRadio } from '@react-native-aria/radio'
 import { useToggleState } from '@react-stately/toggle'
 import type { RadioProps } from './types'

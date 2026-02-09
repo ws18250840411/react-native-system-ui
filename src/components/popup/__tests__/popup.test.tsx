@@ -330,7 +330,7 @@ describe('Popup', () => {
       jest.runAllTimers()
     })
 
-    const popupContent = tree.root.findAllByProps({ testID: 'popup-content' })[0]
+    void tree.root.findAllByProps({ testID: 'popup-content' })[0]
 
     
     
@@ -358,7 +358,7 @@ describe('Popup', () => {
     const findPopupContent = () => tree.root.findAllByProps({ testID: 'popup-content' })[0]
 
     const popupContentBefore = findPopupContent()
-    const beforeRange = getTranslateOutputRange(popupContentBefore.props.style, 'translateX')
+    void getTranslateOutputRange(popupContentBefore.props.style, 'translateX')
     
     
 
@@ -369,7 +369,7 @@ describe('Popup', () => {
     })
 
     const popupContentAfter = findPopupContent()
-    const afterRange = getTranslateOutputRange(popupContentAfter.props.style, 'translateX')
+    void getTranslateOutputRange(popupContentAfter.props.style, 'translateX')
     
     
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, View, type ViewStyle } from 'react-native'
+import { Pressable, View, type ViewStyle } from 'react-native'
 import { useAriaPress } from '../../hooks'
 import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
 import { resolveGapInput, useSpaceTokens } from './tokens'
@@ -35,20 +35,28 @@ export const Space = React.memo((props: SpaceProps) => {
   const shouldBlock = blockProp ?? !isHorizontal
   const resolvedAlign: SpaceAlign = alignProp ?? (isHorizontal ? 'center' : 'stretch')
   const shouldFillOrMaxAlign = isHorizontal && ((fillProp ?? false) || shouldJustify)
-  const containerBoxStyle: ViewStyle = { flexDirection: isHorizontal ? 'row' : 'column', flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap', alignItems: alignMap[resolvedAlign], justifyContent: justifyMap[justifyForStyle], width: shouldBlock ? '100%' : undefined, columnGap: isHorizontal ? horizontalGap : undefined, rowGap: verticalGap }
+  const containerBoxStyle: ViewStyle = {
+    flexDirection: isHorizontal ? 'row' : 'column',
+    flexWrap: isHorizontal && wrap ? 'wrap' : 'nowrap',
+    alignItems: alignMap[resolvedAlign],
+    justifyContent: justifyMap[justifyForStyle],
+    width: shouldBlock ? '100%' : undefined,
+    columnGap: isHorizontal ? horizontalGap : undefined,
+    rowGap: verticalGap,
+  }
+  const defaultTextStyle = { fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.fontSize }
   const childrenArray = React.Children.toArray(children).filter(isRenderable)
   const content: React.ReactNode[] = []
   for (let i = 0; i < childrenArray.length; i++) {
     const child = childrenArray[i]
     const key: React.Key = React.isValidElement(child) && child.key != null ? child.key : i
     const flexStyle: ViewStyle | undefined = shouldFillOrMaxAlign ? { flexGrow: 1, flexBasis: 0, minWidth: 0 } : !isHorizontal && (fillProp || shouldBlock) ? { width: '100%' } : undefined
-    content.push(<View key={key} style={flexStyle}>{renderTextOrNode(child)}</View>)
-    if (divider && i < childrenArray.length - 1) content.push(<View key={`divider-${String(key)}`}>{renderTextOrNode(divider)}</View>)
+    content.push(<View key={key} style={flexStyle}>{renderTextOrNode(child, defaultTextStyle)}</View>)
+    if (divider && i < childrenArray.length - 1) content.push(<View key={`divider-${String(key)}`}>{renderTextOrNode(divider, defaultTextStyle)}</View>)
   }
   const isInteractive = isFunction(onClick)
   const { interactionProps, states } = useAriaPress({ disabled: !isInteractive, onPress: onClick, extraProps: isInteractive ? { accessibilityRole: 'button' } : undefined })
   if (isInteractive) return <Pressable style={[tokens.layout.container, containerBoxStyle, style, states.pressed && { opacity: 0.85 }]} {...interactionProps} {...rest}>{content}</Pressable>
   return <View style={[tokens.layout.container, containerBoxStyle, style]} {...rest}>{content}</View>
 })
-
 Space.displayName = 'Space'

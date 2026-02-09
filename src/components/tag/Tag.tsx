@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
+import { Pressable, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
 import { Close } from 'react-native-system-icon'
 import { createHairlineView, isFunction, renderTextOrNode } from '../../utils'
 import { isRenderable } from '../../utils/validate'

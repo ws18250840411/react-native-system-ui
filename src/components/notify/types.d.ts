@@ -27,6 +27,7 @@ export interface NotifyTokens {
     variants: Record<NotifyType, { background: string; text: string }>
   }
   typography: {
+    fontFamily: string
     fontSize: number
     lineHeight: number
   }

@@ -3,7 +3,7 @@ import type { Foundations } from '../../design-system/tokens'
 import type { SpaceGap, SpaceSizePreset, SpaceTokens } from './types'
 
 const createSpaceTokens = (foundations: Foundations): SpaceTokens => {
-  const { spacing } = foundations
+  const { spacing, fontSize, typography } = foundations
   return {
     defaults: {
       direction: 'horizontal',
@@ -12,6 +12,10 @@ const createSpaceTokens = (foundations: Foundations): SpaceTokens => {
     },
     layout: {
       container: {},
+    },
+    typography: {
+      fontFamily: typography.fontFamily,
+      fontSize: fontSize.sm,
     },
     sizing: {
       presets: {

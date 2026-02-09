@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect, useImperativeHandle, forwardRef, memo, useMemo, Children, isValidElement, type ReactElement, type RefAttributes, type Ref } from 'react'
-import { FlatList, View, StyleSheet, useWindowDimensions, Platform, type NativeScrollEvent, type NativeSyntheticEvent, type LayoutChangeEvent } from 'react-native'
+import { FlatList, View, StyleSheet, Platform, type NativeScrollEvent, type NativeSyntheticEvent, type LayoutChangeEvent } from 'react-native'
 import { clamp } from '../../utils/number'
 import type { SwiperProps, SwiperInstance, SwiperItemProps } from './types'
 import SwiperPagIndicator from './SwiperPagIndicator'
@@ -25,7 +25,6 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   const momRef = useRef(false)
   const dragRef = useRef<number | null>(null)
   const isWeb = Platform.OS === 'web'
-  const { width: wW, height: wH } = useWindowDimensions()
   const [layout, setLayout] = useState({ width: 0, height: 0 })
 
   const onLayout = useCallback((e: LayoutChangeEvent) => {
@@ -51,8 +50,8 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   const curRef = useRef(initReal)
   const [curIdx, setCurIdx] = useState(initReal)
   const ready = layout.width > 0 && layout.height > 0
-  const mainSz = vertical ? (layout.height || wH || 1) : (layout.width || wW || 1)
-  const crossSz = vertical ? (layout.width || wW || 1) : (layout.height || wH || 1)
+  const mainSz = vertical ? layout.height : layout.width
+  const crossSz = vertical ? layout.width : layout.height
   const itemSz = useMemo(() => ({ width: vertical ? crossSz : mainSz, height: vertical ? mainSz : crossSz }), [vertical, mainSz, crossSz])
 
   const clearAuto = useCallback(() => { if (autoRef.current) { clearTimeout(autoRef.current); autoRef.current = null } }, [])
@@ -157,9 +156,13 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
     onPointerLeave: () => { if (dragRef.current != null) { dragRef.current = null; interRef.current = false; schedule() } },
   } as Record<string, any>) : undefined
 
+  if (!ready) {
+    return <View style={[S.ctr, style]} onLayout={onLayout} testID={testID} />
+  }
+
   return (
     <View accessibilityRole="adjustable" accessibilityLabel={`swiper, ${curIdx + 1} of ${count}`} accessibilityValue={{ min: 0, max: count - 1, now: curIdx }} style={[S.ctr, webMouse && S.web, style]} onLayout={onLayout} testID={testID} {...webMouse}>
-      <FlatList ref={listRef} data={display} renderItem={renderSlide as any} keyExtractor={keyEx} horizontal={!vertical} getItemLayout={getLayout} initialScrollIndex={ready ? initDisp : undefined} scrollEnabled={touchable && count > 1} removeClippedSubviews={!shouldLoop || !loopAll} disableVirtualization={shouldLoop && loopAll} initialNumToRender={shouldLoop ? (loopAll ? dCount : 3) : 3} maxToRenderPerBatch={shouldLoop ? (loopAll ? dCount : 3) : 3} windowSize={shouldLoop ? (loopAll ? dCount : 7) : 5} pagingEnabled snapToInterval={mainSz} decelerationRate="fast" showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} onScrollBeginDrag={onDragBegin} onScroll={onScroll} scrollEventThrottle={tokens.defaults.scrollEventThrottle} onScrollEndDrag={onDragEnd} onMomentumScrollBegin={onMomBegin} onMomentumScrollEnd={onEnd} onScrollToIndexFailed={onFail} />
+      <FlatList ref={listRef} data={display} renderItem={renderSlide as any} keyExtractor={keyEx} horizontal={!vertical} getItemLayout={getLayout} initialScrollIndex={initDisp} scrollEnabled={touchable && count > 1} removeClippedSubviews={!shouldLoop || !loopAll} disableVirtualization={shouldLoop && loopAll} initialNumToRender={shouldLoop ? (loopAll ? dCount : 3) : 3} maxToRenderPerBatch={shouldLoop ? (loopAll ? dCount : 3) : 3} windowSize={shouldLoop ? (loopAll ? dCount : 7) : 5} pagingEnabled snapToInterval={mainSz} decelerationRate="fast" showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} onScrollBeginDrag={onDragBegin} onScroll={onScroll} scrollEventThrottle={tokens.defaults.scrollEventThrottle} onScrollEndDrag={onDragEnd} onMomentumScrollBegin={onMomBegin} onMomentumScrollEnd={onEnd} onScrollToIndexFailed={onFail} />
       <View pointerEvents="none" style={[S.ind, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation }]}>{indNode}</View>
     </View>
   )

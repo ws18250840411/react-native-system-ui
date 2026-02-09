@@ -40,15 +40,15 @@ const NavBarBaseImpl: React.FC<NavBarProps> = props => {
     const arrowNode = isLeft ? (leftArrow === true ? <ArrowLeft size={18} fill={sideColor} color={sideColor} style={dir === 'rtl' ? { transform: [{ scaleX: -1 }] } : undefined} /> : (isRenderable(leftArrow) && leftArrow)) : null
     const hasAction = !!handler || isRenderable(arrowNode) || isRenderable(sideText) || isRenderable(sideIcon)
     if (!hasAction) return <View style={tokens.layout.sidePlaceholder} />
-    const content = <>{arrowNode}{sideIcon}{isRenderable(sideText) ? isText(sideText) ? <Text numberOfLines={1} style={[tokens.layout.sideText, { color: sideColor }]}>{sideText}</Text> : sideText : null}</>
+    const content = <>{arrowNode}{isRenderable(sideIcon) ? sideIcon : null}{isRenderable(sideText) ? isText(sideText) ? <Text numberOfLines={1} style={[tokens.layout.sideText, { color: sideColor, fontFamily: tokens.typography.fontFamily }]}>{sideText}</Text> : sideText : null}</>
     const sideStyles = [tokens.layout.side, !isLeft && tokens.layout.rightAlign, sideStyle]
     if (!handler) return <View testID={`rv-navbar-${side}`} style={sideStyles}>{content}</View>
     return <Pressable hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }} testID={`rv-navbar-${side}`} style={sideStyles} {...press.interactionProps}>{content}</Pressable>
   }
   const centerContent = isRenderable(children) ? children : (
     <View style={tokens.layout.titleWrapper}>
-      {isRenderable(title) && renderTextOrNode(title, [tokens.layout.title, { color: resolvedColor, fontSize: tokens.typography.titleSize, fontWeight: tokens.typography.titleWeight }, titleStyle], { numberOfLines: 1 })}
-      {isRenderable(description) && renderTextOrNode(description, [tokens.layout.description, { color: tintColor ?? tokens.colors.description, fontSize: tokens.typography.descriptionSize }, descriptionStyle], { numberOfLines: 1 })}
+      {isRenderable(title) && renderTextOrNode(title, [tokens.layout.title, { color: resolvedColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.titleSize, fontWeight: tokens.typography.titleWeight }, titleStyle], { numberOfLines: 1 })}
+      {isRenderable(description) && renderTextOrNode(description, [tokens.layout.description, { color: tintColor ?? tokens.colors.description, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.descriptionSize }, descriptionStyle], { numberOfLines: 1 })}
     </View>
   )
   const navbarBar = (

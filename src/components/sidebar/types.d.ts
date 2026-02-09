@@ -29,8 +29,10 @@ export interface SidebarTokens {
     indicator: string
   }
   typography: {
+    fontFamily: string
     fontSize: number
     fontWeight: NonNullable<TextStyle['fontWeight']>
+    contentFontSize: number
   }
   sizing: {
     width: number

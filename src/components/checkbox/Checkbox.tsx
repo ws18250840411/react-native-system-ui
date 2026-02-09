@@ -5,7 +5,7 @@ import { useToggleState } from '@react-stately/toggle'
 import type { CheckboxProps } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
-import { createHairlineView, renderTextOrNode } from '../../utils'
+import { createHairlineView } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 
 const EMPTY_CHECKBOX_GROUP_STATE = { value: [] as string[], isDisabled: false, isReadOnly: false, isSelected: () => false, setValue: () => {}, addValue: () => {}, removeValue: () => {}, toggleValue: () => {} } as any

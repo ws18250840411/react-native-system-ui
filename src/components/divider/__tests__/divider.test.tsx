@@ -50,7 +50,7 @@ describe('Divider', () => {
     
     
     
-    const root = tree.root.findByType(View) 
+    void tree.root.findByType(View) 
     
     
     
@@ -62,7 +62,7 @@ describe('Divider', () => {
     
     
     
-    const children = container.props.children
+    void container.props.children
     
     
     

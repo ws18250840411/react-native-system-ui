@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
-import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native'
+import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, View, type ViewStyle } from 'react-native'
 import { useLocale } from '../config-provider/useLocale'
 import { nativeDriverEnabled } from '../../platform'
 import { useReducedMotion } from '../../hooks/animation'
@@ -22,7 +22,7 @@ const ActionButton = (props: ActionButtonProps) => {
   return (
     <Pressable accessibilityRole="button" disabled={disabled || loading} style={({ pressed }) => [S.btn, { height: tokens.sizes.actionHeight, opacity: pressed && !disabled && !loading ? 0.8 : 1 }]} onPress={disabled || loading ? undefined : onPress}>
       {divStyle && <View style={divStyle} pointerEvents="none" />}
-      {loading ? <ActivityIndicator size="small" color={txtColor} /> : renderTextOrNode(text ?? '', { color: txtColor, fontSize: tokens.typography.actionSize, fontWeight: tokens.typography.actionWeight })}
+      {loading ? <ActivityIndicator size="small" color={txtColor} /> : renderTextOrNode(text ?? '', { color: txtColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.actionSize, fontWeight: tokens.typography.actionWeight })}
     </Pressable>
   )
 }
@@ -86,8 +86,8 @@ const DialogImpl: React.FC<DialogProps> = props => {
   useEffect(() => () => { scaleAnimRef.current?.stop() }, [])
   const widthStyle = useMemo(() => width ? isNumber(width) ? { width } : { width: String(width) as ViewStyle['width'] } : { width: '90%' as ViewStyle['width'], maxWidth: tokens.sizes.maxWidth }, [tokens.sizes.maxWidth, width])
   const titleWrapStyle = useMemo(() => hTitle ? [S.titleWrap, { paddingTop: hContent ? tokens.spacing.titlePaddingTop : tokens.spacing.titleIsolatedPadding, paddingBottom: hContent ? 0 : tokens.spacing.titleIsolatedPadding, paddingHorizontal: hContent ? tokens.spacing.paddingHorizontal : 0, marginBottom: hContent ? tokens.spacing.titleGap : 0 }] : null, [hContent, hTitle, tokens.spacing.paddingHorizontal, tokens.spacing.titleGap, tokens.spacing.titleIsolatedPadding, tokens.spacing.titlePaddingTop])
-  const titleTxtStyle = useMemo(() => hTitle ? [S.title, { color: tokens.colors.title, fontSize: tokens.typography.titleSize, lineHeight: tokens.typography.titleLineHeight, fontWeight: tokens.typography.titleWeight }, titleStyle] : null, [hTitle, titleStyle, tokens.colors.title, tokens.typography.titleLineHeight, tokens.typography.titleSize, tokens.typography.titleWeight])
-  const msgTxtStyle = useMemo(() => [S.msg, { color: isRound ? tokens.colors.title : tokens.colors.message, fontSize: tokens.typography.messageSize, lineHeight: tokens.typography.messageLineHeight, textAlign: messageAlign }, messageStyle], [isRound, messageAlign, messageStyle, tokens.colors.message, tokens.colors.title, tokens.typography.messageLineHeight, tokens.typography.messageSize])
+  const titleTxtStyle = useMemo(() => hTitle ? [S.title, { color: tokens.colors.title, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.titleSize, lineHeight: tokens.typography.titleLineHeight, fontWeight: tokens.typography.titleWeight }, titleStyle] : null, [hTitle, titleStyle, tokens.colors.title, tokens.typography.fontFamily, tokens.typography.titleLineHeight, tokens.typography.titleSize, tokens.typography.titleWeight])
+  const msgTxtStyle = useMemo(() => [S.msg, { color: isRound ? tokens.colors.title : tokens.colors.message, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.messageSize, lineHeight: tokens.typography.messageLineHeight, textAlign: messageAlign }, messageStyle], [isRound, messageAlign, messageStyle, tokens.colors.message, tokens.colors.title, tokens.typography.fontFamily, tokens.typography.messageLineHeight, tokens.typography.messageSize])
   const msgContentStyle = useMemo(() => !hChildren ? { alignItems: messageAlign === 'center' ? ('center' as const) : messageAlign === 'left' ? ('flex-start' as const) : ('flex-end' as const) } : null, [hChildren, messageAlign])
   const msgWrapStyle = useMemo(() => [S.msgWrap, { paddingTop: hTitle ? tokens.spacing.messagePaddingTop : tokens.spacing.messagePadding, paddingBottom: isRound ? tokens.spacing.roundFooterPadding : tokens.spacing.messagePadding, paddingHorizontal: tokens.spacing.messagePaddingHorizontal }], [hTitle, isRound, tokens.spacing.messagePadding, tokens.spacing.messagePaddingHorizontal, tokens.spacing.messagePaddingTop, tokens.spacing.roundFooterPadding])
   const footerBorderStyle = useMemo(() => ([S.footerBorder, createHairlineView({ position: 'top', color: tokens.colors.divider, left: 0, right: 0, top: 0 })]), [tokens.colors.divider])

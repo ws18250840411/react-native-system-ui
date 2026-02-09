@@ -96,6 +96,7 @@ describe('Form', () => {
     await act(async () => {
       result = await formRef?.submit()
     })
+    void result
     expect(onFinish).not.toHaveBeenCalled()
 
     

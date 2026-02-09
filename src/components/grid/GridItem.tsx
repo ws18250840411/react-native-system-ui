@@ -1,7 +1,8 @@
 import React, { useContext, useMemo } from 'react'
-import { Platform, Pressable, Text, View, type DimensionValue, type ViewStyle } from 'react-native'
+import { Platform, Pressable, View, type DimensionValue, type ViewStyle } from 'react-native'
+import { Text } from '../../design-system'
 import Badge from '../badge'
-import { createHairlineView, isFunction, isRenderable, isText } from '../../utils'
+import { createHairlineView, isFunction, isRenderable, isText, renderTextOrNode } from '../../utils'
 import type { GridItemProps } from './types'
 import { GridContext } from './GridContext'
 
@@ -18,7 +19,7 @@ const GridItemImpl: React.FC<GridItemProps> = p => {
   const ht = isRenderable(text)
   const ric = icp ?? ic ?? t.colors.text
   const icn = useMemo(() => {
-    if (children) return children
+    if (children) return isText(children) ? renderTextOrNode(children, [t.layout.text, { color: t.colors.text, fontSize: t.typography.fontSize, lineHeight: t.typography.lineHeight, fontFamily: t.typography.fontFamily, fontWeight: t.typography.fontWeight }, textStyle]) : children
     let ie: React.ReactNode = null
     if (icon || badge || dot) {
       const { style: bws, ...br } = badge ?? {}

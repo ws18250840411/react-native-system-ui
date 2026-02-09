@@ -4,17 +4,48 @@ import { withAlpha } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { createHairlineView } from '../../utils/hairline'
 import { ensureSpace } from '../../utils/string'
-import { isFiniteNumber, isFunction, isString, renderTextOrNode } from '../../utils'
+import { isFiniteNumber, isFunction, isString } from '../../utils'
 import { useAriaPress } from '../../hooks'
 import type { ButtonProps, ButtonShadowLevel } from './types'
 import { ButtonGroupContext } from './ButtonContext'
 import { useButtonTokens } from './tokens'
 
-const clampShadowLevel = (level: number): ButtonShadowLevel => level <= 1 ? 1 : level >= 3 ? 3 : level as ButtonShadowLevel
+const clampShadowLevel = (level: number): ButtonShadowLevel =>
+  level <= 1 ? 1 : level >= 3 ? 3 : level as ButtonShadowLevel
+
 const ROUND_CORNER_STYLE = { overflow: 'hidden' as const }
+
 const ButtonImpl = (props: ButtonProps, forwardedRef: React.ForwardedRef<React.ElementRef<typeof Pressable>>) => {
   const group = useContext(ButtonGroupContext)
-  const { text, children, icon, iconPosition: iconPositionProp, type: typeProp, size: sizeProp, color, textColor: textColorProp, plain: plainProp, block: blockProp, round: roundProp, square: squareProp, hairline: hairlineProp, shadow: shadowProp, loading: loadingProp, loadingText, loadingIndicator, loadingSize: loadingSizeProp, disabled: disabledProp, allowFontScaling: allowFontScalingProp, maxFontSizeMultiplier, rippleColor: rippleColorProp, contentStyle, textStyle, tokensOverride, style, ...pressableProps } = props
+  const {
+    text,
+    children,
+    icon,
+    iconPosition: iconPositionProp,
+    type: typeProp,
+    size: sizeProp,
+    color,
+    textColor: textColorProp,
+    plain: plainProp,
+    block: blockProp,
+    round: roundProp,
+    square: squareProp,
+    hairline: hairlineProp,
+    shadow: shadowProp,
+    loading: loadingProp,
+    loadingText,
+    loadingIndicator,
+    loadingSize: loadingSizeProp,
+    disabled: disabledProp,
+    allowFontScaling: allowFontScalingProp,
+    maxFontSizeMultiplier,
+    rippleColor: rippleColorProp,
+    contentStyle,
+    textStyle,
+    tokensOverride,
+    style,
+    ...pressableProps
+  } = props
   const tokens = useButtonTokens(tokensOverride)
   const type = typeProp ?? group?.type ?? tokens.defaults.type
   const size = sizeProp ?? group?.size ?? tokens.defaults.size
@@ -48,7 +79,13 @@ const ButtonImpl = (props: ButtonProps, forwardedRef: React.ForwardedRef<React.E
   const { onPress, onPressIn, onPressOut, accessibilityLabel, accessibilityHint, accessibilityRole, accessibilityState, android_ripple: androidRippleProp, ...viewProps } = pressableProps
   const { interactionProps, states } = useAriaPress({ disabled: isDisabled, onPress: onPress || undefined, onPressStart: onPressIn || undefined, onPressEnd: onPressOut || undefined })
   const opacity = disabled ? tokens.states.disabledOpacity : loading ? tokens.states.loadingOpacity : states.pressed ? tokens.states.pressedOpacity : 1
-  const computedTextStyle = useMemo(() => ({ fontFamily: tokens.typography.fontFamily, fontWeight: tokens.typography.fontWeight, fontSize: sizeTokens.fontSize, lineHeight: sizeTokens.fontSize * tokens.typography.lineHeightMultiplier, color: textColor }), [tokens.typography, sizeTokens.fontSize, textColor])
+  const computedTextStyle = useMemo(() => ({
+    fontFamily: tokens.typography.fontFamily,
+    fontWeight: tokens.typography.fontWeight,
+    fontSize: sizeTokens.fontSize,
+    lineHeight: sizeTokens.fontSize * tokens.typography.lineHeightMultiplier,
+    color: textColor,
+  }), [tokens.typography, sizeTokens.fontSize, textColor])
   const iconGap = tokens.spacing.iconGap
   const renderIcon = () => {
     if (!icon) return null
@@ -87,19 +124,30 @@ const ButtonImpl = (props: ButtonProps, forwardedRef: React.ForwardedRef<React.E
     return { color: rippleColor, borderless: false }
   }, [androidRippleProp, rippleColorProp, plain, textColor, type, color, tokens.colors.ripple])
   return (
-    <Pressable ref={forwardedRef} disabled={isDisabled} style={[tokens.layout.base, { minHeight: sizeTokens.height, paddingHorizontal: sizeTokens.paddingHorizontal, borderRadius: borderRadius, backgroundColor: backgroundColor, borderColor: useHairlineOverlay ? 'transparent' : borderColor, borderWidth: borderWidth, opacity: opacity }, Platform.OS === 'android' && borderRadius > 0 && !shadowStyle ? ROUND_CORNER_STYLE : null, block ? tokens.layout.block : null, shadowStyle, style]} android_ripple={resolvedAndroidRipple} {...interactionProps} accessibilityState={mergedAccessibilityState} accessibilityRole={accessibilityRole ?? 'button'} accessibilityLabel={resolvedAccessibilityLabel} accessibilityHint={accessibilityHint} {...viewProps}>
+    <Pressable
+      ref={forwardedRef}
+      disabled={isDisabled}
+      style={[
+        tokens.layout.base,
+        { minHeight: sizeTokens.height, paddingHorizontal: sizeTokens.paddingHorizontal, borderRadius, backgroundColor, borderColor: useHairlineOverlay ? 'transparent' : borderColor, borderWidth, opacity },
+        Platform.OS === 'android' && borderRadius > 0 && !shadowStyle ? ROUND_CORNER_STYLE : null,
+        block ? tokens.layout.block : null,
+        shadowStyle,
+        style,
+      ]}
+      android_ripple={resolvedAndroidRipple}
+      {...interactionProps}
+      accessibilityState={mergedAccessibilityState}
+      accessibilityRole={accessibilityRole ?? 'button'}
+      accessibilityLabel={resolvedAccessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      {...viewProps}
+    >
       <View style={[tokens.layout.content, contentStyle]}>
         {loading ? (
-          <>
-            {renderLoading()}
-            {renderLabel()}
-          </>
+          <>{renderLoading()}{renderLabel()}</>
         ) : (
-          <>
-            {icon && iconPosition === 'left' && renderIcon()}
-            {renderLabel()}
-            {icon && iconPosition === 'right' && renderIcon()}
-          </>
+          <>{icon && iconPosition === 'left' && renderIcon()}{renderLabel()}{icon && iconPosition === 'right' && renderIcon()}</>
         )}
       </View>
       {useHairlineOverlay && <View style={createHairlineView({ position: 'all', color: borderColor, borderRadius })} />}

@@ -57,9 +57,9 @@ const PopupImpl: React.FC<PopupProps> = props => {
     const { colors: c, spacing: s, typography: t, layout: l } = tokens
     return {
       popup: { backgroundColor: c.background, padding: s.padding, ...shadow } as ViewStyle,
-      title: { color: c.title, fontSize: t.titleSize, fontWeight: t.titleWeight, marginHorizontal: s.descriptionHorizontal, textAlign: 'center' as const },
+      title: { color: c.title, fontFamily: t.fontFamily, fontSize: t.titleSize, fontWeight: t.titleWeight, marginHorizontal: s.descriptionHorizontal, textAlign: 'center' as const },
       titleWrap: { marginTop: s.titleTop, marginBottom: s.titleBottom, marginHorizontal: s.descriptionHorizontal, alignItems: 'center' as const },
-      desc: { color: c.description, fontSize: t.descriptionSize, lineHeight: t.descriptionLineHeight },
+      desc: { color: c.description, fontFamily: t.fontFamily, fontSize: t.descriptionSize, lineHeight: t.descriptionLineHeight },
       descWrap: { marginHorizontal: s.descriptionHorizontal, marginBottom: s.descriptionBottom } as ViewStyle,
       closeBase: { minWidth: s.closeIconSize, minHeight: s.closeIconSize, padding: s.closeIconPadding } as ViewStyle,
       closeDef: { width: s.closeIconSize, height: s.closeIconSize } as ViewStyle,

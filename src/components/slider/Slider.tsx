@@ -10,7 +10,7 @@ import { useSliderTokens } from './tokens'
 import { parseNumber } from '../../utils/number'
 import { createHairlineView } from '../../utils/hairline'
 import { clamp } from '../../utils'
-import { isFunction, isFiniteNumber, isRenderable } from '../../utils/validate'
+import { isFunction, isFiniteNumber } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
 
 type TrackLayout = { width: number; height: number; x: number; y: number }

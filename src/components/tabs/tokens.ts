@@ -52,6 +52,7 @@ export interface TabsTokens {
     background: string
   }
   typography: {
+    fontFamily: string
     titleSize: number
     titleWeight: NonNullable<TextStyle['fontWeight']>
     titleActiveWeight: NonNullable<TextStyle['fontWeight']>
@@ -97,7 +98,7 @@ export interface TabsTokens {
 }
 
 const createTokens = (foundations: Foundations): TabsTokens => {
-  const { palette, spacing, fontSize, radii } = foundations
+  const { palette, spacing, fontSize, radii, typography } = foundations
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
@@ -148,6 +149,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       background: '#ffffff',
     },
     typography: {
+      fontFamily: typography.fontFamily,
       titleSize: fontSize.sm,
       titleWeight: foundations.typography.weight.medium,
       titleActiveWeight: foundations.typography.weight.semiBold,

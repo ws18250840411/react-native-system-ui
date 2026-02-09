@@ -54,7 +54,7 @@ describe('Radio', () => {
     expect(tree.root.findByProps({ testID: 'custom-label' })).toBeTruthy()
   })
   it('supports custom iconRender', () => {
-    const iconRender = jest.fn(({ checked }) => <View testID="custom-icon" />)
+    const iconRender = jest.fn(({ checked: _checked }) => <View testID="custom-icon" />)
     const tree = renderer.create(
       <Radio checked={true} iconRender={iconRender} />
     )
