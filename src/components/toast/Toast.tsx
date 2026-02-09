@@ -119,7 +119,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
       {needsSafeAreaTop && <SafeAreaView edge="top" pointerEvents="none" />}
       <Pressable disabled={!closeOnClick} {...pressProps.interactionProps}>
         <Animated.View renderToHardwareTextureAndroid shouldRasterizeIOS style={[S.t, toastStyle, style]}>
-          {iconNode && <View style={iconWrapperStyle}>{iconNode}</View>}
+          {iconNode && <View style={iconWrapperStyle}>{isText(iconNode) ? renderTextOrNode(iconNode, [{ color: colors.text, fontSize: tokens.iconSize }]) : iconNode}</View>}
           {hasMessage && (isText(message) ? renderTextOrNode(message, [S.m, messageStyle, textStyle]) : <View style={S.mw}>{message}</View>)}
         </Animated.View>
       </Pressable>

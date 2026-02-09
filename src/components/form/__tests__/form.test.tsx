@@ -396,4 +396,16 @@ describe('Form', () => {
 
     expect(watcher.props.children).toBe('hello')
   })
+
+  it('does not crash when footer is a string', () => {
+    expect(() => {
+      create(
+        <Form footer="提交">
+          <FormItem name="name">
+            <Input />
+          </FormItem>
+        </Form>
+      )
+    }).not.toThrow()
+  })
 })

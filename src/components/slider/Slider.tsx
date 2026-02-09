@@ -9,8 +9,8 @@ import type { SliderProps, SliderValue } from './types'
 import { useSliderTokens } from './tokens'
 import { parseNumber } from '../../utils/number'
 import { createHairlineView } from '../../utils/hairline'
-import { clamp } from '../../utils'
-import { isFunction, isFiniteNumber } from '../../utils/validate'
+import { clamp, renderTextOrNode } from '../../utils'
+import { isFunction, isFiniteNumber, isText } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
 
 type TrackLayout = { width: number; height: number; x: number; y: number }
@@ -92,7 +92,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({ index, orientation, ar
   const accessibilityProps = createAccessibilityProps(inputProps) as unknown as Partial<React.ComponentProps<typeof View>>
   return (
     <View {...handlers} {...accessibilityProps} pointerEvents={isDisabled ? 'none' : 'auto'} style={[content ? S.thw : S.t, webGestureStyle, thumbStyle]}>
-      {content ?? <View style={indicatorStyle} />}
+      {content != null ? (isText(content) ? renderTextOrNode(content as string | number, []) : content) : <View style={indicatorStyle} />}
       {!content && <View style={createHairlineView({ position: 'all', color: activeColor, borderRadius: size / 2 })} />}
     </View>
   )

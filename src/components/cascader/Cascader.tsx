@@ -52,7 +52,8 @@ const CascaderImpl: React.FC<CascaderProps> = props => {
 const CascaderOptionItem = React.memo(({ option, tabIndex, selected, activeColor, keys, optionRender, onSelect, tokens }: { option: CascaderOption; tabIndex: number; selected: boolean; activeColor: string; keys: FieldKeys; optionRender?: CascaderProps['optionRender']; onSelect: (option: CascaderOption, tabIndex: number) => void; tokens: CascaderTokens }) => {
   const ov = option[keys.valueKey]; const lbl = option[keys.textKey]; const dis = !!option.disabled; const baseCl = option.color ?? tokens.colors.optionText; const txtCl = dis ? tokens.colors.optionDisabled : selected ? option.color ?? activeColor : baseCl
   const txtStyle = [tokens.layout.optionText, { color: txtCl, fontSize: tokens.typography.optionTextSize }, selected ? { fontWeight: tokens.typography.optionTextActiveWeight } : null]
-  const cnt = optionRender ? optionRender({ option, selected }) : renderTextOrNode(lbl as React.ReactNode, txtStyle as any)
+  const rawCnt = optionRender ? optionRender({ option, selected }) : renderTextOrNode(lbl as React.ReactNode, txtStyle as any)
+  const cnt = isText(rawCnt) ? renderTextOrNode(rawCnt, txtStyle as any) : rawCnt
   return <Pressable testID={`cascader-option-${tabIndex}-${String(ov)}`} style={({ pressed }) => [tokens.layout.option, { minHeight: tokens.sizing.optionMinHeight, paddingVertical: tokens.spacing.optionPaddingVertical, paddingHorizontal: tokens.spacing.optionPaddingHorizontal }, pressed && !dis && { backgroundColor: tokens.colors.optionActiveBackground }]} onPress={() => onSelect(option, tabIndex)} disabled={dis}><View style={tokens.layout.optionContent}><View style={[tokens.layout.optionLabel, { marginRight: tokens.spacing.optionLabelMarginRight }]}>{cnt}</View>{selected ? <Checked size={tokens.sizing.selectedIconSize} fill={activeColor} color={activeColor} /> : null}</View></Pressable>
 })
 

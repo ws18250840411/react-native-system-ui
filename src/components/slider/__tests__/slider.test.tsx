@@ -204,6 +204,15 @@ describe('Slider', () => {
     expect(String(text.props.children)).not.toContain('NaN')
   })
 
+  it('does not crash when thumb/button is a string', () => {
+    expect(() => {
+      renderer.create(<Slider value={50} thumb="drag" />)
+    }).not.toThrow()
+    expect(() => {
+      renderer.create(<Slider range value={[20, 80]} leftThumb="L" rightThumb="R" />)
+    }).not.toThrow()
+  })
+
   it('falls back when max is NaN', () => {
     const tree = renderer.create(
       <Slider

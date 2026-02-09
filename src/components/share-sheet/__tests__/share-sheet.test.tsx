@@ -127,6 +127,20 @@ describe('ShareSheet', () => {
     expect(item1.length).toBeGreaterThan(0)
   })
 
+  it('does not crash when option icon is a string', () => {
+    expect(() => {
+      render(
+        <PortalHost>
+          <ShareSheet
+            visible
+            options={[[{ name: 'wechat', icon: 'wechat' }, { name: 'weibo', icon: 'weibo' }]]}
+            onClose={() => {}}
+          />
+        </PortalHost>
+      )
+    }).not.toThrow()
+  })
+
   it('forces popup placement and merges popup style', () => {
     const tree = render(
       <PortalHost>

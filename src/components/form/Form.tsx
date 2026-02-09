@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { View } from 'react-native'
-import { shallowEqualObject } from '../../utils'
+import { shallowEqualObject, renderTextOrNode } from '../../utils'
 import { isPromiseLike } from '../../utils/promise'
 import { isNumber, isString, isText } from '../../utils/validate'
 import type { FormInstance, FormItemRule, FormProps, FormSubscribeProps, NamePath, RegisteredFieldOptions } from './types'
@@ -90,7 +90,7 @@ const InternalFormImpl = (props: FormProps, ref: React.ForwardedRef<FormInstance
   }), [validateFields, validateWithDependencies, notify])
   useImperativeHandle(ref, () => formApi, [formApi])
   const ctxVal = useMemo((): FormContextValue => ({ getFieldValue: (name: NamePath) => getValueByName(valuesRef.current, name), setFieldValue, registerField, getFieldError: (name: NamePath) => errorsRef.current[serializeNamePath(name)], validateField: (name: NamePath, trigger?: string) => validateField(name, trigger), getFieldsValue: () => valuesRef.current, subscribe: (listener: (changedValues: Record<string, unknown>, allValues: Record<string, unknown>) => void) => { subscribersRef.current.add(listener); return () => subscribersRef.current.delete(listener) }, form: formApi, colon, labelWidth, showValidateMessage }), [setFieldValue, registerField, validateField, formApi, colon, labelWidth, showValidateMessage])
-  return <FormContext.Provider value={ctxVal}><View style={style} {...rest}>{children}{footer}</View></FormContext.Provider>
+  return <FormContext.Provider value={ctxVal}><View style={style} {...rest}>{children}{isText(footer) ? renderTextOrNode(footer, []) : footer}</View></FormContext.Provider>
 }
 
 const InternalFormRef = React.forwardRef<FormInstance, FormProps>(InternalFormImpl)

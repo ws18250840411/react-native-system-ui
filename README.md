@@ -119,13 +119,13 @@ export const AuroraBranding = () => (
 
 | 分类 | 组件 |
 | --- | --- |
-| **设计系统** | ConfigProvider、ThemeProvider、createTokens、themePresets（light / dark / aurora） |
+| **设计系统** | ConfigProvider、ThemeProvider、Text、createTokens、themePresets（light / dark / aurora） |
 | **基础展示** | Button、Badge、Cell、Collapse、Divider、Empty、Flex、Grid、Space、Tag、Typography、Loading、Avatar |
 | **反馈交互** | Toast、Dialog、ActionSheet、Notify、Overlay、Popup、Portal、NoticeBar、ShareSheet |
 | **表单输入** | Form、Field、Input、PasswordInput、Checkbox、Radio、Switch、Stepper、Rate、Picker、DatetimePicker、Calendar、Search、NumberKeyboard、Area、Cascader、Selector |
 | **导航布局** | Tabs、NavBar、Tabbar、Sidebar、Swiper（三端手势 + 桌面鼠标拖拽） |
 | **数据展示** | Image、ImagePreview、Skeleton、Progress、Circle、Slider、CountDown、WaterMark |
-| **基础设施** | SafeAreaView、PortalHost、OverlayProvider、locale（zhCN / enUS） |
+| **基础设施** | SafeAreaView、ErrorBoundary、PortalHost、OverlayProvider、locale（zhCN / enUS） |
 
 详细组件列表与开发状态见 [路线图](./docs/guide/roadmap.md)。
 
@@ -156,4 +156,4 @@ export const AuroraBranding = () => (
 
 ## 版本与反馈
 
-当前为 v0.0.7，欢迎 issue / PR。
+当前为 v1.0.2，欢迎 issue / PR。

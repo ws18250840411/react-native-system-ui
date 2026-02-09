@@ -51,6 +51,17 @@ describe('Tabbar', () => {
     expect(tree.root.findAllByType(SafeAreaView).length).toBe(1)
   })
 
+  it('does not crash when icon is a string', () => {
+    expect(() => {
+      renderer.create(
+        <Tabbar defaultValue="home">
+          <Item name="home" icon="home">首页</Item>
+          <Item name="me" icon="user">我的</Item>
+        </Tabbar>
+      )
+    }).not.toThrow()
+  })
+
   it('passes iconSize to items', () => {
     
     

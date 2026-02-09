@@ -4,7 +4,7 @@ import Popup from '../popup'
 import Swiper, { type SwiperInstance } from '../swiper'
 import type { ImagePreviewProps, ImagePreviewRef, ImagePreviewCloseReason } from './types'
 import { useImagePreviewTokens } from './tokens'
-import { isString } from '../../utils/validate'
+import { isString, isText } from '../../utils/validate'
 
 const clampIndex = (index: number, total: number) => total <= 0 ? 0 : Math.max(0, Math.min(total - 1, index))
 const indicatorSpacing = { bottom: 32 }
@@ -85,7 +85,7 @@ const ImagePreviewImpl = (props: ImagePreviewProps, ref: React.ForwardedRef<Imag
     return (
       <View style={[S.index, { top: spacing.indexTop }]} testID="rv-image-preview-index">
         <View style={[S.indexBadge, { backgroundColor: colors.indexBackground, borderRadius: radii.indexBadge, paddingHorizontal: spacing.indexPaddingHorizontal, paddingVertical: spacing.indexPaddingVertical }]}>
-          {indexRender ? indexRender({ index: current, len: total }) : <Text style={[S.indexText, { color: colors.indexText, fontFamily: typography.fontFamily, fontSize: typography.indexTextSize }]}>{indexText}</Text>}
+          {(() => { if (!indexRender) return <Text style={[S.indexText, { color: colors.indexText, fontFamily: typography.fontFamily, fontSize: typography.indexTextSize }]}>{indexText}</Text>; const node = indexRender({ index: current, len: total }); return isText(node) ? <Text style={[S.indexText, { color: colors.indexText, fontFamily: typography.fontFamily, fontSize: typography.indexTextSize }]}>{node}</Text> : node })()}
         </View>
       </View>
     )

@@ -4,7 +4,7 @@
 
 > 目标：在 React Native 上交付高质量移动端组件集，提供一致的无障碍能力与国际化支持，并同步文档与测试。
 
-## 1. 当前基线（v1.0.0）
+## 1. 当前基线（v1.0.2）
 
 - **已交付 55+ 组件**，覆盖基础展示、表单输入、反馈弹层、导航、数据选择、媒体等全部核心分类。
 - **设计系统**：ThemeProvider / ConfigProvider 下发 foundations 与 components overrides；内置 light / dark / aurora 三套主题预设。
@@ -14,7 +14,7 @@
 - **Overlay 系统**：Portal / OverlayStack 栈管理、BackHandler（Android）、popstate（Web）、滚动锁已就绪。
 - **错误边界**：ErrorBoundary 组件支持自定义 fallback、onError 回调与命令式 reset。
 - **平台适配**：createPlatformShadow（跨平台阴影）、nativeDriverEnabled（动画驱动）、measureInWindow（测量）、setBodyScrollLocked（滚动锁）等平台工具完备。
-- **测试**：66 个测试套件 / 482 个测试用例全部通过。
+- **测试**：72 个测试套件 / 522 个测试用例全部通过。
 
 ## 2. 里程碑
 
@@ -24,7 +24,7 @@
 | M1 表单与输入 | ✅ 已完成 | Field/Input/Form 及 Checkbox/Radio/Switch/Stepper/Search/Selector/NumberKeyboard | 组件 + 单测 + 文档（≥3 demo） |
 | M2 导航与行为 | ✅ 已完成 | Tabs/Tabbar/NavBar/Sidebar/ActionSheet/ShareSheet | Overlay 与手势复用、弹层交互一致 |
 | M3 数据与列表 | ✅ 已完成 | Picker/DatetimePicker/Calendar/Cascader/Area/Swiper/Image/ImagePreview/Skeleton | 列表滚动、懒加载、图片占位 |
-| M4 工程化与发行 | ✅ v1.0.0 已发布 | i18n / RTL / ErrorBoundary / 测试覆盖 / 文档完善 | 生产可用，66 套件 / 482 用例 |
+| M4 工程化与发行 | ✅ v1.0.2 已发布 | i18n / RTL / ErrorBoundary / 测试覆盖 / 文档完善 | 生产可用，72 套件 / 522 用例 |
 | M5 增强与扩展 | 🔜 规划中 | 动画/手势性能优化、更多业务组件 | 弹性动画预设、SubmitBar、Sku 等 |
 
 ## 3. 组件状态
@@ -33,7 +33,7 @@
 | --- | --- | --- | --- |
 | 布局 | Flex, Space | ✅ 已完成 | |
 | 基础展示 | Button, Badge, Cell, Collapse, Divider, Empty, Grid, Loading, NoticeBar, Popup, Portal, Progress, Slider, Tag, Toast, Typography, Icon, Image, Circle, CountDown, WaterMark, Avatar, Skeleton | ✅ 已完成 | 均有文档与 demo |
-| 设计/主题 | ConfigProvider, ThemeProvider, themePresets, createTokens | ✅ 已完成 | 含 light/dark/aurora 预设、i18n、RTL |
+| 设计/主题 | ConfigProvider, ThemeProvider, Text, themePresets, createTokens | ✅ 已完成 | 含 light/dark/aurora 预设、i18n、RTL |
 | 表单容器 | Form, Form.Item | ✅ 已完成 | 字段注册、校验、依赖追踪 |
 | 输入控件 | Field, Input, Search, PasswordInput | ✅ 已完成 | 受控 + 校验态 |
 | 选择控件 | Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Selector | ✅ 已完成 | 集成 useAriaToggle |
@@ -58,4 +58,4 @@
 2. **文档**：新增组件同步维护 `docs/components/<component>`，描述与 API 表统一规范。
 3. **测试**：逻辑层 `react-test-renderer`；手势类补 e2e 或录屏；Overlay/动画用快照与定时器测试。
 4. **国际化**：所有用户可见文案通过 locale 系统引用，token 默认值使用英文。
-5. **版本**：v1.0.0 已发布。后续遵循 SemVer 语义化版本。
+5. **版本**：v1.0.2 已发布。后续遵循 SemVer 语义化版本。

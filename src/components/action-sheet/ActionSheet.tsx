@@ -18,7 +18,7 @@ const ActionSheetHeader: React.FC<{ title: React.ReactNode; closeable: boolean; 
       <View style={tokens.layout.titleContainer}>
         {isText(title) ? renderTextOrNode(title, [tokens.layout.title, { color: colors.title, fontSize: typography.title }]) : <View style={tokens.layout.titleNode}>{title}</View>}
       </View>
-      {closeable && <Pressable style={tokens.layout.closeButton} accessibilityRole="button" hitSlop={8} {...closePress.interactionProps}>{React.isValidElement(closeIcon) ? React.cloneElement(closeIcon as React.ReactElement<{ fill?: string; color?: string }>, { fill: colors.description, color: colors.description }) : closeIcon}</Pressable>}
+      {closeable && <Pressable style={tokens.layout.closeButton} accessibilityRole="button" hitSlop={8} {...closePress.interactionProps}>{React.isValidElement(closeIcon) ? React.cloneElement(closeIcon as React.ReactElement<{ fill?: string; color?: string }>, { fill: colors.description, color: colors.description }) : renderTextOrNode(closeIcon, [{ color: colors.description }])}</Pressable>}
     </View>
   )
 })
@@ -29,7 +29,7 @@ const ActionSheetItem: React.FC<{ action: ActionSheetAction; index: number; toke
   const actionPress = useAriaPress({ disabled: !!disabled || !!loading, onPress: useCallback(() => onActionPress(action, index), [action, index, onActionPress]), extraProps: { accessibilityRole: 'menuitem' as any, accessibilityLabel: isText(name) ? String(name) : undefined, accessibilityState: { disabled: !!disabled, busy: !!loading }, testID: `rv-action-sheet-item-${index}` } })
   return (
     <Pressable style={({ pressed }: PressableStateCallbackType) => [tokens.layout.item, !!icon && tokens.layout.itemWithIcon, { paddingVertical: spacing.vertical, paddingHorizontal: spacing.horizontal, backgroundColor: pressed && !action.disabled && !action.loading ? colors.itemPressedBackground : colors.itemBackground }, action.style]} {...actionPress.interactionProps}>
-      {!!icon && <View style={tokens.layout.icon}>{icon}</View>}
+      {!!icon && <View style={tokens.layout.icon}>{isText(icon) ? renderTextOrNode(icon, [{ color: colors.item }]) : icon}</View>}
       {loading ? <Loading size={20} /> : isRenderable(name) ? (
         <View style={tokens.layout.itemTextWrapper}>
           {renderTextOrNode(name, [tokens.layout.itemText, { color: action.disabled ? colors.disabled : action.color ?? colors.item, fontSize: typography.item }])}

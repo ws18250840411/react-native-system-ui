@@ -217,4 +217,21 @@ describe('Cascader', () => {
 
     expect(onClickTab).toHaveBeenCalledWith(0, '广东省')
   })
+
+  it('does not crash when optionRender returns a string', async () => {
+    const options: CascaderOption[] = [
+      { text: 'A', value: 1 },
+      { text: 'B', value: 2 },
+    ]
+    expect(() => {
+      renderer.create(
+        <Cascader
+          options={options}
+          poppable={false}
+          showHeader={false}
+          optionRender={({ option }) => String(option.text)}
+        />,
+      )
+    }).not.toThrow()
+  })
 })

@@ -17,7 +17,7 @@
 │  aria · gesture · overlay · lifecycle            │
 ├──────────────────────────────────────────────────┤
 │  Design System  (src/design-system)              │
-│  ThemeProvider · createTokens · themePresets      │
+│  ThemeProvider · Text · createTokens · themePresets│
 ├──────────────────────────────────────────────────┤
 │  Platform  (src/platform)                        │
 │  animation · measure · scrollLock · history      │
@@ -29,7 +29,7 @@
 
 ### 1. Design System（`src/design-system`）
 
-- 仅包含基础 design tokens（颜色、间距、排版、圆角等）与 `ThemeProvider`，向 Context 下发 foundations 与 `value.components`。
+- 包含基础 design tokens（颜色、间距、排版、圆角等）、`ThemeProvider`、`Text`（主题感知文本组件），向 Context 下发 foundations 与 `value.components`。
 - foundations 由 `createTokens` 生成；现成主题使用 `themePresets`（light / dark / aurora）。
 - `createComponentTokensHook` 工厂函数为每个组件生成 `useXxxTokens` hook，自动合并 foundations → 全局组件 overrides → 实例 tokensOverride。
 

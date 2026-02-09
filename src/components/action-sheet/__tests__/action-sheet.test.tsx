@@ -200,6 +200,25 @@ describe('ActionSheet', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it('does not crash when action icon is a string', () => {
+    expect(() => {
+      renderInHost(
+        <ActionSheet
+          visible
+          actions={[{ name: 'Edit', icon: 'star' }]}
+        />
+      )
+    }).not.toThrow()
+  })
+
+  it('does not crash when closeIcon is a string', () => {
+    expect(() => {
+      renderInHost(
+        <ActionSheet visible title="Title" closeable closeIcon="X" />
+      )
+    }).not.toThrow()
+  })
+
   it('closes via onCancel when onClose is not provided', async () => {
     const onCancel = jest.fn()
     const tree = renderInHost(

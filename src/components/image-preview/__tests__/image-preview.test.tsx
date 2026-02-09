@@ -220,4 +220,22 @@ describe('ImagePreview', () => {
       tree.unmount()
     })
   })
+
+  it('does not crash when indexRender returns a string', () => {
+    expect(() => {
+      let tree!: renderer.ReactTestRenderer
+      act(() => {
+        tree = renderer.create(
+          <PortalHost>
+            <ImagePreview
+              visible
+              images={['https://a.png', 'https://b.png']}
+              indexRender={({ index, len }) => `${index + 1}/${len}`}
+            />
+          </PortalHost>
+        )
+      })
+      act(() => { tree.unmount() })
+    }).not.toThrow()
+  })
 })

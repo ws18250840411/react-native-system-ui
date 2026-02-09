@@ -193,6 +193,16 @@ describe('Toast', () => {
     })
   })
 
+  it('does not crash when icon is a string', () => {
+    expect(() => {
+      render(
+        <PortalHost>
+          <Toast visible icon="!" message="hello" duration={0} />
+        </PortalHost>
+      )
+    }).not.toThrow()
+  })
+
   it('accepts non-text message nodes', () => {
     const tree = render(
       <PortalHost>

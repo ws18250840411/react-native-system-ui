@@ -15,7 +15,7 @@ export default [
   },
   {
     "name": "form",
-    "size": 6893
+    "size": 6916
   },
   {
     "name": "dialog",
@@ -23,11 +23,11 @@ export default [
   },
   {
     "name": "cascader",
-    "size": 5816
+    "size": 5839
   },
   {
     "name": "slider",
-    "size": 5601
+    "size": 5641
   },
   {
     "name": "field",
@@ -51,7 +51,7 @@ export default [
   },
   {
     "name": "toast",
-    "size": 4846
+    "size": 4865
   },
   {
     "name": "popup",
@@ -63,7 +63,7 @@ export default [
   },
   {
     "name": "image-preview",
-    "size": 4532
+    "size": 4584
   },
   {
     "name": "checkbox",
@@ -91,7 +91,7 @@ export default [
   },
   {
     "name": "tabbar",
-    "size": 3715
+    "size": 3741
   },
   {
     "name": "collapse",
@@ -107,7 +107,7 @@ export default [
   },
   {
     "name": "action-sheet",
-    "size": 3340
+    "size": 3359
   },
   {
     "name": "datetime-picker",
