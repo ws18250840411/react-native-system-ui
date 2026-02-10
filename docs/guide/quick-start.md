@@ -139,6 +139,39 @@ export const App = ({ children }: { children: React.ReactNode }) => (
 
 `createTokens` 负责 foundations 深合并；组件级覆盖通过 `theme.components` 传入。若使用 ThemeProvider，则把 `theme` 改为 `value`、用 `<ThemeProvider value={...}>` 即可。
 
+## NativeWind（Tailwind CSS）支持
+
+如果项目使用了 [NativeWind](https://www.nativewind.dev/)，可一键为所有组件开启 `className` 支持，无需逐个注册：
+
+```tsx | pure
+import { cssInterop } from 'nativewind'
+import { enableNativeWind } from 'react-native-system-ui/nativewind'
+
+enableNativeWind(cssInterop)
+```
+
+在应用入口文件顶部调用即可，iOS / Android / Web 三端统一生效。之后所有组件均可使用 `className`：
+
+```tsx | pure
+<Button className="mt-4 rounded-lg" text="Tailwind 按钮" type="primary" />
+```
+
+**说明：**
+
+- `enableNativeWind` 会自动遍历组件库导出，将所有 React 组件注册 `className → style` 映射，组件库新增/删除组件时无需改动应用侧代码。
+- 当前仅映射 `className → style`，如需扩展其他 prop 映射（如 `contentContainerClassName`），可通过 `cssInterop` 对单个组件自行注册。
+- 若自引用导入在特殊环境下不可用，可手动传入模块对象作为降级：
+
+```tsx | pure
+import * as SystemUI from 'react-native-system-ui'
+import { cssInterop } from 'nativewind'
+import { enableNativeWind } from 'react-native-system-ui/nativewind'
+
+enableNativeWind(cssInterop, SystemUI)
+```
+
+> `nativewind` 为可选 peerDependency，不使用 NativeWind 时无需安装。
+
 ## 开发约定
 
 1. **Tokens 先行**：新设计维度（如间距、圆角）在 foundations 中定义，由组件消费。
