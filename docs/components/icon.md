@@ -17,6 +17,8 @@ simulator:
 pnpm add react-native-system-icon react-native-svg
 ```
 
+> `react-native-svg` 为 peerDependency，需要在宿主工程中显式安装。
+
 ## 引入
 
 ```tsx | pure

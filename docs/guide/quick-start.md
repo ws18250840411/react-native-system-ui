@@ -10,10 +10,12 @@ pnpm add react-native-system-ui react-native-svg
 yarn add react-native-system-ui react-native-svg
 
 # 如需在业务中直接使用图标组件（可 Tree Shaking）
-pnpm add react-native-system-icon
+pnpm add react-native-system-icon react-native-svg
 # 或者
-yarn add react-native-system-icon
+yarn add react-native-system-icon react-native-svg
 ```
+
+> `react-native-svg` 为 peerDependency，需要在宿主工程中显式安装。
 
 前置要求：宿主工程已安装 `react@>=18.2.0`、`react-native@>=0.79`。
 

@@ -17,7 +17,7 @@
 pnpm add react-native-system-ui react-native-svg
 
 # 如需在业务中直接使用图标组件（可 Tree Shaking）
-pnpm add react-native-system-icon
+pnpm add react-native-system-icon react-native-svg
 
 # 同时保证项目已安装 react 和 react-native（>=18.2 / >=0.79）
 ```
@@ -176,4 +176,4 @@ enableNativeWind(cssInterop)
 
 ## 版本与反馈
 
-当前为 v1.0.3，欢迎 issue / PR。
+当前为 v1.0.4，欢迎 issue / PR。
