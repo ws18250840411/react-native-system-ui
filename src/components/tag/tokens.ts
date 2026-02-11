@@ -14,6 +14,7 @@ const buildTone = (
 
 export const createTagTokens = (foundations: Foundations): TagTokens => {
   const { palette, radii, typography, opacity, spacing } = foundations
+  const surface = foundations.surface ?? '#ffffff'
 
   return {
     defaults: {
@@ -37,7 +38,7 @@ export const createTagTokens = (foundations: Foundations): TagTokens => {
       },
     },
     colors: {
-      plainBackground: '#ffffff',
+      plainBackground: surface,
       toneMap: {
         default: buildTone(palette, 'default', '#ffffff'),
         primary: buildTone(palette, 'primary'),

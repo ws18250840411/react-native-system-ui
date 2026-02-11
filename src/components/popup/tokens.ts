@@ -50,11 +50,11 @@ export interface PopupTokens {
 
 export const createPopupTokens = (foundations: Foundations): PopupTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
-
+  const surface = foundations.surface ?? '#ffffff'
   return {
     colors: {
       overlay: 'rgba(0,0,0,0.5)',
-      background: '#ffffff',
+      background: surface,
       title: palette.default[900],
       description: palette.default[500],
       closeIcon: palette.default[300],

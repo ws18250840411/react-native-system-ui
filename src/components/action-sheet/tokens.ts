@@ -6,7 +6,7 @@ const centered = { alignItems: 'center', justifyContent: 'center' } as const
 
 export const createActionSheetTokens = (foundations: Foundations): ActionSheetTokens => {
   const { palette, spacing, fontSize } = foundations
-  const white = '#ffffff'
+  const surface = foundations.surface ?? '#ffffff'
   return {
     defaults: {
       closeOnClickAction: false,
@@ -95,7 +95,7 @@ export const createActionSheetTokens = (foundations: Foundations): ActionSheetTo
       },
     },
     colors: {
-      background: white,
+      background: surface,
       title: palette.default[900],
       description: palette.default[500],
       item: palette.default[900],
@@ -103,9 +103,9 @@ export const createActionSheetTokens = (foundations: Foundations): ActionSheetTo
       cancel: palette.default[900],
       disabled: palette.default[400],
       border: palette.default[200],
-      itemBackground: white,
+      itemBackground: surface,
       itemPressedBackground: palette.default[100],
-      cancelBackground: white,
+      cancelBackground: surface,
       cancelGapBackground: palette.default[100] ?? '#f1f2f5',
     },
     typography: {

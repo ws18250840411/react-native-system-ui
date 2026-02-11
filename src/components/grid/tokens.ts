@@ -4,6 +4,7 @@ import type { GridTokens } from './types'
 
 export const createGridTokens = (foundations: Foundations): GridTokens => {
   const { palette, spacing, fontSize, typography, opacity } = foundations
+  const surface = foundations.surface ?? '#ffffff'
 
   return {
     defaults: {
@@ -77,7 +78,7 @@ export const createGridTokens = (foundations: Foundations): GridTokens => {
     colors: {
       border: palette.default[200],
       text: palette.default[600],
-      background: '#ffffff',
+      background: surface,
       active: palette.default[100],
     },
     typography: {

@@ -4,6 +4,7 @@ import type { CalendarTokens } from "./types"
 
 export const createCalendarTokens = (foundations: Foundations): CalendarTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const onPrimary = palette.primary.foreground ?? "#ffffff"
   return {
     defaults: {
@@ -81,7 +82,7 @@ export const createCalendarTokens = (foundations: Foundations): CalendarTokens =
       text: palette.default[800],
       weekend: palette.danger[500],
       disabled: palette.default[300],
-      background: "#ffffff",
+      background: surface,
       selectedBackground: palette.primary[500],
       selectedText: onPrimary,
       rangeBackground: palette.primary[100],

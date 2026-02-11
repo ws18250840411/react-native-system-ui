@@ -44,11 +44,12 @@ export interface SearchTokens {
 
 const createSearchTokens = (foundations: Foundations): SearchTokens => {
   const { palette, spacing, radii, fontSize } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   return {
     defaults: { shape: 'square', clearTrigger: 'focus' },
     colors: {
-      background: '#ffffff',
-      contentBackground: '#ffffff',
+      background: surface,
+      contentBackground: surface,
       label: palette.default[600],
       action: palette.primary[500],
       icon: palette.default[400],

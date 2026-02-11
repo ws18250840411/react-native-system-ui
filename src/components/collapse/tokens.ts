@@ -4,6 +4,7 @@ import type { CollapseTokens } from './types'
 
 export const createCollapseTokens = (foundations: Foundations): CollapseTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
+  const surface = foundations.surface ?? '#ffffff'
 
   return {
     defaults: {
@@ -47,7 +48,7 @@ export const createCollapseTokens = (foundations: Foundations): CollapseTokens =
       border: palette.default[200],
       title: palette.default[800],
       description: palette.default[500],
-      background: '#ffffff',
+      background: surface,
       active: palette.default[50],
       arrow: palette.default[400],
       disabled: palette.default[400],

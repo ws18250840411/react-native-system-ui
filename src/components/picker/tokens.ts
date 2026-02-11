@@ -42,6 +42,7 @@ export interface PickerTokens {
 
 const createPickerTokens = (foundations: Foundations): PickerTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   return {
     defaults: {
       itemHeight: 44,
@@ -52,14 +53,14 @@ const createPickerTokens = (foundations: Foundations): PickerTokens => {
       maskType: 'gradient',
     },
     colors: {
-      background: '#ffffff',
+      background: surface,
       indicator: palette.default[200] ?? '#ebedf0',
       text: palette.default[900],
       textMuted: palette.default[900],
       textDisabled: palette.default[400],
       confirm: palette.primary[600],
       cancel: palette.default[600],
-      mask: '#ffffff',
+      mask: surface,
       loadingMask: 'rgba(255,255,255,0.65)',
     },
     spacing: {

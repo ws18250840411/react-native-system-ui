@@ -48,6 +48,7 @@ export interface StepperTokens {
 
 const createStepperTokens = (foundations: Foundations): StepperTokens => {
   const { palette, radii, fontSize, opacity, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
@@ -63,11 +64,11 @@ const createStepperTokens = (foundations: Foundations): StepperTokens => {
       active: palette.default[200],
       background: palette.default[100],
       buttonIcon: palette.default[900],
-      buttonDisabledBackground: '#ffffff',
+      buttonDisabledBackground: surface,
       buttonDisabledIcon: palette.default[400],
       roundTheme: palette.primary[500],
       roundThemeText: onPrimary,
-      roundThemeBackground: '#ffffff',
+      roundThemeBackground: surface,
       inputText: palette.default[900],
       inputDisabledText: palette.default[400],
       inputDisabledBackground: palette.default[100],

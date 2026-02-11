@@ -4,13 +4,10 @@ import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { SelectorTokens } from './types'
 
-const createSelectorTokens = ({
-  palette,
-  spacing,
-  radii,
-  typography,
-  fontSize,
-}: Foundations): SelectorTokens => ({
+const createSelectorTokens = (foundations: Foundations): SelectorTokens => {
+  const { palette, spacing, radii, typography, fontSize } = foundations
+  const surface = foundations.surface ?? '#ffffff'
+  return {
   defaults: { columns: 3, multiple: false, showCheckMark: true, disabled: false },
   layout: {
     container: {
@@ -54,7 +51,7 @@ const createSelectorTokens = ({
   colors: {
     border: 'transparent',
     borderActive: 'transparent',
-    background: '#ffffff',
+    background: surface,
     backgroundActive: palette.primary[50],
     text: palette.default[900],
     textActive: palette.primary[600],
@@ -79,6 +76,6 @@ const createSelectorTokens = ({
   states: {
     disabledOpacity: 0.45,
   },
-})
+}}
 
 export const useSelectorTokens = createComponentTokensHook('selector', createSelectorTokens)

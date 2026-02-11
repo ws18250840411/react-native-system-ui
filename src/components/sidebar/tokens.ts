@@ -6,6 +6,7 @@ import type { SidebarTokens } from './types'
 
 export const createSidebarTokens = (foundations: Foundations): SidebarTokens => {
   const { palette, fontSize, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const borderWidth = StyleSheet.hairlineWidth
   return {
     defaults: {
@@ -54,7 +55,7 @@ export const createSidebarTokens = (foundations: Foundations): SidebarTokens => 
       },
     },
     colors: {
-      background: '#ffffff',
+      background: surface,
       border: palette.default[200],
       title: palette.default[800],
       titleActive: palette.primary[600],

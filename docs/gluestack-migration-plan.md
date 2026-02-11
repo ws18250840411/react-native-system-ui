@@ -203,7 +203,7 @@
 | NoticeBar | 482 | ⭐⭐⭐⭐⭐ | 滚动动画循环、RTL 方向、暂停/恢复、溢出检测 |
 | Tabs | 420 | ⭐⭐⭐⭐⭐ | 滑动切换、下划线动画、懒加载、声明顺序已调整 |
 | Slider | 302 | ⭐⭐⭐⭐⭐ | 双滑块 range、Web aria input、touchAction、精度处理 |
-| Swiper | 181 | ⭐⭐⭐⭐⭐ | FlatList + Loop 哨兵、动画队列 queueRef、Web pointer 拖拽 |
+| Swiper | 181 | ⭐⭐⭐⭐⭐ | FlatList + Loop 哨兵、动画队列 queueRef、Web pointer 拖拽、滚动结束兜底防卡顿 |
 | Collapse | 174 | ⭐⭐⭐⭐⭐ | Animated.timing height、accordion 单展开、双别名兼容 |
 
 #### 表单与输入组件

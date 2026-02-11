@@ -4,6 +4,7 @@ import type { ImageTokens } from './types'
 
 const createTokens = (foundations: Foundations): ImageTokens => {
   const { palette, spacing, fontSize, radii, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
 
   return {
     defaults: {
@@ -49,7 +50,7 @@ const createTokens = (foundations: Foundations): ImageTokens => {
       },
     },
     colors: {
-      background: '#ffffff',
+      background: surface,
       text: palette.default[500],
       error: palette.danger[500],
     },

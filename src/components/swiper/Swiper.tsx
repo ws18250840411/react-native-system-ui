@@ -15,7 +15,7 @@ export const SwiperItem = memo(SwiperItemFR)
 const LOOP_THRESHOLD = 10
 
 const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
-  const { data, renderItem, children, initialSwipe = 0, touchable = true, loop = true, autoplay = false, vertical = false, onChange, indicator = true, indicatorProps, style, testID } = props; const tokens = useSwiperTokens(); const listRef = useRef<FlatList>(null); const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null); const interRef = useRef(false); const animRef = useRef(false); const queueRef = useRef<number | null>(null); const momRef = useRef(false); const dragRef = useRef<number | null>(null); const isWeb = Platform.OS === 'web'; const [layout, setLayout] = useState({ width: 0, height: 0 })
+  const { data, renderItem, children, initialSwipe = 0, touchable = true, loop = true, autoplay = false, vertical = false, onChange, indicator = true, indicatorProps, style, testID } = props; const tokens = useSwiperTokens(); const listRef = useRef<FlatList>(null); const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null); const interRef = useRef(false); const animRef = useRef(false); const queueRef = useRef<number | null>(null); const momRef = useRef(false); const dragRef = useRef<number | null>(null); const scrollEndRef = useRef<ReturnType<typeof setTimeout> | null>(null); const lastOffRef = useRef(0); const isWeb = Platform.OS === 'web'; const [layout, setLayout] = useState({ width: 0, height: 0 })
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     const { width: w, height: h } = e.nativeEvent.layout
     setLayout(p => (p.width === w && p.height === h ? p : { width: w, height: h }))
@@ -85,6 +85,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
 
   useEffect(() => { if (!ready || count === 0) return; scrollTo(initDisp, false) }, [ready, count, initDisp, scrollTo])
   useEffect(() => { schedule(); return clearAuto }, [schedule, clearAuto, curIdx])
+  useEffect(() => () => { if (scrollEndRef.current) clearTimeout(scrollEndRef.current) }, [])
 
   const reset = useCallback(() => { animRef.current = false; interRef.current = false; momRef.current = false; schedule(); flush() }, [schedule])
 
@@ -95,10 +96,14 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
     const cdi = shouldLoop ? clamp(di, 0, dCount - 1) : clamp(di, 0, count - 1)
     update(realIdx(cdi))
     if (isWeb) {
+      if (scrollEndRef.current) { clearTimeout(scrollEndRef.current); scrollEndRef.current = null }
+      lastOffRef.current = off
       const aligned = di * mainSz
       if (Math.abs(off - aligned) < 0.5) {
         if (shouldLoop && (di <= 0 || di >= dCount - 1)) scrollTo(di <= 0 ? count : 1, false)
         reset()
+      } else {
+        scrollEndRef.current = setTimeout(() => { scrollEndRef.current = null; const o = lastOffRef.current, d = Math.round(o / mainSz); if (shouldLoop && (d <= 0 || d >= dCount - 1)) scrollTo(d <= 0 ? count : 1, false); reset() }, 150)
       }
     }
   }, [count, vertical, mainSz, shouldLoop, dCount, update, realIdx, scrollTo, reset, isWeb])
@@ -113,7 +118,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
     update(realIdx(ndi)); reset()
   }, [vertical, count, mainSz, shouldLoop, dCount, scrollTo, update, realIdx, reset, isWeb])
 
-  const onDragBegin = useCallback(() => { interRef.current = true; clearAuto() }, [clearAuto])
+  const onDragBegin = useCallback(() => { interRef.current = true; clearAuto(); if (scrollEndRef.current) { clearTimeout(scrollEndRef.current); scrollEndRef.current = null } }, [clearAuto])
   const onDragEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { if (!momRef.current) onEnd(e) }, [onEnd])
   const onMomBegin = useCallback(() => { momRef.current = true }, [])
   const onFail = useCallback((info: { index: number }) => { scrollTo(info.index, false); update(realIdx(info.index)); reset() }, [scrollTo, update, realIdx, reset])

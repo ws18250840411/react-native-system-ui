@@ -99,6 +99,7 @@ export interface TabsTokens {
 
 const createTokens = (foundations: Foundations): TabsTokens => {
   const { palette, spacing, fontSize, radii, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     defaults: {
@@ -120,7 +121,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       descriptionActiveBackground: palette.primary[600],
       border: palette.default[200],
       indicator: palette.primary[600],
-      cardBackground: '#ffffff',
+      cardBackground: surface,
       cardActiveBackground: palette.primary[600],
       cardBorder: palette.primary[600],
       cardActiveBorder: palette.primary[600],
@@ -133,7 +134,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       capsuleActiveText: onPrimary,
       badgeText: palette.default[500],
       jumboBackground: palette.default[50],
-      jumboActiveBackground: '#ffffff',
+      jumboActiveBackground: surface,
       jumboBorder: 'transparent',
       jumboActiveBorder: palette.primary[400],
       jumboDescription: palette.default[500],
@@ -146,7 +147,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       paddingHorizontal: spacing.lg,
       paddingVertical: 0,
       paddingBottom: spacing.md,
-      background: '#ffffff',
+      background: surface,
     },
     typography: {
       fontFamily: typography.fontFamily,

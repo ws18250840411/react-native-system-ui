@@ -50,7 +50,7 @@ const createPasswordInputTokens = (foundations: Foundations): PasswordInputToken
     muted: foundations.palette.default[500],
     error: foundations.palette.danger[500],
     cursor: foundations.palette.default[800],
-    background: '#ffffff',
+    background: foundations.surface ?? '#ffffff',
     transparent: 'transparent',
   },
   radii: {

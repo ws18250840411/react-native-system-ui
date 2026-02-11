@@ -45,12 +45,13 @@ export interface NumberKeyboardTokens {
 
 const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
     colors: {
       background: palette.default[100],
       title: palette.default[700],
-      keyBackground: '#ffffff',
+      keyBackground: surface,
       keyActiveBackground: palette.default[50],
       keyText: palette.default[900],
       keyTextActive: palette.primary[600],

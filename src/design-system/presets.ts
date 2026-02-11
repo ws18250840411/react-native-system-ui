@@ -10,6 +10,7 @@ const darkOverrides: DeepPartial<ThemeTokens> = {
     warning: { 50: '#2e1405', 100: '#3b1b08', 200: '#52260c', 300: '#6b3311', 400: '#8a4416', 500: '#ab561c', 600: '#cc6a1f', 700: '#e78a3a', 800: '#f5a85f', 900: '#ffd9a8', foreground: '#ffffff' },
     danger: { 50: '#2d090e', 100: '#3a0d13', 200: '#50121c', 300: '#6a1a27', 400: '#882434', 500: '#a92c40', 600: '#cb3750', 700: '#ef4b63', 800: '#ff7d8f', 900: '#ffc6d0', foreground: '#fff5f6' },
   },
+  surface: '#131a23',
 }
 
 const auroraOverrides: DeepPartial<ThemeTokens> = {

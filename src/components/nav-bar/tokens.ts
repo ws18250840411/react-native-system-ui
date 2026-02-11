@@ -2,12 +2,9 @@ import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { NavBarTokens } from './types'
 
-export const createNavBarTokens = ({
-  palette,
-  spacing,
-  fontSize,
-  typography,
-}: Foundations): NavBarTokens => {
+export const createNavBarTokens = (foundations: Foundations): NavBarTokens => {
+  const { palette, spacing, fontSize, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   return {
     defaults: {
       fixed: false,
@@ -66,7 +63,7 @@ export const createNavBarTokens = ({
       },
     },
     colors: {
-      background: '#ffffff',
+      background: surface,
       text: palette.default[900],
       description: palette.default[500],
       border: palette.default[200],

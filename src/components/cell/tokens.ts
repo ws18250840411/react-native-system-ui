@@ -7,7 +7,7 @@ import type { CellTokens } from './types'
 export const createCellTokens = (foundations: Foundations): CellTokens => {
   const { palette, spacing, fontSize, typography, radii } = foundations
 
-  const background = '#ffffff'
+  const background = foundations.surface ?? '#ffffff'
   const paddingVertical = 10
   const largePaddingVertical = 14
   const paddingHorizontal = 16

@@ -4,6 +4,7 @@ import type { CascaderTokens } from "./types"
 
 export const createCascaderTokens = (foundations: Foundations): CascaderTokens => {
   const { palette, spacing, radii } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const surfaceMuted = palette.default[100]
   const placeholderText = "Select"
   return {
@@ -76,7 +77,7 @@ export const createCascaderTokens = (foundations: Foundations): CascaderTokens =
       inlineChildren: {},
     },
     colors: {
-      background: "#ffffff",
+      background: surface,
       headerText: palette.default[900],
       placeholder: palette.default[500],
       closeIcon: palette.default[300],

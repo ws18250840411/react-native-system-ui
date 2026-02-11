@@ -8,6 +8,7 @@ const centered = { justifyContent: 'center', alignItems: 'center' } as const
 
 const createRadioTokens = (foundations: Foundations): RadioTokens => {
   const { palette, spacing, fontSize, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   return {
     defaults: {
       iconSize: 20,
@@ -44,7 +45,7 @@ const createRadioTokens = (foundations: Foundations): RadioTokens => {
     },
     colors: {
       border: palette.default[400],
-      background: '#ffffff',
+      background: surface,
       checkedBackground: palette.primary[500],
       disabledBorder: palette.default[300],
       disabledBackground: palette.default[100],

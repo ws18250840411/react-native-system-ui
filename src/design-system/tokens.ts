@@ -11,6 +11,7 @@ export interface Foundations {
   fontSize: { xxs: number; xs: number; sm: number; md: number; lg: number; xl: number }
   typography: { fontFamily: string; weight: { regular: FontWeight; medium: FontWeight; semiBold: FontWeight; bold: FontWeight }; lineHeightMultiplier: number }
   opacity: { disabled: number; loading: number; pressed: number }
+  surface?: string
 }
 
 export const defaultFoundations: Foundations = {
@@ -27,6 +28,7 @@ export const defaultFoundations: Foundations = {
   fontSize: { xxs: 10, xs: 12, sm: 14, md: 16, lg: 18, xl: 20 },
   typography: { fontFamily: 'System', weight: { regular: '400', medium: '500', semiBold: '600', bold: '700' }, lineHeightMultiplier: 1.2 },
   opacity: { disabled: 0.45, loading: 0.65, pressed: 0.85 },
+  surface: '#ffffff',
 }
 
 export type ThemeTokens = Foundations

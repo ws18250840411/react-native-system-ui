@@ -4,7 +4,7 @@
 
 > 目标：在 React Native 上交付高质量移动端组件集，提供一致的无障碍能力与国际化支持，并同步文档与测试。
 
-## 1. 当前基线（v1.0.2）
+## 1. 当前基线（v1.0.4）
 
 - **已交付 55+ 组件**，覆盖基础展示、表单输入、反馈弹层、导航、数据选择、媒体等全部核心分类。
 - **设计系统**：ThemeProvider / ConfigProvider 下发 foundations 与 components overrides；内置 light / dark / aurora 三套主题预设。
