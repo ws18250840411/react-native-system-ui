@@ -4,25 +4,15 @@ import { shallowEqualObject, renderTextOrNode } from '../../utils'
 import { isPromiseLike } from '../../utils/promise'
 import { isNumber, isString, isText } from '../../utils/validate'
 import type { FormInstance, FormItemRule, FormProps, FormSubscribeProps, NamePath, RegisteredFieldOptions } from './types'
-import { FORM_ALL_FIELDS_KEY, getValueByName, normalizeTrigger, serializeNamePath, setValueByName } from './utils'
 import { useLocale } from '../config-provider/useLocale'
-
-export interface FormContextValue {
-  getFieldValue: (name: NamePath) => unknown
-  setFieldValue: (name: NamePath, value: unknown, trigger?: string) => void
-  registerField: (name: NamePath, options: RegisteredFieldOptions) => () => void
-  getFieldError: (name: NamePath) => string[] | undefined
-  validateField: (name: NamePath, trigger?: string) => Promise<boolean>
-  getFieldsValue: () => Record<string, unknown>
-  subscribe: (listener: (changedValues: Record<string, unknown>, allValues: Record<string, unknown>) => void) => () => void
-  form?: FormInstance
-  colon?: boolean
-  labelWidth?: number
-  showValidateMessage?: boolean
-}
-
+export const normalizeTrigger = (trigger?: string | string[]) => trigger ? (Array.isArray(trigger) ? trigger : [trigger]) : []
+export const FORM_ALL_FIELDS_KEY = '__form_all__'
+export const toNamePath = (name?: NamePath): (string | number)[] => { if (name === undefined || name === null) return []; if (Array.isArray(name)) return name; if (isNumber(name)) return [name]; if (isString(name)) return name.split('.'); return [String(name)] }
+export const serializeNamePath = (name?: NamePath): string => toNamePath(name).join('.')
+export const getValueByName = (source: unknown, name: NamePath): unknown => toNamePath(name).reduce<unknown>((acc, key) => { if (acc == null) return acc; const k = String(key); if (Array.isArray(acc)) { const i = Number(k); return Number.isFinite(i) ? acc[i] : (acc as unknown as Record<string, unknown>)[k] }; return typeof acc === 'object' ? (acc as Record<string, unknown>)[k] : undefined }, source)
+export const setValueByName = (source: Record<string, unknown>, name: NamePath, value: unknown): Record<string, unknown> => { const path = toNamePath(name); if (!path.length) return source; const clone = Array.isArray(source) ? [...source] : typeof source === 'object' && source !== null ? { ...(source as Record<string, unknown>) } : {}; let cursor: Record<string, unknown> | unknown[] = clone as Record<string, unknown> | unknown[]; path.forEach((key, index) => { const k = String(key), ki = Number(k); if (index === path.length - 1) { if (Array.isArray(cursor) && Number.isFinite(ki)) cursor[ki] = value; else (cursor as unknown as Record<string, unknown>)[k] = value; return }; const nv = Array.isArray(cursor) && Number.isFinite(ki) ? cursor[ki] : (cursor as unknown as Record<string, unknown>)[k]; const nc = nv === undefined || nv === null ? (isNumber(path[index + 1]) ? [] : {}) : Array.isArray(nv) ? [...nv] : typeof nv === 'object' ? { ...(nv as Record<string, unknown>) } : {}; if (Array.isArray(cursor) && Number.isFinite(ki)) cursor[ki] = nc; else (cursor as unknown as Record<string, unknown>)[k] = nc; cursor = nc as Record<string, unknown> | unknown[] }); return clone as Record<string, unknown> }
+export interface FormContextValue { getFieldValue: (name: NamePath) => unknown; setFieldValue: (name: NamePath, value: unknown, trigger?: string) => void; registerField: (name: NamePath, options: RegisteredFieldOptions) => () => void; getFieldError: (name: NamePath) => string[] | undefined; validateField: (name: NamePath, trigger?: string) => Promise<boolean>; getFieldsValue: () => Record<string, unknown>; subscribe: (listener: (changedValues: Record<string, unknown>, allValues: Record<string, unknown>) => void) => () => void; form?: FormInstance; colon?: boolean; labelWidth?: number; showValidateMessage?: boolean }
 export const FormContext = React.createContext<FormContextValue | null>(null)
-
 const runRuleValidation = (rule: FormItemRule, value: unknown, values: Record<string, unknown>, fallbackMsg?: string): string | null | Promise<string | null> => {
   const msg = rule.message ?? fallbackMsg ?? 'Validation failed'; const empty = value == null || value === '' || (Array.isArray(value) && value.length === 0)
   if (rule.required && (empty || (rule.whitespace && isString(value) && value.trim().length === 0))) return msg
@@ -53,18 +43,14 @@ const InternalFormImpl = (props: FormProps, ref: React.ForwardedRef<FormInstance
   const ctxVal = useMemo((): FormContextValue => ({ getFieldValue: (name: NamePath) => getValueByName(valuesRef.current, name), setFieldValue, registerField, getFieldError: (name: NamePath) => errorsRef.current[serializeNamePath(name)], validateField: (name: NamePath, trigger?: string) => validateField(name, trigger), getFieldsValue: () => valuesRef.current, subscribe: (listener: (changedValues: Record<string, unknown>, allValues: Record<string, unknown>) => void) => { subscribersRef.current.add(listener); return () => subscribersRef.current.delete(listener) }, form: formApi, colon, labelWidth, showValidateMessage }), [setFieldValue, registerField, validateField, formApi, colon, labelWidth, showValidateMessage])
   return <FormContext.Provider value={ctxVal}><View style={style} {...rest}>{children}{isText(footer) ? renderTextOrNode(footer, []) : footer}</View></FormContext.Provider>
 }
-
 const InternalFormRef = React.forwardRef<FormInstance, FormProps>(InternalFormImpl)
 const InternalForm = React.memo(InternalFormRef)
-
 export const useWatch = (name?: NamePath | NamePath[], formRef?: React.MutableRefObject<FormInstance | null>) => {
   const ctx = useContext(FormContext); const nPaths = name === undefined ? undefined : !Array.isArray(name) ? [name] : name.length && isText(name[0]) ? [name as NamePath] : (name as NamePath[])
   const getValue = useCallback((allValues?: Record<string, unknown>) => { const src = allValues ?? ctx?.getFieldsValue?.() ?? formRef?.current?.getFieldsValue?.() ?? {}; if (!nPaths) return src; if (nPaths.length === 1) return getValueByName(src, nPaths[0]); const picked: Record<string, unknown> = {}; for (const k of nPaths) picked[serializeNamePath(k)] = getValueByName(src, k); return picked }, [ctx, formRef, nPaths])
   const [val, setVal] = useState(() => getValue()); useEffect(() => { if (!ctx?.subscribe) return undefined; return ctx.subscribe((ch, all) => { if (FORM_ALL_FIELDS_KEY in ch) { setVal(getValue(all)); return }; if (!nPaths || nPaths.some(k => serializeNamePath(k) in ch)) setVal(getValue(all)) }) }, [ctx, getValue, nPaths]); useEffect(() => { setVal(getValue()) }, [getValue]); return val
 }
-
 export const FormSubscribe: React.FC<FormSubscribeProps> = ({ to, children }) => {
   const ctx = useContext(FormContext); const [chVals, setChVals] = useState<Record<string, unknown>>({}); useEffect(() => { if (!ctx?.subscribe) return undefined; return ctx.subscribe(n => { if (to && !(FORM_ALL_FIELDS_KEY in n) && !Object.keys(n).some(k => to.includes(k))) return; setChVals(n) }) }, [ctx, to]); return <>{children(chVals, ctx?.form || null)}</>
 }
-
 export default InternalForm

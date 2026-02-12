@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { FormContext } from './FormContext'
-import { FORM_ALL_FIELDS_KEY, getValueByName, serializeNamePath } from './utils'
+import { FormContext, FORM_ALL_FIELDS_KEY, getValueByName, serializeNamePath } from './Form'
 import type { NamePath } from './types'
 
 export interface FormListField { name: number; key: number; isListField: true }
