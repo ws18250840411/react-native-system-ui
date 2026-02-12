@@ -7,7 +7,7 @@ import type {
 } from 'react-native'
 
 import type { DeepPartial } from '../../types'
-import type { PasswordInputTokens } from './PasswordInput'
+import type { PasswordInputTokens } from './tokens'
 
 export type PasswordInputType = 'text' | 'number'
 

@@ -77,7 +77,7 @@ export interface ActionSheetTokens {
   }
 }
 
-export interface ActionSheetProps extends Omit<PopupProps, 'children'> {
+export interface ActionSheetProps extends Omit<PopupProps, 'children' | 'tokensOverride'> {
   title?: React.ReactNode
   description?: React.ReactNode
   cancelText?: React.ReactNode

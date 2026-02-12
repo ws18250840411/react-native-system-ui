@@ -19,7 +19,7 @@
   "scripts": {
     "dev": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc dev",
     "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build",
-    "postbuild": "node scripts/fix-package-json.mjs && node scripts/prune-dist.mjs",
+    "postbuild": "npm run build:types && node scripts/fix-package-json.mjs && node scripts/prune-dist.mjs",
     "build:types": "tsc -p tsconfig.types.json",
     "docs:update-size": "node scripts/generate-docs-size-data.mjs",
     "docs:build": "npm run build && npm run docs:update-size && NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
