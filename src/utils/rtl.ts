@@ -1,8 +1,6 @@
 import type { FlexStyle } from 'react-native'
-
 type Dir = 'ltr' | 'rtl'
 const swaps: [string, string][] = [['paddingLeft', 'paddingRight'], ['marginLeft', 'marginRight'], ['borderLeftWidth', 'borderRightWidth'], ['borderTopLeftRadius', 'borderTopRightRadius'], ['borderBottomLeftRadius', 'borderBottomRightRadius'], ['left', 'right']]
-
 export const flipStyle = <T extends FlexStyle>(style: T, dir: Dir): T => {
   if (dir !== 'rtl') return style
   const out = { ...style } as Record<string, unknown>
@@ -11,5 +9,4 @@ export const flipStyle = <T extends FlexStyle>(style: T, dir: Dir): T => {
   else if (out.flexDirection === 'row-reverse') out.flexDirection = 'row'
   return out as T
 }
-
 export const rtlRow = (dir: Dir): FlexStyle['flexDirection'] => dir === 'rtl' ? 'row-reverse' : 'row'

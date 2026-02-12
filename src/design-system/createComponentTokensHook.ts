@@ -4,7 +4,6 @@ import { deepMerge } from '../utils/deepMerge'
 import type { ThemeComponentKey, ThemeComponentTokensMap } from './ThemeContext'
 import type { Foundations } from './tokens'
 import { useTheme } from './useTheme'
-
 export const createComponentTokensHook = <K extends ThemeComponentKey>(
   key: K,
   createBaseTokens: (foundations: Foundations) => ThemeComponentTokensMap[K],

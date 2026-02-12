@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { AccessibilityInfo, Platform } from 'react-native'
-
 let _reduced = false
 let _inited = false
 const _subs = new Set<(v: boolean) => void>()
-
 const set = (v: boolean) => { if (v === _reduced) return; _reduced = v; _subs.forEach(fn => fn(v)) }
-
 const init = () => {
   if (_inited) return
   _inited = true
@@ -24,7 +21,6 @@ const init = () => {
   AccessibilityInfo.isReduceMotionEnabled?.().then(v => set(!!v)).catch(() => {})
   try { AccessibilityInfo.addEventListener('reduceMotionChanged' as any, (v: boolean) => set(v)) } catch {}
 }
-
 export const useReducedMotion = (): boolean => {
   const r = useRef(false)
   if (!r.current) { r.current = true; init() }
@@ -36,6 +32,5 @@ export const useReducedMotion = (): boolean => {
   }, [])
   return v
 }
-
 export const getReducedMotion = (): boolean => { init(); return _reduced }
 export const _resetForTesting = () => { _reduced = false; _inited = false; _subs.clear() }

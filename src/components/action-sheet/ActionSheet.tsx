@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react'
-import { Pressable, View, type PressableStateCallbackType } from 'react-native'
+import { Platform, Pressable, View, type PressableStateCallbackType } from 'react-native'
 import { Close } from 'react-native-system-icon'
 import { useAriaPress } from '../../hooks'
 import { createHairlineView, isRenderable, isText, renderTextOrNode } from '../../utils'
@@ -26,7 +26,7 @@ const ActionSheetHeader: React.FC<{ title: React.ReactNode; closeable: boolean; 
 const ActionSheetItem: React.FC<{ action: ActionSheetAction; index: number; tokens: ActionSheetTokens; onActionPress: (action: ActionSheetAction, index: number) => void }> = React.memo(({ action, index, tokens, onActionPress }) => {
   const { disabled, loading, name, subname, icon } = action
   const { colors, spacing, typography } = tokens
-  const actionPress = useAriaPress({ disabled: !!disabled || !!loading, onPress: useCallback(() => onActionPress(action, index), [action, index, onActionPress]), extraProps: { accessibilityRole: 'menuitem' as any, accessibilityLabel: isText(name) ? String(name) : undefined, accessibilityState: { disabled: !!disabled, busy: !!loading }, testID: `rv-action-sheet-item-${index}` } })
+  const actionPress = useAriaPress({ disabled: !!disabled || !!loading, onPress: useCallback(() => onActionPress(action, index), [action, index, onActionPress]), extraProps: { accessibilityRole: Platform.OS === 'web' ? ('menuitem' as any) : 'button', accessibilityLabel: isText(name) ? String(name) : undefined, accessibilityState: { disabled: !!disabled, busy: !!loading }, testID: `rv-action-sheet-item-${index}` } })
   return (
     <Pressable style={({ pressed }: PressableStateCallbackType) => [tokens.layout.item, !!icon && tokens.layout.itemWithIcon, { paddingVertical: spacing.vertical, paddingHorizontal: spacing.horizontal, backgroundColor: pressed && !action.disabled && !action.loading ? colors.itemPressedBackground : colors.itemBackground }, action.style]} {...actionPress.interactionProps}>
       {!!icon && <View style={tokens.layout.icon}>{isText(icon) ? renderTextOrNode(icon, [{ color: colors.item }]) : icon}</View>}

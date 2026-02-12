@@ -7,19 +7,13 @@ import type { DeepPartial } from '../../types'
 import { createHairlineView, isFunction, isNumber, isObject, isRenderable, renderTextOrNode } from '../../utils'
 import { useCollapseTokens } from './tokens'
 import type { CollapseTokens } from './types'
-
 export type CollapseValue = string | string[]
 export interface CollapseProps extends ViewProps { children?: React.ReactNode; accordion?: boolean; value?: CollapseValue; defaultValue?: CollapseValue; onChange?: (value: CollapseValue) => void; border?: boolean; iconPosition?: 'left' | 'right'; expandIcon?: React.ReactNode | ((active: boolean) => React.ReactNode); disabled?: boolean; tokensOverride?: DeepPartial<CollapseTokens> }
 export interface CollapsePanelProps extends ViewProps { index?: number; name?: string; title?: React.ReactNode; description?: React.ReactNode; label?: React.ReactNode; icon?: React.ReactNode; extra?: React.ReactNode; value?: React.ReactNode; border?: boolean; isLink?: boolean; size?: 'normal' | 'large'; disabled?: boolean; readOnly?: boolean; children?: React.ReactNode; titleStyle?: TextProps['style']; descriptionStyle?: TextProps['style'] }
 export type CollapsePanelInstance = { toggle: (expand?: boolean) => void }
 interface CollapseContextValue { activeKeys: string[]; toggle: (name: string, expand?: boolean) => void; accordion: boolean; iconPosition: 'left' | 'right'; expandIcon?: CollapseProps['expandIcon']; border: boolean; disabled?: boolean; tokens: CollapseTokens }
 const CollapseContext = React.createContext<CollapseContextValue | null>(null)
-const normalizeValue = (value?: CollapseValue): string[] | undefined => {
-  if (value === undefined) return undefined
-  if (Array.isArray(value)) return value.map(String)
-  if (value === null) return []
-  return [String(value)]
-}
+const normalizeValue = (value?: CollapseValue): string[] | undefined => value === undefined ? undefined : Array.isArray(value) ? value.map(String) : value === null ? [] : [String(value)]
 const buildOutputValue = (keys: string[], accordion: boolean): CollapseValue => accordion ? (keys[0] ?? '') : keys
 type CollapseComponent = React.FC<CollapseProps> & {
   Panel: React.ForwardRefExoticComponent<CollapsePanelProps & React.RefAttributes<CollapsePanelInstance>>
@@ -36,10 +30,7 @@ const CollapseImpl = ((props: CollapseProps) => {
     </CollapseContext.Provider>
   )
 }) as CollapseComponent
-const Hairline = React.memo<{ tokens: CollapseTokens; position: 'top' | 'bottom'; color: string; inset?: number }>(({ tokens, position, color, inset = 0 }) => {
-  const hairlineStyle = createHairlineView({ position, color, left: inset, right: inset })
-  return <View pointerEvents="none" style={[tokens.layout.hairline, hairlineStyle]} />
-})
+const Hairline = React.memo<{ tokens: CollapseTokens; position: 'top' | 'bottom'; color: string; inset?: number }>(({ tokens, position, color, inset = 0 }) => { const hairlineStyle = createHairlineView({ position, color, left: inset, right: inset }); return <View pointerEvents="none" style={[tokens.layout.hairline, hairlineStyle]} /> })
 const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps>((props, ref) => {
   const context = useContext(CollapseContext)
   const reducedMotion = useReducedMotion()
@@ -54,28 +45,18 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const animation = useRef(new Animated.Value(isActive ? 1 : 0)).current
   const collapseAnimRef = useRef<Animated.CompositeAnimation | null>(null)
   const rotation = animation.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '-90deg'] })
-  useEffect(() => {
-    collapseAnimRef.current?.stop()
-    const anim = Animated.timing(animation, { toValue: isActive ? 1 : 0, duration: reducedMotion ? 0 : tokens.defaults.animationDuration, easing: Easing.ease, useNativeDriver: false, isInteraction: false })
-    collapseAnimRef.current = anim
-    anim.start(({ finished }) => { if (finished) collapseAnimRef.current = null })
-    return () => { collapseAnimRef.current?.stop(); collapseAnimRef.current = null }
-  }, [animation, isActive, reducedMotion, tokens.defaults.animationDuration])
+  useEffect(() => { collapseAnimRef.current?.stop(); const anim = Animated.timing(animation, { toValue: isActive ? 1 : 0, duration: reducedMotion ? 0 : tokens.defaults.animationDuration, easing: Easing.ease, useNativeDriver: false, isInteraction: false }); collapseAnimRef.current = anim; anim.start(({ finished }) => { if (finished) collapseAnimRef.current = null }); return () => { collapseAnimRef.current?.stop(); collapseAnimRef.current = null } }, [animation, isActive, reducedMotion, tokens.defaults.animationDuration])
   const renderedLabel = description ?? label
   const renderedValue = extra ?? value
   const handleToggle = useCallback(() => { if (mergedDisabled || readOnly) return; toggle(nameKey) }, [mergedDisabled, nameKey, readOnly, toggle])
   useImperativeHandle(ref, () => ({ toggle: (expand?: boolean) => { if (mergedDisabled || readOnly) return; toggle(nameKey, expand) } }), [mergedDisabled, nameKey, readOnly, toggle])
   const handleContentLayout = useCallback((event: LayoutChangeEvent) => { const height = event.nativeEvent.layout.height; if (isNumber(height) && Number.isFinite(height)) setContentHeight(prev => prev === height ? prev : height) }, [])
   const animatedStyle = useMemo(() => ({ height: animation.interpolate({ inputRange: [0, 1], outputRange: [0, contentHeight] }) }), [animation, contentHeight])
-  const renderExpandIcon = useCallback(() => {
-    if (isFunction(expandIcon)) return expandIcon(isActive)
-    if (expandIcon) return expandIcon
-    return (
-      <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-        <Arrow size={16} fill={mergedDisabled ? colors.disabled : colors.arrow} />
-      </Animated.View>
-    )
-  }, [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotation])
+  const renderExpandIcon = useCallback(() => isFunction(expandIcon) ? expandIcon(isActive) : expandIcon ? expandIcon : (
+    <Animated.View style={{ transform: [{ rotate: rotation }] }}>
+      <Arrow size={16} fill={mergedDisabled ? colors.disabled : colors.arrow} />
+    </Animated.View>
+  ), [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotation])
   const contentNode = useMemo(() => renderTextOrNode(children, { color: mergedDisabled ? colors.disabled : colors.description, fontFamily: typography.fontFamily, fontSize: typography.descriptionSize, lineHeight: Math.round(typography.descriptionSize * 1.5) }), [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize, typography.fontFamily])
   const showInnerBorder = Boolean(panelBorder)
   const showTopBorder = index > 0 && showInnerBorder

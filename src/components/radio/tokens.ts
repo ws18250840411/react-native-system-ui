@@ -1,81 +1,31 @@
 import { StyleSheet } from 'react-native'
-
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { RadioTokens } from './types'
-
 const centered = { justifyContent: 'center', alignItems: 'center' } as const
-
 const createRadioTokens = (foundations: Foundations): RadioTokens => {
   const { palette, spacing, fontSize, typography } = foundations
   const surface = foundations.surface ?? '#ffffff'
   return {
-    defaults: {
-      iconSize: 20,
-      labelPosition: 'right',
-      shape: 'round',
-      labelDisabled: false,
-      groupDisabled: false,
-      groupDirection: 'vertical',
-    },
+    defaults: { iconSize: 20, labelPosition: 'right', shape: 'round', labelDisabled: false, groupDisabled: false, groupDirection: 'vertical', },
     layout: {
-      container: {
-        flexDirection: 'row',
-        alignItems: 'center',
-      },
+      container: { flexDirection: 'row', alignItems: 'center', },
       iconWrapper: centered,
-      labelWrapper: {
-        flexShrink: 1,
-      },
+      labelWrapper: { flexShrink: 1, },
       icon: centered,
-      label: {
-        includeFontPadding: false,
-      },
-      groupHorizontal: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-      },
-      groupVertical: {
-        flexDirection: 'column',
-      },
-      groupItem: {
-        flexShrink: 0,
-      },
+      label: { includeFontPadding: false, },
+      groupHorizontal: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', },
+      groupVertical: { flexDirection: 'column', },
+      groupItem: { flexShrink: 0, },
     },
-    colors: {
-      border: palette.default[400],
-      background: surface,
-      checkedBackground: palette.primary[500],
-      disabledBorder: palette.default[300],
-      disabledBackground: palette.default[100],
-      checkmark: palette.primary.foreground ?? '#ffffff',
-      label: palette.default.foreground ?? '#111827',
-      labelDisabled: palette.default[400],
-    },
-    typography: {
-      fontSize: fontSize.md,
-      fontFamily: typography.fontFamily,
-      fontWeight: typography.weight.medium,
-      lineHeightMultiplier: typography.lineHeightMultiplier,
-    },
-    sizing: {
-      dotScale: 0.5,
-    },
-    radii: {
-      round: 999,
-      square: 2,
-    },
-    borders: {
-      width: StyleSheet.hairlineWidth,
-    },
-    spacing: {
-      gap: spacing.sm,
-      groupGap: spacing.sm,
-    },
+    colors: { border: palette.default[400], background: surface, checkedBackground: palette.primary[500], disabledBorder: palette.default[300], disabledBackground: palette.default[100], checkmark: palette.primary.foreground ?? '#ffffff', label: palette.default.foreground ?? '#111827', labelDisabled: palette.default[400], },
+    typography: { fontSize: fontSize.md, fontFamily: typography.fontFamily, fontWeight: typography.weight.medium, lineHeightMultiplier: typography.lineHeightMultiplier, },
+    sizing: { dotScale: 0.5, },
+    radii: { round: 999, square: 2, },
+    borders: { width: StyleSheet.hairlineWidth, },
+    spacing: { gap: spacing.sm, groupGap: spacing.sm, },
   }
 }
-
 export const useRadioTokens = createComponentTokensHook(
   'radio',
   createRadioTokens

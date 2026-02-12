@@ -1,7 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { TextStyle } from 'react-native'
-
 export interface DialogTokens {
   colors: {
     background: string
@@ -46,57 +45,16 @@ export interface DialogTokens {
     actionWeight: TextStyle['fontWeight']
   }
 }
-
 export const createDialogTokens = (foundations: Foundations): DialogTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
   const surface = foundations.surface ?? '#ffffff'
   const onSurface = palette.default[900]
   const secondary = palette.default[600]
-
   return {
-    colors: {
-      background: surface,
-      title: onSurface,
-      message: secondary,
-      divider: palette.default[200],
-      cancel: palette.default[700],
-      confirm: palette.danger[500],
-      closeIcon: palette.default[500],
-    },
-    spacing: {
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
-      paddingBottom: spacing.md,
-      titlePaddingTop: 22,
-      titleIsolatedPadding: spacing.lg, 
-      messagePadding: 20,
-      messagePaddingTop: spacing.xs, 
-      messagePaddingHorizontal: spacing.lg, 
-      titleGap: spacing.sm,
-      footerGap: spacing.md,
-      roundFooterPadding: spacing.md,
-      roundFooterGap: spacing.sm,
-      closeIconPadding: spacing.xs,
-    },
-    sizes: {
-      minWidth: 280,
-      maxWidth: 360,
-      borderRadius: radii.lg,
-      closeSize: 20,
-      actionHeight: 48,
-      roundButtonHeight: 40, 
-    },
-    typography: {
-      fontFamily: typography.fontFamily,
-      titleSize: fontSize.md,
-      titleLineHeight: fontSize.md * typography.lineHeightMultiplier,
-      titleWeight: typography.weight.semiBold,
-      messageSize: fontSize.sm,
-      messageLineHeight: fontSize.sm * typography.lineHeightMultiplier,
-      actionSize: fontSize.md,
-      actionWeight: typography.weight.medium,
-    },
+    colors: { background: surface, title: onSurface, message: secondary, divider: palette.default[200], cancel: palette.default[700], confirm: palette.danger[500], closeIcon: palette.default[500], },
+    spacing: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md, titlePaddingTop: 22, titleIsolatedPadding: spacing.lg, messagePadding: 20, messagePaddingTop: spacing.xs, messagePaddingHorizontal: spacing.lg, titleGap: spacing.sm, footerGap: spacing.md, roundFooterPadding: spacing.md, roundFooterGap: spacing.sm, closeIconPadding: spacing.xs, },
+    sizes: { minWidth: 280, maxWidth: 360, borderRadius: radii.lg, closeSize: 20, actionHeight: 48, roundButtonHeight: 40, },
+    typography: { fontFamily: typography.fontFamily, titleSize: fontSize.md, titleLineHeight: fontSize.md * typography.lineHeightMultiplier, titleWeight: typography.weight.semiBold, messageSize: fontSize.sm, messageLineHeight: fontSize.sm * typography.lineHeightMultiplier, actionSize: fontSize.md, actionWeight: typography.weight.medium, },
   }
 }
-
 export const useDialogTokens = createComponentTokensHook('dialog', createDialogTokens)

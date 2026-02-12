@@ -1,6 +1,5 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
-
 export interface ShareSheetTokens {
   colors: {
     background: string
@@ -40,51 +39,16 @@ export interface ShareSheetTokens {
     cancel: number
   }
 }
-
 const createTokens = (foundations: Foundations): ShareSheetTokens => {
   const { palette, spacing, fontSize, typography } = foundations
   const surface = foundations.surface ?? '#ffffff'
   return {
-    colors: {
-      background: surface,
-      title: palette.default[900],
-      description: palette.default[500],
-      option: palette.default[900],
-      optionDesc: palette.default[500],
-      border: palette.default[200],
-      divider: palette.default[100],
-    },
-    spacing: {
-      horizontal: spacing.md,
-      vertical: spacing.sm,
-      gap: spacing.xs,
-      popupPadding: 0,
-      headerPaddingTop: spacing.sm,
-      headerPaddingHorizontal: spacing.lg,
-      headerPaddingBottom: spacing.md,
-      titleMarginTop: spacing.xs,
-      descriptionMarginTop: spacing.xs,
-      nodeMarginTop: spacing.xs,
-      iconMarginHorizontal: spacing.md,
-      optionTextPaddingHorizontal: spacing.xs,
-      optionDescPaddingHorizontal: spacing.lg,
-      cancelPaddingVertical: 14,
-      cancelMarginTop: spacing.sm,
-    },
-    sizing: {
-      icon: 48,
-    },
-    typography: {
-      fontFamily: typography.fontFamily,
-      title: fontSize.md,
-      description: fontSize.xs,
-      option: fontSize.xs,
-      optionDesc: fontSize.xxs,
-      cancel: fontSize.md,
-    },
+    colors: { background: surface, title: palette.default[900], description: palette.default[500], option: palette.default[900], optionDesc: palette.default[500], border: palette.default[200], divider: palette.default[100], },
+    spacing: { horizontal: spacing.md, vertical: spacing.sm, gap: spacing.xs, popupPadding: 0, headerPaddingTop: spacing.sm, headerPaddingHorizontal: spacing.lg, headerPaddingBottom: spacing.md, titleMarginTop: spacing.xs, descriptionMarginTop: spacing.xs, nodeMarginTop: spacing.xs, iconMarginHorizontal: spacing.md, optionTextPaddingHorizontal: spacing.xs, optionDescPaddingHorizontal: spacing.lg, cancelPaddingVertical: 14, cancelMarginTop: spacing.sm, },
+    sizing: { icon: 48, },
+    typography: { fontFamily: typography.fontFamily, title: fontSize.md, description: fontSize.xs, option: fontSize.xs, optionDesc: fontSize.xxs, cancel: fontSize.md, },
   }
 }
-
 export const useShareSheetTokens = createComponentTokensHook(
   'shareSheet',
   createTokens

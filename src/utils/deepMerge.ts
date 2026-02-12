@@ -1,8 +1,6 @@
 import type { DeepPartial } from '../types'
-
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   Object.prototype.toString.call(v) === '[object Object]'
-
 export function deepMerge<T>(target: T, source?: DeepPartial<T>): T
 export function deepMerge<T>(target: DeepPartial<T>, source?: DeepPartial<T>): DeepPartial<T>
 export function deepMerge<T>(target: T, source?: DeepPartial<T>) {

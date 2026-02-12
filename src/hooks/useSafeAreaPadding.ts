@@ -1,9 +1,7 @@
 import { Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
 export type SafeAreaPaddingMin = { top?: number; bottom?: number; left?: number; right?: number }
 export type SafeAreaPaddingResult = { paddingTop: number | string; paddingBottom: number | string; paddingLeft: number | string; paddingRight: number | string }
-
 export function useSafeAreaPadding(min?: SafeAreaPaddingMin): SafeAreaPaddingResult {
   const insets = useSafeAreaInsets()
   if (Platform.OS === 'web') {

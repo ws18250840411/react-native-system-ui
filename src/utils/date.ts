@@ -2,24 +2,18 @@ export const padZero = (value: number | string, length = 2) => {
   const s = String(value)
   return s.length >= length ? s : `${'0'.repeat(length - s.length)}${s}`
 }
-
 export const times = (count: number, fn: (index: number) => string) =>
   Array.from({ length: count }, (_, i) => fn(i))
-
 export const getTrueValue = (value?: string) => {
   if (!value) return 0
   const n = parseInt(value, 10)
   return Number.isNaN(n) ? 0 : n
 }
-
 export const getMonthEndDay = (year: number, month: number) =>
   32 - new Date(year, month - 1, 32).getDate()
-
 export const isValidDate = (value: unknown): value is Date =>
   value instanceof Date && !Number.isNaN(value.getTime())
-
 export interface TimeDuration { days: number; hours: number; minutes: number; seconds: number; milliseconds: number }
-
 export const formatDuration = (fmt: string, time: TimeDuration) => {
   let { days, hours, minutes, seconds, milliseconds } = time; let t = fmt
   if (t.includes('DD')) t = t.replace('DD', padZero(days)); else hours += days * 24

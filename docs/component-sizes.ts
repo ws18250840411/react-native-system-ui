@@ -7,218 +7,218 @@
 export default [
   {
     "name": "picker",
-    "size": 6719
+    "size": 6418
   },
   {
     "name": "tabs",
-    "size": 6550
+    "size": 6300
   },
   {
     "name": "form",
-    "size": 5690
+    "size": 5093
   },
   {
     "name": "dialog",
-    "size": 5001
+    "size": 4681
   },
   {
     "name": "cascader",
-    "size": 4918
+    "size": 4602
   },
   {
     "name": "field",
-    "size": 4668
+    "size": 4501
   },
   {
     "name": "calendar",
-    "size": 4526
+    "size": 4311
   },
   {
     "name": "slider",
-    "size": 4459
+    "size": 4197
   },
   {
     "name": "number-keyboard",
-    "size": 4247
+    "size": 4078
   },
   {
     "name": "toast",
-    "size": 4149
+    "size": 3945
   },
   {
     "name": "swiper",
-    "size": 4061
+    "size": 3916
   },
   {
     "name": "popup",
-    "size": 4049
+    "size": 3902
   },
   {
     "name": "notify",
-    "size": 4013
-  },
-  {
-    "name": "checkbox",
-    "size": 3877
+    "size": 3797
   },
   {
     "name": "image-preview",
-    "size": 3807
+    "size": 3691
   },
   {
-    "name": "button",
-    "size": 3791
+    "name": "checkbox",
+    "size": 3661
   },
   {
     "name": "stepper",
-    "size": 3762
+    "size": 3640
+  },
+  {
+    "name": "button",
+    "size": 3622
   },
   {
     "name": "cell",
-    "size": 3652
+    "size": 3469
   },
   {
     "name": "radio",
-    "size": 3576
+    "size": 3369
   },
   {
     "name": "grid",
-    "size": 3473
-  },
-  {
-    "name": "config-provider",
-    "size": 3294
+    "size": 3249
   },
   {
     "name": "tabbar",
-    "size": 3280
+    "size": 3027
   },
   {
     "name": "notice-bar",
-    "size": 3105
+    "size": 2957
   },
   {
     "name": "collapse",
-    "size": 3013
+    "size": 2873
   },
   {
     "name": "password-input",
-    "size": 2983
+    "size": 2847
+  },
+  {
+    "name": "config-provider",
+    "size": 2835
   },
   {
     "name": "action-sheet",
-    "size": 2915
-  },
-  {
-    "name": "sidebar",
-    "size": 2880
+    "size": 2803
   },
   {
     "name": "image",
-    "size": 2854
+    "size": 2751
+  },
+  {
+    "name": "sidebar",
+    "size": 2644
   },
   {
     "name": "datetime-picker",
-    "size": 2728
+    "size": 2558
   },
   {
     "name": "share-sheet",
-    "size": 2537
-  },
-  {
-    "name": "progress",
-    "size": 2422
+    "size": 2406
   },
   {
     "name": "selector",
-    "size": 2376
+    "size": 2390
   },
   {
-    "name": "portal",
-    "size": 2347
+    "name": "progress",
+    "size": 2287
   },
   {
     "name": "nav-bar",
-    "size": 2329
+    "size": 2194
+  },
+  {
+    "name": "portal",
+    "size": 2110
   },
   {
     "name": "typography",
-    "size": 2174
+    "size": 2078
   },
   {
     "name": "circle",
-    "size": 2156
+    "size": 2038
   },
   {
     "name": "search",
-    "size": 2100
+    "size": 1975
   },
   {
     "name": "skeleton",
-    "size": 2054
+    "size": 1912
   },
   {
     "name": "badge",
-    "size": 2043
+    "size": 1907
   },
   {
     "name": "water-mark",
-    "size": 2011
+    "size": 1875
   },
   {
     "name": "tag",
-    "size": 1997
-  },
-  {
-    "name": "flex",
-    "size": 1786
+    "size": 1862
   },
   {
     "name": "space",
-    "size": 1731
+    "size": 1597
   },
   {
     "name": "avatar",
-    "size": 1662
+    "size": 1545
+  },
+  {
+    "name": "flex",
+    "size": 1476
   },
   {
     "name": "divider",
-    "size": 1569
+    "size": 1437
   },
   {
     "name": "empty",
-    "size": 1559
+    "size": 1424
   },
   {
     "name": "input",
-    "size": 1452
+    "size": 1325
   },
   {
     "name": "area",
-    "size": 1374
+    "size": 1237
   },
   {
     "name": "count-down",
-    "size": 1238
+    "size": 1115
   },
   {
     "name": "loading",
-    "size": 1198
+    "size": 1069
   },
   {
     "name": "switch",
-    "size": 1158
+    "size": 1038
   },
   {
     "name": "overlay",
-    "size": 912
+    "size": 796
   },
   {
     "name": "error-boundary",
-    "size": 745
+    "size": 616
   },
   {
     "name": "safe-area-view",
-    "size": 642
+    "size": 512
   }
 ]

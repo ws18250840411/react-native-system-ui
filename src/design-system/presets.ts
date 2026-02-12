@@ -1,6 +1,5 @@
 import type { DeepPartial } from '../types'
 import { createTokens, defaultTokens, type ThemeTokens } from './tokens'
-
 const darkOverrides: DeepPartial<ThemeTokens> = {
   palette: {
     default: { 50: '#05070b', 100: '#0b0f16', 200: '#131a23', 300: '#1c2632', 400: '#263342', 500: '#35455a', 600: '#4b5d73', 700: '#5f758c', 800: '#7e91a7', 900: '#b2c1cf', foreground: '#f4f6fb' },
@@ -12,7 +11,6 @@ const darkOverrides: DeepPartial<ThemeTokens> = {
   },
   surface: '#131a23',
 }
-
 const auroraOverrides: DeepPartial<ThemeTokens> = {
   palette: {
     default: { 50: '#f4fbff', 100: '#e3f5ff', 200: '#d1eef9', 300: '#b8e1ef', 400: '#a2d1e2', 500: '#89bbcf', 600: '#6ba3b8', 700: '#508aa0', 800: '#3a6f84', 900: '#254a57', foreground: '#0b1d23' },
@@ -22,13 +20,10 @@ const auroraOverrides: DeepPartial<ThemeTokens> = {
   radii: { sm: 8, md: 12, lg: 18 },
   typography: { fontFamily: 'System, "Helvetica Neue", "PingFang SC"', lineHeightMultiplier: 1.25 },
 }
-
 export const themePresets = {
   light: defaultTokens,
   dark: createTokens(darkOverrides),
   aurora: createTokens(auroraOverrides),
 } as const
-
 export type ThemePresetName = keyof typeof themePresets
-
 export const getThemePreset = (name: ThemePresetName): ThemeTokens => themePresets[name]

@@ -2,13 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Animated, Easing } from 'react-native'
 import { nativeDriverEnabled } from '../../platform'
 import { useReducedMotion } from './useReducedMotion'
-
 export interface AnimatedTransitionOptions { visible: boolean; duration?: number; enterEasing?: (v: number) => number; exitEasing?: (v: number) => number; useNativeDriver?: boolean }
 export interface AnimatedTransitionResult { mounted: boolean; progress: Animated.Value }
-
 const EASE_OUT = Easing.bezier(0.075, 0.82, 0.165, 1.0)
 const EASE_IN = Easing.bezier(0.55, 0.055, 0.675, 0.19)
-
 export const useAnimatedTransition = ({ visible, duration = 300, enterEasing = EASE_OUT, exitEasing = EASE_IN, useNativeDriver: driver = nativeDriverEnabled }: AnimatedTransitionOptions): AnimatedTransitionResult => {
   const reduceMotion = useReducedMotion()
   const [mounted, setMounted] = useState(visible)

@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isNumber } from '../utils/validate'
-
 export interface CountDownCurrentTime { total: number; days: number; hours: number; minutes: number; seconds: number; milliseconds: number }
 export interface UseCountDownOptions { time: number; millisecond?: boolean; onChange?: (current: CountDownCurrentTime) => void; onFinish?: () => void }
-
 const parseTime = (time: number): CountDownCurrentTime => {
   const t = Math.max(time, 0)
   return { total: t, days: Math.floor(t / 86400000), hours: Math.floor((t % 86400000) / 3600000), minutes: Math.floor((t % 3600000) / 60000), seconds: Math.floor((t % 60000) / 1000), milliseconds: t % 1000 }
 }
-
 const useCountDown = (options: UseCountDownOptions) => {
   const { time, millisecond = false, onChange, onFinish } = options
   const timeRef = useRef(time); const msRef = useRef(millisecond); const onChangeRef = useRef(onChange); const onFinishRef = useRef(onFinish)
@@ -27,6 +24,5 @@ const useCountDown = (options: UseCountDownOptions) => {
   useEffect(() => () => clear(), [clear])
   return { start, pause, reset, current }
 }
-
 export { parseTime }
 export default useCountDown

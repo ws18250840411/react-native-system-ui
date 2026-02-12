@@ -1,9 +1,7 @@
 import { StyleSheet } from 'react-native'
 import type { TextStyle } from 'react-native'
-
 import { createComponentTokensHook } from '../../design-system'
 import type { Foundations } from '../../design-system/tokens'
-
 export interface PasswordInputTokens {
   colors: {
     border: string
@@ -42,7 +40,6 @@ export interface PasswordInputTokens {
     none: number
   }
 }
-
 const createPasswordInputTokens = (foundations: Foundations): PasswordInputTokens => ({
   colors: {
     border: foundations.palette.default[100],
@@ -83,7 +80,6 @@ const createPasswordInputTokens = (foundations: Foundations): PasswordInputToken
     none: foundations.spacing.none,
   },
 })
-
 export const usePasswordInputTokens = createComponentTokensHook(
   'passwordInput',
   createPasswordInputTokens

@@ -1,7 +1,6 @@
 import { createComponentTokensHook } from '../../design-system'
 import { type Foundations } from '../../design-system/tokens'
 import type { ToastType } from './Toast'
-
 export interface ToastTokens {
   colors: {
     text: string
@@ -25,24 +24,16 @@ export interface ToastTokens {
   pressedOpacity: number
   positionOffsetRatio: number
   positionOffsetMin: number
-  
   animationDuration: number
 }
-
 export const createToastTokens = (foundations: Foundations): ToastTokens => {
   const onDarkText = foundations.palette.primary.foreground ?? '#ffffff'
   const backdrop = 'rgba(0,0,0,0.7)'
-
   return {
     colors: {
       text: onDarkText,
       backdrop,
-      variants: {
-        info: backdrop,
-        success: backdrop,
-        fail: backdrop,
-        loading: backdrop,
-      },
+      variants: { info: backdrop, success: backdrop, fail: backdrop, loading: backdrop, },
       transparent: 'transparent',
     },
     fontSize: foundations.fontSize.sm,
@@ -64,5 +55,4 @@ export const createToastTokens = (foundations: Foundations): ToastTokens => {
     animationDuration: 160,
   }
 }
-
 export const useToastTokens = createComponentTokensHook('toast', createToastTokens)
