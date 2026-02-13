@@ -36,7 +36,7 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
     <View style={[S.b, { backgroundColor: tokens.colors.transparent }, positionStyle, stackZIndex ? { zIndex: stackZIndex } : undefined]} pointerEvents={forbidClick || overlay || closeOnClick ? 'auto' : 'none'}>
       {(overlay || forbidClick) && <Pressable testID="rv-toast-overlay" style={[S.o, { backgroundColor: tokens.colors.transparent }, overlay && { backgroundColor: colors.backdrop }, overlayStyle]} pointerEvents="auto" onPress={overlay && closeOnClickOverlay ? handleClose : undefined} onStartShouldSetResponder={RT} onMoveShouldSetResponder={RT} />}
       {needsSafeAreaTop && <SafeAreaView edge="top" pointerEvents="none" />}
-      <Pressable disabled={!closeOnClick} {...pressProps.interactionProps}>
+      <Pressable disabled={!closeOnClick} {...pressProps.interactionProps} style={S.pw}>
         <Animated.View renderToHardwareTextureAndroid shouldRasterizeIOS style={[S.t, toastStyle, style]}>
           {iconNode && <View style={iconWrapperStyle}>{isText(iconNode) ? renderTextOrNode(iconNode, [{ color: colors.text, fontSize: tokens.iconSize }]) : iconNode}</View>}
           {hasMessage && (isText(message) ? renderTextOrNode(message, [S.m, messageStyle, textStyle]) : <View style={S.mw}>{message}</View>)}
@@ -50,5 +50,5 @@ const ToastContentImpl: React.FC<ToastProps> = props => {
 export const ToastContent = React.memo(ToastContentImpl)
 const ToastImpl: React.FC<ToastProps> = props => <Portal><ToastContent {...props} /></Portal>
 export const Toast = React.memo(ToastImpl)
-const S = StyleSheet.create({ b: { flex: 1, alignItems: 'center' }, o: { ...StyleSheet.absoluteFillObject }, t: { alignItems: 'center', justifyContent: 'center' }, m: { textAlign: 'center' }, mw: { alignItems: 'center' } })
+const S = StyleSheet.create({ b: { flex: 1, alignItems: 'center' }, o: { ...StyleSheet.absoluteFillObject }, pw: { alignItems: 'center' }, t: { alignItems: 'center', justifyContent: 'center' }, m: { textAlign: 'center' }, mw: { alignItems: 'center' } })
 export default Toast

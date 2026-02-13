@@ -58,6 +58,7 @@ export interface FieldProps
   error?: boolean
   errorMessage?: React.ReactNode
   errorMessageAlign?: FieldInputAlign
+  errorMessagePosition?: 'inner' | 'outer'
   disabled?: boolean
   readOnly?: boolean
   clearable?: boolean
