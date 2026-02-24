@@ -18,20 +18,11 @@
   },
   "scripts": {
     "dev": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc dev",
-    "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build",
-    "postbuild": "npm run build:types && node scripts/fix-package-json.mjs && node scripts/prune-dist.mjs",
+    "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build && node scripts/generate-exports.mjs && npm run build:types && node scripts/fix-package-json.mjs && node scripts/prune-dist.mjs",
     "build:types": "tsc -p tsconfig.types.json",
     "docs:update-size": "node scripts/generate-docs-size-data.mjs",
     "docs:build": "npm run build && npm run docs:update-size && NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
-    "git:push:gitee": "git remote set-url --push origin https://gitee.com/ws18250840411/react-native-system-ui.git",
-    "git:push:github": "git remote set-url --push origin https://github.com/ws18250840411/react-native-system-ui.git",
-    "preview": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc preview",
-    "rn:demos:sync": "node scripts/generate-rn-demo-registry.js",
-    "rn:demos:watch": "node scripts/generate-rn-demo-registry.js --watch",
-    "test": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" node node_modules/.pnpm/node_modules/jest/bin/jest.js --config node_modules/rndoc-cli/cjs/jest.config.cjs --rootDir . --runInBand",
-    "test:watch": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc test --watch",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepack": "npm run build && npm run build:types && node scripts/fix-package-json.mjs && node scripts/prune-dist.mjs"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "files": [
     "dist"
@@ -120,6 +111,19 @@
       "import": "./dist/es/hooks/index.js",
       "require": "./dist/cjs/hooks/index.js"
     },
+    "./text": {
+      "react-native": "./dist/es/design-system/Text.js",
+      "types": "./dist/types/design-system/Text.d.ts",
+      "import": "./dist/es/design-system/Text.js",
+      "require": "./dist/cjs/design-system/Text.js"
+    },
+    "./nativewind": {
+      "react-native": "./dist/es/nativewind.js",
+      "types": "./dist/types/nativewind.d.ts",
+      "import": "./dist/es/nativewind.js",
+      "require": "./dist/cjs/nativewind.js"
+    },
+    "./package.json": "./package.json",
     "./action-sheet": {
       "react-native": "./dist/es/components/action-sheet/index.js",
       "import": "./dist/es/components/action-sheet/index.js",
@@ -221,6 +225,12 @@
       "import": "./dist/es/components/empty/index.js",
       "require": "./dist/cjs/components/empty/index.js",
       "default": "./dist/es/components/empty/index.js"
+    },
+    "./error-boundary": {
+      "react-native": "./dist/es/components/error-boundary/index.js",
+      "import": "./dist/es/components/error-boundary/index.js",
+      "require": "./dist/cjs/components/error-boundary/index.js",
+      "default": "./dist/es/components/error-boundary/index.js"
     },
     "./field": {
       "react-native": "./dist/es/components/field/index.js",
@@ -336,6 +346,12 @@
       "require": "./dist/cjs/components/radio/index.js",
       "default": "./dist/es/components/radio/index.js"
     },
+    "./safe-area-view": {
+      "react-native": "./dist/es/components/safe-area-view/index.js",
+      "import": "./dist/es/components/safe-area-view/index.js",
+      "require": "./dist/cjs/components/safe-area-view/index.js",
+      "default": "./dist/es/components/safe-area-view/index.js"
+    },
     "./search": {
       "react-native": "./dist/es/components/search/index.js",
       "import": "./dist/es/components/search/index.js",
@@ -431,31 +447,6 @@
       "import": "./dist/es/components/water-mark/index.js",
       "require": "./dist/cjs/components/water-mark/index.js",
       "default": "./dist/es/components/water-mark/index.js"
-    },
-    "./safe-area-view": {
-      "react-native": "./dist/es/components/safe-area-view/index.js",
-      "import": "./dist/es/components/safe-area-view/index.js",
-      "require": "./dist/cjs/components/safe-area-view/index.js",
-      "default": "./dist/es/components/safe-area-view/index.js"
-    },
-    "./error-boundary": {
-      "react-native": "./dist/es/components/error-boundary/index.js",
-      "import": "./dist/es/components/error-boundary/index.js",
-      "require": "./dist/cjs/components/error-boundary/index.js",
-      "default": "./dist/es/components/error-boundary/index.js"
-    },
-    "./text": {
-      "react-native": "./dist/es/design-system/Text.js",
-      "types": "./dist/types/design-system/Text.d.ts",
-      "import": "./dist/es/design-system/Text.js",
-      "require": "./dist/cjs/design-system/Text.js"
-    },
-    "./nativewind": {
-      "react-native": "./dist/es/nativewind.js",
-      "types": "./dist/types/nativewind.d.ts",
-      "import": "./dist/es/nativewind.js",
-      "require": "./dist/cjs/nativewind.js"
-    },
-    "./package.json": "./package.json"
+    }
   }
 }

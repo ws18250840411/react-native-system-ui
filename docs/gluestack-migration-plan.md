@@ -379,3 +379,8 @@
 | 补审组件 | area / avatar / circle / count-down / empty / error-boundary / flex / grid / input / overlay / password-input / search / selector / share-sheet / skeleton / tabbar / water-mark / design-system | 136 | ✅ |
 | 动画性能层 | useReducedMotion / useAnimatedTransition / platform animation | 15 | ✅ |
 | **合计** | **70 套件** | **505** | **✅ 全部通过** |
+
+<!-- 
+"git:push:gitee": "git remote set-url --push origin https://gitee.com/ws18250840411/react-native-system-ui.git",
+    "git:push:github": "git remote set-url --push origin https://github.com/ws18250840411/react-native-system-ui.git",
+ -->
