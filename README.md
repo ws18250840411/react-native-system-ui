@@ -176,4 +176,4 @@ enableNativeWind(cssInterop)
 
 ## 版本与反馈
 
-当前为 v1.0.6，欢迎 issue / PR。
+当前为 v1.0.7，欢迎 issue / PR。
