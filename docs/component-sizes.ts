@@ -27,7 +27,7 @@ export default [
   },
   {
     "name": "field",
-    "size": 4530
+    "size": 4588
   },
   {
     "name": "calendar",
@@ -83,7 +83,7 @@ export default [
   },
   {
     "name": "grid",
-    "size": 3299
+    "size": 3278
   },
   {
     "name": "tabbar",
@@ -126,12 +126,12 @@ export default [
     "size": 2458
   },
   {
-    "name": "progress",
-    "size": 2316
+    "name": "selector",
+    "size": 2398
   },
   {
-    "name": "selector",
-    "size": 2303
+    "name": "progress",
+    "size": 2316
   },
   {
     "name": "nav-bar",
@@ -170,16 +170,16 @@ export default [
     "size": 1891
   },
   {
-    "name": "flex",
-    "size": 1629
-  },
-  {
     "name": "space",
     "size": 1626
   },
   {
     "name": "avatar",
     "size": 1574
+  },
+  {
+    "name": "flex",
+    "size": 1505
   },
   {
     "name": "divider",
