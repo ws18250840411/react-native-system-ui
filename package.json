@@ -18,11 +18,12 @@
   },
   "scripts": {
     "dev": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc dev",
-    "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build && node scripts/generate-exports.mjs && npm run build:types && node scripts/fix-package-json.mjs && node scripts/prune-dist.mjs",
-    "build:types": "tsc -p tsconfig.types.json",
+    "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build && node scripts/generate-exports.mjs && node scripts/build-types.mjs && node scripts/fix-package-json.mjs && node scripts/prune-dist.mjs",
+    "build:types": "node scripts/build-types.mjs",
     "docs:update-size": "node scripts/generate-docs-size-data.mjs",
     "docs:build": "npm run build && npm run docs:update-size && NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "slim:exports": "node scripts/slim-exports.mjs"
   },
   "files": [
     "dist"
@@ -67,6 +68,7 @@
     "react-native-svg": "^15.15.1",
     "react-native-web": "^0.21.2",
     "react-test-renderer": "^19.2.4",
+    "dts-minify": "^0.3.3",
     "rndoc-cli": "^2.1.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"

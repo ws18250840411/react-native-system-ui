@@ -81,6 +81,9 @@ importers:
       '@types/react-test-renderer':
         specifier: ^19.1.0
         version: 19.1.0
+      dts-minify:
+        specifier: ^0.3.3
+        version: 0.3.3
       jest-environment-jsdom:
         specifier: ^30.2.0
         version: 30.2.0
@@ -2870,6 +2873,9 @@ packages:
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
+
+  dts-minify@0.3.3:
+    resolution: {integrity: sha512-REaaCkkcpfG+I3gVwU58xco6NH7ZOE7yCo780L008pONbgHvv6ukKZWxiC2V43JCN36lx4tE8qHctrwWdWZYnQ==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -9035,6 +9041,8 @@ snapshots:
   dotenv-expand@8.0.3: {}
 
   dotenv@16.6.1: {}
+
+  dts-minify@0.3.3: {}
 
   dunder-proto@1.0.1:
     dependencies:
