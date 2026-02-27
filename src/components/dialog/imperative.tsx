@@ -4,7 +4,7 @@ import { deepMerge, isString, isUndefined } from '../../utils'
 import type { DialogAlertOptions, DialogConfirmOptions, DialogProps, DialogShowOptions } from './types'
 import Dialog from './Dialog'
 
-const runHook = async (handler?: () => any) => { if (!handler) return true; try { const result = await handler(); return result !== false } catch (error) { console.error(error); return true } }
+const runHook = async (handler?: () => any) => { if (!handler) return true; try { const result = await handler(); return result !== false } catch (error) { console.error(error); return false } }
 
 type ImperativeMode = 'show' | 'alert' | 'confirm'
 interface ImperativeMeta { mode: ImperativeMode; resolve?: (value?: any) => void }
