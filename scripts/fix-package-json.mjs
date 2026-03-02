@@ -37,9 +37,9 @@ const normalizeExport = (value, exportKey) => {
     const name = exportKey.slice(2)
     return {
       'react-native': `./dist/es/components/${name}/index.js`,
+      'types': `./dist/types/components/${name}/index.d.ts`,
       'import': `./dist/es/components/${name}/index.js`,
-      'require': `./dist/cjs/components/${name}/index.js`,
-      'default': `./dist/es/components/${name}/index.js`
+      'require': `./dist/cjs/components/${name}/index.js`
     }
   }
 

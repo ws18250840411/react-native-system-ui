@@ -46,7 +46,9 @@ for (const key of Object.keys(existing)) {
 
 for (const name of getComponentNames()) {
   const key = `./${name}`
-  next[key] = existing[key] || buildComponentExport(name)
+  // Always normalize component subpath exports to the latest shape.
+  // This prevents stale entries (missing `types` or containing `default`) from persisting.
+  next[key] = buildComponentExport(name)
 }
 
 pkg.exports = next
