@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent, type ViewStyle } from 'react-native'
+import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 import { SafeAreaView } from '../safe-area-view'
 import { addPopStateListener, nativeDriverEnabled } from '../../platform'
 import { useReducedMotion } from '../../hooks/animation'
@@ -11,17 +11,10 @@ import { useAriaOverlay, useOverlayStack } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
 import { useDirection } from '../config-provider/useDirection'
 import { usePopupTokens } from './tokens'
-import type { PopupPlacement, PopupProps } from './types'
+import type { PopupProps } from './types'
+import { buildRadius, CAPTURE, CONTENT_SELF, EASE_IN, EASE_OUT, hiddenStyle, placementConfig } from '../../hooks/popup/utils'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
-const EASE_OUT = Easing.bezier(0.075, 0.82, 0.165, 1.0)
-const EASE_IN = Easing.bezier(0.55, 0.055, 0.675, 0.19)
-const CAPTURE = () => true
-
-const placementConfig: Record<PopupPlacement, { container: ViewStyle; axis: 'x' | 'y' }> = { top: { container: { justifyContent: 'flex-start', alignItems: 'center' }, axis: 'y' }, bottom: { container: { justifyContent: 'flex-end', alignItems: 'center' }, axis: 'y' }, left: { container: { justifyContent: 'center', alignItems: 'flex-start' }, axis: 'x' }, right: { container: { justifyContent: 'center', alignItems: 'flex-end' }, axis: 'x' }, center: { container: { justifyContent: 'center', alignItems: 'center' }, axis: 'y' } }
-const CONTENT_SELF: Record<PopupPlacement, ViewStyle> = { top: { alignSelf: 'stretch' }, bottom: { alignSelf: 'stretch' }, left: { alignSelf: 'flex-start' }, right: { alignSelf: 'flex-end' }, center: { alignSelf: 'center' } }
-const buildRadius = (round: boolean | undefined, p: PopupPlacement, r: number): ViewStyle | undefined => !round ? undefined : p === 'top' ? { borderBottomLeftRadius: r, borderBottomRightRadius: r } : p === 'bottom' ? { borderTopLeftRadius: r, borderTopRightRadius: r } : p === 'left' ? { borderTopRightRadius: r, borderBottomRightRadius: r } : p === 'right' ? { borderTopLeftRadius: r, borderBottomLeftRadius: r } : { borderRadius: r }
-const hiddenStyle: ViewStyle = { opacity: 0, shadowOpacity: 0, shadowRadius: 0, elevation: 0 }
 
 const PopupImpl: React.FC<PopupProps> = props => {
   const locale = useLocale(); const layoutDir = useDirection(); const { visible, placement: placementProp, position, title, description, tokensOverride, overlay = true, overlayStyle, overlayAccessibilityLabel = locale?.vanPopup?.closeOverlay ?? 'Close overlay', closeOnOverlayPress, closeOnClickOverlay, overlayTestID = 'popup-overlay', closeable = false, closeIcon, closeIconPosition = 'top-right', round, safeArea = false, safeAreaInsetTop = false, safeAreaInsetBottom: safeBottomP, lockScroll = true, destroyOnClose = false, duration = 300, zIndex, closeOnBackPress = false, closeOnPopstate = false, children, beforeClose, onClickOverlay, onClose, onOpen, onOpened, onClosed, stopPropagation = true, style, contentAnimationStyle, ...rest } = props

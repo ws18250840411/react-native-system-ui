@@ -12,14 +12,10 @@ import { useLocale } from '../config-provider/useLocale'
 import { SafeAreaView } from '../safe-area-view'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
+import { buildKeyboardKeys, RE_NUM_LIKE, type NumberKeyboardKey } from '../../hooks/number-keyboard/utils'
 
 const registry = new Set<() => void>()
-const NUM_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
-const ZERO = '0'
-const RE_NUM_LIKE = /^\d+$|^\.$|^x$/i
-const shuffle = <T,>(list: T[]) => { const n = [...list]; for (let i = n.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [n[i], n[j]] = [n[j], n[i]] }; return n }
-interface Key { text?: string; type: NumberKeyboardKeyType; wider?: boolean }
-type KEnt = { key: Key; index: number }
+type KEnt = { key: NumberKeyboardKey; index: number }
 
 const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const { visible, title, tokensOverride, theme = 'default', extraKey, randomKeyOrder, showDeleteKey = true, closeButtonText, deleteButtonText, closeButtonLoading, onChange, onInput, onDelete, onClose, onBlur, onHide, onShow, value: _v, defaultValue: _dv, maxlength: maxlengthProp, blurOnClose = true, safeAreaInsetBottom = true, transition = true, transitionDuration = 300, numberKeyRender, deleteRender, extraKeyRender, style, ...rest } = props
@@ -34,11 +30,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const prevVis = useRef(visible)
   useEffect(() => { if (visible && !prevVis.current) onShowRef.current?.(); if (!visible && prevVis.current) onHideRef.current?.(); prevVis.current = visible }, [visible])
   useEffect(() => { if (visible) { registry.add(handleClose); registry.forEach(fn => { if (fn !== handleClose) fn() }) } else registry.delete(handleClose); return () => { registry.delete(handleClose) } }, [visible, handleClose])
-  const keys = useMemo(() => {
-    const sh = randomKeyOrder && visible; const nK = sh ? shuffle(NUM_KEYS) : NUM_KEYS; const mat: Key[] = nK.map(t => ({ text: t, type: '' }))
-    if (isCustom) { const e = Array.isArray(extraKey) ? extraKey : extraKey ? [extraKey] : []; if (e.length === 1) mat.push({ text: ZERO, type: '', wider: true }, { text: e[0], type: 'extra' }); else if (e.length >= 2) mat.push({ text: e[0], type: 'extra' }, { text: ZERO, type: '' }, { text: e[1], type: 'extra' }); else mat.push({ text: ZERO, type: '' }); return mat }
-    const nE = Array.isArray(extraKey) ? extraKey[0] ?? '' : extraKey ?? ''; mat.push({ text: nE, type: 'extra' }, { text: ZERO, type: '' }, { type: showDeleteKey ? 'delete' : '', text: showDeleteKey ? undefined : '' }); return mat
-  }, [extraKey, isCustom, randomKeyOrder, showDeleteKey, visible])
+  const keys = useMemo(() => buildKeyboardKeys({ randomKeyOrder, visible, isCustom, extraKey, showDeleteKey }), [extraKey, isCustom, randomKeyOrder, showDeleteKey, visible])
   const handleInput = useCallback((text?: string, type?: NumberKeyboardKeyType) => {
     if (type === 'delete') { const c = valRef.current; if (!c) return; onDelRef.current?.(); setValue(c.slice(0, -1)); return }
     if (type === 'close' || (type === 'extra' && !text)) { handleClose(); return }; if (!text) return
@@ -46,7 +38,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     onInpRef.current?.(text); setValue(`${c}${text}`)
   }, [handleClose, setValue])
   const winShadow = useMemo(() => createPlatformShadow(shadow), [shadow.color, shadow.elevation, shadow.offsetY, shadow.opacity, shadow.radius])
-  const renderKey = useCallback((key: Key, index: number, isClose = false, fullW = false, customH?: number) => {
+  const renderKey = useCallback((key: NumberKeyboardKey, index: number, isClose = false, fullW = false, customH?: number) => {
     const kt = key.type; const isPh = kt === '' && !key.text; const dis = isPh || (isClose && closeButtonLoading); const onP = dis ? undefined : () => handleInput(key.text, kt)
     const bg = isClose ? colors.closeBackground : colors.keyBackground; const aBg = isClose ? colors.closeActiveBackground : colors.keyActiveBackground
     const tInact = isClose ? colors.closeText : colors.keyText; const tPress = isClose ? colors.closeText : colors.keyTextActive

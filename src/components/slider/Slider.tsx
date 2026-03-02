@@ -11,23 +11,7 @@ import { createHairlineView } from '../../utils/hairline'
 import { clamp, renderTextOrNode } from '../../utils'
 import { isFunction, isFiniteNumber, isText } from '../../utils/validate'
 import { useAriaPress } from '../../hooks'
-type TrackLayout = { width: number; height: number; x: number; y: number }
-const isSameLayout = (a: TrackLayout, b: TrackLayout) => a.width === b.width && a.height === b.height && a.x === b.x && a.y === b.y
-const normalizeValue = (value: SliderValue | undefined, range: boolean, min: number, max: number): number[] => range ? (() => { const raw = Array.isArray(value) ? value : isFiniteNumber(value) ? [min, value] : [min, min]; const first = isFiniteNumber(raw[0]) ? clamp(raw[0], min, max) : min; const second = isFiniteNumber(raw[1] ?? raw[0]) ? clamp(raw[1] ?? raw[0], min, max) : min; return first <= second ? [first, second] : [second, first] })() : (() => { const single = Array.isArray(value) ? value[0] : value; return [isFiniteNumber(single) ? clamp(single, min, max) : min] })()
-const toSliderValue = (values: readonly number[], range: boolean, fallback: number): SliderValue => range ? [values[0] ?? fallback, values[1] ?? (values[0] ?? fallback)] : (values[0] ?? fallback)
-const createAccessibilityProps = (inputProps?: { role?: string; ['aria-value']?: unknown; accessibilityActions?: unknown; onAccessibilityAction?: unknown; disabled?: boolean } | null) => !inputProps ? {} : (() => { const { role, ['aria-value']: ariaValue, accessibilityActions, onAccessibilityAction, disabled } = inputProps; return { accessible: true, accessibilityRole: role ?? 'adjustable', accessibilityValue: ariaValue, accessibilityActions, onAccessibilityAction, accessibilityState: { disabled } } })()
-const defaultNumberFormatter = typeof Intl !== 'undefined' && isFunction(Intl.NumberFormat) ? new Intl.NumberFormat() : ({ format: (val: number) => String(val) } as unknown as Intl.NumberFormat)
-type PressableLikeEvent = GestureResponderEvent & { preventDefault?: () => void }
-type HandlerBag = Record<string, unknown> & Partial<React.ComponentProps<typeof View>>
-const START_KEYS = ['onResponderGrant', 'onPanResponderGrant'] as const
-const MOVE_KEYS = ['onResponderMove', 'onPanResponderMove'] as const
-const END_KEYS = ['onResponderRelease', 'onResponderTerminate', 'onPanResponderRelease', 'onPanResponderTerminate'] as const
-const useTrackLayout = () => {
-  const trackRef = useRef<React.ElementRef<typeof Pressable> | null>(null), measureRafRef = useRef<number | null>(null), [trackLayout, setTrackLayout] = useState<TrackLayout>({ width: 0, height: 0, x: 0, y: 0 })
-  const handleTrackLayout = useCallback((event: LayoutChangeEvent) => { const { layout } = event.nativeEvent; const next = { width: Math.max(layout.width, 1), height: Math.max(layout.height, 1), x: layout.x ?? 0, y: layout.y ?? 0 }; setTrackLayout(prev => (isSameLayout(prev, next) ? prev : next)); if (Platform.OS !== 'web' || typeof requestAnimationFrame === 'undefined') return; if (measureRafRef.current != null) return; measureRafRef.current = requestAnimationFrame(() => { measureRafRef.current = null; const node = trackRef.current as unknown as { measureInWindow?: (cb: (x: number, y: number, width: number, height: number) => void) => void } | null; if (!node?.measureInWindow) return; node.measureInWindow((x, y, width, height) => { const measured = { width: Math.max(width, 1), height: Math.max(height, 1), x, y }; setTrackLayout(prev => (isSameLayout(prev, measured) ? prev : measured)) }) }) }, [])
-  useEffect(() => { return () => { if (measureRafRef.current != null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(measureRafRef.current); measureRafRef.current = null } }, [])
-  return { trackRef, trackLayout, handleTrackLayout }
-}
+import { createAccessibilityProps, defaultNumberFormatter, END_KEYS, type HandlerBag, MOVE_KEYS, normalizeValue, type PressableLikeEvent, START_KEYS, toSliderValue, type TrackLayout, useTrackLayout } from '../../hooks/slider/utils'
 interface ThumbNodeProps { index: number; orientation: 'horizontal' | 'vertical'; ariaReverse: boolean; trackLayout: TrackLayout; isDisabled: boolean; state: ReturnType<typeof useSliderState>; size: number; activeColor: string; content: React.ReactNode; visualPercent: number; thumbBackgroundColor: string; thumbElevation: number; indicatorSize: number; indicatorColor: string; webGestureStyle?: ViewStyle; enhanceHandlers: (handlers: HandlerBag | undefined, index: number) => HandlerBag | undefined }
 const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({ index, orientation, ariaReverse, trackLayout, isDisabled, state, size, activeColor, content, visualPercent, thumbBackgroundColor, thumbElevation, indicatorSize, indicatorColor, webGestureStyle, enhanceHandlers }) => {
   const inputRef = useRef(null)

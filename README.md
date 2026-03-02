@@ -1,10 +1,10 @@
 # react-native-system-ui
 
-面向 React Native 的高性能设计系统组件库。基于 Design Tokens 驱动主题体系，50+ 组件全量覆盖移动端场景；原生 StyleSheet 零运行时开销，单组件均值 **2.7 KB gzip**；iOS / Android / Web 三端同构，API 一致、行为对齐。
+面向 React Native 的高性能设计系统组件库。基于 Design Tokens 驱动主题体系，50+ 组件全量覆盖移动端场景；原生 StyleSheet 零运行时开销，单组件均值 **2.6 KB gzip**；iOS / Android / Web 三端同构，API 一致、行为对齐。
 
 ## 核心优势
 
-- **极致轻量**：全组件经过逐行精简——冗余 Hook 移除、StyleSheet 合并、计算内联、辅助函数提取；构建产物 esbuild 压缩；按需引入 + Tree Shaking，单组件平均 gzip 仅 **2.7 KB**，最小组件（SafeAreaView）仅 **0.5 KB**。
+- **极致轻量**：全组件经过逐行精简——冗余 Hook 移除、StyleSheet 合并、计算内联、辅助函数提取；构建产物 esbuild 压缩；按需引入 + Tree Shaking，单组件平均 gzip 仅 **2.6 KB**，最小组件（SafeAreaView）仅 **0.5 KB**。
 - **原生性能**：纯 StyleSheet 驱动，零 CSS-in-JS 运行时；动画基于原生 Animated / LayoutAnimation，无 JS 线程阻塞；列表类组件（Picker、Swiper、Tabs）基于 FlatList / ScrollView 原生滚动，确保 60fps 流畅交互。
 - **三端同构**：iOS / Android / Web 统一 API 与交互行为；Swiper、Picker 等核心组件在 Web 端自动适配桌面鼠标拖拽与移动端触控，无需业务层额外处理。
 - **设计系统**：Design Tokens + ThemeProvider 分层架构，组件自管 tokens；支持 light / dark / 品牌主题一键切换，样式定制不侵入组件实现。
@@ -151,29 +151,29 @@ enableNativeWind(cssInterop)
 
 ## 组件体积
 
-按需引入后单组件均值约 **2.7 KB**（各组件目录 gzip 相加估算，数据由 `pnpm run build && pnpm run docs:update-size` 生成）。支持 Tree Shaking，实际打包体积以构建结果为准。
+按需引入后单组件均值约 **2.6 KB**（各组件目录 gzip 相加估算，数据由 `pnpm run build && pnpm run docs:update-size` 生成）。支持 Tree Shaking，实际打包体积以构建结果为准。
 
 | 组件 | gzip | 组件 | gzip | 组件 | gzip |
 | --- | ---: | --- | ---: | --- | ---: |
-| picker | 6.3 KB | tabs | 6.2 KB | form | 4.7 KB |
-| dialog | 4.6 KB | cascader | 4.5 KB | field | 4.4 KB |
-| calendar | 4.2 KB | slider | 4.1 KB | number-keyboard | 4.0 KB |
-| toast | 3.9 KB | swiper | 3.9 KB | popup | 3.8 KB |
-| notify | 3.7 KB | image-preview | 3.6 KB | checkbox | 3.6 KB |
+| picker | 5.1 KB | cascader | 4.4 KB | tabs | 4.4 KB |
+| dialog | 4.4 KB | form | 4.3 KB | toast | 3.9 KB |
+| field | 3.8 KB | calendar | 3.8 KB | swiper | 3.8 KB |
+| number-keyboard | 3.8 KB | notify | 3.7 KB | popup | 3.7 KB |
+| slider | 3.6 KB | image-preview | 3.6 KB | checkbox | 3.6 KB |
 | stepper | 3.6 KB | button | 3.6 KB | cell | 3.4 KB |
 | radio | 3.3 KB | grid | 3.2 KB | tabbar | 3.0 KB |
 | notice-bar | 2.9 KB | collapse | 2.8 KB | config-provider | 2.8 KB |
 | password-input | 2.8 KB | action-sheet | 2.8 KB | image | 2.7 KB |
 | sidebar | 2.6 KB | datetime-picker | 2.5 KB | share-sheet | 2.4 KB |
-| progress | 2.3 KB | selector | 2.2 KB | nav-bar | 2.2 KB |
-| portal | 2.1 KB | typography | 2.1 KB | circle | 2.0 KB |
+| selector | 2.4 KB | progress | 2.3 KB | nav-bar | 2.2 KB |
+| portal | 2.2 KB | typography | 2.1 KB | circle | 2.0 KB |
 | search | 2.0 KB | skeleton | 1.9 KB | badge | 1.9 KB |
-| water-mark | 1.9 KB | tag | 1.8 KB | flex | 1.6 KB |
-| space | 1.6 KB | avatar | 1.5 KB | divider | 1.4 KB |
+| water-mark | 1.9 KB | tag | 1.8 KB | space | 1.6 KB |
+| avatar | 1.5 KB | flex | 1.5 KB | divider | 1.4 KB |
 | empty | 1.4 KB | input | 1.3 KB | area | 1.2 KB |
 | count-down | 1.1 KB | loading | 1.1 KB | switch | 1.0 KB |
 | overlay | 0.8 KB | error-boundary | 0.6 KB | safe-area-view | 0.5 KB |
 
 ## 版本与反馈
 
-当前为 v1.0.7，欢迎 issue / PR。
+当前为 v1.0.8，欢迎 issue / PR。

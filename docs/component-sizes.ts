@@ -7,55 +7,55 @@
 export default [
   {
     "name": "picker",
-    "size": 6449
-  },
-  {
-    "name": "tabs",
-    "size": 6328
-  },
-  {
-    "name": "form",
-    "size": 4859
-  },
-  {
-    "name": "dialog",
-    "size": 4732
+    "size": 5216
   },
   {
     "name": "cascader",
-    "size": 4631
+    "size": 4530
   },
   {
-    "name": "field",
-    "size": 4588
+    "name": "tabs",
+    "size": 4510
   },
   {
-    "name": "calendar",
-    "size": 4340
+    "name": "dialog",
+    "size": 4491
   },
   {
-    "name": "slider",
-    "size": 4219
-  },
-  {
-    "name": "number-keyboard",
-    "size": 4107
+    "name": "form",
+    "size": 4397
   },
   {
     "name": "toast",
-    "size": 3963
+    "size": 3971
+  },
+  {
+    "name": "field",
+    "size": 3942
+  },
+  {
+    "name": "calendar",
+    "size": 3914
   },
   {
     "name": "swiper",
-    "size": 3945
+    "size": 3898
   },
   {
-    "name": "popup",
-    "size": 3930
+    "name": "number-keyboard",
+    "size": 3886
   },
   {
     "name": "notify",
     "size": 3826
+  },
+  {
+    "name": "popup",
+    "size": 3742
+  },
+  {
+    "name": "slider",
+    "size": 3720
   },
   {
     "name": "image-preview",
@@ -67,7 +67,7 @@ export default [
   },
   {
     "name": "stepper",
-    "size": 3669
+    "size": 3676
   },
   {
     "name": "button",
@@ -127,7 +127,7 @@ export default [
   },
   {
     "name": "selector",
-    "size": 2398
+    "size": 2419
   },
   {
     "name": "progress",
@@ -139,7 +139,7 @@ export default [
   },
   {
     "name": "portal",
-    "size": 2139
+    "size": 2216
   },
   {
     "name": "typography",
@@ -211,7 +211,7 @@ export default [
   },
   {
     "name": "overlay",
-    "size": 825
+    "size": 830
   },
   {
     "name": "error-boundary",

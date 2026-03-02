@@ -372,6 +372,45 @@ describe('Form', () => {
     expect(input.props.value).toBe('init')
   })
 
+  it('resetFields keeps field initialValue stable across repeated resets', () => {
+    let formRef: FormInstance | null = null
+    const tree = create(
+      <Form
+        initialValues={{}}
+        ref={ref => {
+          formRef = ref
+        }}
+      >
+        <FormItem name="name" initialValue="field-init">
+          <Input />
+        </FormItem>
+      </Form>
+    )
+
+    const input = tree.root.findByType(TextInput)
+    expect(input.props.value).toBe('field-init')
+
+    act(() => {
+      input.props.onChangeText('changed')
+    })
+    expect(input.props.value).toBe('changed')
+
+    act(() => {
+      formRef?.resetFields()
+    })
+    expect(input.props.value).toBe('field-init')
+
+    act(() => {
+      input.props.onChangeText('changed-again')
+    })
+    expect(input.props.value).toBe('changed-again')
+
+    act(() => {
+      formRef?.resetFields()
+    })
+    expect(input.props.value).toBe('field-init')
+  })
+
   it('useWatch updates correctly', () => {
     const Watcher = () => {
       const value = useWatch('name')

@@ -234,4 +234,42 @@ describe('Cascader', () => {
       )
     }).not.toThrow()
   })
+
+  it('falls back to first tab when value path starts invalid', () => {
+    const options: CascaderOption[] = [
+      { text: 'A', value: 'a', children: [{ text: 'A-1', value: 'a1' }] },
+    ]
+    const tree = renderer.create(
+      <Cascader options={options} value={['x', 'y']} showHeader={false} swipeable={false} />
+    )
+
+    const pane0 = tree.root.findByProps({ testID: 'rv-tabs-pane-0' })
+    expect(StyleSheet.flatten(pane0.props.style)?.display).toBeUndefined()
+    expect(tree.root.findAllByProps({ testID: 'rv-tabs-pane-1' })).toHaveLength(0)
+  })
+
+  it('uses last available tab when value depth exceeds resolved tabs', () => {
+    const options: CascaderOption[] = [
+      {
+        text: 'A',
+        value: 'a',
+        children: [
+          {
+            text: 'A-1',
+            value: 'a1',
+            children: [{ text: 'A-1-1', value: 'a11' }],
+          },
+        ],
+      },
+    ]
+
+    const tree = renderer.create(
+      <Cascader options={options} value={['a', 'invalid-child', 'ghost']} showHeader={false} swipeable={false} />
+    )
+
+    const pane0 = tree.root.findByProps({ testID: 'rv-tabs-pane-0' })
+    const pane1 = tree.root.findByProps({ testID: 'rv-tabs-pane-1' })
+    expect(StyleSheet.flatten(pane0.props.style)?.display).toBe('none')
+    expect(StyleSheet.flatten(pane1.props.style)?.display).toBeUndefined()
+  })
 })

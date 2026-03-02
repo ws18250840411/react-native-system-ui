@@ -4,6 +4,7 @@ import { clamp } from '../../utils/number'
 import type { SwiperProps, SwiperInstance, SwiperItemProps } from './types'
 import SwiperPagIndicator from './SwiperPagIndicator'
 import { useSwiperTokens } from './tokens'
+import { createWebMouseHandlers, LOOP_THRESHOLD } from '../../hooks/swiper/utils'
 
 type SwiperComponent = (<T>(props: SwiperProps<T> & RefAttributes<SwiperInstance>) => ReactElement | null) & { displayName?: string }
 
@@ -11,8 +12,6 @@ const SwiperItemImpl = (props: SwiperItemProps, ref: React.ForwardedRef<View>) =
 const SwiperItemFR = forwardRef<View, SwiperItemProps>(SwiperItemImpl)
 SwiperItemFR.displayName = 'SwiperItem'
 export const SwiperItem = memo(SwiperItemFR)
-
-const LOOP_THRESHOLD = 10
 
 const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
   const { data, renderItem, children, initialSwipe = 0, touchable = true, loop = true, autoplay = false, vertical = false, onChange, indicator = true, indicatorProps, style, testID } = props; const tokens = useSwiperTokens(); const listRef = useRef<FlatList>(null); const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null); const interRef = useRef(false); const animRef = useRef(false); const queueRef = useRef<number | null>(null); const momRef = useRef(false); const dragRef = useRef<number | null>(null); const scrollEndRef = useRef<ReturnType<typeof setTimeout> | null>(null); const lastOffRef = useRef(0); const isWeb = Platform.OS === 'web'; const [layout, setLayout] = useState({ width: 0, height: 0 })
@@ -121,7 +120,10 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   const onDragBegin = useCallback(() => { interRef.current = true; clearAuto(); if (scrollEndRef.current) { clearTimeout(scrollEndRef.current); scrollEndRef.current = null } }, [clearAuto])
   const onDragEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { if (!momRef.current) onEnd(e) }, [onEnd])
   const onMomBegin = useCallback(() => { momRef.current = true }, [])
-  const onFail = useCallback((info: { index: number }) => { scrollTo(info.index, false); update(realIdx(info.index)); reset() }, [scrollTo, update, realIdx, reset])
+  const onFail = useCallback((info: { index: number }) => {
+    const failedIndex = shouldLoop ? clamp(info.index, 0, dCount - 1) : clamp(info.index, 0, count - 1)
+    scrollTo(failedIndex, false); update(realIdx(failedIndex)); reset()
+  }, [count, dCount, realIdx, reset, scrollTo, shouldLoop, update])
 
   const renderItemRef = useRef(renderItem)
   renderItemRef.current = renderItem
@@ -137,11 +139,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   if (count === 0) return null
   const indNode = indicator === false || count <= 1 ? null : typeof indicator === 'function' ? indicator(count, curIdx) : <SwiperPagIndicator {...indicatorProps} total={count} current={curIdx} vertical={vertical} />
 
-  const webMouse = isWeb && touchable && count > 1 ? ({
-    onPointerDown: (e: any) => { if (e.nativeEvent.pointerType !== 'mouse' || e.nativeEvent.button !== 0) return; dragRef.current = vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX; interRef.current = true; clearAuto() },
-    onPointerUp: (e: any) => { const s = dragRef.current; dragRef.current = null; if (s == null || e.nativeEvent.pointerType !== 'mouse') return; const d = (vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX) - s; if (Math.abs(d) >= mainSz * 0.15) { d < 0 ? next() : prev() }; interRef.current = false; schedule() },
-    onPointerLeave: () => { if (dragRef.current != null) { dragRef.current = null; interRef.current = false; schedule() } },
-  } as Record<string, any>) : undefined
+  const webMouse = useMemo(() => createWebMouseHandlers({ enabled: isWeb && touchable && count > 1, vertical, mainSize: mainSz, clearAuto, next, prev, schedule, dragRef, interRef }), [isWeb, touchable, count, vertical, mainSz, clearAuto, next, prev, schedule])
 
   if (!ready) {
     return <View style={[S.ctr, style]} onLayout={onLayout} testID={testID} />

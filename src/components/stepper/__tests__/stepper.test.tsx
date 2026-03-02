@@ -178,4 +178,21 @@ describe('Stepper', () => {
 
     expect(handleChange).toHaveBeenCalledWith(2, { name: undefined })
   })
+
+  it('does not commit when async beforeChange rejects', async () => {
+    const handleChange = jest.fn()
+    const tree = renderer.create(
+      <Stepper defaultValue={1} onChange={handleChange} beforeChange={() => Promise.reject(new Error('blocked'))} />,
+    )
+    const plus = tree.root.findByProps({ testID: 'stepper-plus' })
+    const input = tree.root.findByType(TextInput)
+
+    await act(async () => {
+      plus.props.onPress({})
+      await Promise.resolve()
+    })
+
+    expect(handleChange).not.toHaveBeenCalled()
+    expect(input.props.value).toBe('1')
+  })
 })
