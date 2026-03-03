@@ -1,36 +1,15 @@
 
 
 import React, { act, useState } from 'react'
-import { createRoot, type Root } from 'react-dom/client'
+import renderer from 'react-test-renderer'
+import { Pressable, Text, View } from 'react-native'
 
 import { Checkbox } from '..'
 
-const click = (element: Element) => {
-  element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
-}
-
-const findElementByText = (root: ParentNode, text: string) => {
-  const all = Array.from(root.querySelectorAll('*'))
-  return all.find(el => el.textContent === text)
-}
+const hasCheckmark = (tree: renderer.ReactTestRenderer) =>
+  tree.root.findAllByType(Text).some(node => node.props.children === '✓')
 
 describe('Checkbox (DOM)', () => {
-  let container: HTMLDivElement
-  let root: Root
-
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-    root = createRoot(container)
-  })
-
-  afterEach(() => {
-    act(() => {
-      root.unmount()
-    })
-    container.remove()
-  })
-
   it('toggles controlled state when clicking label', () => {
     function Controlled() {
       const [checked, setChecked] = useState(false)
@@ -41,49 +20,40 @@ describe('Checkbox (DOM)', () => {
       )
     }
 
-    act(() => {
-      root.render(<Controlled />)
-    })
-
-    const label = findElementByText(container, '复选框')
-    expect(label).toBeTruthy()
+    const tree = renderer.create(<Controlled />)
+    const pressable = tree.root.findByType(Pressable)
 
     act(() => {
-      click(label!)
+      pressable.props.onPress()
     })
-    expect(container.textContent).toContain('✓')
+    expect(hasCheckmark(tree)).toBe(true)
 
     act(() => {
-      click(label!)
+      pressable.props.onPress()
     })
-    expect(container.textContent).not.toContain('✓')
+    expect(hasCheckmark(tree)).toBe(false)
   })
 
   it('respects labelDisabled (label does not toggle, icon toggles)', () => {
+    const tree = renderer.create(
+      <Checkbox defaultChecked labelDisabled>
+        禁止文本点击
+      </Checkbox>
+    )
+
+    expect(hasCheckmark(tree)).toBe(true)
+
+    const labelWrapper = tree.root.findAllByType(View).find(node =>
+      node.props.pointerEvents === 'none' &&
+      node.findAllByType(Text).some(t => t.props.children === '禁止文本点击')
+    )
+    expect(labelWrapper).toBeTruthy()
+    expect(labelWrapper?.props.onPress).toBeUndefined()
+
+    const checkbox = tree.root.findByProps({ accessibilityRole: 'checkbox' })
     act(() => {
-      root.render(
-        <Checkbox defaultChecked labelDisabled>
-          禁止文本点击
-        </Checkbox>
-      )
+      checkbox.props.onPress()
     })
-
-    expect(container.textContent).toContain('✓')
-
-    const label = findElementByText(container, '禁止文本点击')
-    expect(label).toBeTruthy()
-
-    act(() => {
-      click(label!)
-    })
-    expect(container.textContent).toContain('✓')
-
-    const checkbox = container.querySelector('[role="checkbox"]')
-    expect(checkbox).toBeTruthy()
-
-    act(() => {
-      click(checkbox!)
-    })
-    expect(container.textContent).not.toContain('✓')
+    expect(hasCheckmark(tree)).toBe(false)
   })
 })
