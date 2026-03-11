@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View, Platform, type LayoutChangeEvent, type TextStyle } from 'react-native'
-import { Arrow, Close } from 'react-native-system-icon'
+import Arrow from 'react-native-system-icon/Arrow'
+import Close from 'react-native-system-icon/Close'
 import { useAriaPress } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
 import { useDirection } from '../config-provider/useDirection'

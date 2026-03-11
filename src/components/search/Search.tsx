@@ -1,6 +1,6 @@
 import React, { useCallback, useImperativeHandle, useRef } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { Search as SearchIcon } from 'react-native-system-icon'
+import SearchIcon from 'react-native-system-icon/Search'
 import { useAriaPress, useControllableValue } from '../../hooks'
 import { isText } from '../../utils/validate'
 import { useLocale } from '../config-provider/useLocale'

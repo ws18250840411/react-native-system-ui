@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react'
 import { Platform, Pressable, View, type PressableStateCallbackType } from 'react-native'
-import { Close } from 'react-native-system-icon'
+import Close from 'react-native-system-icon/Close'
 import { useAriaPress } from '../../hooks'
 import { createHairlineView, isRenderable, isText, renderTextOrNode } from '../../utils'
 import Loading from '../loading'

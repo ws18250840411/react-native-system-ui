@@ -1,6 +1,6 @@
 import React from 'react'
 import { Pressable, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native'
-import { Close } from 'react-native-system-icon'
+import Close from 'react-native-system-icon/Close'
 import { createHairlineView, isFunction, renderTextOrNode } from '../../utils'
 import { isRenderable } from '../../utils/validate'
 import { useDirection } from '../config-provider/useDirection'
