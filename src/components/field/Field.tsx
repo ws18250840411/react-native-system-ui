@@ -1,7 +1,7 @@
 import React, { useCallback, useId, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { Platform, Pressable, Text, TextInput, View } from 'react-native'
 import type { TextInputProps } from 'react-native'
-import QuestionO from 'react-native-system-icon/QuestionO'
+import { QuestionO } from '../../internal/icons'
 import Cell from '../cell'
 import Dialog from '../dialog'
 import { formatNumberInput } from '../../utils/string'

@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, View, type LayoutChangeEvent, type ViewProps, type TextProps } from 'react-native'
-import Arrow from 'react-native-system-icon/Arrow'
+import { Arrow } from '../../internal/icons'
 import { useReducedMotion } from '../../hooks/animation'
 import { Cell } from '../cell'
 import type { DeepPartial } from '../../types'

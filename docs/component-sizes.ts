@@ -3,15 +3,16 @@
  * 数据源: dist/es/components
  * 口径: 各组件目录下 .ts/.tsx/.js 文件分别 gzip 后相加（字节），非实际打包单 chunk 体积。
  * 先执行 pnpm run build 再执行 pnpm run docs:update-size 将使用 dist/es/components。
+ * 同命令会同步 README.md 中 <!-- docs:component-sizes:start/end --> 内表格及文首/「核心优势」中的均值与最小组件体积。
  */
 export default [
   {
     "name": "picker",
-    "size": 5216
+    "size": 5231
   },
   {
     "name": "cascader",
-    "size": 4530
+    "size": 4528
   },
   {
     "name": "tabs",
@@ -19,7 +20,7 @@ export default [
   },
   {
     "name": "dialog",
-    "size": 4491
+    "size": 4486
   },
   {
     "name": "form",
@@ -27,11 +28,11 @@ export default [
   },
   {
     "name": "toast",
-    "size": 3971
+    "size": 3969
   },
   {
     "name": "field",
-    "size": 3942
+    "size": 3941
   },
   {
     "name": "calendar",
@@ -51,7 +52,7 @@ export default [
   },
   {
     "name": "popup",
-    "size": 3742
+    "size": 3743
   },
   {
     "name": "slider",
@@ -75,7 +76,7 @@ export default [
   },
   {
     "name": "cell",
-    "size": 3498
+    "size": 3495
   },
   {
     "name": "radio",
@@ -91,11 +92,11 @@ export default [
   },
   {
     "name": "notice-bar",
-    "size": 2982
+    "size": 2981
   },
   {
     "name": "collapse",
-    "size": 2901
+    "size": 2900
   },
   {
     "name": "config-provider",
@@ -107,11 +108,11 @@ export default [
   },
   {
     "name": "action-sheet",
-    "size": 2856
+    "size": 2854
   },
   {
     "name": "image",
-    "size": 2780
+    "size": 2834
   },
   {
     "name": "sidebar",
@@ -123,7 +124,7 @@ export default [
   },
   {
     "name": "share-sheet",
-    "size": 2458
+    "size": 2479
   },
   {
     "name": "selector",
@@ -134,24 +135,24 @@ export default [
     "size": 2316
   },
   {
-    "name": "nav-bar",
-    "size": 2244
+    "name": "portal",
+    "size": 2245
   },
   {
-    "name": "portal",
-    "size": 2216
+    "name": "nav-bar",
+    "size": 2242
+  },
+  {
+    "name": "circle",
+    "size": 2133
   },
   {
     "name": "typography",
     "size": 2107
   },
   {
-    "name": "circle",
-    "size": 2067
-  },
-  {
     "name": "search",
-    "size": 2004
+    "size": 2084
   },
   {
     "name": "skeleton",
@@ -187,11 +188,11 @@ export default [
   },
   {
     "name": "empty",
-    "size": 1453
+    "size": 1452
   },
   {
     "name": "input",
-    "size": 1354
+    "size": 1367
   },
   {
     "name": "area",

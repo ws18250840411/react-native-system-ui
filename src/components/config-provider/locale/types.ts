@@ -1,7 +1,6 @@
 export interface Locale {
   [key: string]: any
 
-  /** Common */
   name?: string
   tel?: string
   save?: string
@@ -13,34 +12,24 @@ export interface Locale {
   nameEmpty?: string
   telInvalid?: string
 
-  /** Form */
   vanForm?: { validationFailed?: string }
 
-  /** Popup */
   vanPopup?: { closeOverlay?: string; closeHint?: string }
 
-  /** Toast */
   vanToast?: { closeHint?: string }
 
-  /** ShareSheet */
   vanShareSheet?: { cancel?: string }
 
-  /** NumberKeyboard */
   vanNumberKeyboard?: { close?: string }
 
-  /** NoticeBar */
   vanNoticeBar?: { close?: string }
 
-  /** NavBar */
   vanNavBar?: { back?: string; action?: string }
 
-  /** Image */
   vanImage?: { loading?: string; error?: string }
 
-  /** Cascader */
   vanCascader?: { placeholder?: string; loading?: string; close?: string }
 
-  /** Calendar */
   vanCalendar?: {
     end?: string
     start?: string
@@ -52,38 +41,29 @@ export interface Locale {
     rangePrompt?: (maxRange: number) => string
   }
 
-  /** Picker */
   vanPicker?: { select?: string }
 
-  /** ContactCard */
   vanContactCard?: { addText?: string }
 
-  /** ContactList */
   vanContactList?: { addText?: string }
 
-  /** Pagination */
   vanPagination?: { prev?: string; next?: string }
 
-  /** PullRefresh */
   vanPullRefresh?: { pulling?: string; loosing?: string; loading?: string }
 
-  /** SubmitBar */
   vanSubmitBar?: { label?: string }
 
-  /** Coupon */
   vanCoupon?: {
     unlimited?: string
     discount?: (discount: number) => string
     condition?: (condition: number) => string
   }
 
-  /** CouponCell */
   vanCouponCell?: {
     title?: string
     count?: (count: number) => string
   }
 
-  /** CouponList */
   vanCouponList?: {
     exchange?: string
     close?: string
@@ -92,7 +72,6 @@ export interface Locale {
     placeholder?: string
   }
 
-  /** AddressEdit */
   vanAddressEdit?: {
     area?: string
     postal?: string
@@ -102,9 +81,7 @@ export interface Locale {
     defaultAddress?: string
   }
 
-  /** AddressEditDetail */
   vanAddressEditDetail?: { label?: string; placeholder?: string }
 
-  /** AddressList */
   vanAddressList?: { add?: string }
 }

@@ -9,6 +9,8 @@ simulator:
 
 在页面中间弹出黑色半透明提示，用于消息通知、加载提示、操作结果提示等场景。
 
+`success` / `fail` 默认使用库内置的极简线条图标（对勾与叉号），笔画随 `iconSize` 缩放，并与正文字重做了视觉对齐；也可通过 `icon` 完全自定义。
+
 ## 引入
 
 ```js
@@ -72,7 +74,8 @@ toast.config({ type: 'success', message: '完成', duration: 1500 })
 | `message` | 提示文本 | `ReactNode` | - |
 | `type` | 提示类型（决定默认图标） | `'info' \| 'success' \| 'fail' \| 'loading'` | `'info'` |
 | `icon` | 自定义图标 | `ReactNode` | - |
-| `iconSize` | 内置图标/加载图标大小 | `number` | `36` |
+| `iconSize` | 内置图标/加载图标大小；未传时使用主题 token `toast.iconSize` | `number` | `38`（token 默认） |
+| `tokensOverride` | 覆盖 Toast 主题 token（如 `iconSize`、`gap`、`fontSize` 等） | `DeepPartial<ToastTokens>` | - |
 | `duration` | 自动关闭延时（ms），0 表示不会自动关闭 | `number` | `2000` |
 | `position` | 显示位置 | `'top' \| 'middle' \| 'bottom'` | `'middle'` |
 | `overlay` | 是否展示半透明遮罩 | `boolean` | `false` |
@@ -105,3 +108,4 @@ Toast 的无障碍关闭提示通过 `locale.vanToast.closeHint` 读取，可通
 
 - 本库使用 `Toast.show(options \| message)` 调用，并额外提供 `<Toast visible />` 受控用法。
 - React Native 环境不适用 `teleport/className/overlayClass/transition` 等 DOM 能力，统一通过 Portal + 样式 props（如 `style/overlayStyle`）实现。
+- 默认成功/失败图标不依赖 `react-native-system-icon`，为库内 View 线条实现；需要与其它图标体系统一时可传入自定义 `icon`。

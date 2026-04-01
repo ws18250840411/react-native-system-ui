@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from 'react'
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native'
-import Arrow from 'react-native-system-icon/Arrow'
+import { Arrow } from '../../internal/icons'
 import { useAriaPress, useHairline } from '../../hooks'
 import { isRenderable, isText, renderTextOrNode } from '../../utils'
 import { useDirection } from '../config-provider/useDirection'

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { FlatList, Pressable, Text, View, useWindowDimensions, type LayoutChangeEvent, type PressableStateCallbackType } from "react-native"
-import Checked from 'react-native-system-icon/Checked'
-import Cross from 'react-native-system-icon/Cross'
+import { Checked, Cross } from '../../internal/icons'
 import { useControllableValue } from "../../hooks"
 import { shallowEqualArray, renderTextOrNode } from "../../utils"
 import { isFunction, isNumber, isText } from "../../utils/validate"

@@ -32,6 +32,9 @@
 | 2026-02-02 | Button | 移除 `mode` 能力并简化分支 | `src/components/button/Button.tsx`, `src/components/button/types.d.ts`, `src/components/button/tokens.ts`, `src/components/button/ButtonContext.ts`, `src/components/button/ButtonGroup.tsx`, `src/components/button/index.ts`, `src/components/button/__tests__/button.test.tsx`, `docs/components/button.md` |
 | 2026-02-02 | Toast | 移除 `loadingType`（默认 loading 指示器） | `src/components/toast/Toast.tsx`, `src/components/toast/__tests__/toast.test.tsx`, `docs/components/toast.md` |
 | 2026-02-02 | Toast | 单测移除 `ball` | `src/components/toast/__tests__/toast.test.tsx` |
+| 2026-04-01 | Toast | 文档同步：`iconSize` 与 `toast.iconSize` token（默认 38）、`tokensOverride`、内置成功/失败线条图标说明 | `docs/components/toast.md` |
+| 2026-04-01 | Icon | 文档补充：业务图标与库内线条图标分工、`react-native-svg` optional 说明 | `docs/components/icon.md` |
+| 2026-04-01 | 文档 | 重新生成各组件目录体积数据 | `docs/component-sizes.ts` |
 | 2026-02-02 | Switch | 核心实现切到 RN `Switch`，保留 onClick/onChange 行为 | `src/components/switch/Switch.tsx` |
 | 2026-02-02 | Switch | 单测适配新的尺寸缩放方式 | `src/components/switch/__tests__/switch.test.tsx` |
 | 2026-02-02 | Switch | 文档说明基于 RN `Switch` | `docs/components/switch.md` |

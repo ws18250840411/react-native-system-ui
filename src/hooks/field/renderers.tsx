@@ -1,7 +1,7 @@
 import React from 'react'
 import { Platform, Pressable, Text, TextInput, View } from 'react-native'
 import type { TextInputProps } from 'react-native'
-import Clear from 'react-native-system-icon/Clear'
+import { Clear } from '../../internal/icons'
 import { isText } from '../../utils/validate'
 import type { FieldProps, FieldTooltipProps } from '../../components/field/types'
 import type { FieldTokens } from '../../components/field/tokens'

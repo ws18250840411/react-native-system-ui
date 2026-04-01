@@ -151,7 +151,8 @@ enableNativeWind(cssInterop)
 
 ## 组件体积
 
-按需引入后单组件均值约 **2.6 KB**（各组件目录 gzip 相加估算，数据由 `pnpm run build && pnpm run docs:update-size` 生成）。支持 Tree Shaking，实际打包体积以构建结果为准。
+<!-- docs:component-sizes:start -->
+按需引入后单组件均值约 **2.6 KB**（各组件目录 gzip 相加估算，数据由 `pnpm run build && pnpm run docs:update-size` 生成；**本段与下表由 scripts/generate-docs-size-data.mjs 自动生成，请勿手工改数字**）。支持 Tree Shaking，实际打包体积以构建结果为准。
 
 | 组件 | gzip | 组件 | gzip | 组件 | gzip |
 | --- | ---: | --- | ---: | --- | ---: |
@@ -163,17 +164,18 @@ enableNativeWind(cssInterop)
 | stepper | 3.6 KB | button | 3.6 KB | cell | 3.4 KB |
 | radio | 3.3 KB | grid | 3.2 KB | tabbar | 3.0 KB |
 | notice-bar | 2.9 KB | collapse | 2.8 KB | config-provider | 2.8 KB |
-| password-input | 2.8 KB | action-sheet | 2.8 KB | image | 2.7 KB |
+| password-input | 2.8 KB | action-sheet | 2.8 KB | image | 2.8 KB |
 | sidebar | 2.6 KB | datetime-picker | 2.5 KB | share-sheet | 2.4 KB |
-| selector | 2.4 KB | progress | 2.3 KB | nav-bar | 2.2 KB |
-| portal | 2.2 KB | typography | 2.1 KB | circle | 2.0 KB |
+| selector | 2.4 KB | progress | 2.3 KB | portal | 2.2 KB |
+| nav-bar | 2.2 KB | circle | 2.1 KB | typography | 2.1 KB |
 | search | 2.0 KB | skeleton | 1.9 KB | badge | 1.9 KB |
 | water-mark | 1.9 KB | tag | 1.8 KB | space | 1.6 KB |
 | avatar | 1.5 KB | flex | 1.5 KB | divider | 1.4 KB |
 | empty | 1.4 KB | input | 1.3 KB | area | 1.2 KB |
 | count-down | 1.1 KB | loading | 1.1 KB | switch | 1.0 KB |
 | overlay | 0.8 KB | error-boundary | 0.6 KB | safe-area-view | 0.5 KB |
+<!-- docs:component-sizes:end -->
 
 ## 版本与反馈
 
-当前为 v1.0.9，欢迎 issue / PR。
+当前为 v1.1.0，欢迎 issue / PR。

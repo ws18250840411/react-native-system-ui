@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react'
 import { Platform, Pressable, Text, View, type LayoutChangeEvent } from 'react-native'
-import ArrowLeft from 'react-native-system-icon/ArrowLeft'
+import { ArrowLeft } from '../../internal/icons'
 import { useAriaPress } from '../../hooks'
 import { useLocale } from '../config-provider/useLocale'
 import { useDirection } from '../config-provider/useDirection'

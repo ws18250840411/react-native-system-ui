@@ -33,7 +33,6 @@ describe('Tag', () => {
       </Tag>
     )
 
-    // The border is rendered via a hairline overlay View, not on the container
     const views = tree.root.findAllByType(View)
     const hairline = views.find(v => {
       const s = StyleSheet.flatten(v.props.style)

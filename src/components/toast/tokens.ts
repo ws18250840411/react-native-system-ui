@@ -41,7 +41,7 @@ export const createToastTokens = (foundations: Foundations): ToastTokens => {
     fontFamily: foundations.typography.fontFamily,
     radius: foundations.radii.md,
     gap: foundations.spacing.sm,
-    iconSize: 36,
+    iconSize: 38,
     maxWidth: '70%',
     textMinWidth: 96,
     textPaddingVertical: foundations.spacing.sm,

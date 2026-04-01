@@ -108,13 +108,6 @@ describe('Swiper', () => {
     expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 0, animated: true })
   })
 
-  /**
-   * Bug reproduction: On web, after CSS scroll-snap completes, the last onScroll
-   * event often has a scroll offset that differs from the exact page boundary by
-   * more than 0.5px. The current alignment check `Math.abs(off - aligned) < 0.5`
-   * fails, so reset() is never called → animRef stays true → subsequent swipeTo
-   * calls just queue → the swiper gets stuck.
-   */
   it('[web] swiper gets stuck when onScroll offset is not perfectly aligned', () => {
     Platform.OS = 'web'
 
@@ -126,7 +119,6 @@ describe('Swiper', () => {
       </Swiper>
     )
 
-    // Step 1: Trigger onLayout so Swiper becomes "ready" and renders FlatList
     const layoutNode = tree.root.findAll(
       node => node.props && typeof node.props.onLayout === 'function'
     )[0]
@@ -136,22 +128,14 @@ describe('Swiper', () => {
       })
     })
 
-    // Clear the initial scrollToIndex from the layout effect
     mockScrollToIndex.mockClear()
 
-    // Step 2: Advance timer 1000ms → autoplay fires → swipeTo(1, true)
-    //   → animRef.current = true
-    //   → scrollToIndex({ index: 2, animated: true })  [dispIdx(1) = 2 in loop mode]
     act(() => {
       jest.advanceTimersByTime(1000)
     })
     expect(mockScrollToIndex).toHaveBeenCalledTimes(1)
     mockScrollToIndex.mockClear()
 
-    // Step 3: Simulate onScroll with offset NOT perfectly aligned
-    // mainSz=300, target display index 2 → aligned offset = 600
-    // But CSS scroll-snap reports 597.8 → |597.8 - 600| = 2.2 > 0.5
-    // → alignment check FAILS → reset() NOT called → animRef stays true
     const scrollNode = tree.root.findAll(
       node => node.props && typeof node.props.onScroll === 'function'
     )[0]
@@ -161,21 +145,13 @@ describe('Swiper', () => {
       })
     })
 
-    // Step 4: The fix adds a 150ms fallback timer when alignment fails.
-    // Advance 150ms → fallback fires → reset() → animRef cleared
-    // Then advance 1000ms → autoplay fires → swipeTo succeeds
     act(() => {
-      jest.advanceTimersByTime(150) // fallback scroll-end timer
+      jest.advanceTimersByTime(150)
     })
     act(() => {
-      jest.advanceTimersByTime(1000) // autoplay interval
+      jest.advanceTimersByTime(1000)
     })
 
-    // EXPECTED (correct behavior): autoplay should work → scrollToIndex called
-    // ACTUAL (bug without fix): animRef stuck at true → swipeTo queues → NOT called
-    //
-    // This test FAILS with the original code, proving the bug exists.
-    // After applying the fix, it PASSES.
     expect(mockScrollToIndex).toHaveBeenCalled()
 
     act(() => { tree.unmount() })

@@ -38,7 +38,6 @@ describe('Slider', () => {
 
   it('renders range slider with two thumbs', () => {
     const tree = renderer.create(<Slider range value={[20, 60]} />)
-    // Thumb nodes have inline styles with borderColor and borderRadius
     const thumbViews = tree.root.findAll(
       node =>
         Array.isArray(node.props.style) &&
