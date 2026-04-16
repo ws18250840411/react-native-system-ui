@@ -1,90 +1,28 @@
 import React, { useImperativeHandle } from 'react'
 import renderer, { act } from 'react-test-renderer'
-
 import type { UseGestureScrollOptions, UseGestureScrollResult } from '../useGestureScroll'
 import { useGestureScroll } from '../useGestureScroll'
-
-const TestComponent = React.forwardRef<UseGestureScrollResult | null, { options?: UseGestureScrollOptions }>(
-  ({ options }, ref) => {
-    const value = useGestureScroll(options)
-    useImperativeHandle(ref, () => value, [value])
-    return null
-  }
-)
-
+const TC = React.forwardRef<UseGestureScrollResult | null, { options?: UseGestureScrollOptions }>(({ options }, r) => {
+  const v = useGestureScroll(options); useImperativeHandle(r, () => v, [v]); return null
+})
+const ev = (y: number, ts: number) => ({ nativeEvent: { contentOffset: { y } }, timeStamp: ts } as any)
 describe('useGestureScroll', () => {
   it('tracks scroll offset, direction and velocity', () => {
-    const ref = React.createRef<UseGestureScrollResult>()
-
-    renderer.create(<TestComponent ref={ref} />)
-
-    act(() => {
-      ref.current?.scrollProps.onScroll?.({
-        nativeEvent: { contentOffset: { y: 40 } },
-        timeStamp: 10,
-      } as any)
-      ref.current?.scrollProps.onScroll?.({
-        nativeEvent: { contentOffset: { y: 120 } },
-        timeStamp: 30,
-      } as any)
-    })
-
-    expect(ref.current?.getCurrentOffset()).toBe(120)
-    expect(ref.current?.direction).toBe('forward')
-    expect(ref.current?.getVelocity()).toBeGreaterThan(0)
-
-    act(() => {
-      ref.current?.scrollProps.onScroll?.({
-        nativeEvent: { contentOffset: { y: 60 } },
-        timeStamp: 60,
-      } as any)
-    })
-
-    expect(ref.current?.direction).toBe('backward')
+    const r = React.createRef<UseGestureScrollResult>(); renderer.create(<TC ref={r} />)
+    act(() => { r.current?.scrollProps.onScroll?.(ev(40, 10)); r.current?.scrollProps.onScroll?.(ev(120, 30)) })
+    expect(r.current?.getCurrentOffset()).toBe(120); expect(r.current?.direction).toBe('forward'); expect(r.current?.getVelocity()).toBeGreaterThan(0)
+    act(() => { r.current?.scrollProps.onScroll?.(ev(60, 60)) }); expect(r.current?.direction).toBe('backward')
   })
-
   it('toggles dragging and momentum flags', () => {
-    const ref = React.createRef<UseGestureScrollResult>()
-    renderer.create(<TestComponent ref={ref} />)
-
-    act(() => {
-      ref.current?.scrollProps.onScrollBeginDrag?.({} as any)
-    })
-    expect(ref.current?.isDragging).toBe(true)
-
-    act(() => {
-      ref.current?.scrollProps.onScrollEndDrag?.({} as any)
-    })
-    expect(ref.current?.isDragging).toBe(false)
-
-    act(() => {
-      ref.current?.scrollProps.onMomentumScrollBegin?.({} as any)
-    })
-    expect(ref.current?.isMomentum).toBe(true)
-
-    act(() => {
-      ref.current?.scrollProps.onMomentumScrollEnd?.({} as any)
-    })
-    expect(ref.current?.isMomentum).toBe(false)
+    const r = React.createRef<UseGestureScrollResult>(); renderer.create(<TC ref={r} />)
+    act(() => { r.current?.scrollProps.onScrollBeginDrag?.({} as any) }); expect(r.current?.isDragging).toBe(true)
+    act(() => { r.current?.scrollProps.onScrollEndDrag?.({} as any) }); expect(r.current?.isDragging).toBe(false)
+    act(() => { r.current?.scrollProps.onMomentumScrollBegin?.({} as any) }); expect(r.current?.isMomentum).toBe(true)
+    act(() => { r.current?.scrollProps.onMomentumScrollEnd?.({} as any) }); expect(r.current?.isMomentum).toBe(false)
   })
-
   it('resets offset and clears direction when calling resetOffset', () => {
-    const ref = React.createRef<UseGestureScrollResult>()
-    renderer.create(<TestComponent ref={ref} />)
-
-    act(() => {
-      ref.current?.scrollProps.onScroll?.({
-        nativeEvent: { contentOffset: { y: 80 } },
-        timeStamp: 16,
-      } as any)
-    })
-    expect(ref.current?.getCurrentOffset()).toBe(80)
-
-    act(() => {
-      ref.current?.resetOffset(5)
-    })
-
-    expect(ref.current?.getCurrentOffset()).toBe(5)
-    expect(ref.current?.direction).toBeNull()
+    const r = React.createRef<UseGestureScrollResult>(); renderer.create(<TC ref={r} />)
+    act(() => { r.current?.scrollProps.onScroll?.(ev(80, 16)) }); expect(r.current?.getCurrentOffset()).toBe(80)
+    act(() => { r.current?.resetOffset(5) }); expect(r.current?.getCurrentOffset()).toBe(5); expect(r.current?.direction).toBeNull()
   })
 })

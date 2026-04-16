@@ -20,7 +20,7 @@ export const GradientMask: React.FC<{ height: number; color: string; position: '
   const edgeStyle: ViewStyle = position === 'top' ? { top: 0 } : { bottom: 0 }
   const baseStyle: ViewStyle[] = [{ position: 'absolute', left: 0, right: 0, zIndex: 2 }, { height }, edgeStyle]
   const overlayColor = withAlpha(color, GRADIENT_OVERLAY_ALPHA)
-  if (maskType === 'solid') return <View pointerEvents="none" style={[...baseStyle, { backgroundColor: withAlpha(color, 0.9) }]} />
-  if (Platform.OS === 'web') { const angle = position === 'top' ? '180deg' : '0deg'; return <View pointerEvents="none" style={[...baseStyle, ({ backgroundColor: overlayColor, backgroundImage: `linear-gradient(${angle}, ${withAlpha(color, 0.98)}, ${withAlpha(color, 0.4)})` } as unknown as ViewStyle)]} /> }
-  return (<View pointerEvents="none" style={[...baseStyle, { backgroundColor: overlayColor }]}>{(position === 'top' ? GRADIENT_STEPS : GRADIENT_STEPS_REVERSED).map((opacity, idx) => <View key={idx} style={{ flex: 1, backgroundColor: withAlpha(color, opacity) }} />)}</View>)
+  if (maskType === 'solid') return <View style={[...baseStyle, { backgroundColor: withAlpha(color, 0.9), pointerEvents: 'none' }]} />
+  if (Platform.OS === 'web') { const angle = position === 'top' ? '180deg' : '0deg'; return <View style={[...baseStyle, { backgroundColor: overlayColor, backgroundImage: `linear-gradient(${angle}, ${withAlpha(color, 0.98)}, ${withAlpha(color, 0.4)})`, pointerEvents: 'none' } as unknown as ViewStyle]} /> }
+  return (<View style={[...baseStyle, { backgroundColor: overlayColor, pointerEvents: 'none' }]}>{(position === 'top' ? GRADIENT_STEPS : GRADIENT_STEPS_REVERSED).map((opacity, idx) => <View key={idx} style={{ flex: 1, backgroundColor: withAlpha(color, opacity) }} />)}</View>)
 }

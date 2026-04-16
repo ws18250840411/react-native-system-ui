@@ -36,7 +36,7 @@ const NotifyContentImpl: React.FC<NotifyProps> = props => {
   ), [accessibilityRole, animatedValue, contentHeight, handleLayout, hasMessage, interactive, message, offset, resolvedBackground, resolvedTextColor, safeAreaBottomInset, safeAreaTopValue, style, textStyle, tokens.layout.container, tokens.layout.content, tokens.layout.text, tokens.sizing.minHeight, tokens.spacing.paddingHorizontal, tokens.spacing.paddingVertical, tokens.typography.fontFamily, tokens.typography.fontSize, tokens.typography.lineHeight, translateY, webBottomPadding, webTopPadding, position])
   if (!mounted) return null
   return (
-    <View testID="rv-notify" pointerEvents={interactive ? 'box-none' : 'none'} style={[tokens.layout.portal, position === 'bottom' ? { bottom: 0 } : { top: 0 }, resolvedZIndex != null ? { zIndex: resolvedZIndex } : null]}>
+    <View testID="rv-notify" style={[tokens.layout.portal, position === 'bottom' ? { bottom: 0 } : { top: 0 }, resolvedZIndex != null ? { zIndex: resolvedZIndex } : null, { pointerEvents: interactive ? 'box-none' : 'none' }]}>
       {interactive ? <Pressable {...pressProps.interactionProps} disabled={!interactive}>{barRender}</Pressable> : barRender}
     </View>
   )

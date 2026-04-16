@@ -148,7 +148,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   return (
     <View accessibilityRole="adjustable" accessibilityLabel={`swiper, ${curIdx + 1} of ${count}`} accessibilityValue={{ min: 0, max: count - 1, now: curIdx }} style={[S.ctr, webMouse && S.web, style]} onLayout={onLayout} testID={testID} {...webMouse}>
       <FlatList ref={listRef} data={display} renderItem={renderSlide as any} keyExtractor={keyEx} horizontal={!vertical} getItemLayout={getLayout} initialScrollIndex={initDisp} scrollEnabled={touchable && count > 1} removeClippedSubviews={!shouldLoop || !loopAll} disableVirtualization={shouldLoop && loopAll} initialNumToRender={shouldLoop ? (loopAll ? dCount : 3) : 3} maxToRenderPerBatch={shouldLoop ? (loopAll ? dCount : 3) : 3} windowSize={shouldLoop ? (loopAll ? dCount : 7) : 5} pagingEnabled snapToInterval={mainSz} decelerationRate="fast" showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} onScrollBeginDrag={onDragBegin} onScroll={onScroll} scrollEventThrottle={tokens.defaults.scrollEventThrottle} onScrollEndDrag={onDragEnd} onMomentumScrollBegin={onMomBegin} onMomentumScrollEnd={onEnd} onScrollToIndexFailed={onFail} />
-      <View pointerEvents="none" style={[S.ind, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation }]}>{indNode}</View>
+      <View style={[S.ind, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation, pointerEvents: 'none' }]}>{indNode}</View>
     </View>
   )
 }

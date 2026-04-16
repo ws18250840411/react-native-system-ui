@@ -22,7 +22,7 @@ export default function OverlayContentDemo() {
             ]}
             onPress={() => setVisible(false)}
           />
-          <View style={styles.center} pointerEvents="box-none">
+          <View style={[styles.center, { pointerEvents: 'box-none' }]}>
             <View style={styles.content}>
               <Loading>加载中...</Loading>
             </View>

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useImperativeHandle, useRef } from 'react'
 import { Platform, Pressable, Text, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native'
-import { useCheckbox, useCheckboxGroupItem } from '@react-native-aria/checkbox'
+import { useCheckbox, useCheckboxGroupItem } from '../../hooks/aria/rn-aria/checkbox'
 import { useToggleState } from '@react-stately/toggle'
 import type { CheckboxProps } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
@@ -8,7 +8,7 @@ import { useCheckboxTokens } from './tokens'
 import { createHairlineView } from '../../utils'
 import { isRenderable, isText } from '../../utils/validate'
 
-const EMPTY_CHECKBOX_GROUP_STATE = { value: [] as string[], isDisabled: false, isReadOnly: false, isSelected: () => false, setValue: () => {}, addValue: () => {}, removeValue: () => {}, toggleValue: () => {} } as any
+const EMPTY_CHECKBOX_GROUP_STATE = { value: [] as string[], defaultValue: [] as string[], isDisabled: false, isReadOnly: false, isSelected: () => false, setValue: () => {}, addValue: () => {}, removeValue: () => {}, toggleValue: () => {} } as any
 
 const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
   const { children, name, value, iconRender, bindGroup: bgp, shape, iconSize, checkedColor, labelPosition, labelDisabled, disabled, style, labelStyle, tokensOverride, hitSlop = 8, accessibilityLabel, ['aria-label']: al, onClick, onChange, ...rest } = p; const t = useCheckboxTokens(tokensOverride); const g = useContext(CheckboxGroupContext); const bg = bgp ?? t.defaults.bindGroup; const rs = shape ?? g?.shape ?? t.defaults.shape; const ris = iconSize ?? g?.iconSize ?? t.defaults.iconSize; const rcc = checkedColor ?? g?.checkedColor ?? t.colors.checkedBackground; const rir = iconRender ?? g?.iconRender; const rlp = labelPosition ?? t.defaults.labelPosition; const rld = labelDisabled ?? g?.labelDisabled ?? t.defaults.labelDisabled; const rd = Boolean(disabled || g?.state.isDisabled); const rv = value ?? name; const sv = rv == null ? undefined : String(rv); const ir = useRef<View>(null); useImperativeHandle(ref, () => ir.current!); const ss = useToggleState({ isSelected: p.checked, defaultSelected: p.defaultChecked, onChange }); const ig = !!g && sv !== undefined && bg; const { onBlur, onFocus, ...cr } = rest; useEffect(() => { if (g && bg && sv !== undefined && rv !== undefined) { g.registerValue(sv, rv, rd); return () => g.unregisterValue(sv) }; return undefined }, [bg, g, sv, rv, rd])
@@ -30,7 +30,7 @@ const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
   const di = <View style={[t.layout.icon, ibs]}>{ic && <Text style={[t.layout.checkmark, { color: t.colors.checkmark, fontSize: ris * t.icon.scale }]}>✓</Text>}<View style={createHairlineView({ position: 'all', color: bc, borderRadius: br })} /></View>
   const iv = rir ? (rir({ checked: Boolean(ic), disabled: Boolean(rd) }) ?? null) : di
   const i = !rd && !rld
-  const lw = ln && <View style={[t.layout.labelWrapper, ss_]} pointerEvents={rld ? 'none' : undefined} accessible={false}>{ln}</View>
+  const lw = ln && <View style={[t.layout.labelWrapper, ss_, rld ? { pointerEvents: 'none' as const } : null]} accessible={false}>{ln}</View>
   const iws = [t.layout.iconWrapper, rlp === 'left' ? { marginLeft: t.spacing.gap } : { marginRight: t.spacing.gap }]
   const iw = i ? <View style={iws}>{iv}</View> : <Pressable {...mip} ref={ir} disabled={rd} accessibilityLabel={ral} accessibilityRole="checkbox" accessibilityState={{ checked: ic, disabled: !!rd }} style={iws} hitSlop={hitSlop}>{iv}</Pressable>
   const cnt = rlp === 'left' ? <>{lw}{iw}</> : <>{iw}{lw}</>

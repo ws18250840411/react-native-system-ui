@@ -29,7 +29,37 @@ const PopupImpl: React.FC<PopupProps> = props => {
 
   const headerNode = useMemo(() => { if (!hasHeader) return null; const pad = tokens.spacing.closeIconRight + tokens.spacing.closeIconSize; const ps = closeable && closeIconPosition.startsWith('top-') ? closeIconPosition.endsWith('right') ? { paddingRight: pad } : { paddingLeft: pad } : undefined; const renderH = (n: React.ReactNode, ts: any, ws: any) => !isRenderable(n) ? null : isText(n) ? <Text style={ts}>{n}</Text> : <View style={ws}>{n}</View>; return <View style={[S.header, ps]}>{renderH(title, [S.title, ds.title], ds.titleWrap)}{renderH(description, [S.desc, ds.desc], ds.descWrap)}</View> }, [closeable, closeIconPosition, description, ds, hasHeader, title, tokens.spacing.closeIconRight, tokens.spacing.closeIconSize]); const closeNode = useMemo(() => { if (!closeable) return null; const custom = closeIcon != null; const v = closeIconPosition.includes('bottom') ? { bottom: tokens.spacing.closeIconTop } : { top: tokens.spacing.closeIconTop + saTopH }; const isRtl = layoutDir === 'rtl'; const h = closeIconPosition.endsWith('left') ? (isRtl ? { right: tokens.spacing.closeIconRight } : { left: tokens.spacing.closeIconRight }) : (isRtl ? { left: tokens.spacing.closeIconRight } : { right: tokens.spacing.closeIconRight }); return <Pressable style={[S.closeBase, ds.closeBase, v, h, !custom && ds.closeDef]} hitSlop={8} onPress={handleClosePress}>{custom ? closeIcon : <Cross size={22} fill={tokens.colors.closeIcon} color={tokens.colors.closeIcon} />}</Pressable> }, [closeIcon, closeIconPosition, closeable, ds, handleClosePress, saTopH, tokens.colors.closeIcon, tokens.spacing.closeIconRight, tokens.spacing.closeIconTop]);   const body = hasHeader ? <>{headerNode}{children}</> : children
   if (!shouldRender) return null; const rz = stackZ ?? zIndex; const safeContent = safeArea ? <SafeAreaView>{body}</SafeAreaView> : <>{safeAreaInsetTop && <SafeAreaView edge="top" onLayout={onSaTop} pointerEvents="none" />}{body}{safeAreaInsetBottom && <SafeAreaView edge="bottom" pointerEvents="none" />}</>
-  return <Portal><View style={[S.root, rz ? { zIndex: rz } : undefined]} pointerEvents="box-none"><View style={[S.ctr, cfg.container]} pointerEvents={isOpen ? 'auto' : 'none'} accessibilityViewIsModal={isOpen} accessibilityLiveRegion="polite" onAccessibilityEscape={handleEscape}>{overlay && isOpen ? <AnimatedPressable testID={overlayTestID} style={[S.ovl, { backgroundColor: tokens.colors.overlay, opacity: progress }, overlayStyle]} renderToHardwareTextureAndroid={Platform.OS === 'android'} shouldRasterizeIOS={Platform.OS === 'ios'} pointerEvents={isOpen ? 'auto' : 'none'} {...(canCloseOvl ? { accessibilityRole: 'button' as const, accessibilityLabel: overlayAccessibilityLabel, accessibilityHint: locale?.vanPopup?.closeHint ?? 'Double-tap to close' } : { accessible: false })} onPress={handleOvlPress} /> : null}{!overlay && lockScroll && isOpen ? <View style={S.lock} pointerEvents="auto" onStartShouldSetResponder={CAPTURE} onMoveShouldSetResponder={CAPTURE} /> : null}<Animated.View ref={overlayRef as any} {...contentProps} onLayout={ovlOnLayout} renderToHardwareTextureAndroid={Platform.OS === 'android'} shouldRasterizeIOS={Platform.OS === 'ios'} style={[ds.popup, isCenter && ds.center, isV && S.popV, isH && ds.side, CONTENT_SELF[placement], radiusStyle, animStyle, style, hidden && hiddenStyle]} {...rest}>{closeNode}{safeContent}</Animated.View></View></View></Portal>
+  return (
+    <Portal isOpen={isOpen}>
+      <View style={[S.root, rz ? { zIndex: rz } : undefined, { pointerEvents: 'box-none' }]}>
+        <View style={[S.ctr, cfg.container, { pointerEvents: isOpen ? 'auto' : 'none' }]} accessibilityViewIsModal={isOpen} accessibilityLiveRegion="polite" onAccessibilityEscape={handleEscape}>
+          {overlay && isOpen ? (
+            <AnimatedPressable
+              testID={overlayTestID}
+              style={[S.ovl, { backgroundColor: tokens.colors.overlay, opacity: progress }, overlayStyle, { pointerEvents: isOpen ? 'auto' : 'none' }]}
+              renderToHardwareTextureAndroid={Platform.OS === 'android'}
+              shouldRasterizeIOS={Platform.OS === 'ios'}
+              {...(canCloseOvl ? { accessibilityRole: 'button' as const, accessibilityLabel: overlayAccessibilityLabel, accessibilityHint: locale?.vanPopup?.closeHint ?? 'Double-tap to close' } : { accessible: false })}
+              onPress={handleOvlPress}
+            />
+          ) : null}
+          {!overlay && lockScroll && isOpen ? <View style={[S.lock, { pointerEvents: 'auto' }]} onStartShouldSetResponder={CAPTURE} onMoveShouldSetResponder={CAPTURE} /> : null}
+          <Animated.View
+            ref={overlayRef as any}
+            {...contentProps}
+            onLayout={ovlOnLayout}
+            renderToHardwareTextureAndroid={Platform.OS === 'android'}
+            shouldRasterizeIOS={Platform.OS === 'ios'}
+            style={[ds.popup, isCenter && ds.center, isV && S.popV, isH && ds.side, CONTENT_SELF[placement], radiusStyle, animStyle, style, ...(hidden ? [hiddenStyle, { pointerEvents: 'none' as const }] : [])]}
+            {...rest}
+          >
+            {closeNode}
+            {safeContent}
+          </Animated.View>
+        </View>
+      </View>
+    </Portal>
+  )
 }
 
 const S = StyleSheet.create({ root: { ...StyleSheet.absoluteFillObject, justifyContent: 'center' }, ctr: { flex: 1 }, ovl: { ...StyleSheet.absoluteFillObject, opacity: 0 }, header: { width: '100%' }, title: { includeFontPadding: false }, desc: { includeFontPadding: false }, popV: { alignSelf: 'stretch' }, closeBase: { position: 'absolute', zIndex: 999, alignItems: 'center', justifyContent: 'center' }, lock: { ...StyleSheet.absoluteFillObject } })

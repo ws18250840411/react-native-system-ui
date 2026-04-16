@@ -11,7 +11,7 @@ export default function PortalBasicDemo() {
       <Cell title="显示浮层" isLink onPress={() => setVisible(true)} />
       {visible ? (
         <Portal>
-          <View style={styles.layer} pointerEvents="box-none">
+          <View style={[styles.layer, { pointerEvents: 'box-none' }]}>
             <Pressable style={styles.mask} onPress={() => setVisible(false)} />
             <View style={styles.dialog}>
               <Text style={styles.title}>这里是 Portal 内容</Text>

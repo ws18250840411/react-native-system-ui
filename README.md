@@ -4,7 +4,7 @@
 
 ## 核心优势
 
-- **极致轻量**：全组件经过逐行精简——冗余 Hook 移除、StyleSheet 合并、计算内联、辅助函数提取；构建产物 esbuild 压缩；按需引入 + Tree Shaking，单组件平均 gzip 仅 **2.6 KB**，最小组件（SafeAreaView）仅 **0.5 KB**。
+- **极致轻量**：全组件经过逐行精简——冗余 Hook 移除、StyleSheet 合并、计算内联、辅助函数提取；构建产物 esbuild 压缩；按需引入 + Tree Shaking，单组件平均 gzip 仅 **2.6 KB**，最小组件（SafeAreaView）仅 **0.6 KB**。
 - **原生性能**：纯 StyleSheet 驱动，零 CSS-in-JS 运行时；动画基于原生 Animated / LayoutAnimation，无 JS 线程阻塞；列表类组件（Picker、Swiper、Tabs）基于 FlatList / ScrollView 原生滚动，确保 60fps 流畅交互。
 - **三端同构**：iOS / Android / Web 统一 API 与交互行为；Swiper、Picker 等核心组件在 Web 端自动适配桌面鼠标拖拽与移动端触控，无需业务层额外处理。
 - **设计系统**：Design Tokens + ThemeProvider 分层架构，组件自管 tokens；支持 light / dark / 品牌主题一键切换，样式定制不侵入组件实现。
@@ -159,10 +159,10 @@ enableNativeWind(cssInterop)
 | picker | 5.1 KB | cascader | 4.4 KB | tabs | 4.4 KB |
 | dialog | 4.4 KB | form | 4.3 KB | toast | 3.9 KB |
 | field | 3.8 KB | calendar | 3.8 KB | swiper | 3.8 KB |
-| number-keyboard | 3.8 KB | notify | 3.7 KB | popup | 3.7 KB |
-| slider | 3.6 KB | image-preview | 3.6 KB | checkbox | 3.6 KB |
-| stepper | 3.6 KB | button | 3.6 KB | cell | 3.4 KB |
-| radio | 3.3 KB | grid | 3.2 KB | tabbar | 3.0 KB |
+| number-keyboard | 3.8 KB | radio | 3.7 KB | notify | 3.7 KB |
+| popup | 3.7 KB | slider | 3.6 KB | checkbox | 3.6 KB |
+| image-preview | 3.6 KB | stepper | 3.6 KB | button | 3.6 KB |
+| cell | 3.4 KB | grid | 3.2 KB | tabbar | 3.0 KB |
 | notice-bar | 2.9 KB | collapse | 2.8 KB | config-provider | 2.8 KB |
 | password-input | 2.8 KB | action-sheet | 2.8 KB | image | 2.8 KB |
 | sidebar | 2.6 KB | datetime-picker | 2.5 KB | share-sheet | 2.4 KB |
@@ -173,9 +173,9 @@ enableNativeWind(cssInterop)
 | avatar | 1.5 KB | flex | 1.5 KB | divider | 1.4 KB |
 | empty | 1.4 KB | input | 1.3 KB | area | 1.2 KB |
 | count-down | 1.1 KB | loading | 1.1 KB | switch | 1.0 KB |
-| overlay | 0.8 KB | error-boundary | 0.6 KB | safe-area-view | 0.5 KB |
+| overlay | 0.8 KB | error-boundary | 0.6 KB | safe-area-view | 0.6 KB |
 <!-- docs:component-sizes:end -->
 
 ## 版本与反馈
 
-当前为 v1.1.0，欢迎 issue / PR。
+当前为 v1.1.1，欢迎 issue / PR。

@@ -1,0 +1,57 @@
+import { mergeProps } from '@react-aria/utils';
+import type { RefObject } from 'react';
+import type { ToggleState } from '@react-stately/toggle';
+import { usePress } from '../interactions';
+import { getLabel } from '../utils';
+import { AriaToggleProps } from '@react-types/checkbox';
+
+export interface ToggleAria {
+  
+  inputProps: any;
+}
+
+
+export function useToggle(
+  props: AriaToggleProps,
+  state: ToggleState,
+  _ref: RefObject<any>
+): ToggleAria {
+  let {
+    isDisabled = false,
+    isRequired,
+    isReadOnly,
+    value,
+    name,
+  } = props;
+
+  let onPress = () => {
+    state.setSelected(!state.isSelected);
+  };
+
+  let hasChildren = props.children != null;
+
+  const label = getLabel(props);
+
+  if (!hasChildren && !label) {
+    console.warn(
+      'If you do not provide children, you must specify an aria-label for accessibility'
+    );
+  }
+  let { pressProps } = usePress({
+    isDisabled,
+    onPress,
+  });
+
+  return {
+    inputProps: mergeProps(props, {
+      'disabled': isDisabled,
+      'required': isRequired,
+      'readOnly': isReadOnly,
+      value,
+      name,
+      ...pressProps,
+      'aria-label': label,
+      'aria-disabled': isDisabled,
+    }),
+  };
+}

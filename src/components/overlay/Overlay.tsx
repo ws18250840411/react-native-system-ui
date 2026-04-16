@@ -1,8 +1,8 @@
 import React from 'react'
 import type { ViewStyle } from 'react-native'
 import { Modal, Platform } from 'react-native'
-import { OverlayContainer } from '@react-native-aria/overlays'
-import { useKeyboardDismissable } from '@react-native-aria/interactions'
+import { OverlayContainer } from '../../hooks/aria/rn-aria/overlays'
+import { useKeyboardDismissable } from '../../hooks/aria/rn-aria/interactions'
 import type { OverlayProps } from './types'
 import { useOverlayTokens } from './tokens'
 

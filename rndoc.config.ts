@@ -12,6 +12,18 @@ const reactNativeSafeAreaContextShim = path.join(workspaceRoot, 'scripts/shims/r
 // 本仓库用到的图标子路径，供 Vite alias 解析（rndoc dev/build 对 package exports 子路径解析不稳定时兜底）
 const ICON_SUBPATHS = ['Arrow', 'ArrowLeft', 'Checked', 'Clear', 'Close', 'Cross', 'Description', 'Fail', 'QuestionO', 'Search'] as const
 const reactNativeSystemIconRoot = path.join(workspaceRoot, 'node_modules/react-native-system-icon')
+const domHelpersRoot = path.dirname(
+  require.resolve('dom-helpers/package.json', { paths: [workspaceRoot] })
+)
+const DOM_HELPERS_ESM = [
+  'css',
+  'offset',
+  'position',
+  'scrollLeft',
+  'scrollTop',
+  'ownerDocument',
+  'getComputedStyle',
+] as const
 
 const reactNativeResolveExtensions = [
   '.web.mjs',
@@ -40,7 +52,7 @@ const manualChunks = (id: string) => {
     if (id.includes('react-native-web')) {
       return 'react-native-web'
     }
-    if (id.includes('@react-native-aria') || id.includes('@react-stately')) {
+    if (id.includes('/hooks/aria/rn-aria/') || id.includes('@react-stately') || id.includes('@react-aria')) {
       return 'aria-kits'
     }
     return 'vendor'
@@ -261,10 +273,16 @@ export default defineConfig({
   },
   vite: {
     resolve: {
-      alias: ICON_SUBPATHS.map(name => ({
-        find: `react-native-system-icon/${name}`,
-        replacement: path.join(reactNativeSystemIconRoot, 'es', `${name}.js`),
-      })),
+      alias: [
+        ...ICON_SUBPATHS.map(name => ({
+          find: `react-native-system-icon/${name}`,
+          replacement: path.join(reactNativeSystemIconRoot, 'es', `${name}.js`),
+        })),
+        ...DOM_HELPERS_ESM.map(name => ({
+          find: `dom-helpers/${name}`,
+          replacement: path.join(domHelpersRoot, 'esm', `${name}.js`),
+        })),
+      ],
     },
     plugins: [
       {

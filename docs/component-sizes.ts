@@ -28,7 +28,7 @@ export default [
   },
   {
     "name": "toast",
-    "size": 3969
+    "size": 3970
   },
   {
     "name": "field",
@@ -40,31 +40,35 @@ export default [
   },
   {
     "name": "swiper",
-    "size": 3898
+    "size": 3895
   },
   {
     "name": "number-keyboard",
     "size": 3886
   },
   {
+    "name": "radio",
+    "size": 3834
+  },
+  {
     "name": "notify",
-    "size": 3826
+    "size": 3830
   },
   {
     "name": "popup",
-    "size": 3743
+    "size": 3757
   },
   {
     "name": "slider",
-    "size": 3720
+    "size": 3728
+  },
+  {
+    "name": "checkbox",
+    "size": 3724
   },
   {
     "name": "image-preview",
     "size": 3700
-  },
-  {
-    "name": "checkbox",
-    "size": 3686
   },
   {
     "name": "stepper",
@@ -77,10 +81,6 @@ export default [
   {
     "name": "cell",
     "size": 3495
-  },
-  {
-    "name": "radio",
-    "size": 3398
   },
   {
     "name": "grid",
@@ -136,7 +136,7 @@ export default [
   },
   {
     "name": "portal",
-    "size": 2245
+    "size": 2252
   },
   {
     "name": "nav-bar",
@@ -212,7 +212,7 @@ export default [
   },
   {
     "name": "overlay",
-    "size": 830
+    "size": 840
   },
   {
     "name": "error-boundary",
@@ -220,6 +220,6 @@ export default [
   },
   {
     "name": "safe-area-view",
-    "size": 541
+    "size": 566
   }
 ]

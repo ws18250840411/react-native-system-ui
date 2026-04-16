@@ -1,5 +1,5 @@
-import { useSlider, useSliderThumb } from '@react-native-aria/slider'
-import { isRTL } from '@react-native-aria/utils'
+import { useSlider, useSliderThumb } from '../../hooks/aria/rn-aria/slider'
+import { isRTL } from '../../hooks/aria/rn-aria/utils'
 import { useSliderState } from '@react-stately/slider'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { GestureResponderEvent, LayoutChangeEvent, PressableStateCallbackType, StyleProp, ViewStyle } from 'react-native'
@@ -23,7 +23,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({ index, orientation, ar
   const indicatorStyle = { width: indicatorSize, height: indicatorSize, borderRadius: indicatorSize / 2, backgroundColor: indicatorColor }
   const accessibilityProps = createAccessibilityProps(inputProps) as unknown as Partial<React.ComponentProps<typeof View>>
   return (
-    <View {...handlers} {...accessibilityProps} pointerEvents={isDisabled ? 'none' : 'auto'} style={[content ? S.thw : S.t, webGestureStyle, thumbStyle]}>
+    <View {...handlers} {...accessibilityProps} style={[content ? S.thw : S.t, webGestureStyle, thumbStyle, { pointerEvents: isDisabled ? 'none' : 'auto' }]}>
       {content != null ? (isText(content) ? renderTextOrNode(content as string | number, []) : content) : <View style={indicatorStyle} />}
       {!content && <View style={createHairlineView({ position: 'all', color: activeColor, borderRadius: size / 2 })} />}
     </View>
