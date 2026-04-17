@@ -1,5 +1,5 @@
 import type { TextStyle, ViewProps } from 'react-native'
-import type { CountDownCurrentTime } from '../../hooks'
+import type { CountDownCurrentTime } from '../../hooks/useCountDown'
 
 import type { DeepPartial } from '../../types'
 

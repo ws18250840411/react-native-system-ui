@@ -1,5 +1,5 @@
-import type { OverlayStackEntry } from '../OverlayStackStore'
-import { overlayStackStore } from '../OverlayStackStore'
+import type { OverlayStackEntry } from '../useOverlayStack'
+import { overlayStackStore } from '../useOverlayStack'
 let hardwareBackHandler: (() => boolean) | null = null
 const mockRemoveListener = jest.fn(() => { hardwareBackHandler = null })
 const mockAddEventListener = jest.fn((_e: string, h: () => boolean) => { hardwareBackHandler = h; return { remove: mockRemoveListener } })

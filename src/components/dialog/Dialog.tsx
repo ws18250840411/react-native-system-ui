@@ -1,18 +1,42 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
-import { Animated, Easing, Platform, Pressable, StyleSheet, View, type ViewStyle } from 'react-native'
+import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleSheet, View, type ViewStyle } from 'react-native'
 import { useLocale } from '../config-provider/useLocale'
-import { nativeDriverEnabled } from '../../platform'
+import { nativeDriverEnabled } from '../../platform/animation'
 import { useReducedMotion } from '../../hooks/animation'
 import { createHairlineView } from '../../utils/hairline'
-import { isPromiseLike } from '../../utils/promise'
-import { isNumber, isValidNode } from '../../utils/validate'
-import { renderTextOrNode } from '../../utils'
+import { isPromiseLike } from '../../utils/base'
+import { isNumber, isValidNode } from '../../utils/base'
+import { renderTextOrNode } from '../../utils/render'
 import { Close } from '../../internal/icons'
 import Button from '../button'
 import Popup from '../popup'
 import type { DialogProps } from './types'
-import { useDialogTokens } from './tokens'
-import { ActionButton } from '../../hooks/dialog/ActionButton'
+import { useDialogTokens, type DialogTokens } from './tokens'
+
+interface ActionButtonProps { text: React.ReactNode; color?: string; tokens: DialogTokens; dividerPosition?: 'left' | 'right' | 'none'; loading?: boolean; disabled?: boolean; onPress?: () => void }
+
+const ActionButton = (props: ActionButtonProps) => {
+  const { text, color, tokens, dividerPosition = 'none', loading, disabled, onPress } = props
+  const textColor = color ?? tokens.colors.confirm
+  const dividerStyle = dividerPosition === 'none'
+    ? null
+    : [DIALOG_BUTTON_STYLES.buttonDivider, { width: 0 }, createHairlineView({ position: dividerPosition, color: tokens.colors.divider, top: 0, bottom: 0, [dividerPosition]: 0 })]
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled || loading}
+      style={({ pressed }) => [DIALOG_BUTTON_STYLES.button, { height: tokens.sizes.actionHeight, opacity: pressed && !disabled && !loading ? 0.8 : 1 }]}
+      onPress={disabled || loading ? undefined : onPress}
+    >
+      {dividerStyle && <View style={dividerStyle} />}
+      {loading
+        ? <ActivityIndicator size="small" color={textColor} />
+        : renderTextOrNode(text ?? '', { color: textColor, fontFamily: tokens.typography.fontFamily, fontSize: tokens.typography.actionSize, fontWeight: tokens.typography.actionWeight })}
+    </Pressable>
+  )
+}
+
+const DIALOG_BUTTON_STYLES = StyleSheet.create({ button: { flex: 1, alignItems: 'center', justifyContent: 'center' }, buttonDivider: { position: 'absolute', pointerEvents: 'none' } })
 const DialogImpl: React.FC<DialogProps> = props => {
   const locale = useLocale(); const { visible, title, message, messageAlign = 'center', theme = 'default', width, closeable = false, closeIcon, overlay = true, overlayStyle, overlayTestID = 'dialog-overlay', closeOnBackPress = false, closeOnPopstate = true, closeOnOverlayPress = false, closeOnClickOverlay = false, onClickOverlay, onClickCloseIcon, beforeClose, showCancelButton = false, showConfirmButton = true, cancelButtonText, cancelButtonColor, cancelProps, confirmButtonText, confirmButtonColor, confirmProps, footer, contentStyle, titleStyle, messageStyle, tokensOverride, style, children, onCancel, onConfirm, onClose, onClosed, ...rest } = props; const tokens = useDialogTokens(tokensOverride); const reducedMotion = useReducedMotion(); const hTitle = isValidNode(title); const hChildren = isValidNode(children); const hContent = isValidNode(message) || hChildren; const hFooterActions = showCancelButton || showConfirmButton; const isRound = theme === 'round-button'; const cancelLoad = cancelProps?.loading; const confirmLoad = confirmProps?.loading; const cancelTxt = cancelButtonText ?? locale.cancel; const confirmTxt = confirmButtonText ?? locale.confirm
   const $ = useRef({ seq: 0, beforeClose, onClose, onCancel, onConfirm, onClickCloseIcon, cancelLoad, confirmLoad }); Object.assign($.current, { beforeClose, onClose, onCancel, onConfirm, onClickCloseIcon, cancelLoad, confirmLoad })

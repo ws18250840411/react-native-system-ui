@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { isNumber } from '../utils/validate'
+import { isNumber } from '../utils/base'
 export interface CountDownCurrentTime { total: number; days: number; hours: number; minutes: number; seconds: number; milliseconds: number }
 export interface UseCountDownOptions { time: number; millisecond?: boolean; onChange?: (current: CountDownCurrentTime) => void; onFinish?: () => void }
 const parseTime = (time: number): CountDownCurrentTime => {

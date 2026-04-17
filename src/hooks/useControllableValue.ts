@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { isFunction } from '../utils/validate'
+import { isFunction } from '../utils/base'
 export interface UseControllableValueOptions<T> { defaultValue?: T; defaultValuePropName?: string; valuePropName?: string; trigger?: string }
 export type UseControllableValueProps = object
 const hasProp = (obj: object, prop: string) => Object.prototype.hasOwnProperty.call(obj, prop)

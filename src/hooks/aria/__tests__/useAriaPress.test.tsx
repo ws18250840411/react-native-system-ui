@@ -2,7 +2,7 @@ import React, { useImperativeHandle } from 'react'
 import renderer from 'react-test-renderer'
 import { type UseAriaPressOptions, type UseAriaPressResult, useAriaPress } from '../useAriaPress'
 const mockUsePress = jest.fn()
-jest.mock('../rn-aria/interactions', () => ({ usePress: (...a: any[]) => mockUsePress(...a) }))
+jest.mock('../../../internal/aria/interactions', () => ({ usePress: (...a: any[]) => mockUsePress(...a) }))
 const TC = React.forwardRef<UseAriaPressResult | null, { options?: UseAriaPressOptions }>(({ options }, r) => {
   const v = useAriaPress(options); useImperativeHandle(r, () => v, [v]); return null
 })

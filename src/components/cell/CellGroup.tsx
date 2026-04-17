@@ -1,10 +1,21 @@
 import React, { useMemo } from 'react'
 import { Text, View } from 'react-native'
-import { createHairlineView } from '../../utils'
+import { createHairlineView } from '../../utils/hairline'
 import { Cell as CellBase } from './Cell'
-import { CellGroupContext } from './CellContext'
 import type { CellGroupProps } from './types'
 import { useCellTokens } from './tokens'
+
+export interface CellGroupContextValue {
+  border: boolean
+  inset: boolean
+  isLast: boolean
+}
+
+export const CellGroupContext = React.createContext<CellGroupContextValue>({
+  border: true,
+  inset: false,
+  isLast: false,
+})
 
 const isCellElement = (child: React.ReactNode) => {
   if (!React.isValidElement(child)) return false

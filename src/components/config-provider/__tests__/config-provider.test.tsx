@@ -4,7 +4,7 @@ import { Pressable, StyleSheet } from 'react-native'
 
 import { ConfigProvider, useLocale, zhCN } from '..'
 import { Button } from '../../index'
-import { defaultTokens } from '../../../design-system'
+import { defaultTokens } from '../../../design-system/tokens'
 
 const LocaleConsumer = () => {
   const locale = useLocale()

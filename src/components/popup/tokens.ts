@@ -1,5 +1,5 @@
 import type { ViewStyle, TextStyle } from 'react-native'
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import { type Foundations } from '../../design-system/tokens'
 export interface PopupTokens {
   colors: {

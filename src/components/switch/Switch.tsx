@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import { Switch as RNSwitch, type GestureResponderEvent } from 'react-native'
-import { useControllableValue } from '../../hooks'
-import { parseNumber } from '../../utils'
+import useControllableValue from '../../hooks/useControllableValue'
+import { parseNumber } from '../../utils/number'
 import type { SwitchProps } from './types'
 import { useSwitchTokens } from './tokens'
 

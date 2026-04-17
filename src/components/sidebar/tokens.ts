@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import { type Foundations } from '../../design-system/tokens'
 import type { SidebarTokens } from './types'
 export const createSidebarTokens = (foundations: Foundations): SidebarTokens => {

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import type { DeepPartial } from '../types'
 import { ThemeContext, type ThemeComponents, type ThemeContextValue } from './ThemeContext'
 import { createTokens, defaultTokens, type ThemeTokens } from './tokens'
-import { isObject } from '../utils/validate'
+import { isObject } from '../utils/base'
 export interface ThemeConfig { foundations?: DeepPartial<ThemeTokens>; components?: ThemeComponents }
 export type ThemeProviderValue = ThemeTokens | ThemeConfig
 export interface ThemeProviderProps { value?: ThemeProviderValue; children: React.ReactNode }

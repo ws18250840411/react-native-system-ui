@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
-import { isFunction, isString } from '../../utils'
+import { isFunction, isString } from '../../utils/base'
 import { FormContext, FORM_ALL_FIELDS_KEY, normalizeTrigger, serializeNamePath } from './Form'
 import type { FormItemProps, FormItemRule } from './types'
 

@@ -1,18 +1,49 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
-import { useControllableValue } from '../../hooks'
-import { nativeDriverEnabled } from '../../platform'
+import useControllableValue from '../../hooks/useControllableValue'
+import { nativeDriverEnabled } from '../../platform/animation'
 import { useReducedMotion } from '../../hooks/animation'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { parseNumberLike } from '../../utils/number'
-import { isRenderable, renderTextOrNode } from '../../utils'
+import { isRenderable } from '../../utils/base'
+import { renderTextOrNode } from '../../utils/render'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
 import { useLocale } from '../config-provider/useLocale'
 import { SafeAreaView } from '../safe-area-view'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
-import { buildKeyboardKeys, RE_NUM_LIKE, type NumberKeyboardKey } from '../../hooks/number-keyboard/utils'
+
+const NUM_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+const ZERO = '0'
+const RE_NUM_LIKE = /^\d+$|^\.$|^x$/i
+
+interface NumberKeyboardKey { text?: string; type: NumberKeyboardKeyType; wider?: boolean }
+
+const shuffle = <T,>(list: T[]) => {
+  const next = [...list]
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[next[i], next[j]] = [next[j], next[i]]
+  }
+  return next
+}
+
+const buildKeyboardKeys = ({ randomKeyOrder, visible, isCustom, extraKey, showDeleteKey }: { randomKeyOrder?: boolean; visible?: boolean; isCustom: boolean; extraKey?: string | string[]; showDeleteKey: boolean }): NumberKeyboardKey[] => {
+  const shouldShuffle = randomKeyOrder && visible
+  const numberKeys = shouldShuffle ? shuffle(NUM_KEYS) : NUM_KEYS
+  const matrix: NumberKeyboardKey[] = numberKeys.map(text => ({ text, type: '' }))
+  if (isCustom) {
+    const extras = Array.isArray(extraKey) ? extraKey : extraKey ? [extraKey] : []
+    if (extras.length === 1) matrix.push({ text: ZERO, type: '', wider: true }, { text: extras[0], type: 'extra' })
+    else if (extras.length >= 2) matrix.push({ text: extras[0], type: 'extra' }, { text: ZERO, type: '' }, { text: extras[1], type: 'extra' })
+    else matrix.push({ text: ZERO, type: '' })
+    return matrix
+  }
+  const normalizedExtra = Array.isArray(extraKey) ? extraKey[0] ?? '' : extraKey ?? ''
+  matrix.push({ text: normalizedExtra, type: 'extra' }, { text: ZERO, type: '' }, { type: showDeleteKey ? 'delete' : '', text: showDeleteKey ? undefined : '' })
+  return matrix
+}
 
 const registry = new Set<() => void>()
 type KEnt = { key: NumberKeyboardKey; index: number }

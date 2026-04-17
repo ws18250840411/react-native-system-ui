@@ -1,6 +1,7 @@
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import type { Foundations } from '../../design-system/tokens'
-import { getHairlineWidth, hexToRgb } from '../../utils'
+import { getHairlineWidth } from '../../utils/hairline'
+import { hexToRgb } from '../../utils/color'
 import type { ButtonTokens } from './types'
 const isDarkThemeBackground = (color: string) => {
   const rgb = hexToRgb(color)

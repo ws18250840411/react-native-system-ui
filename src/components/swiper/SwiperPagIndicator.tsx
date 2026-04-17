@@ -1,6 +1,6 @@
 import React, { memo, type ReactElement } from 'react'
 import { View, StyleSheet, type StyleProp, type ViewStyle, type ViewProps } from 'react-native'
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import type { Foundations } from '../../design-system/tokens'
 import type { DeepPartial } from '../../types'
 

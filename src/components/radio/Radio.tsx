@@ -1,12 +1,14 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, type CSSProperties } from 'react'
 import { Platform, Pressable, View, type GestureResponderEvent, type StyleProp, type TextStyle } from 'react-native'
-import { useRadio } from '../../hooks/aria/rn-aria/radio'
+import { useRadio } from './internal'
 import { useToggleState } from '@react-stately/toggle'
 import type { RadioProps } from './types'
 import { RadioGroupContext } from './RadioContext'
 import { useRadioTokens } from './tokens'
-import { createHairlineView, parseNumber, renderTextOrNode } from '../../utils'
-import { isRenderable, isText } from '../../utils/validate'
+import { createHairlineView } from '../../utils/hairline'
+import { parseNumber } from '../../utils/number'
+import { renderTextOrNode } from '../../utils/render'
+import { isRenderable, isText } from '../../utils/base'
 import { toWebRadioInputProps } from './webRadioInputProps'
 
 export const Radio = React.memo((props: RadioProps) => {

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import Image from '../image'
-import { isNumber } from '../../utils'
+import { isNumber } from '../../utils/base'
 import { useAvatarTokens } from './tokens'
 import type { AvatarFallbackTextProps, AvatarImageProps, AvatarProps } from './types'
 

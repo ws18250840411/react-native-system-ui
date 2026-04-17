@@ -1,18 +1,53 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent, type ViewStyle } from 'react-native'
+import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 import { SafeAreaView } from '../safe-area-view'
-import { addPopStateListener, nativeDriverEnabled } from '../../platform'
+import { addPopStateListener } from '../../platform/history'
+import { nativeDriverEnabled } from '../../platform/animation'
 import { useReducedMotion } from '../../hooks/animation'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
-import { isRenderable, isText } from '../../utils/validate'
+import { isRenderable, isText } from '../../utils/base'
 import { Cross } from '../../internal/icons'
 import Portal from '../portal/Portal'
-import { useAriaOverlay, useOverlayStack } from '../../hooks'
+import { useAriaOverlay } from '../../hooks/aria/useAriaOverlay'
+import { useOverlayStack } from '../../hooks/overlay/useOverlayStack'
 import { useLocale } from '../config-provider/useLocale'
 import { useDirection } from '../config-provider/useDirection'
 import { usePopupTokens } from './tokens'
-import type { PopupProps } from './types'
-import { buildRadius, CAPTURE, CONTENT_SELF, EASE_IN, EASE_OUT, hiddenStyle, placementConfig } from '../../hooks/popup/utils'
+import type { PopupPlacement, PopupProps } from './types'
+
+const EASE_OUT = Easing.bezier(0.075, 0.82, 0.165, 1.0)
+const EASE_IN = Easing.bezier(0.55, 0.055, 0.675, 0.19)
+const CAPTURE = () => true
+const hiddenStyle: ViewStyle = { opacity: 0, shadowOpacity: 0, shadowRadius: 0, elevation: 0 }
+
+const placementConfig: Record<PopupPlacement, { container: ViewStyle; axis: 'x' | 'y' }> = {
+  top: { container: { justifyContent: 'flex-start', alignItems: 'center' }, axis: 'y' },
+  bottom: { container: { justifyContent: 'flex-end', alignItems: 'center' }, axis: 'y' },
+  left: { container: { justifyContent: 'center', alignItems: 'flex-start' }, axis: 'x' },
+  right: { container: { justifyContent: 'center', alignItems: 'flex-end' }, axis: 'x' },
+  center: { container: { justifyContent: 'center', alignItems: 'center' }, axis: 'y' },
+}
+
+const CONTENT_SELF: Record<PopupPlacement, ViewStyle> = {
+  top: { alignSelf: 'stretch' },
+  bottom: { alignSelf: 'stretch' },
+  left: { alignSelf: 'flex-start' },
+  right: { alignSelf: 'flex-end' },
+  center: { alignSelf: 'center' },
+}
+
+const buildRadius = (round: boolean | undefined, placement: PopupPlacement, radius: number): ViewStyle | undefined =>
+  !round
+    ? undefined
+    : placement === 'top'
+      ? { borderBottomLeftRadius: radius, borderBottomRightRadius: radius }
+      : placement === 'bottom'
+        ? { borderTopLeftRadius: radius, borderTopRightRadius: radius }
+        : placement === 'left'
+          ? { borderTopRightRadius: radius, borderBottomRightRadius: radius }
+          : placement === 'right'
+            ? { borderTopLeftRadius: radius, borderBottomLeftRadius: radius }
+            : { borderRadius: radius }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 

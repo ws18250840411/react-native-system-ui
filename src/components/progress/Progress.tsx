@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, type LayoutChangeEvent, Platform, Text, View, type ViewStyle } from 'react-native'
-import { clamp, parseNumberLike, parsePercentage, isString, isText } from '../../utils'
+import { clamp, parseNumberLike, parsePercentage } from '../../utils/number'
+import { isString, isText } from '../../utils/base'
 import { useReducedMotion } from '../../hooks/animation'
 import { useProgressTokens } from './tokens'
 import type { ProgressProps } from './types'

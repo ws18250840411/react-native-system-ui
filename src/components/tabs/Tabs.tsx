@@ -1,14 +1,13 @@
 import React, { memo, useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo, Children, isValidElement, type FC, type ForwardRefRenderFunction } from 'react'
 import { Animated, StyleSheet, ScrollView, View, Platform, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native'
-import { useControllableValue } from '../../hooks'
+import useControllableValue from '../../hooks/useControllableValue'
 import { useReducedMotion } from '../../hooks/animation'
 import { createHairlineView } from '../../utils/hairline'
 import { parseNumberLike } from '../../utils/number'
-import { isBoolean, isObject } from '../../utils/validate'
+import { isBoolean, isObject } from '../../utils/base'
 import type { TabPaneProps, TabsProps, TabsRef, TabsValue } from './types'
 import { useTabsTokens } from './tokens'
-import { cancelTabsFrame, requestTabsFrame, useTabsAnimation, useTabsScroll } from '../../hooks/tabs/useTabsInternals'
-import { isTabPaneElement, ParsedPane, TabBarItem } from '../../hooks/tabs/TabBarItem'
+import { cancelTabsFrame, requestTabsFrame, useTabsAnimation, useTabsScroll, isTabPaneElement, ParsedPane, TabBarItem } from './internal'
 const TabPane: FC<TabPaneProps> = () => null
 TabPane.displayName = 'Tabs.TabPane'
 const TabsBaseInner: ForwardRefRenderFunction<TabsRef, TabsProps> = (props, ref) => {

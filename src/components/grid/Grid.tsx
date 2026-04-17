@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 import { View, type LayoutChangeEvent } from 'react-native'
-import { createHairlineView } from '../../utils'
+import { createHairlineView } from '../../utils/hairline'
 import { useGridTokens } from './tokens'
 import type { GridDirection, GridProps, GridTokens } from './types'
 

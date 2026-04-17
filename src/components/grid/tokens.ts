@@ -1,4 +1,4 @@
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import type { Foundations } from '../../design-system/tokens'
 import type { GridTokens } from './types'
 export const createGridTokens = (foundations: Foundations): GridTokens => {

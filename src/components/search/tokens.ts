@@ -1,5 +1,5 @@
 import type { TextStyle } from 'react-native'
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import { type Foundations } from '../../design-system/tokens'
 import type { SearchShape } from './types'
 export interface SearchTokens {

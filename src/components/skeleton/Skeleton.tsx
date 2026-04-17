@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef } from 'react'
 import { Animated, StyleSheet, View, type ViewStyle } from 'react-native'
-import { nativeDriverEnabled } from '../../platform'
+import { nativeDriverEnabled } from '../../platform/animation'
 import { useReducedMotion } from '../../hooks/animation'
-import { isFiniteNumber, isString } from '../../utils'
+import { isFiniteNumber, isString } from '../../utils/base'
 import type { SkeletonProps } from './types'
 import { useSkeletonTokens } from './tokens'
 

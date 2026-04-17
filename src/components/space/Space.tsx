@@ -1,9 +1,11 @@
 import React from 'react'
 import { Pressable, View, type ViewStyle } from 'react-native'
-import { useAriaPress } from '../../hooks'
+import { useAriaPress } from '../../hooks/aria/useAriaPress'
 import type { SpaceAlign, SpaceGap, SpaceJustify, SpaceProps, SpaceSizePreset } from './types'
 import { resolveGapInput, useSpaceTokens } from './tokens'
-import { parseNumberLike, isFiniteNumber, isFunction, isRenderable, renderTextOrNode } from '../../utils'
+import { parseNumberLike } from '../../utils/number'
+import { isFiniteNumber, isFunction, isRenderable } from '../../utils/base'
+import { renderTextOrNode } from '../../utils/render'
 
 const alignMap = { start: 'flex-start', end: 'flex-end', center: 'center', baseline: 'baseline', stretch: 'stretch' } as const
 const justifyMap = { start: 'flex-start', end: 'flex-end', center: 'center', between: 'space-between', around: 'space-around', evenly: 'space-evenly' } as const

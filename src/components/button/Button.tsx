@@ -3,11 +3,11 @@ import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native
 import { withAlpha } from '../../utils/color'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { createHairlineView } from '../../utils/hairline'
-import { ensureSpace } from '../../utils/string'
-import { isFiniteNumber, isFunction, isString } from '../../utils'
-import { useAriaPress } from '../../hooks'
+import { ensureSpace } from '../../utils/base'
+import { isFiniteNumber, isFunction, isString } from '../../utils/base'
+import { useAriaPress } from '../../hooks/aria/useAriaPress'
 import type { ButtonProps, ButtonShadowLevel } from './types'
-import { ButtonGroupContext } from './ButtonContext'
+import { ButtonGroupContext } from './ButtonGroup'
 import { useButtonTokens } from './tokens'
 
 const clampShadowLevel = (level: number): ButtonShadowLevel =>

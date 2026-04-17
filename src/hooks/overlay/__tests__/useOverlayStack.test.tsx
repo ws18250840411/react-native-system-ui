@@ -1,7 +1,7 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
-import type { OverlayStackMountOptions } from '../OverlayStackStore'
-import { overlayStackStore } from '../OverlayStackStore'
+import type { OverlayStackMountOptions } from '../useOverlayStack'
+import { overlayStackStore } from '../useOverlayStack'
 import { useOverlayStack, type UseOverlayStackResult } from '../useOverlayStack'
 const mockAddEventListener = jest.fn((_e: any, _h: any) => ({ remove: jest.fn() }))
 jest.mock('react-native', () => ({

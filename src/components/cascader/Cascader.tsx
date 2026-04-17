@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { FlatList, Pressable, Text, View, useWindowDimensions, type LayoutChangeEvent, type PressableStateCallbackType } from "react-native"
 import { Checked, Cross } from '../../internal/icons'
-import { useControllableValue } from "../../hooks"
-import { shallowEqualArray, renderTextOrNode } from "../../utils"
-import { isFunction, isNumber, isText } from "../../utils/validate"
+import useControllableValue from '../../hooks/useControllableValue'
+import { shallowEqualArray } from '../../utils/base'
+import { renderTextOrNode } from '../../utils/render'
+import { isFunction, isNumber, isText } from "../../utils/base"
 import Popup from "../popup"
 import Tabs from "../tabs"
 import type { TabsValue } from "../tabs"
@@ -12,7 +13,26 @@ import { useLocale } from "../config-provider/useLocale"
 import { useCascaderTokens } from "./tokens"
 import type { CascaderOption, CascaderProps, CascaderRenderProps, CascaderTokens, CascaderValue } from "./types"
 import { useCascaderExtend } from "./useCascaderExtend"
-import { getFieldKeys, resolveRows, type FieldKeys } from '../../hooks/cascader/utils'
+
+type FieldKeys = { textKey: string; valueKey: string; childrenKey: string }
+const getFieldKeys = (fieldNames?: CascaderProps['fieldNames']): FieldKeys => ({
+  textKey: fieldNames?.text ?? 'text',
+  valueKey: fieldNames?.value ?? 'value',
+  childrenKey: fieldNames?.children ?? 'children',
+})
+const resolveRows = (options: CascaderOption[] = [], keys: FieldKeys, values: CascaderValue[]): CascaderOption[] => {
+  const selected: CascaderOption[] = []
+  let current: CascaderOption[] | undefined = options
+  values.forEach(value => {
+    if (!current?.length) return
+    const matched = current.find(option => option[keys.valueKey] === value)
+    if (matched) {
+      selected.push(matched)
+      current = (matched[keys.childrenKey] as CascaderOption[] | undefined) ?? []
+    }
+  })
+  return selected
+}
 const CascaderImpl: React.FC<CascaderProps> = props => {
   const { tokensOverride, options = [], title, placeholder, activeColor, fieldNames, optionRender, showHeader, closeable, closeIcon, onChange, onClose, onFinish, onClickTab, onTabChange, swipeable, style, testID, children, poppable, visible: _v, defaultVisible: _dv, onVisibleChange: _ov, closeOnClickOverlay, closeOnFinish, popupPlacement, popupRound, popupProps, loadingText, ...rest } = props; const locale = useLocale(); const tokens = useCascaderTokens(tokensOverride); const rT = title ?? (locale?.vanCascader?.placeholder ?? tokens.defaults.title); const rP = placeholder ?? (locale?.vanCascader?.placeholder ?? tokens.defaults.placeholder); const rAc = activeColor ?? tokens.colors.tabActive; const rSH = showHeader ?? tokens.defaults.showHeader; const rSw = swipeable ?? tokens.defaults.swipeable; const rPop = poppable ?? tokens.defaults.poppable; const rCO = closeOnClickOverlay ?? tokens.defaults.closeOnClickOverlay; const rCF = closeOnFinish ?? tokens.defaults.closeOnFinish; const rPP = popupPlacement ?? tokens.defaults.popupPlacement; const rPR = popupRound ?? tokens.defaults.popupRound; const rLT = loadingText ?? tokens.defaults.loadingText
   const [value, setValue] = useControllableValue<CascaderValue[]>(props, { defaultValue: [], trigger: "onChange" }); const keys = getFieldKeys(fieldNames); const curVal = Array.isArray(value) ? value : []; const [pending, setPending] = useState<CascaderValue[]>(curVal); const showCl = closeable ?? tokens.defaults.closeable; const [popVis, setPopVis] = useControllableValue<boolean>(props, { defaultValue: false, valuePropName: "visible", defaultValuePropName: "defaultVisible", trigger: "onVisibleChange" }); const cur = rPop ? pending : curVal; const { tabs, items, depth } = useCascaderExtend(options, keys, cur); const { width: winW } = useWindowDimensions(); const [measW, setMeasW] = useState(0); const onTabsLayout = useCallback((e: LayoutChangeEvent) => { const w = e.nativeEvent.layout.width; if (w) setMeasW(prev => prev === w ? prev : w) }, []); const curRows = resolveRows(options, keys, curVal); const [actTab, setActTab] = useState(0)

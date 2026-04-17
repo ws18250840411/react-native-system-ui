@@ -2,8 +2,9 @@ import React, { useCallback, useMemo } from 'react'
 import { Pressable, Text, View, type LayoutChangeEvent } from 'react-native'
 import type { SelectorProps, SelectorValue } from './types'
 import { useSelectorTokens } from './tokens'
-import { useAriaPress, useControllableValue } from '../../hooks'
-import { isText } from '../../utils'
+import { useAriaPress } from '../../hooks/aria/useAriaPress'
+import useControllableValue from '../../hooks/useControllableValue'
+import { isText } from '../../utils/base'
 
 const CHECK_MARK = '✓'; const CH = 8; const CW = 10
 type SelectorComponent = (<V extends SelectorValue>(props: SelectorProps<V>) => React.ReactElement) & { displayName?: string }

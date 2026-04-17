@@ -1,9 +1,9 @@
 import React from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { useAriaPress } from '../../hooks'
-import { isRenderable, isText } from '../../utils'
+import { useAriaPress } from '../../hooks/aria/useAriaPress'
+import { isRenderable, isText } from '../../utils/base'
 import Badge from '../badge'
-import { useSidebarContext } from './SidebarContext'
+import { useSidebarContext } from './Sidebar'
 import { useSidebarTokens } from './tokens'
 import type { SidebarItemProps } from './types'
 

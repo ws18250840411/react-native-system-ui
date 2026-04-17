@@ -1,10 +1,10 @@
 import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 import { View } from 'react-native'
-import { useCheckboxGroup } from '../../hooks/aria/rn-aria/checkbox'
+import { useCheckboxGroup } from './internal'
 import { useCheckboxGroupState, type CheckboxGroupState } from '@react-stately/checkbox'
 import type { CheckboxGroupDirection, CheckboxGroupProps, CheckboxIconRender, CheckboxShape, CheckboxValue } from './types'
 import { useCheckboxTokens } from './tokens'
-import { isBoolean } from '../../utils'
+import { isBoolean } from '../../utils/base'
 
 const serialize = (value: CheckboxValue) => String(value)
 type RegistryItem = { value: CheckboxValue; disabled?: boolean }

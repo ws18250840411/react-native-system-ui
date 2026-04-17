@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native'
 
 import Button from '..'
 import { ButtonGroup } from '../ButtonGroup'
-import { ThemeProvider } from '../../../design-system'
+import { ThemeProvider } from '../../../design-system/ThemeProvider'
 
 const renderWithProvider = (ui: React.ReactElement) => {
   return renderer.create(<ThemeProvider>{ui}</ThemeProvider>)

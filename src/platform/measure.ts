@@ -1,4 +1,4 @@
-import { isFunction } from '../utils/validate'
+import { isFunction } from '../utils/base'
 
 export interface WindowRect { x: number; y: number; width: number; height: number }
 

@@ -1,4 +1,4 @@
-import { isFiniteNumber, isNumber, isString } from './validate'
+import { isFiniteNumber, isNumber, isString } from './base'
 export const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
 export const clamp01 = (value: number) => clamp(value, 0, 1)
 export const parseNumberLike = (value: unknown, fallback?: number) => {

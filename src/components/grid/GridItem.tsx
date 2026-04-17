@@ -1,10 +1,12 @@
 import React, { useContext, useMemo } from 'react'
 import { Pressable, View, type DimensionValue, type ViewStyle } from 'react-native'
-import { Text } from '../../design-system'
+import { Text } from '../../design-system/Text'
 import Badge from '../badge'
-import { createHairlineView, isFunction, isRenderable, isText, renderTextOrNode } from '../../utils'
+import { createHairlineView } from '../../utils/hairline'
+import { isFunction, isRenderable, isText } from '../../utils/base'
+import { renderTextOrNode } from '../../utils/render'
 import type { GridItemProps } from './types'
-import { GridContext } from './GridContext'
+import { GridContext } from './Grid'
 
 const GridItemImpl: React.FC<GridItemProps> = p => {
   const ctx = useContext(GridContext); if (!ctx) throw new Error('GridItem must be used within Grid'); const { gridItemIndex = 0, text, icon, iconColor: icp, badge, dot, contentStyle, textStyle, children, style, onPress, ...rest } = p as GridItemProps & { gridItemIndex?: number }; const { tokens: t, columnNum: cn, gutter: g, border: b, center: c, square: sq, direction: d, reverse: r, clickable: cl, iconSize: is, iconColor: ic, count, containerWidth: cw } = ctx; const ilc = (gridItemIndex + 1) % cn === 0; const ri = Math.floor(gridItemIndex / cn); const lri = Math.floor((count - 1) / cn); const cws = [t.layout.itemContentBase, d === 'horizontal' ? t.layout.itemHorizontal : t.layout.itemVertical, c && t.layout.itemCenter, r ? (d === 'horizontal' ? t.layout.itemReverseRow : t.layout.itemReverseColumn) : null, sq ? t.layout.itemContentSquare : null, { paddingHorizontal: t.spacing.paddingHorizontal, paddingVertical: t.spacing.paddingVertical, backgroundColor: t.colors.background }, contentStyle]; const ht = isRenderable(text); const ric = icp ?? ic ?? t.colors.text

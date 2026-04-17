@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react'
 import { View } from 'react-native'
-import { useRadioGroup } from '../../hooks/aria/rn-aria/radio'
+import { useRadioGroup } from './internal'
 import { useRadioGroupState, type RadioGroupState } from '@react-stately/radio'
 import type { RadioGroupDirection, RadioGroupProps, RadioValue } from './types'
 import { useRadioTokens } from './tokens'

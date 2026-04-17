@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Animated, Easing } from 'react-native'
-import { nativeDriverEnabled } from '../../platform'
+import { nativeDriverEnabled } from '../../platform/animation'
 import { useReducedMotion } from './useReducedMotion'
 export interface AnimatedTransitionOptions { visible: boolean; duration?: number; enterEasing?: (v: number) => number; exitEasing?: (v: number) => number; useNativeDriver?: boolean }
 export interface AnimatedTransitionResult { mounted: boolean; progress: Animated.Value }

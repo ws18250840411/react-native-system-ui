@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Portal } from '../portal/Portal'
-import { deepMerge, isString, isUndefined } from '../../utils'
+import { deepMerge } from '../../utils/deepMerge'
+import { isString, isUndefined } from '../../utils/base'
 import type { DialogAlertOptions, DialogConfirmOptions, DialogProps, DialogShowOptions } from './types'
 import Dialog from './Dialog'
 

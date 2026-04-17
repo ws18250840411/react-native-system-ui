@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Platform, StyleSheet, View } from 'react-native'
-import { isNumber } from '../../utils'
+import { isNumber } from '../../utils/base'
 import { PortalContext, type PortalManager } from './PortalContext'
 interface PortalEntry { key: number; children: React.ReactNode }
 interface PortalManagerHandle extends PortalManager { mount: (children: React.ReactNode, key?: number) => number; clear: () => void }

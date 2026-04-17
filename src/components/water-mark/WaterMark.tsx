@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LayoutChangeEvent } from 'react-native'
 import { Image, Text, View, useWindowDimensions } from 'react-native'
 import type { WaterMarkProps } from './types'
-import { isFiniteNumber, isString } from '../../utils'
+import { isFiniteNumber, isString } from '../../utils/base'
 import { useWaterMarkTokens } from './tokens'
 
 const resolveFiniteNumber = (value: unknown, fallback: number) => isFiniteNumber(value) ? (value as number) : fallback

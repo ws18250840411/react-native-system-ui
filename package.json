@@ -20,6 +20,8 @@
     "dev": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc dev",
     "build": "NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc build && node scripts/generate-exports.mjs && node scripts/build-types.mjs && node scripts/fix-package-json.mjs && node scripts/prune-dist.mjs",
     "build:types": "node scripts/build-types.mjs",
+    "check:imports": "node scripts/normalize-internal-imports.mjs --check",
+    "normalize:imports": "node scripts/normalize-internal-imports.mjs",
     "docs:update-size": "node scripts/generate-docs-size-data.mjs",
     "docs:build": "npm run build && npm run docs:update-size && NODE_OPTIONS=\"--require ./scripts/polyfills.js\" rndoc docs-build",
     "typecheck": "tsc -p tsconfig.json --noEmit",

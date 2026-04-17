@@ -1,7 +1,7 @@
 import React from 'react'
 import { ActivityIndicator, View, type StyleProp, type TextStyle } from 'react-native'
-import { renderTextOrNode } from '../../utils'
-import { isRenderable, isText } from '../../utils/validate'
+import { renderTextOrNode } from '../../utils/render'
+import { isRenderable, isText } from '../../utils/base'
 import type { LoadingProps } from './types'
 import { useLoadingTokens } from './tokens'
 

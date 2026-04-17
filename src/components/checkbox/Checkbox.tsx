@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useImperativeHandle, useRef } from 'react'
 import { Platform, Pressable, Text, View, type GestureResponderEvent, type StyleProp, type ViewStyle } from 'react-native'
-import { useCheckbox, useCheckboxGroupItem } from '../../hooks/aria/rn-aria/checkbox'
+import { useCheckbox, useCheckboxGroupItem } from './internal'
 import { useToggleState } from '@react-stately/toggle'
 import type { CheckboxProps } from './types'
 import { CheckboxGroupContext } from './CheckboxContext'
 import { useCheckboxTokens } from './tokens'
-import { createHairlineView } from '../../utils'
-import { isRenderable, isText } from '../../utils/validate'
+import { createHairlineView } from '../../utils/hairline'
+import { isRenderable, isText } from '../../utils/base'
 
 const EMPTY_CHECKBOX_GROUP_STATE = { value: [] as string[], defaultValue: [] as string[], isDisabled: false, isReadOnly: false, isSelected: () => false, setValue: () => {}, addValue: () => {}, removeValue: () => {}, toggleValue: () => {} } as any
 

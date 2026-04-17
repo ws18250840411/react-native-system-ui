@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { View, type ViewStyle } from 'react-native'
 import { FlexContext } from './FlexContext'
 import type { FlexItemProps } from './types'
-import { isNumber } from '../../utils'
+import { isNumber } from '../../utils/base'
 
 type FlexStyle = { flex?: number; flexGrow?: number; flexShrink?: number; flexBasis?: number | 'auto' }
 const parseFlex = (v?: number | string): FlexStyle | undefined => {

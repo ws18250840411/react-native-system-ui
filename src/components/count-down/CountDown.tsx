@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useImperativeHandle } from 'react'
 import { View } from 'react-native'
-import { useCountDown } from '../../hooks'
-import { formatDuration, isFunction, renderTextOrNode } from '../../utils'
-import { isText } from '../../utils/validate'
+import useCountDown from '../../hooks/useCountDown'
+import { formatDuration } from '../../utils/date'
+import { isFunction } from '../../utils/base'
+import { renderTextOrNode } from '../../utils/render'
+import { isText } from '../../utils/base'
 import { useCountDownTokens } from './tokens'
 import type { CountDownInstance, CountDownProps } from './types'
 

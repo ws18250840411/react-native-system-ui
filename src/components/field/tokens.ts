@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import type { Foundations } from '../../design-system/tokens'
 import type { FieldClearTrigger, FieldControlAlign, FieldFormatTrigger, FieldInputAlign } from './types'
 const fieldLayout = StyleSheet.create({

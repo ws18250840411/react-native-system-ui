@@ -1,14 +1,14 @@
 import React from 'react'
 import renderer, { act } from 'react-test-renderer'
 import { Text } from 'react-native'
-jest.mock('../../../hooks/aria/rn-aria/overlays', () => {
+jest.mock('../../../internal/aria/overlays', () => {
   const React = require('react') as typeof import('react'); const { View } = require('react-native')
   return {
     OverlayContainer: ({ children, style }: { children?: React.ReactNode; style?: unknown }) => <View style={style}>{children}</View>,
     OverlayProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   }
 })
-jest.mock('../../../hooks/aria/rn-aria/interactions', () => ({ useKeyboardDismissable: jest.fn() }))
+jest.mock('../../../internal/aria/interactions', () => ({ useKeyboardDismissable: jest.fn() }))
 import Portal from '../Portal'
 import { PortalHost, portalStore } from '../PortalHost'
 describe('Portal', () => {

@@ -2,7 +2,7 @@ import React, { useImperativeHandle } from 'react'
 import renderer from 'react-test-renderer'
 import { type UseAriaOverlayResult, useAriaOverlay } from '../useAriaOverlay'
 const mockUseOverlay = jest.fn()
-jest.mock('../rn-aria/overlays', () => ({ useOverlay: (...a: any[]) => mockUseOverlay(...a) }))
+jest.mock('../../../internal/aria/overlays', () => ({ useOverlay: (...a: any[]) => mockUseOverlay(...a) }))
 const TC = React.forwardRef<UseAriaOverlayResult | null, Parameters<typeof useAriaOverlay>[0]>((o, r) => {
   const v = useAriaOverlay(o); useImperativeHandle(r, () => v, [v]); return null
 })

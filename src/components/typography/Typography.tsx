@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from 'react'
 import { Linking, Text, View } from 'react-native'
 import type { GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextLayoutEventData, TextProps, TextStyle } from 'react-native'
-import { isBoolean, isNumber, isPlainObject } from '../../utils'
-import { isWeb as isWebPlatform } from '../../platform'
+import { isBoolean, isNumber, isPlainObject } from '../../utils/base'
+import { isWeb as isWebPlatform } from '../../platform/runtime'
 import type { EllipsisConfig, TypographyLinkProps, TypographyTextProps, TypographyTitleProps, TypographyType } from './types'
 import { useTypographyTokens } from './tokens'
 

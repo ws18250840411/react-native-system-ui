@@ -2,7 +2,7 @@ import React from 'react'
 import renderer, { act } from 'react-test-renderer'
 import { View, Text, Pressable } from 'react-native'
 import Slider from '..'
-jest.mock('../../../hooks/aria/rn-aria/utils', () => ({ isRTL: jest.fn(() => false) }))
+jest.mock('../../../internal/aria/utils', () => ({ isRTL: jest.fn(() => false) }))
 const getStyleVal = (style: unknown, key: string): unknown => {
   if (!style) return undefined
   if (Array.isArray(style)) { for (const it of style) { const v = getStyleVal(it, key); if (typeof v !== 'undefined') return v }; return undefined }
@@ -14,7 +14,7 @@ const isThumb = (node: renderer.ReactTestInstance) =>
     if (!s || typeof s !== 'object') return false; const o = s as Record<string, unknown>
     return o.borderColor !== undefined && o.borderRadius !== undefined && typeof o.left === 'string'
   })
-const mockRTL = () => (jest.requireMock('../../../hooks/aria/rn-aria/utils') as { isRTL: jest.Mock }).isRTL
+const mockRTL = () => (jest.requireMock('../../../internal/aria/utils') as { isRTL: jest.Mock }).isRTL
 describe('Slider', () => {
   beforeEach(() => mockRTL().mockReturnValue(false))
   it('renders single value slider', () => { expect(renderer.create(<Slider value={30} min={0} max={100} />).toJSON()).toBeTruthy() })
