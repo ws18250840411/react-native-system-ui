@@ -60,6 +60,7 @@ import { Switch } from 'react-native-system-ui'
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
 | `checked` | 开关选中状态（受控） | `any` | - |
+| `value` | `checked` 的兼容别名，适合与 RN Switch 习惯写法对齐 | `any` | - |
 | `defaultChecked` | 默认选中状态 | `any` | `false` |
 | `disabled` | 是否为禁用状态 | `boolean` | `false` |
 | `size` | 开关尺寸（支持 `sm/md/lg` 与数值等比缩放） | `number \| 'sm' \| 'md' \| 'lg' \| string` | `'md'` |
@@ -74,4 +75,3 @@ import { Switch } from 'react-native-system-ui'
 | --- | --- | --- |
 | `onChange` | 开关状态切换时触发 | `value: any` |
 | `onClick` | 点击时触发 | `event: GestureResponderEvent` |
-

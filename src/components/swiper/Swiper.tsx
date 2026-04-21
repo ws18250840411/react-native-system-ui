@@ -6,33 +6,6 @@ import SwiperPagIndicator from './SwiperPagIndicator'
 import { useSwiperTokens } from './tokens'
 
 const LOOP_THRESHOLD = 10
-const createWebMouseHandlers = ({ enabled, vertical, mainSize, clearAuto, next, prev, schedule, dragRef, interRef }: { enabled: boolean; vertical: boolean; mainSize: number; clearAuto: () => void; next: () => void; prev: () => void; schedule: () => void; dragRef: React.MutableRefObject<number | null>; interRef: React.MutableRefObject<boolean> }) => {
-  if (!enabled) return undefined
-  return {
-    onPointerDown: (e: any) => {
-      if (e.nativeEvent.pointerType !== 'mouse' || e.nativeEvent.button !== 0) return
-      dragRef.current = vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX
-      interRef.current = true
-      clearAuto()
-    },
-    onPointerUp: (e: any) => {
-      const start = dragRef.current
-      dragRef.current = null
-      if (start == null || e.nativeEvent.pointerType !== 'mouse') return
-      const distance = (vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX) - start
-      if (Math.abs(distance) >= mainSize * 0.15) distance < 0 ? next() : prev()
-      interRef.current = false
-      schedule()
-    },
-    onPointerLeave: () => {
-      if (dragRef.current != null) {
-        dragRef.current = null
-        interRef.current = false
-        schedule()
-      }
-    },
-  } as Record<string, any>
-}
 
 type SwiperComponent = (<T>(props: SwiperProps<T> & RefAttributes<SwiperInstance>) => ReactElement | null) & { displayName?: string }
 
@@ -61,7 +34,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   const ready = layout.width > 0 && layout.height > 0
   const mainSz = vertical ? layout.height : layout.width
   const crossSz = vertical ? layout.width : layout.height
-  const itemSz = useMemo(() => ({ width: vertical ? crossSz : mainSz, height: vertical ? mainSz : crossSz }), [vertical, mainSz, crossSz])
+  const itemSz = { width: vertical ? crossSz : mainSz, height: vertical ? mainSz : crossSz }
 
   const clearAuto = useCallback(() => { if (autoRef.current) { clearTimeout(autoRef.current); autoRef.current = null } }, [])
   const onChangeRef = useRef(onChange)
@@ -167,7 +140,11 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   if (count === 0) return null
   const indNode = indicator === false || count <= 1 ? null : typeof indicator === 'function' ? indicator(count, curIdx) : <SwiperPagIndicator {...indicatorProps} total={count} current={curIdx} vertical={vertical} />
 
-  const webMouse = useMemo(() => createWebMouseHandlers({ enabled: isWeb && touchable && count > 1, vertical, mainSize: mainSz, clearAuto, next, prev, schedule, dragRef, interRef }), [isWeb, touchable, count, vertical, mainSz, clearAuto, next, prev, schedule])
+  const webMouse = useMemo(() => isWeb && touchable && count > 1 ? ({
+    onPointerDown: (e: any) => { if (e.nativeEvent.pointerType !== 'mouse' || e.nativeEvent.button !== 0) return; dragRef.current = vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX; interRef.current = true; clearAuto() },
+    onPointerUp: (e: any) => { const start = dragRef.current; dragRef.current = null; if (start == null || e.nativeEvent.pointerType !== 'mouse') return; const distance = (vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX) - start; if (Math.abs(distance) >= mainSz * 0.15) distance < 0 ? next() : prev(); interRef.current = false; schedule() },
+    onPointerLeave: () => { if (dragRef.current != null) { dragRef.current = null; interRef.current = false; schedule() } },
+  } as Record<string, any>) : undefined, [isWeb, touchable, count, vertical, mainSz, clearAuto, next, prev, schedule])
 
   if (!ready) {
     return <View style={[S.ctr, style]} onLayout={onLayout} testID={testID} />

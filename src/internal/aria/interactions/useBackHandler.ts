@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { BackHandler, NativeEventSubscription } from 'react-native';
+import { useEffect } from 'react';
+import { BackHandler } from 'react-native';
 
 type IParams = {
   enabled?: boolean;
@@ -7,21 +7,13 @@ type IParams = {
 };
 
 export function useBackHandler({ enabled, callback }: IParams) {
-  const backHandlerRef = useRef<NativeEventSubscription | null>(null);
-
   useEffect(() => {
+    if (!enabled) return;
     const backHandler = () => {
       callback();
       return true;
     };
-    if (enabled) {
-      backHandlerRef.current = BackHandler.addEventListener(
-        'hardwareBackPress',
-        backHandler
-      );
-    } else {
-      backHandlerRef.current?.remove();
-    }
-    return () => backHandlerRef.current?.remove();
+    const sub = BackHandler.addEventListener('hardwareBackPress', backHandler);
+    return () => sub.remove();
   }, [enabled, callback]);
 }

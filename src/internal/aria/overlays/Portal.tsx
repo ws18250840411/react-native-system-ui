@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
+import React, { useEffect, type ReactNode } from 'react';
+import { StyleSheet, View, type ViewProps } from 'react-native';
 
 type OverlayItem = {
   id: number;
@@ -42,21 +41,14 @@ export function PortalProvider(props: {
       if (!overlayItem) {
         return prev.concat([{ id: id, node }]);
       } else {
-        return prev.map((item) => {
-          if (item.id === id) {
-            return { id, node };
-          }
-
-          return item;
-        });
+        return prev.map((item) => item.id === id ? { id, node } : item);
       }
     });
   };
 
   const removeOverlayItem = (id: number) => {
     setItems((prev) => {
-      const newItems = prev.filter((item) => item.id !== id);
-      return newItems;
+      return prev.filter((item) => item.id !== id);
     });
   };
 

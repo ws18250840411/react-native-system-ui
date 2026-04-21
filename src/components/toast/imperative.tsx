@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import { createImperativePortalRegistry, type ImperativePortalRenderProps } from '../../internal/imperativePortal'
 import { isFunction, isString, isText } from '../../utils/base'
 import { ToastContent, type ToastProps, type ToastType } from './Toast'
@@ -16,7 +16,7 @@ const parseOptions = (input?: ToastInput): ToastShowOptions => (React.isValidEle
 
 const mergeOptions = (input: ToastShowOptions, fallbackType: ToastType): ToastShowOptions => { const type = input.type ?? fallbackType; const merged: ToastShowOptions = { ...currentOptions, ...typeDefaults.get(type), ...input, type }; if (merged.duration == null) merged.duration = currentOptions.duration ?? 2000; return merged }
 
-const ToastPortal: React.FC<ImperativePortalRenderProps<ToastShowOptions>> = ({ options, visible, close, remove }) => { const handleClose = useCallback(() => { options.onClose?.(); close() }, [close, options]); const handleClosed = useCallback(() => { options.onClosed?.(); remove() }, [options, remove]); return <ToastContent {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} /> }
+const ToastPortal: React.FC<ImperativePortalRenderProps<ToastShowOptions>> = ({ options, visible, close, remove }) => <ToastContent {...options} visible={visible} onClose={() => { options.onClose?.(); close() }} onClosed={() => { options.onClosed?.(); remove() }} />
 const toastRegistry = createImperativePortalRegistry<ToastShowOptions>(props => <ToastPortal {...props} />)
 
 const showToast = (input?: ToastInput, fallbackType: ToastType = 'info'): ToastReturnType => {

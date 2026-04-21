@@ -12,8 +12,6 @@ const targets = [
   { name: 'types', dir: path.join(distDir, 'types'), extensions: ['.d.ts', '.d.mts', '.d.cts'] },
 ]
 
-const toPosixPath = (value) => value.split(path.sep).join('/')
-
 const walkFiles = (dir, files = []) => {
   if (!fs.existsSync(dir)) return files
   const entries = fs.readdirSync(dir, { withFileTypes: true })
@@ -72,7 +70,7 @@ const resolveDependency = (fromFile, specifier, extensions, rootDir) => {
 }
 
 const dependencyPatterns = [
-  /\b(?:import|export)\s+[^'"]*?\s+from\s+['"]([^'"]+)['"]/g,
+  /\b(?:import|export)\s*[^'"]*?\s*from\s*['"]([^'"]+)['"]/g,
   /\bimport\s*['"]([^'"]+)['"]/g,
   /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
   /\brequire\s*\(\s*['"]([^'"]+)['"]\s*\)/g,

@@ -1,26 +1,10 @@
 import { I18nManager } from 'react-native';
 
-export const getLabel = (props: any) => {
-  let label = props['aria-label'];
-
-  if (!label) {
-    label = typeof props.label === 'string' ? props.label : undefined;
-  }
-
-  return label;
-};
+export const getLabel = (props: any) =>
+  props['aria-label'] || (typeof props.label === 'string' ? props.label : undefined);
 
 export { mapDomPropsToRN } from './ariaToAccessibilityMap';
 export { mergeProps } from '@react-aria/utils';
 
-export const isRTL = (): any => {
-  if (I18nManager.isRTL !== undefined) {
-    return I18nManager.isRTL;
-  }
-
-  // @ts-ignore - RN web only
-  if (I18nManager.getConstants) {
-    // @ts-ignore - RN web only
-    return I18nManager.getConstants().isRTL;
-  }
-};
+export const isRTL = (): any =>
+  I18nManager.isRTL ?? (I18nManager as any).getConstants?.().isRTL;

@@ -22,6 +22,7 @@ export interface SwitchTokens {
 }
 
 export interface SwitchProps<V = boolean> {
+  value?: V
   checked?: V
   defaultChecked?: V
   disabled?: boolean

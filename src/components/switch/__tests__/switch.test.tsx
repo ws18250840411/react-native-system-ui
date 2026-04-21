@@ -34,6 +34,17 @@ describe('Switch', () => {
     expect(onChange).toHaveBeenLastCalledWith(false)
   })
 
+  it('supports value as checked alias', () => {
+    const onChange = jest.fn()
+    const tree = renderer.create(<Switch value={true} onChange={onChange} />)
+    const nativeSwitch = tree.root.findByType(RNSwitch)
+    expect(nativeSwitch.props.value).toBe(true)
+    act(() => {
+      nativeSwitch.props.onValueChange?.(false)
+    })
+    expect(onChange).toHaveBeenLastCalledWith(false)
+  })
+
   it('does not call onClick/onChange when disabled', () => {
     const handleClick = jest.fn()
     const handleChange = jest.fn()

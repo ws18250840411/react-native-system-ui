@@ -3,7 +3,7 @@ import { useRadioGroup as useRadioGroupWeb } from '@react-aria/radio'
 import type { AriaRadioGroupProps } from '@react-types/radio'
 import type { RadioGroupState } from '@react-stately/radio'
 
-export { useRadio } from './internal'
+export { useRadio } from './shared'
 
 const mapDomPropsToRN = (props: Record<string, unknown>) => {
   const next: Record<string, unknown> = { ...props }

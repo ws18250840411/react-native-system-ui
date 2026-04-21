@@ -25,8 +25,8 @@ const ProgressContext = React.createContext<ProgressContextValue | null>(null)
 export const ProgressFilledTrack: React.FC<{ style?: ViewStyle | ViewStyle[] }> = ({ style }) => {
   const context = useContext(ProgressContext)
   if (!context) return null
-  const size = useMemo(() => context.animatedValue.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }), [context.animatedValue])
-  const sizeStyle = useMemo(() => context.orientation === 'vertical' ? ({ width: context.height, height: size, bottom: 0, left: 0, position: 'absolute' } as unknown as ViewStyle) : ({ height: context.height, width: size } as unknown as ViewStyle), [context.height, context.orientation, size])
+  const size = context.animatedValue.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] })
+  const sizeStyle = context.orientation === 'vertical' ? ({ width: context.height, height: size, bottom: 0, left: 0, position: 'absolute' } as unknown as ViewStyle) : ({ height: context.height, width: size } as unknown as ViewStyle)
   const baseStyle = [context.orientation === 'vertical' ? ({ position: 'absolute', left: 0, bottom: 0 } as unknown as ViewStyle) : context.layoutIndicator, { backgroundColor: context.indicatorColor, borderRadius: context.height / 2, ...(context.isGradient && context.gradientColor ? ({ backgroundImage: context.gradientColor } as unknown as ViewStyle) : null) } as unknown as ViewStyle, sizeStyle, context.indicatorStyle, style] as unknown as Array<Animated.WithAnimatedValue<ViewStyle>>
   return <Animated.View style={baseStyle} />
 }

@@ -15,6 +15,15 @@ module.exports = {
     '^react-native/Libraries/Utilities/codegenNativeComponent$': codegenMock,
     '^react-native-safe-area-context$': safeAreaContextMock,
   },
+  transform: {
+    '^.+\\.[jt]sx?$': ['babel-jest', {
+      presets: [
+        ['@babel/preset-env', { targets: { node: 'current' } }],
+        ['@babel/preset-react', { runtime: 'automatic' }],
+        ['@babel/preset-typescript', { allExtensions: true, isTSX: true }],
+      ],
+    }],
+  },
   transformIgnorePatterns: [
     '/node_modules/(?!(react-native-web|@react-native|@react-native-community|rndoc-cli))/',
   ],

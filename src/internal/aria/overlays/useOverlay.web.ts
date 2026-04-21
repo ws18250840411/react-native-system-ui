@@ -33,7 +33,7 @@ export function useOverlay(
   props: OverlayProps,
   ref: RefObject<HTMLElement>
 ): OverlayAria {
-  let {
+  const {
     onClose,
     shouldCloseOnBlur,
     isOpen,
@@ -45,28 +45,28 @@ export function useOverlay(
     }
 
     return () => {
-      let index = visibleOverlays.indexOf(ref);
+      const index = visibleOverlays.indexOf(ref);
       if (index >= 0) {
         visibleOverlays.splice(index, 1);
       }
     };
   }, [isOpen, ref]);
-  let onHide = () => {
+  const onHide = () => {
     if (visibleOverlays[visibleOverlays.length - 1] === ref && onClose) {
       onClose();
     }
   };
-  let onKeyDown = (e: any) => {
+  const onKeyDown = (e: any) => {
     if (e.key === 'Escape' && !isKeyboardDismissDisabled) {
       e.preventDefault();
       onHide();
     }
   };
 
-  let { focusWithinProps } = useFocusWithin({
+  const { focusWithinProps } = useFocusWithin({
     isDisabled: !shouldCloseOnBlur,
     onBlurWithin: () => {
-      onClose && onClose();
+      onClose?.();
     },
   });
 

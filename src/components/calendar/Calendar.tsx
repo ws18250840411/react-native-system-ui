@@ -4,7 +4,7 @@ import useControllableValue from '../../hooks/useControllableValue'
 import { renderTextOrNode } from '../../utils/render'
 import { isRenderable } from '../../utils/base'
 import Popup from '../popup'
-import { useLocale } from '../config-provider/useLocale'
+import { useLocale } from '../config-provider/loc'
 import { useCalendarTokens } from './tokens'
 import type { CalendarProps, CalendarType } from './types'
 

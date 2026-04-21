@@ -26,24 +26,24 @@ export function usePress({
   isPressed: isPressedProp,
   ...restProps
 }: PressHookProps): PressResult {
-  let [isPressed, setPressed] = React.useState(false)
+  const [isPressed, setPressed] = React.useState(false)
   let pressProps = {
     onPress: (e: any) => {
       if (isDisabled) return
-      onPress && onPress(e)
+      onPress?.(e)
     },
     onPressIn: (e: any) => {
       if (isDisabled) return
-      onPressStart && onPressStart(e)
+      onPressStart?.(e)
       setPressed(true)
-      onPressChange && onPressChange(true)
+      onPressChange?.(true)
     },
     onPressOut: (e: any) => {
       if (isDisabled) return
-      onPressEnd && onPressEnd(e)
+      onPressEnd?.(e)
       setPressed(false)
-      onPressChange && onPressChange(false)
-      onPressUp && onPressUp(e)
+      onPressChange?.(false)
+      onPressUp?.(e)
     },
   }
   pressProps = mergeProps(pressProps, restProps)

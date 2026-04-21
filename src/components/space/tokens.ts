@@ -13,8 +13,3 @@ const createSpaceTokens = (foundations: Foundations): SpaceTokens => {
   }
 }
 export const useSpaceTokens = createComponentTokensHook('space', createSpaceTokens)
-export const resolveGapInput = (
-  gap?: SpaceGap,
-  size?: SpaceGap | SpaceSizePreset,
-  fallback?: SpaceSizePreset
-) => gap ?? size ?? fallback ?? 'normal'

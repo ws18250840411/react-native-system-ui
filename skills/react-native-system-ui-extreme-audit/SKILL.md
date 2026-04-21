@@ -1,13 +1,13 @@
 ---
 name: react-native-system-ui-extreme-audit
-description: Use when continuing the extreme audit and size optimization of this React Native component library, especially when reviewing components line by line, shrinking hooks/utils/internal layers, consolidating duplicated private logic, updating docs/component-extreme-audit.md scores, and syncing the project-local skill after every change.
+description: Use when continuing the extreme audit and size optimization of this React Native component library, especially when reviewing components line by line, shrinking hooks/utils/internal/platform/design-system/script layers, consolidating duplicated private logic, updating docs/component-extreme-audit.md scores, and syncing the project-local skill after every change.
 ---
 
 # React Native System UI Extreme Audit
 
 ## Overview
 
-Use this skill for this repository's long-running "extreme audit" work: reduce bundle size, collapse unnecessary layers, and keep every component's score grounded in real code and real verification.
+Use this skill for this repository's long-running "extreme audit" work: reduce bundle size, collapse unnecessary layers, and keep every component score and shared-runtime conclusion grounded in real code and real verification.
 
 The goal is not to chase abstract cleanliness. The goal is to make the library smaller, tighter, and more reusable without weakening behavior, public API stability, or cross-platform correctness.
 
@@ -32,8 +32,8 @@ Use `handoff-playbook.md` for the fixed optimization rules, priority order, comp
 
 ## Core Workflow
 
-1. Pick one component or one tightly-related shared area at a time.
-2. Read the implementation line by line, including its local files and the private helpers it pulls from `src/hooks`, `src/utils`, `src/internal`, and `src/internal/aria`.
+1. Pick one component or one tightly-related shared runtime area at a time.
+2. Read the implementation line by line, including its local files and the private helpers it pulls from `src/hooks`, `src/utils`, `src/internal`, `src/internal/aria`, `src/platform`, and `src/design-system`.
 3. Verify whether each extracted helper truly needs to stay extracted. If a helper only serves one component or one private path, prefer moving it back closer to that component.
 4. Prefer deletions over abstractions. A shared file is only worth keeping when it reduces total code across multiple call sites and does not widen the public surface.
 5. After each real change, sync the audit records immediately instead of batching documentation later.
@@ -48,6 +48,7 @@ Prioritize these patterns:
 - Reduce repeated style assembly, prop normalization, and render-branch duplication.
 - Reuse existing internal primitives before introducing new files.
 - Keep public hooks minimal; move private `aria` and component-specific bridges toward `src/internal` or component-local `internal.*` files when possible.
+- Treat `src/platform`, `src/design-system`, and build scripts as part of the audit when they affect runtime size, component import fan-out, exports, or size statistics.
 - Treat every new file as bundle overhead. If one file can safely disappear, that is usually a win.
 
 ## Shared Directory Rules
@@ -58,6 +59,9 @@ When touching shared directories, apply stricter review:
 - `src/hooks/aria`: keep the public layer extremely thin; push implementation inward whenever possible.
 - `src/utils`: merge tiny one-off utilities where doing so reduces import fan-out and file count.
 - `src/internal`: prefer this for shared private runtime logic used by multiple components.
+- `src/platform`: keep platform bridges tiny; remove single-use wrappers and defensive fallbacks only after verifying web/native behavior.
+- `src/design-system`: preserve theme override semantics and token identity; remove duplicate memo/cache layers only when existing caches already preserve identity.
+- `scripts`: optimize correctness and trustworthy size/export generation first; script byte size is secondary unless it affects published runtime output.
 - component-local `internal.ts` or `internal.web.ts`: prefer this for private logic used by a single component family.
 
 ## Required Sync After Every Change
@@ -81,6 +85,7 @@ Run these after each optimization round:
 - `npm run build`
 - `npm run check:imports`
 - `npm run typecheck`
+- `npm run docs:update-size`
 
 If `typecheck` fails because of pre-existing issues, record the exact blocking files and do not present them as newly introduced regressions.
 

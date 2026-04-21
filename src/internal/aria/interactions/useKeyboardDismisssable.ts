@@ -25,15 +25,7 @@ export const keyboardDismissHandlerManager = {
 
 export const useKeyboardDismissable = ({ enabled, callback }: IParams) => {
   useEffect(() => {
-    let cleanupFn = () => {};
-    if (enabled) {
-      cleanupFn = keyboardDismissHandlerManager.push(callback);
-    } else {
-      cleanupFn();
-    }
-    return () => {
-      cleanupFn();
-    };
+    if (enabled) return keyboardDismissHandlerManager.push(callback);
   }, [enabled, callback]);
 
   useBackHandler({ enabled, callback });

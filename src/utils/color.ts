@@ -1,4 +1,3 @@
-import { clamp01 } from './number'
 export type RgbTuple = readonly [number, number, number]
 const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i
 export const hexToRgb = (input: string): RgbTuple | null => {
@@ -14,7 +13,7 @@ const parseRgb = (input: string): RgbTuple | null => {
   return n.length >= 3 && n.every(Number.isFinite) ? [n[0], n[1], n[2]] : null
 }
 export const withAlpha = (color: string, alpha: number) => {
-  const a = clamp01(alpha)
+  const a = Math.min(Math.max(alpha, 0), 1)
   const t = color?.trim?.() ?? ''
   if (!t) return color
   if (t.startsWith('#')) {

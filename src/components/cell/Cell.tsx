@@ -1,23 +1,27 @@
-import React, { useContext, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native'
 import { Arrow } from '../../internal/icons'
 import { useAriaPress } from '../../hooks/aria/useAriaPress'
 import { useHairline } from '../../hooks/useHairline'
 import { isRenderable, isText } from '../../utils/base'
 import { renderTextOrNode } from '../../utils/render'
-import { useDirection } from '../config-provider/useDirection'
-import { CellGroupContext } from './CellGroup'
+import { useDirection } from '../config-provider/dir'
 import { useCellTokens } from './tokens'
 import type { CellProps } from './types'
 
-const CellImpl = (props: CellProps, ref: React.ForwardedRef<React.ElementRef<typeof Pressable>>) => {
-  const { title, value, label, extra, icon, rightIcon, border: borderP, clickable, isLink, required, center, size: sizeP, arrowDirection: arrP, tokensOverride, children, style, titleStyle, valueStyle, labelStyle, contentStyle, onPress, disabled, android_ripple, ...rest } = props
-  const tokens = useCellTokens(tokensOverride); const dir = useDirection(); const grp = useContext(CellGroupContext); const border = borderP ?? tokens.defaults.border; const size = sizeP ?? tokens.defaults.size
+type CellRuntimeProps = {
+  __groupBorder?: boolean
+  __groupIsLast?: boolean
+}
+
+const CellImpl = (props: CellProps & CellRuntimeProps, ref: React.ForwardedRef<React.ElementRef<typeof Pressable>>) => {
+  const { title, value, label, extra, icon, rightIcon, border: borderP, clickable, isLink, required, center, size: sizeP, arrowDirection: arrP, tokensOverride, children, style, titleStyle, valueStyle, labelStyle, contentStyle, onPress, disabled, android_ripple, __groupBorder = true, __groupIsLast = false, ...rest } = props
+  const tokens = useCellTokens(tokensOverride); const dir = useDirection(); const border = borderP ?? tokens.defaults.border; const size = sizeP ?? tokens.defaults.size
   const arrRaw = arrP ?? tokens.defaults.arrowDirection; const arr = dir === 'rtl' ? (arrRaw === 'left' ? 'right' : arrRaw === 'right' ? 'left' : arrRaw) : arrRaw; const lh = tokens.typography.lineHeight
   const hasT = isRenderable(title); const hasV = isRenderable(value); const hasL = isRenderable(label); const hasE = isRenderable(extra); const hasCh = isRenderable(children); const hasI = isRenderable(icon); const hasRI = isRenderable(rightIcon)
-  const onlyV = !hasT && !hasCh; const showB = border && grp.border && !grp.isLast; const showArr = !!isLink || !!clickable; const inter = !disabled && (clickable || !!onPress || !!rest.onLongPress || !!rest.onPressIn || !!rest.onPressOut); const large = size === 'large'
-  const ctrStyle = useMemo<StyleProp<ViewStyle>>(() => [large ? tokens.layout.containerLarge : tokens.layout.container, center && tokens.layout.center, style], [size, center, tokens.layout, style]); const hair = useHairline({ show: showB, containerStyle: ctrStyle, color: tokens.colors.border, width: tokens.borders.width, defaultPaddingHorizontal: tokens.sizing.paddingHorizontal })
-  const cntStyle = useMemo(() => [tokens.layout.customContent, { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] }, contentStyle], [center, tokens.layout.customContent, contentStyle]); const { interactionProps, states } = useAriaPress({ disabled: !inter, onPress: onPress ?? undefined }); const Comp = inter ? Pressable : View; const compProps = inter ? { android_ripple: android_ripple ?? { color: tokens.colors.ripple }, accessibilityRole: 'button' as const, ...interactionProps } : {}
+  const onlyV = !hasT && !hasCh; const showB = border && __groupBorder && !__groupIsLast; const showArr = !!isLink || !!clickable; const inter = !disabled && (clickable || !!onPress || !!rest.onLongPress || !!rest.onPressIn || !!rest.onPressOut); const large = size === 'large'
+  const ctrStyle = useMemo<StyleProp<ViewStyle>>(() => [large ? tokens.layout.containerLarge : tokens.layout.container, center && tokens.layout.center, style], [large, center, tokens.layout, style]); const hair = useHairline({ show: showB, containerStyle: ctrStyle, color: tokens.colors.border, width: tokens.borders.width, defaultPaddingHorizontal: tokens.sizing.paddingHorizontal })
+  const cntStyle = [tokens.layout.customContent, { justifyContent: (center ? 'center' : 'flex-start') as ViewStyle['justifyContent'] }, contentStyle]; const { interactionProps, states } = useAriaPress({ disabled: !inter, onPress: onPress ?? undefined }); const Comp = inter ? Pressable : View; const compProps = inter ? { android_ripple: android_ripple ?? { color: tokens.colors.ripple }, accessibilityRole: 'button' as const, ...interactionProps } : {}
   return (
     <Comp ref={ref} style={[ctrStyle, inter && states.pressed && { opacity: tokens.defaults.activeOpacity }]} {...compProps} {...rest}>
       {hasI && <View style={[tokens.layout.iconWrapper, { marginRight: tokens.spacing.iconGap, minHeight: tokens.sizing.iconSize, minWidth: tokens.sizing.iconSize }]}>{icon}</View>}

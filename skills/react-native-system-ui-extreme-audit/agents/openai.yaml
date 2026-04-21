@@ -1,7 +1,7 @@
 interface:
   display_name: "RN System UI Extreme Audit"
-  short_description: "逐组件极致压缩审计与体积优化"
-  default_prompt: "Use $react-native-system-ui-extreme-audit to continue optimizing this React Native component library, then sync the audit doc and project skill after every change."
+  short_description: "逐组件与共享 runtime 极致压缩审计"
+  default_prompt: "Use $react-native-system-ui-extreme-audit to continue optimizing this React Native component library, including components plus shared hooks/utils/internal/platform/design-system/scripts, then sync the audit doc and project skill after every change."
 
 policy:
   allow_implicit_invocation: true

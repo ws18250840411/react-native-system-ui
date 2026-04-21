@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Portal from '../components/portal/Portal'
 
 export interface ImperativePortalRenderProps<Options> {
@@ -43,16 +43,14 @@ export const createImperativePortalRegistry = <Options,>(
 
   const ManagedPortal: React.FC<{ id: number; options: Options }> = ({ id, options }) => {
     const [visible, setVisible] = useState(true)
-    const handleClose = useCallback(() => {
-      setVisible(false)
-    }, [])
+    const handleClose = () => { setVisible(false) }
 
     useEffect(() => {
       closers.set(id, handleClose)
       return () => {
         if (closers.get(id) === handleClose) closers.delete(id)
       }
-    }, [handleClose, id])
+    }, [id])
 
     return render({ id, options, visible, close: handleClose, remove: () => remove(id) })
   }

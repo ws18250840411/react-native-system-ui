@@ -1,7 +1,6 @@
 import type React from 'react'
 import { useEffect, useRef } from 'react'
 import { AccessibilityInfo } from 'react-native'
-import { isText } from '../utils/base'
 
 export const useLatestRef = <T,>(value: T) => {
   const ref = useRef(value)
@@ -52,7 +51,7 @@ export const useVisibilityLifecycle = ({
   }, [callbacksRef, openedDelay, visible])
 
   useEffect(() => {
-    if (!mounted || !closingRef.current) return
+    if (mounted || !closingRef.current) return
     closingRef.current = false
     callbacksRef.current.onClosed?.()
   }, [callbacksRef, mounted])
@@ -86,7 +85,7 @@ export const useAccessibilityAnnouncement = ({
   message?: React.ReactNode
 }) => {
   useEffect(() => {
-    if (!visible || !isText(message)) return
+    if (!visible || (typeof message !== 'string' && typeof message !== 'number')) return
     const text = String(message)
     if (text) AccessibilityInfo.announceForAccessibility?.(text)
   }, [message, visible])

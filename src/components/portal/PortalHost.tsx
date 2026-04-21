@@ -23,10 +23,7 @@ const portalEmitter = createPortalEmitter()
 const ao = (m: PortalManagerHandle, o: Operation) => { if (o.type === 'mount') m.mount(o.children, o.key); else if (o.type === 'update') m.update(o.key, o.children); else if (o.type === 'clear') m.clear(); else m.unmount(o.key) }
 const PortalManagerView = React.forwardRef<PortalManagerHandle, {}>((_, ref) => {
   const [e, setE] = useState<PortalEntry[]>([]); const ks = useRef(0)
-  const us = useCallback((en: PortalEntry) => { setE(p => { const i = p.findIndex(it => it.key === en.key); return i === -1 ? [...p, en] : [...p.slice(0, i), en, ...p.slice(i + 1)] }) }, [])
-  const mt = useCallback((c: React.ReactNode, k?: number) => { const rk = k ?? ++ks.current; if (isNumber(k) && k >= ks.current) ks.current = k + 1; us({ key: rk, children: c }); return rk }, [us])
-  const up = useCallback((k: number, c: React.ReactNode) => { us({ key: k, children: c }) }, [us]); const um = useCallback((k: number) => { setE(p => p.filter(it => it.key !== k)) }, []); const cl = useCallback(() => { setE([]) }, [])
-  React.useImperativeHandle(ref, () => ({ mount: mt, update: up, unmount: um, clear: cl }), [mt, up, um, cl])
+  React.useImperativeHandle(ref, () => { const us = (en: PortalEntry) => { setE(p => { const i = p.findIndex(it => it.key === en.key); return i === -1 ? [...p, en] : [...p.slice(0, i), en, ...p.slice(i + 1)] }) }; return { mount: (c: React.ReactNode, k?: number) => { const rk = k ?? ++ks.current; if (isNumber(k) && k >= ks.current) ks.current = k + 1; us({ key: rk, children: c }); return rk }, update: (k: number, c: React.ReactNode) => { us({ key: k, children: c }) }, unmount: (k: number) => { setE(p => p.filter(it => it.key !== k)) }, clear: () => { setE([]) } } }, [])
   if (e.length === 0) return null; return <View style={[S.pl, { pointerEvents: 'box-none' }]} collapsable={false}>{e.map(en => <View key={en.key} collapsable={false} style={[S.pe, { pointerEvents: 'box-none' }]}>{en.children}</View>)}</View>
 })
 let ah = 0; let nh = 1; let ngk = 10000; const hr = new Set<number>()

@@ -3,7 +3,8 @@ import path from 'node:path'
 import zlib from 'node:zlib'
 
 const ROOT = process.cwd()
-const COMPONENTS_DIST = path.join(ROOT, 'dist/es/components')
+const COMPONENTS_DIST_CJS = path.join(ROOT, 'dist/cjs/components')
+const COMPONENTS_DIST_ES = path.join(ROOT, 'dist/es/components')
 const COMPONENTS_SRC = path.join(ROOT, 'src/components')
 const OUTPUT_FILE = path.join(ROOT, 'docs/component-sizes.ts')
 const README_FILE = path.join(ROOT, 'README.md')
@@ -63,6 +64,17 @@ ${tableRows.join('\n')}`
 
 const EXCLUDED_DIRS = new Set(['__tests__', '__snapshots__', 'demo', 'style', 'test'])
 
+const hasComponentImplementations = (dir) => {
+  if (!fs.existsSync(dir)) return false
+  return fs.readdirSync(dir, { withFileTypes: true }).some((entry) => {
+    if (!entry.isDirectory() || EXCLUDED_DIRS.has(entry.name)) return false
+    const componentDir = path.join(dir, entry.name)
+    return fs.readdirSync(componentDir, { withFileTypes: true }).filter((file) =>
+      file.isFile() && file.name.endsWith('.js') && file.name !== 'index.js'
+    ).length > 0
+  })
+}
+
 const getDirSize = (dir, useGzip = true) => {
   let size = 0
   if (!fs.existsSync(dir)) return 0
@@ -87,7 +99,11 @@ const getDirSize = (dir, useGzip = true) => {
 }
 
 const main = () => {
-  const targetDir = fs.existsSync(COMPONENTS_DIST) ? COMPONENTS_DIST : COMPONENTS_SRC
+  const targetDir = hasComponentImplementations(COMPONENTS_DIST_ES)
+    ? COMPONENTS_DIST_ES
+    : hasComponentImplementations(COMPONENTS_DIST_CJS)
+      ? COMPONENTS_DIST_CJS
+      : COMPONENTS_SRC
   console.log(`Using ${targetDir} for component size calculation`)
 
   if (!fs.existsSync(targetDir)) {
@@ -107,12 +123,16 @@ const main = () => {
 
   sizes.sort((a, b) => b.size - a.size)
 
-  const sourceLabel = targetDir === COMPONENTS_DIST ? 'dist/es/components' : 'src/components'
+  const sourceLabel = targetDir === COMPONENTS_DIST_CJS
+    ? 'dist/cjs/components'
+    : targetDir === COMPONENTS_DIST_ES
+      ? 'dist/es/components'
+      : 'src/components'
   const header = `/**
  * 组件体积数据（由 scripts/generate-docs-size-data.mjs 生成，以组件为主）
  * 数据源: ${sourceLabel}
  * 口径: 各组件目录下 .ts/.tsx/.js 文件分别 gzip 后相加（字节），非实际打包单 chunk 体积。
- * 先执行 pnpm run build 再执行 pnpm run docs:update-size 将使用 dist/es/components。
+ * 先执行 pnpm run build 再执行 pnpm run docs:update-size 将优先使用 dist/es/components，必要时回退到 dist/cjs/components。
  * 同命令会同步 README.md 中 <!-- docs:component-sizes:start/end --> 内表格及文首/「核心优势」中的均值与最小组件体积。
  */
 export default `

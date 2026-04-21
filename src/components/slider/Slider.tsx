@@ -29,17 +29,7 @@ const isSameLayout = (a: TrackLayout, b: TrackLayout) =>
   a.width === b.width && a.height === b.height && a.x === b.x && a.y === b.y
 
 const normalizeValue = (value: SliderValue | undefined, range: boolean, min: number, max: number): number[] =>
-  range
-    ? (() => {
-        const raw = Array.isArray(value) ? value : isFiniteNumber(value) ? [min, value] : [min, min]
-        const first = isFiniteNumber(raw[0]) ? clamp(raw[0], min, max) : min
-        const second = isFiniteNumber(raw[1] ?? raw[0]) ? clamp(raw[1] ?? raw[0], min, max) : min
-        return first <= second ? [first, second] : [second, first]
-      })()
-    : (() => {
-        const single = Array.isArray(value) ? value[0] : value
-        return [isFiniteNumber(single) ? clamp(single, min, max) : min]
-      })()
+  range ? (() => { const raw = Array.isArray(value) ? value : isFiniteNumber(value) ? [min, value] : [min, min]; const a = isFiniteNumber(raw[0]) ? clamp(raw[0], min, max) : min; const b = isFiniteNumber(raw[1] ?? raw[0]) ? clamp(raw[1] ?? raw[0], min, max) : min; return a <= b ? [a, b] : [b, a] })() : (() => { const single = Array.isArray(value) ? value[0] : value; return [isFiniteNumber(single) ? clamp(single, min, max) : min] })()
 
 const toSliderValue = (values: readonly number[], range: boolean, fallback: number): SliderValue =>
   range ? [values[0] ?? fallback, values[1] ?? (values[0] ?? fallback)] : (values[0] ?? fallback)
@@ -165,7 +155,7 @@ const ThumbNode: React.FC<ThumbNodeProps> = React.memo(({
   const indicatorStyle = { width: indicatorSize, height: indicatorSize, borderRadius: indicatorSize / 2, backgroundColor: indicatorColor }
   const accessibilityProps = createAccessibilityProps(inputProps) as unknown as Partial<React.ComponentProps<typeof View>>
   return (
-    <View {...handlers} {...accessibilityProps} style={[content ? S.thw : S.t, webGestureStyle, thumbStyle, { pointerEvents: isDisabled ? 'none' : 'auto' }]}>
+    <View {...handlers} {...accessibilityProps} pointerEvents={isDisabled ? 'none' : 'auto'} style={[content ? S.thw : S.t, webGestureStyle, thumbStyle]}>
       {content != null ? (isText(content) ? renderTextOrNode(content as string | number, []) : content) : <View style={indicatorStyle} />}
       {!content && <View style={createHairlineView({ position: 'all', color: activeColor, borderRadius: size / 2 })} />}
     </View>
@@ -417,21 +407,21 @@ const SliderImpl: React.FC<SliderProps> = props => {
     return wrapped
   }, [])
   const values = state.values as readonly number[]
-  const thumbPercent = useMemo(() => values.map(value => (((value ?? resolvedMin) - resolvedMin) / scope) * 100), [resolvedMin, scope, values])
-  const thumbVisualPercent = useMemo(() => thumbPercent.map(percent => orientation === 'vertical' ? (reverse ? percent : 100 - percent) : (resolvedReverseX ? 100 - percent : percent)), [orientation, reverse, resolvedReverseX, thumbPercent])
-  const activeRange = useMemo(() => { const first = thumbVisualPercent[0] ?? 0, second = thumbVisualPercent[1] ?? first; return range && thumbVisualPercent.length > 1 ? { offset: Math.min(first, second), size: Math.max(first, second) - Math.min(first, second) } : (orientation === 'horizontal' ? !resolvedReverseX : reverse) ? { offset: 0, size: first } : { offset: first, size: 100 - first } }, [orientation, range, reverse, resolvedReverseX, thumbVisualPercent])
+  const thumbPercent = values.map(value => (((value ?? resolvedMin) - resolvedMin) / scope) * 100)
+  const thumbVisualPercent = thumbPercent.map(percent => orientation === 'vertical' ? (reverse ? percent : 100 - percent) : (resolvedReverseX ? 100 - percent : percent))
+  const firstPercent = thumbVisualPercent[0] ?? 0
+  const secondPercent = thumbVisualPercent[1] ?? firstPercent
+  const activeRange = range && thumbVisualPercent.length > 1 ? { offset: Math.min(firstPercent, secondPercent), size: Math.max(firstPercent, secondPercent) - Math.min(firstPercent, secondPercent) } : (orientation === 'horizontal' ? !resolvedReverseX : reverse) ? { offset: 0, size: firstPercent } : { offset: firstPercent, size: 100 - firstPercent }
   const { track: { radius: trackRadius } } = tokens
-  const activeTrackStyle: ViewStyle = useMemo(() => ({ backgroundColor: resolvedActiveColor, borderRadius: trackRadius, ...(orientation === 'vertical' ? { left: 0, width: '100%', height: `${Math.max(activeRange.size, 0)}%`, top: `${Math.max(activeRange.offset, 0)}%` } : { top: 0, height: '100%', width: `${Math.max(activeRange.size, 0)}%`, left: `${Math.max(activeRange.offset, 0)}%` }) }), [activeRange.offset, activeRange.size, orientation, resolvedActiveColor, trackRadius])
-  const trackBackgroundStyle = useMemo(() => orientation === 'vertical' ? [S.tv, { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' as const }] : [S.th, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }], [orientation, resolvedInactiveColor, resolvedTrackHeight])
-  const isButtonFunction = isFunction(button)
-  const selectedThumb = isButtonFunction ? (button as ({ value }: { value: SliderValue }) => React.ReactNode)({ value: currentValue }) : button ?? thumb
+  const activeTrackStyle: ViewStyle = { backgroundColor: resolvedActiveColor, borderRadius: trackRadius, ...(orientation === 'vertical' ? { left: 0, width: '100%', height: `${Math.max(activeRange.size, 0)}%`, top: `${Math.max(activeRange.offset, 0)}%` } : { top: 0, height: '100%', width: `${Math.max(activeRange.size, 0)}%`, left: `${Math.max(activeRange.offset, 0)}%` }) }
+  const trackBackgroundStyle = orientation === 'vertical' ? [S.tv, { width: resolvedTrackHeight, backgroundColor: resolvedInactiveColor, alignSelf: 'center' as const }] : [S.th, { height: resolvedTrackHeight, backgroundColor: resolvedInactiveColor }]
+  const selectedThumb = typeof button === 'function' ? button({ value: currentValue }) : button ?? thumb
   const leftThumbContent = leftButton ?? leftThumb ?? selectedThumb
   const rightThumbContent = rightButton ?? rightThumb ?? selectedThumb
-  const resolveThumbContent = useCallback((index: number, total: number) => total > 1 ? (index === 0 ? leftThumbContent : rightThumbContent) : selectedThumb, [leftThumbContent, rightThumbContent, selectedThumb])
+  const resolveThumbContent = (index: number, total: number) => total > 1 ? (index === 0 ? leftThumbContent : rightThumbContent) : selectedThumb
   const webGestureStyle: ViewStyle | undefined = Platform.OS === 'web' ? ({ touchAction: orientation === 'horizontal' ? 'pan-y' : 'pan-x', userSelect: 'none' } as unknown as ViewStyle) : undefined
   const baseTrackPressableStyle: StyleProp<ViewStyle> = [S.tp, orientation === 'vertical' ? S.tpv : null, webGestureStyle]
-  const trackPressableStyleFn = useCallback((pressableState: PressableStateCallbackType): StyleProp<ViewStyle> => [baseTrackPressableStyle, (trackAriaStyle as (state: PressableStateCallbackType) => unknown)(pressableState) as StyleProp<ViewStyle>], [baseTrackPressableStyle, trackAriaStyle])
-  const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] = trackAriaStyle && isFunction(trackAriaStyle) ? trackPressableStyleFn : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
+  const trackPressableStyle: React.ComponentProps<typeof Pressable>['style'] = trackAriaStyle && isFunction(trackAriaStyle) ? ps => [baseTrackPressableStyle, (trackAriaStyle as (state: PressableStateCallbackType) => unknown)(ps) as StyleProp<ViewStyle>] : ([baseTrackPressableStyle, trackAriaStyle as StyleProp<ViewStyle>] as StyleProp<ViewStyle>)
   const { spacing: { containerPaddingVertical }, layout: { verticalMinHeight, verticalWidth }, states: { disabledOpacity } } = tokens; const containerStyle = [S.c, { paddingVertical: containerPaddingVertical }, orientation === 'vertical' && [S.vc, { minHeight: verticalMinHeight, width: verticalWidth }], disabled && { opacity: disabledOpacity }, style]; return (
     <View style={containerStyle} onLayout={containerOnLayout} {...rest}>
       <View style={[S.tw, orientation === 'vertical' && S.twv]}>

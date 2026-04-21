@@ -30,7 +30,7 @@ const CheckboxImpl = (p: CheckboxProps, ref: React.ForwardedRef<View>) => {
   const di = <View style={[t.layout.icon, ibs]}>{ic && <Text style={[t.layout.checkmark, { color: t.colors.checkmark, fontSize: ris * t.icon.scale }]}>✓</Text>}<View style={createHairlineView({ position: 'all', color: bc, borderRadius: br })} /></View>
   const iv = rir ? (rir({ checked: Boolean(ic), disabled: Boolean(rd) }) ?? null) : di
   const i = !rd && !rld
-  const lw = ln && <View style={[t.layout.labelWrapper, ss_, rld ? { pointerEvents: 'none' as const } : null]} accessible={false}>{ln}</View>
+  const lw = ln && <View pointerEvents={rld ? 'none' : undefined} style={[t.layout.labelWrapper, ss_]} accessible={false}>{ln}</View>
   const iws = [t.layout.iconWrapper, rlp === 'left' ? { marginLeft: t.spacing.gap } : { marginRight: t.spacing.gap }]
   const iw = i ? <View style={iws}>{iv}</View> : <Pressable {...mip} ref={ir} disabled={rd} accessibilityLabel={ral} accessibilityRole="checkbox" accessibilityState={{ checked: ic, disabled: !!rd }} style={iws} hitSlop={hitSlop}>{iv}</Pressable>
   const cnt = rlp === 'left' ? <>{lw}{iw}</> : <>{iw}{lw}</>

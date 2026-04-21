@@ -12,7 +12,7 @@ if (!dataMatch) {
   process.exit(1)
 }
 
-const data = eval(dataMatch[1])
+const data = JSON.parse(dataMatch[1])
 const total = data.reduce((sum, item) => sum + item.size, 0)
 const avg = total / data.length
 

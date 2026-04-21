@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { View, type ViewStyle } from 'react-native'
-import { FlexContext } from './FlexContext'
+import { FlexContext } from './Flex'
 import type { FlexItemProps } from './types'
 import { isNumber } from '../../utils/base'
 
@@ -10,7 +10,7 @@ const parseFlex = (v?: number | string): FlexStyle | undefined => {
 }
 
 const FlexItemImpl: React.FC<FlexItemProps> = ({ span, flex, style: s, children: c }) => {
-  const { columns: cols } = useContext(FlexContext); if (isNumber(span) && span <= 0) return null; const ws: ViewStyle = {}; if (isNumber(span)) { const sc = Math.max(1, cols); const p = Math.min(Math.max(span, 0), sc) / sc; ws.flexBasis = `${p * 100}%`; ws.flexGrow = 0; ws.flexShrink = 1 }; return <View style={[ws, parseFlex(flex), s]}>{c}</View>
+  const cols = useContext(FlexContext); if (isNumber(span) && span <= 0) return null; const ws: ViewStyle = {}; if (isNumber(span)) { const sc = Math.max(1, cols); const p = Math.min(Math.max(span, 0), sc) / sc; ws.width = `${p * 100}%`; ws.flexBasis = ws.width; ws.flexGrow = 0; ws.flexShrink = 1 }; return <View style={[ws, parseFlex(flex), s]}>{c}</View>
 }
 export const FlexItem = React.memo(FlexItemImpl)
 FlexItem.displayName = 'FlexItem'

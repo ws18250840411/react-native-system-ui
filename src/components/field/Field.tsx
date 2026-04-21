@@ -2,17 +2,15 @@ import React, {
   useCallback,
   useId,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react'
 import { Platform, Pressable, Text, TextInput, View } from 'react-native'
-import type { TextInputProps } from 'react-native'
+import type { StyleProp, TextInputProps, ViewStyle } from 'react-native'
 import { Clear, QuestionO } from '../../internal/icons'
 import Cell from '../cell'
 import Dialog from '../dialog'
-import { formatNumberInput } from '../../utils/base'
-import { isDef, isFiniteNumber, isFunction, isObject, isRenderable, isText } from '../../utils/base'
+import { formatNumberInput, isRenderable, isText } from '../../utils/base'
 import type { FieldInstance, FieldProps, FieldTooltipProps } from './types'
 import { useFieldTokens } from './tokens'
 import type { FieldTokens } from './tokens'
@@ -38,20 +36,18 @@ const mapKeyboardType = (type: FieldProps['type']): TextInputProps['keyboardType
 
 type FieldSlotProps = {
   onPress?: () => void
-  style?: React.ComponentProps<typeof View>['style']
+  style?: StyleProp<ViewStyle>
   children?: React.ReactNode
-  accessibilityRole?: React.ComponentProps<typeof Pressable>['accessibilityRole']
 }
 
-const FieldSlot = ({
+const renderFieldSlot = ({
   onPress,
   style,
   children,
-  accessibilityRole = 'button',
 }: FieldSlotProps) => {
   if (!children) return null
   return onPress ? (
-    <Pressable onPress={onPress} accessibilityRole={accessibilityRole} style={style}>
+    <Pressable onPress={onPress} accessibilityRole="button" style={style}>
       {children}
     </Pressable>
   ) : (
@@ -60,7 +56,6 @@ const FieldSlot = ({
 }
 
 type FieldClearButtonProps = {
-  show: boolean
   tokens: FieldTokens
   clearIcon?: React.ReactNode
   onPressIn?: () => void
@@ -69,14 +64,12 @@ type FieldClearButtonProps = {
 }
 
 const FieldClearButton = ({
-  show,
   tokens,
   clearIcon,
   onPressIn,
   onPressOut,
   onPress,
 }: FieldClearButtonProps) => {
-  if (!show) return null
   const webMouseDownProps =
     Platform.OS === 'web'
       ? ({
@@ -194,37 +187,6 @@ const FieldInput = ({
   )
 }
 
-type FieldControlRowProps = {
-  tokens: FieldTokens
-  prefixNode?: React.ReactNode
-  leftIconNode?: React.ReactNode
-  controlNode: React.ReactNode
-  clearNode?: React.ReactNode
-  rightIconNode?: React.ReactNode
-  suffixNode?: React.ReactNode
-}
-
-const FieldControlRow = ({
-  tokens,
-  prefixNode,
-  leftIconNode,
-  controlNode,
-  clearNode,
-  rightIconNode,
-  suffixNode,
-}: FieldControlRowProps) => (
-  <View style={tokens.layout.body}>
-    {prefixNode}
-    {leftIconNode}
-    <View style={[tokens.layout.controlWrapper, { minHeight: tokens.sizes.controlMinHeight }]}>
-      {controlNode}
-      {clearNode}
-    </View>
-    {rightIconNode}
-    {suffixNode}
-  </View>
-)
-
 const resolveTooltipDialog = (
   tooltip: React.ReactNode | FieldTooltipProps,
   defaultIcon: React.ReactNode,
@@ -335,37 +297,23 @@ const FieldImpl = (props: FieldProps, ref: React.ForwardedRef<FieldInstance>) =>
   const inputRef = useRef<TextInput>(null)
   const introId = useId()
   const errorId = useId()
-  const describedBy = useMemo(() => {
-    const ids = [
-      isRenderable(errorMessage) ? errorId : null,
-      isRenderable(descriptionText) ? introId : null,
-    ].filter(Boolean) as string[]
-    return ids.length ? ids : undefined
-  }, [descriptionText, errorId, errorMessage, introId])
+  const describedIds = [isRenderable(errorMessage) ? errorId : null, isRenderable(descriptionText) ? introId : null].filter(Boolean) as string[]
+  const describedBy = describedIds.length ? describedIds : undefined
   const lineHeight = tokens.defaults.textareaLineHeight
-  const autoSizeConfig = autoSize && isObject(autoSize) ? autoSize : undefined
+  const autoSizeConfig = autoSize && typeof autoSize === 'object' ? autoSize : undefined
   const minRows = !isTextarea
     ? 1
-    : autoSizeConfig && isDef(autoSizeConfig.minRows)
+    : autoSizeConfig && autoSizeConfig.minRows != null
       ? Math.max(1, autoSizeConfig.minRows!)
       : Math.max(1, rows)
   const maxRows =
     !isTextarea
       ? undefined
-      : autoSizeConfig && isDef(autoSizeConfig.maxRows)
+      : autoSizeConfig && autoSizeConfig.maxRows != null
         ? Math.max(1, autoSizeConfig.maxRows!)
         : undefined
-  const minHeight = useMemo(
-    () => (isTextarea ? Math.max(tokens.sizes.textareaMinHeight, minRows * lineHeight) : undefined),
-    [isTextarea, lineHeight, minRows, tokens.sizes.textareaMinHeight],
-  )
-  const maxHeight = useMemo(
-    () =>
-      isTextarea && maxRows
-        ? Math.max(tokens.sizes.textareaMinHeight, maxRows * lineHeight)
-        : undefined,
-    [isTextarea, lineHeight, maxRows, tokens.sizes.textareaMinHeight],
-  )
+  const minHeight = isTextarea ? Math.max(tokens.sizes.textareaMinHeight, minRows * lineHeight) : undefined
+  const maxHeight = isTextarea && maxRows ? Math.max(tokens.sizes.textareaMinHeight, maxRows * lineHeight) : undefined
   const [textareaHeight, setTextareaHeight] = useState<number | undefined>(minHeight)
   const onChangeTextRef = useRef(onChangeText)
   onChangeTextRef.current = onChangeText
@@ -415,7 +363,7 @@ const FieldImpl = (props: FieldProps, ref: React.ForwardedRef<FieldInstance>) =>
         const allowDecimal = type === 'number'
         newValue = formatNumberInput(newValue, allowDecimal, allowDecimal)
       }
-      if (isFiniteNumber(maxLength) && maxLength >= 0 && newValue.length > maxLength) {
+      if (typeof maxLength === 'number' && Number.isFinite(maxLength) && maxLength >= 0 && newValue.length > maxLength) {
         onOverlimitRef.current?.(newValue)
         newValue = newValue.slice(0, maxLength)
       }
@@ -585,7 +533,7 @@ const FieldImpl = (props: FieldProps, ref: React.ForwardedRef<FieldInstance>) =>
     showWordLimit && maxLength != null
       ? (() => {
           const currentCount = (value ?? '').length
-          const content = isFunction(showWordLimit)
+          const content = typeof showWordLimit === 'function'
             ? showWordLimit({ currentCount, maxLength })
             : `${currentCount}/${maxLength}`
           if (!isRenderable(content)) return null
@@ -681,24 +629,21 @@ const FieldImpl = (props: FieldProps, ref: React.ForwardedRef<FieldInstance>) =>
     </View>
   ) : null
   const leftIconNode = leftIcon ? (
-    <FieldSlot
-      onPress={onClickLeftIcon}
-      style={[tokens.layout.leftIcon, { marginRight: tokens.spacing.leftIconGap, minWidth: tokens.sizes.icon }]}
-    >
-      {leftIcon}
-    </FieldSlot>
+    renderFieldSlot({
+      onPress: onClickLeftIcon,
+      style: [tokens.layout.leftIcon, { marginRight: tokens.spacing.leftIconGap, minWidth: tokens.sizes.icon }],
+      children: leftIcon,
+    })
   ) : null
   const rightIconNode = rightIcon ? (
-    <FieldSlot
-      onPress={onClickRightIcon}
-      style={[tokens.layout.rightIcon, { paddingHorizontal: tokens.spacing.rightIconGap }]}
-    >
-      {rightIcon}
-    </FieldSlot>
+    renderFieldSlot({
+      onPress: onClickRightIcon,
+      style: [tokens.layout.rightIcon, { paddingHorizontal: tokens.spacing.rightIconGap }],
+      children: rightIcon,
+    })
   ) : null
   const clearNode = showClear ? (
     <FieldClearButton
-      show={showClear}
       tokens={tokens}
       clearIcon={clearIcon}
       onPressIn={handleClearPressIn}
@@ -734,15 +679,16 @@ const FieldImpl = (props: FieldProps, ref: React.ForwardedRef<FieldInstance>) =>
       onPress={onClick}
       android_ripple={androidRipple}
     >
-      <FieldControlRow
-        tokens={tokens}
-        prefixNode={prefixNode}
-        leftIconNode={leftIconNode}
-        controlNode={controlNode}
-        clearNode={clearNode}
-        rightIconNode={rightIconNode}
-        suffixNode={suffixNode}
-      />
+      <View style={tokens.layout.body}>
+        {prefixNode}
+        {leftIconNode}
+        <View style={[tokens.layout.controlWrapper, { minHeight: tokens.sizes.controlMinHeight }]}>
+          {controlNode}
+          {clearNode}
+        </View>
+        {rightIconNode}
+        {suffixNode}
+      </View>
       {wordLimitNode}
       {isOuter ? null : messageNode}
       {introNode}

@@ -41,12 +41,11 @@ const normalizeMultiple = (cols: PickerOption[][], defs: (PickerValue | undefine
 
   cols.forEach((colOptions, idx) => {
     const current = raw[idx]
-    const defaultIndex = defs[idx] !== undefined ? colOptions.findIndex(item => item.value === defs[idx]) : -1
     const currentIndex = colOptions.findIndex(item => item.value === current)
-    const startIndex = currentIndex >= 0 ? currentIndex : defaultIndex >= 0 ? defaultIndex : 0
-    const targetIndex = findEnabledIndex(colOptions, startIndex)
-    const target = targetIndex >= 0 ? colOptions[targetIndex] : undefined
     const valid = currentIndex >= 0 && !colOptions[currentIndex]?.disabled
+    const startIndex = valid ? currentIndex : defs[idx] !== undefined ? colOptions.findIndex(item => item.value === defs[idx]) : -1
+    const targetIndex = findEnabledIndex(colOptions, startIndex >= 0 ? startIndex : 0)
+    const target = targetIndex >= 0 ? colOptions[targetIndex] : undefined
 
     vals[idx] = (valid ? current : (target?.value ?? defs[idx] ?? colOptions[0]?.value)) as PickerValue
     opts[idx] = target
@@ -70,7 +69,7 @@ const normalizeCascade = (root: PickerOption[], raw: PickerValue[]): NormalizedP
     const currentValue = raw[depth]
     const startIndex = current.findIndex(item => item.value === currentValue || String(item.value) === String(currentValue))
     const targetIndex = findEnabledIndex(current, startIndex >= 0 ? startIndex : 0)
-    const target = targetIndex >= 0 ? current[targetIndex] : current[0]
+    const target: PickerOption | undefined = targetIndex >= 0 ? current[targetIndex] : current[0]
     vals[depth] = target?.value as PickerValue
     opts[depth] = target
     if (target && hasChildren(target)) {
@@ -89,17 +88,14 @@ export const prepareColumns = (input: PickerColumns = []): PreparedPickerColumns
   const everyPlain = input.every(item => !Array.isArray(item) && !isColumnWithOptions(item as unknown as PickerColumn | PickerOption))
   const cascade = everyPlain && input.some(item => hasChildren(item as PickerOption))
   if (cascade) return { type: 'cascade', columnsList: [], defaults: [], cascadeRoot: input as PickerOption[] }
-
-  const asArray = input as unknown[]
   const cols: PickerOption[][] = []
   const defs: (PickerValue | undefined)[] = []
-  const treatAsSingle = everyPlain && !cascade
 
-  if (treatAsSingle) {
+  if (everyPlain) {
     cols.push(input as PickerOption[])
     defs.push(undefined)
   } else {
-    asArray.forEach(col => {
+    ;(input as unknown[]).forEach(col => {
       if (Array.isArray(col)) {
         cols.push(col as PickerOption[])
         defs.push(undefined)

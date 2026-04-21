@@ -2,7 +2,7 @@ import { useCheckboxGroup as useCheckboxGroupWeb } from '@react-aria/checkbox'
 import type { AriaCheckboxGroupProps } from '@react-types/checkbox'
 import type { CheckboxGroupState } from '@react-stately/checkbox'
 
-export { useCheckbox, useCheckboxGroupItem } from './internal'
+export { useCheckbox, useCheckboxGroupItem } from './shared'
 
 const mapDomPropsToRN = (props: Record<string, unknown>) => {
   const next: Record<string, unknown> = { ...props }

@@ -1,13 +1,12 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import type { DeepPartial } from '../types'
 import { ThemeContext, type ThemeComponents, type ThemeContextValue } from './ThemeContext'
 import { createTokens, defaultTokens, type ThemeTokens } from './tokens'
-import { isObject } from '../utils/base'
 export interface ThemeConfig { foundations?: DeepPartial<ThemeTokens>; components?: ThemeComponents }
 export type ThemeProviderValue = ThemeTokens | ThemeConfig
 export interface ThemeProviderProps { value?: ThemeProviderValue; children: React.ReactNode }
 const isTokens = (v?: ThemeProviderValue): v is ThemeTokens =>
-  Boolean(isObject(v) && 'palette' in v && 'spacing' in v)
+  !!v && typeof v === 'object' && 'palette' in v && 'spacing' in v
 const DEFAULT_THEME_CONTEXT: ThemeContextValue = { foundations: defaultTokens, components: undefined }
 const TOKENS_CONTEXT_CACHE = new WeakMap<ThemeTokens, ThemeContextValue>()
 const CONFIG_CONTEXT_CACHE = new WeakMap<ThemeConfig, ThemeContextValue>()
@@ -35,4 +34,4 @@ const resolveThemeContext = (value?: ThemeProviderValue): ThemeContextValue => {
   CONFIG_CONTEXT_CACHE.set(value, resolved)
   return resolved
 }
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ value, children }) => { const resolved = useMemo(() => resolveThemeContext(value), [value]); return <ThemeContext.Provider value={resolved}>{children}</ThemeContext.Provider> }
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ value, children }) => <ThemeContext.Provider value={resolveThemeContext(value)}>{children}</ThemeContext.Provider>

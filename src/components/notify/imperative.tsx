@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import { createImperativePortalRegistry, type ImperativePortalRenderProps } from '../../internal/imperativePortal'
 import { isFunction, isString, isText } from '../../utils/base'
 import { NotifyContent } from './Notify'
@@ -17,7 +17,7 @@ const parseOptions = (input?: NotifyInput): NotifyShowOptions => (React.isValidE
 
 const mergeOptions = (input: NotifyShowOptions, fallbackT: NotifyType): NotifyShowOptions => { const t = input.type ?? fallbackT; const m: NotifyShowOptions = { ...currentOptions, ...typeDefaults.get(t), ...input, type: t }; m.duration = m.duration ?? 3000; return m }
 
-const NotifyPortal: React.FC<ImperativePortalRenderProps<NotifyShowOptions>> = ({ options, visible, close, remove }) => { const handleClose = useCallback(() => { options.onClose?.(); close() }, [close, options]); const handleClosed = useCallback(() => { options.onClosed?.(); remove() }, [options, remove]); return <NotifyContent {...options} visible={visible} onClose={handleClose} onClosed={handleClosed} /> }
+const NotifyPortal: React.FC<ImperativePortalRenderProps<NotifyShowOptions>> = ({ options, visible, close, remove }) => <NotifyContent {...options} visible={visible} onClose={() => { options.onClose?.(); close() }} onClosed={() => { options.onClosed?.(); remove() }} />
 const notifyRegistry = createImperativePortalRegistry<NotifyShowOptions>(props => <NotifyPortal {...props} />)
 
 const showNotify = (input?: NotifyInput, fallbackT: NotifyType = 'primary'): NotifyReturnType => {

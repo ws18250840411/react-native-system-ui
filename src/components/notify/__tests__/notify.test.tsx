@@ -66,6 +66,24 @@ describe('Notify', () => {
     expect(getMessages()).not.toContain('static')
   })
 
+  it('removes static api node after close', () => {
+    const host = render(
+      <PortalHost>
+        <></>
+      </PortalHost>
+    )
+    let handle: ReturnType<typeof Notify.show> | null = null
+    act(() => {
+      handle = Notify.show({ message: 'sticky', duration: 0 })
+    })
+    expect(host.root.findAllByProps({ testID: 'rv-notify' })).toHaveLength(1)
+    act(() => {
+      handle?.clear()
+      jest.runAllTimers()
+    })
+    expect(host.root.findAllByProps({ testID: 'rv-notify' })).toHaveLength(0)
+  })
+
   it('allows multiple notify instances when enabled', () => {
     const host = render(
       <PortalHost>

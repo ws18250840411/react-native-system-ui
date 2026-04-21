@@ -25,14 +25,14 @@ const CollapseImpl = ((props: CollapseProps) => {
   const { tokensOverride, children, accordion: accP, value, defaultValue, onChange, border: borderP, iconPosition: iconPosP, expandIcon, disabled, style, ...rest } = props; const tokens = useCollapseTokens(tokensOverride); const accordion = accP ?? tokens.defaults.accordion; const border = borderP ?? tokens.defaults.border; const iconPosition = iconPosP ?? tokens.defaults.iconPosition; const { colors } = tokens; const controlled = value !== undefined; const normVal = normalizeValue(value); const normDef = normalizeValue(defaultValue) ?? []; const onChangeRef = useRef(onChange); onChangeRef.current = onChange; const [internalValue, setInternalValue] = useState<string[]>(() => accordion ? normDef.slice(0, 1) : normDef); const activeKeys = controlled ? (accordion ? (normVal ?? []).slice(0, 1) : normVal ?? []) : internalValue; const toggle = useCallback((name: string, expand?: boolean) => { if (disabled) return; const existing = activeKeys.includes(name); const shouldExpand = expand ?? !existing; const nextKeys = accordion ? (shouldExpand ? [name] : existing ? [] : activeKeys) : (shouldExpand ? (existing ? activeKeys : [...activeKeys, name]) : (existing ? activeKeys.filter(k => k !== name) : activeKeys)); if (!controlled) setInternalValue(nextKeys); onChangeRef.current?.(buildOutputValue(nextKeys, accordion)) }, [accordion, activeKeys, controlled, disabled]); const ctxVal: CollapseContextValue = useMemo(() => ({ activeKeys, toggle, accordion, iconPosition, expandIcon, border, disabled, tokens }), [accordion, activeKeys, border, disabled, expandIcon, iconPosition, tokens, toggle]); const renderedChildren = useMemo(() => { const items = React.Children.toArray(children); return items.map((child, i) => { if (!React.isValidElement(child)) return child; if (!isFunction(child.type) && !isObject(child.type)) return child; const name = (child.props as CollapsePanelProps).name ?? String(i); return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { name, index: i }) }) }, [children]); return (
     <CollapseContext.Provider value={ctxVal}>
       <View style={[tokens.layout.container, border && { backgroundColor: colors.background }, style]} {...rest}>
-        {border && <Hairline tokens={tokens} position="top" color={colors.border} />}
-        {border && <Hairline tokens={tokens} position="bottom" color={colors.border} />}
+        {border && renderHairline(tokens, 'top', colors.border)}
+        {border && renderHairline(tokens, 'bottom', colors.border)}
         {renderedChildren}
       </View>
     </CollapseContext.Provider>
   )
 }) as CollapseComponent
-const Hairline = React.memo<{ tokens: CollapseTokens; position: 'top' | 'bottom'; color: string; inset?: number }>(({ tokens, position, color, inset = 0 }) => { const hairlineStyle = createHairlineView({ position, color, left: inset, right: inset }); return <View style={[tokens.layout.hairline, hairlineStyle, { pointerEvents: 'none' }]} /> })
+const renderHairline = (tokens: CollapseTokens, position: 'top' | 'bottom', color: string, inset = 0) => <View style={[tokens.layout.hairline, createHairlineView({ position, color, left: inset, right: inset }), { pointerEvents: 'none' }]} />
 const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps>((props, ref) => {
   const context = useContext(CollapseContext)
   const reducedMotion = useReducedMotion()
@@ -53,13 +53,13 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const handleToggle = useCallback(() => { if (mergedDisabled || readOnly) return; toggle(nameKey) }, [mergedDisabled, nameKey, readOnly, toggle])
   useImperativeHandle(ref, () => ({ toggle: (expand?: boolean) => { if (mergedDisabled || readOnly) return; toggle(nameKey, expand) } }), [mergedDisabled, nameKey, readOnly, toggle])
   const handleContentLayout = useCallback((event: LayoutChangeEvent) => { const height = event.nativeEvent.layout.height; if (isNumber(height) && Number.isFinite(height)) setContentHeight(prev => prev === height ? prev : height) }, [])
-  const animatedStyle = useMemo(() => ({ height: animation.interpolate({ inputRange: [0, 1], outputRange: [0, contentHeight] }) }), [animation, contentHeight])
+  const animatedStyle = { height: animation.interpolate({ inputRange: [0, 1], outputRange: [0, contentHeight] }) }
   const renderExpandIcon = useCallback(() => isFunction(expandIcon) ? expandIcon(isActive) : expandIcon ? expandIcon : (
     <Animated.View style={{ transform: [{ rotate: rotation }] }}>
       <Arrow size={16} fill={mergedDisabled ? colors.disabled : colors.arrow} />
     </Animated.View>
   ), [colors.arrow, colors.disabled, expandIcon, isActive, mergedDisabled, rotation])
-  const contentNode = useMemo(() => renderTextOrNode(children, { color: mergedDisabled ? colors.disabled : colors.description, fontFamily: typography.fontFamily, fontSize: typography.descriptionSize, lineHeight: Math.round(typography.descriptionSize * 1.5) }), [children, colors.description, colors.disabled, mergedDisabled, typography.descriptionSize, typography.fontFamily])
+  const contentNode = renderTextOrNode(children, { color: mergedDisabled ? colors.disabled : colors.description, fontFamily: typography.fontFamily, fontSize: typography.descriptionSize, lineHeight: Math.round(typography.descriptionSize * 1.5) })
   const showInnerBorder = Boolean(panelBorder)
   const showTopBorder = index > 0 && showInnerBorder
   const showHeaderBottomBorder = isActive && showInnerBorder
@@ -73,10 +73,10 @@ const CollapsePanel = React.forwardRef<CollapsePanelInstance, CollapsePanelProps
   const headerRightIcon = iconPosition === 'right' && showExpandIcon ? renderExpandIcon() : undefined
   return (
     <View style={[tokens.layout.panel, { backgroundColor: colors.background }, style]} {...rest}>
-      {showTopBorder && <Hairline tokens={tokens} position="top" color={colors.border} inset={spacing.paddingHorizontal} />}
+      {showTopBorder && renderHairline(tokens, 'top', colors.border, spacing.paddingHorizontal)}
       <View style={tokens.layout.headerWrapper}>
         <Cell title={title} label={renderedLabel} icon={headerIcon} value={renderedValue} size={sizeProp} border={false} disabled={mergedDisabled} onPress={readOnly ? undefined : handleToggle} accessibilityState={{ expanded: isActive, disabled: mergedDisabled }} titleStyle={mergedDisabled ? [titleStyle, { color: colors.disabled }] : titleStyle} labelStyle={mergedDisabled ? [descriptionStyle, { color: colors.disabled }] : descriptionStyle} valueStyle={mergedDisabled ? { color: colors.disabled } : undefined} rightIcon={headerRightIcon} />
-        {showHeaderBottomBorder && <Hairline tokens={tokens} position="bottom" color={colors.border} inset={spacing.paddingHorizontal} />}
+        {showHeaderBottomBorder && renderHairline(tokens, 'bottom', colors.border, spacing.paddingHorizontal)}
       </View>
       <Animated.View style={[tokens.layout.bodyWrapper, animatedStyle]}>
         <View onLayout={handleContentLayout} style={[tokens.layout.bodyContent, { paddingVertical: spacing.paddingVertical, paddingHorizontal: spacing.paddingHorizontal, backgroundColor: colors.background }]}>

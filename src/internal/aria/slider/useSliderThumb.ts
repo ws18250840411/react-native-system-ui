@@ -88,12 +88,12 @@ export function useSliderThumb(
   state.setThumbEditable(index, !isDisabled);
 
   const onAccessibilityAction = (event: any) => {
-    const max = state.getThumbMinValue(index);
-    const min = state.getThumbMaxValue(index);
+    const min = state.getThumbMinValue(index);
+    const max = state.getThumbMaxValue(index);
     const value = state.getThumbValue(index);
-
-    const incrementValue = Math.min(value + state.step ?? 1, max);
-    const decrementValue = Math.max(value - state.step ?? 1, min);
+    const step = state.step ?? 1;
+    const incrementValue = Math.min(value + step, max);
+    const decrementValue = Math.max(value - step, min);
 
     switch (event.nativeEvent.actionName) {
       case 'increment':

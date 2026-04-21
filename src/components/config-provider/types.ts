@@ -5,6 +5,8 @@ import type { Locale } from './locale/types'
 
 export type Direction = 'ltr' | 'rtl'
 
+export interface ConfigProviderTokens {}
+
 export interface ConfigProviderProps {
   theme?: ThemeProviderValue
   locale?: Locale

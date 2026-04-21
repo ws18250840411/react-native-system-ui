@@ -1,5 +1,5 @@
 import Swiper from './Swiper'
-import SwiperItem from './SwiperItem'
+import { SwiperItem } from './Swiper'
 import SwiperPagIndicator from './SwiperPagIndicator'
 
 const SwiperWithItem = Object.assign(Swiper, {
