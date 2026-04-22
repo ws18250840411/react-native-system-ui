@@ -4,6 +4,7 @@ import { StyleSheet, Text } from 'react-native'
 
 import Cascader from '..'
 import type { CascaderOption } from '../types'
+import { Portal, PortalHost } from '../../portal'
 
 type CustomOption = CascaderOption & {
   label: string
@@ -19,6 +20,7 @@ describe('Cascader', () => {
   afterEach(() => {
     act(() => {
       jest.runOnlyPendingTimers()
+      Portal.clear()
     })
     jest.useRealTimers()
   })
@@ -246,6 +248,114 @@ describe('Cascader', () => {
     const pane0 = tree.root.findByProps({ testID: 'rv-tabs-pane-0' })
     expect(StyleSheet.flatten(pane0.props.style)?.display).toBeUndefined()
     expect(tree.root.findAllByProps({ testID: 'rv-tabs-pane-1' })).toHaveLength(0)
+  })
+
+  it('restores last viewed column when popup becomes visible again', async () => {
+    const options: CascaderOption[] = [
+      {
+        text: '江苏省',
+        value: 'js',
+        children: [
+          {
+            text: '南京市',
+            value: 'nj',
+            children: [{ text: '玄武区', value: 'xw' }],
+          },
+        ],
+      },
+    ]
+
+    const root = renderer.create(
+      <PortalHost>
+        <Cascader options={options} value={['js', 'nj', 'xw']} poppable visible showHeader={false} swipeable={false} />
+      </PortalHost>,
+    )
+
+    await act(async () => {
+      root.update(
+        <PortalHost>
+          <Cascader options={options} value={['js', 'nj', 'xw']} poppable visible={false} showHeader={false} swipeable={false} />
+        </PortalHost>,
+      )
+      jest.runOnlyPendingTimers()
+      await Promise.resolve()
+    })
+
+    await act(async () => {
+      root.update(
+        <PortalHost>
+          <Cascader options={options} value={['js', 'nj', 'xw']} poppable visible showHeader={false} swipeable={false} />
+        </PortalHost>,
+      )
+      jest.runOnlyPendingTimers()
+      await Promise.resolve()
+    })
+
+    const tab1 = root.root.findByProps({ testID: 'rv-tabs-item-1' })
+    await act(async () => {
+      tab1.props.onPress?.()
+      jest.runOnlyPendingTimers()
+      await Promise.resolve()
+    })
+
+    await act(async () => {
+      root.update(
+        <PortalHost>
+          <Cascader options={options} value={['js', 'nj', 'xw']} poppable visible={false} showHeader={false} swipeable={false} />
+        </PortalHost>,
+      )
+      jest.runOnlyPendingTimers()
+      await Promise.resolve()
+    })
+
+    await act(async () => {
+      root.update(
+        <PortalHost>
+          <Cascader options={options} value={['js', 'nj', 'xw']} poppable visible showHeader={false} swipeable={false} />
+        </PortalHost>,
+      )
+      jest.runOnlyPendingTimers()
+      await Promise.resolve()
+    })
+
+    const pane1 = root.root.findByProps({ testID: 'rv-tabs-pane-1' })
+    expect(StyleSheet.flatten(pane1.props.style)?.display).toBeUndefined()
+    const cityOption = root.root.findByProps({ testID: 'cascader-option-1-nj' })
+    expect(cityOption).toBeTruthy()
+  })
+
+  it('does not snap back to last tab when user switches to a parent column', async () => {
+    const options: CascaderOption[] = [
+      {
+        text: '江苏省',
+        value: 'js',
+        children: [
+          {
+            text: '南京市',
+            value: 'nj',
+            children: [{ text: '玄武区', value: 'xw' }],
+          },
+        ],
+      },
+    ]
+
+    const tree = renderer.create(
+      <Cascader options={options} value={['js', 'nj', 'xw']} showHeader={false} swipeable={false} />
+    )
+
+    const pane2 = tree.root.findByProps({ testID: 'rv-tabs-pane-2' })
+    expect(StyleSheet.flatten(pane2.props.style)?.display).toBeUndefined()
+
+    const tab1 = tree.root.findByProps({ testID: 'rv-tabs-item-1' })
+    await act(async () => {
+      tab1.props.onPress?.()
+      jest.runOnlyPendingTimers()
+      await Promise.resolve()
+    })
+
+    const pane1 = tree.root.findByProps({ testID: 'rv-tabs-pane-1' })
+    expect(StyleSheet.flatten(pane1.props.style)?.display).toBeUndefined()
+    expect(StyleSheet.flatten(pane2.props.style)?.display).toBe('none')
   })
 
   it('uses last available tab when value depth exceeds resolved tabs', () => {

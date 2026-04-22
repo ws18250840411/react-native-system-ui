@@ -1,6 +1,6 @@
 # 组件极致审计基线
 
-最后更新：2026-04-21
+最后更新：2026-04-22
 
 ## 目标
 
@@ -24,6 +24,9 @@
 
 ## 本轮已完成
 
+- `calendar`：修正 [`src/components/calendar/Calendar.tsx`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/components/calendar/Calendar.tsx) 内联 `clampMonth` 超出 `maxDate` 所在月时误返回完整 `max` 的问题，改为返回 `maxMonth`（与 `minMonth` 对称）
+- `tabs`：[`src/components/tabs/Tabs.tsx`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/components/tabs/Tabs.tsx) 可滑动内容在容器宽度从 0 变为有效值时横向 `scrollTo` 不带动画，减少弹层内多余滑动
+- `cascader`：[`src/components/cascader/Cascader.tsx`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/components/cascader/Cascader.tsx) 仅在路径/列结构变化时同步 `active`；`poppable` 重开恢复上次列；选项 `FlatList` 关闭 `removeClippedSubviews`
 - `Field`：将 [`src/hooks/field/renderers.tsx`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/hooks/field/renderers.tsx) 内聚回 [`src/components/field/Field.tsx`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/components/field/Field.tsx)
 - `Slider`：将 [`src/hooks/slider/utils.tsx`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/hooks/slider/utils.tsx) 内聚回 [`src/components/slider/Slider.tsx`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/components/slider/Slider.tsx)
 - `Form`：将 [`src/hooks/form/utils.ts`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/hooks/form/utils.ts) 内聚回 [`src/components/form/Form.tsx`](/Users/wangwenshan/Desktop/wws/other/react-native-system-ui/src/components/form/Form.tsx)

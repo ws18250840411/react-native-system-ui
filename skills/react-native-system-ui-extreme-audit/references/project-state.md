@@ -1,6 +1,6 @@
 # React Native System UI Extreme Audit State
 
-最后更新：2026-04-21
+最后更新：2026-04-22
 
 ## 当前定位
 
@@ -12,6 +12,9 @@
 
 ## 当前已确认进展
 
+- `calendar`：`Calendar.tsx` 内联 `clampMonth` 超出 max 月时改为返回 `maxMonth`
+- `tabs`：可滑动内容区宽度从 0 恢复时 `scrollTo` 不带动画
+- `cascader`：路径未变不强制改列；弹层重开恢复上次列；`FlatList` 关闭 `removeClippedSubviews`
 - `Field`：将 `src/hooks/field/renderers.tsx` 内聚回 `src/components/field/Field.tsx`
 - `Slider`：将 `src/hooks/slider/utils.tsx` 内聚回 `src/components/slider/Slider.tsx`
 - `Form`：将 `src/hooks/form/utils.ts` 内聚回 `src/components/form/Form.tsx`

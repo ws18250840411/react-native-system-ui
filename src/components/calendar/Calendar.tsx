@@ -23,7 +23,7 @@ const reorderWeekdays = (labels: React.ReactNode[], start: number, fallback: Rea
 const buildMonth = (month: Date, weekStartsOn: number): (Date | null)[] => { const normalizedStart = ((weekStartsOn % 7) + 7) % 7; const firstDay = startOfMonth(month); const startOffset = (firstDay.getDay() - normalizedStart + 7) % 7; const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate(); const calendar: (Date | null)[] = []; for (let i = 0; i < startOffset; i += 1) calendar.push(null); for (let day = 1; day <= daysInMonth; day += 1) calendar.push(new Date(month.getFullYear(), month.getMonth(), day)); while (calendar.length < 42) calendar.push(null); return calendar }
 const getCalendarDayTestId = (date: Date) => `calendar-day-${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')}`
 const startOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1)
-const clampMonth = (date: Date, min: Date, max: Date) => { const month = startOfMonth(date); const minMonth = startOfMonth(min); const maxMonth = startOfMonth(max); if (month.getTime() < minMonth.getTime()) return minMonth; if (month.getTime() > maxMonth.getTime()) return max; return month }
+const clampMonth = (date: Date, min: Date, max: Date) => { const month = startOfMonth(date); const minMonth = startOfMonth(min); const maxMonth = startOfMonth(max); if (month.getTime() < minMonth.getTime()) return minMonth; if (month.getTime() > maxMonth.getTime()) return maxMonth; return month }
 const isSameMonth = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
 
 const CalendarImpl: React.FC<CalendarProps> = props => {
