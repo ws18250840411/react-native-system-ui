@@ -58,4 +58,4 @@
 2. **文档**：新增组件同步维护 `docs/components/<component>`，描述与 API 表统一规范。
 3. **测试**：逻辑层 `react-test-renderer`；手势类补 e2e 或录屏；Overlay/动画用快照与定时器测试。
 4. **国际化**：所有用户可见文案通过 locale 系统引用，token 默认值使用英文。
-5. **版本**：v1.0.9 已发布。后续遵循 SemVer 语义化版本。
+5. **版本**：v1.1.2 已发布。后续遵循 SemVer 语义化版本。
