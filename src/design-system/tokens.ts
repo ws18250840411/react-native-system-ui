@@ -1,7 +1,6 @@
 import type { TextStyle } from 'react-native'
 import type { DeepPartial } from '../types'
 import { deepMerge } from '../utils/deepMerge'
-
 export type FontWeight = Exclude<TextStyle['fontWeight'], undefined>
 export type PaletteRamp = { 50: string; 100: string; 200: string; 300: string; 400: string; 500: string; 600: string; 700: string; 800: string; 900: string; foreground?: string }
 export interface Foundations {
@@ -11,8 +10,8 @@ export interface Foundations {
   fontSize: { xxs: number; xs: number; sm: number; md: number; lg: number; xl: number }
   typography: { fontFamily: string; weight: { regular: FontWeight; medium: FontWeight; semiBold: FontWeight; bold: FontWeight }; lineHeightMultiplier: number }
   opacity: { disabled: number; loading: number; pressed: number }
+  surface?: string
 }
-
 export const defaultFoundations: Foundations = {
   palette: {
     default: { 50: '#f7f8fa', 100: '#f1f2f5', 200: '#ebedf0', 300: '#c8ccd6', 400: '#a8aebb', 500: '#888f9f', 600: '#6d7483', 700: '#505560', 800: '#353840', 900: '#191a1f', foreground: '#222222' },
@@ -27,8 +26,8 @@ export const defaultFoundations: Foundations = {
   fontSize: { xxs: 10, xs: 12, sm: 14, md: 16, lg: 18, xl: 20 },
   typography: { fontFamily: 'System', weight: { regular: '400', medium: '500', semiBold: '600', bold: '700' }, lineHeightMultiplier: 1.2 },
   opacity: { disabled: 0.45, loading: 0.65, pressed: 0.85 },
+  surface: '#ffffff',
 }
-
 export type ThemeTokens = Foundations
 export const createTokens = (overrides?: DeepPartial<Foundations>): ThemeTokens => overrides ? deepMerge(defaultFoundations, overrides) : defaultFoundations
 export const defaultTokens = defaultFoundations

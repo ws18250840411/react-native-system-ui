@@ -20,12 +20,22 @@ const getDepth = (options: CascaderOption[], childrenKey: string): number => {
 
 export const useCascaderExtend = (options: CascaderOption[] = [], keys: FieldKeys, value: CascaderValue[]) => {
   const depth = getDepth(options, keys.childrenKey)
-  const tabs = !value?.length ? [options] : value.reduce<CascaderOption[][]>((acc, val, i) => {
-    if (val == null) return acc
-    const cur = acc[i]; if (!cur) return acc
-    const ch = cur.find(o => o[keys.valueKey] === value[i])?.[keys.childrenKey] as CascaderOption[] | undefined
-    if (ch) acc.push(ch); return acc
-  }, [options])
-  const items = !value?.length ? [] : value.map((val, i) => tabs[i]?.find(o => o[keys.valueKey] === val))
+  const tabs: CascaderOption[][] = [options]
+  const items: (CascaderOption | undefined)[] = []
+  if (value?.length) {
+    let currentOptions: CascaderOption[] | undefined = options
+    for (let i = 0; i < value.length; i += 1) {
+      const currentValue = value[i]
+      if (currentValue == null || !currentOptions?.length) break
+      const matched: CascaderOption | undefined = currentOptions.find(option => option[keys.valueKey] === currentValue)
+      if (!matched) break
+      items.push(matched)
+      const hasChildrenField = Object.prototype.hasOwnProperty.call(matched, keys.childrenKey)
+      if (!hasChildrenField) break
+      const children: CascaderOption[] = (matched[keys.childrenKey] as CascaderOption[] | undefined) ?? []
+      tabs.push(children)
+      currentOptions = children
+    }
+  }
   return { tabs, items, depth }
 }

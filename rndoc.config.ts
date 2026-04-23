@@ -9,6 +9,22 @@ const resolveFromRndoc = (name: string) => require.resolve(name, { paths: [rndoc
 const codegenNativeComponentMock = path.join(workspaceRoot, 'scripts/shims/codegenNativeComponent.tsx')
 const reactNativeSvgShim = path.join(workspaceRoot, 'scripts/shims/react-native-svg')
 const reactNativeSafeAreaContextShim = path.join(workspaceRoot, 'scripts/shims/react-native-safe-area-context.ts')
+// 本仓库用到的图标子路径，供 Vite alias 解析（rndoc dev/build 对 package exports 子路径解析不稳定时兜底）
+const ICON_SUBPATHS = ['Arrow', 'ArrowLeft', 'Checked', 'Clear', 'Close', 'Cross', 'Description', 'Fail', 'QuestionO', 'Search'] as const
+const reactNativeSystemIconRoot = path.join(workspaceRoot, 'node_modules/react-native-system-icon')
+const domHelpersRoot = path.dirname(
+  require.resolve('dom-helpers/package.json', { paths: [workspaceRoot] })
+)
+const DOM_HELPERS_ESM = [
+  'css',
+  'offset',
+  'position',
+  'scrollLeft',
+  'scrollTop',
+  'ownerDocument',
+  'getComputedStyle',
+] as const
+
 const reactNativeResolveExtensions = [
   '.web.mjs',
   '.web.js',
@@ -36,7 +52,7 @@ const manualChunks = (id: string) => {
     if (id.includes('react-native-web')) {
       return 'react-native-web'
     }
-    if (id.includes('@react-native-aria') || id.includes('@react-stately')) {
+    if (id.includes('/hooks/aria/rn-aria/') || id.includes('@react-stately') || id.includes('@react-aria')) {
       return 'aria-kits'
     }
     return 'vendor'
@@ -82,6 +98,11 @@ export default defineConfig({
 
       // 确保优先命中更具体的 alias，避免被 `react-native -> react-native-web` 前缀替换
       const nextAlias = [
+        // react-native-system-icon 子路径按需导入，Vite 对 package exports 子路径解析不稳定时兜底
+        ...ICON_SUBPATHS.map(name => ({
+          find: `react-native-system-icon/${name}`,
+          replacement: path.join(reactNativeSystemIconRoot, 'es', `${name}.js`),
+        })),
         // 文档站点开发时直接指向源码，避免依赖 dist 的导出是否最新
         { find: /^react-native-system-ui$/, replacement: path.join(workspaceRoot, 'src/index.ts') },
         { find: 'react-native/Libraries/Utilities/codegenNativeComponent', replacement: codegenNativeComponentMock },
@@ -251,6 +272,18 @@ export default defineConfig({
     ],
   },
   vite: {
+    resolve: {
+      alias: [
+        ...ICON_SUBPATHS.map(name => ({
+          find: `react-native-system-icon/${name}`,
+          replacement: path.join(reactNativeSystemIconRoot, 'es', `${name}.js`),
+        })),
+        ...DOM_HELPERS_ESM.map(name => ({
+          find: `dom-helpers/${name}`,
+          replacement: path.join(domHelpersRoot, 'esm', `${name}.js`),
+        })),
+      ],
+    },
     plugins: [
       {
         name: 'rnui-docs-manual-chunks',

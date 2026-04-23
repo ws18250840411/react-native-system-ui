@@ -1,5 +1,3 @@
-import { isFunction } from '../utils/validate'
-
 export interface WindowRect { x: number; y: number; width: number; height: number }
 
 type MeasureNode = { measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void }
@@ -10,7 +8,7 @@ const toRect = (x?: number, y?: number, w?: number, h?: number): WindowRect | nu
 
 export const measureInWindow = (node: unknown, cb: (rect: WindowRect | null) => void) => {
   if (!node) { cb(null); return }; try {
-    const mn = node as MeasureNode; if (isFunction(mn.measureInWindow)) { mn.measureInWindow((x, y, w, h) => cb(toRect(x, y, w, h))); return }; const dn = node as DomNode
-    if (isFunction(dn.getBoundingClientRect)) { const r = dn.getBoundingClientRect(); cb(toRect(r?.left, r?.top, r?.width, r?.height)); return }; cb(null)
+    const mn = node as MeasureNode; if (typeof mn.measureInWindow === 'function') { mn.measureInWindow((x, y, w, h) => cb(toRect(x, y, w, h))); return }; const dn = node as DomNode
+    if (typeof dn.getBoundingClientRect === 'function') { const r = dn.getBoundingClientRect(); cb(toRect(r?.left, r?.top, r?.width, r?.height)); return }; cb(null)
   } catch { cb(null) }
 }

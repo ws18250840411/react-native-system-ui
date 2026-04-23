@@ -82,7 +82,7 @@ import { Popup } from 'react-native-system-ui'
 | `safeAreaInsetTop` | 内容顶部是否预留安全区 | `boolean` | `false` |
 | `safeAreaInsetBottom` | 内容底部是否预留安全区 | `boolean` | `false` |
 | `lockScroll` | 是否锁定背景滚动/点击 | `boolean` | `true` |
-| `destroyOnClose` | 关闭后是否卸载内容 | `boolean` | `true` |
+| `destroyOnClose` | 关闭后是否卸载内容 | `boolean` | `false` |
 | `duration` | 动画时长 (ms) | `number` | `300` |
 | `zIndex` | 自定义层级 | `number` | - |
 | `beforeClose` | 关闭前回调，返回 `false`/`Promise<false>` 阻止关闭 | `(reason: 'close-icon' \| 'overlay' \| 'close') => boolean \| Promise<boolean>` | - |

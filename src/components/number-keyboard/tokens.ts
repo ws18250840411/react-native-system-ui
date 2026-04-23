@@ -1,6 +1,5 @@
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import { type Foundations } from '../../design-system/tokens'
-
 export interface NumberKeyboardTokens {
   colors: {
     background: string
@@ -42,53 +41,19 @@ export interface NumberKeyboardTokens {
     elevation: number
   }
 }
-
 const createTokens = (foundations: Foundations): NumberKeyboardTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
-    colors: {
-      background: palette.default[100],
-      title: palette.default[700],
-      keyBackground: '#ffffff',
-      keyActiveBackground: palette.default[50],
-      keyText: palette.default[900],
-      keyTextActive: palette.primary[600],
-      closeBackground: palette.primary[500],
-      closeActiveBackground: palette.primary[400],
-      closeText: onPrimary,
-      border: palette.default[200],
-    },
-    spacing: {
-      paddingHorizontal: spacing.ssm,
-      paddingVertical: spacing.ssm,
-      keyGap: spacing.ssm,
-      titlePadding: spacing.md,
-    },
-    sizing: {
-      keyHeight: 54,
-      closeHeight: 44,
-      fontSize: 28,
-      defaultIconFontSize: 30,
-      auxFontSize: 18,
-      titleFontSize: fontSize.md,
-    },
-    typography: {
-      fontFamily: typography.fontFamily,
-    },
-    radii: {
-      key: radii.xs,
-    },
-    shadow: {
-      color: '#000000',
-      opacity: 0.08,
-      radius: 6,
-      offsetY: 0,
-      elevation: 6,
-    },
+    colors: { background: palette.default[100], title: palette.default[700], keyBackground: surface, keyActiveBackground: palette.default[50], keyText: palette.default[900], keyTextActive: palette.primary[600], closeBackground: palette.primary[500], closeActiveBackground: palette.primary[400], closeText: onPrimary, border: palette.default[200], },
+    spacing: { paddingHorizontal: spacing.ssm, paddingVertical: spacing.ssm, keyGap: spacing.ssm, titlePadding: spacing.md, },
+    sizing: { keyHeight: 54, closeHeight: 44, fontSize: 28, defaultIconFontSize: 30, auxFontSize: 18, titleFontSize: fontSize.md, },
+    typography: { fontFamily: typography.fontFamily, },
+    radii: { key: radii.xs, },
+    shadow: { color: '#000000', opacity: 0.08, radius: 6, offsetY: 0, elevation: 6, },
   }
 }
-
 export const useNumberKeyboardTokens = createComponentTokensHook(
   'numberKeyboard',
   createTokens

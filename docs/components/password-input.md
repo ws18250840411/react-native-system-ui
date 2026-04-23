@@ -1,6 +1,6 @@
 ---
 simulator:
-  compact: true
+  compact: false
 ---
 
 # PasswordInput 密码输入框

@@ -1,18 +1,7 @@
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import type { Foundations } from '../../design-system/tokens'
-
 export interface FormTokens {
-  defaults: {
-    showValidateMessage: boolean
-    defaultValidationMessage: string
-  }
+  defaults: { showValidateMessage: boolean; defaultValidationMessage: string }
 }
-
-const createFormTokens = (_foundations: Foundations): FormTokens => ({
-  defaults: {
-    showValidateMessage: true,
-    defaultValidationMessage: 'Validation failed',
-  },
-})
-
+const createFormTokens = (_foundations: Foundations): FormTokens => ({ defaults: { showValidateMessage: true, defaultValidationMessage: 'Validation failed' } })
 export const useFormTokens = createComponentTokensHook('form', createFormTokens)

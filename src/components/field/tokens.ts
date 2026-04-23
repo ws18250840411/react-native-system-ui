@@ -1,9 +1,7 @@
 import { StyleSheet } from 'react-native'
-
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import type { Foundations } from '../../design-system/tokens'
 import type { FieldClearTrigger, FieldControlAlign, FieldFormatTrigger, FieldInputAlign } from './types'
-
 const fieldLayout = StyleSheet.create({
   body: {
     flexDirection: 'row',
@@ -82,7 +80,6 @@ const fieldLayout = StyleSheet.create({
   message: {},
   wordLimit: {},
 })
-
 export interface FieldTokens {
   layout: typeof fieldLayout
   defaults: {
@@ -133,60 +130,15 @@ export interface FieldTokens {
     controlMinHeight: number
   }
 }
-
 const createFieldTokens = (foundations: Foundations): FieldTokens => {
   const { palette, spacing, fontSize } = foundations
-
   return {
     layout: fieldLayout,
-    defaults: {
-      labelWidth: 72,
-      labelAlign: 'left',
-      inputAlign: 'left',
-      controlAlign: 'left',
-      clearTrigger: 'focus',
-      formatTrigger: 'onChange',
-      rows: 2,
-      textareaLineHeight: 20,
-    },
-    colors: {
-      label: palette.default[700],
-      input: palette.default[800],
-      placeholder: palette.default[300] ?? '#c8c9cc',
-      error: palette.danger[500],
-      disabled: palette.default[500],
-      intro: palette.default[600],
-      tooltip: palette.default[500],
-      clear: palette.default[500],
-      rightIcon: palette.default[500],
-      wordLimit: palette.default[600] ?? '#646566',
-    },
-    spacing: {
-      labelGap: spacing.none,
-      leftIconGap: spacing.xs,
-      rightIconGap: spacing.sm * 1,
-      prefixGap: spacing.sm * 1,
-      suffixGap: spacing.sm * 1,
-      messageMarginTop: spacing.none,
-      introMarginTop: spacing.none,
-      wordLimitMarginTop: spacing.none,
-    },
-    typography: {
-      labelSize: fontSize.sm,
-      inputSize: fontSize.sm,
-      inputLineHeight: 24,
-      placeholderSize: fontSize.sm,
-      messageSize: 12,
-      introSize: 12,
-      wordLimitSize: fontSize.xs,
-    },
-    sizes: {
-      icon: 16,
-      clearIcon: 16,
-      textareaMinHeight: 60,
-      controlMinHeight: 24,
-    },
+    defaults: { labelWidth: 72, labelAlign: 'left', inputAlign: 'left', controlAlign: 'left', clearTrigger: 'focus', formatTrigger: 'onChange', rows: 2, textareaLineHeight: 20, },
+    colors: { label: palette.default[700], input: palette.default[800], placeholder: palette.default[300] ?? '#c8c9cc', error: palette.danger[500], disabled: palette.default[500], intro: palette.default[600], tooltip: palette.default[500], clear: palette.default[500], rightIcon: palette.default[500], wordLimit: palette.default[600] ?? '#646566', },
+    spacing: { labelGap: spacing.none, leftIconGap: spacing.xs, rightIconGap: spacing.sm * 1, prefixGap: spacing.sm * 1, suffixGap: spacing.sm * 1, messageMarginTop: spacing.none, introMarginTop: spacing.none, wordLimitMarginTop: spacing.none, },
+    typography: { labelSize: fontSize.sm, inputSize: fontSize.sm, inputLineHeight: 24, placeholderSize: fontSize.sm, messageSize: 12, introSize: 12, wordLimitSize: fontSize.xs, },
+    sizes: { icon: 16, clearIcon: 16, textareaMinHeight: 60, controlMinHeight: 24, },
   }
 }
-
 export const useFieldTokens = createComponentTokensHook('field', createFieldTokens)

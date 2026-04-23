@@ -1,8 +1,7 @@
 import { type TextStyle } from 'react-native'
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import { type Foundations } from '../../design-system/tokens'
 import type { StepperTheme } from './types'
-
 export interface StepperTokens {
   defaults: {
     theme: StepperTheme
@@ -45,57 +44,21 @@ export interface StepperTokens {
     none: number
   }
 }
-
 const createStepperTokens = (foundations: Foundations): StepperTokens => {
   const { palette, radii, fontSize, opacity, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
-    defaults: {
-      theme: 'default',
-      showInput: true,
-      showPlus: true,
-      showMinus: true,
-      longPress: true,
-      inputWidth: 32,
-      buttonSize: 28,
-    },
-    colors: {
-      active: palette.default[200],
-      background: palette.default[100],
-      buttonIcon: palette.default[900],
-      buttonDisabledBackground: '#ffffff',
-      buttonDisabledIcon: palette.default[400],
-      roundTheme: palette.primary[500],
-      roundThemeText: onPrimary,
-      roundThemeBackground: '#ffffff',
-      inputText: palette.default[900],
-      inputDisabledText: palette.default[400],
-      inputDisabledBackground: palette.default[100],
-      transparent: 'transparent',
-    },
-    radii: {
-      default: radii.md,
-    },
-    typography: {
-      fontFamily: typography.fontFamily,
-      fontSize: fontSize.md,
-      fontWeight: typography.weight.semiBold,
-    },
-    opacity: {
-      disabled: opacity.disabled,
-      roundDisabled: 0.3,
-      pressed: opacity.pressed,
-    },
-    spacing: {
-      gap: 2,
-      none: foundations.spacing.none,
-    },
+    defaults: { theme: 'default', showInput: true, showPlus: true, showMinus: true, longPress: true, inputWidth: 32, buttonSize: 28, },
+    colors: { active: palette.default[200], background: palette.default[100], buttonIcon: palette.default[900], buttonDisabledBackground: surface, buttonDisabledIcon: palette.default[400], roundTheme: palette.primary[500], roundThemeText: onPrimary, roundThemeBackground: surface, inputText: palette.default[900], inputDisabledText: palette.default[400], inputDisabledBackground: palette.default[100], transparent: 'transparent', },
+    radii: { default: radii.md, },
+    typography: { fontFamily: typography.fontFamily, fontSize: fontSize.md, fontWeight: typography.weight.semiBold, },
+    opacity: { disabled: opacity.disabled, roundDisabled: 0.3, pressed: opacity.pressed, },
+    spacing: { gap: 2, none: foundations.spacing.none, },
   }
 }
-
 export const useStepperTokens = createComponentTokensHook(
   'stepper',
   createStepperTokens
 )
-
 export type { StepperTheme }

@@ -211,4 +211,50 @@ describe('DialogImperative', () => {
 
     await expect(promise).resolves.toBe(false)
   })
+
+  it('resolves alert promise when closed without confirm', async () => {
+    let promise!: Promise<void>
+    act(() => {
+      promise = DialogImperative.alert({
+        message: 'close?',
+        closeable: true,
+      })
+    })
+
+    await act(async () => {
+      const props = getMockDialogProps()
+      if (!props) {
+        throw new Error('Dialog not mounted')
+      }
+      await props.onClose?.()
+    })
+
+    await expect(promise).resolves.toBeUndefined()
+  })
+
+  it('does not run beforeClose again after Dialog has accepted close', async () => {
+    const beforeClose = jest.fn(() => true)
+    const onClose = jest.fn()
+
+    act(() => {
+      DialogImperative.alert({
+        message: 'guarded',
+        closeable: true,
+        beforeClose,
+        onClose,
+      })
+    })
+
+    await act(async () => {
+      const props = getMockDialogProps()
+      if (!props) {
+        throw new Error('Dialog not mounted')
+      }
+      expect(await props.beforeClose?.('close')).toBe(true)
+      await props.onClose?.()
+    })
+
+    expect(beforeClose).toHaveBeenCalledTimes(1)
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
 })

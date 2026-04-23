@@ -1,5 +1,5 @@
 import Overlay from './Overlay'
-import { OverlayProvider } from '@react-native-aria/overlays'
+import { OverlayProvider } from '../../internal/aria/overlays'
 
 export type { OverlayProps } from './types'
 export { Overlay, OverlayProvider }

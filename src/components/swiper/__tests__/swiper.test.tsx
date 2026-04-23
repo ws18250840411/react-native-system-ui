@@ -107,4 +107,53 @@ describe('Swiper', () => {
 
     expect(mockScrollToIndex).toHaveBeenCalledWith({ index: 0, animated: true })
   })
+
+  it('[web] swiper gets stuck when onScroll offset is not perfectly aligned', () => {
+    Platform.OS = 'web'
+
+    const tree = renderer.create(
+      <Swiper loop autoplay={1000}>
+        <Swiper.Item><Text>A</Text></Swiper.Item>
+        <Swiper.Item><Text>B</Text></Swiper.Item>
+        <Swiper.Item><Text>C</Text></Swiper.Item>
+      </Swiper>
+    )
+
+    const layoutNode = tree.root.findAll(
+      node => node.props && typeof node.props.onLayout === 'function'
+    )[0]
+    act(() => {
+      layoutNode.props.onLayout({
+        nativeEvent: { layout: { width: 300, height: 160 } }
+      })
+    })
+
+    mockScrollToIndex.mockClear()
+
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    expect(mockScrollToIndex).toHaveBeenCalledTimes(1)
+    mockScrollToIndex.mockClear()
+
+    const scrollNode = tree.root.findAll(
+      node => node.props && typeof node.props.onScroll === 'function'
+    )[0]
+    act(() => {
+      scrollNode.props.onScroll({
+        nativeEvent: { contentOffset: { x: 597.8, y: 0 } }
+      })
+    })
+
+    act(() => {
+      jest.advanceTimersByTime(150)
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(mockScrollToIndex).toHaveBeenCalled()
+
+    act(() => { tree.unmount() })
+  })
 })

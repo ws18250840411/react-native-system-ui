@@ -1,6 +1,5 @@
 import type { DeepPartial } from '../types'
 import { createTokens, defaultTokens, type ThemeTokens } from './tokens'
-
 const darkOverrides: DeepPartial<ThemeTokens> = {
   palette: {
     default: { 50: '#05070b', 100: '#0b0f16', 200: '#131a23', 300: '#1c2632', 400: '#263342', 500: '#35455a', 600: '#4b5d73', 700: '#5f758c', 800: '#7e91a7', 900: '#b2c1cf', foreground: '#f4f6fb' },
@@ -10,8 +9,8 @@ const darkOverrides: DeepPartial<ThemeTokens> = {
     warning: { 50: '#2e1405', 100: '#3b1b08', 200: '#52260c', 300: '#6b3311', 400: '#8a4416', 500: '#ab561c', 600: '#cc6a1f', 700: '#e78a3a', 800: '#f5a85f', 900: '#ffd9a8', foreground: '#ffffff' },
     danger: { 50: '#2d090e', 100: '#3a0d13', 200: '#50121c', 300: '#6a1a27', 400: '#882434', 500: '#a92c40', 600: '#cb3750', 700: '#ef4b63', 800: '#ff7d8f', 900: '#ffc6d0', foreground: '#fff5f6' },
   },
+  surface: '#131a23',
 }
-
 const auroraOverrides: DeepPartial<ThemeTokens> = {
   palette: {
     default: { 50: '#f4fbff', 100: '#e3f5ff', 200: '#d1eef9', 300: '#b8e1ef', 400: '#a2d1e2', 500: '#89bbcf', 600: '#6ba3b8', 700: '#508aa0', 800: '#3a6f84', 900: '#254a57', foreground: '#0b1d23' },
@@ -21,13 +20,10 @@ const auroraOverrides: DeepPartial<ThemeTokens> = {
   radii: { sm: 8, md: 12, lg: 18 },
   typography: { fontFamily: 'System, "Helvetica Neue", "PingFang SC"', lineHeightMultiplier: 1.25 },
 }
-
 export const themePresets = {
   light: defaultTokens,
   dark: createTokens(darkOverrides),
   aurora: createTokens(auroraOverrides),
 } as const
-
 export type ThemePresetName = keyof typeof themePresets
-
 export const getThemePreset = (name: ThemePresetName): ThemeTokens => themePresets[name]

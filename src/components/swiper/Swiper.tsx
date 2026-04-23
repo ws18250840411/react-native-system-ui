@@ -5,6 +5,8 @@ import type { SwiperProps, SwiperInstance, SwiperItemProps } from './types'
 import SwiperPagIndicator from './SwiperPagIndicator'
 import { useSwiperTokens } from './tokens'
 
+const LOOP_THRESHOLD = 10
+
 type SwiperComponent = (<T>(props: SwiperProps<T> & RefAttributes<SwiperInstance>) => ReactElement | null) & { displayName?: string }
 
 const SwiperItemImpl = (props: SwiperItemProps, ref: React.ForwardedRef<View>) => <View ref={ref} style={[S.item, props.style]} testID={props.testID}>{props.children}</View>
@@ -12,10 +14,8 @@ const SwiperItemFR = forwardRef<View, SwiperItemProps>(SwiperItemImpl)
 SwiperItemFR.displayName = 'SwiperItem'
 export const SwiperItem = memo(SwiperItemFR)
 
-const LOOP_THRESHOLD = 10
-
 const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperInstance>) => {
-  const { data, renderItem, children, initialSwipe = 0, touchable = true, loop = true, autoplay = false, vertical = false, onChange, indicator = true, indicatorProps, style, testID } = props; const tokens = useSwiperTokens(); const listRef = useRef<FlatList>(null); const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null); const interRef = useRef(false); const animRef = useRef(false); const queueRef = useRef<number | null>(null); const momRef = useRef(false); const dragRef = useRef<number | null>(null); const isWeb = Platform.OS === 'web'; const [layout, setLayout] = useState({ width: 0, height: 0 })
+  const { data, renderItem, children, initialSwipe = 0, touchable = true, loop = true, autoplay = false, vertical = false, onChange, indicator = true, indicatorProps, style, testID } = props; const tokens = useSwiperTokens(); const listRef = useRef<FlatList>(null); const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null); const interRef = useRef(false); const animRef = useRef(false); const queueRef = useRef<number | null>(null); const momRef = useRef(false); const dragRef = useRef<number | null>(null); const scrollEndRef = useRef<ReturnType<typeof setTimeout> | null>(null); const lastOffRef = useRef(0); const isWeb = Platform.OS === 'web'; const [layout, setLayout] = useState({ width: 0, height: 0 })
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     const { width: w, height: h } = e.nativeEvent.layout
     setLayout(p => (p.width === w && p.height === h ? p : { width: w, height: h }))
@@ -34,7 +34,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   const ready = layout.width > 0 && layout.height > 0
   const mainSz = vertical ? layout.height : layout.width
   const crossSz = vertical ? layout.width : layout.height
-  const itemSz = useMemo(() => ({ width: vertical ? crossSz : mainSz, height: vertical ? mainSz : crossSz }), [vertical, mainSz, crossSz])
+  const itemSz = { width: vertical ? crossSz : mainSz, height: vertical ? mainSz : crossSz }
 
   const clearAuto = useCallback(() => { if (autoRef.current) { clearTimeout(autoRef.current); autoRef.current = null } }, [])
   const onChangeRef = useRef(onChange)
@@ -85,6 +85,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
 
   useEffect(() => { if (!ready || count === 0) return; scrollTo(initDisp, false) }, [ready, count, initDisp, scrollTo])
   useEffect(() => { schedule(); return clearAuto }, [schedule, clearAuto, curIdx])
+  useEffect(() => () => { if (scrollEndRef.current) clearTimeout(scrollEndRef.current) }, [])
 
   const reset = useCallback(() => { animRef.current = false; interRef.current = false; momRef.current = false; schedule(); flush() }, [schedule])
 
@@ -95,10 +96,14 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
     const cdi = shouldLoop ? clamp(di, 0, dCount - 1) : clamp(di, 0, count - 1)
     update(realIdx(cdi))
     if (isWeb) {
+      if (scrollEndRef.current) { clearTimeout(scrollEndRef.current); scrollEndRef.current = null }
+      lastOffRef.current = off
       const aligned = di * mainSz
       if (Math.abs(off - aligned) < 0.5) {
         if (shouldLoop && (di <= 0 || di >= dCount - 1)) scrollTo(di <= 0 ? count : 1, false)
         reset()
+      } else {
+        scrollEndRef.current = setTimeout(() => { scrollEndRef.current = null; const o = lastOffRef.current, d = Math.round(o / mainSz); if (shouldLoop && (d <= 0 || d >= dCount - 1)) scrollTo(d <= 0 ? count : 1, false); reset() }, 150)
       }
     }
   }, [count, vertical, mainSz, shouldLoop, dCount, update, realIdx, scrollTo, reset, isWeb])
@@ -113,10 +118,13 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
     update(realIdx(ndi)); reset()
   }, [vertical, count, mainSz, shouldLoop, dCount, scrollTo, update, realIdx, reset, isWeb])
 
-  const onDragBegin = useCallback(() => { interRef.current = true; clearAuto() }, [clearAuto])
+  const onDragBegin = useCallback(() => { interRef.current = true; clearAuto(); if (scrollEndRef.current) { clearTimeout(scrollEndRef.current); scrollEndRef.current = null } }, [clearAuto])
   const onDragEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => { if (!momRef.current) onEnd(e) }, [onEnd])
   const onMomBegin = useCallback(() => { momRef.current = true }, [])
-  const onFail = useCallback((info: { index: number }) => { scrollTo(info.index, false); update(realIdx(info.index)); reset() }, [scrollTo, update, realIdx, reset])
+  const onFail = useCallback((info: { index: number }) => {
+    const failedIndex = shouldLoop ? clamp(info.index, 0, dCount - 1) : clamp(info.index, 0, count - 1)
+    scrollTo(failedIndex, false); update(realIdx(failedIndex)); reset()
+  }, [count, dCount, realIdx, reset, scrollTo, shouldLoop, update])
 
   const renderItemRef = useRef(renderItem)
   renderItemRef.current = renderItem
@@ -132,11 +140,11 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   if (count === 0) return null
   const indNode = indicator === false || count <= 1 ? null : typeof indicator === 'function' ? indicator(count, curIdx) : <SwiperPagIndicator {...indicatorProps} total={count} current={curIdx} vertical={vertical} />
 
-  const webMouse = isWeb && touchable && count > 1 ? ({
+  const webMouse = useMemo(() => isWeb && touchable && count > 1 ? ({
     onPointerDown: (e: any) => { if (e.nativeEvent.pointerType !== 'mouse' || e.nativeEvent.button !== 0) return; dragRef.current = vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX; interRef.current = true; clearAuto() },
-    onPointerUp: (e: any) => { const s = dragRef.current; dragRef.current = null; if (s == null || e.nativeEvent.pointerType !== 'mouse') return; const d = (vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX) - s; if (Math.abs(d) >= mainSz * 0.15) { d < 0 ? next() : prev() }; interRef.current = false; schedule() },
+    onPointerUp: (e: any) => { const start = dragRef.current; dragRef.current = null; if (start == null || e.nativeEvent.pointerType !== 'mouse') return; const distance = (vertical ? e.nativeEvent.pageY : e.nativeEvent.pageX) - start; if (Math.abs(distance) >= mainSz * 0.15) distance < 0 ? next() : prev(); interRef.current = false; schedule() },
     onPointerLeave: () => { if (dragRef.current != null) { dragRef.current = null; interRef.current = false; schedule() } },
-  } as Record<string, any>) : undefined
+  } as Record<string, any>) : undefined, [isWeb, touchable, count, vertical, mainSz, clearAuto, next, prev, schedule])
 
   if (!ready) {
     return <View style={[S.ctr, style]} onLayout={onLayout} testID={testID} />
@@ -145,7 +153,7 @@ const SwiperImpl = <T extends unknown>(props: SwiperProps<T>, ref: Ref<SwiperIns
   return (
     <View accessibilityRole="adjustable" accessibilityLabel={`swiper, ${curIdx + 1} of ${count}`} accessibilityValue={{ min: 0, max: count - 1, now: curIdx }} style={[S.ctr, webMouse && S.web, style]} onLayout={onLayout} testID={testID} {...webMouse}>
       <FlatList ref={listRef} data={display} renderItem={renderSlide as any} keyExtractor={keyEx} horizontal={!vertical} getItemLayout={getLayout} initialScrollIndex={initDisp} scrollEnabled={touchable && count > 1} removeClippedSubviews={!shouldLoop || !loopAll} disableVirtualization={shouldLoop && loopAll} initialNumToRender={shouldLoop ? (loopAll ? dCount : 3) : 3} maxToRenderPerBatch={shouldLoop ? (loopAll ? dCount : 3) : 3} windowSize={shouldLoop ? (loopAll ? dCount : 7) : 5} pagingEnabled snapToInterval={mainSz} decelerationRate="fast" showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} onScrollBeginDrag={onDragBegin} onScroll={onScroll} scrollEventThrottle={tokens.defaults.scrollEventThrottle} onScrollEndDrag={onDragEnd} onMomentumScrollBegin={onMomBegin} onMomentumScrollEnd={onEnd} onScrollToIndexFailed={onFail} />
-      <View pointerEvents="none" style={[S.ind, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation }]}>{indNode}</View>
+      <View style={[S.ind, { zIndex: tokens.layer.zIndex, elevation: tokens.layer.elevation, pointerEvents: 'none' }]}>{indNode}</View>
     </View>
   )
 }

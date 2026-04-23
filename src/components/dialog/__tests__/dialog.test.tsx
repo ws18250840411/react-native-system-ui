@@ -160,6 +160,23 @@ describe('Dialog', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it('blocks close when beforeClose promise rejects', async () => {
+    const onClose = jest.fn()
+    const beforeClose = jest.fn().mockRejectedValue(new Error('blocked'))
+    const tree = renderInHost(
+      <Dialog visible closeable onClose={onClose} beforeClose={beforeClose} />
+    )
+    const closeBtn = tree.root.findAllByType(Pressable).find(p => p.props.hitSlop && p.props.hitSlop.top === 8)
+
+    await act(async () => {
+      closeBtn?.props.onPress?.()
+      await Promise.resolve()
+    })
+
+    expect(beforeClose).toHaveBeenCalledWith('close')
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
   describe('imperative api', () => {
     let hostTree: renderer.ReactTestRenderer | null = null
 

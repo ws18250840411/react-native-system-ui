@@ -1,8 +1,7 @@
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import { type Foundations } from '../../design-system/tokens'
 import type { TextStyle } from 'react-native'
 import type { TabsAlign, TabsType } from './types'
-
 export interface TabsTokens {
   defaults: {
     type: TabsType
@@ -96,20 +95,12 @@ export interface TabsTokens {
     descriptionRadius: number
   }
 }
-
 const createTokens = (foundations: Foundations): TabsTokens => {
   const { palette, spacing, fontSize, radii, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   const onPrimary = palette.primary.foreground ?? '#ffffff'
   return {
-    defaults: {
-      type: 'line',
-      align: 'center',
-      ellipsis: true,
-      swipeThreshold: 5,
-      animated: true,
-      duration: 300,
-      lazyRender: true,
-    },
+    defaults: { type: 'line', align: 'center', ellipsis: true, swipeThreshold: 5, animated: true, duration: 300, lazyRender: true, },
     colors: {
       text: palette.default[700],
       textActive: palette.primary[600],
@@ -120,7 +111,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       descriptionActiveBackground: palette.primary[600],
       border: palette.default[200],
       indicator: palette.primary[600],
-      cardBackground: '#ffffff',
+      cardBackground: surface,
       cardActiveBackground: palette.primary[600],
       cardBorder: palette.primary[600],
       cardActiveBorder: palette.primary[600],
@@ -133,7 +124,7 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       capsuleActiveText: onPrimary,
       badgeText: palette.default[500],
       jumboBackground: palette.default[50],
-      jumboActiveBackground: '#ffffff',
+      jumboActiveBackground: surface,
       jumboBorder: 'transparent',
       jumboActiveBorder: palette.primary[400],
       jumboDescription: palette.default[500],
@@ -141,58 +132,13 @@ const createTokens = (foundations: Foundations): TabsTokens => {
       jumboDescriptionBackground: palette.default[100],
       jumboDescriptionActiveBackground: palette.primary[500],
     },
-    tabList: {
-      height: 44,
-      paddingHorizontal: spacing.lg,
-      paddingVertical: 0,
-      paddingBottom: spacing.md,
-      background: '#ffffff',
-    },
-    typography: {
-      fontFamily: typography.fontFamily,
-      titleSize: fontSize.sm,
-      titleWeight: foundations.typography.weight.medium,
-      titleActiveWeight: foundations.typography.weight.semiBold,
-      descriptionSize: fontSize.xs,
-      jumboTitleSize: fontSize.md,
-      jumboLineHeight: Math.round(fontSize.md * 1.6),
-      badgeTextSize: fontSize.xxs,
-    },
-    spacing: {
-      navSidePaddingHorizontal: spacing.sm,
-      navBottomMarginTop: spacing.sm,
-      descriptionMarginTop: spacing.xxs,
-      jumboDescriptionMarginTop: spacing.sm,
-      badgeMarginTop: spacing.xs,
-    },
-    indicator: {
-      height: 3,
-      radius: 999,
-      width: 40,
-      offset: spacing.md,
-    },
-    card: {
-      radius: radii.xs,
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.xs,
-      height: 30,
-      marginHorizontal: spacing.md,
-    },
-    capsule: {
-      radius: 999,
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.ssm,
-    },
-    jumbo: {
-      radius: 16,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-      height: 64,
-      descriptionPaddingHorizontal: spacing.sm,
-      descriptionPaddingVertical: spacing.xxs,
-      descriptionRadius: 10,
-    },
+    tabList: { height: 44, paddingHorizontal: spacing.lg, paddingVertical: 0, paddingBottom: spacing.md, background: surface, },
+    typography: { fontFamily: typography.fontFamily, titleSize: fontSize.sm, titleWeight: foundations.typography.weight.medium, titleActiveWeight: foundations.typography.weight.semiBold, descriptionSize: fontSize.xs, jumboTitleSize: fontSize.md, jumboLineHeight: Math.round(fontSize.md * 1.6), badgeTextSize: fontSize.xxs, },
+    spacing: { navSidePaddingHorizontal: spacing.sm, navBottomMarginTop: spacing.sm, descriptionMarginTop: spacing.xxs, jumboDescriptionMarginTop: spacing.sm, badgeMarginTop: spacing.xs, },
+    indicator: { height: 3, radius: 999, width: 40, offset: spacing.md, },
+    card: { radius: radii.xs, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, height: 30, marginHorizontal: spacing.md, },
+    capsule: { radius: 999, paddingHorizontal: spacing.sm, paddingVertical: spacing.ssm, },
+    jumbo: { radius: 16, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, height: 64, descriptionPaddingHorizontal: spacing.sm, descriptionPaddingVertical: spacing.xxs, descriptionRadius: 10, },
   }
 }
-
 export const useTabsTokens = createComponentTokensHook('tabs', createTokens)

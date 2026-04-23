@@ -91,7 +91,7 @@ ConfigProvider 是推荐的根节点配置组件，内置三大能力：
 
 ## 国际化（i18n）设计
 
-- **Locale 定义**：`src/components/config-provider/locale/` 下的 `types.d.ts` 定义 Locale 接口，`zh-CN.ts` 和 `en-US.ts` 提供内置翻译。
+- **Locale 定义**：`src/components/config-provider/locale/` 下的 `types.ts` 定义 Locale 接口，`zh-CN.ts` 和 `en-US.ts` 提供内置翻译。
 - **使用方式**：组件中通过 `useLocale()` 获取当前 locale 对象，使用 `locale.vanXxx?.key ?? 'Fallback'` 模式。
 - **覆盖范围**：Toast、Dialog、Picker、Calendar、Cascader、Image、Form、NumberKeyboard、ShareSheet、NoticeBar、NavBar 等组件。
 - **Token 默认值**：组件 tokens 中的默认文案使用英文（如 `loadingText: 'Loading…'`），确保无 locale 时也不会显示乱码。

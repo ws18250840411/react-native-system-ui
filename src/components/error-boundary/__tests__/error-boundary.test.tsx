@@ -10,7 +10,6 @@ const ThrowError: React.FC<{ shouldThrow?: boolean }> = ({ shouldThrow }) => {
   return <Text>Normal render</Text>
 }
 
-// Suppress React error boundary console output during tests
 const originalConsoleError = console.error
 beforeAll(() => {
   console.error = (...args: unknown[]) => {
@@ -50,7 +49,6 @@ describe('ErrorBoundary', () => {
         <ThrowError shouldThrow />
       </ErrorBoundary>,
     )
-    // Default fallback is null, so no Text should be rendered
     expect(tree.root.findAllByType(Text).length).toBe(0)
   })
 
@@ -108,16 +106,13 @@ describe('ErrorBoundary', () => {
 
     const tree = renderer.create(<Wrapper />)
 
-    // Should be in error state
     expect(tree.root.findByType(Text).props.children).toBe('Error')
     expect(ref.current).toBeTruthy()
     expect(typeof ref.current!.reset).toBe('function')
 
-    // Reset and re-render without error
     shouldThrow = false
     act(() => {
       ref.current!.reset()
-      // Force parent re-render so children reflect the new shouldThrow value
       tree.update(<Wrapper />)
     })
 

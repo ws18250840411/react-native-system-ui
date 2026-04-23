@@ -8,7 +8,7 @@ export default function PortalStaticDemo() {
 
   const showToast = () => {
     const key = Portal.add(
-      <View pointerEvents="box-none" style={StyleSheet.absoluteFillObject}>
+      <View style={[StyleSheet.absoluteFillObject, { pointerEvents: 'box-none' }]}>
         <View style={styles.toast}>
           <Text style={styles.toastText}>通过 Portal.add 插入节点</Text>
         </View>

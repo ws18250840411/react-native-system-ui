@@ -14,7 +14,7 @@ export default function PortalMultipleDemo() {
 
       {(tipVisible || confirmVisible) && (
         <Portal>
-          <View pointerEvents="box-none" style={StyleSheet.absoluteFillObject}>
+          <View style={[StyleSheet.absoluteFillObject, { pointerEvents: 'box-none' }]}>
             {tipVisible ? (
               <View style={[styles.toast, styles.tipToast]}>
                 <Text style={styles.toastText}>这里是提示层</Text>

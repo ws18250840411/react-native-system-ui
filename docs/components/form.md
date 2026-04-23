@@ -25,6 +25,12 @@ import { Form } from 'react-native-system-ui'
 
 <code title="校验规则" src="./form/demo/rules.tsx"></code>
 
+### 错误提示外部展示
+
+配合 Input 的 `errorMessagePosition="outer"` 使用，校验提示显示在输入框外部下方。
+
+<code title="错误提示外部展示" src="./form/demo/error-position.tsx"></code>
+
 ### 表单项类型
 
 <code title="表单项类型" src="./form/demo/type.tsx"></code>

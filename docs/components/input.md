@@ -45,6 +45,12 @@ import { Input, type InputInstance } from 'react-native-system-ui'
 
 <code src="./input/demo/status.tsx" title="输入框状态"></code>
 
+### 错误提示位置
+
+通过 `errorMessagePosition` 可控制校验提示渲染在输入框内部（`inner`，默认）还是外部下方（`outer`）。
+
+<code src="./input/demo/error-position.tsx" title="错误提示位置"></code>
+
 ## API
 
 ### Input Props

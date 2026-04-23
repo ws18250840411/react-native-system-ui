@@ -32,6 +32,9 @@
 | 2026-02-02 | Button | 移除 `mode` 能力并简化分支 | `src/components/button/Button.tsx`, `src/components/button/types.d.ts`, `src/components/button/tokens.ts`, `src/components/button/ButtonContext.ts`, `src/components/button/ButtonGroup.tsx`, `src/components/button/index.ts`, `src/components/button/__tests__/button.test.tsx`, `docs/components/button.md` |
 | 2026-02-02 | Toast | 移除 `loadingType`（默认 loading 指示器） | `src/components/toast/Toast.tsx`, `src/components/toast/__tests__/toast.test.tsx`, `docs/components/toast.md` |
 | 2026-02-02 | Toast | 单测移除 `ball` | `src/components/toast/__tests__/toast.test.tsx` |
+| 2026-04-01 | Toast | 文档同步：`iconSize` 与 `toast.iconSize` token（默认 38）、`tokensOverride`、内置成功/失败线条图标说明 | `docs/components/toast.md` |
+| 2026-04-01 | Icon | 文档补充：业务图标与库内线条图标分工、`react-native-svg` optional 说明 | `docs/components/icon.md` |
+| 2026-04-01 | 文档 | 重新生成各组件目录体积数据 | `docs/component-sizes.ts` |
 | 2026-02-02 | Switch | 核心实现切到 RN `Switch`，保留 onClick/onChange 行为 | `src/components/switch/Switch.tsx` |
 | 2026-02-02 | Switch | 单测适配新的尺寸缩放方式 | `src/components/switch/__tests__/switch.test.tsx` |
 | 2026-02-02 | Switch | 文档说明基于 RN `Switch` | `docs/components/switch.md` |
@@ -203,7 +206,7 @@
 | NoticeBar | 482 | ⭐⭐⭐⭐⭐ | 滚动动画循环、RTL 方向、暂停/恢复、溢出检测 |
 | Tabs | 420 | ⭐⭐⭐⭐⭐ | 滑动切换、下划线动画、懒加载、声明顺序已调整 |
 | Slider | 302 | ⭐⭐⭐⭐⭐ | 双滑块 range、Web aria input、touchAction、精度处理 |
-| Swiper | 181 | ⭐⭐⭐⭐⭐ | FlatList + Loop 哨兵、动画队列 queueRef、Web pointer 拖拽 |
+| Swiper | 181 | ⭐⭐⭐⭐⭐ | FlatList + Loop 哨兵、动画队列 queueRef、Web pointer 拖拽、滚动结束兜底防卡顿 |
 | Collapse | 174 | ⭐⭐⭐⭐⭐ | Animated.timing height、accordion 单展开、双别名兼容 |
 
 #### 表单与输入组件
@@ -379,3 +382,8 @@
 | 补审组件 | area / avatar / circle / count-down / empty / error-boundary / flex / grid / input / overlay / password-input / search / selector / share-sheet / skeleton / tabbar / water-mark / design-system | 136 | ✅ |
 | 动画性能层 | useReducedMotion / useAnimatedTransition / platform animation | 15 | ✅ |
 | **合计** | **70 套件** | **505** | **✅ 全部通过** |
+
+<!-- 
+"git:push:gitee": "git remote set-url --push origin https://gitee.com/ws18250840411/react-native-system-ui.git",
+    "git:push:github": "git remote set-url --push origin https://github.com/ws18250840411/react-native-system-ui.git",
+ -->

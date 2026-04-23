@@ -154,4 +154,12 @@ describe('Selector', () => {
     const checkMarkAfter = textsAfter.find(t => t.props.children === '✓')
     expect(checkMarkAfter).toBeUndefined()
   })
+
+  it('does not crash when options is invalid at runtime', () => {
+    expect(() => {
+      renderer.create(
+        <Selector options={undefined as unknown as any} />
+      )
+    }).not.toThrow()
+  })
 })

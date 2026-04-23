@@ -1,13 +1,10 @@
 import { Platform, StyleSheet, type ViewStyle } from 'react-native'
-
 const isWeb = Platform.OS === 'web'
 export const getHairlineWidth = () => StyleSheet.hairlineWidth
 export type HairlinePosition = 'top' | 'right' | 'bottom' | 'left' | 'all'
 export interface HairlineViewOptions { color?: string; position?: HairlinePosition; enabled?: boolean; left?: number; right?: number; top?: number; bottom?: number; width?: number; borderRadius?: number }
-
 const ORIGINS: Record<string, string> = { top: 'center top', bottom: 'center bottom', left: 'left center', right: 'right center' }
 const SCALES: Record<string, { scaleX?: number; scaleY?: number }> = { top: { scaleY: 0.5 }, bottom: { scaleY: 0.5 }, left: { scaleX: 0.5 }, right: { scaleX: 0.5 } }
-
 export const createHairlineView = ({ left, right, top, bottom, width, color, position = 'bottom', enabled = true, borderRadius }: HairlineViewOptions = {}): ViewStyle => {
   if (!enabled) return {}
   if (position === 'all') {

@@ -137,4 +137,5 @@ import type { SwiperInstance, SwiperProps } from 'react-native-system-ui'
 2. 当使用 `data` 模式时，需要提供 `renderItem` 函数
 3. 循环模式下，会自动复制首尾元素以实现无缝循环
 4. 建议为 Swiper 容器设置明确高度（纵向时设置高度，横向时设置宽度）
+5. Web 端对手势滑动与自动播放做了兼容处理，连续滑动或自动播放后不会出现卡顿；支持鼠标拖拽与触控板/触摸滑动
 

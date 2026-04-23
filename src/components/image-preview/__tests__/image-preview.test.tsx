@@ -15,6 +15,12 @@ beforeAll(() => {
 })
 
 describe('ImagePreview', () => {
+  afterEach(() => {
+    act(() => {
+      ImagePreview.clear()
+    })
+  })
+
   it.skip('renders index text and indicators', () => {
     let tree!: renderer.ReactTestRenderer
     act(() => {
@@ -237,5 +243,33 @@ describe('ImagePreview', () => {
       })
       act(() => { tree.unmount() })
     }).not.toThrow()
+  })
+
+  it('supports imperative open and clear', () => {
+    let tree!: renderer.ReactTestRenderer
+
+    act(() => {
+      tree = renderer.create(
+        <PortalHost>
+          <></>
+        </PortalHost>
+      )
+    })
+
+    act(() => {
+      ImagePreview.open({ images: ['https://a.png'] })
+    })
+
+    expect(tree.root.findByProps({ testID: 'rv-image-preview-swiper' })).toBeTruthy()
+
+    act(() => {
+      ImagePreview.clear()
+    })
+
+    expect(tree.root.findAllByProps({ testID: 'rv-image-preview-swiper' })).toHaveLength(0)
+
+    act(() => {
+      tree.unmount()
+    })
   })
 })

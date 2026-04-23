@@ -3,6 +3,7 @@ import renderer, { act } from 'react-test-renderer'
 import { Pressable, Text, View } from 'react-native'
 
 import Picker, { type PickerOption } from '..'
+import { normalizePicker, prepareColumns } from '../Picker'
 import Loading from '../../loading'
 
 describe('Picker', () => {
@@ -105,5 +106,20 @@ describe('Picker', () => {
     expect(loading).toBeDefined()
     const columns = tree.root.findAllByType(View).find(v => v.props.pointerEvents === 'none')
     expect(columns).toBeDefined()
+  })
+
+  it('supports cascade depth greater than ten', () => {
+    const deepRoot: PickerOption = { label: 'L0', value: 'v0', children: [] }
+    let cursor = deepRoot
+    for (let i = 1; i <= 12; i += 1) {
+      const next: PickerOption = { label: `L${i}`, value: `v${i}`, children: [] }
+      cursor.children = [next]
+      cursor = next
+    }
+
+    const prep = prepareColumns([deepRoot])
+    const normalized = normalizePicker(prep, Array.from({ length: 13 }, (_, i) => `v${i}`))
+    expect(normalized.values).toHaveLength(13)
+    expect(normalized.values[12]).toBe('v12')
   })
 })

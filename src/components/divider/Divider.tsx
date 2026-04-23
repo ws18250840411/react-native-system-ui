@@ -1,6 +1,8 @@
 import React from 'react'
 import { View } from 'react-native'
-import { createHairlineView, isRenderable, renderTextOrNode } from '../../utils'
+import { createHairlineView } from '../../utils/hairline'
+import { isRenderable } from '../../utils/base'
+import { renderTextOrNode } from '../../utils/render'
 import { useDividerTokens } from './tokens'
 import type { DividerProps } from './types'
 

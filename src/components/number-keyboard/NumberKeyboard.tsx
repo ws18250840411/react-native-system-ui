@@ -1,25 +1,52 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native'
-import { useControllableValue } from '../../hooks'
-import { nativeDriverEnabled } from '../../platform'
+import useControllableValue from '../../hooks/useControllableValue'
+import { nativeDriverEnabled } from '../../platform/animation'
 import { useReducedMotion } from '../../hooks/animation'
 import { createPlatformShadow } from '../../utils/createPlatformShadow'
 import { parseNumberLike } from '../../utils/number'
-import { isRenderable, renderTextOrNode } from '../../utils'
+import { isRenderable } from '../../utils/base'
+import { renderTextOrNode } from '../../utils/render'
 import Loading from '../loading'
 import Portal from '../portal/Portal'
-import { useLocale } from '../config-provider/useLocale'
+import { useLocale } from '../config-provider/loc'
 import { SafeAreaView } from '../safe-area-view'
 import type { NumberKeyboardKeyType, NumberKeyboardProps } from './types'
 import { useNumberKeyboardTokens } from './tokens'
 
-const registry = new Set<() => void>()
 const NUM_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 const ZERO = '0'
 const RE_NUM_LIKE = /^\d+$|^\.$|^x$/i
-const shuffle = <T,>(list: T[]) => { const n = [...list]; for (let i = n.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [n[i], n[j]] = [n[j], n[i]] }; return n }
-interface Key { text?: string; type: NumberKeyboardKeyType; wider?: boolean }
-type KEnt = { key: Key; index: number }
+
+interface NumberKeyboardKey { text?: string; type: NumberKeyboardKeyType; wider?: boolean }
+
+const shuffle = <T,>(list: T[]) => {
+  const next = [...list]
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[next[i], next[j]] = [next[j], next[i]]
+  }
+  return next
+}
+
+const buildKeyboardKeys = ({ randomKeyOrder, visible, isCustom, extraKey, showDeleteKey }: { randomKeyOrder?: boolean; visible?: boolean; isCustom: boolean; extraKey?: string | string[]; showDeleteKey: boolean }): NumberKeyboardKey[] => {
+  const shouldShuffle = randomKeyOrder && visible
+  const numberKeys = shouldShuffle ? shuffle(NUM_KEYS) : NUM_KEYS
+  const matrix: NumberKeyboardKey[] = numberKeys.map(text => ({ text, type: '' }))
+  if (isCustom) {
+    const extras = Array.isArray(extraKey) ? extraKey : extraKey ? [extraKey] : []
+    if (extras.length === 1) matrix.push({ text: ZERO, type: '', wider: true }, { text: extras[0], type: 'extra' })
+    else if (extras.length >= 2) matrix.push({ text: extras[0], type: 'extra' }, { text: ZERO, type: '' }, { text: extras[1], type: 'extra' })
+    else matrix.push({ text: ZERO, type: '' })
+    return matrix
+  }
+  const normalizedExtra = Array.isArray(extraKey) ? extraKey[0] ?? '' : extraKey ?? ''
+  matrix.push({ text: normalizedExtra, type: 'extra' }, { text: ZERO, type: '' }, { type: showDeleteKey ? 'delete' : '', text: showDeleteKey ? undefined : '' })
+  return matrix
+}
+
+const registry = new Set<() => void>()
+type KEnt = { key: NumberKeyboardKey; index: number }
 
 const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const { visible, title, tokensOverride, theme = 'default', extraKey, randomKeyOrder, showDeleteKey = true, closeButtonText, deleteButtonText, closeButtonLoading, onChange, onInput, onDelete, onClose, onBlur, onHide, onShow, value: _v, defaultValue: _dv, maxlength: maxlengthProp, blurOnClose = true, safeAreaInsetBottom = true, transition = true, transitionDuration = 300, numberKeyRender, deleteRender, extraKeyRender, style, ...rest } = props
@@ -34,11 +61,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
   const prevVis = useRef(visible)
   useEffect(() => { if (visible && !prevVis.current) onShowRef.current?.(); if (!visible && prevVis.current) onHideRef.current?.(); prevVis.current = visible }, [visible])
   useEffect(() => { if (visible) { registry.add(handleClose); registry.forEach(fn => { if (fn !== handleClose) fn() }) } else registry.delete(handleClose); return () => { registry.delete(handleClose) } }, [visible, handleClose])
-  const keys = useMemo(() => {
-    const sh = randomKeyOrder && visible; const nK = sh ? shuffle(NUM_KEYS) : NUM_KEYS; const mat: Key[] = nK.map(t => ({ text: t, type: '' }))
-    if (isCustom) { const e = Array.isArray(extraKey) ? extraKey : extraKey ? [extraKey] : []; if (e.length === 1) mat.push({ text: ZERO, type: '', wider: true }, { text: e[0], type: 'extra' }); else if (e.length >= 2) mat.push({ text: e[0], type: 'extra' }, { text: ZERO, type: '' }, { text: e[1], type: 'extra' }); else mat.push({ text: ZERO, type: '' }); return mat }
-    const nE = Array.isArray(extraKey) ? extraKey[0] ?? '' : extraKey ?? ''; mat.push({ text: nE, type: 'extra' }, { text: ZERO, type: '' }, { type: showDeleteKey ? 'delete' : '', text: showDeleteKey ? undefined : '' }); return mat
-  }, [extraKey, isCustom, randomKeyOrder, showDeleteKey, visible])
+  const keys = useMemo(() => buildKeyboardKeys({ randomKeyOrder, visible, isCustom, extraKey, showDeleteKey }), [extraKey, isCustom, randomKeyOrder, showDeleteKey, visible])
   const handleInput = useCallback((text?: string, type?: NumberKeyboardKeyType) => {
     if (type === 'delete') { const c = valRef.current; if (!c) return; onDelRef.current?.(); setValue(c.slice(0, -1)); return }
     if (type === 'close' || (type === 'extra' && !text)) { handleClose(); return }; if (!text) return
@@ -46,7 +69,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     onInpRef.current?.(text); setValue(`${c}${text}`)
   }, [handleClose, setValue])
   const winShadow = useMemo(() => createPlatformShadow(shadow), [shadow.color, shadow.elevation, shadow.offsetY, shadow.opacity, shadow.radius])
-  const renderKey = useCallback((key: Key, index: number, isClose = false, fullW = false, customH?: number) => {
+  const renderKey = useCallback((key: NumberKeyboardKey, index: number, isClose = false, fullW = false, customH?: number) => {
     const kt = key.type; const isPh = kt === '' && !key.text; const dis = isPh || (isClose && closeButtonLoading); const onP = dis ? undefined : () => handleInput(key.text, kt)
     const bg = isClose ? colors.closeBackground : colors.keyBackground; const aBg = isClose ? colors.closeActiveBackground : colors.keyActiveBackground
     const tInact = isClose ? colors.closeText : colors.keyText; const tPress = isClose ? colors.closeText : colors.keyTextActive
@@ -74,7 +97,7 @@ const NumberKeyboard = React.memo((props: NumberKeyboardProps) => {
     return { headerNode: hN, bodyNode: bN, safeAreaNode: safeAreaInsetBottom && <SafeAreaView edge="bottom" /> }
   }, [handleClose, colors.title, dblH, hasHdr, isCustom, keys, renderKey, closeTxt, safeAreaInsetBottom, sizing.auxFontSize, sizing.fontSize, sizing.titleFontSize, spacing.keyGap, spacing.paddingHorizontal, spacing.titlePadding, typography.fontFamily, title, showDeleteKey])
   if (!shouldRender && !visible) return null
-  return <Portal><Animated.View {...rest} pointerEvents={visible ? 'auto' : 'none'} renderToHardwareTextureAndroid shouldRasterizeIOS onLayout={onLayout} style={[S.wrap, winShadow, style, { transform: [{ translateY }], backgroundColor: colors.background }]}>{memoized.headerNode}{memoized.bodyNode}{memoized.safeAreaNode}</Animated.View></Portal>
+  return <Portal><Animated.View {...rest} renderToHardwareTextureAndroid shouldRasterizeIOS onLayout={onLayout} style={[S.wrap, winShadow, style, { transform: [{ translateY }], backgroundColor: colors.background, pointerEvents: visible ? 'auto' : 'none' }]}>{memoized.headerNode}{memoized.bodyNode}{memoized.safeAreaNode}</Animated.View></Portal>
 })
 
 const S = StyleSheet.create({ wrap: { position: 'absolute', left: 0, right: 0, bottom: 0 }, hdr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', height: 44, position: 'relative' }, tBold: { fontWeight: '600' }, tCenter: { position: 'absolute', left: 12, right: 12, textAlign: 'center' }, hdrClose: { minWidth: 56, alignItems: 'flex-end' }, k: { justifyContent: 'center', alignItems: 'center' }, kTxt: { includeFontPadding: false, textAlign: 'center' }, dRow: { flexDirection: 'row', flexWrap: 'wrap' }, cRow: { flexDirection: 'row' }, cMat: { flex: 3, flexDirection: 'row', flexWrap: 'wrap' }, cSide: { flex: 1, flexDirection: 'column', justifyContent: 'flex-start' } })

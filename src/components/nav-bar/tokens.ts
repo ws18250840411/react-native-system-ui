@@ -1,89 +1,29 @@
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import { type Foundations } from '../../design-system/tokens'
 import type { NavBarTokens } from './types'
-
-export const createNavBarTokens = ({
-  palette,
-  spacing,
-  fontSize,
-  typography,
-}: Foundations): NavBarTokens => {
+export const createNavBarTokens = (foundations: Foundations): NavBarTokens => {
+  const { palette, spacing, fontSize, typography } = foundations
+  const surface = foundations.surface ?? '#ffffff'
   return {
-    defaults: {
-      fixed: false,
-      placeholder: false,
-      border: true,
-      safeAreaInsetTop: false,
-      leftArrow: false,
-      zIndex: 1,
-    },
+    defaults: { fixed: false, placeholder: false, border: true, safeAreaInsetTop: false, leftArrow: false, zIndex: 1, },
     layout: {
-      container: {
-        width: '100%',
-      },
-      bar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        minHeight: 48,
-        paddingHorizontal: spacing.md,
-      },
-      center: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 12,
-      },
-      side: {
-        minWidth: 60,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-      },
-      rightAlign: {
-        justifyContent: 'flex-end',
-      },
-      sidePlaceholder: {
-        minWidth: 60,
-      },
-      sideText: {
-        fontSize: 16,
-      },
-      titleWrapper: {
-        alignItems: 'center',
-      },
-      title: {
-        includeFontPadding: false,
-      },
-      description: {
-        marginTop: 2,
-        includeFontPadding: false,
-      },
-      fixed: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-      },
+      container: { width: '100%', },
+      bar: { flexDirection: 'row', alignItems: 'center', minHeight: 48, paddingHorizontal: spacing.md, },
+      center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, },
+      side: { minWidth: 60, flexDirection: 'row', alignItems: 'center', gap: 4, },
+      rightAlign: { justifyContent: 'flex-end', },
+      sidePlaceholder: { minWidth: 60, },
+      sideText: { fontSize: 16, },
+      titleWrapper: { alignItems: 'center', },
+      title: { includeFontPadding: false, },
+      description: { marginTop: 2, includeFontPadding: false, },
+      fixed: { position: 'absolute', top: 0, left: 0, right: 0, },
     },
-    colors: {
-      background: '#ffffff',
-      text: palette.default[900],
-      description: palette.default[500],
-      border: palette.default[200],
-      icon: palette.default[700],
-    },
-    typography: {
-      fontFamily: typography.fontFamily,
-      titleSize: fontSize.lg,
-      titleWeight: '600',
-      descriptionSize: fontSize.sm,
-    },
-    sizing: {
-      height: 52,
-    },
+    colors: { background: surface, text: palette.default[900], description: palette.default[500], border: palette.default[200], icon: palette.default[700], },
+    typography: { fontFamily: typography.fontFamily, titleSize: fontSize.lg, titleWeight: '600', descriptionSize: fontSize.sm, },
+    sizing: { height: 52, },
   }
 }
-
 export const useNavBarTokens = createComponentTokensHook(
   'navBar',
   createNavBarTokens

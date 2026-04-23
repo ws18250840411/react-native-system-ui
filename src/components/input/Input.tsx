@@ -1,6 +1,6 @@
 import React, { useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 import type { TextInputProps } from 'react-native'
-import { isBoolean, isFiniteNumber } from '../../utils/validate'
+import { isBoolean, isFiniteNumber } from '../../utils/base'
 import Field from '../field'
 import { useFieldTokens } from '../field/tokens'
 import type { FieldAutosizeConfig, FieldInstance } from '../field/types'

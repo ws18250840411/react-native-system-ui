@@ -109,6 +109,7 @@ import FlexDemoDirection from '../../docs/components/flex/demo/direction'
 import FlexDemoGutter from '../../docs/components/flex/demo/gutter'
 import FormDemoBasic from '../../docs/components/form/demo/basic'
 import FormDemoCustom from '../../docs/components/form/demo/custom'
+import FormDemoErrorPosition from '../../docs/components/form/demo/error-position'
 import FormDemoList from '../../docs/components/form/demo/list'
 import FormDemoPopup from '../../docs/components/form/demo/popup'
 import FormDemoRules from '../../docs/components/form/demo/rules'
@@ -142,6 +143,7 @@ import ImageDemoRound from '../../docs/components/image/demo/round'
 import InputDemoAlign from '../../docs/components/input/demo/align'
 import InputDemoBasic from '../../docs/components/input/demo/basic'
 import InputDemoClearable from '../../docs/components/input/demo/clearable'
+import InputDemoErrorPosition from '../../docs/components/input/demo/error-position'
 import InputDemoSlots from '../../docs/components/input/demo/slots'
 import InputDemoStatus from '../../docs/components/input/demo/status'
 import InputDemoTextarea from '../../docs/components/input/demo/textarea'
@@ -969,6 +971,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         Component: FormDemoRules,
       },
       {
+        id: "error-position",
+        title: "错误提示外部展示",
+        Component: FormDemoErrorPosition,
+      },
+      {
         id: "type",
         title: "表单项类型",
         Component: FormDemoType,
@@ -1042,6 +1049,11 @@ export const componentRegistry: Record<string, ComponentEntry> = {
         id: "status",
         title: "输入框状态",
         Component: InputDemoStatus,
+      },
+      {
+        id: "error-position",
+        title: "错误提示位置",
+        Component: InputDemoErrorPosition,
       },
     ],
   },

@@ -1,8 +1,6 @@
 import type { ViewStyle, TextStyle } from 'react-native'
-
-import { createComponentTokensHook } from '../../design-system'
+import { createComponentTokensHook } from '../../design-system/createComponentTokensHook'
 import { type Foundations } from '../../design-system/tokens'
-
 export interface PopupTokens {
   colors: {
     overlay: string
@@ -47,54 +45,16 @@ export interface PopupTokens {
     sideWidth: ViewStyle['width']
   }
 }
-
 export const createPopupTokens = (foundations: Foundations): PopupTokens => {
   const { palette, spacing, radii, fontSize, typography } = foundations
-
+  const surface = foundations.surface ?? '#ffffff'
   return {
-    colors: {
-      overlay: 'rgba(0,0,0,0.5)',
-      background: '#ffffff',
-      title: palette.default[900],
-      description: palette.default[500],
-      closeIcon: palette.default[300],
-    },
-    radius: {
-      round: radii.lg,
-      shadow: 18,
-    },
-    spacing: {
-      padding: spacing.lg,
-      titleTop: spacing.xl,
-      titleBottom: spacing.md,
-      descriptionHorizontal: spacing.xl,
-      descriptionBottom: spacing.md,
-      closeIconTop: spacing.md,
-      closeIconRight: spacing.md,
-      closeIconSize: 36,
-      closeIconPadding: spacing.ssm,
-    },
-    typography: {
-      fontFamily: typography.fontFamily,
-      titleSize: fontSize.md,
-      titleWeight: typography.weight.medium,
-      descriptionSize: fontSize.sm,
-      descriptionLineHeight: 20,
-    },
-    shadow: {
-      color: 'rgba(0,0,0,0.25)',
-      opacity: 0.35,
-      radius: 18,
-      offsetY: 8,
-      elevation: 24,
-    },
-    layout: {
-      maxWidth: 420,
-      minWidth: 260,
-      centerMaxWidth: 360,
-      sideWidth: '80%',
-    },
+    colors: { overlay: 'rgba(0,0,0,0.5)', background: surface, title: palette.default[900], description: palette.default[500], closeIcon: palette.default[300], },
+    radius: { round: radii.lg, shadow: 18, },
+    spacing: { padding: spacing.lg, titleTop: spacing.xl, titleBottom: spacing.md, descriptionHorizontal: spacing.xl, descriptionBottom: spacing.md, closeIconTop: spacing.md, closeIconRight: spacing.md, closeIconSize: 36, closeIconPadding: spacing.ssm, },
+    typography: { fontFamily: typography.fontFamily, titleSize: fontSize.md, titleWeight: typography.weight.medium, descriptionSize: fontSize.sm, descriptionLineHeight: 20, },
+    shadow: { color: 'rgba(0,0,0,0.25)', opacity: 0.35, radius: 18, offsetY: 8, elevation: 24, },
+    layout: { maxWidth: 420, minWidth: 260, centerMaxWidth: 360, sideWidth: '80%', },
   }
 }
-
 export const usePopupTokens = createComponentTokensHook('popup', createPopupTokens)

@@ -3,11 +3,8 @@ import renderer from 'react-test-renderer'
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text } from 'react-native'
 
 import Button from '..'
-import {
-  ThemeProvider,
-  defaultTokens,
-  type ThemeProviderProps,
-} from '../../../design-system'
+import { ThemeProvider, type ThemeProviderProps } from '../../../design-system/ThemeProvider'
+import { defaultTokens } from '../../../design-system/tokens'
 
 const renderWithProvider = (
   ui: React.ReactElement,

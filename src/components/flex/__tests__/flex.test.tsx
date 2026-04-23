@@ -20,10 +20,10 @@ describe('Flex', () => {
       </Flex>
     )
 
-    const views = tree.root.findAllByType(View)
-    const itemViews = views.slice(1)
-    const style = StyleSheet.flatten(itemViews[0].props.style)
-    expect(style.paddingHorizontal).toBe(8)
+    const container = tree.root.findAllByType(View)[0]
+    const style = StyleSheet.flatten(container.props.style)
+    expect(style.columnGap).toBe(16)
+    expect(style.rowGap).toBeUndefined()
 
     Object.defineProperty(Platform, 'OS', { get: () => originalOS, configurable: true })
   })

@@ -10,10 +10,12 @@ pnpm add react-native-system-ui react-native-svg
 yarn add react-native-system-ui react-native-svg
 
 # 如需在业务中直接使用图标组件（可 Tree Shaking）
-pnpm add react-native-system-icon
+pnpm add react-native-system-icon react-native-svg
 # 或者
-yarn add react-native-system-icon
+yarn add react-native-system-icon react-native-svg
 ```
+
+> `react-native-svg` 为 peerDependency，需要在宿主工程中显式安装。
 
 前置要求：宿主工程已安装 `react@>=18.2.0`、`react-native@>=0.79`。
 
@@ -141,28 +143,42 @@ export const App = ({ children }: { children: React.ReactNode }) => (
 
 ## NativeWind（Tailwind CSS）支持
 
-如果项目使用了 [NativeWind](https://www.nativewind.dev/)，可一键为所有组件开启 `className` 支持，无需逐个注册：
+如果项目使用了 [NativeWind](https://www.nativewind.dev/)，可一键为所有组件开启 `className` 支持，无需逐个注册。
+
+### 在入口文件中启用
+
+在应用入口文件（如 `index.js` 或 `App.tsx`）**顶部**添加以下代码，确保在任何组件渲染之前执行：
 
 ```tsx | pure
+// index.js（或 App.tsx）
 import { cssInterop } from 'nativewind'
 import { enableNativeWind } from 'react-native-system-ui/nativewind'
 
+// 一次调用，为所有组件注册 className 支持
 enableNativeWind(cssInterop)
+
+// ... 其余入口代码
+import { AppRegistry } from 'react-native'
+import App from './App'
+import { name as appName } from './app.json'
+
+AppRegistry.registerComponent(appName, () => App)
 ```
 
-在应用入口文件顶部调用即可，iOS / Android / Web 三端统一生效。之后所有组件均可使用 `className`：
+启用后，iOS / Android / Web 三端统一生效，所有组件均可使用 `className`：
 
 ```tsx | pure
 <Button className="mt-4 rounded-lg" text="Tailwind 按钮" type="primary" />
 ```
 
-**说明：**
+### 说明
 
 - `enableNativeWind` 会自动遍历组件库导出，将所有 React 组件注册 `className → style` 映射，组件库新增/删除组件时无需改动应用侧代码。
 - 当前仅映射 `className → style`，如需扩展其他 prop 映射（如 `contentContainerClassName`），可通过 `cssInterop` 对单个组件自行注册。
 - 若自引用导入在特殊环境下不可用，可手动传入模块对象作为降级：
 
 ```tsx | pure
+// index.js
 import * as SystemUI from 'react-native-system-ui'
 import { cssInterop } from 'nativewind'
 import { enableNativeWind } from 'react-native-system-ui/nativewind'
